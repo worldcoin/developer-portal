@@ -304,20 +304,21 @@ describe("/api/v4/rp-status [production signer verification]", () => {
     });
   });
 
-  it("times out a managed RP wedged pending by a foreign on-chain signer once past grace", async () => {
+  it("times out a managed RP wedged pending by a foreign on-chain signer once the UserOp window elapses", async () => {
     // Foreign takeover of the rp_id: the row is still `pending` (the Portal's
     // registration never completed) but on-chain it's initialized+active under a
-    // signer we don't recognize. It can never become a trusted `registered`, so
-    // past the grace period it must flip to `failed` — otherwise the dashboard
-    // polls forever with no retry path. updated_at is old (no rotation in flight).
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    // signer we don't recognize. It can never become a trusted `registered`, and
+    // enough time has passed since the last write (> UserOp validity + margin)
+    // that any in-flight op is provably dead, so it must flip to `failed` —
+    // otherwise the dashboard polls forever with no retry path.
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
     GetRpRegistration.mockResolvedValue({
       rp_registration_by_pk: makeDbRecord({
         status: "pending",
         mode: "managed",
         signer_address: "0xExpectedSigner",
-        created_at: tenMinutesAgo,
-        updated_at: tenMinutesAgo,
+        created_at: fortyMinutesAgo,
+        updated_at: fortyMinutesAgo,
       }),
     });
 
@@ -349,20 +350,21 @@ describe("/api/v4/rp-status [production signer verification]", () => {
     });
   });
 
-  it("does not time out a signer rotation in flight (recent updated_at) despite the mismatch", async () => {
-    // Rotation just submitted: status=pending, DB signer already the NEW key,
-    // on-chain still the OLD key (tx not yet mined) → signer mismatch. The row
-    // was created long ago but updated_at is recent, so it must stay `pending`
-    // and resolve to `registered` once the tx lands — not be prematurely failed.
+  it("does not fail a signer rotation still within its UserOp validity window", async () => {
+    // Rotation submitted ~10 min ago: status=pending, DB signer already the NEW
+    // key, on-chain still the OLD key (op not yet mined) → signer mismatch. This
+    // is past the short 5-min grace but well within the 30-min UserOp validity
+    // window, so the op can still land — the row must stay `pending`, NOT be
+    // failed (which would then be cached for an hour over a trusted registered).
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-    const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000).toISOString();
     GetRpRegistration.mockResolvedValue({
       rp_registration_by_pk: makeDbRecord({
         status: "pending",
         mode: "managed",
         signer_address: "0xNewSigner",
-        created_at: tenMinutesAgo,
-        updated_at: oneMinuteAgo,
+        created_at: fortyMinutesAgo,
+        updated_at: tenMinutesAgo,
       }),
     });
 
