@@ -8,6 +8,22 @@ afterEach(() => {
 });
 
 describe("isPortalV3EnabledForEmail", () => {
+  it("enables the hardcoded email domains without environment configuration", () => {
+    delete process.env.LOCAL_DEV_PORTAL_V3_ENABLED;
+    delete process.env.PORTAL_V3_EMAILS;
+
+    expect(isPortalV3EnabledForEmail("developer@toolsforhumanity.com")).toBe(
+      true,
+    );
+    expect(isPortalV3EnabledForEmail("DEVELOPER@TOOLSFORHUMANITY.COM")).toBe(
+      true,
+    );
+    expect(isPortalV3EnabledForEmail("developer@example.com")).toBe(false);
+    expect(isPortalV3EnabledForEmail("developer@nottoolsforhumanity.com")).toBe(
+      false,
+    );
+  });
+
   it("enables allow-listed emails only", () => {
     delete process.env.LOCAL_DEV_PORTAL_V3_ENABLED;
     process.env.PORTAL_V3_EMAILS = "ada@example.com";
