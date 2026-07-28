@@ -1,7 +1,6 @@
 "use client";
 import { Dropdown } from "@/components/Dropdown";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { formatDistanceToNowStrict } from "date-fns";
 import { FetchKeysQuery } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 
@@ -13,7 +12,6 @@ import { Auth0SessionUser } from "@/lib/types";
 import { CombinedGraphQLErrors } from "@apollo/client";
 import { useMutation } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import clsx from "clsx";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { ApiKeySecretModal } from "../../ApiKeySecretModal";
@@ -119,68 +117,41 @@ export const ApiKeyRow = (props: {
       />
 
       <div
-        className={clsx(
-          "max-md:grid max-md:grid-cols-[max-content_auto_auto_max-content] max-md:items-center max-md:gap-x-3 max-md:gap-y-1 max-md:rounded-2xl max-md:border max-md:border-grey-100 max-md:px-5 max-md:py-4 md:table-row",
-        )}
+        data-row-index={index}
+        className="grid min-h-16 grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-b border-grey-100 px-5 py-3 last:border-b-0"
       >
-        <div
-          key={`api_key_${index}_1`}
-          className="group max-md:col-start-2 max-md:col-end-3 max-md:row-start-1 max-md:row-end-2 md:table-cell md:border-b md:border-grey-200 md:py-4 md:pr-4 md:pl-2"
-        >
-          <div className="grid">
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              as="div"
-              className="truncate md:leading-6!"
-            >
-              {apiKey.name}
-            </Typography>
+        <div className="min-w-0">
+          <div className="truncate font-world text-13 leading-5 font-medium text-grey-900">
+            {apiKey.name}
+          </div>
+
+          <div className="flex min-w-0 items-center font-gta text-12 leading-4 text-grey-400">
+            <span className="truncate">Created {timeAgo}</span>
+            <span className="shrink-0">&nbsp;·&nbsp;</span>
+            {isEnoughPermissions ? (
+              <button
+                type="button"
+                onClick={() => setRotateOpen(true)}
+                className="shrink-0 underline underline-offset-2 transition-colors hover:text-grey-700 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
+              >
+                Reset to view
+              </button>
+            ) : (
+              <span className="shrink-0 underline underline-offset-2">
+                Reset to view
+              </span>
+            )}
           </div>
         </div>
 
-        <div
-          className="group max-md:col-start-3 max-md:col-end-4 max-md:row-start-1 max-md:row-end-3 max-md:text-end md:table-cell md:border-b md:border-grey-200 md:pr-4"
-          key={`api_key${index}_2`}
-        >
-          <div className="inline-grid max-md:pl-8">
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              as="div"
-              className="truncate md:leading-6!"
-            >
-              Reset to view
-            </Typography>
-          </div>
+        <div className="flex">
+          <Status isActive={apiKey.is_active} />
         </div>
 
-        <div
-          key={`api_key_${index}_3`}
-          className="text-grey-500 max-md:col-start-2 max-md:col-end-3 max-md:row-start-2 max-md:row-end-3 max-md:table-cell md:table-cell md:border-b md:border-grey-200 md:pr-4"
-        >
-          <div className="grid">
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              as="div"
-              className="max-md:truncate md:leading-6! md:whitespace-nowrap"
-            >
-              {timeAgo}
-            </Typography>
-          </div>
-        </div>
-
-        <div
-          key={`api_key_${index}_4`}
-          className="text-grey-500 max-md:col-start-1 max-md:col-end-2 max-md:row-start-1 max-md:row-end-3 max-md:table-cell md:table-cell md:border-b md:border-grey-200 md:pr-4 md:align-middle"
-        >
-          <Typography variant={TYPOGRAPHY.R4}>
-            <Status isActive={apiKey.is_active} />
-          </Typography>
-        </div>
-
-        <div className="max-md:col-start-4 max-md:col-end-5 max-md:row-start-1 max-md:row-end-3 max-md:pl-2 md:table-cell md:border-b md:border-grey-200 md:pr-2 md:pl-4 md:align-middle">
+        <div className="flex justify-end">
           {/* Every item here is OWNER-only in Hasura; don't ship dead DOM. */}
           {isEnoughPermissions ? (
-            <div key={`api_key_${index}_5`} className="flex w-full justify-end">
+            <div className="flex w-full justify-end">
               <Dropdown>
                 <Dropdown.Button>
                   <MoreVerticalIcon />

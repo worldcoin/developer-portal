@@ -37,69 +37,42 @@ export const Item = (props: ItemProps) => {
     "Anonymous User";
 
   return (
-    <div
-      className={clsx(
-        "max-md:mt-2 max-md:grid max-md:grid-cols-[max-content_auto_max-content] max-md:items-center max-md:rounded-2xl max-md:border max-md:border-grey-100 md:contents",
-        {
-          "max-md:order-1": isInviteRow,
-          "max-md:order-2": !isInviteRow,
-        },
-      )}
-    >
-      <div className="p-4 md:pl-2">
+    <div className="grid min-h-16 grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-b border-grey-100 px-5 py-3 last:border-b-0">
+      <div className="flex min-w-0 items-center gap-3">
         {!item ? (
-          <Skeleton className="size-12 leading-normal" circle inline />
+          <Skeleton className="size-8 leading-normal" circle inline />
         ) : (
-          <UserLogo src={""} name={name} />
+          <UserLogo src={""} name={name} className="size-8" />
+        )}
+
+        <div className="min-w-0">
+          <Typography
+            variant={TYPOGRAPHY.S3}
+            className="block max-w-full truncate text-13 text-grey-900"
+          >
+            {!item ? <Skeleton width={120} inline /> : name}
+          </Typography>
+
+          <Typography
+            variant={TYPOGRAPHY.R5}
+            className="mt-0.5 block max-w-full truncate text-grey-400"
+          >
+            {!item ? <Skeleton width={100} inline /> : item.user?.email ?? ""}
+          </Typography>
+        </div>
+      </div>
+
+      <div className="flex">
+        {!item ? (
+          <Skeleton width={60} height={24} borderRadius={999} />
+        ) : (
+          <span className="rounded-full border border-grey-200 px-2.5 py-1 font-world text-12 leading-4 font-medium text-grey-500">
+            {roleName[item.role]}
+          </span>
         )}
       </div>
 
-      <div className="grid gap-y-0.5">
-        <Typography
-          variant={TYPOGRAPHY.R3}
-          className="max-w-full truncate text-grey-900"
-        >
-          {!item ? <Skeleton width={200} inline /> : name}
-        </Typography>
-
-        <Typography
-          variant={TYPOGRAPHY.R4}
-          className="inline-grid grid-cols-[auto_1fr] text-grey-500"
-        >
-          {!item ? (
-            <Skeleton width={150} inline />
-          ) : (
-            <>
-              <div className="md:hidden">
-                {roleName[item.role]}&nbsp;•&nbsp;
-              </div>
-
-              <div className="truncate">{item.user?.email ?? ""}</div>
-            </>
-          )}
-        </Typography>
-      </div>
-
-      <div className="flex pr-4 text-grey-500 max-md:hidden">
-        <Typography variant={TYPOGRAPHY.R4}>
-          {!item ? <Skeleton width={100} inline /> : roleName[item.role]}
-        </Typography>
-      </div>
-
-      <div className="flex pr-4 max-md:hidden">
-        {isInviteRow && (
-          <div className="mx-2 rounded-full bg-system-warning-100 px-3 py-1 text-center">
-            <Typography
-              variant={TYPOGRAPHY.S3}
-              className="text-system-warning-500"
-            >
-              Pending invite
-            </Typography>
-          </div>
-        )}
-      </div>
-
-      <div className="pr-2 max-md:pr-4">
+      <div className="flex justify-end">
         {!item ? (
           <div className="flex size-8 items-center justify-center">
             <MoreVerticalIcon className="text-grey-400" />
@@ -172,8 +145,6 @@ export const Item = (props: ItemProps) => {
           </Dropdown>
         )}
       </div>
-
-      <hr className="col-span-full border-grey-100 max-md:hidden" />
     </div>
   );
 };
