@@ -38,21 +38,10 @@ jest.mock("next/navigation", () => ({
   useParams: () => ({ teamId: "team_1" }),
   useRouter: () => ({ refresh: jest.fn(), replace: jest.fn() }),
 }));
-jest.mock("posthog-js", () => ({
-  __esModule: true,
-  default: { capture: jest.fn() },
-}));
 jest.mock("react-toastify", () => ({
   toast: { error: jest.fn(), success: jest.fn() },
 }));
 jest.mock("@/lib/errors", () => ({ getGraphQLErrorCode: jest.fn() }));
-jest.mock("@/lib/use-refetch-queries", () => ({
-  useRefetchQueries: () => ({ refetch: jest.fn() }),
-}));
-jest.mock("@/scenes/common/layout/CreateAppDialog/server/v4/submit", () => ({
-  validateAndInsertAppServerSideV4: jest.fn(),
-}));
-
 jest.mock("@/components/Dialog", () => ({
   Dialog: ({ children, open }: React.PropsWithChildren<{ open: boolean }>) =>
     open ? <div role="dialog">{children}</div> : null,
@@ -89,8 +78,8 @@ jest.mock(
   () => ({ UseExistingKeyContent: mockExistingKeyStep }),
 );
 
-import { CreateAppDialogV4 as PortalDialog } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
-import { CreateAppDialogV4 as PortalV3Dialog } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
+import { EnableWorldIdDialog as PortalDialog } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/EnableWorldId40/Dialog";
+import { EnableWorldIdDialog as PortalV3Dialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/EnableWorldId40/Dialog";
 
 const cases = [
   ["Portal", "generate", PortalDialog],
@@ -116,7 +105,6 @@ it.each(cases)(
       <Suspense fallback={<div data-testid="outer-loading" />}>
         <DialogComponent
           appId="app_00000000000000000000000000000000"
-          initialStep="enable-world-id-4-0"
           onClose={jest.fn()}
           open
         />

@@ -6,17 +6,12 @@ import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
+import { useCreateAppDialog } from "@/scenes/common/layout/CreateAppDialog/useCreateAppDialog";
 import { useLazyQuery } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import dynamic from "next/dynamic";
 import { ReactNode, useEffect, useRef, useState } from "react";
-
-const CreateAppDialogV4 = dynamic(() =>
-  import("@/scenes/PortalV3/layout/CreateAppDialog/index-v4").then(
-    (module) => module.CreateAppDialogV4,
-  ),
-);
 
 const CreateKeyModal = dynamic(
   () =>
@@ -70,9 +65,7 @@ export const AppsPageClient = (props: {
   teamId: string;
   initialIsOwner?: boolean;
 }) => {
-  const [createAppOpen, setCreateAppOpen] = useState(false);
-  // Keep mounted after first open to preserve transitions and state.
-  const [dialogMounted, setDialogMounted] = useState(false);
+  const { open: openCreateAppDialog } = useCreateAppDialog();
   const [createKeyOpen, setCreateKeyOpen] = useState(false);
   const [keyDialogMounted, setKeyDialogMounted] = useState(false);
   const { user } = useUser() as Auth0SessionUser;
@@ -109,7 +102,7 @@ export const AppsPageClient = (props: {
       const appId = result?.data?.app?.[0]?.id;
       if (!appId) return;
 
-      // Hard nav on purpose (CreateAppDialogV4 precedent): re-renders the
+      // Hard nav on purpose, matching app creation: re-renders the
       // session-rendered shell and keeps routing server-owned.
       window.location.replace(`/teams/${props.teamId}/apps/${appId}`);
     };
@@ -138,10 +131,6 @@ export const AppsPageClient = (props: {
 
   return (
     <>
-      {dialogMounted ? (
-        <CreateAppDialogV4 open={createAppOpen} onClose={setCreateAppOpen} />
-      ) : null}
-
       {keyDialogMounted ? (
         <CreateKeyModal
           teamId={props.teamId}
@@ -174,10 +163,7 @@ export const AppsPageClient = (props: {
           >
             <Button
               type="button"
-              onClick={() => {
-                setDialogMounted(true);
-                setCreateAppOpen(true);
-              }}
+              onClick={openCreateAppDialog}
               className={actionButtonClassName}
               data-testid="button-create-new-app"
             >

@@ -17,7 +17,9 @@ test.describe("App", () => {
     await expect(page.getByText("Let's create your first app.")).toBeVisible();
     await page.getByTestId("button-create-new-app").click();
 
-    await expect(page.getByText("Setup your app")).toBeVisible({
+    await expect(
+      page.getByRole("heading", { name: "Create a new app" }),
+    ).toBeVisible({
       timeout: 90_000,
     });
     await expect(page.getByTestId("button-create-app")).toBeDisabled();

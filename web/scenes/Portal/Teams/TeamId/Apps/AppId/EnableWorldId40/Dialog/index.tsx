@@ -1,61 +1,47 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog, DialogProps } from "@/components/Dialog";
 import { DialogPanel } from "@/components/DialogPanel";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { Input } from "@/components/Input";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getGraphQLErrorCode } from "@/lib/errors";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { RegisterRpDocument } from "@/scenes/common/layout/CreateAppDialog/client/register-rp.generated";
 import { useMutation } from "@apollo/client/react";
 import clsx from "clsx";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
-import posthog from "posthog-js";
-import { useCallback, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import {
   ConfigureSignerKeyContent,
   SignerKeySetup,
-} from "../../Teams/TeamId/Apps/AppId/ConfigureSignerKey/ConfigureSignerKeyContent";
-import { EnableWorldId40Content } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/EnableWorldId40Content";
-import { SelfManagedTransactionInfoContent } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/SelfManagedTransactionInfo/SelfManagedTransactionInfoContent";
-import { RegisterRpDocument } from "@/scenes/common/layout/CreateAppDialog/client/register-rp.generated";
-import {
-  createAppSchemaV4,
-  CreateAppSchemaV4,
-} from "@/scenes/common/layout/CreateAppDialog/form-schema-v4";
-import { validateAndInsertAppServerSideV4 } from "@/scenes/common/layout/CreateAppDialog/server/v4/submit";
+} from "../../ConfigureSignerKey/ConfigureSignerKeyContent";
+import { EnableWorldId40Content } from "../EnableWorldId40Content";
+import { SelfManagedTransactionInfoContent } from "../SelfManagedTransactionInfo/SelfManagedTransactionInfoContent";
 
 const GenerateNewKeyContent = dynamic(() =>
-  import(
-    "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent"
-  ).then((module) => module.GenerateNewKeyContent),
+  import("../../GenerateNewKey/GenerateNewKeyContent").then(
+    (module) => module.GenerateNewKeyContent,
+  ),
 );
 
 const UseExistingKeyContent = dynamic(() =>
-  import(
-    "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent"
-  ).then((module) => module.UseExistingKeyContent),
+  import("../../UseExistingKey/UseExistingKeyContent").then(
+    (module) => module.UseExistingKeyContent,
+  ),
 );
 
-type CreateDialogStep =
-  | "create"
+type EnableWorldIdDialogStep =
   | "enable-world-id-4-0"
   | "configure-signer-key"
   | "use-existing-key"
   | "generate-new-key"
   | "self-managed-transaction";
 
-const STEP_TITLES: Record<CreateDialogStep, string> = {
-  create: "Create a new app",
+const STEP_TITLES: Record<EnableWorldIdDialogStep, string> = {
   "enable-world-id-4-0": "Enable World ID 4.0",
   "configure-signer-key": "Enable World ID 4.0",
   "use-existing-key": "Enable World ID 4.0",
@@ -63,18 +49,14 @@ const STEP_TITLES: Record<CreateDialogStep, string> = {
   "self-managed-transaction": "Enable World ID 4.0",
 };
 
-type CreateAppDialogV4Props = DialogProps & {
-  /** Starting step - use "enable-world-id-4-0" for existing apps */
-  initialStep?: CreateDialogStep;
-  /** App ID for existing apps (required when initialStep is not "create") */
-  appId?: string;
+type EnableWorldIdDialogProps = DialogProps & {
+  appId: string;
 };
 
-export const CreateAppDialogV4 = ({
-  initialStep = "create",
-  appId: existingAppId,
+export const EnableWorldIdDialog = ({
+  appId,
   ...props
-}: CreateAppDialogV4Props) => {
+}: EnableWorldIdDialogProps) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
   // Self-Managed availability previously read the World ID 4.0 rollout flag,
@@ -83,16 +65,12 @@ export const CreateAppDialogV4 = ({
   // default), hardcoding true preserves the existing behavior — it is not a new
   // self-managed product change.
   const isSelfManagedEnabled = true;
-  const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
-    teamId: teamId,
-  });
 
   const [registerRp, { loading: registeringRp }] =
     useMutation(RegisterRpDocument);
 
-  const [step, setStep] = useState<CreateDialogStep>(initialStep);
-  const [createdAppId, setCreatedAppId] = useState<string | null>(
-    existingAppId ?? null,
+  const [step, setStep] = useState<EnableWorldIdDialogStep>(
+    "enable-world-id-4-0",
   );
   const [worldIdMode, setWorldIdMode] = useState<"managed" | "self-managed">(
     "managed",
@@ -100,85 +78,12 @@ export const CreateAppDialogV4 = ({
   const [signerKeySetup, setSignerKeySetup] =
     useState<SignerKeySetup>("generate");
 
-  const defaultValues: Partial<CreateAppSchemaV4> = useMemo(
-    () => ({
-      build: "production",
-      verification: "cloud",
-      is_miniapp: false,
-    }),
-    [],
-  );
-
-  const {
-    register,
-    formState: { isValid, errors, isSubmitting },
-    handleSubmit,
-    reset,
-  } = useForm<CreateAppSchemaV4>({
-    mode: "onChange",
-    resolver: yupResolver(createAppSchemaV4),
-    defaultValues,
-  });
-
-  const submit = useCallback(
-    async (values: CreateAppSchemaV4) => {
-      if (!teamId) {
-        return toast.error("Failed to create app");
-      }
-      const result = await validateAndInsertAppServerSideV4(values, teamId);
-      if (!result.success) {
-        toast.error(result.message);
-        posthog.capture("app_creation_failed", {
-          team_id: teamId,
-          environment: values.build,
-          engine: values.verification,
-          error: result?.error,
-        });
-        return;
-      }
-      // Navigate using the id the server action returns — NOT a guess derived
-      // from refetchApps(). On staging the user-facing read can lag the insert
-      // (replica/cache), so the refetch-and-sort approach returned a stale list
-      // and left users stranded on a stale apps page with no redirect/refresh.
-      const newAppId =
-        typeof result.app_id === "string" ? result.app_id : undefined;
-
-      // Keep the client-side app list (AppSelector) fresh, but do not gate
-      // navigation on it.
-      await refetchApps();
-
-      posthog.capture("app_creation_successful", {
-        team_id: teamId,
-        app_id: newAppId,
-        environment: values.build,
-        engine: values.verification,
-      });
-
-      // App creation is decoupled from World ID 4.0 onboarding: send the user
-      // straight to the new app's dashboard. World ID 4.0 setup is launched
-      // later, on demand, from the World ID tab — not automatically here.
-      reset(defaultValues);
-      props.onClose(false);
-      // Always navigate + refresh. Fall back to the apps index (which
-      // server-redirects to an existing app) so the user is never stranded if
-      // the id is somehow missing.
-      if (newAppId) {
-        window.location.replace(`/teams/${teamId}/apps/${newAppId}`);
-      } else {
-        window.location.replace(`/teams/${teamId}`);
-      }
-    },
-    [defaultValues, refetchApps, reset, teamId, props, router],
-  );
-
   const onClose = useCallback(() => {
-    reset(defaultValues);
-    setStep(initialStep);
-    setCreatedAppId(existingAppId ?? null);
+    setStep("enable-world-id-4-0");
     setWorldIdMode("managed");
     setSignerKeySetup("generate");
     props.onClose(false);
-  }, [defaultValues, props, reset, initialStep, existingAppId]);
+  }, [props]);
 
   const onEnableContinue = useCallback(
     (mode: "managed" | "self-managed") => {
@@ -195,7 +100,7 @@ export const CreateAppDialogV4 = ({
   );
 
   const onSelfManagedComplete = useCallback(async () => {
-    if (!teamId || !createdAppId) {
+    if (!teamId) {
       toast.error("Unable to complete setup. Please close and try again.");
       return;
     }
@@ -203,7 +108,7 @@ export const CreateAppDialogV4 = ({
     try {
       const { data } = await registerRp({
         variables: {
-          app_id: createdAppId,
+          app_id: appId,
           mode: "self_managed",
           signer_address: null,
         },
@@ -220,7 +125,7 @@ export const CreateAppDialogV4 = ({
       }
 
       toast.success("App configured successfully");
-      const redirect = `/teams/${teamId}/apps/${createdAppId}`;
+      const redirect = `/teams/${teamId}/apps/${appId}`;
       router.replace(redirect);
       router.refresh();
       onClose();
@@ -230,7 +135,7 @@ export const CreateAppDialogV4 = ({
       if (code === "already_registered") {
         // Idempotent — treat as success
         toast.success("App configured successfully");
-        const redirect = `/teams/${teamId}/apps/${createdAppId}`;
+        const redirect = `/teams/${teamId}/apps/${appId}`;
         router.replace(redirect);
         router.refresh();
         onClose();
@@ -239,7 +144,7 @@ export const CreateAppDialogV4 = ({
 
       toast.error("Failed to create registration record");
     }
-  }, [teamId, createdAppId, registerRp, router, onClose]);
+  }, [teamId, registerRp, appId, router, onClose]);
 
   const onConfigureBack = useCallback(() => {
     setStep("enable-world-id-4-0");
@@ -260,7 +165,7 @@ export const CreateAppDialogV4 = ({
 
   const onSignerKeyContinue = useCallback(
     async (publicKey: string) => {
-      if (!teamId || !createdAppId) {
+      if (!teamId) {
         toast.error(
           "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
         );
@@ -272,7 +177,7 @@ export const CreateAppDialogV4 = ({
           worldIdMode === "self-managed" ? "self_managed" : "managed";
         const { data } = await registerRp({
           variables: {
-            app_id: createdAppId,
+            app_id: appId,
             mode: hasuraMode,
             signer_address: publicKey,
           },
@@ -284,7 +189,7 @@ export const CreateAppDialogV4 = ({
         }
 
         // Success - redirect to app dashboard
-        const redirect = `/teams/${teamId}/apps/${createdAppId}`;
+        const redirect = `/teams/${teamId}/apps/${appId}`;
 
         toast.success("App configured successfully");
         // Refresh server components to pick up the new rp_registration row
@@ -295,7 +200,7 @@ export const CreateAppDialogV4 = ({
         toast.error("Failed to register Relying Party");
       }
     },
-    [teamId, createdAppId, worldIdMode, router, onClose, registerRp],
+    [teamId, worldIdMode, router, onClose, registerRp, appId],
   );
 
   return (
@@ -307,7 +212,7 @@ export const CreateAppDialogV4 = ({
           <SizingWrapper>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-x-3">
-                {step === initialStep && (
+                {step === "enable-world-id-4-0" && (
                   <>
                     <Button type="button" onClick={onClose} className="flex">
                       <CloseIcon className="size-4" />
@@ -328,35 +233,6 @@ export const CreateAppDialogV4 = ({
             gridClassName="overflow-y-auto"
             className="flex items-start justify-center"
           >
-            {step === "create" && (
-              <form
-                onSubmit={handleSubmit(submit)}
-                className="grid w-full max-w-[580px] gap-y-6 justify-self-center py-10"
-              >
-                <Typography variant={TYPOGRAPHY.H6}>Setup your app</Typography>
-
-                <div className="grid gap-y-8">
-                  <Input
-                    register={register("name")}
-                    label="App name"
-                    placeholder="Display name (ex. Voting app)"
-                    required
-                    errors={errors.name}
-                    data-testid="input-app-name"
-                  />
-                </div>
-
-                <DecoratedButton
-                  type="submit"
-                  variant="primary"
-                  className="justify-self-end py-3"
-                  disabled={!isValid || isSubmitting}
-                  testId="create-app"
-                >
-                  Create app
-                </DecoratedButton>
-              </form>
-            )}
             {step === "enable-world-id-4-0" && (
               <EnableWorldId40Content
                 onContinue={onEnableContinue}
@@ -366,22 +242,14 @@ export const CreateAppDialogV4 = ({
               />
             )}
             {step === "self-managed-transaction" && (
-              <>
-                {!createdAppId ? (
-                  <div className="flex items-center justify-center py-10">
-                    <Typography variant={TYPOGRAPHY.R3}>Loading...</Typography>
-                  </div>
-                ) : (
-                  <SelfManagedTransactionInfoContent
-                    appId={createdAppId}
-                    title="Self-Managed"
-                    onBack={() => setStep("enable-world-id-4-0")}
-                    onComplete={onSelfManagedComplete}
-                    completionLoading={registeringRp}
-                    className="justify-self-center py-10"
-                  />
-                )}
-              </>
+              <SelfManagedTransactionInfoContent
+                appId={appId}
+                title="Self-Managed"
+                onBack={() => setStep("enable-world-id-4-0")}
+                onComplete={onSelfManagedComplete}
+                completionLoading={registeringRp}
+                className="justify-self-center py-10"
+              />
             )}
             {step === "configure-signer-key" && (
               <ConfigureSignerKeyContent
