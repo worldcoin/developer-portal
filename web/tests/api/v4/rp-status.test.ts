@@ -303,6 +303,85 @@ describe("/api/v4/rp-status [production signer verification]", () => {
       status: RpRegistrationStatus.Registered,
     });
   });
+
+  it("times out a managed RP wedged pending by a foreign on-chain signer once past grace", async () => {
+    // Foreign takeover of the rp_id: the row is still `pending` (the Portal's
+    // registration never completed) but on-chain it's initialized+active under a
+    // signer we don't recognize. It can never become a trusted `registered`, so
+    // past the grace period it must flip to `failed` — otherwise the dashboard
+    // polls forever with no retry path. updated_at is old (no rotation in flight).
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        created_at: tenMinutesAgo,
+        updated_at: tenMinutesAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            signer: "0xAttackerSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    UpdateRpStatus.mockResolvedValue({
+      update_rp_registration_by_pk: { rp_id: rpId },
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("failed");
+    expect(UpdateRpStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      status: RpRegistrationStatus.Failed,
+    });
+  });
+
+  it("does not time out a signer rotation in flight (recent updated_at) despite the mismatch", async () => {
+    // Rotation just submitted: status=pending, DB signer already the NEW key,
+    // on-chain still the OLD key (tx not yet mined) → signer mismatch. The row
+    // was created long ago but updated_at is recent, so it must stay `pending`
+    // and resolve to `registered` once the tx lands — not be prematurely failed.
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "managed",
+        signer_address: "0xNewSigner",
+        created_at: tenMinutesAgo,
+        updated_at: oneMinuteAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return { initialized: true, active: true, signer: "0xOldSigner" };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("pending");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
 });
 // #endregion
 

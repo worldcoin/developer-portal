@@ -217,6 +217,11 @@ export async function GET(
 
   const ageMs = Date.now() - new Date(dbRecord.created_at).getTime();
   const isPastGracePeriod = ageMs > PENDING_TIMEOUT_MS;
+  // updated_at-based grace, for cases where a fresh retry or an in-flight signer
+  // rotation must reset the clock (both bump updated_at): the staging timeout and
+  // the untrusted-initialized production timeout below.
+  const isPastGracePeriodSinceUpdate =
+    Date.now() - new Date(dbRecord.updated_at).getTime() > PENDING_TIMEOUT_MS;
 
   // Sync DB status based on production contract only (never for deleted apps —
   // see isAppDeleted above). Only when the on-chain reading is trusted (signer
@@ -304,19 +309,56 @@ export async function GET(
     }
   }
 
+  // Timeout: a managed RP that is initialized on-chain but by a signer the
+  // Portal doesn't recognize can never become a trusted `registered` — either a
+  // foreign party won the permissionless on-chain register() for this rp_id, or
+  // a signer rotation never settled. The `!productionInitialized` guard above
+  // can't catch this (it IS initialized), so without this the row is wedged in
+  // `pending` forever, polling endlessly and never exposing the retry path. Fail
+  // it once past grace. Use the updated_at clock so an in-flight rotation — which
+  // bumps updated_at and settles within seconds — is never prematurely failed.
+  if (
+    !isAppDeleted &&
+    productionInitialized &&
+    !canTrustOnChainProduction &&
+    currentDbStatus === RpRegistrationStatus.Pending &&
+    isPastGracePeriodSinceUpdate &&
+    dbRecord.mode === "managed"
+  ) {
+    logger.warn(
+      "RP untrusted-initialized past grace — transitioning to failed",
+      {
+        rpId,
+        updatedAt: dbRecord.updated_at,
+        operation_hash: dbRecord.operation_hash ?? "null",
+      },
+    );
+
+    try {
+      await getUpdateRpStatusSdk(client).UpdateRpStatus({
+        rp_id: rpId,
+        status: RpRegistrationStatus.Failed,
+      });
+      productionStatus = RpRegistrationStatus.Failed;
+    } catch (error) {
+      logger.error("Failed to update untrusted-initialized RP status in DB", {
+        rpId,
+        error,
+      });
+    }
+  }
+
   // Staging timeout: if staging is not initialized after the grace period,
   // transition to failed so the user gets a retry button and polling stops.
   // Only apply when the RPC call succeeded — a transient RPC failure should
   // not permanently mark a healthy staging registration as failed.
-  // Use updated_at (not created_at) so a fresh staging retry resets the clock.
-  const stagingAgeMs = Date.now() - new Date(dbRecord.updated_at).getTime();
-  const isStagingPastGracePeriod = stagingAgeMs > PENDING_TIMEOUT_MS;
+  // Uses the updated_at clock so a fresh staging retry resets the grace period.
   if (
     !isAppDeleted &&
     stagingContractAddress &&
     stagingRpcSucceeded &&
     !stagingInitialized &&
-    isStagingPastGracePeriod &&
+    isPastGracePeriodSinceUpdate &&
     dbRecord.mode === "managed"
   ) {
     stagingStatus = RpRegistrationStatus.Failed;
