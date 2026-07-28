@@ -9,37 +9,31 @@ export type OptionProps = Omit<
 > & {
   value: Color;
   selected: boolean;
+  initial: string;
 };
 
 export const Option = (props: OptionProps) => {
-  const { className, value, selected, ...otherProps } = props;
+  const { className, value, selected, initial, ...otherProps } = props;
+
   return (
     <Button
       type="button"
-      className={clsx("cursor-pointer", className)}
+      className={clsx(
+        "flex size-7 cursor-pointer items-center justify-center rounded-full bg-(--color-100) font-world text-12 font-medium text-(--color-500) uppercase outline-hidden transition-shadow focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2",
+        {
+          "shadow-[0_0_0_2px_#fff,0_0_0_4px_var(--color-500)]": selected,
+        },
+        className,
+      )}
       {...otherProps}
       style={
         {
+          "--color-100": value?.["100"],
           "--color-500": value?.["500"],
         } as CSSProperties
       }
     >
-      <div
-        className={clsx(
-          "flex size-6 items-center justify-center rounded-full bg-(--color-500) transition-all",
-          {
-            "shadow-[0_0_0_2px_rgba(255,255,255,.12)_inset]": selected,
-            "opacity-40 shadow-[0_0_0_0_rgba(255,255,255,0)_inset]": !selected,
-          },
-        )}
-      >
-        <div
-          className={clsx("rounded-full bg-grey-0 transition-all ease-in", {
-            "h-2.5 w-2.5": selected,
-            "h-4 w-4": !selected,
-          })}
-        />
-      </div>
+      {initial}
     </Button>
   );
 };

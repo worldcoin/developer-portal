@@ -1,9 +1,12 @@
 /** @jest-environment jsdom */
 
 import "@testing-library/jest-dom";
+import { additionalColors } from "@/lib/additional-colors";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { TeamsDropdown } from "@/scenes/PortalV3/layout/Shell/TeamsDropdown";
 import { UserPopup } from "@/scenes/PortalV3/layout/Shell/UserPopup";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
+import { createStore, Provider } from "jotai";
 
 // #region Mocks
 jest.mock("next/navigation", () => ({
@@ -34,6 +37,32 @@ describe("Portal v3 shell dropdown focus treatment", () => {
       expect(trigger.className).not.toContain("focus-visible:ring");
       expect(trigger).toHaveClass("focus-visible:bg-portal-border");
     }
+  });
+
+  it("updates the profile avatar when the profile color changes", () => {
+    const store = createStore();
+
+    render(
+      <Provider store={store}>
+        <UserPopup
+          user={{ name: "Ada Lovelace", email: "ada@example.com" }}
+          color={additionalColors.pink}
+        />
+      </Provider>,
+    );
+
+    const avatar = screen.getByText("AL");
+    expect(avatar).toHaveStyle({
+      backgroundColor: additionalColors.pink[100],
+      color: additionalColors.pink[500],
+    });
+
+    act(() => store.set(colorAtom, additionalColors.green));
+
+    expect(avatar).toHaveStyle({
+      backgroundColor: additionalColors.green[100],
+      color: additionalColors.green[500],
+    });
   });
 });
 // #endregion

@@ -1,45 +1,35 @@
 "use client";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+
+import { Button } from "@/components/Button";
+import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { LeaveTeamDialog } from "@/scenes/PortalV3/Profile/Teams/page/LeaveTeamDialog";
 import { TransferTeamDialog } from "@/scenes/PortalV3/Profile/Teams/page/TransferTeamDialog";
 import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
-import { useMeQuery } from "@/scenes/common/me-query/client";
+import { CREATE_TEAM_DIALOG_URL } from "@/scenes/PortalV3/Profile/page/CreateTeamDialog/dialogRouting";
 import { FetchMeQuery } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useState } from "react";
 import { Item } from "./Item";
 
-type Team = NonNullable<FetchMeQuery["user_by_pk"]>["memberships"][0]["team"];
+type Membership = NonNullable<
+  FetchMeQuery["user_by_pk"]
+>["memberships"][number];
+type Team = Membership["team"];
 
-export const List = () => {
+export const List = (props: {
+  memberships: Membership[] | undefined;
+  loading: boolean;
+}) => {
   const [teamForTransfer, setTeamForTransfer] = useState<Team | undefined>();
   const [teamForDelete, setTeamForDelete] = useState<Team | undefined>();
   const [teamForLeave, setTeamForLeave] = useState<Team | undefined>();
 
-  const { user, loading } = useMeQuery();
-
   return (
     <>
-      <div className="grid md:grid-cols-[auto_60%_1fr_auto] md:items-center">
-        <div className="hidden text-12 leading-4 text-grey-400 md:contents">
-          <Typography
-            variant={TYPOGRAPHY.R5}
-            className="col-span-2 border-b border-grey-100 py-3"
-          >
-            Team
-          </Typography>
+      <div>
+        {props.loading && <Item />}
 
-          <Typography
-            variant={TYPOGRAPHY.R5}
-            className="col-span-2 border-b border-grey-100 py-3"
-          >
-            Role
-          </Typography>
-        </div>
-
-        {loading && <Item />}
-
-        {!loading &&
-          user?.memberships?.map((membership) => (
+        {!props.loading &&
+          props.memberships?.map((membership) => (
             <Item
               key={membership.team.id}
               item={membership}
@@ -49,6 +39,20 @@ export const List = () => {
             />
           ))}
       </div>
+
+      <footer className="flex min-h-14 flex-col gap-3 border-t border-grey-100 bg-grey-25 px-5 py-3 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <p className="font-gta text-13 leading-5 text-grey-400">
+          You belong to {props.memberships?.length ?? 0} teams.
+        </p>
+
+        <Button
+          href={CREATE_TEAM_DIALOG_URL}
+          className="inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-8 bg-portal-ink px-4 font-world text-13 leading-none font-medium text-white outline-hidden transition-colors hover:bg-portal-ink-hover focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2"
+        >
+          <PlusIcon className="size-4" />
+          New team
+        </Button>
+      </footer>
 
       <DeleteTeamDialog
         open={!!teamForDelete}

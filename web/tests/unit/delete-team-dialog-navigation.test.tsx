@@ -107,13 +107,13 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     expect(refresh).not.toHaveBeenCalled();
   });
 
-  it("navigates to profile teams when other teams remain, refreshing first", async () => {
+  it("navigates to the consolidated profile when other teams remain, refreshing first", async () => {
     refetch.mockResolvedValue(refetchResultWithMemberships(2));
 
     renderDialog();
     await confirmAndSubmit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
     expect(refresh).toHaveBeenCalled();
   });
 
@@ -127,14 +127,14 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     renderDialog();
     await confirmAndSubmit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
     expect(global.fetch).toHaveBeenCalledWith("/api/update-session", {
       method: "POST",
     });
   });
 
-  it("refreshes the session-fed sidebar when already on the teams page", async () => {
-    pathname = "/profile/teams";
+  it("refreshes the session-fed sidebar when already on the profile page", async () => {
+    pathname = "/profile";
     refetch.mockResolvedValue(refetchResultWithMemberships(2));
 
     renderDialog();
@@ -178,7 +178,7 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     renderDialog();
     await confirmAndSubmit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
     expect(toast.success).toHaveBeenCalledWith("Team deleted");
     expect(logged).toHaveBeenCalledWith(
       "Delete Team Dialog: session sync failed after delete",
@@ -208,7 +208,7 @@ describe("DeleteTeamDialog [v2]", () => {
     render(<DeleteTeamDialogV2 open onClose={jest.fn()} team={team} />);
     await confirmAndSubmit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
     expect(global.fetch).not.toHaveBeenCalled();
     expect(invalidate).toHaveBeenCalled();
     expect(refresh).not.toHaveBeenCalled();

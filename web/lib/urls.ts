@@ -115,7 +115,7 @@ export const urls = {
     `/teams/${params.team_id}/settings`,
 
   profile: (): "/profile" => "/profile",
-  profileTeams: (): "/profile/teams" => "/profile/teams",
+  profileTeams: (): "/profile" => "/profile",
 
   tos: (): "/tos" => "/tos",
 
