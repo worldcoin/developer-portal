@@ -1,6 +1,6 @@
 import {
+  isLegacyVerificationLevel,
   LegacyVerificationLevel,
-  toLegacyVerificationLevel,
 } from "@/lib/idkit";
 import { generateRpIdString } from "@/lib/rp";
 import { KioskScreen } from "@/lib/types";
@@ -79,6 +79,7 @@ function getLegacyPreset(verificationLevel: LegacyVerificationLevel): Preset {
     case LegacyVerificationLevel.SecureDocument:
       return secureDocumentLegacy();
     case LegacyVerificationLevel.Face:
+    case LegacyVerificationLevel.Selfie:
       return selfieCheckLegacy();
     case LegacyVerificationLevel.Device:
     default:
@@ -121,8 +122,7 @@ function toLegacyVerifyPayload(result: IDKitResult): LegacyVerifyPayload {
     throw new Error("Missing action in proof result.");
   }
 
-  const verificationLevel = toLegacyVerificationLevel(response.identifier);
-  if (!verificationLevel) {
+  if (!isLegacyVerificationLevel(response.identifier)) {
     throw new Error("Unsupported verification level.");
   }
 
@@ -134,7 +134,7 @@ function toLegacyVerifyPayload(result: IDKitResult): LegacyVerifyPayload {
     proof: response.proof,
     nullifier_hash: response.nullifier,
     merkle_root: response.merkle_root,
-    verification_level: verificationLevel,
+    verification_level: response.identifier,
   };
 }
 

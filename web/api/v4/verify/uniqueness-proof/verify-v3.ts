@@ -1,6 +1,6 @@
 import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
-import { toLegacyVerificationLevel } from "@/lib/idkit";
+import { isLegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { UniquenessProofResponseV3 } from "../request-schema";
 import { UniquenessResult } from "./handler";
@@ -20,8 +20,7 @@ export async function processUniquenessProofV3(
   const results = await Promise.all(
     responses.map(async (item): Promise<UniquenessResult> => {
       try {
-        const verificationLevel = toLegacyVerificationLevel(item.identifier);
-        if (!verificationLevel) {
+        if (!isLegacyVerificationLevel(item.identifier)) {
           throw new Error(`Unsupported proof identifier: ${item.identifier}`);
         }
 
@@ -35,7 +34,7 @@ export async function processUniquenessProofV3(
           },
           {
             is_staging: isStaging,
-            verification_level: verificationLevel,
+            verification_level: item.identifier,
             max_age: item.max_age,
           },
         );

@@ -1,4 +1,4 @@
-import { LegacyVerificationLevel, SELFIE_IDENTIFIER } from "@/lib/idkit";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import * as yup from "yup";
 
 /**
@@ -11,11 +11,11 @@ import * as yup from "yup";
 
 // V3 response item schema
 const v3ResponseItemSchema = yup.object({
-  // V3 clients historically return verification-level identifiers. Also
-  // accept IDKit's public "selfie" name and translate it only at verification.
+  // V3 clients historically returned verification-level identifiers. Accept
+  // both the legacy "face" value and IDKit's public "selfie" name.
   identifier: yup
     .string()
-    .oneOf([...Object.values(LegacyVerificationLevel), SELFIE_IDENTIFIER])
+    .oneOf(Object.values(LegacyVerificationLevel))
     .required("identifier is required"),
   signal_hash: yup
     .string()

@@ -45,6 +45,10 @@ export const sequencerMapping: Record<
     true: FACE_SEQUENCER_STAGING,
     false: FACE_SEQUENCER,
   },
+  [LegacyVerificationLevel.Selfie]: {
+    true: FACE_SEQUENCER_STAGING,
+    false: FACE_SEQUENCER,
+  },
 };
 
 /**

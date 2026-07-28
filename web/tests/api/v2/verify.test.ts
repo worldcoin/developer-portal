@@ -1,6 +1,6 @@
 import { POST } from "@/api/v2/verify";
 import { FACE_SEQUENCER_STAGING } from "@/lib/constants";
-import { LegacyVerificationLevel, SELFIE_IDENTIFIER } from "@/lib/idkit";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { NextRequest } from "next/server";
 import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
 
@@ -179,7 +179,7 @@ describe("/api/v2/verify", () => {
   it("accepts selfie as an alias for the legacy face verifier", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), {
       ...validBody,
-      verification_level: SELFIE_IDENTIFIER,
+      verification_level: LegacyVerificationLevel.Selfie,
     });
     const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
@@ -213,7 +213,7 @@ describe("/api/v2/verify", () => {
     expect(await response.json()).toEqual(
       expect.objectContaining({
         success: true,
-        verification_level: SELFIE_IDENTIFIER,
+        verification_level: LegacyVerificationLevel.Selfie,
       }),
     );
   });
