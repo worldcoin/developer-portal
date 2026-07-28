@@ -40,7 +40,7 @@ export const test = base.extend<{}, { workerStorageState: string }>({
         .fill(process.env.TEST_USER_PASSWORD);
       await page.locator("[name='submit']").click();
 
-      await expect(page.getByText("Build your first project")).toBeVisible();
+      await expect(page).toHaveURL(/\/teams\/team_[a-f0-9]+\/apps$/);
 
       // Save storage state of the authenticated browser
       await page.context().storageState({ path: fileName });
