@@ -1,3 +1,4 @@
+import { Pool } from "pg";
 import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
 
 // #region Test Data
@@ -46,6 +47,19 @@ const runRollup = () =>
   integrationDBExecuteQuery(
     "SELECT key, timestamp_value FROM public.rollup_v4_analytics()",
   );
+
+const waitForLock = async (pool: Pool, pid: number) => {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const result = await pool.query(
+      `SELECT wait_event_type FROM pg_stat_activity WHERE pid = $1`,
+      [pid],
+    );
+    if (result.rows[0]?.wait_event_type === "Lock") return;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+
+  throw new Error(`Backend ${pid} did not wait for a lock`);
+};
 // #endregion
 
 beforeEach(async () => {
@@ -273,6 +287,60 @@ describe("rollup_v4_analytics [guards]", () => {
     `);
 
     expect(result.rows).toEqual([{ action_v4_id: actionTwo }]);
+  });
+
+  it("surfaces 40P01 when deletion races the rollup lock order", async () => {
+    await integrationDBExecuteQuery(`
+      INSERT INTO public.nullifier_v4
+        (id, action_v4_id, nullifier, created_at)
+      VALUES ('nullifier_v4_deadlock', '${actionOne}', 1013,
+        now() - interval '1 day');
+    `);
+    await runRollup();
+
+    const pool = new Pool();
+    const rollupClient = await pool.connect();
+    const deleteClient = await pool.connect();
+
+    try {
+      await rollupClient.query("BEGIN");
+      await rollupClient.query("SET LOCAL deadlock_timeout = '50ms'");
+      await rollupClient.query(
+        `DELETE FROM public.action_v4_stats_daily
+         WHERE action_v4_id = $1`,
+        [actionOne],
+      );
+
+      await deleteClient.query("BEGIN");
+      await deleteClient.query("SET LOCAL deadlock_timeout = '5s'");
+      const deletePid = (
+        await deleteClient.query("SELECT pg_backend_pid() AS pid")
+      ).rows[0].pid;
+      const deletePromise = deleteClient.query(
+        "DELETE FROM public.action_v4 WHERE id = $1",
+        [actionOne],
+      );
+      await waitForLock(pool, deletePid);
+
+      await expect(
+        rollupClient.query(
+          `INSERT INTO public.action_v4_stats_daily
+             (action_v4_id, date_utc, unique_count, latest_at)
+           VALUES ($1, CURRENT_DATE, 1, now())`,
+          [actionOne],
+        ),
+      ).rejects.toMatchObject({ code: "40P01" });
+
+      await rollupClient.query("ROLLBACK");
+      await deletePromise;
+      await deleteClient.query("COMMIT");
+    } finally {
+      await rollupClient.query("ROLLBACK").catch(() => undefined);
+      await deleteClient.query("ROLLBACK").catch(() => undefined);
+      rollupClient.release();
+      deleteClient.release();
+      await pool.end();
+    }
   });
 
   it("keeps one monotone watermark across repeated runs", async () => {

@@ -1566,6 +1566,8 @@ export type Action_V4_Set_Input = {
 /** columns and relationships of "action_v4_stats_daily" */
 export type Action_V4_Stats_Daily = {
   __typename?: "action_v4_stats_daily";
+  /** An object relationship */
+  action_v4: Action_V4;
   action_v4_id: Scalars["String"]["output"];
   date_utc: Scalars["date"]["output"];
   latest_at: Scalars["timestamptz"]["output"];
@@ -1612,6 +1614,7 @@ export type Action_V4_Stats_Daily_Bool_Exp = {
   _and?: InputMaybe<Array<Action_V4_Stats_Daily_Bool_Exp>>;
   _not?: InputMaybe<Action_V4_Stats_Daily_Bool_Exp>;
   _or?: InputMaybe<Array<Action_V4_Stats_Daily_Bool_Exp>>;
+  action_v4?: InputMaybe<Action_V4_Bool_Exp>;
   action_v4_id?: InputMaybe<String_Comparison_Exp>;
   date_utc?: InputMaybe<Date_Comparison_Exp>;
   latest_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -1631,6 +1634,7 @@ export type Action_V4_Stats_Daily_Inc_Input = {
 
 /** input type for inserting data into table "action_v4_stats_daily" */
 export type Action_V4_Stats_Daily_Insert_Input = {
+  action_v4?: InputMaybe<Action_V4_Obj_Rel_Insert_Input>;
   action_v4_id?: InputMaybe<Scalars["String"]["input"]>;
   date_utc?: InputMaybe<Scalars["date"]["input"]>;
   latest_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -1673,6 +1677,7 @@ export type Action_V4_Stats_Daily_On_Conflict = {
 
 /** Ordering options when selecting data from "action_v4_stats_daily". */
 export type Action_V4_Stats_Daily_Order_By = {
+  action_v4?: InputMaybe<Action_V4_Order_By>;
   action_v4_id?: InputMaybe<Order_By>;
   date_utc?: InputMaybe<Order_By>;
   latest_at?: InputMaybe<Order_By>;

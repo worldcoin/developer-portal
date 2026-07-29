@@ -97,6 +97,24 @@ describe("/api/_rollup-v4-analytics [outcomes]", () => {
     expect(RollupV4Analytics).toHaveBeenCalledTimes(1);
   });
 
+  it("does not retry a non-FK Hasura constraint error", async () => {
+    RollupV4Analytics.mockRejectedValue({
+      response: {
+        errors: [
+          {
+            message: "database mutation failed",
+            extensions: { code: "constraint-violation" },
+          },
+        ],
+      },
+    });
+
+    const response = (await POST(createRequest("Bearer internal-secret")))!;
+
+    expect(response.status).toBe(500);
+    expect(RollupV4Analytics).toHaveBeenCalledTimes(1);
+  });
+
   it("retries one FK violation and succeeds", async () => {
     RollupV4Analytics.mockRejectedValueOnce({
       response: {
@@ -104,6 +122,24 @@ describe("/api/_rollup-v4-analytics [outcomes]", () => {
           {
             message: "database mutation failed",
             extensions: { internal: { error: { status_code: "23503" } } },
+          },
+        ],
+      },
+    }).mockResolvedValueOnce({ rollup_v4_analytics: [watermark] });
+
+    const response = (await POST(createRequest("Bearer internal-secret")))!;
+
+    expect(response.status).toBe(200);
+    expect(RollupV4Analytics).toHaveBeenCalledTimes(2);
+  });
+
+  it("retries one PostgreSQL deadlock and succeeds", async () => {
+    RollupV4Analytics.mockRejectedValueOnce({
+      response: {
+        errors: [
+          {
+            message: "database mutation failed",
+            extensions: { internal: { error: { status_code: "40P01" } } },
           },
         ],
       },

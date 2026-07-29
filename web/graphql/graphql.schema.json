@@ -11529,6 +11529,22 @@
         "description": "columns and relationships of \"action_v4_stats_daily\"",
         "fields": [
           {
+            "name": "action_v4",
+            "description": "An object relationship",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "action_v4",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "action_v4_id",
             "description": null,
             "args": [],
@@ -11907,6 +11923,18 @@
             "deprecationReason": null
           },
           {
+            "name": "action_v4",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "action_v4_bool_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "action_v4_id",
             "description": null,
             "type": {
@@ -12005,6 +12033,18 @@
         "description": "input type for inserting data into table \"action_v4_stats_daily\"",
         "fields": null,
         "inputFields": [
+          {
+            "name": "action_v4",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "action_v4_obj_rel_insert_input",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "action_v4_id",
             "description": null,
@@ -12296,6 +12336,18 @@
         "description": "Ordering options when selecting data from \"action_v4_stats_daily\".",
         "fields": null,
         "inputFields": [
+          {
+            "name": "action_v4",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "action_v4_order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "action_v4_id",
             "description": null,

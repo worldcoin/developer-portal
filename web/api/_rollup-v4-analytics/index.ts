@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk } from "./graphql/rollup-v4-analytics.generated";
 
-const isForeignKeyViolation = (error: unknown): boolean => {
+const isRetryableRollupError = (error: unknown): boolean => {
   let serialized = String(error);
 
   try {
@@ -26,9 +26,9 @@ const isForeignKeyViolation = (error: unknown): boolean => {
   }
 
   return (
-    /foreign key/i.test(serialized) ||
+    /foreign key|deadlock detected/i.test(serialized) ||
     serialized.includes("23503") ||
-    serialized.includes("constraint-violation")
+    /40P01/i.test(serialized)
   );
 };
 
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     try {
       result = await sdk.RollupV4Analytics();
     } catch (error) {
-      if (!isForeignKeyViolation(error)) throw error;
+      if (!isRetryableRollupError(error)) throw error;
       result = await sdk.RollupV4Analytics();
     }
 
