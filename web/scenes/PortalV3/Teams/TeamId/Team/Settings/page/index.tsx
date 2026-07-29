@@ -18,8 +18,9 @@ export const TeamSettingsPage = () => {
   const { teamId } = useParams() as { teamId: string };
   const { user } = useUser() as Auth0SessionUser;
 
-  // Owner-only write access for display name + danger zone. Everyone can open
-  // this page (sidebar is ungated); non-owners get a read-only UI.
+  // Owner-only write access for the display name and destructive controls.
+  // Everyone can open this page (sidebar is ungated); non-owners get a
+  // read-only UI and never receive the delete-team control.
   const canWriteTeamSettings = checkUserPermissions(user, teamId, [
     Role_Enum.Owner,
   ]);
@@ -65,16 +66,13 @@ export const TeamSettingsPage = () => {
               </SettingsBento.Item>
             </>
           ) : null}
-
-          {team ? (
-            <SettingsBento.Item>
-              <TeamDangerZone
-                team={{ id: team.id, name: team.name }}
-                canWrite={canWriteTeamSettings}
-              />
-            </SettingsBento.Item>
-          ) : null}
         </SettingsBento>
+
+        {canWriteTeamSettings && team ? (
+          <div className="flex justify-end">
+            <TeamDangerZone team={{ id: team.id, name: team.name }} />
+          </div>
+        ) : null}
       </div>
     </SizingWrapper>
   );
