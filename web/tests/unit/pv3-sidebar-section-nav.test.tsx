@@ -224,7 +224,8 @@ describe("v3 SidebarNav [no app selected]", () => {
 });
 // #endregion
 
-// Team-less links fall back to /teams.
+// Team-scoped links disappear without a team in the route: they could only
+// bounce to an arbitrary first team, which is disorienting on /profile.
 // #region team-less pages
 describe("v3 SidebarNav [team-less pages]", () => {
   beforeEach(() => {
@@ -233,19 +234,25 @@ describe("v3 SidebarNav [team-less pages]", () => {
     usePathname.mockReturnValue("/profile");
   });
 
-  it("routes World ID to the /teams landing when the route has no teamId", () => {
+  it("hides World ID when the route has no teamId", () => {
     renderSidebar();
-    expect(link("World ID")).toHaveAttribute("href", "/teams");
-    expect(isCurrent("World ID")).toBe(false);
+    expect(
+      screen.queryByRole("link", { name: "World ID" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("routes Team settings to the /teams landing rather than a dead link", () => {
+  it("hides Team settings when the route has no teamId", () => {
     renderSidebar();
-    expect(link("Team settings")).toHaveAttribute("href", "/teams");
+    expect(
+      screen.queryByRole("link", { name: "Team settings" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("keeps the sandbox button visible without a teamId", () => {
+  it("keeps Help center and the sandbox button visible without a teamId", () => {
     renderSidebar();
+    expect(
+      screen.getByRole("button", { name: /Help center/i }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /World ID Sandbox/i }),
     ).toBeInTheDocument();
