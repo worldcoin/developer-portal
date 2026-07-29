@@ -1,5 +1,7 @@
 DELETE FROM "public"."nullifier";
 
+DELETE FROM "public"."v4_analytics_state";
+
 DELETE FROM "public"."auth_code";
 
 DELETE FROM "public"."action";

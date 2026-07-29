@@ -1,6 +1,7 @@
 - "!include public_action.yaml"
 - "!include public_action_stats_returning.yaml"
 - "!include public_action_v4.yaml"
+- "!include public_action_v4_stats_daily.yaml"
 - "!include public_api_key.yaml"
 - "!include public_app.yaml"
 - "!include public_app_daily_users.yaml"
@@ -27,3 +28,4 @@
 - "!include public_sandbox_access_request.yaml"
 - "!include public_team.yaml"
 - "!include public_user.yaml"
+- "!include public_v4_analytics_state.yaml"

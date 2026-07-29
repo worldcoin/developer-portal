@@ -1,0 +1,6 @@
+mutation RollupV4Analytics {
+  rollup_v4_analytics {
+    key
+    timestamp_value
+  }
+}

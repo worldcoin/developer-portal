@@ -1563,6 +1563,227 @@ export type Action_V4_Set_Input = {
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
 
+/** columns and relationships of "action_v4_stats_daily" */
+export type Action_V4_Stats_Daily = {
+  __typename?: "action_v4_stats_daily";
+  action_v4_id: Scalars["String"]["output"];
+  date_utc: Scalars["date"]["output"];
+  latest_at: Scalars["timestamptz"]["output"];
+  unique_count: Scalars["bigint"]["output"];
+};
+
+/** aggregated selection of "action_v4_stats_daily" */
+export type Action_V4_Stats_Daily_Aggregate = {
+  __typename?: "action_v4_stats_daily_aggregate";
+  aggregate?: Maybe<Action_V4_Stats_Daily_Aggregate_Fields>;
+  nodes: Array<Action_V4_Stats_Daily>;
+};
+
+/** aggregate fields of "action_v4_stats_daily" */
+export type Action_V4_Stats_Daily_Aggregate_Fields = {
+  __typename?: "action_v4_stats_daily_aggregate_fields";
+  avg?: Maybe<Action_V4_Stats_Daily_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Action_V4_Stats_Daily_Max_Fields>;
+  min?: Maybe<Action_V4_Stats_Daily_Min_Fields>;
+  stddev?: Maybe<Action_V4_Stats_Daily_Stddev_Fields>;
+  stddev_pop?: Maybe<Action_V4_Stats_Daily_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Action_V4_Stats_Daily_Stddev_Samp_Fields>;
+  sum?: Maybe<Action_V4_Stats_Daily_Sum_Fields>;
+  var_pop?: Maybe<Action_V4_Stats_Daily_Var_Pop_Fields>;
+  var_samp?: Maybe<Action_V4_Stats_Daily_Var_Samp_Fields>;
+  variance?: Maybe<Action_V4_Stats_Daily_Variance_Fields>;
+};
+
+/** aggregate fields of "action_v4_stats_daily" */
+export type Action_V4_Stats_Daily_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Action_V4_Stats_Daily_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type Action_V4_Stats_Daily_Avg_Fields = {
+  __typename?: "action_v4_stats_daily_avg_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "action_v4_stats_daily". All fields are combined with a logical 'AND'. */
+export type Action_V4_Stats_Daily_Bool_Exp = {
+  _and?: InputMaybe<Array<Action_V4_Stats_Daily_Bool_Exp>>;
+  _not?: InputMaybe<Action_V4_Stats_Daily_Bool_Exp>;
+  _or?: InputMaybe<Array<Action_V4_Stats_Daily_Bool_Exp>>;
+  action_v4_id?: InputMaybe<String_Comparison_Exp>;
+  date_utc?: InputMaybe<Date_Comparison_Exp>;
+  latest_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  unique_count?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "action_v4_stats_daily" */
+export enum Action_V4_Stats_Daily_Constraint {
+  /** unique or primary key constraint on columns "action_v4_id", "date_utc" */
+  ActionV4StatsDailyPkey = "action_v4_stats_daily_pkey",
+}
+
+/** input type for incrementing numeric columns in table "action_v4_stats_daily" */
+export type Action_V4_Stats_Daily_Inc_Input = {
+  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** input type for inserting data into table "action_v4_stats_daily" */
+export type Action_V4_Stats_Daily_Insert_Input = {
+  action_v4_id?: InputMaybe<Scalars["String"]["input"]>;
+  date_utc?: InputMaybe<Scalars["date"]["input"]>;
+  latest_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Action_V4_Stats_Daily_Max_Fields = {
+  __typename?: "action_v4_stats_daily_max_fields";
+  action_v4_id?: Maybe<Scalars["String"]["output"]>;
+  date_utc?: Maybe<Scalars["date"]["output"]>;
+  latest_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  unique_count?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Action_V4_Stats_Daily_Min_Fields = {
+  __typename?: "action_v4_stats_daily_min_fields";
+  action_v4_id?: Maybe<Scalars["String"]["output"]>;
+  date_utc?: Maybe<Scalars["date"]["output"]>;
+  latest_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  unique_count?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** response of any mutation on the table "action_v4_stats_daily" */
+export type Action_V4_Stats_Daily_Mutation_Response = {
+  __typename?: "action_v4_stats_daily_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Action_V4_Stats_Daily>;
+};
+
+/** on_conflict condition type for table "action_v4_stats_daily" */
+export type Action_V4_Stats_Daily_On_Conflict = {
+  constraint: Action_V4_Stats_Daily_Constraint;
+  update_columns?: Array<Action_V4_Stats_Daily_Update_Column>;
+  where?: InputMaybe<Action_V4_Stats_Daily_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "action_v4_stats_daily". */
+export type Action_V4_Stats_Daily_Order_By = {
+  action_v4_id?: InputMaybe<Order_By>;
+  date_utc?: InputMaybe<Order_By>;
+  latest_at?: InputMaybe<Order_By>;
+  unique_count?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: action_v4_stats_daily */
+export type Action_V4_Stats_Daily_Pk_Columns_Input = {
+  action_v4_id: Scalars["String"]["input"];
+  date_utc: Scalars["date"]["input"];
+};
+
+/** select columns of table "action_v4_stats_daily" */
+export enum Action_V4_Stats_Daily_Select_Column {
+  /** column name */
+  ActionV4Id = "action_v4_id",
+  /** column name */
+  DateUtc = "date_utc",
+  /** column name */
+  LatestAt = "latest_at",
+  /** column name */
+  UniqueCount = "unique_count",
+}
+
+/** input type for updating data in table "action_v4_stats_daily" */
+export type Action_V4_Stats_Daily_Set_Input = {
+  action_v4_id?: InputMaybe<Scalars["String"]["input"]>;
+  date_utc?: InputMaybe<Scalars["date"]["input"]>;
+  latest_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Action_V4_Stats_Daily_Stddev_Fields = {
+  __typename?: "action_v4_stats_daily_stddev_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Action_V4_Stats_Daily_Stddev_Pop_Fields = {
+  __typename?: "action_v4_stats_daily_stddev_pop_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Action_V4_Stats_Daily_Stddev_Samp_Fields = {
+  __typename?: "action_v4_stats_daily_stddev_samp_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "action_v4_stats_daily" */
+export type Action_V4_Stats_Daily_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Action_V4_Stats_Daily_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Action_V4_Stats_Daily_Stream_Cursor_Value_Input = {
+  action_v4_id?: InputMaybe<Scalars["String"]["input"]>;
+  date_utc?: InputMaybe<Scalars["date"]["input"]>;
+  latest_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Action_V4_Stats_Daily_Sum_Fields = {
+  __typename?: "action_v4_stats_daily_sum_fields";
+  unique_count?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** update columns of table "action_v4_stats_daily" */
+export enum Action_V4_Stats_Daily_Update_Column {
+  /** column name */
+  ActionV4Id = "action_v4_id",
+  /** column name */
+  DateUtc = "date_utc",
+  /** column name */
+  LatestAt = "latest_at",
+  /** column name */
+  UniqueCount = "unique_count",
+}
+
+export type Action_V4_Stats_Daily_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Action_V4_Stats_Daily_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Action_V4_Stats_Daily_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Action_V4_Stats_Daily_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Action_V4_Stats_Daily_Var_Pop_Fields = {
+  __typename?: "action_v4_stats_daily_var_pop_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Action_V4_Stats_Daily_Var_Samp_Fields = {
+  __typename?: "action_v4_stats_daily_var_samp_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Action_V4_Stats_Daily_Variance_Fields = {
+  __typename?: "action_v4_stats_daily_variance_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
 /** Streaming cursor of the table "action_v4" */
 export type Action_V4_Stream_Cursor_Input = {
   /** Stream column input with initial value */
@@ -6622,6 +6843,10 @@ export type Mutation_Root = {
   delete_action_v4?: Maybe<Action_V4_Mutation_Response>;
   /** delete single row from the table: "action_v4" */
   delete_action_v4_by_pk?: Maybe<Action_V4>;
+  /** delete data from the table: "action_v4_stats_daily" */
+  delete_action_v4_stats_daily?: Maybe<Action_V4_Stats_Daily_Mutation_Response>;
+  /** delete single row from the table: "action_v4_stats_daily" */
+  delete_action_v4_stats_daily_by_pk?: Maybe<Action_V4_Stats_Daily>;
   /** delete data from the table: "api_key" */
   delete_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** delete single row from the table: "api_key" */
@@ -6727,6 +6952,10 @@ export type Mutation_Root = {
   delete_user?: Maybe<User_Mutation_Response>;
   /** delete single row from the table: "user" */
   delete_user_by_pk?: Maybe<User>;
+  /** delete data from the table: "v4_analytics_state" */
+  delete_v4_analytics_state?: Maybe<V4_Analytics_State_Mutation_Response>;
+  /** delete single row from the table: "v4_analytics_state" */
+  delete_v4_analytics_state_by_pk?: Maybe<V4_Analytics_State>;
   /** insert data into the table: "action" */
   insert_action?: Maybe<Action_Mutation_Response>;
   /** insert a single row into the table: "action" */
@@ -6739,6 +6968,10 @@ export type Mutation_Root = {
   insert_action_v4?: Maybe<Action_V4_Mutation_Response>;
   /** insert a single row into the table: "action_v4" */
   insert_action_v4_one?: Maybe<Action_V4>;
+  /** insert data into the table: "action_v4_stats_daily" */
+  insert_action_v4_stats_daily?: Maybe<Action_V4_Stats_Daily_Mutation_Response>;
+  /** insert a single row into the table: "action_v4_stats_daily" */
+  insert_action_v4_stats_daily_one?: Maybe<Action_V4_Stats_Daily>;
   /** insert data into the table: "api_key" */
   insert_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** insert a single row into the table: "api_key" */
@@ -6843,6 +7076,10 @@ export type Mutation_Root = {
   insert_user?: Maybe<User_Mutation_Response>;
   /** insert a single row into the table: "user" */
   insert_user_one?: Maybe<User>;
+  /** insert data into the table: "v4_analytics_state" */
+  insert_v4_analytics_state?: Maybe<V4_Analytics_State_Mutation_Response>;
+  /** insert a single row into the table: "v4_analytics_state" */
+  insert_v4_analytics_state_one?: Maybe<V4_Analytics_State>;
   invalidate_cache?: Maybe<InvalidateCacheOutput>;
   /** Create invites and send emails */
   invite_team_members?: Maybe<InviteTeamMembersOutput>;
@@ -6858,6 +7095,8 @@ export type Mutation_Root = {
   retry_rp?: Maybe<RetryRpOutput>;
   /** execute VOLATILE function "rollup_app_stats" which returns "app_stats" */
   rollup_app_stats: Array<App_Stats>;
+  /** execute VOLATILE function "rollup_v4_analytics" which returns "v4_analytics_state" */
+  rollup_v4_analytics: Array<V4_Analytics_State>;
   /** Rotate the signer key for an RP (Relying Party) */
   rotate_signer_key?: Maybe<RotateSignerKeyOutput>;
   /** Switch an RP from managed to self-managed mode by transferring the on-chain manager key */
@@ -6886,6 +7125,14 @@ export type Mutation_Root = {
   update_action_v4_by_pk?: Maybe<Action_V4>;
   /** update multiples rows of table: "action_v4" */
   update_action_v4_many?: Maybe<Array<Maybe<Action_V4_Mutation_Response>>>;
+  /** update data of the table: "action_v4_stats_daily" */
+  update_action_v4_stats_daily?: Maybe<Action_V4_Stats_Daily_Mutation_Response>;
+  /** update single row of the table: "action_v4_stats_daily" */
+  update_action_v4_stats_daily_by_pk?: Maybe<Action_V4_Stats_Daily>;
+  /** update multiples rows of table: "action_v4_stats_daily" */
+  update_action_v4_stats_daily_many?: Maybe<
+    Array<Maybe<Action_V4_Stats_Daily_Mutation_Response>>
+  >;
   /** update data of the table: "api_key" */
   update_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** update single row of the table: "api_key" */
@@ -7064,6 +7311,14 @@ export type Mutation_Root = {
   update_user_by_pk?: Maybe<User>;
   /** update multiples rows of table: "user" */
   update_user_many?: Maybe<Array<Maybe<User_Mutation_Response>>>;
+  /** update data of the table: "v4_analytics_state" */
+  update_v4_analytics_state?: Maybe<V4_Analytics_State_Mutation_Response>;
+  /** update single row of the table: "v4_analytics_state" */
+  update_v4_analytics_state_by_pk?: Maybe<V4_Analytics_State>;
+  /** update multiples rows of table: "v4_analytics_state" */
+  update_v4_analytics_state_many?: Maybe<
+    Array<Maybe<V4_Analytics_State_Mutation_Response>>
+  >;
   validate_localisation?: Maybe<ValidateLocalisationOutput>;
   /** Verify an App */
   verify_app?: Maybe<VerifyAppOutput>;
@@ -7128,6 +7383,17 @@ export type Mutation_RootDelete_Action_V4Args = {
 /** mutation root */
 export type Mutation_RootDelete_Action_V4_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Action_V4_Stats_DailyArgs = {
+  where: Action_V4_Stats_Daily_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Action_V4_Stats_Daily_By_PkArgs = {
+  action_v4_id: Scalars["String"]["input"];
+  date_utc: Scalars["date"]["input"];
 };
 
 /** mutation root */
@@ -7399,6 +7665,16 @@ export type Mutation_RootDelete_User_By_PkArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootDelete_V4_Analytics_StateArgs = {
+  where: V4_Analytics_State_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_V4_Analytics_State_By_PkArgs = {
+  key: Scalars["String"]["input"];
+};
+
+/** mutation root */
 export type Mutation_RootInsert_ActionArgs = {
   objects: Array<Action_Insert_Input>;
   on_conflict?: InputMaybe<Action_On_Conflict>;
@@ -7432,6 +7708,18 @@ export type Mutation_RootInsert_Action_V4Args = {
 export type Mutation_RootInsert_Action_V4_OneArgs = {
   object: Action_V4_Insert_Input;
   on_conflict?: InputMaybe<Action_V4_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Action_V4_Stats_DailyArgs = {
+  objects: Array<Action_V4_Stats_Daily_Insert_Input>;
+  on_conflict?: InputMaybe<Action_V4_Stats_Daily_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Action_V4_Stats_Daily_OneArgs = {
+  object: Action_V4_Stats_Daily_Insert_Input;
+  on_conflict?: InputMaybe<Action_V4_Stats_Daily_On_Conflict>;
 };
 
 /** mutation root */
@@ -7747,6 +8035,18 @@ export type Mutation_RootInsert_User_OneArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootInsert_V4_Analytics_StateArgs = {
+  objects: Array<V4_Analytics_State_Insert_Input>;
+  on_conflict?: InputMaybe<V4_Analytics_State_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_V4_Analytics_State_OneArgs = {
+  object: V4_Analytics_State_Insert_Input;
+  on_conflict?: InputMaybe<V4_Analytics_State_On_Conflict>;
+};
+
+/** mutation root */
 export type Mutation_RootInvite_Team_MembersArgs = {
   emails?: InputMaybe<Array<Scalars["String"]["input"]>>;
   team_id: Scalars["String"]["input"];
@@ -7795,6 +8095,15 @@ export type Mutation_RootRollup_App_StatsArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Stats_Order_By>>;
   where?: InputMaybe<App_Stats_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootRollup_V4_AnalyticsArgs = {
+  distinct_on?: InputMaybe<Array<V4_Analytics_State_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<V4_Analytics_State_Order_By>>;
+  where?: InputMaybe<V4_Analytics_State_Bool_Exp>;
 };
 
 /** mutation root */
@@ -7872,6 +8181,25 @@ export type Mutation_RootUpdate_Action_V4_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Action_V4_ManyArgs = {
   updates: Array<Action_V4_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_V4_Stats_DailyArgs = {
+  _inc?: InputMaybe<Action_V4_Stats_Daily_Inc_Input>;
+  _set?: InputMaybe<Action_V4_Stats_Daily_Set_Input>;
+  where: Action_V4_Stats_Daily_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_V4_Stats_Daily_By_PkArgs = {
+  _inc?: InputMaybe<Action_V4_Stats_Daily_Inc_Input>;
+  _set?: InputMaybe<Action_V4_Stats_Daily_Set_Input>;
+  pk_columns: Action_V4_Stats_Daily_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_V4_Stats_Daily_ManyArgs = {
+  updates: Array<Action_V4_Stats_Daily_Updates>;
 };
 
 /** mutation root */
@@ -8348,6 +8676,23 @@ export type Mutation_RootUpdate_User_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_User_ManyArgs = {
   updates: Array<User_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_V4_Analytics_StateArgs = {
+  _set?: InputMaybe<V4_Analytics_State_Set_Input>;
+  where: V4_Analytics_State_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_V4_Analytics_State_By_PkArgs = {
+  _set?: InputMaybe<V4_Analytics_State_Set_Input>;
+  pk_columns: V4_Analytics_State_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_V4_Analytics_State_ManyArgs = {
+  updates: Array<V4_Analytics_State_Updates>;
 };
 
 /** mutation root */
@@ -9663,6 +10008,12 @@ export type Query_Root = {
   action_v4_aggregate: Action_V4_Aggregate;
   /** fetch data from the table: "action_v4" using primary key columns */
   action_v4_by_pk?: Maybe<Action_V4>;
+  /** fetch data from the table: "action_v4_stats_daily" */
+  action_v4_stats_daily: Array<Action_V4_Stats_Daily>;
+  /** fetch aggregated fields from the table: "action_v4_stats_daily" */
+  action_v4_stats_daily_aggregate: Action_V4_Stats_Daily_Aggregate;
+  /** fetch data from the table: "action_v4_stats_daily" using primary key columns */
+  action_v4_stats_daily_by_pk?: Maybe<Action_V4_Stats_Daily>;
   admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
   admin_dashboard_queues: Array<Admin_Dashboard_Queue>;
   admin_rp_inventory: Array<Admin_Rp_Inventory>;
@@ -9829,6 +10180,12 @@ export type Query_Root = {
   user_aggregate: User_Aggregate;
   /** fetch data from the table: "user" using primary key columns */
   user_by_pk?: Maybe<User>;
+  /** fetch data from the table: "v4_analytics_state" */
+  v4_analytics_state: Array<V4_Analytics_State>;
+  /** fetch aggregated fields from the table: "v4_analytics_state" */
+  v4_analytics_state_aggregate: V4_Analytics_State_Aggregate;
+  /** fetch data from the table: "v4_analytics_state" using primary key columns */
+  v4_analytics_state_by_pk?: Maybe<V4_Analytics_State>;
 };
 
 export type Query_RootActionArgs = {
@@ -9907,6 +10264,27 @@ export type Query_RootAction_V4_AggregateArgs = {
 
 export type Query_RootAction_V4_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootAction_V4_Stats_DailyArgs = {
+  distinct_on?: InputMaybe<Array<Action_V4_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_V4_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_V4_Stats_Daily_Bool_Exp>;
+};
+
+export type Query_RootAction_V4_Stats_Daily_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Action_V4_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_V4_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_V4_Stats_Daily_Bool_Exp>;
+};
+
+export type Query_RootAction_V4_Stats_Daily_By_PkArgs = {
+  action_v4_id: Scalars["String"]["input"];
+  date_utc: Scalars["date"]["input"];
 };
 
 export type Query_RootAdmin_Dashboard_InventoryArgs = {
@@ -10486,6 +10864,26 @@ export type Query_RootUser_AggregateArgs = {
 
 export type Query_RootUser_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootV4_Analytics_StateArgs = {
+  distinct_on?: InputMaybe<Array<V4_Analytics_State_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<V4_Analytics_State_Order_By>>;
+  where?: InputMaybe<V4_Analytics_State_Bool_Exp>;
+};
+
+export type Query_RootV4_Analytics_State_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<V4_Analytics_State_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<V4_Analytics_State_Order_By>>;
+  where?: InputMaybe<V4_Analytics_State_Bool_Exp>;
+};
+
+export type Query_RootV4_Analytics_State_By_PkArgs = {
+  key: Scalars["String"]["input"];
 };
 
 /** columns and relationships of "redirect" */
@@ -11521,6 +11919,14 @@ export type Subscription_Root = {
   action_v4_aggregate: Action_V4_Aggregate;
   /** fetch data from the table: "action_v4" using primary key columns */
   action_v4_by_pk?: Maybe<Action_V4>;
+  /** fetch data from the table: "action_v4_stats_daily" */
+  action_v4_stats_daily: Array<Action_V4_Stats_Daily>;
+  /** fetch aggregated fields from the table: "action_v4_stats_daily" */
+  action_v4_stats_daily_aggregate: Action_V4_Stats_Daily_Aggregate;
+  /** fetch data from the table: "action_v4_stats_daily" using primary key columns */
+  action_v4_stats_daily_by_pk?: Maybe<Action_V4_Stats_Daily>;
+  /** fetch data from the table in a streaming manner: "action_v4_stats_daily" */
+  action_v4_stats_daily_stream: Array<Action_V4_Stats_Daily>;
   /** fetch data from the table in a streaming manner: "action_v4" */
   action_v4_stream: Array<Action_V4>;
   admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
@@ -11734,6 +12140,14 @@ export type Subscription_Root = {
   user_by_pk?: Maybe<User>;
   /** fetch data from the table in a streaming manner: "user" */
   user_stream: Array<User>;
+  /** fetch data from the table: "v4_analytics_state" */
+  v4_analytics_state: Array<V4_Analytics_State>;
+  /** fetch aggregated fields from the table: "v4_analytics_state" */
+  v4_analytics_state_aggregate: V4_Analytics_State_Aggregate;
+  /** fetch data from the table: "v4_analytics_state" using primary key columns */
+  v4_analytics_state_by_pk?: Maybe<V4_Analytics_State>;
+  /** fetch data from the table in a streaming manner: "v4_analytics_state" */
+  v4_analytics_state_stream: Array<V4_Analytics_State>;
 };
 
 export type Subscription_RootActionArgs = {
@@ -11824,6 +12238,33 @@ export type Subscription_RootAction_V4_AggregateArgs = {
 
 export type Subscription_RootAction_V4_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootAction_V4_Stats_DailyArgs = {
+  distinct_on?: InputMaybe<Array<Action_V4_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_V4_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_V4_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootAction_V4_Stats_Daily_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Action_V4_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_V4_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_V4_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootAction_V4_Stats_Daily_By_PkArgs = {
+  action_v4_id: Scalars["String"]["input"];
+  date_utc: Scalars["date"]["input"];
+};
+
+export type Subscription_RootAction_V4_Stats_Daily_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Action_V4_Stats_Daily_Stream_Cursor_Input>>;
+  where?: InputMaybe<Action_V4_Stats_Daily_Bool_Exp>;
 };
 
 export type Subscription_RootAction_V4_StreamArgs = {
@@ -12541,6 +12982,32 @@ export type Subscription_RootUser_StreamArgs = {
   where?: InputMaybe<User_Bool_Exp>;
 };
 
+export type Subscription_RootV4_Analytics_StateArgs = {
+  distinct_on?: InputMaybe<Array<V4_Analytics_State_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<V4_Analytics_State_Order_By>>;
+  where?: InputMaybe<V4_Analytics_State_Bool_Exp>;
+};
+
+export type Subscription_RootV4_Analytics_State_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<V4_Analytics_State_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<V4_Analytics_State_Order_By>>;
+  where?: InputMaybe<V4_Analytics_State_Bool_Exp>;
+};
+
+export type Subscription_RootV4_Analytics_State_By_PkArgs = {
+  key: Scalars["String"]["input"];
+};
+
+export type Subscription_RootV4_Analytics_State_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<V4_Analytics_State_Stream_Cursor_Input>>;
+  where?: InputMaybe<V4_Analytics_State_Bool_Exp>;
+};
+
 /** columns and relationships of "team" */
 export type Team = {
   __typename?: "team";
@@ -13236,6 +13703,139 @@ export type User_Updates = {
   _set?: InputMaybe<User_Set_Input>;
   /** filter the rows which have to be updated */
   where: User_Bool_Exp;
+};
+
+/** columns and relationships of "v4_analytics_state" */
+export type V4_Analytics_State = {
+  __typename?: "v4_analytics_state";
+  key: Scalars["String"]["output"];
+  timestamp_value: Scalars["timestamptz"]["output"];
+};
+
+/** aggregated selection of "v4_analytics_state" */
+export type V4_Analytics_State_Aggregate = {
+  __typename?: "v4_analytics_state_aggregate";
+  aggregate?: Maybe<V4_Analytics_State_Aggregate_Fields>;
+  nodes: Array<V4_Analytics_State>;
+};
+
+/** aggregate fields of "v4_analytics_state" */
+export type V4_Analytics_State_Aggregate_Fields = {
+  __typename?: "v4_analytics_state_aggregate_fields";
+  count: Scalars["Int"]["output"];
+  max?: Maybe<V4_Analytics_State_Max_Fields>;
+  min?: Maybe<V4_Analytics_State_Min_Fields>;
+};
+
+/** aggregate fields of "v4_analytics_state" */
+export type V4_Analytics_State_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<V4_Analytics_State_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** Boolean expression to filter rows from the table "v4_analytics_state". All fields are combined with a logical 'AND'. */
+export type V4_Analytics_State_Bool_Exp = {
+  _and?: InputMaybe<Array<V4_Analytics_State_Bool_Exp>>;
+  _not?: InputMaybe<V4_Analytics_State_Bool_Exp>;
+  _or?: InputMaybe<Array<V4_Analytics_State_Bool_Exp>>;
+  key?: InputMaybe<String_Comparison_Exp>;
+  timestamp_value?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "v4_analytics_state" */
+export enum V4_Analytics_State_Constraint {
+  /** unique or primary key constraint on columns "key" */
+  V4AnalyticsStatePkey = "v4_analytics_state_pkey",
+}
+
+/** input type for inserting data into table "v4_analytics_state" */
+export type V4_Analytics_State_Insert_Input = {
+  key?: InputMaybe<Scalars["String"]["input"]>;
+  timestamp_value?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type V4_Analytics_State_Max_Fields = {
+  __typename?: "v4_analytics_state_max_fields";
+  key?: Maybe<Scalars["String"]["output"]>;
+  timestamp_value?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type V4_Analytics_State_Min_Fields = {
+  __typename?: "v4_analytics_state_min_fields";
+  key?: Maybe<Scalars["String"]["output"]>;
+  timestamp_value?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** response of any mutation on the table "v4_analytics_state" */
+export type V4_Analytics_State_Mutation_Response = {
+  __typename?: "v4_analytics_state_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<V4_Analytics_State>;
+};
+
+/** on_conflict condition type for table "v4_analytics_state" */
+export type V4_Analytics_State_On_Conflict = {
+  constraint: V4_Analytics_State_Constraint;
+  update_columns?: Array<V4_Analytics_State_Update_Column>;
+  where?: InputMaybe<V4_Analytics_State_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "v4_analytics_state". */
+export type V4_Analytics_State_Order_By = {
+  key?: InputMaybe<Order_By>;
+  timestamp_value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: v4_analytics_state */
+export type V4_Analytics_State_Pk_Columns_Input = {
+  key: Scalars["String"]["input"];
+};
+
+/** select columns of table "v4_analytics_state" */
+export enum V4_Analytics_State_Select_Column {
+  /** column name */
+  Key = "key",
+  /** column name */
+  TimestampValue = "timestamp_value",
+}
+
+/** input type for updating data in table "v4_analytics_state" */
+export type V4_Analytics_State_Set_Input = {
+  key?: InputMaybe<Scalars["String"]["input"]>;
+  timestamp_value?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** Streaming cursor of the table "v4_analytics_state" */
+export type V4_Analytics_State_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: V4_Analytics_State_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type V4_Analytics_State_Stream_Cursor_Value_Input = {
+  key?: InputMaybe<Scalars["String"]["input"]>;
+  timestamp_value?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** update columns of table "v4_analytics_state" */
+export enum V4_Analytics_State_Update_Column {
+  /** column name */
+  Key = "key",
+  /** column name */
+  TimestampValue = "timestamp_value",
+}
+
+export type V4_Analytics_State_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<V4_Analytics_State_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: V4_Analytics_State_Bool_Exp;
 };
 
 /** Boolean expression to compare columns of type "violation_enum". All fields are combined with logical 'AND'. */

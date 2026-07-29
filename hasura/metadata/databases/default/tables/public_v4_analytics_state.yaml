@@ -1,0 +1,10 @@
+table:
+  name: v4_analytics_state
+  schema: public
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - key
+        - timestamp_value
+      filter: {}
