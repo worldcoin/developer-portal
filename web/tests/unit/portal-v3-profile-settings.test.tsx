@@ -70,7 +70,10 @@ describe("PortalV3 profile settings", () => {
       screen
         .getAllByRole("heading", { level: 2 })
         .map((heading) => heading.textContent),
-    ).toEqual(["Teams", "Display name", "Delete account"]);
+    ).toEqual(["Teams", "Display name"]);
+    expect(
+      screen.queryByText("Manage your teams, display name, and account."),
+    ).not.toBeInTheDocument();
     expect(screen.getByTestId("teams-list")).toBeInTheDocument();
     expect(screen.getByTestId("world-id-migration")).toBeInTheDocument();
 
@@ -78,6 +81,7 @@ describe("PortalV3 profile settings", () => {
     await waitFor(() => expect(nameInput).toHaveValue("Ada Lovelace"));
 
     const saveButton = screen.getByRole("button", { name: "Save" });
+    expect(saveButton).toHaveClass("text-[length:var(--text-13)]");
     expect(saveButton).toBeDisabled();
 
     fireEvent.change(nameInput, { target: { value: "Ada Byron" } });
@@ -99,10 +103,17 @@ describe("PortalV3 profile settings", () => {
     await waitFor(() => expect(saveButton).toBeDisabled());
   });
 
-  it("opens the existing delete dialog from the danger card", () => {
+  it("opens the delete dialog from a standalone account action", () => {
     render(<ProfilePage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Delete account" }));
+    const deleteAccountButton = screen.getByRole("button", {
+      name: "Delete account",
+    });
+
+    expect(deleteAccountButton).toHaveClass("text-13");
+    expect(deleteAccountButton.closest("section")).toBeNull();
+
+    fireEvent.click(deleteAccountButton);
     expect(screen.getByTestId("delete-account-dialog")).toBeInTheDocument();
   });
 });

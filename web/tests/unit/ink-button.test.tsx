@@ -20,7 +20,12 @@ describe("InkButton", () => {
     const link = screen.getByRole("link", { name: "New team" });
     const iconSlot = screen.getByTestId("plus-icon").parentElement;
 
-    expect(link).toHaveClass("h-8", "hover:bg-portal-ink-hover");
+    expect(link).toHaveClass(
+      "h-8",
+      "text-[length:var(--text-13)]",
+      "text-white",
+      "hover:bg-portal-ink-hover",
+    );
     expect(link).not.toHaveClass("h-10", "enabled:hover:bg-portal-ink-hover");
     expect(iconSlot).toHaveClass("flex", "shrink-0", "-translate-y-px");
   });

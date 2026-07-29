@@ -40,24 +40,11 @@ const displayNameSchema = yup
 
 type DisplayNameFormValues = yup.InferType<typeof displayNameSchema>;
 
-const CardHeader = (props: {
-  title: string;
-  description?: string;
-  danger?: boolean;
-}) => (
+const CardHeader = (props: { title: string }) => (
   <header className="px-5 py-5 md:px-6">
-    <h2
-      className={`font-twk text-17 leading-5 font-[550] ${
-        props.danger ? "text-system-error-600" : "text-portal-text"
-      }`}
-    >
+    <h2 className="font-twk text-17 leading-5 font-[550] text-portal-text">
       {props.title}
     </h2>
-    {props.description ? (
-      <p className="mt-1.5 font-gta text-13 leading-5 text-grey-400">
-        {props.description}
-      </p>
-    ) : null}
   </header>
 );
 
@@ -140,13 +127,10 @@ export const ProfilePage = () => {
     <>
       <SizingWrapper gridClassName="py-8 md:py-12">
         <div className="mx-auto w-full max-w-[760px]">
-          <header className="mb-8">
+          <header className="mb-6">
             <h1 className="font-twk text-24 leading-[1.2] font-[550] text-portal-heading">
               Profile
             </h1>
-            <p className="mt-2 font-gta text-13 leading-5 text-grey-400">
-              Manage your teams, display name, and account.
-            </p>
           </header>
 
           <div className="grid gap-6">
@@ -159,10 +143,7 @@ export const ProfilePage = () => {
               className="overflow-hidden rounded-12 border border-grey-200 bg-white"
               onSubmit={handleDisplayNameSubmit(submitDisplayName)}
             >
-              <CardHeader
-                title="Display name"
-                description="Shown across your teams and apps."
-              />
+              <CardHeader title="Display name" />
 
               <div className="border-t border-grey-100 px-5 py-5 md:px-6">
                 <div className="max-w-[380px]">
@@ -220,23 +201,15 @@ export const ProfilePage = () => {
               onLinkSuccess={refetchMe}
             />
 
-            <section className="overflow-hidden rounded-12 border border-system-error-300 bg-white">
-              <CardHeader
-                title="Delete account"
-                description="Permanently removes your account and all team memberships. This action is not reversible."
-                danger
-              />
-
-              <footer className="flex min-h-14 items-center justify-end border-t border-system-error-200 bg-system-error-50 px-5 py-3 md:px-6">
-                <Button
-                  type="button"
-                  onClick={() => setIsDeleteAccountOpen(true)}
-                  className="inline-flex h-8 cursor-pointer items-center justify-center rounded-8 bg-system-error-600 px-4 font-world text-13 leading-none font-medium text-white outline-hidden transition-colors hover:bg-system-error-800 focus-visible:ring-2 focus-visible:ring-system-error-300 focus-visible:ring-offset-2"
-                >
-                  Delete account
-                </Button>
-              </footer>
-            </section>
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                onClick={() => setIsDeleteAccountOpen(true)}
+                className="inline-flex h-8 cursor-pointer items-center justify-center rounded-8 border border-system-error-300 bg-white px-4 font-world text-13 leading-none font-medium text-system-error-600 outline-hidden transition-colors hover:border-system-error-400 hover:bg-system-error-50 focus-visible:ring-2 focus-visible:ring-system-error-300 focus-visible:ring-offset-2"
+              >
+                Delete account
+              </Button>
+            </div>
           </div>
         </div>
       </SizingWrapper>
