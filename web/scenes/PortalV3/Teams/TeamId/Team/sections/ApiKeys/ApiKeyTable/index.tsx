@@ -8,10 +8,11 @@ import { ViewDetailsModal } from "./ViewDetailsModal";
 type ApiKeysTableProps = {
   teamId?: string;
   apiKeys?: FetchKeysQuery["api_key"];
+  openRotateKeyModal: (key: FetchKeysQuery["api_key"][0]) => void;
 };
 
 export const ApiKeysTable = (props: ApiKeysTableProps) => {
-  const { teamId, apiKeys } = props;
+  const { teamId, apiKeys, openRotateKeyModal } = props;
   const [selectedKey, setSelectedKey] = useState<
     FetchKeysQuery["api_key"][0] | null
   >(null);
@@ -69,6 +70,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
             teamId={teamId ?? ""}
             openViewDetails={openViewDetails}
             openDeleteKeyModal={openDeleteKeyModal}
+            openRotateKeyModal={openRotateKeyModal}
           />
         ))}
       </div>

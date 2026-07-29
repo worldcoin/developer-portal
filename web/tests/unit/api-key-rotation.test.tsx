@@ -1,29 +1,22 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { act } from "react";
+import { MockedProvider } from "@apollo/client/testing/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { Role_Enum } from "@/graphql/graphql";
-import { ApiKeyRow } from "@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys/ApiKeyTable/ApiKeyRow";
 
 // #region Mocks
-const resetApiKeyMock = jest.fn();
-
-jest.mock("@apollo/client/react", () => {
-  const React = require("react");
-
-  return {
-    useMutation: () => {
-      const [loading, setLoading] = React.useState(false);
-      const mutate = React.useCallback((...args: unknown[]) => {
-        setLoading(true);
-        return resetApiKeyMock(...args).finally(() => setLoading(false));
-      }, []);
-
-      return [mutate, { loading }];
-    },
-  };
-});
-
+// Apollo is deliberately REAL (MockedProvider = real client, cache and link
+// semantics). The original bug lived exactly there: the reset mutation's
+// refetchQueries re-renders the FetchKeys query as loading (Apollo v4 defaults
+// notifyOnNetworkStatusChange to true), which used to swap the table for
+// skeletons and unmount the dialog holding the one-time secret. Hook-level
+// Apollo mocks can never catch that class of bug.
 let mockSession: unknown;
 jest.mock("@auth0/nextjs-auth0/client", () => ({
   useUser: () => ({ user: mockSession }),
@@ -36,89 +29,66 @@ jest.mock("react-toastify", () => ({
     error: (...args: unknown[]) => toastErrorMock(...args),
   },
 }));
-
-jest.mock("@radix-ui/react-dropdown-menu", () => ({
-  Root: ({ children }: React.PropsWithChildren) => <>{children}</>,
-  Trigger: ({ children, ...props }: React.ComponentProps<"button">) => (
-    <button {...props}>{children}</button>
-  ),
-  Portal: ({ children }: React.PropsWithChildren) => <>{children}</>,
-  Content: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-  Item: ({ children }: React.PropsWithChildren) => (
-    <div role="menuitem">{children}</div>
-  ),
-}));
-
-jest.mock("@/components/FormDialog", () => ({
-  FormDialog: ({
-    children,
-    open,
-    title,
-  }: React.PropsWithChildren<{ open: boolean; title: React.ReactNode }>) =>
-    open ? (
-      <div role="dialog">
-        <h2>{title}</h2>
-        {children}
-      </div>
-    ) : null,
-  formDialogDangerActionClassName: "",
-  formDialogPrimaryActionClassName: "",
-}));
-
-jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys/ApiKeySecretFields",
-  () => ({
-    ApiKeySecretFields: ({ apiKey }: { apiKey: string }) => (
-      <code>{apiKey}</code>
-    ),
-  }),
-);
-
-jest.mock(
-  "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated",
-  () => ({ ResetApiKeyDocument: { __mockDoc: "resetApiKey" } }),
-);
-jest.mock(
-  "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated",
-  () => ({ FetchKeysDocument: { __mockDoc: "fetchKeys" } }),
-);
 // #endregion
 
+import { ApiKeys } from "@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys";
+import { ResetApiKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
+import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
+
 // #region Test Data
+const TEAM_ID = "team_cd7aa5f3c2a797a06e66eb6eefbf2f48";
+const KEY_ID = "key_9a8b7c6d5e4f3a2b";
+const NEW_SECRET = "api_NEW_SECRET";
+
 const API_KEY = {
   __typename: "api_key" as const,
-  id: "key_1",
-  team_id: "team_1",
+  id: KEY_ID,
+  team_id: TEAM_ID,
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",
   is_active: true,
   name: "production",
 };
 
-const NEW_SECRET = "api_NEW_SECRET";
-const mutationResult = {
-  data: { reset_api_key: { api_key: NEW_SECRET } },
+const fetchKeysMock = (apiKeys: (typeof API_KEY)[]) => ({
+  request: { query: FetchKeysDocument, variables: { teamId: TEAM_ID } },
+  result: { data: { api_key: apiKeys } },
+});
+
+const resetKeyMock = {
+  request: {
+    query: ResetApiKeyDocument,
+    variables: { id: KEY_ID, team_id: TEAM_ID },
+  },
+  result: {
+    data: {
+      reset_api_key: { __typename: "ResetAPIOutput", api_key: NEW_SECRET },
+    },
+  },
+};
+
+// The refetched row carries a bumped updated_at so the test can tell when the
+// post-rotation refetch has actually landed and re-rendered the table.
+const ROTATED_KEY = {
+  ...API_KEY,
+  updated_at: "2026-01-02T00:00:00.000Z",
 };
 
 const sessionWithRole = (role: Role_Enum) => ({
-  hasura: { memberships: [{ role, team: { id: "team_1" } }] },
+  hasura: { memberships: [{ role, team: { id: TEAM_ID } }] },
 });
 
-const renderRow = () =>
+type Mocks = React.ComponentProps<typeof MockedProvider>["mocks"];
+
+const renderSection = (mocks: Mocks, canWrite = true) =>
   render(
-    <ApiKeyRow
-      apiKey={API_KEY}
-      index={0}
-      teamId="team_1"
-      openViewDetails={jest.fn()}
-      openDeleteKeyModal={jest.fn()}
-    />,
+    <MockedProvider mocks={mocks}>
+      <ApiKeys teamId={TEAM_ID} canWrite={canWrite} />
+    </MockedProvider>,
   );
 
-const openRotation = () => {
-  renderRow();
-  fireEvent.click(screen.getByRole("button", { name: /^rotate key$/i }));
-};
+const findRotateTrigger = () =>
+  screen.findByRole("button", { name: /reset to view/i });
 
 const confirmation = () => screen.getByRole("dialog");
 const confirmRotation = () =>
@@ -127,16 +97,16 @@ const confirmRotation = () =>
 beforeEach(() => {
   jest.clearAllMocks();
   mockSession = sessionWithRole(Role_Enum.Owner);
-  resetApiKeyMock.mockResolvedValue(mutationResult);
 });
 // #endregion
 
 // #region Rotation flow
 describe("API key rotation flow", () => {
-  it("requires confirmation and can be cancelled without rotating", () => {
-    openRotation();
+  it("requires confirmation and can be cancelled without rotating", async () => {
+    // No mutation mock: an unexpected ResetAPIKey call would fail the test.
+    renderSection([fetchKeysMock([API_KEY])]);
 
-    expect(resetApiKeyMock).not.toHaveBeenCalled();
+    fireEvent.click(await findRotateTrigger());
 
     fireEvent.click(
       within(confirmation()).getByRole("button", {
@@ -144,60 +114,95 @@ describe("API key rotation flow", () => {
       }),
     );
 
-    expect(resetApiKeyMock).not.toHaveBeenCalled();
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
   });
 
-  it("rotates the selected key and reveals the returned secret", async () => {
-    openRotation();
+  it("reveals the new secret and keeps it visible through the refetch", async () => {
+    renderSection([
+      fetchKeysMock([API_KEY]),
+      resetKeyMock,
+      fetchKeysMock([ROTATED_KEY]),
+    ]);
 
-    await act(async () => {
-      fireEvent.click(confirmRotation());
-    });
+    fireEvent.click(await findRotateTrigger());
+    fireEvent.click(confirmRotation());
 
-    expect(resetApiKeyMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variables: { id: "key_1", team_id: "team_1" },
-      }),
+    // The dialog transitions in place to the reveal state.
+    expect(
+      await within(await screen.findByRole("dialog")).findByText(
+        "API key rotated",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(new RegExp(NEW_SECRET)).length).toBeGreaterThan(
+      0,
     );
-    expect(screen.getByText(NEW_SECRET)).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: /^copy$/i,
+      }),
+    ).toBeInTheDocument();
+
+    // Wait for the post-rotation refetch to land and re-render the table…
+    await waitFor(() =>
+      expect(screen.getByText(/created/i)).toBeInTheDocument(),
+    );
+
+    // …the one-time secret must still be on screen afterwards.
+    expect(screen.getAllByText(new RegExp(NEW_SECRET)).length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("prevents a second rotation while the first is in flight", async () => {
-    let resolveMutation!: (value: typeof mutationResult) => void;
-    resetApiKeyMock.mockReturnValue(
-      new Promise((resolve) => {
-        resolveMutation = resolve;
-      }),
-    );
+    renderSection([
+      fetchKeysMock([API_KEY]),
+      { ...resetKeyMock, delay: 50 },
+      fetchKeysMock([ROTATED_KEY]),
+    ]);
 
-    openRotation();
+    fireEvent.click(await findRotateTrigger());
     fireEvent.click(confirmRotation());
-    fireEvent.click(confirmRotation());
-
-    expect(resetApiKeyMock).toHaveBeenCalledTimes(1);
+    // A second confirm while in flight must be a no-op (button disabled and
+    // the handler guarded); a second mutation would find no mocked response.
     expect(confirmRotation()).toBeDisabled();
+    fireEvent.click(confirmRotation());
 
-    await act(async () => resolveMutation(mutationResult));
+    expect(
+      await within(await screen.findByRole("dialog")).findByText(
+        "API key rotated",
+      ),
+    ).toBeInTheDocument();
+    expect(toastErrorMock).not.toHaveBeenCalled();
   });
 
   it("reports a failed rotation without revealing a secret", async () => {
-    resetApiKeyMock.mockRejectedValue(new Error("network error"));
-    openRotation();
+    renderSection([
+      fetchKeysMock([API_KEY]),
+      {
+        request: resetKeyMock.request,
+        error: new Error("network error"),
+      },
+    ]);
 
-    await act(async () => {
-      fireEvent.click(confirmRotation());
-    });
+    fireEvent.click(await findRotateTrigger());
+    fireEvent.click(confirmRotation());
 
-    expect(toastErrorMock).toHaveBeenCalledWith(
-      "Error occurred while resetting API key.",
+    await waitFor(() =>
+      expect(toastErrorMock).toHaveBeenCalledWith(
+        "Error occurred while resetting API key.",
+      ),
     );
-    expect(screen.queryByText(NEW_SECRET)).not.toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(NEW_SECRET))).not.toBeInTheDocument();
   });
 
-  it("does not expose rotation controls to non-owners", () => {
+  it("does not expose rotation controls to non-owners", async () => {
     mockSession = sessionWithRole(Role_Enum.Admin);
-    renderRow();
+    renderSection([fetchKeysMock([API_KEY])], false);
+
+    await screen.findByText("production");
 
     expect(
       screen.queryByRole("button", { name: /^rotate key$/i }),
