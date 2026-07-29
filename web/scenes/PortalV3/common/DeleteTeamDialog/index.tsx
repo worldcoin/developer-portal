@@ -1,12 +1,14 @@
 "use client";
-import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog, DialogProps } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
+import { DialogProps } from "@/components/Dialog";
+import {
+  FormDialog,
+  formDialogDangerActionClassName,
+  formDialogErrorClassName,
+  formDialogInputClassName,
+  formDialogLabelClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { Input } from "@/components/Input";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { useMeQuery } from "@/scenes/common/me-query/client";
@@ -126,75 +128,84 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
   ]);
 
   return (
-    <Dialog {...props} onClose={onClose}>
-      <DialogOverlay />
-
-      <DialogPanel className="grid gap-y-8 md:max-w-100">
-        <CircleIconContainer variant="error">
-          <AlertIcon />
-        </CircleIconContainer>
-
+    <FormDialog
+      open={Boolean(props.open)}
+      onClose={onClose}
+      closeLabel="Close delete team dialog"
+      title="Are you sure?"
+    >
+      <div className="grid gap-y-6">
         <div className="grid gap-y-4">
-          <Typography as="h3" variant={TYPOGRAPHY.H6} className="text-center">
-            Are you sure?
-          </Typography>
-
-          <Typography
-            variant={TYPOGRAPHY.R3}
-            className="max-w-[344px] text-center text-grey-500"
-          >
+          <p className="font-world text-14 leading-[1.5] text-portal-muted">
             The{" "}
-            <span className="font-medium break-all text-gray-900 select-none">
+            <span className="font-medium break-all text-portal-text select-none">
               {team?.name}
             </span>{" "}
             will be deleted, along with all of its apps, actions, configurations
             and statistics.
-          </Typography>
+          </p>
 
-          <div className="grid grid-cols-auto/1fr items-center gap-x-1 justify-self-center rounded-lg bg-system-error-50 px-3 py-2 text-system-error-600">
-            <AlertIcon />
+          <div className="flex items-center gap-x-2 rounded-8 bg-system-error-50 px-3 py-2 text-system-error-600">
+            <AlertIcon className="size-4 shrink-0" />
 
-            <Typography variant={TYPOGRAPHY.B4}>
+            <span className="font-world text-13 font-medium">
               This action cannot be undone.
-            </Typography>
+            </span>
           </div>
         </div>
 
-        <form
-          onSubmit={handleSubmit(submit)}
-          className="mt-2 grid w-full gap-y-10"
-        >
-          <Input
-            register={register("confirmation")}
-            errors={errors.confirmation}
-            label={
-              <span className="select-none">To verify, type DELETE below</span>
-            }
-            autoFocus
-          />
-
-          <div className="grid gap-x-4 gap-y-2 md:grid-cols-2">
-            <DecoratedButton
-              disabled={!isValid || isSubmitting}
-              type="submit"
-              variant="danger"
-              className="order-2 whitespace-nowrap md:order-1"
+        <form onSubmit={handleSubmit(submit)} className="grid w-full gap-y-6">
+          <div>
+            <label
+              htmlFor="delete-team-confirmation"
+              className={formDialogLabelClassName}
             >
-              Delete team
-            </DecoratedButton>
+              To verify, type DELETE below
+            </label>
 
-            <DecoratedButton
+            <input
+              id="delete-team-confirmation"
+              {...register("confirmation")}
+              className={formDialogInputClassName}
+              aria-invalid={Boolean(errors.confirmation)}
+              aria-describedby={
+                errors.confirmation
+                  ? "delete-team-confirmation-error"
+                  : undefined
+              }
+              autoFocus
+            />
+
+            {errors.confirmation?.message && (
+              <p
+                id="delete-team-confirmation-error"
+                className={formDialogErrorClassName}
+              >
+                {errors.confirmation.message}
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <button
               type="button"
               onClick={onClose}
-              variant="primary"
-              className="order-1 whitespace-nowrap"
+              className={`${formDialogSecondaryActionClassName} order-1 md:order-none`}
               disabled={isSubmitting}
             >
               Keep team
-            </DecoratedButton>
+            </button>
+
+            <button
+              disabled={!isValid || isSubmitting}
+              type="submit"
+              className={`${formDialogDangerActionClassName} order-2 md:order-none`}
+            >
+              Delete team
+            </button>
           </div>
         </form>
-      </DialogPanel>
-    </Dialog>
+      </div>
+    </FormDialog>
   );
 };
