@@ -3,23 +3,19 @@
 import { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
 import { Button } from "@/components/Button";
 import { Checkbox } from "@/components/Checkbox";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { teamNameSchema } from "@/lib/schema";
 import { urls } from "@/lib/urls";
 import { InkButton } from "@/scenes/PortalV3/common/InkButton";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 
 export const Form = (props: { hasUser: boolean }) => {
-  const router = useRouter();
-  const { invalidate } = useUser();
-
   const schema = useMemo(
     () =>
       yup
@@ -53,40 +49,36 @@ export const Form = (props: { hasUser: boolean }) => {
     mode: "onChange",
   });
 
-  const submit = useCallback(
-    async (values: FormValues) => {
-      const body: CreateTeamBody = {
-        team_name: values.teamName,
-        hasUser: values.hasUser,
-      };
+  const submit = useCallback(async (values: FormValues) => {
+    const body: CreateTeamBody = {
+      team_name: values.teamName,
+      hasUser: values.hasUser,
+    };
 
-      let data: CreateTeamResponse | null = null;
+    let data: CreateTeamResponse | null = null;
 
-      try {
-        const res = await fetch("/api/create-team", {
-          method: "POST",
-          body: JSON.stringify(body),
-        });
+    try {
+      const res = await fetch("/api/create-team", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
 
-        if (!res.ok) {
-          const error = await res.json();
-          throw error;
-        }
-
-        data = await res.json();
-      } catch (error) {
-        return toast.error("Something went wrong");
+      if (!res.ok) {
+        const error = await res.json();
+        throw error;
       }
 
-      if (!data || !data.returnTo) {
-        return console.log("Something went wrong");
-      }
+      data = await res.json();
+    } catch (error) {
+      return toast.error("Something went wrong");
+    }
 
-      await invalidate();
-      router.push(data.returnTo);
-    },
-    [invalidate, router],
-  );
+    if (!data || !data.returnTo) {
+      return console.log("Something went wrong");
+    }
+
+    window.location.replace(data.returnTo);
+  }, []);
 
   return (
     <form onSubmit={handleSubmit(submit)} className="grid gap-y-8">
@@ -150,7 +142,14 @@ export const Form = (props: { hasUser: boolean }) => {
         className="mt-2 h-11 w-[180px] justify-self-center"
         disabled={!isValid || isSubmitting}
       >
-        Create team
+        {isSubmitting ? (
+          <>
+            <SpinnerIcon aria-hidden className="size-5 animate-spin" />
+            <span className="sr-only">Creating team</span>
+          </>
+        ) : (
+          "Create team"
+        )}
       </InkButton>
     </form>
   );
