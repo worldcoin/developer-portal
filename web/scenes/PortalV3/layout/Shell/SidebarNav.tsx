@@ -92,74 +92,82 @@ export const SidebarNav = (props: {
 
   return (
     <nav className="no-scrollbar flex flex-1 flex-col overflow-y-auto px-4 pt-[27px]">
-      <div className="grid gap-2">
-        <NavItem
-          label="World ID"
-          href={worldIdHref}
-          active={worldIdActive}
-          icon={<NavIcon name="nav-world-id" active={worldIdActive} />}
-        />
-
-        {appId ? (
-          <>
+      {/* Team-scoped items: without a team in the route (e.g. /profile) these
+          links could only bounce to an arbitrary first team, so hide them. */}
+      {teamId ? (
+        <>
+          <div className="grid gap-2">
             <NavItem
-              label="Configuration"
-              href={configurationHref}
-              active={configurationActive}
-              icon={
-                <NavIcon
-                  name="nav-configuration"
+              label="World ID"
+              href={worldIdHref}
+              active={worldIdActive}
+              icon={<NavIcon name="nav-world-id" active={worldIdActive} />}
+            />
+
+            {appId ? (
+              <>
+                <NavItem
+                  label="Configuration"
+                  href={configurationHref}
                   active={configurationActive}
-                />
-              }
-            />
-            <NavItem
-              label="Mini App"
-              href={miniAppHref}
-              active={miniAppActive}
-              current={false}
-              icon={<NavIcon name="nav-mini-app" active={miniAppActive} />}
-            />
-            {miniAppActive && ids ? (
-              <div className="ml-5 grid gap-1 border-l border-portal-border pl-2">
-                <NavItem
-                  label="Permissions"
-                  href={urls.miniAppPermissions(ids)}
-                  active={miniAppPermissionsActive}
-                  className="h-9 rounded-8 pr-3 pl-3 text-12"
-                  icon={<LockIcon className="size-3.5" />}
+                  icon={
+                    <NavIcon
+                      name="nav-configuration"
+                      active={configurationActive}
+                    />
+                  }
                 />
                 <NavItem
-                  label="Transactions"
-                  href={urls.miniAppTransactions(ids)}
-                  active={miniAppTransactionsActive}
-                  className="h-9 rounded-8 pr-3 pl-3 text-12"
-                  icon={<WalletIcon className="size-3.5" />}
+                  label="Mini App"
+                  href={miniAppHref}
+                  active={miniAppActive}
+                  current={false}
+                  icon={<NavIcon name="nav-mini-app" active={miniAppActive} />}
                 />
-                <NavItem
-                  label="Notifications"
-                  href={urls.miniAppNotifications(ids)}
-                  active={miniAppNotificationsActive}
-                  className="h-9 rounded-8 pr-3 pl-3 text-12"
-                  icon={<SendIcon className="size-3.5" />}
-                />
-              </div>
+                {miniAppActive && ids ? (
+                  <div className="ml-5 grid gap-1 border-l border-portal-border pl-2">
+                    <NavItem
+                      label="Permissions"
+                      href={urls.miniAppPermissions(ids)}
+                      active={miniAppPermissionsActive}
+                      className="h-9 rounded-8 pr-3 pl-3 text-12"
+                      icon={<LockIcon className="size-3.5" />}
+                    />
+                    <NavItem
+                      label="Transactions"
+                      href={urls.miniAppTransactions(ids)}
+                      active={miniAppTransactionsActive}
+                      className="h-9 rounded-8 pr-3 pl-3 text-12"
+                      icon={<WalletIcon className="size-3.5" />}
+                    />
+                    <NavItem
+                      label="Notifications"
+                      href={urls.miniAppNotifications(ids)}
+                      active={miniAppNotificationsActive}
+                      className="h-9 rounded-8 pr-3 pl-3 text-12"
+                      icon={<SendIcon className="size-3.5" />}
+                    />
+                  </div>
+                ) : null}
+              </>
             ) : null}
-          </>
-        ) : null}
-      </div>
+          </div>
 
-      <div className="my-2 h-px w-full">
-        <Icon name="nav-separator" className="h-px w-full" />
-      </div>
+          <div className="my-2 h-px w-full">
+            <Icon name="nav-separator" className="h-px w-full" />
+          </div>
+        </>
+      ) : null}
 
       <div className="grid gap-2">
-        <NavItem
-          label="Team settings"
-          href={teamSettingsHref}
-          active={settingsActive}
-          icon={<NavIcon name="nav-settings" active={settingsActive} />}
-        />
+        {teamId ? (
+          <NavItem
+            label="Team settings"
+            href={teamSettingsHref}
+            active={settingsActive}
+            icon={<NavIcon name="nav-settings" active={settingsActive} />}
+          />
+        ) : null}
         <HelpCenterMenu />
         {configurationDangerHref ? (
           <NavItem
