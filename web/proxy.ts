@@ -400,9 +400,9 @@ export async function proxy(request: NextRequest) {
   }
 
   // 4. Attach the per-request CSP nonce. It is forwarded on the request headers
-  //    so the Apollo-scoped layouts (`app/(portal)/layout.tsx` and
-  //    `app/(onboarding)/create-team/layout.tsx`) can read `x-nonce` during
-  //    SSR, and set on the response so the browser enforces the policy.
+  //    so the Apollo-scoped portal layout (`app/(portal)/layout.tsx`) can read
+  //    `x-nonce` during SSR, and set on the response so the browser enforces
+  //    the policy.
   const response = createSecurityHeadersResponse(request, pathname);
 
   // Preserve any session-refresh cookies set by `auth0.middleware()`.

@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { useCreateAppDialog } from "@/scenes/common/layout/CreateAppDialog/useCreateAppDialog";
 import { useLazyQuery } from "@apollo/client/react";
@@ -23,9 +23,6 @@ const CreateKeyModal = dynamic(
 
 // Collapses Chrome's visibilitychange+focus double-fire on a tab return.
 const RETURN_CHECK_MIN_INTERVAL_MS = 1_000;
-
-const actionButtonClassName =
-  "inline-flex h-10 items-center justify-center rounded-8 bg-portal-ink px-4 font-world text-13 font-medium leading-none text-white transition-colors hover:bg-portal-ink-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
 
 const ActionCard = (props: {
   icon: ReactNode;
@@ -161,14 +158,16 @@ export const AppsPageClient = (props: {
             title="Create an app"
             description="Configure your app and actions through the developer portal interface."
           >
-            <Button
+            <InkButton
               type="button"
-              onClick={openCreateAppDialog}
-              className={actionButtonClassName}
+              onClick={() => {
+                setDialogMounted(true);
+                setCreateAppOpen(true);
+              }}
               data-testid="button-create-new-app"
             >
               Create new app
-            </Button>
+            </InkButton>
           </ActionCard>
 
           {isOwner ? (
@@ -179,16 +178,15 @@ export const AppsPageClient = (props: {
               description="Connect Codex, Claude, or any MCP client to build and manage your app via natural language."
               badge="New"
             >
-              <Button
+              <InkButton
                 type="button"
                 onClick={() => {
                   setKeyDialogMounted(true);
                   setCreateKeyOpen(true);
                 }}
-                className={actionButtonClassName}
               >
                 Create API key
-              </Button>
+              </InkButton>
             </ActionCard>
           ) : null}
         </div>

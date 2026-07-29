@@ -99,15 +99,22 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
         console.error("Delete Team Dialog: session sync failed after delete");
       }
 
+      // Deleting the last team keeps the user in the portal: land them on
+      // their profile, which owns teams and can create the next one.
       if (typeof membershipsCount === "number" && membershipsCount === 0) {
-        return router.push(urls.createTeam());
+        if (path !== urls.profile()) {
+          return router.push(urls.profile());
+        }
+
+        router.refresh();
+        return onClose();
       }
 
       // A push inside the same layout won't re-render the session-fed sidebar.
       router.refresh();
 
-      if (path !== urls.profileTeams()) {
-        return router.push(urls.profileTeams());
+      if (path !== urls.profile()) {
+        return router.push(urls.profile());
       }
 
       onClose();

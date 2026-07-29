@@ -14,7 +14,7 @@ export const CreateTeamDialog = () => {
       title="Create a new team"
       closeLabel="Close create team dialog"
     >
-      <CreateTeamForm hasPortalUser presentation="dialog" />
+      <CreateTeamForm />
     </FormDialog>
   );
 };

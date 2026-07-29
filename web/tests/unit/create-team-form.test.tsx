@@ -4,187 +4,98 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
 // #region Mocks
-const mockPush = jest.fn();
-const mockRefresh = jest.fn();
-jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush, refresh: mockRefresh }),
-}));
-
-const mockInvalidate = jest.fn();
-jest.mock("@auth0/nextjs-auth0/client", () => ({
-  useUser: () => ({ invalidate: mockInvalidate }),
-}));
-
 const mockToastError = jest.fn();
 jest.mock("react-toastify", () => ({
   toast: { error: (...args: unknown[]) => mockToastError(...args) },
 }));
 // #endregion
 
+import { TEAM_CREATED_TOAST_STORAGE_KEY } from "@/lib/team-created-toast";
 import { CreateTeamForm } from "@/scenes/Onboarding/CreateTeam/Form";
 
-const originalFetch = global.fetch;
+// #region Test Data
+const originalLocation = window.location;
+const locationReplace = jest.fn();
+
+const submitTeamName = async (name = "Platform") => {
+  fireEvent.change(screen.getByLabelText("Team name"), {
+    target: { value: name },
+  });
+
+  const submit = screen.getByRole("button", { name: "Create team" });
+  await waitFor(() => expect(submit).toBeEnabled());
+  fireEvent.click(submit);
+};
+// #endregion
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockInvalidate.mockResolvedValue(undefined);
+  window.sessionStorage.clear();
   global.fetch = jest.fn();
+  Object.defineProperty(window, "location", {
+    value: { replace: locationReplace },
+    writable: true,
+    configurable: true,
+  });
 });
 
 afterAll(() => {
-  global.fetch = originalFetch;
-});
-
-// #region First-user consent
-describe("CreateTeam form [first user]", () => {
-  it("requires consent before enabling team creation", async () => {
-    render(<CreateTeamForm hasPortalUser={false} presentation="full-page" />);
-
-    const teamNameInput = screen.getByLabelText("Team name");
-    fireEvent.change(teamNameInput, {
-      target: { value: "Platform" },
-    });
-
-    const submit = screen.getByRole("button", { name: "Create team" });
-    expect(teamNameInput).not.toHaveAttribute("placeholder");
-    expect(submit).toHaveClass(
-      "group",
-      "h-[98px]",
-      "max-w-[340px]",
-      "cursor-pointer",
-      "disabled:cursor-not-allowed",
-      "enabled:hover:bg-black",
-    );
-    const arrow = submit.querySelector("span");
-    expect(arrow).not.toHaveClass("group-hover:w-7", "group-hover:opacity-100");
-    expect(submit).toBeDisabled();
-
-    fireEvent.click(screen.getByRole("checkbox"));
-
-    await waitFor(() => expect(submit).toBeEnabled());
-    expect(arrow).toHaveClass("group-hover:w-7", "group-hover:opacity-100");
-  });
-
-  it("submits first-team creation as a new user after consent", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({ returnTo: "/teams/team_new/apps" }),
-    });
-
-    render(<CreateTeamForm hasPortalUser={false} presentation="full-page" />);
-
-    fireEvent.change(screen.getByLabelText("Team name"), {
-      target: { value: "Platform" },
-    });
-    fireEvent.click(screen.getByRole("checkbox"));
-
-    const submit = screen.getByRole("button", { name: "Create team" });
-    await waitFor(() => expect(submit).toBeEnabled());
-    fireEvent.click(submit);
-
-    await waitFor(() =>
-      expect(global.fetch).toHaveBeenCalledWith("/api/create-team", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          team_name: "Platform",
-          hasUser: false,
-        }),
-      }),
-    );
-    expect(mockInvalidate).toHaveBeenCalledTimes(1);
-    expect(mockPush).toHaveBeenCalledWith("/teams/team_new/apps");
-    expect(mockRefresh).not.toHaveBeenCalled();
+  Object.defineProperty(window, "location", {
+    value: originalLocation,
+    writable: true,
+    configurable: true,
   });
 });
-// #endregion
 
-// #region Existing-user creation
-describe("CreateTeam form [existing user]", () => {
-  it("creates a team without asking for consent again", async () => {
+// #region Dialog team creation
+describe("CreateTeam dialog form", () => {
+  it("creates a team as an existing user and hard-navigates with the toast queued", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       json: async () => ({ returnTo: "/teams/team_new" }),
     });
 
-    render(<CreateTeamForm hasPortalUser presentation="dialog" />);
+    render(<CreateTeamForm />);
 
+    // The dialog serves existing users only — no signup consent here.
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Team name"), {
-      target: { value: "Platform" },
-    });
 
-    const submit = screen.getByRole("button", { name: "Create team" });
-    await waitFor(() => expect(submit).toBeEnabled());
-    fireEvent.click(submit);
+    await submitTeamName();
 
     await waitFor(() =>
-      expect(global.fetch).toHaveBeenCalledWith("/api/create-team", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          team_name: "Platform",
-          hasUser: true,
-        }),
-      }),
+      expect(locationReplace).toHaveBeenCalledWith("/teams/team_new"),
     );
-    expect(mockInvalidate).toHaveBeenCalledTimes(1);
-    expect(mockPush).toHaveBeenCalledWith("/teams/team_new");
-    expect(mockRefresh).toHaveBeenCalledTimes(1);
-    expect(mockInvalidate.mock.invocationCallOrder[0]).toBeLessThan(
-      mockPush.mock.invocationCallOrder[0],
+    expect(global.fetch).toHaveBeenCalledWith("/api/create-team", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ team_name: "Platform", hasUser: true }),
+    });
+    expect(window.sessionStorage.getItem(TEAM_CREATED_TOAST_STORAGE_KEY)).toBe(
+      "Platform",
     );
-    expect(mockPush.mock.invocationCallOrder[0]).toBeLessThan(
-      mockRefresh.mock.invocationCallOrder[0],
-    );
+    expect(
+      screen.getByRole("button", { name: "Creating team…" }),
+    ).toBeDisabled();
   });
 
-  it("navigates after creation even if the client session refresh fails", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({ returnTo: "/teams/team_new" }),
-    });
-    mockInvalidate.mockRejectedValue(new Error("Profile refresh failed"));
-
-    render(<CreateTeamForm hasPortalUser presentation="dialog" />);
-    fireEvent.change(screen.getByLabelText("Team name"), {
-      target: { value: "Platform" },
-    });
-
-    const submit = screen.getByRole("button", { name: "Create team" });
-    await waitFor(() => expect(submit).toBeEnabled());
-    fireEvent.click(submit);
-
-    await waitFor(() =>
-      expect(mockPush).toHaveBeenCalledWith("/teams/team_new"),
-    );
-    expect(mockRefresh).toHaveBeenCalledTimes(1);
-    expect(mockToastError).not.toHaveBeenCalled();
-  });
-
-  it("keeps the user in place and reports a failed request", async () => {
+  it("keeps the user in the dialog and reports a failed request", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
       json: async () => ({}),
     });
 
-    render(<CreateTeamForm hasPortalUser presentation="dialog" />);
-    fireEvent.change(screen.getByLabelText("Team name"), {
-      target: { value: "Platform" },
-    });
-
-    const submit = screen.getByRole("button", { name: "Create team" });
-    await waitFor(() => expect(submit).toBeEnabled());
-    fireEvent.click(submit);
+    render(<CreateTeamForm />);
+    await submitTeamName();
 
     await waitFor(() =>
       expect(mockToastError).toHaveBeenCalledWith(
         "We couldn't create your team. Please try again.",
       ),
     );
-    expect(mockInvalidate).not.toHaveBeenCalled();
-    expect(mockPush).not.toHaveBeenCalled();
-    expect(mockRefresh).not.toHaveBeenCalled();
+    expect(locationReplace).not.toHaveBeenCalled();
+    expect(
+      window.sessionStorage.getItem(TEAM_CREATED_TOAST_STORAGE_KEY),
+    ).toBeNull();
   });
 });
 // #endregion

@@ -2,8 +2,10 @@
 
 import { urls } from "@/lib/urls";
 import { Color } from "@/scenes/common/Profile/types";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { useAtomValue } from "jotai";
 import Link from "next/link";
 import { CSSProperties } from "react";
 
@@ -55,7 +57,9 @@ const UserAvatar = (props: { name: string; color: Color | null }) => {
 };
 
 export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
-  const { user, color } = props;
+  const { user } = props;
+  const selectedColor = useAtomValue(colorAtom);
+  const color = selectedColor ?? props.color;
 
   return (
     <DropdownMenu.Root>
@@ -90,11 +94,6 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               href={urls.profile()}
               label="Profile"
               icon="profile-menu-profile"
-            />
-            <LinkItem
-              href={urls.profileTeams()}
-              label="My Teams"
-              icon="profile-menu-teams"
             />
             <Separator />
             <DropdownMenu.Item asChild>

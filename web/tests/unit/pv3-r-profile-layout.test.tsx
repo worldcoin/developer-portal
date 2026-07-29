@@ -8,12 +8,11 @@ jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
 jest.mock("@/scenes/Portal/Profile/layout", () => ({
   ProfileLayout: () => <div data-testid="v2-profile-layout" />,
 }));
-jest.mock("@/scenes/PortalV3/Profile/layout", () => ({
-  ProfileLayout: () => <div data-testid="v3-profile-layout" />,
-}));
 import Layout from "../../app/(portal)/profile/layout";
-it("renders v3 profile layout", async () => {
-  render(await Layout({ children: null }));
-  expect(screen.getByTestId("v3-profile-layout")).toBeInTheDocument();
+
+it("renders the v3 profile without the legacy tab layout", async () => {
+  render(await Layout({ children: <div data-testid="profile-page" /> }));
+
+  expect(screen.getByTestId("profile-page")).toBeInTheDocument();
   expect(screen.queryByTestId("v2-profile-layout")).not.toBeInTheDocument();
 });

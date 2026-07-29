@@ -21,43 +21,32 @@ jest.mock("next/image", () => ({
   default: ({ alt }: { alt: string }) => <span role="img" aria-label={alt} />,
 }));
 
-jest.mock("@/scenes/Onboarding/CreateTeam/AccountMenu", () => ({
-  CreateTeamAccountMenu: ({ userInitial }: { userInitial: string }) => (
-    <div
-      data-testid="create-team-account-menu"
-      data-user-initial={userInitial}
-    />
-  ),
+jest.mock("@/api/helpers/graphql", () => ({
+  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
 }));
 
-jest.mock("@/scenes/Onboarding/CreateTeam/Form", () => ({
-  CreateTeamForm: ({
-    hasPortalUser,
-    presentation,
-  }: {
-    hasPortalUser: boolean;
-    presentation: string;
-  }) => (
-    <div
-      data-testid="create-team-form"
-      data-has-portal-user={String(hasPortalUser)}
-      data-presentation={presentation}
-    />
-  ),
+const mockFetchUser = jest.fn();
+jest.mock(
+  "@/scenes/Onboarding/CreateTeam/page/graphql/server/fetch-user.generated",
+  () => ({
+    getSdk: () => ({ FetchUser: mockFetchUser }),
+  }),
+);
+
+jest.mock("@/scenes/Onboarding/CreateTeam/page/Form", () => ({
+  Form: () => <div data-testid="create-team-form" />,
 }));
 // #endregion
 
 import { CreateTeamPage } from "@/scenes/Onboarding/CreateTeam/page";
 
 // #region Test Data
-const session = (hasura?: {
-  id: string;
-  memberships: Array<{ team: { id: string }; role: string }>;
-}) => ({
+const session = (overrides?: { hasura?: { id: string }; email?: string }) => ({
   user: {
     sub: "auth0|user_1",
     name: "Kartike",
-    hasura,
+    email: overrides?.email,
+    hasura: overrides?.hasura,
   },
 });
 // #endregion
@@ -66,8 +55,8 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// #region Authentication and team-state routing
-describe("CreateTeamPage [authentication and team state]", () => {
+// #region First-signup-only routing
+describe("CreateTeamPage [routing]", () => {
   it("redirects an unauthenticated visitor to logout", async () => {
     mockGetSession.mockResolvedValue(null);
 
@@ -76,62 +65,46 @@ describe("CreateTeamPage [authentication and team state]", () => {
     expect(mockRedirect).toHaveBeenCalledWith(
       expect.stringContaining("logout"),
     );
+    expect(mockFetchUser).not.toHaveBeenCalled();
   });
 
-  it("renders first-team onboarding for a new user", async () => {
-    mockGetSession.mockResolvedValue(session());
-
-    const { container } = render((await CreateTeamPage()) as ReactElement);
-
-    expect(
-      screen.getByRole("heading", { name: "Create your team" }),
-    ).toBeInTheDocument();
-    expect(container.firstChild).toHaveClass(
-      "h-dvh",
-      "overflow-hidden",
-      "overscroll-none",
-    );
-    expect(screen.getByText(/01\s*\/\s*01/)).toBeInTheDocument();
-    expect(screen.getByTestId("create-team-account-menu")).toHaveAttribute(
-      "data-user-initial",
-      "K",
-    );
-    expect(screen.getByTestId("create-team-form")).toHaveAttribute(
-      "data-has-portal-user",
-      "false",
-    );
-    expect(screen.getByTestId("create-team-form")).toHaveAttribute(
-      "data-presentation",
-      "full-page",
-    );
-  });
-
-  it("uses full-page onboarding for an existing user with zero memberships", async () => {
-    mockGetSession.mockResolvedValue(session({ id: "usr_1", memberships: [] }));
-
-    render((await CreateTeamPage()) as ReactElement);
-
-    expect(screen.getByTestId("create-team-form")).toHaveAttribute(
-      "data-has-portal-user",
-      "true",
-    );
-    expect(
-      screen.getByRole("heading", { name: "Create your team" }),
-    ).toBeInTheDocument();
-    expect(mockRedirect).not.toHaveBeenCalled();
-  });
-
-  it("redirects a member to an in-portal create-team dialog", async () => {
-    mockGetSession.mockResolvedValue(
-      session({
-        id: "usr_1",
-        memberships: [{ team: { id: "team_1" }, role: "OWNER" }],
-      }),
-    );
+  it("redirects an existing portal user to their profile", async () => {
+    // Covers members and users who just deleted their last team alike: any
+    // Hasura user row means the terms were already accepted at signup.
+    mockGetSession.mockResolvedValue(session({ hasura: { id: "usr_1" } }));
+    mockFetchUser.mockResolvedValue({ user_by_pk: { id: "usr_1" } });
 
     await CreateTeamPage();
 
-    expect(mockRedirect).toHaveBeenCalledWith("/profile/teams?createTeam=true");
+    expect(mockRedirect).toHaveBeenCalledWith("/profile");
+  });
+
+  it("renders onboarding for a brand-new signup without querying Hasura", async () => {
+    mockGetSession.mockResolvedValue(session({ email: "dev@example.com" }));
+
+    render((await CreateTeamPage()) as ReactElement);
+
+    expect(
+      screen.getByRole("heading", { name: "Create your first team" }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("create-team-form")).toBeInTheDocument();
+    expect(screen.getByText("dev@example.com")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Log out" })).toBeInTheDocument();
+    expect(mockFetchUser).not.toHaveBeenCalled();
+    expect(mockRedirect).not.toHaveBeenCalled();
+  });
+
+  it("treats a session user that is missing from Hasura as a first-time signup", async () => {
+    mockGetSession.mockResolvedValue(session({ hasura: { id: "usr_stale" } }));
+    mockFetchUser.mockResolvedValue({ user_by_pk: null });
+
+    render((await CreateTeamPage()) as ReactElement);
+
+    expect(
+      screen.getByRole("heading", { name: "Create your first team" }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("create-team-form")).toBeInTheDocument();
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 });
 // #endregion
