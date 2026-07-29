@@ -1,5 +1,9 @@
 DELETE FROM "public"."nullifier";
 
+DELETE FROM "public"."session_v4_stats_daily";
+
+DELETE FROM "public"."session_verification_v4";
+
 DELETE FROM "public"."v4_analytics_state";
 
 DELETE FROM "public"."auth_code";

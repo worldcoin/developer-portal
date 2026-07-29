@@ -108,6 +108,18 @@ export const getAPIClient = async (params?: {
   });
 };
 
+export const getAPIPublicClient = (): ApolloClient => {
+  return new ApolloClient({
+    link: httpLink,
+    cache: new InMemoryCache(),
+    defaultOptions: {
+      query: {
+        fetchPolicy: "no-cache",
+      },
+    },
+  });
+};
+
 /**
  * Returns an Apollo Client to interact with GraphQL's API with a service token
  */
