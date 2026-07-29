@@ -12,15 +12,18 @@ type RotateKeyModalProps = {
   rotatedKey: string | null;
   onConfirm: () => void;
   onClose: () => void;
+  afterLeave?: () => void;
 };
 
 export const RotateKeyModal = (props: RotateKeyModalProps) => {
-  const { isOpen, name, loading, rotatedKey, onConfirm, onClose } = props;
+  const { isOpen, name, loading, rotatedKey, onConfirm, onClose, afterLeave } =
+    props;
 
   return (
     <FormDialog
       open={isOpen}
       onClose={onClose}
+      afterLeave={afterLeave}
       title={rotatedKey ? "API key rotated" : "Are you sure?"}
       closeLabel="Close rotate key dialog"
       panelClassName={

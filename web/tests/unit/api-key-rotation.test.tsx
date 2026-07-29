@@ -156,6 +156,38 @@ describe("API key rotation flow", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
+  it("shows a fresh confirmation when reopened after a rotation", async () => {
+    // Content state is cleared in the dialog's afterLeave (clearing on close
+    // makes the reveal flicker back to the confirm view mid-fade), so reopening
+    // must never surface the previous rotation's secret.
+    renderSection([
+      fetchKeysMock([API_KEY]),
+      resetKeyMock,
+      fetchKeysMock([ROTATED_KEY]),
+    ]);
+
+    fireEvent.click(await findRotateTrigger());
+    fireEvent.click(confirmRotation());
+    await within(await screen.findByRole("dialog")).findByText(
+      "API key rotated",
+    );
+
+    fireEvent.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: /done/i,
+      }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+
+    fireEvent.click(await findRotateTrigger());
+    expect(
+      within(screen.getByRole("dialog")).getByText("Are you sure?"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(NEW_SECRET))).not.toBeInTheDocument();
+  });
+
   it("prevents a second rotation while the first is in flight", async () => {
     renderSection([
       fetchKeysMock([API_KEY]),

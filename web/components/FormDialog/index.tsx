@@ -14,6 +14,11 @@ type FormDialogProps = {
   open: boolean;
   onClose: () => void;
   title: ReactNode;
+  // Fires once the 150ms leave transition finishes. Clear any state that
+  // drives the dialog's content here, NOT in onClose: the dialog keeps
+  // rendering while it fades out, so clearing on close snaps the content
+  // back to its initial view mid-animation.
+  afterLeave?: () => void;
   bodyClassName?: string;
   dialogClassName?: string;
   panelClassName?: string;
@@ -38,12 +43,19 @@ export const FormDialog = ({
   open,
   onClose,
   title,
+  afterLeave,
   bodyClassName,
   dialogClassName,
   panelClassName,
 }: FormDialogProps) => {
   return (
-    <Dialog open={open} onClose={onClose} appear className={dialogClassName}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      appear
+      afterLeave={afterLeave}
+      className={dialogClassName}
+    >
       <DialogOverlay />
 
       <DialogPanel

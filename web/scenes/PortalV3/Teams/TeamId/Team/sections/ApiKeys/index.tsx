@@ -24,6 +24,7 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
   // which re-renders this query as loading (Apollo v4 notifyOnNetworkStatusChange
   // defaults to true). Anything mounted below the swap gets unmounted mid-flow
   // and a one-time secret held there would be lost.
+  const [isRotateModalOpen, setIsRotateModalOpen] = useState(false);
   const [keyToRotate, setKeyToRotate] = useState<
     FetchKeysQuery["api_key"][0] | null
   >(null);
@@ -90,13 +91,23 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
 
   const openRotateKeyModal = useCallback(
     (key: FetchKeysQuery["api_key"][0]) => {
+      // Reset content here too: reopening during an interrupted leave
+      // transition means clearRotateKeyModal (afterLeave) never fired.
       setRotatedSecret(null);
       setKeyToRotate(key);
+      setIsRotateModalOpen(true);
     },
     [],
   );
 
   const closeRotateKeyModal = useCallback(() => {
+    setIsRotateModalOpen(false);
+  }, []);
+
+  // Content state outlives the close: the dialog keeps rendering through its
+  // leave transition, and clearing on close snaps the reveal back to the
+  // confirm view mid-fade (visible flicker).
+  const clearRotateKeyModal = useCallback(() => {
     setKeyToRotate(null);
     setRotatedSecret(null);
   }, []);
@@ -117,12 +128,13 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
 
       {canWrite ? (
         <RotateKeyModal
-          isOpen={Boolean(keyToRotate)}
+          isOpen={isRotateModalOpen}
           name={keyToRotate?.name}
           loading={rotatingKey}
           rotatedKey={rotatedSecret}
           onConfirm={rotateKey}
           onClose={closeRotateKeyModal}
+          afterLeave={clearRotateKeyModal}
         />
       ) : null}
 

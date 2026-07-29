@@ -54,13 +54,25 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
 
   useEffect(() => {
     isOpenRef.current = isOpen;
-  }, [isOpen]);
+    // Fresh session on open: covers reopening during an interrupted leave
+    // transition, where afterLeave (the usual cleanup) never fired.
+    if (isOpen) {
+      setCreatedKey(null);
+      reset();
+    }
+  }, [isOpen, reset]);
 
   const close = () => {
     requestIdRef.current += 1;
+    setIsOpen(false);
+  };
+
+  // Clear content only after the leave transition: the dialog keeps rendering
+  // while it fades out, and clearing on close snaps the created-key reveal
+  // back to the create form mid-fade (visible flicker).
+  const afterLeave = () => {
     reset();
     setCreatedKey(null);
-    setIsOpen(false);
   };
 
   const submit = async (values: CreateKeyFormValues) => {
@@ -127,6 +139,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
     <FormDialog
       open={isOpen}
       onClose={close}
+      afterLeave={afterLeave}
       closeLabel="Close API key dialog"
       title={createdKey ? "API key created" : "Create a new API key"}
       panelClassName={

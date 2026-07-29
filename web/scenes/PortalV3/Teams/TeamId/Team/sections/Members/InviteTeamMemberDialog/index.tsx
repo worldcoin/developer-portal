@@ -25,8 +25,13 @@ export const InviteTeamMemberDialog = () => {
 
   const onClose = useCallback(() => {
     setIsOpened(false);
+  }, [setIsOpened]);
+
+  // Clear the chips only after the leave transition — clearing on close makes
+  // them vanish while the dialog is still fading out.
+  const afterLeave = useCallback(() => {
     setEmails([]);
-  }, [setEmails, setIsOpened]);
+  }, [setEmails]);
 
   const [inviteTeamMembers, { loading }] = useMutation(
     InviteTeamMembersDocument,
@@ -51,6 +56,7 @@ export const InviteTeamMemberDialog = () => {
     <FormDialog
       open={isOpened}
       onClose={onClose}
+      afterLeave={afterLeave}
       title="Invite new members"
       closeLabel="Close invite members dialog"
     >
