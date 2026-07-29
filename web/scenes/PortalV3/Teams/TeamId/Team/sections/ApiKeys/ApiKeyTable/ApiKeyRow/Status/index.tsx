@@ -14,7 +14,7 @@ export const Status = memo(function Status(props: { isActive: boolean }) {
         },
       )}
     >
-      {isActive ? "Active" : "Revoked"}
+      {isActive ? "Active" : "Inactive"}
     </span>
   );
 });

@@ -1,13 +1,12 @@
 "use client";
-import {
-  FormDialog,
-  formDialogErrorClassName,
-  formDialogInputClassName,
-  formDialogLabelClassName,
-  formDialogPrimaryActionClassName,
-  formDialogSecondaryActionClassName,
-} from "@/components/FormDialog";
-import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
+import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
+import { KeyIcon } from "@/components/Icons/KeyIcon";
+import { Input } from "@/components/Input";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -124,93 +123,104 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
   };
 
   return (
-    <FormDialog
-      open={isOpen}
-      onClose={close}
-      closeLabel="Close API key dialog"
-      title={createdKey ? "API key created" : "Create a new API key"}
-      panelClassName={
-        createdKey
-          ? "max-h-[calc(100dvh-2rem)] md:w-[544px] md:max-w-[calc(100vw-2rem)]"
-          : undefined
-      }
-      bodyClassName={createdKey ? "min-h-0 overflow-y-auto" : undefined}
-    >
-      {createdKey ? (
-        <div className="grid w-full gap-y-5">
-          <p className="font-world text-14 leading-[1.5] text-portal-muted">
-            Your new key is ready. Save it now because you {"won't"} be able to
-            see it again.
-          </p>
+    <Dialog open={isOpen} onClose={close}>
+      <DialogOverlay />
 
-          <ApiKeySecretFields apiKey={createdKey} />
+      <DialogPanel
+        className={
+          createdKey
+            ? "max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-20 p-5 sm:p-6 md:w-136 md:max-w-[calc(100vw-2rem)]"
+            : "md:max-w-xl"
+        }
+      >
+        <div
+          className={
+            createdKey
+              ? "grid grid-cols-1 justify-items-center gap-y-5"
+              : "grid grid-cols-1 justify-items-center gap-y-10"
+          }
+        >
+          {createdKey ? (
+            <div className="flex size-12 items-center justify-center rounded-full border border-blue-150 bg-blue-50 text-blue-500">
+              <KeyIcon className="size-5" />
+            </div>
+          ) : (
+            <CircleIconContainer variant={"info"}>
+              <KeyIcon className="text-blue-500" />
+            </CircleIconContainer>
+          )}
 
-          <button
-            type="button"
-            className={formDialogPrimaryActionClassName}
-            onClick={close}
+          <div
+            className={
+              createdKey
+                ? "grid w-full justify-items-center gap-y-2 text-center"
+                : "grid w-full justify-items-center gap-y-4 text-center"
+            }
           >
-            Done
-          </button>
-        </div>
-      ) : (
-        <form className="grid w-full gap-y-6" onSubmit={handleSubmit(submit)}>
-          <p className="font-world text-14 leading-[1.5] text-portal-muted">
-            Create a secure API key to seamlessly connect with your App.
-          </p>
+            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
+              {createdKey ? "API key created" : "Create a new API key"}
+            </Typography>
 
-          <div>
-            <label
-              htmlFor="create-api-key-name"
-              className={formDialogLabelClassName}
-            >
-              Key name <span aria-hidden="true">*</span>
-            </label>
-
-            <input
-              id="create-api-key-name"
-              {...register("name")}
-              className={formDialogInputClassName}
-              placeholder="api_key_123"
-              aria-invalid={Boolean(errors.name)}
-              aria-describedby={
-                errors.name ? "create-api-key-name-error" : undefined
+            <Typography
+              variant={createdKey ? TYPOGRAPHY.R4 : TYPOGRAPHY.R3}
+              className={
+                createdKey ? "max-w-[24rem] text-grey-500" : "text-grey-500"
               }
-            />
+            >
+              {createdKey
+                ? "Your new key is ready. Save it now because you won't be able to see it again."
+                : "Create a secure API key to seamlessly connect with your App."}
+            </Typography>
+          </div>
 
-            {errors.name?.message && (
-              <p
-                id="create-api-key-name-error"
-                className={formDialogErrorClassName}
+          {createdKey ? (
+            <div className="grid w-full gap-y-5">
+              <ApiKeySecretFields apiKey={createdKey} />
+
+              <DecoratedButton
+                type="button"
+                className="min-h-11"
+                onClick={close}
               >
-                {errors.name.message}
-              </p>
-            )}
-          </div>
-
-          <div className="grid w-full gap-3 md:grid-cols-2">
-            <button
-              className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
-              type="button"
-              onClick={close}
+                Done
+              </DecoratedButton>
+            </div>
+          ) : (
+            <form
+              className="grid w-full gap-y-10"
+              onSubmit={handleSubmit(submit)}
             >
-              Cancel
-            </button>
+              <Input
+                register={register("name")}
+                label="Key name"
+                required
+                errors={errors.name}
+                placeholder="api_key_123"
+              />
 
-            <button
-              type="submit"
-              disabled={!teamId || creatingKey || revealingKey}
-              className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
-            >
-              {creatingKey || revealingKey ? (
-                <SpinnerIcon className="size-5 animate-spin" />
-              ) : (
-                "Create new key"
-              )}
-            </button>
-          </div>
-        </form>
-      )}
-    </FormDialog>
+              <div className="grid w-full gap-x-4 gap-y-2 md:grid-cols-2">
+                <DecoratedButton
+                  className="order-2 md:order-1"
+                  type="button"
+                  variant="secondary"
+                  onClick={close}
+                >
+                  Cancel
+                </DecoratedButton>
+
+                <DecoratedButton
+                  type="submit"
+                  disabled={!teamId || creatingKey || revealingKey}
+                  loading={creatingKey || revealingKey}
+                  className="order-1 whitespace-nowrap"
+                >
+                  Create new key
+                </DecoratedButton>
+              </div>
+            </form>
+          )}
+        </div>
+      </DialogPanel>
+    </Dialog>
   );
 };

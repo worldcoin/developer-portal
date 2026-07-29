@@ -16,6 +16,7 @@ import { useForm, useWatch } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
 import * as yup from "yup";
 import { FetchTeamMembersDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/fetch-team-members.generated";
+import { SettingsPanel } from "@/scenes/PortalV3/Teams/TeamId/Team/common/SettingsPanel";
 import {
   InviteTeamMemberDialog,
   inviteTeamMemberDialogAtom,
@@ -74,16 +75,13 @@ export const Members = (props: { teamId: string }) => {
     membersRes.client.refetchQueries({ include: [FetchMeDocument] });
   }, [membersRes.client, membersRes.data]);
 
-  const memberCount =
-    (membersRes.data?.members.length ?? 0) +
-    (membersRes.data?.invites.length ?? 0);
+  const memberCount = membersRes.data?.members.length ?? 0;
+  const pendingInviteCount = membersRes.data?.invites.length ?? 0;
 
   return (
-    <section className="min-w-0 overflow-hidden rounded-12 border border-grey-200 bg-white">
-      <div className="px-5 pt-5 pb-4">
-        <h2 className="font-twk text-17 leading-6 font-[550] text-grey-900">
-          Members
-        </h2>
+    <SettingsPanel>
+      <SettingsPanel.Header className="pb-4">
+        <SettingsPanel.Title>Members</SettingsPanel.Title>
 
         <div className="mt-4">
           <Input
@@ -95,16 +93,17 @@ export const Members = (props: { teamId: string }) => {
             className="w-full px-4 py-2"
           />
         </div>
-      </div>
+      </SettingsPanel.Header>
 
       <List membersRes={membersRes} keyword={search} />
 
-      <div className="flex min-h-14 items-center justify-between gap-3 border-t border-grey-100 bg-grey-25 px-5 py-3">
+      <SettingsPanel.Footer>
         {membersRes.loading ? (
           <Skeleton width={72} />
         ) : (
           <span className="font-gta text-12 text-grey-400">
             {memberCount} {memberCount === 1 ? "member" : "members"}
+            {pendingInviteCount > 0 ? ` · ${pendingInviteCount} pending` : null}
           </span>
         )}
 
@@ -120,9 +119,9 @@ export const Members = (props: { teamId: string }) => {
           <PlusIcon className="size-4" />
           Invite new member
         </button>
-      </div>
+      </SettingsPanel.Footer>
 
       <InviteTeamMemberDialog />
-    </section>
+    </SettingsPanel>
   );
 };

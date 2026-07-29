@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { ApiKeys } from "@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys";
+import { McpSetup } from "@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys/McpSetup";
 import {
   getMcpEndpoint,
   getProviderSnippets,
@@ -84,10 +85,15 @@ const renderSection = (
   canWrite = true,
 ) => {
   fetchKeysMock.mockReturnValue(query);
-  return render(<ApiKeys teamId="team_1" canWrite={canWrite} />);
+  return render(
+    <>
+      <ApiKeys teamId="team_1" canWrite={canWrite} />
+      <McpSetup />
+    </>,
+  );
 };
 
-// Exactly one <pre> lives in this tree (McpSetup's snippet block).
+// Exactly one <pre> lives in this composite (McpSetup's snippet block).
 const snippetEl = (container: HTMLElement) => container.querySelector("pre")!;
 const snippetText = (container: HTMLElement) =>
   snippetEl(container).textContent ?? "";
@@ -120,7 +126,7 @@ afterEach(() => {
 // #endregion
 
 // #region Renders in every branch of the section
-describe("ApiKeys section [MCP block presence]", () => {
+describe("Team settings credentials [MCP block presence]", () => {
   it("renders the MCP setup block when the team has zero API keys", () => {
     const { container } = renderSection({
       data: { api_key: [] },
@@ -152,7 +158,7 @@ describe("ApiKeys section [MCP block presence]", () => {
 // #endregion
 
 // #region Endpoint
-describe("ApiKeys section [MCP endpoint]", () => {
+describe("Team settings credentials [MCP endpoint]", () => {
   // Two origins in one file: a module-scope `const ENDPOINT = getMcpEndpoint(...)`
   // is evaluated once per file and would pass the first row and fail the second.
   it.each([
@@ -172,7 +178,7 @@ describe("ApiKeys section [MCP endpoint]", () => {
 // #endregion
 
 // #region MCP command
-describe("ApiKeys section [MCP command]", () => {
+describe("Team settings credentials [MCP command]", () => {
   it("renders a placeholder where the key goes, never a real secret", () => {
     const { container } = renderSection({
       data: { api_key: [] },
@@ -253,7 +259,7 @@ describe("ApiKeys section [MCP command]", () => {
 // #endregion
 
 // #region Read-only viewers
-describe("ApiKeys section [canWrite=false]", () => {
+describe("Team settings credentials [canWrite=false]", () => {
   it("still shows the MCP block to a non-writing viewer who has keys", () => {
     renderSection({ data: { api_key: [makeKey()] }, loading: false }, false);
 

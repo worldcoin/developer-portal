@@ -1,10 +1,12 @@
 "use client";
 
-import {
-  FormDialog,
-  formDialogDangerActionClassName,
-  formDialogPrimaryActionClassName,
-} from "@/components/FormDialog";
+import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
+import { AlertIcon } from "@/components/Icons/AlertIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useMutation } from "@apollo/client/react";
 import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
@@ -55,40 +57,47 @@ export const RemoveUserDialog = (props: {
   }, [props.id, props.name, removeUser, setIsOpened, teamId]);
 
   return (
-    <FormDialog
-      open={isOpened}
-      onClose={() => setIsOpened(false)}
-      title="Are you sure?"
-      closeLabel="Close remove member dialog"
-    >
-      <div className="grid gap-5">
-        <p className="font-world text-13 leading-[1.5] text-portal-muted">
-          Are you sure you want to remove{" "}
-          <span className="font-medium text-portal-text">{props.name}</span> as
-          a member of your team? Please be aware that this action is permanent.
-        </p>
+    <Dialog open={isOpened} onClose={setIsOpened}>
+      <DialogOverlay />
+
+      <DialogPanel className="grid gap-y-8 md:max-w-100">
+        <CircleIconContainer variant="error">
+          <AlertIcon />
+        </CircleIconContainer>
+
+        <div className="grid justify-items-center gap-y-4">
+          <Typography variant={TYPOGRAPHY.H6}>Are you sure?</Typography>
+
+          <p className="text-center text-grey-500">
+            Are you sure you want to remove{" "}
+            <span className="font-medium text-grey-900">{props.name}</span> as a
+            member of your team? Please be aware that this action is permanent.
+          </p>
+        </div>
 
         <form
           onSubmit={handleSubmit(submit)}
-          className="grid w-full gap-3 md:grid-cols-2"
+          className="grid w-full grid-cols-1 items-center gap-2 md:grid-cols-2 md:gap-4"
         >
-          <button
+          <DecoratedButton
+            className="order-2 md:order-1"
             type="submit"
+            variant="danger"
             disabled={isSubmitting}
-            className={`${formDialogDangerActionClassName} order-2 md:order-none`}
           >
             Remove
-          </button>
+          </DecoratedButton>
 
-          <button
+          <DecoratedButton
+            className="order-1 whitespace-nowrap"
+            variant="primary"
             type="button"
             onClick={() => setIsOpened(false)}
-            className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
           >
             Keep member
-          </button>
+          </DecoratedButton>
         </form>
-      </div>
-    </FormDialog>
+      </DialogPanel>
+    </Dialog>
   );
 };

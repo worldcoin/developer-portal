@@ -1,18 +1,17 @@
-import {
-  FormDialog,
-  formDialogErrorClassName,
-  formDialogInputClassName,
-  formDialogLabelClassName,
-  formDialogPrimaryActionClassName,
-  formDialogSecondaryActionClassName,
-} from "@/components/FormDialog";
+import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
+import { KeyIcon } from "@/components/Icons/KeyIcon";
+import { Input } from "@/components/Input";
 import { Switcher } from "@/components/Switch";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@apollo/client/react";
 import { memo, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { twMerge } from "tailwind-merge";
 import * as yup from "yup";
 import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 import { UpdateKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ViewDetailsModal/graphql/client/update-key.generated";
@@ -97,72 +96,76 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
   };
 
   return (
-    <FormDialog
-      open={isOpen}
-      onClose={() => setIsOpen(false)}
-      title="Edit API Key"
-      closeLabel="Close edit API key dialog"
-    >
-      <form className="grid w-full gap-5" onSubmit={handleSubmit(submit)}>
-        <div>
-          <label
-            htmlFor="edit-api-key-name"
-            className={formDialogLabelClassName}
+    <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
+      <DialogOverlay />
+
+      <DialogPanel className="md:max-w-xl">
+        <div className="grid w-full grid-cols-1 justify-items-center gap-y-8">
+          <CircleIconContainer variant={"info"}>
+            <KeyIcon className="text-blue-500" />
+          </CircleIconContainer>
+
+          <div className="grid w-full justify-items-center gap-y-4">
+            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
+              Edit API Key
+            </Typography>
+          </div>
+
+          <form
+            className="grid w-full gap-y-10"
+            onSubmit={handleSubmit(submit)}
           >
-            Key name <span className="text-system-error-500">*</span>
-          </label>
-          <input
-            id="edit-api-key-name"
-            {...register("name")}
-            placeholder="Staging_key"
-            aria-invalid={Boolean(errors.name)}
-            className={twMerge(
-              formDialogInputClassName,
-              errors.name && "border-system-error-400",
-            )}
-          />
-          {errors.name?.message ? (
-            <p className={formDialogErrorClassName}>{errors.name.message}</p>
-          ) : null}
-        </div>
+            <Input
+              register={register("name")}
+              label="Key name"
+              required
+              errors={errors.name}
+              placeholder="Staging_key"
+            />
 
-        <Controller
-          control={control}
-          name="isActive"
-          render={({ field }) => (
-            <div className="grid grid-cols-auto/1fr items-start justify-items-start gap-x-3 rounded-8 border border-grey-200 p-3">
-              <Switcher setEnabled={field.onChange} enabled={field.value} />
+            <Controller
+              control={control}
+              name="isActive"
+              render={({ field }) => (
+                <div className="grid grid-cols-auto/1fr items-start justify-items-start gap-x-4 rounded-xl border border-grey-200 p-4">
+                  <Switcher setEnabled={field.onChange} enabled={field.value} />
 
-              <div className="grid grid-cols-1 gap-y-1 font-world">
-                <p className="text-13 font-medium text-portal-text">
-                  Activate the API key
-                </p>
+                  <div className="grid grid-cols-1 gap-y-1">
+                    <Typography variant={TYPOGRAPHY.R3}>
+                      Activate the API key
+                    </Typography>
 
-                <p className="text-12 leading-[1.4] text-portal-muted">
-                  Toggle to enable or disable this API key.
-                </p>
-              </div>
+                    <Typography
+                      variant={TYPOGRAPHY.R4}
+                      className="text-grey-400"
+                    >
+                      Toggle to enable or disable this API key.
+                    </Typography>
+                  </div>
+                </div>
+              )}
+            />
+
+            <div className="grid w-full grid-cols-1 gap-x-4 gap-y-2 md:grid-cols-2">
+              <DecoratedButton
+                className="order-2 md:order-1"
+                type="button"
+                variant="secondary"
+                onClick={() => setIsOpen(false)}
+              >
+                Cancel
+              </DecoratedButton>
+
+              <DecoratedButton
+                className="order-1 whitespace-nowrap"
+                type="submit"
+              >
+                Save Changes
+              </DecoratedButton>
             </div>
-          )}
-        />
-
-        <div className="grid w-full gap-3 md:grid-cols-2">
-          <button
-            type="button"
-            className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
-            onClick={() => setIsOpen(false)}
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
-          >
-            Save Changes
-          </button>
+          </form>
         </div>
-      </form>
-    </FormDialog>
+      </DialogPanel>
+    </Dialog>
   );
 });

@@ -1,4 +1,8 @@
-import { FormDialog } from "@/components/FormDialog";
+import { Button } from "@/components/Button";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
+import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { CollapseIcon } from "@/components/Icons/CollapseIcon";
@@ -108,87 +112,107 @@ export const PermissionsDialog = () => {
   const [isOpened, setIsOpened] = useAtom(permissionsDialogAtom);
 
   return (
-    <FormDialog
+    <Dialog
       open={isOpened}
       onClose={() => setIsOpened(false)}
-      title="Permissions list"
-      closeLabel="Close permissions list"
-      dialogClassName="z-50 px-4"
-      panelClassName="max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2.5rem)] md:w-[1056px]"
-      bodyClassName="min-h-0 overflow-y-auto"
+      as="div"
+      className="z-50 px-4"
     >
-      <div className="hidden md:grid">
-        <div className="mb-3 grid grid-cols-4 items-center justify-items-center">
-          <span />
+      <DialogOverlay />
 
-          <Typography variant={TYPOGRAPHY.M4}>Owner</Typography>
-          <Typography variant={TYPOGRAPHY.M4}>Admin</Typography>
-          <Typography variant={TYPOGRAPHY.M4}>Member</Typography>
-        </div>
-
-        {Object.entries(config).map(([permission, roles], index) => (
-          <div
-            className={clsx(
-              "grid grid-cols-4 items-center justify-items-center rounded-8",
-              { "bg-grey-50": index % 2 === 0 },
-            )}
-            key={permission}
+      <DialogPanel className="grid gap-y-8 md:max-w-264">
+        <header className="flex w-full items-center justify-start">
+          <Button
+            type="button"
+            onClick={() => setIsOpened(false)}
+            className="flex size-8 items-center justify-center rounded-full bg-grey-100"
           >
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              className="w-full py-3 pl-4 text-start text-grey-500"
-            >
-              {permission}
+            <ArrowRightIcon className="rotate-180" />
+          </Button>
+
+          <Typography
+            variant={TYPOGRAPHY.H6}
+            className="w-full pr-8 text-center md:hidden"
+          >
+            Permissions list
+          </Typography>
+        </header>
+
+        <div className="hidden md:grid">
+          <div className="mb-5 grid grid-cols-4 items-center justify-items-center">
+            <Typography variant={TYPOGRAPHY.H6} className="w-full text-start">
+              Permissions list
             </Typography>
 
-            {Object.entries(roles).map(([role, isAllowed]) => (
-              <Typography key={role} variant={TYPOGRAPHY.R4} className="">
-                {isAllowed ? (
-                  <CheckmarkCircleIcon className="text-system-success-500" />
-                ) : (
-                  ""
-                )}
-              </Typography>
-            ))}
+            <Typography variant={TYPOGRAPHY.M4}>Owner</Typography>
+            <Typography variant={TYPOGRAPHY.M4}>Admin</Typography>
+            <Typography variant={TYPOGRAPHY.M4}>Member</Typography>
           </div>
-        ))}
-      </div>
 
-      <div className="grid w-full gap-y-3 font-world md:hidden">
-        {["Owner", "Admin", "Member"].map((role, index) => (
-          <Disclosure key={index}>
-            {({ open }) => (
-              <div className="rounded-8 border border-grey-200">
-                <Disclosure.Button className="flex w-full justify-between px-4 py-3 text-14 leading-5 font-medium">
-                  {role}
+          {Object.entries(config).map(([permission, roles], index) => (
+            <div
+              className={clsx(
+                "grid grid-cols-4 items-center justify-items-center rounded-lg",
+                { "bg-grey-100": index % 2 === 0 },
+              )}
+              key={permission}
+            >
+              <Typography
+                variant={TYPOGRAPHY.R4}
+                className="w-full py-3 pl-5 text-start text-grey-500"
+              >
+                {permission}
+              </Typography>
 
-                  {open ? <CollapseIcon /> : <ExpandIcon />}
-                </Disclosure.Button>
+              {Object.entries(roles).map(([role, isAllowed]) => (
+                <Typography key={role} variant={TYPOGRAPHY.R4} className="">
+                  {isAllowed ? (
+                    <CheckmarkCircleIcon className="text-system-success-500" />
+                  ) : (
+                    ""
+                  )}
+                </Typography>
+              ))}
+            </div>
+          ))}
+        </div>
 
-                <Disclosure.Panel className="grid gap-y-3 px-4 pb-4">
-                  {Object.entries(config)
-                    .filter(
-                      ([_, roles]) => !!roles[role as keyof typeof Role_Enum],
-                    )
-                    .map(([permission], index) => (
-                      <div
-                        key={index}
-                        className="flex gap-x-2 text-13 leading-5"
-                      >
-                        <CheckIcon
-                          className="text-system-success-500"
-                          size="16"
-                        />
+        <div className="grid w-full gap-y-4 font-gta md:hidden">
+          {["Owner", "Admin", "Member"].map((role, index) => (
+            <Disclosure key={index}>
+              {({ open }) => (
+                <div className="rounded-16 border border-grey-200">
+                  <Disclosure.Button className="flex w-full justify-between px-5 py-4 text-18 leading-6 font-medium">
+                    {role}
 
-                        {permission}
-                      </div>
-                    ))}
-                </Disclosure.Panel>
-              </div>
-            )}
-          </Disclosure>
-        ))}
-      </div>
-    </FormDialog>
+                    {open ? <CollapseIcon /> : <ExpandIcon />}
+                  </Disclosure.Button>
+
+                  <Disclosure.Panel className="grid gap-y-4 px-5 pb-4">
+                    {Object.entries(config)
+                      .filter(
+                        ([_, roles]) => !!roles[role as keyof typeof Role_Enum],
+                      )
+                      .map(([permission], index) => (
+                        <div
+                          key={index}
+                          className="flex gap-x-2 text-14 leading-5"
+                        >
+                          <CheckIcon
+                            className="text-system-success-500"
+                            size="16"
+                          />
+
+                          {permission}
+                        </div>
+                      ))}
+                  </Disclosure.Panel>
+                </div>
+              )}
+            </Disclosure>
+          ))}
+        </div>
+      </DialogPanel>
+    </Dialog>
   );
 };

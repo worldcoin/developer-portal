@@ -1,8 +1,10 @@
-import {
-  FormDialog,
-  formDialogDangerActionClassName,
-  formDialogPrimaryActionClassName,
-} from "@/components/FormDialog";
+import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
+import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useMutation } from "@apollo/client/react";
 import { toast } from "react-toastify";
 import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
@@ -44,37 +46,52 @@ export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
   };
 
   return (
-    <FormDialog
-      open={isOpen}
-      onClose={() => setIsOpen(false)}
-      title="Are you sure?"
-      closeLabel="Close delete API key dialog"
-    >
-      <div className="grid gap-5">
-        <p className="font-world text-13 leading-[1.5] text-portal-muted">
-          Are you sure you want to remove{" "}
-          <span className="font-medium text-portal-text">{name}</span> API key?
-          Please be aware that this action is permanent.
-        </p>
+    <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
+      <DialogOverlay />
 
-        <div className="grid w-full gap-3 md:grid-cols-2">
-          <button
-            type="button"
-            onClick={handleDelete}
-            className={`${formDialogDangerActionClassName} order-2 md:order-none`}
-          >
-            Delete Key
-          </button>
+      <DialogPanel>
+        <div className="grid grid-cols-1 justify-items-center gap-y-8 px-2 md:w-full md:max-w-100">
+          <CircleIconContainer variant={"error"}>
+            <WarningErrorIcon className="w-6" />
+          </CircleIconContainer>
 
-          <button
-            type="button"
-            onClick={() => setIsOpen(false)}
-            className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
-          >
-            Keep API Key
-          </button>
+          <div className="grid w-full grid-cols-1 items-center justify-items-center gap-y-4 text-center">
+            <Typography variant={TYPOGRAPHY.H6}>Are you sure?</Typography>
+
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+              Are you sure you want to remove{" "}
+              <div className="inline-flex">
+                <Typography
+                  variant={TYPOGRAPHY.M3}
+                  className="max-w-52 truncate text-grey-900"
+                >
+                  {name}
+                </Typography>
+              </div>{" "}
+              API key? Please be aware that this action is permanent.
+            </Typography>
+          </div>
+
+          <div className="grid w-full gap-x-4 gap-y-2 md:grid-cols-2">
+            <DecoratedButton
+              className="order-2 md:order-1"
+              type="button"
+              variant="danger"
+              onClick={handleDelete}
+            >
+              Delete Key
+            </DecoratedButton>
+
+            <DecoratedButton
+              className="order-1 whitespace-nowrap"
+              type="button"
+              onClick={() => setIsOpen(false)}
+            >
+              Keep API Key
+            </DecoratedButton>
+          </div>
         </div>
-      </div>
-    </FormDialog>
+      </DialogPanel>
+    </Dialog>
   );
 };

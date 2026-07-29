@@ -1,10 +1,12 @@
 "use client";
 
-import {
-  FormDialog,
-  formDialogPrimaryActionClassName,
-  formDialogSecondaryActionClassName,
-} from "@/components/FormDialog";
+import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
+import { UserAddIcon } from "@/components/Icons/UserAddIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
@@ -47,41 +49,54 @@ export const InviteTeamMemberDialog = () => {
   }, [emails, inviteTeamMembers, onClose, teamId]);
 
   return (
-    <FormDialog
-      open={isOpened}
-      onClose={onClose}
-      title="Invite new team members"
-      closeLabel="Close invite team members dialog"
-    >
-      <div className="grid gap-5">
-        <p className="font-world text-13 leading-[1.5] text-portal-muted">
-          Add multiple team members by separating them with a comma
-        </p>
+    <Dialog open={isOpened} onClose={onClose}>
+      <DialogOverlay />
+
+      <DialogPanel className="grid justify-items-center gap-y-10 md:max-w-xl">
+        <div className="grid w-full justify-items-center gap-y-4">
+          <CircleIconContainer variant="info">
+            <UserAddIcon />
+          </CircleIconContainer>
+
+          <Typography
+            as="h3"
+            variant={TYPOGRAPHY.H6}
+            className="mt-4 text-center"
+          >
+            Invite new team members
+          </Typography>
+
+          <Typography as="p" variant={TYPOGRAPHY.R3} className="text-center">
+            Add multiple team members by separating them with a comma
+          </Typography>
+        </div>
 
         <EmailsInput
           placeholder="andy@example.com, lisa@example.com, etc."
           className="w-full"
         />
 
-        <div className="grid w-full gap-3 md:grid-cols-2">
-          <button
+        <div className="grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-4">
+          <DecoratedButton
+            className="order-2 md:order-1"
             type="button"
-            className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
+            variant="secondary"
             onClick={onClose}
           >
             Cancel
-          </button>
+          </DecoratedButton>
 
-          <button
+          <DecoratedButton
             type="button"
+            variant="primary"
             disabled={loading}
             onClick={handleInvite}
-            className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
+            className="order-1 whitespace-nowrap"
           >
             Send invite
-          </button>
+          </DecoratedButton>
         </div>
-      </div>
-    </FormDialog>
+      </DialogPanel>
+    </Dialog>
   );
 };

@@ -8,9 +8,11 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { useQuery } from "@apollo/client/react";
 import { useParams } from "next/navigation";
 import { ApiKeys } from "../../sections/ApiKeys";
+import { McpSetup } from "../../sections/ApiKeys/McpSetup";
 import { TeamDangerZone } from "../../sections/DangerZone";
 import { Members } from "../../sections/Members";
 import { TeamSettingsForm } from "../../sections/SettingsForm";
+import { SettingsBento } from "./SettingsBento";
 
 export const TeamSettingsPage = () => {
   const { teamId } = useParams() as { teamId: string };
@@ -47,17 +49,32 @@ export const TeamSettingsPage = () => {
           onSaved={refetchTeam}
         />
 
-        <div className="grid items-start gap-5 md:grid-cols-2">
-          <Members teamId={teamId} />
-          {canViewApiKeys ? (
-            <ApiKeys teamId={teamId} canWrite={canWriteTeamSettings} />
-          ) : null}
-        </div>
+        <SettingsBento>
+          <SettingsBento.Item span={canViewApiKeys ? "wide" : "full"}>
+            <Members teamId={teamId} />
+          </SettingsBento.Item>
 
-        <TeamDangerZone
-          team={team ? { id: team.id, name: team.name } : null}
-          canWrite={canWriteTeamSettings}
-        />
+          {canViewApiKeys ? (
+            <>
+              <SettingsBento.Item span="narrow">
+                <ApiKeys teamId={teamId} canWrite={canWriteTeamSettings} />
+              </SettingsBento.Item>
+
+              <SettingsBento.Item>
+                <McpSetup />
+              </SettingsBento.Item>
+            </>
+          ) : null}
+
+          {team ? (
+            <SettingsBento.Item>
+              <TeamDangerZone
+                team={{ id: team.id, name: team.name }}
+                canWrite={canWriteTeamSettings}
+              />
+            </SettingsBento.Item>
+          ) : null}
+        </SettingsBento>
       </div>
     </SizingWrapper>
   );

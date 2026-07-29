@@ -124,10 +124,10 @@ const NEW_SECRET = { data: { reset_api_key: { api_key: "api_NEWSECRET" } } };
 const openViewDetails = jest.fn();
 const openDeleteKeyModal = jest.fn();
 
-const renderRow = () =>
+const renderRow = (apiKey = API_KEY) =>
   render(
     <ApiKeyRow
-      apiKey={API_KEY}
+      apiKey={apiKey}
       index={0}
       teamId="team_1"
       openViewDetails={openViewDetails}
@@ -165,6 +165,17 @@ beforeEach(() => {
   mockSession = sessionWithRole(Role_Enum.Owner);
   // The mocked useMutation calls .finally on this, so it must be a promise.
   resetApiKeyMock.mockResolvedValue(NEW_SECRET);
+});
+// #endregion
+
+// #region Status semantics
+describe("ApiKeyRow status", () => {
+  it("labels a reversibly disabled key as inactive, not revoked", () => {
+    renderRow({ ...API_KEY, is_active: false });
+
+    expect(screen.getByText("Inactive")).toBeInTheDocument();
+    expect(screen.queryByText("Revoked")).not.toBeInTheDocument();
+  });
 });
 // #endregion
 

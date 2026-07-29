@@ -6,6 +6,7 @@ import {
   PROVIDERS,
   type ProviderId,
 } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/mcp-snippets";
+import { SettingsPanel } from "@/scenes/PortalV3/Teams/TeamId/Team/common/SettingsPanel";
 import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -56,18 +57,16 @@ export const McpSetup = () => {
   };
 
   return (
-    <section className="min-w-0 overflow-hidden rounded-12 border border-grey-200 bg-white md:col-span-2">
-      <div className="flex flex-col gap-3 border-b border-grey-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="font-twk text-17 leading-6 font-[550] text-grey-900">
-          MCP endpoint
-        </h2>
+    <SettingsPanel>
+      <SettingsPanel.Header className="flex flex-col gap-3 border-b border-grey-100 sm:flex-row sm:items-center sm:justify-between">
+        <SettingsPanel.Title>MCP endpoint</SettingsPanel.Title>
 
         <code className="max-w-full [scrollbar-width:thin] self-start overflow-x-auto rounded-8 border border-grey-100 bg-grey-50 px-2.5 py-1 font-ibm text-12 leading-5 whitespace-nowrap text-grey-700 sm:self-auto">
           {endpoint}
         </code>
-      </div>
+      </SettingsPanel.Header>
 
-      <div className="grid gap-4 px-5 py-5">
+      <SettingsPanel.Body className="grid gap-4 px-5 py-5">
         <div className="flex flex-wrap gap-1.5">
           {PROVIDERS.map((item) => {
             const isSelected = item.id === providerId;
@@ -119,7 +118,7 @@ export const McpSetup = () => {
             </button>
           </div>
         </div>
-      </div>
-    </section>
+      </SettingsPanel.Body>
+    </SettingsPanel>
   );
 };

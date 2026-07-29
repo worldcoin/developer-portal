@@ -1,5 +1,6 @@
 import { Button } from "@/components/Button";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 
@@ -75,18 +76,19 @@ export const EmailsInput = memo(function EmailsInput(props: EmailsInputProps) {
     <label
       className={clsx(
         className,
-        "flex min-h-11 flex-wrap items-center gap-1 rounded-8 border bg-white p-1.5 text-portal-text outline-hidden transition",
-        focused ? "border-grey-400 ring-2 ring-grey-200" : "border-grey-200",
-        disabled && "bg-grey-50 text-grey-400",
+        "flex min-h-12 flex-wrap items-center gap-1 rounded-xl border border-grey-200 bg-grey-0 p-2 text-grey-900 outline-0",
+        { "shadow-input": focused },
+        { "": !focused },
+        { "": emails.length === 0 },
       )}
     >
       {emails.map((email) => (
         <div
           key={email}
-          className="flex h-7 items-center gap-x-1.5 rounded-full bg-blue-50 px-2 font-world text-13 text-blue-500"
+          className="flex h-8 items-center gap-x-2 rounded-full bg-blue-50 px-2 text-blue-500"
           onClick={(e) => e.preventDefault()}
         >
-          <span>{email}</span>
+          <Typography variant={TYPOGRAPHY.M4}>{email}</Typography>
 
           <Button
             type="button"
@@ -94,17 +96,17 @@ export const EmailsInput = memo(function EmailsInput(props: EmailsInputProps) {
               e.preventDefault();
               removeEmail(email);
             }}
-            className="size-5"
           >
-            <CloseIcon className="size-3.5" strokeWidth={1.5} />
+            <CloseIcon strokeWidth={1.5} />
           </Button>
         </div>
       ))}
 
       <input
         className={clsx(
-          "h-8 min-w-24 grow bg-transparent px-1.5 font-world text-14 text-portal-text outline-hidden",
-          "placeholder:font-world placeholder:text-14 placeholder:text-grey-400",
+          "h-8 grow bg-transparent px-2 outline-hidden",
+          "font-gta text-base leading-normal font-normal text-grey-900",
+          "placeholder:font-gta placeholder:text-base placeholder:leading-normal placeholder:font-normal placeholder:text-grey-400",
           {
             "w-5": !focused && emails.length === 0,
           },
