@@ -4,8 +4,8 @@ import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
 import { useState } from "react";
 
 // The parent owns the permission boundary and only mounts this control for team
-// owners. Keeping it as a compact action avoids spending a full bento cell on a
-// single destructive operation.
+// owners. Keeping it as a compact action avoids spending a full settings panel
+// on a single destructive operation.
 export const TeamDangerZone = (props: {
   team: { id?: string | null; name?: string | null } | null;
 }) => {

@@ -14,7 +14,6 @@ import { useMutation } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { ApiKeySecretModal } from "../../ApiKeySecretModal";
 import { RotateKeyModal } from "../RotateKeyModal";
 import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 import { Status } from "./Status";
@@ -98,22 +97,18 @@ export const ApiKeyRow = (props: {
 
   return (
     <>
-      <ApiKeySecretModal
-        apiKey={resetKey}
-        isOpen={Boolean(resetKey)}
-        onClose={() => setResetKey(null)}
-        title="API key rotated"
-        description="Your new API key is ready. Save it now because you won't be able to see it again."
-      />
-
+      {/* On success the same dialog transitions in place to reveal the new
+          secret — the same flow CreateKeyModal uses after "+ New key". */}
       <RotateKeyModal
         isOpen={rotateOpen}
         name={apiKey.name}
         loading={loading}
-        setIsOpen={setRotateOpen}
-        onConfirm={async () => {
-          if (await resetAPIKey(apiKey.id)) setRotateOpen(false);
+        rotatedKey={resetKey}
+        onClose={() => {
+          setRotateOpen(false);
+          setResetKey(null);
         }}
+        onConfirm={() => resetAPIKey(apiKey.id)}
       />
 
       <div

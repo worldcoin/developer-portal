@@ -12,7 +12,6 @@ import { McpSetup } from "../../sections/ApiKeys/McpSetup";
 import { TeamDangerZone } from "../../sections/DangerZone";
 import { Members } from "../../sections/Members";
 import { TeamSettingsForm } from "../../sections/SettingsForm";
-import { SettingsBento } from "./SettingsBento";
 
 export const TeamSettingsPage = () => {
   const { teamId } = useParams() as { teamId: string };
@@ -50,23 +49,14 @@ export const TeamSettingsPage = () => {
           onSaved={refetchTeam}
         />
 
-        <SettingsBento>
-          <SettingsBento.Item span={canViewApiKeys ? "wide" : "full"}>
-            <Members teamId={teamId} />
-          </SettingsBento.Item>
+        <Members teamId={teamId} />
 
-          {canViewApiKeys ? (
-            <>
-              <SettingsBento.Item span="narrow">
-                <ApiKeys teamId={teamId} canWrite={canWriteTeamSettings} />
-              </SettingsBento.Item>
-
-              <SettingsBento.Item>
-                <McpSetup />
-              </SettingsBento.Item>
-            </>
-          ) : null}
-        </SettingsBento>
+        {canViewApiKeys ? (
+          <>
+            <ApiKeys teamId={teamId} canWrite={canWriteTeamSettings} />
+            <McpSetup />
+          </>
+        ) : null}
 
         {canWriteTeamSettings && team ? (
           <div className="flex justify-end">
