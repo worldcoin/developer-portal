@@ -18,7 +18,11 @@
 - `cd web && pnpm format:check` — Check code formatting
 
 ## Making Changes
+
 Always run formatting and type checks before committing. Make sure tests pass as well.
+
+After UI changes, remove generic or AI-sounding placeholder/example copy. Leave
+fields without placeholder text unless the product explicitly requires it.
 
 ## Pull request follow-up
 

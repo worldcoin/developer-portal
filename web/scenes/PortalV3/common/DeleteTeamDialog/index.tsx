@@ -113,8 +113,8 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       // A push inside the same layout won't re-render the session-fed sidebar.
       router.refresh();
 
-      if (path !== urls.profileTeams()) {
-        return router.push(urls.profileTeams());
+      if (path !== urls.profile()) {
+        return router.push(urls.profile());
       }
 
       onClose();

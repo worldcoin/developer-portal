@@ -2,9 +2,9 @@
 
 import type { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
 import { teamNameSchema } from "@/lib/schema";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { TEAM_CREATED_TOAST_STORAGE_KEY } from "@/lib/team-created-toast";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -20,8 +20,7 @@ type FormValues = yup.InferType<typeof schema>;
 // Dialog form for creating additional teams. First-team creation (which
 // requires terms acceptance) happens on the standalone /create-team page.
 export const CreateTeamForm = () => {
-  const router = useRouter();
-  const { invalidate } = useUser();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const {
     register,
@@ -63,15 +62,23 @@ export const CreateTeamForm = () => {
       return;
     }
 
-    // The API already persisted the team and refreshed the sealed server
-    // session. A client-profile refresh failure must not strand the user or
-    // incorrectly report that team creation failed.
-    await invalidate().catch(() => undefined);
-    router.push(returnTo);
+    setIsRedirecting(true);
 
-    // The in-portal dialog preserves the session-fed portal layout.
-    router.refresh();
+    try {
+      window.sessionStorage.setItem(
+        TEAM_CREATED_TOAST_STORAGE_KEY,
+        values.teamName,
+      );
+    } catch {
+      // Storage availability should not prevent navigation to the new team.
+    }
+
+    // Full navigation (not a client push) so the session-fed portal layout is
+    // rebuilt with the freshly created team.
+    window.location.replace(returnTo);
   };
+
+  const isPending = isSubmitting || isRedirecting;
 
   return (
     <form
@@ -110,10 +117,10 @@ export const CreateTeamForm = () => {
 
       <button
         type="submit"
-        disabled={!isValid || isSubmitting}
+        disabled={!isValid || isPending}
         className="inline-flex h-11 w-full cursor-pointer items-center justify-center rounded-8 bg-portal-ink px-4 text-13 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400"
       >
-        {isSubmitting ? "Creating team…" : "Create team"}
+        {isPending ? "Creating team…" : "Create team"}
       </button>
     </form>
   );

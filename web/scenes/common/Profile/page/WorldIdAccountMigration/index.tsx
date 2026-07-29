@@ -208,7 +208,7 @@ export const WorldIdAccountMigration = ({
           variant="primary"
           icon={<LinkIcon className="size-4" />}
           onClick={startMigrationFlow}
-          className="justify-self-start"
+          className="justify-self-start text-[length:var(--text-13)]"
         >
           Link World ID
         </DecoratedButton>

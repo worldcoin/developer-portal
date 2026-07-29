@@ -120,13 +120,13 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
-  it("navigates to profile teams when other teams remain, refreshing first", async () => {
+  it("navigates to the consolidated profile when other teams remain, refreshing first", async () => {
     refetch.mockResolvedValue(refetchResultWithMemberships(2));
 
     renderDialog();
     await confirmAndSubmit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
     expect(refresh).toHaveBeenCalled();
   });
 
@@ -140,14 +140,14 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     renderDialog();
     await confirmAndSubmit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
     expect(global.fetch).toHaveBeenCalledWith("/api/update-session", {
       method: "POST",
     });
   });
 
-  it("refreshes the session-fed sidebar when already on the teams page", async () => {
-    pathname = "/profile/teams";
+  it("refreshes the session-fed sidebar when already on the profile page", async () => {
+    pathname = "/profile";
     refetch.mockResolvedValue(refetchResultWithMemberships(2));
 
     renderDialog();
@@ -191,7 +191,7 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     renderDialog();
     await confirmAndSubmit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
     expect(toast.success).toHaveBeenCalledWith("Team deleted");
     expect(logged).toHaveBeenCalledWith(
       "Delete Team Dialog: session sync failed after delete",
@@ -215,7 +215,7 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
 
 // #region v2 dialog — same session gate, but its nav is client-fetched so it never refreshes
 describe("DeleteTeamDialog [v2]", () => {
-  it("skips the fallback route and does not refresh the router", async () => {
+  it("returns to the legacy teams page without refreshing the router", async () => {
     refetch.mockResolvedValue(refetchResultWithMemberships(2));
 
     render(<DeleteTeamDialogV2 open onClose={jest.fn()} team={team} />);
