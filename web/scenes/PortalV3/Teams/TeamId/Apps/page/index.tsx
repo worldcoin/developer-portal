@@ -26,9 +26,10 @@ export const AppsPage = async (props: AppsPageProps) => {
   if (!memberships.find((membership) => membership.team?.id === teamId)) {
     const redirectTeamId = memberships[0]?.team?.id;
 
-    // No teams left (e.g. last one just deleted): send to onboarding instead of logging out.
+    // No teams left (e.g. last one just deleted): keep them in the portal on
+    // their profile instead of logging out.
     return redirect(
-      redirectTeamId ? `/teams/${redirectTeamId}/apps` : urls.createTeam(),
+      redirectTeamId ? `/teams/${redirectTeamId}/apps` : urls.profile(),
     );
   }
 

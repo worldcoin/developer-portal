@@ -93,18 +93,31 @@ beforeEach(() => {
 
 // #region Post-delete navigation
 describe("DeleteTeamDialog [post-delete navigation]", () => {
-  it("navigates to create-team when no teams remain, without re-syncing the session", async () => {
+  it("lands on the profile page when no teams remain, without re-syncing the session", async () => {
     refetch.mockResolvedValue(refetchResultWithMemberships(0));
 
     renderDialog();
     await confirmAndSubmit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/create-team"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
     expect(deleteTeamServerSide).toHaveBeenCalledWith("team_1");
     // The action already rewrote the cookie, so the fallback route stays idle.
     expect(global.fetch).not.toHaveBeenCalled();
     expect(invalidate).toHaveBeenCalled();
     expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("closes the dialog in place when the last team is deleted from the profile page", async () => {
+    pathname = "/profile";
+    refetch.mockResolvedValue(refetchResultWithMemberships(0));
+
+    const onClose = jest.fn();
+    render(<DeleteTeamDialog open onClose={onClose} team={team} />);
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(push).not.toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalled();
   });
 
   it("navigates to profile teams when other teams remain, refreshing first", async () => {
@@ -155,7 +168,7 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     renderDialog();
     await confirmAndSubmit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/create-team"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
     // The delete itself succeeded, so the user is told so either way.
     expect(toast.success).toHaveBeenCalledWith("Team deleted");
   });
@@ -235,7 +248,7 @@ describe("DeleteTeamDialog [unmounted before delete resolves]", () => {
     unmount();
     resolveRefetch(refetchResultWithMemberships(0));
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/create-team"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
   });
 });
 // #endregion

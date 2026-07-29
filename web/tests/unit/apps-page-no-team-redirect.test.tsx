@@ -57,17 +57,17 @@ beforeEach(() => {
   InitialApp.mockResolvedValue({ app: [] });
 });
 
-// #region Users with no team land on onboarding, not logout
+// #region Users with no team stay in the portal, not logged out
 describe.each([
   ["v3", AppsPageV3],
   ["v2", AppsPageV2],
 ])("/teams/[teamId]/apps [%s, membership guard]", (_version, AppsPage) => {
-  it("redirects a user with zero memberships to create-team", async () => {
+  it("redirects a user with zero memberships to their profile", async () => {
     getSession.mockResolvedValue(sessionWithMemberships([]));
 
     await AppsPage(props("team_1"));
 
-    expect(redirect).toHaveBeenCalledWith("/create-team");
+    expect(redirect).toHaveBeenCalledWith("/profile");
     expect(InitialApp).not.toHaveBeenCalled();
   });
 
