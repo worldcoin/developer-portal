@@ -30,11 +30,7 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
 
   return (
     <PortalShell
-      user={{
-        name: user?.name,
-        email: user?.email,
-        avatarColor: user?.hasura?.avatar_color,
-      }}
+      user={{ name: user?.name, email: user?.email }}
       teams={teams}
       sandboxRequest={sandboxRequest}
     >

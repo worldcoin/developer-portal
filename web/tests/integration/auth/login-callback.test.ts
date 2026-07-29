@@ -145,7 +145,6 @@ describe("test /login-callback", () => {
           id
           email
           name
-          avatar_color
           auth0Id
           posthog_id
           is_allow_tracking

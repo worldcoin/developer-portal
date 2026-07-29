@@ -12923,7 +12923,6 @@ export type Timestamptz_Comparison_Exp = {
 export type User = {
   __typename?: "user";
   auth0Id?: Maybe<Scalars["String"]["output"]>;
-  avatar_color?: Maybe<Scalars["String"]["output"]>;
   created_at: Scalars["timestamptz"]["output"];
   email?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["String"]["output"];
@@ -13010,7 +13009,6 @@ export type User_Bool_Exp = {
   _not?: InputMaybe<User_Bool_Exp>;
   _or?: InputMaybe<Array<User_Bool_Exp>>;
   auth0Id?: InputMaybe<String_Comparison_Exp>;
-  avatar_color?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   email?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
@@ -13044,7 +13042,6 @@ export enum User_Constraint {
 /** input type for inserting data into table "user" */
 export type User_Insert_Input = {
   auth0Id?: InputMaybe<Scalars["String"]["input"]>;
-  avatar_color?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   email?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
@@ -13065,7 +13062,6 @@ export type User_Insert_Input = {
 export type User_Max_Fields = {
   __typename?: "user_max_fields";
   auth0Id?: Maybe<Scalars["String"]["output"]>;
-  avatar_color?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   email?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
@@ -13081,7 +13077,6 @@ export type User_Max_Fields = {
 export type User_Min_Fields = {
   __typename?: "user_min_fields";
   auth0Id?: Maybe<Scalars["String"]["output"]>;
-  avatar_color?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   email?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
@@ -13119,7 +13114,6 @@ export type User_On_Conflict = {
 /** Ordering options when selecting data from "user". */
 export type User_Order_By = {
   auth0Id?: InputMaybe<Order_By>;
-  avatar_color?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -13145,8 +13139,6 @@ export type User_Pk_Columns_Input = {
 export enum User_Select_Column {
   /** column name */
   Auth0Id = "auth0Id",
-  /** column name */
-  AvatarColor = "avatar_color",
   /** column name */
   CreatedAt = "created_at",
   /** column name */
@@ -13174,7 +13166,6 @@ export enum User_Select_Column {
 /** input type for updating data in table "user" */
 export type User_Set_Input = {
   auth0Id?: InputMaybe<Scalars["String"]["input"]>;
-  avatar_color?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   email?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
@@ -13199,7 +13190,6 @@ export type User_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type User_Stream_Cursor_Value_Input = {
   auth0Id?: InputMaybe<Scalars["String"]["input"]>;
-  avatar_color?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   email?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
@@ -13217,8 +13207,6 @@ export type User_Stream_Cursor_Value_Input = {
 export enum User_Update_Column {
   /** column name */
   Auth0Id = "auth0Id",
-  /** column name */
-  AvatarColor = "avatar_color",
   /** column name */
   CreatedAt = "created_at",
   /** column name */

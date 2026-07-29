@@ -91539,18 +91539,6 @@
             "deprecationReason": null
           },
           {
-            "name": "avatar_color",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "created_at",
             "description": null,
             "args": [],
@@ -92314,18 +92302,6 @@
             "deprecationReason": null
           },
           {
-            "name": "avatar_color",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "String_comparison_exp",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -92576,18 +92552,6 @@
             "deprecationReason": null
           },
           {
-            "name": "avatar_color",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -92778,18 +92742,6 @@
             "deprecationReason": null
           },
           {
-            "name": "avatar_color",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "created_at",
             "description": null,
             "args": [],
@@ -92910,18 +92862,6 @@
         "fields": [
           {
             "name": "auth0Id",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "avatar_color",
             "description": null,
             "args": [],
             "type": {
@@ -93218,18 +93158,6 @@
             "deprecationReason": null
           },
           {
-            "name": "avatar_color",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -93444,12 +93372,6 @@
             "deprecationReason": null
           },
           {
-            "name": "avatar_color",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "created_at",
             "description": "column name",
             "isDeprecated": false,
@@ -93526,18 +93448,6 @@
         "inputFields": [
           {
             "name": "auth0Id",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "avatar_color",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -93743,18 +93653,6 @@
             "deprecationReason": null
           },
           {
-            "name": "avatar_color",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -93901,12 +93799,6 @@
         "enumValues": [
           {
             "name": "auth0Id",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "avatar_color",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

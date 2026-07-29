@@ -4,31 +4,19 @@ import { Button } from "@/components/Button";
 import { Checkbox } from "@/components/Checkbox";
 import { Input } from "@/components/Input";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { calculateColorFromString } from "@/lib/calculate-color-from-string";
 import { Auth0SessionUser } from "@/lib/types";
 import { DeleteAccountDialog } from "@/scenes/PortalV3/Profile/DangerZone/DeleteAccountDialog";
 import { List } from "@/scenes/PortalV3/Profile/Teams/page/List";
 import { InkButton } from "@/scenes/PortalV3/common/InkButton";
-import { ColorSelector } from "@/scenes/PortalV3/Profile/page/ColorSelector";
 import { CreateTeamDialog } from "@/scenes/PortalV3/Profile/page/CreateTeamDialog";
 import { WorldIdAccountMigration } from "@/scenes/common/Profile/page/WorldIdAccountMigration";
 import { UpdateUserDocument } from "@/scenes/common/Profile/page/graphql/client/update-user.generated";
-import {
-  Color,
-  ColorName,
-  colors,
-  getColorByName,
-  getColorName,
-} from "@/scenes/common/Profile/types";
-import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useMutation } from "@apollo/client/react";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useAtom } from "jotai";
 import {
-  CSSProperties,
   ReactNode,
   Suspense,
   useCallback,
@@ -36,7 +24,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 
@@ -50,17 +38,7 @@ const displayNameSchema = yup
   })
   .noUnknown();
 
-const avatarSchema = yup
-  .object({
-    color: yup
-      .mixed<ColorName>()
-      .oneOf(Object.keys(colors) as ColorName[])
-      .required(),
-  })
-  .noUnknown();
-
 type DisplayNameFormValues = yup.InferType<typeof displayNameSchema>;
-type AvatarFormValues = yup.InferType<typeof avatarSchema>;
 
 const CardHeader = (props: {
   title: string;
@@ -89,21 +67,6 @@ const CardFooter = (props: { children: ReactNode }) => (
   </footer>
 );
 
-const AvatarPreview = (props: { color: Color; name: string }) => (
-  <div
-    className="flex size-16 shrink-0 items-center justify-center rounded-full font-world text-24 font-medium uppercase"
-    style={
-      {
-        backgroundColor: props.color[100],
-        color: props.color[500],
-      } as CSSProperties
-    }
-    aria-label="Avatar preview"
-  >
-    {props.name.trim()[0] ?? "A"}
-  </div>
-);
-
 export const ProfilePage = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const { user, loading, refetch: refetchMe } = useMeQuery();
@@ -113,13 +76,10 @@ export const ProfilePage = () => {
     refetchQueries: [FetchMeDocument],
   });
 
-  const [color, setColor] = useAtom(colorAtom);
   const hasInitializedDisplayName = useRef(false);
-  const hasInitializedAvatar = useRef(false);
 
   const {
     register: registerDisplayName,
-    control: displayNameControl,
     handleSubmit: handleDisplayNameSubmit,
     formState: {
       isDirty: isDisplayNameDirty,
@@ -137,23 +97,6 @@ export const ProfilePage = () => {
     mode: "onChange",
   });
 
-  const {
-    control: avatarControl,
-    handleSubmit: handleAvatarSubmit,
-    formState: {
-      isDirty: isAvatarDirty,
-      isValid: isAvatarValid,
-      isSubmitting: isAvatarSubmitting,
-    },
-    reset: resetAvatar,
-  } = useForm<AvatarFormValues>({
-    defaultValues: {
-      color: getColorName(color) ?? "pink",
-    },
-    resolver: yupResolver(avatarSchema),
-    mode: "onChange",
-  });
-
   useEffect(() => {
     if (!user || loading || hasInitializedDisplayName.current) {
       return;
@@ -165,32 +108,6 @@ export const ProfilePage = () => {
     });
     hasInitializedDisplayName.current = true;
   }, [loading, resetDisplayName, user]);
-
-  useEffect(() => {
-    if (!user || loading || hasInitializedAvatar.current) {
-      return;
-    }
-
-    const initialColor =
-      getColorByName(user.avatar_color) ??
-      color ??
-      calculateColorFromString(user.nameToDisplay) ??
-      colors.pink;
-    const initialColorName = getColorName(initialColor) ?? "pink";
-
-    resetAvatar({ color: initialColorName });
-    setColor(initialColor);
-    hasInitializedAvatar.current = true;
-  }, [color, loading, resetAvatar, setColor, user]);
-
-  const selectedColor = useWatch({
-    control: avatarControl,
-    name: "color",
-  });
-  const displayName = useWatch({
-    control: displayNameControl,
-    name: "name",
-  });
 
   const submitDisplayName = useCallback(
     async (values: DisplayNameFormValues) => {
@@ -219,34 +136,6 @@ export const ProfilePage = () => {
     [auth0User?.hasura, resetDisplayName, updateUser],
   );
 
-  const submitAvatar = useCallback(
-    async (values: AvatarFormValues) => {
-      if (!auth0User?.hasura) {
-        return;
-      }
-
-      try {
-        await updateUser({
-          variables: {
-            user_id: auth0User.hasura.id,
-            input: {
-              avatar_color: values.color,
-            },
-          },
-        });
-
-        resetAvatar(values);
-        toast.success("Your profile was successfully updated");
-      } catch (error) {
-        console.error("Profile Page: ", error);
-        toast.error("Error updating profile");
-      }
-    },
-    [auth0User?.hasura, resetAvatar, updateUser],
-  );
-
-  const nameForAvatar = displayName || user?.nameToDisplay || "Account";
-
   return (
     <>
       <SizingWrapper gridClassName="py-8 md:py-12">
@@ -256,7 +145,7 @@ export const ProfilePage = () => {
               Profile
             </h1>
             <p className="mt-2 font-gta text-13 leading-5 text-grey-400">
-              Manage your teams, display name, avatar, and account.
+              Manage your teams, display name, and account.
             </p>
           </header>
 
@@ -318,53 +207,6 @@ export const ProfilePage = () => {
                     !isDisplayNameDirty ||
                     !isDisplayNameValid ||
                     isDisplayNameSubmitting
-                  }
-                >
-                  Save
-                </InkButton>
-              </CardFooter>
-            </form>
-
-            <form
-              className="overflow-hidden rounded-12 border border-grey-200 bg-white"
-              onSubmit={handleAvatarSubmit(submitAvatar)}
-            >
-              <CardHeader
-                title="Avatar"
-                description="Colors are assigned randomly — pick the one that feels like you."
-              />
-
-              <div className="flex flex-col gap-8 border-t border-grey-100 px-5 py-6 sm:flex-row sm:items-center sm:justify-between md:px-6">
-                <Controller
-                  name="color"
-                  control={avatarControl}
-                  render={({ field }) => (
-                    <ColorSelector
-                      value={field.value}
-                      name={nameForAvatar}
-                      onChange={(nextColorName) => {
-                        field.onChange(nextColorName);
-                        setColor(colors[nextColorName]);
-                      }}
-                    />
-                  )}
-                />
-
-                <AvatarPreview
-                  color={colors[selectedColor ?? "pink"]}
-                  name={nameForAvatar}
-                />
-              </div>
-
-              <CardFooter>
-                <InkButton
-                  type="submit"
-                  className="h-8 self-end sm:ml-auto"
-                  disabled={
-                    !isAvatarDirty ||
-                    !isAvatarValid ||
-                    isAvatarSubmitting ||
-                    loading
                   }
                 >
                   Save

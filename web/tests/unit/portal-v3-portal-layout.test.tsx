@@ -20,14 +20,12 @@ jest.mock("@/lib/logger", () => ({
 // Stub the shell so we test only PortalLayout's session -> shell wiring.
 jest.mock("@/scenes/PortalV3/layout/Shell", () => ({
   PortalShell: (props: {
-    user: { avatarColor?: string | null };
     teams: { id: string }[];
     sandboxRequest: { email: string } | null;
     children: React.ReactNode;
   }) => (
     <div
       data-testid="shell"
-      data-avatar-color={props.user.avatarColor}
       data-team-count={props.teams.length}
       data-sandbox-email={props.sandboxRequest?.email}
     >
@@ -48,18 +46,11 @@ it("mounts the shell with teams from the session", async () => {
     user: {
       name: "Ada",
       email: "ada@example.com",
-      hasura: {
-        avatar_color: "green",
-        memberships: [{ team: { id: "team_1", name: "Acme" } }],
-      },
+      hasura: { memberships: [{ team: { id: "team_1", name: "Acme" } }] },
     },
   });
   render(await PortalLayout({ children: <div data-testid="body" /> }));
   expect(screen.getByTestId("shell")).toHaveAttribute("data-team-count", "1");
-  expect(screen.getByTestId("shell")).toHaveAttribute(
-    "data-avatar-color",
-    "green",
-  );
   expect(screen.getByTestId("body")).toBeInTheDocument();
 });
 

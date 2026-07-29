@@ -39,7 +39,6 @@ const DB_USER = {
   id: "123",
   name: "Real Name",
   email: "real@example.com",
-  avatar_color: "green",
   world_id_nullifier: "0xabc",
   posthog_id: "ph_123",
   is_allow_tracking: true,

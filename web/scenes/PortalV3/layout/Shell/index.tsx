@@ -1,5 +1,4 @@
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
-import { getColorByName } from "@/lib/additional-colors";
 import { calculateColorFromString } from "@/lib/calculate-color-from-string";
 import { ReactNode } from "react";
 import { AppsDropdown } from "./AppsDropdown";
@@ -10,19 +9,13 @@ import { UserPopup } from "./UserPopup";
 
 /** Portal shell, mounted at the (portal) root for allow-listed users. */
 export const PortalShell = (props: {
-  user: {
-    name?: string | null;
-    email?: string | null;
-    avatarColor?: string | null;
-  };
+  user: { name?: string | null; email?: string | null };
   teams?: { id: string; name: string }[];
   sandboxRequest?: SandboxAccessRequestState | null;
   children?: ReactNode;
 }) => {
   const { user, teams = [], sandboxRequest = null, children } = props;
-  const color =
-    getColorByName(user.avatarColor) ??
-    calculateColorFromString(user.name ?? user.email ?? "");
+  const color = calculateColorFromString(user.name ?? user.email ?? "");
 
   return (
     <ShellFrame

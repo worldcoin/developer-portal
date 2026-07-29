@@ -3,7 +3,6 @@ query FetchUserForSession($userId: String!) {
     id
     name
     email
-    avatar_color
     world_id_nullifier
     posthog_id
     is_allow_tracking

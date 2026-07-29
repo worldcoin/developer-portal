@@ -3,7 +3,6 @@ query FetchEmailUser($auth0Id: String, $email: String) {
     id
     email
     name
-    avatar_color
     auth0Id
     posthog_id
     is_allow_tracking
@@ -21,7 +20,6 @@ query FetchEmailUser($auth0Id: String, $email: String) {
     id
     email
     name
-    avatar_color
     auth0Id
     posthog_id
     is_allow_tracking

@@ -22,7 +22,6 @@ export type AcceptTeamInviteMutation = {
       id: string;
       email?: string | null;
       name: string;
-      avatar_color?: string | null;
       auth0Id?: string | null;
       posthog_id?: string | null;
       is_allow_tracking?: boolean | null;
@@ -54,7 +53,6 @@ export const AcceptTeamInviteDocument = gql`
         id
         email
         name
-        avatar_color
         auth0Id
         posthog_id
         is_allow_tracking
