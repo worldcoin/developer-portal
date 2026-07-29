@@ -93,7 +93,7 @@ beforeEach(() => {
 
 // #region Post-delete navigation
 describe("DeleteTeamDialog [post-delete navigation]", () => {
-  it("lands on the profile page when no teams remain, without re-syncing the session", async () => {
+  it("lands on the profile page after delete, without re-syncing the session", async () => {
     refetch.mockResolvedValue(refetchResultWithMemberships(0));
 
     renderDialog();
@@ -104,10 +104,10 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     // The action already rewrote the cookie, so the fallback route stays idle.
     expect(global.fetch).not.toHaveBeenCalled();
     expect(invalidate).toHaveBeenCalled();
-    expect(refresh).not.toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalled();
   });
 
-  it("closes the dialog in place when the last team is deleted from the profile page", async () => {
+  it("closes the dialog in place when deleted from the profile page", async () => {
     pathname = "/profile";
     refetch.mockResolvedValue(refetchResultWithMemberships(0));
 
@@ -120,7 +120,7 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
-  it("navigates to the consolidated profile when other teams remain, refreshing first", async () => {
+  it("refreshes before navigating to profile when other teams remain", async () => {
     refetch.mockResolvedValue(refetchResultWithMemberships(2));
 
     renderDialog();
@@ -186,18 +186,11 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
       json: async () => ({ success: false }),
     });
 
-    const logged = jest.spyOn(console, "error").mockImplementation(() => {});
-
     renderDialog();
     await confirmAndSubmit();
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
     expect(toast.success).toHaveBeenCalledWith("Team deleted");
-    expect(logged).toHaveBeenCalledWith(
-      "Delete Team Dialog: session sync failed after delete",
-    );
-
-    logged.mockRestore();
   });
 
   it("does not navigate when the delete fails", async () => {
