@@ -17,6 +17,7 @@ jest.mock("react-toastify", () => ({
 // #endregion
 
 import { Form } from "@/scenes/Onboarding/CreateTeam/page/Form";
+import { TEAM_CREATED_TOAST_STORAGE_KEY } from "@/lib/team-created-toast";
 import { toast } from "react-toastify";
 
 // #region Test Data
@@ -36,6 +37,7 @@ const submitTeamName = async (name = "New Team") => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  window.sessionStorage.clear();
   global.fetch = jest.fn();
   Object.defineProperty(window, "location", {
     value: { replace: locationReplace },
@@ -85,6 +87,12 @@ describe("create team form [confirmed creation navigation]", () => {
 
     await waitFor(() =>
       expect(locationReplace).toHaveBeenCalledWith("/teams/team_new"),
+    );
+    expect(
+      screen.getByRole("button", { name: "Creating team" }),
+    ).toBeDisabled();
+    expect(window.sessionStorage.getItem(TEAM_CREATED_TOAST_STORAGE_KEY)).toBe(
+      "New Team",
     );
     expect(global.fetch).toHaveBeenCalledWith("/api/create-team", {
       method: "POST",

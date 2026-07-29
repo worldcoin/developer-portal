@@ -7,15 +7,18 @@ import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { teamNameSchema } from "@/lib/schema";
+import { TEAM_CREATED_TOAST_STORAGE_KEY } from "@/lib/team-created-toast";
 import { urls } from "@/lib/urls";
 import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 
 export const Form = (props: { hasUser: boolean }) => {
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
   const schema = useMemo(
     () =>
       yup
@@ -77,8 +80,21 @@ export const Form = (props: { hasUser: boolean }) => {
       return console.log("Something went wrong");
     }
 
+    setIsRedirecting(true);
+
+    try {
+      window.sessionStorage.setItem(
+        TEAM_CREATED_TOAST_STORAGE_KEY,
+        values.teamName,
+      );
+    } catch {
+      // Storage availability should not prevent navigation to the new team.
+    }
+
     window.location.replace(data.returnTo);
   }, []);
+
+  const isPending = isSubmitting || isRedirecting;
 
   return (
     <form onSubmit={handleSubmit(submit)} className="grid gap-y-8">
@@ -140,9 +156,9 @@ export const Form = (props: { hasUser: boolean }) => {
       <InkButton
         type="submit"
         className="mt-2 h-11 w-[180px] justify-self-center"
-        disabled={!isValid || isSubmitting}
+        disabled={!isValid || isPending}
       >
-        {isSubmitting ? (
+        {isPending ? (
           <>
             <SpinnerIcon aria-hidden className="size-5 animate-spin" />
             <span className="sr-only">Creating team</span>
