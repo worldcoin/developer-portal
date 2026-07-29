@@ -76,7 +76,9 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
 
       // The action rewrites the cookie itself; this only covers its failure.
       if (!result.sessionUpdated) {
-        await fetch("/api/update-session", { method: "POST" }).catch(() => null);
+        await fetch("/api/update-session", { method: "POST" }).catch(
+          () => null,
+        );
       }
 
       // Refetch me-query cache (profile teams list) + Auth0 client user.

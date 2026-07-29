@@ -23,9 +23,12 @@ jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
 }));
 
-jest.mock("../../api/create-team/graphql/get-user-by-auth0id.generated", () => ({
-  getSdk: () => ({ GetUserByAuth0Id }),
-}));
+jest.mock(
+  "../../api/create-team/graphql/get-user-by-auth0id.generated",
+  () => ({
+    getSdk: () => ({ GetUserByAuth0Id }),
+  }),
+);
 
 jest.mock("../../api/create-team/graphql/insert-team.generated", () => ({
   getSdk: () => ({ InsertTeam }),
@@ -50,9 +53,7 @@ jest.mock("../../services/posthogClient", () => ({
 }));
 
 jest.mock("../../api/helpers/utils", () => ({
-  getAppUrlFromRequest: jest
-    .fn()
-    .mockResolvedValue("http://localhost:3000"),
+  getAppUrlFromRequest: jest.fn().mockResolvedValue("http://localhost:3000"),
 }));
 
 jest.mock("next/headers", () => ({
@@ -123,9 +124,7 @@ beforeEach(() => {
 // #region /api/create-team [hasUser ignored]
 describe("/api/create-team [hasUser ignored]", () => {
   it("creates the Hasura user when the client claims hasUser true but none exists", async () => {
-    const res = await POST(
-      makeRequest({ team_name: "Acme", hasUser: true }),
-    );
+    const res = await POST(makeRequest({ team_name: "Acme", hasUser: true }));
 
     expect(res.status).toBe(200);
     expect(sendAcceptance).toHaveBeenCalled();
@@ -146,9 +145,7 @@ describe("/api/create-team [hasUser ignored]", () => {
       user: { ...sessionUser, hasura: { id: USER_ID } },
     });
 
-    const res = await POST(
-      makeRequest({ team_name: "Acme", hasUser: false }),
-    );
+    const res = await POST(makeRequest({ team_name: "Acme", hasUser: false }));
 
     expect(res.status).toBe(200);
     expect(sendAcceptance).not.toHaveBeenCalled();
