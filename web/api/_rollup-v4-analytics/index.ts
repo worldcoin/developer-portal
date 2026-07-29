@@ -5,10 +5,28 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSdk } from "./graphql/rollup-v4-analytics.generated";
 
 const isForeignKeyViolation = (error: unknown): boolean => {
-  const serialized =
-    error instanceof Error ? `${error.name} ${error.message}` : String(error);
+  let serialized = String(error);
+
+  try {
+    serialized += ` ${JSON.stringify(error)}`;
+  } catch {
+    // Some client errors contain circular request/response objects. The Error
+    // fields still carry the useful PostgreSQL code/message in that case.
+  }
+
+  if (error instanceof Error) {
+    serialized += ` ${error.name} ${error.message}`;
+    if (error.cause) {
+      try {
+        serialized += ` ${JSON.stringify(error.cause)}`;
+      } catch {
+        serialized += ` ${String(error.cause)}`;
+      }
+    }
+  }
+
   return (
-    serialized.includes("foreign key") ||
+    /foreign key/i.test(serialized) ||
     serialized.includes("23503") ||
     serialized.includes("constraint-violation")
   );

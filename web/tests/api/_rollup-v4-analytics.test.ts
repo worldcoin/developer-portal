@@ -98,9 +98,16 @@ describe("/api/_rollup-v4-analytics [outcomes]", () => {
   });
 
   it("retries one FK violation and succeeds", async () => {
-    RollupV4Analytics.mockRejectedValueOnce(
-      new Error("postgres error 23503: foreign key violation"),
-    ).mockResolvedValueOnce({ rollup_v4_analytics: [watermark] });
+    RollupV4Analytics.mockRejectedValueOnce({
+      response: {
+        errors: [
+          {
+            message: "database mutation failed",
+            extensions: { internal: { error: { status_code: "23503" } } },
+          },
+        ],
+      },
+    }).mockResolvedValueOnce({ rollup_v4_analytics: [watermark] });
 
     const response = (await POST(createRequest("Bearer internal-secret")))!;
 
