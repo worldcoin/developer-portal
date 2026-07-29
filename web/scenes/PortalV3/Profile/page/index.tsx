@@ -8,6 +8,7 @@ import { calculateColorFromString } from "@/lib/calculate-color-from-string";
 import { Auth0SessionUser } from "@/lib/types";
 import { DeleteAccountDialog } from "@/scenes/PortalV3/Profile/DangerZone/DeleteAccountDialog";
 import { List } from "@/scenes/PortalV3/Profile/Teams/page/List";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { ColorSelector } from "@/scenes/PortalV3/Profile/page/ColorSelector";
 import { CreateTeamDialog } from "@/scenes/PortalV3/Profile/page/CreateTeamDialog";
 import { WorldIdAccountMigration } from "@/scenes/common/Profile/page/WorldIdAccountMigration";
@@ -60,9 +61,6 @@ const avatarSchema = yup
 
 type DisplayNameFormValues = yup.InferType<typeof displayNameSchema>;
 type AvatarFormValues = yup.InferType<typeof avatarSchema>;
-
-const primaryButtonClassName =
-  "inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-8 bg-portal-ink px-4 font-world text-13 leading-none font-medium text-white outline-hidden transition-colors hover:bg-portal-ink-hover focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-portal-ink";
 
 const CardHeader = (props: {
   title: string;
@@ -313,9 +311,9 @@ export const ProfilePage = () => {
                 <p className="font-gta text-13 leading-5 text-grey-400">
                   Please use 32 characters at maximum.
                 </p>
-                <Button
+                <InkButton
                   type="submit"
-                  className={primaryButtonClassName}
+                  className="h-8"
                   disabled={
                     !isDisplayNameDirty ||
                     !isDisplayNameValid ||
@@ -323,7 +321,7 @@ export const ProfilePage = () => {
                   }
                 >
                   Save
-                </Button>
+                </InkButton>
               </CardFooter>
             </form>
 
@@ -359,9 +357,9 @@ export const ProfilePage = () => {
               </div>
 
               <CardFooter>
-                <Button
+                <InkButton
                   type="submit"
-                  className={`${primaryButtonClassName} self-end sm:ml-auto`}
+                  className="h-8 self-end sm:ml-auto"
                   disabled={
                     !isAvatarDirty ||
                     !isAvatarValid ||
@@ -370,7 +368,7 @@ export const ProfilePage = () => {
                   }
                 >
                   Save
-                </Button>
+                </InkButton>
               </CardFooter>
             </form>
 

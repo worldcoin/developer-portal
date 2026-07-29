@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { LeaveTeamDialog } from "@/scenes/PortalV3/Profile/Teams/page/LeaveTeamDialog";
 import { TransferTeamDialog } from "@/scenes/PortalV3/Profile/Teams/page/TransferTeamDialog";
 import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { CREATE_TEAM_DIALOG_URL } from "@/scenes/PortalV3/Profile/page/CreateTeamDialog/dialogRouting";
 import { FetchMeQuery } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useState } from "react";
@@ -45,13 +45,13 @@ export const List = (props: {
           You belong to {props.memberships?.length ?? 0} teams.
         </p>
 
-        <Button
+        <InkButton
           href={CREATE_TEAM_DIALOG_URL}
-          className="inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-8 bg-portal-ink px-4 font-world text-13 leading-none font-medium text-white outline-hidden transition-colors hover:bg-portal-ink-hover focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2"
+          className="h-8"
+          icon={<PlusIcon className="size-4" />}
         >
-          <PlusIcon className="size-4" />
           New team
-        </Button>
+        </InkButton>
       </footer>
 
       <DeleteTeamDialog

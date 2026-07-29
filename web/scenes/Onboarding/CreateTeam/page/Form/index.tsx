@@ -3,11 +3,11 @@
 import { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
 import { Button } from "@/components/Button";
 import { Checkbox } from "@/components/Checkbox";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { teamNameSchema } from "@/lib/schema";
 import { urls } from "@/lib/urls";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
@@ -145,13 +145,13 @@ export const Form = (props: { hasUser: boolean }) => {
         </div>
       )}
 
-      <DecoratedButton
+      <InkButton
         type="submit"
-        className="mt-2 w-[180px] justify-self-center"
+        className="mt-2 h-11 w-[180px] justify-self-center"
         disabled={!isValid || isSubmitting}
       >
-        <Typography variant={TYPOGRAPHY.M3}>Create team</Typography>
-      </DecoratedButton>
+        Create team
+      </InkButton>
     </form>
   );
 };
