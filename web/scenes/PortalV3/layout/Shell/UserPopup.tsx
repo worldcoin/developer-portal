@@ -95,11 +95,6 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               label="Profile"
               icon="profile-menu-profile"
             />
-            <LinkItem
-              href={urls.profile()}
-              label="My Teams"
-              icon="profile-menu-teams"
-            />
             <Separator />
             <DropdownMenu.Item asChild>
               <a
