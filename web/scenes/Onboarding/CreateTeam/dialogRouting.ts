@@ -1,9 +1,4 @@
-import { urls } from "@/lib/urls";
-
 export const CREATE_TEAM_DIALOG_QUERY_PARAM = "createTeam";
-
-export const CREATE_TEAM_DIALOG_URL =
-  `${urls.profileTeams()}?${CREATE_TEAM_DIALOG_QUERY_PARAM}=true` as const;
 
 export const getCreateTeamDialogStateUrl = (
   pathname: string,

@@ -26,6 +26,8 @@ export const TeamSettingsPage = () => {
     Role_Enum.Owner,
     Role_Enum.Admin,
   ]);
+  const canDeleteTeam =
+    canWriteTeamSettings && (user?.hasura?.memberships?.length ?? 0) > 1;
 
   // Single team fetch for the whole settings page. The name form and the danger
   // zone read from this instead of each firing their own useFetchTeamQuery.
@@ -54,6 +56,7 @@ export const TeamSettingsPage = () => {
         <TeamDangerZone
           team={team ? { id: team.id, name: team.name } : null}
           canWrite={canWriteTeamSettings}
+          canDelete={canDeleteTeam}
         />
       </SizingWrapper>
     </>

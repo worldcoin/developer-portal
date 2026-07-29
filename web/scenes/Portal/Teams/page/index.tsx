@@ -21,7 +21,7 @@ export const TeamsPage = async () => {
   }
 
   if (memberships.length === 0) {
-    return redirect(urls.createTeam());
+    return redirect(urls.api.loginCallback());
   }
 
   return redirect(urls.teams({ team_id: memberships[0].team?.id }));

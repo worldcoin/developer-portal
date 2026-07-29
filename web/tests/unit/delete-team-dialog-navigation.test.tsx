@@ -17,12 +17,29 @@ jest.mock("next/navigation", () => ({
 }));
 
 const invalidate = jest.fn();
+let mockSessionMemberships = [{ team: { id: "team_1", name: "My team" } }];
 jest.mock("@auth0/nextjs-auth0/client", () => ({
   useUser: () => ({
-    user: { hasura: { id: "usr_1" } },
+    user: {
+      hasura: { id: "usr_1", memberships: mockSessionMemberships },
+    },
     invalidate,
   }),
 }));
+
+const leaveTeam = jest.fn();
+jest.mock("@apollo/client/react", () => ({
+  useMutation: () => [leaveTeam, { loading: false }],
+}));
+
+const mockProvisionFirstTeam = jest.fn();
+jest.mock("@/lib/urls", () => {
+  const actual = jest.requireActual("@/lib/urls");
+  return {
+    ...actual,
+    provisionFirstTeam: () => mockProvisionFirstTeam(),
+  };
+});
 
 const refetch = jest.fn();
 jest.mock("@/scenes/common/me-query/client", () => ({
@@ -49,6 +66,7 @@ jest.mock("@/components/DialogPanel", () => ({
 
 import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
 import { DeleteTeamDialog as DeleteTeamDialogV2 } from "@/scenes/Portal/common/DeleteTeamDialog";
+import { LeaveTeamDialog } from "@/scenes/common/Profile/Teams/page/LeaveTeamDialog";
 import { toast } from "react-toastify";
 
 // #region Test Data
@@ -86,6 +104,10 @@ beforeEach(() => {
     success: true,
     sessionUpdated: true,
   });
+  mockSessionMemberships = [{ team }];
+  leaveTeam.mockResolvedValue({
+    data: { delete_membership: { affected_rows: 1 } },
+  });
   global.fetch = jest
     .fn()
     .mockResolvedValue({ ok: true, json: async () => ({ success: true }) });
@@ -93,17 +115,18 @@ beforeEach(() => {
 
 // #region Post-delete navigation
 describe("DeleteTeamDialog [post-delete navigation]", () => {
-  it("navigates to create-team when no teams remain, without re-syncing the session", async () => {
+  it("repairs an unexpected zero-team result through the login callback", async () => {
     refetch.mockResolvedValue(refetchResultWithMemberships(0));
 
     renderDialog();
     await confirmAndSubmit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/create-team"));
+    await waitFor(() => expect(mockProvisionFirstTeam).toHaveBeenCalled());
     expect(deleteTeamServerSide).toHaveBeenCalledWith("team_1");
     // The action already rewrote the cookie, so the fallback route stays idle.
     expect(global.fetch).not.toHaveBeenCalled();
     expect(invalidate).toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
     expect(refresh).not.toHaveBeenCalled();
   });
 
@@ -155,7 +178,7 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     renderDialog();
     await confirmAndSubmit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/create-team"));
+    await waitFor(() => expect(mockProvisionFirstTeam).toHaveBeenCalled());
     // The delete itself succeeded, so the user is told so either way.
     expect(toast.success).toHaveBeenCalledWith("Team deleted");
   });
@@ -213,6 +236,35 @@ describe("DeleteTeamDialog [v2]", () => {
     expect(invalidate).toHaveBeenCalled();
     expect(refresh).not.toHaveBeenCalled();
   });
+
+  it("repairs an unexpected zero-team result through the login callback", async () => {
+    refetch.mockResolvedValue(refetchResultWithMemberships(0));
+
+    render(<DeleteTeamDialogV2 open onClose={jest.fn()} team={team} />);
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(mockProvisionFirstTeam).toHaveBeenCalled());
+    expect(push).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Post-leave navigation
+describe("LeaveTeamDialog [post-leave navigation]", () => {
+  it("provisions a replacement after leaving the final team", async () => {
+    refetch.mockResolvedValue(refetchResultWithMemberships(0));
+    const onClose = jest.fn();
+
+    render(<LeaveTeamDialog open team={team} onClose={onClose} />);
+    fireEvent.click(screen.getByRole("button", { name: "Leave team" }));
+
+    await waitFor(() => expect(mockProvisionFirstTeam).toHaveBeenCalled());
+    expect(leaveTeam).toHaveBeenCalledWith({
+      variables: { user_id: "usr_1", team_id: "team_1" },
+    });
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });
 // #endregion
 
@@ -235,7 +287,7 @@ describe("DeleteTeamDialog [unmounted before delete resolves]", () => {
     unmount();
     resolveRefetch(refetchResultWithMemberships(0));
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/create-team"));
+    await waitFor(() => expect(mockProvisionFirstTeam).toHaveBeenCalled());
   });
 });
 // #endregion

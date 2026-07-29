@@ -43,6 +43,7 @@ export const List = () => {
             <Item
               key={membership.team.id}
               item={membership}
+              disableDelete={(user.memberships?.length ?? 0) <= 1}
               onClickTransfer={() => setTeamForTransfer(membership.team)}
               onClickDelete={() => setTeamForDelete(membership.team)}
               onClickLeave={() => setTeamForLeave(membership.team)}

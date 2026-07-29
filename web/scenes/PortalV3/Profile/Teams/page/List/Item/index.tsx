@@ -25,6 +25,7 @@ type Item = NonNullable<FetchMeQuery["user_by_pk"]>["memberships"][0];
 
 type ItemsProps = {
   item?: Item;
+  disableDelete?: boolean;
   onClickTransfer?: () => void;
   onClickDelete?: () => void;
   onClickLeave?: () => void;
@@ -170,10 +171,26 @@ export const Item = (props: ItemsProps) => {
                 )}
 
                 {item.role === Role_Enum.Owner && (
-                  <Dropdown.ListItem className="text-system-error-600" asChild>
-                    <button type="button" onClick={props.onClickDelete}>
+                  <Dropdown.ListItem
+                    className={
+                      props.disableDelete
+                        ? "text-grey-300"
+                        : "text-system-error-600"
+                    }
+                    disabled={props.disableDelete}
+                    asChild
+                  >
+                    <button
+                      type="button"
+                      disabled={props.disableDelete}
+                      onClick={props.onClickDelete}
+                    >
                       <Dropdown.ListItemIcon
-                        className="text-system-error-600"
+                        className={
+                          props.disableDelete
+                            ? "text-grey-300"
+                            : "text-system-error-600"
+                        }
                         asChild
                       >
                         <LogoutIcon />

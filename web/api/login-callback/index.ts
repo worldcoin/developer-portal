@@ -1,4 +1,8 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import {
+  createFirstTeamForExistingUser,
+  createFirstTeamForUser,
+} from "@/api/create-team";
 
 import { auth0 } from "@/lib/auth0";
 
@@ -134,14 +138,11 @@ export const loginCallback = async (req: NextRequest) => {
   }
 
   const invite_id = req.nextUrl.searchParams.get("invite_id") as string;
+  let createdTeamId: string | null = null;
 
-  if (!user) {
-    // No matching Hasura user. The user is being routed to onboarding
-    // (create-team or join-callback). Log this so we can correlate when
-    // /api/create-team subsequently fails on a uniqueness violation.
-    logger.warn("login-callback: no Hasura user found, routing to onboarding", {
+  if (!user && !invite_id) {
+    logger.info("login-callback: provisioning new portal user", {
       auth0Sub: auth0User.sub,
-      hasInvite: Boolean(invite_id),
       authMethod: isEmailUser(auth0User)
         ? "email"
         : isPasswordUser(auth0User)
@@ -149,11 +150,58 @@ export const loginCallback = async (req: NextRequest) => {
           : "world_id",
     });
 
+    try {
+      const membership = await createFirstTeamForUser({
+        auth0User,
+        client,
+        req,
+      });
+      user = membership.user;
+      createdTeamId = membership.team_id;
+    } catch (error) {
+      logger.error("Failed to provision new portal user", {
+        error,
+        auth0Sub: auth0User.sub,
+        graphqlResponse: (error as { response?: unknown })?.response,
+      });
+
+      return NextResponse.redirect(
+        new URL(urls.logout(), appUrl).toString(),
+        307,
+      );
+    }
+  }
+
+  if (user && !invite_id && user.memberships.length === 0) {
+    logger.info("login-callback: provisioning first team for portal user", {
+      userId: user.id,
+    });
+
+    try {
+      const membership = await createFirstTeamForExistingUser({
+        auth0User,
+        client,
+        userId: user.id,
+      });
+      user = membership.user;
+      createdTeamId = membership.team_id;
+    } catch (error) {
+      logger.error("Failed to provision first team for portal user", {
+        error,
+        userId: user.id,
+        graphqlResponse: (error as { response?: unknown })?.response,
+      });
+
+      return NextResponse.redirect(
+        new URL(urls.logout(), appUrl).toString(),
+        307,
+      );
+    }
+  }
+
+  if (!user) {
     return NextResponse.redirect(
-      new URL(
-        invite_id ? urls.joinCallback({ invite_id }) : urls.createTeam(),
-        appUrl,
-      ).toString(),
+      new URL(urls.joinCallback({ invite_id }), appUrl).toString(),
       307,
     );
   }
@@ -326,7 +374,8 @@ export const loginCallback = async (req: NextRequest) => {
   }
 
   // If a user just accepted an invite, redirect them to that teams page.
-  const teamId = team_id_from_invite ?? user?.memberships[0]?.team.id;
+  const teamId =
+    team_id_from_invite ?? createdTeamId ?? user?.memberships[0]?.team.id;
   let url: string = urls.profile();
   const rawReturnTo = req.nextUrl.searchParams.get("returnTo");
   let returnTo: string | null = null;
@@ -352,7 +401,7 @@ export const loginCallback = async (req: NextRequest) => {
   }
 
   if (!returnTo && !teamId) {
-    url = urls.createTeam();
+    url = urls.logout();
   }
 
   const res = NextResponse.redirect(new URL(url, appUrl), 307);

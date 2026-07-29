@@ -35,25 +35,6 @@ jest.mock("../../../lib/logger", () => ({
   },
 }));
 
-jest.mock("../../../lib/ironclad-activity-api", () => ({
-  IroncladActivityApi: jest.fn().mockImplementation(() => ({
-    sendAcceptance: jest.fn(() => Promise.resolve()),
-  })),
-}));
-
-jest.mock("next/headers", () => ({
-  headers: () => {
-    return {
-      [Symbol.iterator]: function* () {
-        yield* [[]];
-      },
-
-      forEach: jest.fn(),
-      get: jest.fn(),
-    };
-  },
-}));
-
 describe("test /create-team", () => {
   beforeEach(() => {
     // Reset mocks before each test
@@ -87,38 +68,9 @@ describe("test /create-team", () => {
     expect(response.status).toEqual(400);
   });
 
-  it("Should send acceptance if user does not exist", async () => {
-    const mockReq = {
-      json: () => Promise.resolve({ team_name: "Test Team 2", hasUser: false }),
-    } as unknown as NextRequest;
-
-    const mockSession = {
-      user: {
-        ...validSessionUser,
-        email: "new-test-email1@world.org",
-        sub: "email|new-test-email1",
-      },
-    };
-
-    (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await POST(mockReq);
-    expect(response.status).not.toEqual(500);
-    const body = await response.json();
-
-    expect(body).not.toEqual(
-      expect.objectContaining({
-        code: "server_error",
-        detail: "Failed to send acceptance",
-        attribute: null,
-      }),
-    );
-
-    expect(response.status).toEqual(200);
-  });
-
   it("Should create team for a user that exists", async () => {
     const mockReq = {
-      json: () => Promise.resolve({ team_name: "Test Team", hasUser: true }),
+      json: () => Promise.resolve({ team_name: "Test Team" }),
     } as unknown as NextRequest;
 
     const mockSession = {
@@ -137,9 +89,9 @@ describe("test /create-team", () => {
     expect(response.status).toEqual(200);
   });
 
-  it("Should create team for a new user", async () => {
+  it("should reject team creation for a user without a portal record", async () => {
     const mockReq = {
-      json: () => Promise.resolve({ team_name: "Test Team", hasUser: false }),
+      json: () => Promise.resolve({ team_name: "Test Team" }),
     } as unknown as NextRequest;
 
     const mockSession = {
@@ -152,9 +104,8 @@ describe("test /create-team", () => {
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     const response = await POST(mockReq);
-    const body = await response.json();
-    expect(body).toHaveProperty("returnTo");
-    expect(response.status).toEqual(200);
+
+    expect(response.status).toEqual(403);
   });
 
   it("should update session successfully", async () => {
@@ -164,7 +115,7 @@ describe("test /create-team", () => {
     };
 
     const mockReq = {
-      json: () => Promise.resolve({ team_name: "Test Team", hasUser: true }),
+      json: () => Promise.resolve({ team_name: "Test Team" }),
     } as unknown as NextRequest;
 
     const mockSession = {

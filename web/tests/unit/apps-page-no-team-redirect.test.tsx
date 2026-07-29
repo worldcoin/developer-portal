@@ -15,6 +15,25 @@ jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock("@/lib/logger", () => ({
+  logger: { error: jest.fn(), warn: jest.fn() },
+}));
+
+const FetchMemberships = jest.fn();
+jest.mock(
+  "../../scenes/Root/page/graphql/server/fetch-memberships.generated",
+  () => ({
+    getSdk: () => ({ FetchMemberships }),
+  }),
+);
+
+jest.mock("@/scenes/Onboarding/Home/layout", () => ({
+  HomeLayout: ({ children }: React.PropsWithChildren) => <>{children}</>,
+}));
+jest.mock("@/scenes/Onboarding/Home/page", () => ({
+  HomePage: () => <div data-testid="home-page" />,
+}));
+
 const InitialApp = jest.fn();
 jest.mock(
   "../../scenes/Portal/Teams/TeamId/Apps/page/graphql/server/apps.generated",
@@ -36,6 +55,7 @@ jest.mock("../../scenes/Portal/Teams/TeamId/Apps/page/AppsPageClient", () => ({
 
 import { AppsPage as AppsPageV3 } from "@/scenes/PortalV3/Teams/TeamId/Apps/page";
 import { AppsPage as AppsPageV2 } from "@/scenes/Portal/Teams/TeamId/Apps/page";
+import { RootPage } from "@/scenes/Root/page";
 
 // #region Test Data
 const props = (teamId: string) => ({
@@ -57,17 +77,34 @@ beforeEach(() => {
   InitialApp.mockResolvedValue({ app: [] });
 });
 
-// #region Users with no team land on onboarding, not logout
+// #region Root routing
+describe("/ [zero memberships]", () => {
+  it("re-enters the login callback so a first team is provisioned", async () => {
+    getSession.mockResolvedValue(sessionWithMemberships([]));
+    FetchMemberships.mockResolvedValue({ membership: [] });
+
+    await RootPage();
+
+    expect(redirect).toHaveBeenCalledWith(
+      expect.stringContaining("/api/auth/login-callback"),
+    );
+  });
+});
+// #endregion
+
+// #region Membership guards
 describe.each([
   ["v3", AppsPageV3],
   ["v2", AppsPageV2],
 ])("/teams/[teamId]/apps [%s, membership guard]", (_version, AppsPage) => {
-  it("redirects a user with zero memberships to create-team", async () => {
+  it("re-enters the login callback for a user with zero memberships", async () => {
     getSession.mockResolvedValue(sessionWithMemberships([]));
 
     await AppsPage(props("team_1"));
 
-    expect(redirect).toHaveBeenCalledWith("/create-team");
+    expect(redirect).toHaveBeenCalledWith(
+      expect.stringContaining("/api/auth/login-callback"),
+    );
     expect(InitialApp).not.toHaveBeenCalled();
   });
 

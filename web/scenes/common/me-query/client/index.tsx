@@ -1,4 +1,5 @@
 import { Auth0SessionUser } from "@/lib/types";
+import { provisionFirstTeam, urls } from "@/lib/urls";
 import { getNullifierName } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -25,7 +26,7 @@ export const useMeQuery = () => {
   } = useQuery(FetchMeDocument, {
     variables: { userId: auth0User?.hasura?.id! },
     skip: !auth0User?.hasura?.id,
-    // Revalidate on mount: /create-team changes memberships outside Apollo
+    // Revalidate on mount: team creation changes memberships outside Apollo.
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
   });
@@ -67,6 +68,16 @@ export const useMeQuery = () => {
 
   useEffect(() => {
     if (!data || fetchLoading) {
+      return;
+    }
+
+    if (!data.user_by_pk) {
+      window.location.assign(urls.logout(window.location.origin));
+      return;
+    }
+
+    if (data.user_by_pk.memberships.length === 0) {
+      provisionFirstTeam();
       return;
     }
 

@@ -9,6 +9,7 @@ import { FetchTeamDocument } from "@/scenes/common/Teams/TeamId/Team/common/Team
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Section } from "@/components/Section";
 import { truncateString } from "@/lib/utils";
+import { useMeQuery } from "@/scenes/common/me-query/client";
 
 export const TeamDangerPage = () => {
   const { teamId } = useParams() as { teamId: string };
@@ -19,6 +20,8 @@ export const TeamDangerPage = () => {
   });
 
   const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false);
+  const { user, loading: isUserLoading } = useMeQuery();
+  const canDeleteTeam = !isUserLoading && (user.memberships?.length ?? 0) > 1;
 
   if (!fetchTeamQueryRes.data) {
     return null;
@@ -49,7 +52,12 @@ export const TeamDangerPage = () => {
             <DecoratedButton
               type="submit"
               variant="danger"
-              onClick={() => setIsOpenDeleteDialog(true)}
+              disabled={!canDeleteTeam}
+              onClick={() => {
+                if (canDeleteTeam) {
+                  setIsOpenDeleteDialog(true);
+                }
+              }}
             >
               Delete team
             </DecoratedButton>
@@ -57,14 +65,16 @@ export const TeamDangerPage = () => {
         </Section>
       </SizingWrapper>
 
-      <DeleteTeamDialog
-        open={isOpenDeleteDialog}
-        onClose={() => setIsOpenDeleteDialog(false)}
-        team={{
-          id: fetchTeamQueryRes.data.team_by_pk?.id,
-          name: fetchTeamQueryRes.data.team_by_pk?.name,
-        }}
-      />
+      {canDeleteTeam ? (
+        <DeleteTeamDialog
+          open={isOpenDeleteDialog}
+          onClose={() => setIsOpenDeleteDialog(false)}
+          team={{
+            id: fetchTeamQueryRes.data.team_by_pk?.id,
+            name: fetchTeamQueryRes.data.team_by_pk?.name,
+          }}
+        />
+      ) : null}
     </>
   );
 };

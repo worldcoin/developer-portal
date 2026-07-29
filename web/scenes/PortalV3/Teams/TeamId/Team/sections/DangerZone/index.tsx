@@ -12,8 +12,9 @@ import { truncateString } from "@/lib/utils";
 export const TeamDangerZone = (props: {
   team: { id?: string | null; name?: string | null } | null;
   canWrite: boolean;
+  canDelete: boolean;
 }) => {
-  const { team, canWrite } = props;
+  const { team, canWrite, canDelete } = props;
   const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false);
 
   if (!team) {
@@ -46,9 +47,9 @@ export const TeamDangerZone = (props: {
           <DecoratedButton
             type="submit"
             variant="danger"
-            disabled={!canWrite}
+            disabled={!canDelete}
             onClick={() => {
-              if (!canWrite) {
+              if (!canDelete) {
                 return;
               }
               setIsOpenDeleteDialog(true);
@@ -59,7 +60,7 @@ export const TeamDangerZone = (props: {
         </div>
       </Section>
 
-      {canWrite ? (
+      {canDelete ? (
         <DeleteTeamDialog
           open={isOpenDeleteDialog}
           onClose={() => setIsOpenDeleteDialog(false)}

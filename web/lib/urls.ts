@@ -63,7 +63,8 @@ export const urls = {
   }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/world-id-actions/${params.action_id}/danger`,
 
-  createTeam: (): "/create-team" => "/create-team",
+  createTeam: (): "/profile/teams?createTeam=true" =>
+    "/profile/teams?createTeam=true",
 
   signInWorldId: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/sign-in-with-world-id`,
@@ -171,4 +172,15 @@ export const urls = {
     worldIdAccountMigration: (): "/api/profile/world-id-account-migration" =>
       "/api/profile/world-id-account-migration",
   },
+};
+
+let isProvisioningFirstTeam = false;
+
+export const provisionFirstTeam = () => {
+  if (isProvisioningFirstTeam) {
+    return;
+  }
+
+  isProvisioningFirstTeam = true;
+  window.location.assign(urls.api.loginCallback());
 };

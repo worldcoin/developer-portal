@@ -23,6 +23,29 @@ export async function deleteTeamServerSide(
     }
 
     const client = await getAPIServiceGraphqlClient();
+    const session = await auth0.getSession();
+    const userId = session?.user?.hasura?.id;
+
+    if (!userId) {
+      return errorFormAction({
+        message: "The user does not have permission to delete this team",
+        team_id: teamId,
+        logLevel: "warn",
+      });
+    }
+
+    const { user_by_pk: userBeforeDelete } = await getFetchUserForSessionSdk(
+      client,
+    ).FetchUserForSession({ userId });
+
+    if (!userBeforeDelete || userBeforeDelete.memberships.length <= 1) {
+      return errorFormAction({
+        message: "The user does not have permission to delete this team",
+        team_id: teamId,
+        logLevel: "warn",
+      });
+    }
+
     await getDeleteTeamSdk(client).DeleteTeam({
       id: teamId,
     });
@@ -31,10 +54,7 @@ export async function deleteTeamServerSide(
     // session-fed UI without racing a client-side sync
     let sessionUpdated = false;
     try {
-      const session = await auth0.getSession();
-      const userId = session?.user?.hasura?.id;
-
-      if (session && userId) {
+      if (session) {
         const { user_by_pk } = await getFetchUserForSessionSdk(
           client,
         ).FetchUserForSession({ userId });

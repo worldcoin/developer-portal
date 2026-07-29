@@ -269,7 +269,7 @@ export const HomePage = async () => {
     }
 
     if (membership?.length === 0) {
-      return redirect(urls.createTeam());
+      return redirect(urls.api.loginCallback());
     }
   }
 

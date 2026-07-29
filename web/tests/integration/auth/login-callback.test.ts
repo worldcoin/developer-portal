@@ -39,11 +39,20 @@ jest.mock("@/lib/auth0", () => ({
 const getSession = auth0.getSession as jest.Mock;
 const updateSession = auth0.updateSession as jest.Mock;
 
+const sendAcceptanceMock = jest.fn();
+jest.mock("@/lib/ironclad-activity-api", () => ({
+  IroncladActivityApi: jest.fn().mockImplementation(() => ({
+    sendAcceptance: (...args: unknown[]) => sendAcceptanceMock(...args),
+  })),
+}));
+
 describe("test /login-callback", () => {
   beforeEach(() => {
     // NOTE: Reset mocks before each test
     (getSession as jest.Mock).mockReset();
     (updateSession as jest.Mock).mockReset();
+    sendAcceptanceMock.mockReset();
+    sendAcceptanceMock.mockResolvedValue(undefined);
   });
 
   it("should redirect to /login if no session is found", async () => {
@@ -84,15 +93,17 @@ describe("test /login-callback", () => {
     expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
   });
 
-  it("should redirect to /create-team if no user is found", async () => {
+  it("should provision a first team from the email when no user is found", async () => {
+    const email = "wrong_email+dev@test.test";
     const mockReq = {
       nextUrl: new URL("/login-callback", "http://localhost:3000"),
+      headers: new Headers(),
     } as unknown as NextRequest;
 
     const mockSession = {
       user: {
         ...validEmailSessionUser,
-        email: "wrong_email@test.test",
+        email,
         sub: "email|wrong_sub",
       },
     };
@@ -101,9 +112,86 @@ describe("test /login-callback", () => {
     const response = await loginCallback(mockReq);
     expect(getSession).toHaveReturned();
 
-    expect(
-      response.headers.get("location")?.endsWith("/create-team"),
-    ).toBeTruthy();
+    const { rows } = (await integrationDBExecuteQuery(
+      `SELECT t.name AS team_name,
+              t.id AS team_id,
+              u.id AS user_id,
+              u.email,
+              u.name AS user_name,
+              u."auth0Id" AS auth0_id,
+              u.ironclad_id,
+              u.team_id AS user_team_id,
+              m.role
+         FROM public.team t
+         JOIN public.membership m ON m.team_id = t.id
+         JOIN public."user" u ON u.id = m.user_id
+        WHERE u.email = '${email}'`,
+    )) as {
+      rows: Array<{
+        team_name: string;
+        team_id: string;
+        user_id: string;
+        email: string;
+        user_name: string;
+        auth0_id: string;
+        ironclad_id: string;
+        user_team_id: string;
+        role: string;
+      }>;
+    };
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      team_name: "wrong_email+dev",
+      email,
+      user_name: validEmailSessionUser.name,
+      auth0_id: "email|wrong_sub",
+      role: "OWNER",
+    });
+    expect(rows[0].user_id).toMatch(/^usr_/);
+    expect(rows[0].team_id).toMatch(/^team_/);
+    expect(rows[0].ironclad_id).toBeTruthy();
+    expect(rows[0].user_team_id).toBe(rows[0].team_id);
+    expect(response.headers.get("location")).toMatch(/\/teams\/[^/]+\/apps$/);
+    expect(sendAcceptanceMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        pau: expect.stringMatching(/\/signup$/),
+      }),
+    );
+    expect(updateSession).toHaveBeenCalled();
+  });
+
+  it("provisions a first team for an existing portal user with no memberships", async () => {
+    await integrationDBExecuteQuery(
+      `DELETE FROM public.membership
+        WHERE user_id = (
+          SELECT id FROM public."user" WHERE email = '${validEmailSessionUser.email}'
+        )`,
+    );
+
+    const mockReq = {
+      nextUrl: new URL("/login-callback", "http://localhost:3000"),
+      headers: new Headers(),
+    } as unknown as NextRequest;
+    (getSession as jest.Mock).mockResolvedValue({
+      user: validEmailSessionUser,
+    });
+
+    const response = await loginCallback(mockReq);
+
+    const { rows } = (await integrationDBExecuteQuery(
+      `SELECT t.name, m.role
+         FROM public.team t
+         JOIN public.membership m ON m.team_id = t.id
+         JOIN public."user" u ON u.id = m.user_id
+        WHERE u.email = '${validEmailSessionUser.email}'`,
+    )) as { rows: Array<{ name: string; role: string }> };
+
+    expect(rows).toEqual([{ name: "test", role: "OWNER" }]);
+    expect(sendAcceptanceMock).not.toHaveBeenCalled();
+    expect(updateSession).toHaveBeenCalled();
+    expect(response.headers.get("location")).toMatch(/\/teams\/[^/]+\/apps$/);
   });
 
   it("should redirect to /api/auth/logout if email is not verified", async () => {

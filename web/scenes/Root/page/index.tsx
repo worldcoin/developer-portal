@@ -55,7 +55,7 @@ export const RootPage = async () => {
   }
 
   if (!membership || membership.length === 0) {
-    return redirect(urls.createTeam());
+    return redirect(urls.api.loginCallback());
   }
 
   const team_id = membership[0].team_id;

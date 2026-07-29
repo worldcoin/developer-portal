@@ -1,47 +1,34 @@
 import { errorResponse } from "@/api/helpers/errors";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { isEmailUser } from "@/api/helpers/is-email-user";
+import { isPasswordUser } from "@/api/helpers/is-password-user";
+import { getAppUrlFromRequest } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { Role_Enum } from "@/graphql/graphql";
+import { auth0, toSessionRequest } from "@/lib/auth0";
 import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
 import { logger } from "@/lib/logger";
-import { Auth0SessionUser, Auth0User } from "@/lib/types";
+import { teamNameSchema } from "@/lib/schema";
+import type { Auth0SessionUser, Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import { captureEvent } from "@/services/posthogClient";
 import crypto from "crypto";
+import type { GraphQLClient } from "graphql-request";
 import { parse } from "next-useragent";
-import { headers as nextHeaders } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getAPIServiceGraphqlClient } from "../helpers/graphql";
-import { isEmailUser } from "../helpers/is-email-user";
-import { getAppUrlFromRequest } from "../helpers/utils";
-
+import { getDefaultTeamName } from "./default-team-name";
+import { getSdk as getGetUserByAuth0IdSdk } from "./graphql/get-user-by-auth0id.generated";
 import {
-  InsertTeamMutation,
-  getSdk as getInsertTeamSdk,
-} from "./graphql/insert-team.generated";
-
-import {
-  InsertMembershipMutation,
+  type InsertMembershipMutation,
   getSdk as getInsertMembershipSdk,
 } from "./graphql/insert-membership.generated";
-
-import {
-  InsertUserMutation,
-  getSdk as getInsertUserSdk,
-} from "./graphql/insert-user.generated";
-
-import {
-  GetUserByAuth0IdQuery,
-  getSdk as getGetUserByAuth0IdSdk,
-} from "./graphql/get-user-by-auth0id.generated";
-
-import { teamNameSchema } from "@/lib/schema";
-import { captureEvent } from "@/services/posthogClient";
-import { auth0, toSessionRequest } from "@/lib/auth0";
+import { getSdk as getInsertTeamSdk } from "./graphql/insert-team.generated";
+import { getSdk as getInsertUserSdk } from "./graphql/insert-user.generated";
 
 const schema = yup
   .object({
     team_name: teamNameSchema,
-    hasUser: yup.boolean(),
   })
   .noUnknown();
 
@@ -63,6 +50,112 @@ export type CreateTeamResponse =
       attribute: ErrorResponseParams["attribute"];
     };
 
+type Membership = NonNullable<
+  InsertMembershipMutation["insert_membership_one"]
+>;
+
+const insertTeam = async (client: GraphQLClient, teamName: string) => {
+  const { insert_team_one: team } = await getInsertTeamSdk(client).InsertTeam({
+    team_name: teamName,
+  });
+
+  if (!team?.id) {
+    throw new Error("Team id is null");
+  }
+
+  return team.id;
+};
+
+const insertOwnerMembership = async (
+  client: GraphQLClient,
+  teamId: string,
+  userId: string,
+): Promise<Membership> => {
+  const { insert_membership_one: membership } = await getInsertMembershipSdk(
+    client,
+  ).InsertMembership({
+    team_id: teamId,
+    user_id: userId,
+    role: Role_Enum.Owner,
+  });
+
+  if (!membership) {
+    throw new Error("Membership is null");
+  }
+
+  return membership;
+};
+
+export const createFirstTeamForExistingUser = async ({
+  auth0User,
+  client,
+  userId,
+}: {
+  auth0User: Auth0User;
+  client: GraphQLClient;
+  userId: string;
+}): Promise<Membership> => {
+  const teamId = await insertTeam(client, getDefaultTeamName(auth0User));
+  return insertOwnerMembership(client, teamId, userId);
+};
+
+export const createFirstTeamForUser = async ({
+  auth0User,
+  client,
+  req,
+}: {
+  auth0User: Auth0User;
+  client: GraphQLClient;
+  req: NextRequest;
+}): Promise<Membership> => {
+  const ironcladId = crypto.randomUUID();
+  const appUrl = await getAppUrlFromRequest(req);
+  const signupUrl = new URL(urls.signUp(), appUrl);
+  const requestHeaders = req.headers ?? new Headers();
+  const { os } = parse(requestHeaders.get("user-agent") ?? "");
+
+  await new IroncladActivityApi().sendAcceptance(ironcladId, {
+    addr:
+      requestHeaders.get("x-forwarded-for") ??
+      requestHeaders.get("x-real-ip") ??
+      "",
+    pau: signupUrl.toString(),
+    pad: signupUrl.host,
+    pap: signupUrl.pathname,
+    hn: signupUrl.hostname,
+    bl: requestHeaders.get("accept-language") ?? "",
+    os,
+  });
+
+  const teamId = await insertTeam(client, getDefaultTeamName(auth0User));
+  const isWorldIdUser = !isEmailUser(auth0User) && !isPasswordUser(auth0User);
+  const nullifier = isWorldIdUser ? auth0User.sub.split("|")[2] : undefined;
+  const { insert_user_one: user } = await getInsertUserSdk(client).InsertUser({
+    user_data: {
+      ironclad_id: ironcladId,
+      auth0Id: auth0User.sub,
+      name: auth0User.name || auth0User.nickname || auth0User.email || "",
+      ...(nullifier ? { world_id_nullifier: nullifier } : {}),
+      ...(auth0User.email_verified && auth0User.email
+        ? { email: auth0User.email }
+        : {}),
+      team_id: teamId,
+    },
+  });
+
+  if (!user?.id) {
+    throw new Error("User id is null");
+  }
+
+  await captureEvent({
+    event: "signup_success",
+    distinctId: user.posthog_id ?? "",
+    properties: { team_id: teamId },
+  });
+
+  return insertOwnerMembership(client, teamId, user.id);
+};
+
 export const POST = async (req: NextRequest) => {
   const session = await auth0.getSession();
 
@@ -77,9 +170,8 @@ export const POST = async (req: NextRequest) => {
   const auth0User = session.user as
     | Auth0User
     | NonNullable<Auth0SessionUser["user"]>;
-  const hasuraUserId = (auth0User as Auth0SessionUser["user"])?.hasura?.id;
-  let body = await req.json();
-
+  const sessionUserId = (auth0User as Auth0SessionUser["user"])?.hasura?.id;
+  const body = await req.json();
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     value: body,
     schema,
@@ -89,187 +181,39 @@ export const POST = async (req: NextRequest) => {
     return handleError(req);
   }
 
-  const { team_name, hasUser } = parsedParams;
-
   const client = await getAPIServiceGraphqlClient();
+  let userId = sessionUserId;
 
-  // The `hasUser` flag in the body is derived from the session, which can be
-  // stale (e.g. session.user.hasura missing or out of date). Trust Hasura
-  // instead by looking up the user by auth0Id. Otherwise we hit a uniqueness
-  // violation on InsertUser when the user already exists.
-  let existingUser: GetUserByAuth0IdQuery["user"][number] | null = null;
-  try {
-    const { user: foundUsers } = await getGetUserByAuth0IdSdk(
-      client,
-    ).GetUserByAuth0Id({
-      auth0Id: auth0User.sub,
-    });
-
-    existingUser = foundUsers[0] ?? null;
-  } catch (error) {
-    logger.error("Error while looking up user on create team:", {
-      error,
-      graphqlResponse: (error as { response?: unknown })?.response,
-    });
-
-    return errorResponse({
-      statusCode: 500,
-      code: "server_error",
-      detail: "Failed to create team",
-      req,
-    });
-  }
-
-  const effectiveHasUser = hasUser || Boolean(existingUser);
-
-  // ANCHOR: Sending acceptance
-  let ironCladUserId: string | null = null;
-
-  if (!effectiveHasUser) {
-    const ironcladActivityApi = new IroncladActivityApi();
-    ironCladUserId = crypto.randomUUID();
-
+  if (!userId) {
     try {
-      const appUrl = await getAppUrlFromRequest(req);
-      const url = new URL(urls.signUp(), appUrl);
-      const headersList = await nextHeaders();
-      let headers: Record<string, string> = {};
-
-      headersList.forEach((v, k) => {
-        headers[k] = v;
+      const { user } = await getGetUserByAuth0IdSdk(client).GetUserByAuth0Id({
+        auth0Id: auth0User.sub,
       });
-
-      const { os } = parse(headersList.get("user-agent") ?? "");
-
-      await ironcladActivityApi.sendAcceptance(ironCladUserId, {
-        addr:
-          headersList.get("x-forwarded-for") ??
-          headersList.get("x-real-ip") ??
-          "",
-        pau: `${url.origin}/create-team`,
-        pad: url.host,
-        pap: url.pathname,
-        hn: url.hostname,
-        bl: headersList.get("accept-language") ?? "",
-        os,
-      });
+      userId = user[0]?.id;
     } catch (error) {
-      logger.error("Failed to send acceptance", { error });
-
-      return errorResponse({
-        statusCode: 500,
-        code: "server_error",
-        detail: "Failed to send acceptance",
-        attribute: null,
-        req,
-      });
-    }
-  }
-
-  // ANCHOR: Insert team
-  let insertedTeam: InsertTeamMutation["insert_team_one"] | null = null;
-
-  try {
-    const { insert_team_one } = await getInsertTeamSdk(client).InsertTeam({
-      team_name,
-    });
-
-    insertedTeam = insert_team_one;
-  } catch (error) {
-    logger.error("Error while inserting team on create team:", {
-      error,
-      graphqlResponse: (error as { response?: unknown })?.response,
-    });
-
-    return errorResponse({
-      statusCode: 500,
-      code: "server_error",
-      detail: "Failed to create team",
-      req,
-    });
-  }
-
-  // ANCHOR: Insert user
-  let nullifier_hash: string | undefined = undefined;
-
-  if (!isEmailUser(auth0User)) {
-    const nullifier = auth0User.sub.split("|")[2];
-    nullifier_hash = nullifier;
-  }
-
-  let insertedUser: InsertUserMutation["insert_user_one"] | null = null;
-
-  if (!effectiveHasUser) {
-    try {
-      const { insert_user_one } = await getInsertUserSdk(client).InsertUser({
-        user_data: {
-          ironclad_id: ironCladUserId,
-          auth0Id: auth0User.sub,
-          name: auth0User.name ?? "",
-
-          ...(nullifier_hash ? { world_id_nullifier: nullifier_hash } : {}),
-
-          ...(auth0User.email_verified && auth0User.email
-            ? { email: auth0User.email }
-            : {}),
-
-          team_id: insertedTeam?.id,
-        },
-      });
-
-      insertedUser = insert_user_one;
-
-      await captureEvent({
-        event: "signup_success",
-        distinctId: insert_user_one?.posthog_id ?? "",
-        properties: {
-          team_id: insertedTeam?.id,
-        },
-      });
-    } catch (error) {
-      logger.error("Error while inserting user on create team:", {
+      logger.error("Error while looking up user on create team:", {
         error,
         graphqlResponse: (error as { response?: unknown })?.response,
       });
-
-      return errorResponse({
-        statusCode: 500,
-        code: "server_error",
-        detail: "Failed to create team",
-        req,
-      });
     }
   }
 
-  // ANCHOR: Insert membership
-  let insertedMembership:
-    | InsertMembershipMutation["insert_membership_one"]
-    | null = null;
+  if (!userId) {
+    return errorResponse({
+      statusCode: 403,
+      code: "permission_denied",
+      detail: "Failed to create team",
+      req,
+    });
+  }
+
+  let membership: Membership;
 
   try {
-    const user_id = effectiveHasUser
-      ? hasuraUserId ?? existingUser?.id
-      : insertedUser?.id;
-
-    if (!insertedTeam?.id) {
-      throw new Error("Team id is null");
-    }
-
-    if (!user_id) {
-      throw new Error("User id is null");
-    }
-
-    const { insert_membership_one } = await getInsertMembershipSdk(
-      client,
-    ).InsertMembership({
-      team_id: insertedTeam?.id,
-      user_id,
-      role: Role_Enum.Owner,
-    });
-
-    insertedMembership = insert_membership_one;
+    const teamId = await insertTeam(client, parsedParams.team_name);
+    membership = await insertOwnerMembership(client, teamId, userId);
   } catch (error) {
-    logger.error("Error while inserting membership on create team:", {
+    logger.error("Error while creating team:", {
       error,
       graphqlResponse: (error as { response?: unknown })?.response,
     });
@@ -282,32 +226,16 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  // NOTE: we will insert membership in any case, if there is no membership, definitely there is some issue
-  if (!insertedMembership) {
-    return errorResponse({
-      statusCode: 500,
-      code: "server_error",
-      detail: "Failed to create team",
-      req,
-    });
-  }
-
-  const user = insertedMembership.user;
-
-  const returnTo = urls[effectiveHasUser ? "teams" : "app"]({
-    team_id: insertedMembership.team_id,
+  const res = NextResponse.json({
+    returnTo: urls.teams({ team_id: membership.team_id }),
   });
 
-  const res = NextResponse.json({ returnTo });
-
-  // Body-free request for the SDK (see toSessionRequest): the body was read above,
-  // and on Next 16 the SDK re-wraps + copies the request body, which would throw.
   await auth0.updateSession(toSessionRequest(req), res, {
     ...session,
     user: {
       ...session.user,
       hasura: {
-        ...user,
+        ...membership.user,
       },
     },
   });
