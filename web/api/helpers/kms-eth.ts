@@ -68,6 +68,17 @@ export interface CreateManagerKeyResult {
   createdAt: Date;
 }
 
+/**
+ * Manager key resolved for a managed RP registration.
+ * `dedicated` is true when the key was created for this RP and may be deleted
+ * on failure / mode switch; false for the shared manager key.
+ */
+export interface ResolvedManagerKey {
+  keyId: string;
+  address: string;
+  dedicated: boolean;
+}
+
 // ============================================================================
 // DER Signature Parsing
 // ============================================================================
@@ -299,6 +310,38 @@ export async function createManagerKey(
     logger.error("Error creating manager key", { error, rpId });
     return undefined;
   }
+}
+
+/**
+ * Resolves the manager key for a managed RP registration.
+ * Uses the shared key from RP_REGISTRY_MANAGER_KMS_KEY_ID when set;
+ * otherwise creates a dedicated per-RP key.
+ */
+export async function resolveManagerKey(
+  client: KMSClient,
+  rpId: string,
+): Promise<ResolvedManagerKey | undefined> {
+  const sharedKeyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID?.trim();
+
+  if (sharedKeyId) {
+    try {
+      const address = await getEthAddressFromKMS(client, sharedKeyId);
+      return { keyId: sharedKeyId, address, dedicated: false };
+    } catch (error) {
+      logger.error("Failed to derive address for shared manager key", {
+        error,
+        rpId,
+      });
+      return undefined;
+    }
+  }
+
+  const created = await createManagerKey(client, rpId);
+  if (!created) {
+    return undefined;
+  }
+
+  return { keyId: created.keyId, address: created.address, dedicated: true };
 }
 
 /**

@@ -7,6 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type UpdateRpRegistrationMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
   manager_kms_key_id: Types.Scalars["String"]["input"];
+  manager_key_dedicated: Types.Scalars["Boolean"]["input"];
   operation_hash: Types.Scalars["String"]["input"];
   staging_operation_hash?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   staging_status?: Types.InputMaybe<
@@ -22,6 +23,7 @@ export type UpdateRpRegistrationMutation = {
     app_id: string;
     status: unknown;
     manager_kms_key_id?: string | null;
+    manager_key_dedicated: boolean;
     operation_hash?: string | null;
     staging_status?: unknown | null;
     staging_operation_hash?: string | null;
@@ -32,6 +34,7 @@ export const UpdateRpRegistrationDocument = gql`
   mutation UpdateRpRegistration(
     $rp_id: String!
     $manager_kms_key_id: String!
+    $manager_key_dedicated: Boolean!
     $operation_hash: String!
     $staging_operation_hash: String
     $staging_status: rp_registration_status
@@ -40,6 +43,7 @@ export const UpdateRpRegistrationDocument = gql`
       pk_columns: { rp_id: $rp_id }
       _set: {
         manager_kms_key_id: $manager_kms_key_id
+        manager_key_dedicated: $manager_key_dedicated
         operation_hash: $operation_hash
         staging_operation_hash: $staging_operation_hash
         staging_status: $staging_status
@@ -49,6 +53,7 @@ export const UpdateRpRegistrationDocument = gql`
       app_id
       status
       manager_kms_key_id
+      manager_key_dedicated
       operation_hash
       staging_status
       staging_operation_hash

@@ -6,6 +6,7 @@ query GetRpRegistration($app_id: String!) {
     status
     signer_address
     manager_kms_key_id
+    manager_key_dedicated
     operation_hash
     app {
       team_id

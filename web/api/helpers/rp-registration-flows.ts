@@ -10,7 +10,7 @@
 // error envelope without parsing exception messages.
 
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
-import { createManagerKey } from "@/api/helpers/kms-eth";
+import { resolveManagerKey } from "@/api/helpers/kms-eth";
 import {
   submitRegisterRpTransaction,
   submitRotateSignerTransaction,
@@ -28,6 +28,7 @@ import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
 import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
 import { getSdk as getDeleteRpSdk } from "@/api/hasura/register-rp/graphql/delete-rp-registration.generated";
 import { getSdk as getUpdateRpSdk } from "@/api/hasura/register-rp/graphql/update-rp-registration.generated";
+import { getSdk as getVerifySchemaSdk } from "@/api/hasura/register-rp/graphql/verify-manager-key-schema.generated";
 import { getSdk as getClaimRotationSdk } from "@/api/hasura/rotate-signer-key/graphql/claim-rotation-slot.generated";
 import { getSdk as getRpRegistrationSdk } from "@/api/hasura/rotate-signer-key/graphql/get-rp-registration.generated";
 import { getSdk as getRevertStatusSdk } from "@/api/hasura/rotate-signer-key/graphql/revert-rotation-status.generated";
@@ -126,6 +127,27 @@ export async function submitManagedRpRegistration({
 
   // Slot is now claimed; any failure between here and the final DB write
   // must release it so retries don't bounce off `already_registered`.
+
+  // manager_key_dedicated is written together with the manager key at the end
+  // of this flow. If the migration adding it has not been applied yet, fail
+  // here rather than after the on-chain transaction has been submitted.
+  try {
+    await getVerifySchemaSdk(client).VerifyManagerKeySchema({
+      rp_id: rpIdString,
+    });
+  } catch (error) {
+    logger.error("rp_registration schema is missing manager_key_dedicated", {
+      error,
+      app_id: appId,
+    });
+    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    return {
+      ok: false,
+      code: "db_error",
+      detail: "Registration schema is not ready.",
+    };
+  }
+
   let kmsClient;
   try {
     kmsClient = await getKMSClient(primaryConfig.kmsRegion);
@@ -142,17 +164,21 @@ export async function submitManagedRpRegistration({
     };
   }
 
-  const managerKeyResult = await createManagerKey(kmsClient, rpIdString);
+  const managerKeyResult = await resolveManagerKey(kmsClient, rpIdString);
   if (!managerKeyResult) {
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
     return {
       ok: false,
       code: "kms_error",
-      detail: "Failed to create manager key.",
+      detail: "Failed to resolve manager key.",
     };
   }
 
-  const { keyId: managerKmsKeyId, address: managerAddress } = managerKeyResult;
+  const {
+    keyId: managerKmsKeyId,
+    address: managerAddress,
+    dedicated: managerKeyDedicated,
+  } = managerKeyResult;
 
   let operationHash: string;
   try {
@@ -168,7 +194,9 @@ export async function submitManagedRpRegistration({
       error,
       app_id: appId,
     });
-    await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    if (managerKeyDedicated) {
+      await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    }
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
     return {
       ok: false,
@@ -220,6 +248,7 @@ export async function submitManagedRpRegistration({
     ).UpdateRpRegistration({
       rp_id: rpIdString,
       manager_kms_key_id: managerKmsKeyId,
+      manager_key_dedicated: managerKeyDedicated,
       operation_hash: operationHash,
       staging_operation_hash: stagingOperationHash,
       staging_status: stagingStatus,
