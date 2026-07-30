@@ -56,7 +56,9 @@ const expectGraphqlDenied = async (
   const messages = error?.errors?.map(
     (item: { message?: string }) => item.message,
   ) ?? [error?.message];
-  expect(messages.join(" ")).toContain(`field '${field}' not found`);
+  expect(messages.join(" ")).toMatch(
+    new RegExp(`field '${field}' not found|no mutations exist`),
+  );
 };
 
 const selectSessionEvents = gql`
@@ -83,8 +85,8 @@ const insertSessionEvent = gql`
   mutation InsertSessionVerificationEvent(
     $object: session_verification_v4_insert_input!
   ) {
-    insert_session_verification_v4_one(object: $object) {
-      id
+    insert_session_verification_v4(objects: [$object]) {
+      affected_rows
     }
   }
 `;
@@ -434,14 +436,14 @@ describe("v4 session analytics [retention]", () => {
         boundary.session_id,
         1,
         processed.timestamp_value - interval '25 hours'
-          + boundary.offset
+          + boundary.delta
       FROM public.v4_analytics_state processed
       CROSS JOIN (
         VALUES
           ('below-threshold', interval '-1 second'),
           ('at-threshold', interval '0 seconds'),
           ('above-threshold', interval '1 second')
-      ) AS boundary(session_id, offset)
+      ) AS boundary(session_id, delta)
       WHERE processed.key = 'processed_through';
     `);
 
@@ -564,7 +566,9 @@ describe("v4 session analytics [permissions]", () => {
       mutation: pruneSessionEvents,
     });
 
-    expect(inserted.data?.insert_session_verification_v4_one?.id).toBeDefined();
+    expect(inserted.data?.insert_session_verification_v4?.affected_rows).toBe(
+      1,
+    );
     expect(selected.data?.session_v4_stats_daily).toEqual([]);
     expect(pruned.data?.prune_session_verifications).toEqual([]);
   });
@@ -613,7 +617,7 @@ describe("v4 session analytics [permissions]", () => {
         mutation: insertSessionEvent,
         variables: eventVariables,
       }),
-      "insert_session_verification_v4_one",
+      "insert_session_verification_v4",
     );
     await expectGraphqlDenied(
       publicClient.mutate({ mutation: pruneSessionEvents }),

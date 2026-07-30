@@ -67,7 +67,21 @@
   headers:
     - name: Authorization
       value_from_env: INTERNAL_ENDPOINTS_SECRET
-  comment: Rebuild v4 unique-verification analytics through the five-minute cutoff
+  comment: Rebuild v4 unique and session analytics through the five-minute cutoff
+- name: Prune v4 session verifications
+  webhook: '{{NEXT_API_URL}}/_prune-session-verifications'
+  schedule: '0 2 * * *'
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 1
+    retry_interval_seconds: 10
+    timeout_seconds: 60
+    tolerance_seconds: 21600
+  headers:
+    - name: Authorization
+      value_from_env: INTERNAL_ENDPOINTS_SECRET
+  comment: Prune rolled-up v4 session events after the guarded retention window
 - name: Deactivate RPs for deleted apps
   webhook: '{{NEXT_API_URL}}/_deactivate-deleted-app-rps'
   schedule: '*/15 * * * *'

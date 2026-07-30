@@ -26,6 +26,8 @@
 - "!include public_role.yaml"
 - "!include public_rp_registration.yaml"
 - "!include public_sandbox_access_request.yaml"
+- "!include public_session_v4_stats_daily.yaml"
+- "!include public_session_verification_v4.yaml"
 - "!include public_team.yaml"
 - "!include public_user.yaml"
 - "!include public_v4_analytics_state.yaml"

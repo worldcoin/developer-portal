@@ -1,0 +1,13 @@
+table:
+  name: session_v4_stats_daily
+  schema: public
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - date_utc
+        - environment
+        - rp_id
+        - sessions
+        - successful_results
+      filter: {}

@@ -1,0 +1,7 @@
+mutation InsertSessionVerificationV4(
+  $object: session_verification_v4_insert_input!
+) {
+  insert_session_verification_v4(objects: [$object]) {
+    affected_rows
+  }
+}

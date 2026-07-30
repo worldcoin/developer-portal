@@ -1,0 +1,12 @@
+table:
+  name: session_verification_v4
+  schema: public
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - environment
+        - rp_id
+        - session_id
+        - successful_results

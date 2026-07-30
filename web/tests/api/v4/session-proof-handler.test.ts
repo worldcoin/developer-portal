@@ -86,7 +86,7 @@ beforeEach(() => {
     request: (...args: unknown[]) => mockGraphqlRequest(...args),
   });
   mockGraphqlRequest.mockResolvedValue({
-    insert_session_verification_v4_one: { id: "1" },
+    insert_session_verification_v4: { affected_rows: 1 },
   });
 });
 
@@ -107,7 +107,7 @@ describe("v4 session proof analytics [collection eligibility]", () => {
     expect(mockGraphqlRequest).toHaveBeenCalledTimes(1);
     const insertOperation = print(mockGraphqlRequest.mock.calls[0][0]);
     expect(insertOperation).toContain("mutation InsertSessionVerificationV4");
-    expect(insertOperation).toContain("insert_session_verification_v4_one");
+    expect(insertOperation).toContain("insert_session_verification_v4");
     expect(mockGraphqlRequest.mock.calls[0][1]).toEqual({
       object: {
         rp_id: rpId,

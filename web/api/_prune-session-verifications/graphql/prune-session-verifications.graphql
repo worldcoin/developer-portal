@@ -1,0 +1,6 @@
+mutation PruneSessionVerifications {
+  prune_session_verifications {
+    key
+    timestamp_value
+  }
+}

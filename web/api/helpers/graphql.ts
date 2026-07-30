@@ -35,6 +35,12 @@ export const internalDashboardGraphqlFetchPolicy: GraphqlFetchPolicy = {
   timeoutMs: REQUEST_TIMEOUT_MS,
 };
 
+export const sessionAnalyticsGraphqlFetchPolicy: GraphqlFetchPolicy = {
+  clientName: "session_analytics",
+  retryBackoffsMs: [],
+  timeoutMs: 2_000,
+};
+
 const getOperationName = (body: BodyInit | null | undefined) => {
   if (typeof body !== "string" || body.length === 0) {
     return undefined;
@@ -366,6 +372,12 @@ const internalDashboardFetchConfig = {
     internalDashboardGraphqlFetchPolicy,
   ),
 } as const;
+const sessionAnalyticsFetchConfig = {
+  fetch: makeGraphqlFetchWithRetry(
+    baseFetch,
+    sessionAnalyticsGraphqlFetchPolicy,
+  ),
+} as const;
 
 /**
  * Used for generated requests
@@ -375,6 +387,15 @@ const internalDashboardFetchConfig = {
 export const getAPIServiceGraphqlClient = async () => {
   return new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
     ...sharedFetchConfig,
+    headers: {
+      authorization: `Bearer ${await generateServiceJWT()}`,
+    },
+  });
+};
+
+export const getSessionAnalyticsGraphqlClient = async () => {
+  return new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
+    ...sessionAnalyticsFetchConfig,
     headers: {
       authorization: `Bearer ${await generateServiceJWT()}`,
     },

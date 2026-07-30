@@ -6948,6 +6948,14 @@ export type Mutation_Root = {
   delete_sandbox_access_request?: Maybe<Sandbox_Access_Request_Mutation_Response>;
   /** delete single row from the table: "sandbox_access_request" */
   delete_sandbox_access_request_by_pk?: Maybe<Sandbox_Access_Request>;
+  /** delete data from the table: "session_v4_stats_daily" */
+  delete_session_v4_stats_daily?: Maybe<Session_V4_Stats_Daily_Mutation_Response>;
+  /** delete single row from the table: "session_v4_stats_daily" */
+  delete_session_v4_stats_daily_by_pk?: Maybe<Session_V4_Stats_Daily>;
+  /** delete data from the table: "session_verification_v4" */
+  delete_session_verification_v4?: Maybe<Session_Verification_V4_Mutation_Response>;
+  /** delete single row from the table: "session_verification_v4" */
+  delete_session_verification_v4_by_pk?: Maybe<Session_Verification_V4>;
   /** delete data from the table: "team" */
   delete_team?: Maybe<Team_Mutation_Response>;
   /** delete single row from the table: "team" */
@@ -7073,6 +7081,14 @@ export type Mutation_Root = {
   insert_sandbox_access_request?: Maybe<Sandbox_Access_Request_Mutation_Response>;
   /** insert a single row into the table: "sandbox_access_request" */
   insert_sandbox_access_request_one?: Maybe<Sandbox_Access_Request>;
+  /** insert data into the table: "session_v4_stats_daily" */
+  insert_session_v4_stats_daily?: Maybe<Session_V4_Stats_Daily_Mutation_Response>;
+  /** insert a single row into the table: "session_v4_stats_daily" */
+  insert_session_v4_stats_daily_one?: Maybe<Session_V4_Stats_Daily>;
+  /** insert data into the table: "session_verification_v4" */
+  insert_session_verification_v4?: Maybe<Session_Verification_V4_Mutation_Response>;
+  /** insert a single row into the table: "session_verification_v4" */
+  insert_session_verification_v4_one?: Maybe<Session_Verification_V4>;
   /** insert data into the table: "team" */
   insert_team?: Maybe<Team_Mutation_Response>;
   /** insert a single row into the table: "team" */
@@ -7090,6 +7106,8 @@ export type Mutation_Root = {
   invite_team_members?: Maybe<InviteTeamMembersOutput>;
   /** execute VOLATILE function "merge_world_id_accounts" which returns "user" */
   merge_world_id_accounts: Array<User>;
+  /** execute VOLATILE function "prune_session_verifications" which returns "v4_analytics_state" */
+  prune_session_verifications: Array<V4_Analytics_State>;
   /** Register an RP (Relying Party) for an app with managed mode */
   register_rp?: Maybe<RegisterRpOutput>;
   /** Reset the given API key for the developer portal */
@@ -7303,6 +7321,22 @@ export type Mutation_Root = {
   /** update multiples rows of table: "sandbox_access_request" */
   update_sandbox_access_request_many?: Maybe<
     Array<Maybe<Sandbox_Access_Request_Mutation_Response>>
+  >;
+  /** update data of the table: "session_v4_stats_daily" */
+  update_session_v4_stats_daily?: Maybe<Session_V4_Stats_Daily_Mutation_Response>;
+  /** update single row of the table: "session_v4_stats_daily" */
+  update_session_v4_stats_daily_by_pk?: Maybe<Session_V4_Stats_Daily>;
+  /** update multiples rows of table: "session_v4_stats_daily" */
+  update_session_v4_stats_daily_many?: Maybe<
+    Array<Maybe<Session_V4_Stats_Daily_Mutation_Response>>
+  >;
+  /** update data of the table: "session_verification_v4" */
+  update_session_verification_v4?: Maybe<Session_Verification_V4_Mutation_Response>;
+  /** update single row of the table: "session_verification_v4" */
+  update_session_verification_v4_by_pk?: Maybe<Session_Verification_V4>;
+  /** update multiples rows of table: "session_verification_v4" */
+  update_session_verification_v4_many?: Maybe<
+    Array<Maybe<Session_Verification_V4_Mutation_Response>>
   >;
   /** update data of the table: "team" */
   update_team?: Maybe<Team_Mutation_Response>;
@@ -7642,6 +7676,28 @@ export type Mutation_RootDelete_Sandbox_Access_RequestArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Sandbox_Access_Request_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Session_V4_Stats_DailyArgs = {
+  where: Session_V4_Stats_Daily_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Session_V4_Stats_Daily_By_PkArgs = {
+  date_utc: Scalars["date"]["input"];
+  environment: Scalars["action_environment"]["input"];
+  rp_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Session_Verification_V4Args = {
+  where: Session_Verification_V4_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Session_Verification_V4_By_PkArgs = {
+  id: Scalars["bigint"]["input"];
 };
 
 /** mutation root */
@@ -8016,6 +8072,30 @@ export type Mutation_RootInsert_Sandbox_Access_Request_OneArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootInsert_Session_V4_Stats_DailyArgs = {
+  objects: Array<Session_V4_Stats_Daily_Insert_Input>;
+  on_conflict?: InputMaybe<Session_V4_Stats_Daily_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Session_V4_Stats_Daily_OneArgs = {
+  object: Session_V4_Stats_Daily_Insert_Input;
+  on_conflict?: InputMaybe<Session_V4_Stats_Daily_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Session_Verification_V4Args = {
+  objects: Array<Session_Verification_V4_Insert_Input>;
+  on_conflict?: InputMaybe<Session_Verification_V4_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Session_Verification_V4_OneArgs = {
+  object: Session_Verification_V4_Insert_Input;
+  on_conflict?: InputMaybe<Session_Verification_V4_On_Conflict>;
+};
+
+/** mutation root */
 export type Mutation_RootInsert_TeamArgs = {
   objects: Array<Team_Insert_Input>;
   on_conflict?: InputMaybe<Team_On_Conflict>;
@@ -8065,6 +8145,15 @@ export type Mutation_RootMerge_World_Id_AccountsArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<User_Order_By>>;
   where?: InputMaybe<User_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootPrune_Session_VerificationsArgs = {
+  distinct_on?: InputMaybe<Array<V4_Analytics_State_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<V4_Analytics_State_Order_By>>;
+  where?: InputMaybe<V4_Analytics_State_Bool_Exp>;
 };
 
 /** mutation root */
@@ -8647,6 +8736,44 @@ export type Mutation_RootUpdate_Sandbox_Access_Request_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Sandbox_Access_Request_ManyArgs = {
   updates: Array<Sandbox_Access_Request_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Session_V4_Stats_DailyArgs = {
+  _inc?: InputMaybe<Session_V4_Stats_Daily_Inc_Input>;
+  _set?: InputMaybe<Session_V4_Stats_Daily_Set_Input>;
+  where: Session_V4_Stats_Daily_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Session_V4_Stats_Daily_By_PkArgs = {
+  _inc?: InputMaybe<Session_V4_Stats_Daily_Inc_Input>;
+  _set?: InputMaybe<Session_V4_Stats_Daily_Set_Input>;
+  pk_columns: Session_V4_Stats_Daily_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Session_V4_Stats_Daily_ManyArgs = {
+  updates: Array<Session_V4_Stats_Daily_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Session_Verification_V4Args = {
+  _inc?: InputMaybe<Session_Verification_V4_Inc_Input>;
+  _set?: InputMaybe<Session_Verification_V4_Set_Input>;
+  where: Session_Verification_V4_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Session_Verification_V4_By_PkArgs = {
+  _inc?: InputMaybe<Session_Verification_V4_Inc_Input>;
+  _set?: InputMaybe<Session_Verification_V4_Set_Input>;
+  pk_columns: Session_Verification_V4_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Session_Verification_V4_ManyArgs = {
+  updates: Array<Session_Verification_V4_Updates>;
 };
 
 /** mutation root */
@@ -10171,6 +10298,18 @@ export type Query_Root = {
   sandbox_access_request_aggregate: Sandbox_Access_Request_Aggregate;
   /** fetch data from the table: "sandbox_access_request" using primary key columns */
   sandbox_access_request_by_pk?: Maybe<Sandbox_Access_Request>;
+  /** fetch data from the table: "session_v4_stats_daily" */
+  session_v4_stats_daily: Array<Session_V4_Stats_Daily>;
+  /** fetch aggregated fields from the table: "session_v4_stats_daily" */
+  session_v4_stats_daily_aggregate: Session_V4_Stats_Daily_Aggregate;
+  /** fetch data from the table: "session_v4_stats_daily" using primary key columns */
+  session_v4_stats_daily_by_pk?: Maybe<Session_V4_Stats_Daily>;
+  /** fetch data from the table: "session_verification_v4" */
+  session_verification_v4: Array<Session_Verification_V4>;
+  /** fetch aggregated fields from the table: "session_verification_v4" */
+  session_verification_v4_aggregate: Session_Verification_V4_Aggregate;
+  /** fetch data from the table: "session_verification_v4" using primary key columns */
+  session_verification_v4_by_pk?: Maybe<Session_Verification_V4>;
   /** fetch data from the table: "team" */
   team: Array<Team>;
   /** fetch aggregated fields from the table: "team" */
@@ -10821,6 +10960,48 @@ export type Query_RootSandbox_Access_Request_AggregateArgs = {
 
 export type Query_RootSandbox_Access_Request_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootSession_V4_Stats_DailyArgs = {
+  distinct_on?: InputMaybe<Array<Session_V4_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Session_V4_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Session_V4_Stats_Daily_Bool_Exp>;
+};
+
+export type Query_RootSession_V4_Stats_Daily_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Session_V4_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Session_V4_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Session_V4_Stats_Daily_Bool_Exp>;
+};
+
+export type Query_RootSession_V4_Stats_Daily_By_PkArgs = {
+  date_utc: Scalars["date"]["input"];
+  environment: Scalars["action_environment"]["input"];
+  rp_id: Scalars["String"]["input"];
+};
+
+export type Query_RootSession_Verification_V4Args = {
+  distinct_on?: InputMaybe<Array<Session_Verification_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Session_Verification_V4_Order_By>>;
+  where?: InputMaybe<Session_Verification_V4_Bool_Exp>;
+};
+
+export type Query_RootSession_Verification_V4_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Session_Verification_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Session_Verification_V4_Order_By>>;
+  where?: InputMaybe<Session_Verification_V4_Bool_Exp>;
+};
+
+export type Query_RootSession_Verification_V4_By_PkArgs = {
+  id: Scalars["bigint"]["input"];
 };
 
 export type Query_RootTeamArgs = {
@@ -11896,6 +12077,497 @@ export type Sandbox_Access_Request_Updates = {
   where: Sandbox_Access_Request_Bool_Exp;
 };
 
+/** columns and relationships of "session_v4_stats_daily" */
+export type Session_V4_Stats_Daily = {
+  __typename?: "session_v4_stats_daily";
+  date_utc: Scalars["date"]["output"];
+  environment: Scalars["action_environment"]["output"];
+  rp_id: Scalars["String"]["output"];
+  sessions: Scalars["bigint"]["output"];
+  successful_results: Scalars["bigint"]["output"];
+};
+
+/** aggregated selection of "session_v4_stats_daily" */
+export type Session_V4_Stats_Daily_Aggregate = {
+  __typename?: "session_v4_stats_daily_aggregate";
+  aggregate?: Maybe<Session_V4_Stats_Daily_Aggregate_Fields>;
+  nodes: Array<Session_V4_Stats_Daily>;
+};
+
+/** aggregate fields of "session_v4_stats_daily" */
+export type Session_V4_Stats_Daily_Aggregate_Fields = {
+  __typename?: "session_v4_stats_daily_aggregate_fields";
+  avg?: Maybe<Session_V4_Stats_Daily_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Session_V4_Stats_Daily_Max_Fields>;
+  min?: Maybe<Session_V4_Stats_Daily_Min_Fields>;
+  stddev?: Maybe<Session_V4_Stats_Daily_Stddev_Fields>;
+  stddev_pop?: Maybe<Session_V4_Stats_Daily_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Session_V4_Stats_Daily_Stddev_Samp_Fields>;
+  sum?: Maybe<Session_V4_Stats_Daily_Sum_Fields>;
+  var_pop?: Maybe<Session_V4_Stats_Daily_Var_Pop_Fields>;
+  var_samp?: Maybe<Session_V4_Stats_Daily_Var_Samp_Fields>;
+  variance?: Maybe<Session_V4_Stats_Daily_Variance_Fields>;
+};
+
+/** aggregate fields of "session_v4_stats_daily" */
+export type Session_V4_Stats_Daily_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Session_V4_Stats_Daily_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type Session_V4_Stats_Daily_Avg_Fields = {
+  __typename?: "session_v4_stats_daily_avg_fields";
+  sessions?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "session_v4_stats_daily". All fields are combined with a logical 'AND'. */
+export type Session_V4_Stats_Daily_Bool_Exp = {
+  _and?: InputMaybe<Array<Session_V4_Stats_Daily_Bool_Exp>>;
+  _not?: InputMaybe<Session_V4_Stats_Daily_Bool_Exp>;
+  _or?: InputMaybe<Array<Session_V4_Stats_Daily_Bool_Exp>>;
+  date_utc?: InputMaybe<Date_Comparison_Exp>;
+  environment?: InputMaybe<Action_Environment_Comparison_Exp>;
+  rp_id?: InputMaybe<String_Comparison_Exp>;
+  sessions?: InputMaybe<Bigint_Comparison_Exp>;
+  successful_results?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "session_v4_stats_daily" */
+export enum Session_V4_Stats_Daily_Constraint {
+  /** unique or primary key constraint on columns "environment", "date_utc", "rp_id" */
+  SessionV4StatsDailyPkey = "session_v4_stats_daily_pkey",
+}
+
+/** input type for incrementing numeric columns in table "session_v4_stats_daily" */
+export type Session_V4_Stats_Daily_Inc_Input = {
+  sessions?: InputMaybe<Scalars["bigint"]["input"]>;
+  successful_results?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** input type for inserting data into table "session_v4_stats_daily" */
+export type Session_V4_Stats_Daily_Insert_Input = {
+  date_utc?: InputMaybe<Scalars["date"]["input"]>;
+  environment?: InputMaybe<Scalars["action_environment"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  sessions?: InputMaybe<Scalars["bigint"]["input"]>;
+  successful_results?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Session_V4_Stats_Daily_Max_Fields = {
+  __typename?: "session_v4_stats_daily_max_fields";
+  date_utc?: Maybe<Scalars["date"]["output"]>;
+  environment?: Maybe<Scalars["action_environment"]["output"]>;
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  sessions?: Maybe<Scalars["bigint"]["output"]>;
+  successful_results?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Session_V4_Stats_Daily_Min_Fields = {
+  __typename?: "session_v4_stats_daily_min_fields";
+  date_utc?: Maybe<Scalars["date"]["output"]>;
+  environment?: Maybe<Scalars["action_environment"]["output"]>;
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  sessions?: Maybe<Scalars["bigint"]["output"]>;
+  successful_results?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** response of any mutation on the table "session_v4_stats_daily" */
+export type Session_V4_Stats_Daily_Mutation_Response = {
+  __typename?: "session_v4_stats_daily_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Session_V4_Stats_Daily>;
+};
+
+/** on_conflict condition type for table "session_v4_stats_daily" */
+export type Session_V4_Stats_Daily_On_Conflict = {
+  constraint: Session_V4_Stats_Daily_Constraint;
+  update_columns?: Array<Session_V4_Stats_Daily_Update_Column>;
+  where?: InputMaybe<Session_V4_Stats_Daily_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "session_v4_stats_daily". */
+export type Session_V4_Stats_Daily_Order_By = {
+  date_utc?: InputMaybe<Order_By>;
+  environment?: InputMaybe<Order_By>;
+  rp_id?: InputMaybe<Order_By>;
+  sessions?: InputMaybe<Order_By>;
+  successful_results?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: session_v4_stats_daily */
+export type Session_V4_Stats_Daily_Pk_Columns_Input = {
+  date_utc: Scalars["date"]["input"];
+  environment: Scalars["action_environment"]["input"];
+  rp_id: Scalars["String"]["input"];
+};
+
+/** select columns of table "session_v4_stats_daily" */
+export enum Session_V4_Stats_Daily_Select_Column {
+  /** column name */
+  DateUtc = "date_utc",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  Sessions = "sessions",
+  /** column name */
+  SuccessfulResults = "successful_results",
+}
+
+/** input type for updating data in table "session_v4_stats_daily" */
+export type Session_V4_Stats_Daily_Set_Input = {
+  date_utc?: InputMaybe<Scalars["date"]["input"]>;
+  environment?: InputMaybe<Scalars["action_environment"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  sessions?: InputMaybe<Scalars["bigint"]["input"]>;
+  successful_results?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Session_V4_Stats_Daily_Stddev_Fields = {
+  __typename?: "session_v4_stats_daily_stddev_fields";
+  sessions?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Session_V4_Stats_Daily_Stddev_Pop_Fields = {
+  __typename?: "session_v4_stats_daily_stddev_pop_fields";
+  sessions?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Session_V4_Stats_Daily_Stddev_Samp_Fields = {
+  __typename?: "session_v4_stats_daily_stddev_samp_fields";
+  sessions?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "session_v4_stats_daily" */
+export type Session_V4_Stats_Daily_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Session_V4_Stats_Daily_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Session_V4_Stats_Daily_Stream_Cursor_Value_Input = {
+  date_utc?: InputMaybe<Scalars["date"]["input"]>;
+  environment?: InputMaybe<Scalars["action_environment"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  sessions?: InputMaybe<Scalars["bigint"]["input"]>;
+  successful_results?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Session_V4_Stats_Daily_Sum_Fields = {
+  __typename?: "session_v4_stats_daily_sum_fields";
+  sessions?: Maybe<Scalars["bigint"]["output"]>;
+  successful_results?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** update columns of table "session_v4_stats_daily" */
+export enum Session_V4_Stats_Daily_Update_Column {
+  /** column name */
+  DateUtc = "date_utc",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  Sessions = "sessions",
+  /** column name */
+  SuccessfulResults = "successful_results",
+}
+
+export type Session_V4_Stats_Daily_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Session_V4_Stats_Daily_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Session_V4_Stats_Daily_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Session_V4_Stats_Daily_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Session_V4_Stats_Daily_Var_Pop_Fields = {
+  __typename?: "session_v4_stats_daily_var_pop_fields";
+  sessions?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Session_V4_Stats_Daily_Var_Samp_Fields = {
+  __typename?: "session_v4_stats_daily_var_samp_fields";
+  sessions?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Session_V4_Stats_Daily_Variance_Fields = {
+  __typename?: "session_v4_stats_daily_variance_fields";
+  sessions?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** columns and relationships of "session_verification_v4" */
+export type Session_Verification_V4 = {
+  __typename?: "session_verification_v4";
+  created_at: Scalars["timestamptz"]["output"];
+  environment: Scalars["action_environment"]["output"];
+  id: Scalars["bigint"]["output"];
+  rp_id: Scalars["String"]["output"];
+  session_id: Scalars["String"]["output"];
+  successful_results: Scalars["Int"]["output"];
+};
+
+/** aggregated selection of "session_verification_v4" */
+export type Session_Verification_V4_Aggregate = {
+  __typename?: "session_verification_v4_aggregate";
+  aggregate?: Maybe<Session_Verification_V4_Aggregate_Fields>;
+  nodes: Array<Session_Verification_V4>;
+};
+
+/** aggregate fields of "session_verification_v4" */
+export type Session_Verification_V4_Aggregate_Fields = {
+  __typename?: "session_verification_v4_aggregate_fields";
+  avg?: Maybe<Session_Verification_V4_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Session_Verification_V4_Max_Fields>;
+  min?: Maybe<Session_Verification_V4_Min_Fields>;
+  stddev?: Maybe<Session_Verification_V4_Stddev_Fields>;
+  stddev_pop?: Maybe<Session_Verification_V4_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Session_Verification_V4_Stddev_Samp_Fields>;
+  sum?: Maybe<Session_Verification_V4_Sum_Fields>;
+  var_pop?: Maybe<Session_Verification_V4_Var_Pop_Fields>;
+  var_samp?: Maybe<Session_Verification_V4_Var_Samp_Fields>;
+  variance?: Maybe<Session_Verification_V4_Variance_Fields>;
+};
+
+/** aggregate fields of "session_verification_v4" */
+export type Session_Verification_V4_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Session_Verification_V4_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type Session_Verification_V4_Avg_Fields = {
+  __typename?: "session_verification_v4_avg_fields";
+  id?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "session_verification_v4". All fields are combined with a logical 'AND'. */
+export type Session_Verification_V4_Bool_Exp = {
+  _and?: InputMaybe<Array<Session_Verification_V4_Bool_Exp>>;
+  _not?: InputMaybe<Session_Verification_V4_Bool_Exp>;
+  _or?: InputMaybe<Array<Session_Verification_V4_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  environment?: InputMaybe<Action_Environment_Comparison_Exp>;
+  id?: InputMaybe<Bigint_Comparison_Exp>;
+  rp_id?: InputMaybe<String_Comparison_Exp>;
+  session_id?: InputMaybe<String_Comparison_Exp>;
+  successful_results?: InputMaybe<Int_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "session_verification_v4" */
+export enum Session_Verification_V4_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  SessionVerificationV4Pkey = "session_verification_v4_pkey",
+}
+
+/** input type for incrementing numeric columns in table "session_verification_v4" */
+export type Session_Verification_V4_Inc_Input = {
+  successful_results?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** input type for inserting data into table "session_verification_v4" */
+export type Session_Verification_V4_Insert_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  environment?: InputMaybe<Scalars["action_environment"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  session_id?: InputMaybe<Scalars["String"]["input"]>;
+  successful_results?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Session_Verification_V4_Max_Fields = {
+  __typename?: "session_verification_v4_max_fields";
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  environment?: Maybe<Scalars["action_environment"]["output"]>;
+  id?: Maybe<Scalars["bigint"]["output"]>;
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  session_id?: Maybe<Scalars["String"]["output"]>;
+  successful_results?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Session_Verification_V4_Min_Fields = {
+  __typename?: "session_verification_v4_min_fields";
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  environment?: Maybe<Scalars["action_environment"]["output"]>;
+  id?: Maybe<Scalars["bigint"]["output"]>;
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  session_id?: Maybe<Scalars["String"]["output"]>;
+  successful_results?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** response of any mutation on the table "session_verification_v4" */
+export type Session_Verification_V4_Mutation_Response = {
+  __typename?: "session_verification_v4_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Session_Verification_V4>;
+};
+
+/** on_conflict condition type for table "session_verification_v4" */
+export type Session_Verification_V4_On_Conflict = {
+  constraint: Session_Verification_V4_Constraint;
+  update_columns?: Array<Session_Verification_V4_Update_Column>;
+  where?: InputMaybe<Session_Verification_V4_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "session_verification_v4". */
+export type Session_Verification_V4_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  environment?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  rp_id?: InputMaybe<Order_By>;
+  session_id?: InputMaybe<Order_By>;
+  successful_results?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: session_verification_v4 */
+export type Session_Verification_V4_Pk_Columns_Input = {
+  id: Scalars["bigint"]["input"];
+};
+
+/** select columns of table "session_verification_v4" */
+export enum Session_Verification_V4_Select_Column {
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  Id = "id",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  SessionId = "session_id",
+  /** column name */
+  SuccessfulResults = "successful_results",
+}
+
+/** input type for updating data in table "session_verification_v4" */
+export type Session_Verification_V4_Set_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  environment?: InputMaybe<Scalars["action_environment"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  session_id?: InputMaybe<Scalars["String"]["input"]>;
+  successful_results?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Session_Verification_V4_Stddev_Fields = {
+  __typename?: "session_verification_v4_stddev_fields";
+  id?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Session_Verification_V4_Stddev_Pop_Fields = {
+  __typename?: "session_verification_v4_stddev_pop_fields";
+  id?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Session_Verification_V4_Stddev_Samp_Fields = {
+  __typename?: "session_verification_v4_stddev_samp_fields";
+  id?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "session_verification_v4" */
+export type Session_Verification_V4_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Session_Verification_V4_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Session_Verification_V4_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  environment?: InputMaybe<Scalars["action_environment"]["input"]>;
+  id?: InputMaybe<Scalars["bigint"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  session_id?: InputMaybe<Scalars["String"]["input"]>;
+  successful_results?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Session_Verification_V4_Sum_Fields = {
+  __typename?: "session_verification_v4_sum_fields";
+  id?: Maybe<Scalars["bigint"]["output"]>;
+  successful_results?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** update columns of table "session_verification_v4" */
+export enum Session_Verification_V4_Update_Column {
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  SessionId = "session_id",
+  /** column name */
+  SuccessfulResults = "successful_results",
+}
+
+export type Session_Verification_V4_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Session_Verification_V4_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Session_Verification_V4_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Session_Verification_V4_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Session_Verification_V4_Var_Pop_Fields = {
+  __typename?: "session_verification_v4_var_pop_fields";
+  id?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Session_Verification_V4_Var_Samp_Fields = {
+  __typename?: "session_verification_v4_var_samp_fields";
+  id?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Session_Verification_V4_Variance_Fields = {
+  __typename?: "session_verification_v4_variance_fields";
+  id?: Maybe<Scalars["Float"]["output"]>;
+  successful_results?: Maybe<Scalars["Float"]["output"]>;
+};
+
 export type Subscription_Root = {
   __typename?: "subscription_root";
   /** fetch data from the table: "action" */
@@ -12129,6 +12801,22 @@ export type Subscription_Root = {
   sandbox_access_request_by_pk?: Maybe<Sandbox_Access_Request>;
   /** fetch data from the table in a streaming manner: "sandbox_access_request" */
   sandbox_access_request_stream: Array<Sandbox_Access_Request>;
+  /** fetch data from the table: "session_v4_stats_daily" */
+  session_v4_stats_daily: Array<Session_V4_Stats_Daily>;
+  /** fetch aggregated fields from the table: "session_v4_stats_daily" */
+  session_v4_stats_daily_aggregate: Session_V4_Stats_Daily_Aggregate;
+  /** fetch data from the table: "session_v4_stats_daily" using primary key columns */
+  session_v4_stats_daily_by_pk?: Maybe<Session_V4_Stats_Daily>;
+  /** fetch data from the table in a streaming manner: "session_v4_stats_daily" */
+  session_v4_stats_daily_stream: Array<Session_V4_Stats_Daily>;
+  /** fetch data from the table: "session_verification_v4" */
+  session_verification_v4: Array<Session_Verification_V4>;
+  /** fetch aggregated fields from the table: "session_verification_v4" */
+  session_verification_v4_aggregate: Session_Verification_V4_Aggregate;
+  /** fetch data from the table: "session_verification_v4" using primary key columns */
+  session_verification_v4_by_pk?: Maybe<Session_Verification_V4>;
+  /** fetch data from the table in a streaming manner: "session_verification_v4" */
+  session_verification_v4_stream: Array<Session_Verification_V4>;
   /** fetch data from the table: "team" */
   team: Array<Team>;
   /** fetch aggregated fields from the table: "team" */
@@ -12933,6 +13621,60 @@ export type Subscription_RootSandbox_Access_Request_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Sandbox_Access_Request_Stream_Cursor_Input>>;
   where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+};
+
+export type Subscription_RootSession_V4_Stats_DailyArgs = {
+  distinct_on?: InputMaybe<Array<Session_V4_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Session_V4_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Session_V4_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootSession_V4_Stats_Daily_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Session_V4_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Session_V4_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Session_V4_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootSession_V4_Stats_Daily_By_PkArgs = {
+  date_utc: Scalars["date"]["input"];
+  environment: Scalars["action_environment"]["input"];
+  rp_id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootSession_V4_Stats_Daily_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Session_V4_Stats_Daily_Stream_Cursor_Input>>;
+  where?: InputMaybe<Session_V4_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootSession_Verification_V4Args = {
+  distinct_on?: InputMaybe<Array<Session_Verification_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Session_Verification_V4_Order_By>>;
+  where?: InputMaybe<Session_Verification_V4_Bool_Exp>;
+};
+
+export type Subscription_RootSession_Verification_V4_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Session_Verification_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Session_Verification_V4_Order_By>>;
+  where?: InputMaybe<Session_Verification_V4_Bool_Exp>;
+};
+
+export type Subscription_RootSession_Verification_V4_By_PkArgs = {
+  id: Scalars["bigint"]["input"];
+};
+
+export type Subscription_RootSession_Verification_V4_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Session_Verification_V4_Stream_Cursor_Input>>;
+  where?: InputMaybe<Session_Verification_V4_Bool_Exp>;
 };
 
 export type Subscription_RootTeamArgs = {

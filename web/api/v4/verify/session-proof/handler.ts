@@ -1,9 +1,11 @@
 import { parseRpId } from "@/api/helpers/rp-utils";
+import { getSessionAnalyticsGraphqlClient } from "@/api/helpers/graphql";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { NextResponse } from "next/server";
 import { SessionProofRequest } from "../request-schema";
 import { processSessionProof, SessionResult } from "./verify-util";
+import { getSdk } from "./graphql/insert-session-verification-v4.generated";
 
 // Session proof response types
 type SessionProofSuccessResponse = {
@@ -111,6 +113,27 @@ export async function handleSessionProofVerification(
   }
 
   const sessionId = parsedParams.session_id;
+  const successfulResults = verificationResults.filter(
+    (result) => result.success,
+  ).length;
+
+  try {
+    const client = await getSessionAnalyticsGraphqlClient();
+    await getSdk(client).InsertSessionVerificationV4({
+      object: {
+        rp_id: rpId,
+        environment: verificationEnvironment,
+        session_id: sessionId,
+        successful_results: successfulResults,
+      },
+    });
+  } catch (error) {
+    logger.error("Failed to record v4 session verification analytics", {
+      error,
+      rp_id: rpId,
+      session_id: sessionId,
+    });
+  }
 
   await captureEvent({
     event: "session_verify_v4_success",
