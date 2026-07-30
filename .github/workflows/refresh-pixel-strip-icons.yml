@@ -1,0 +1,93 @@
+name: Refresh pixel strip icons
+
+# Weekly maintenance for BasePixelStrip's icon reveal
+# (web/scenes/Onboarding/Home/components/BasePixelStrip): re-fetches fresh
+# bytes for the apps already in icon-manifest.ts (in case an app owner
+# updated their icon), normalizes them, and re-uploads. Only ever patches
+# logoUrl for existing entries - never adds/removes/reorders APPS - so
+# CELL_APP_INDICES (which references APPS by numeric index) stays valid.
+# See scripts/normalize-app-icons.ts's header comment for why adding newly
+# popular apps into the grid rotation needs a separate, harder change.
+#
+# Opens a PR instead of pushing directly so a broken/empty upstream response
+# can't silently reach production - a human reviews the diff (and CI) first.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Monday 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    name: Refresh + open PR
+    runs-on:
+      group: arc-public-large-amd64-runner
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # NOTE: uses long-lived access keys for simplicity, since this repo
+      # doesn't yet have an OIDC role set up for any workflow. If/when one
+      # exists, prefer aws-actions/configure-aws-credentials with
+      # `role-to-assume` instead of static keys here.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.PIXEL_STRIP_ICONS_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PIXEL_STRIP_ICONS_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.ASSETS_S3_REGION }}
+
+      - name: Refresh icons and patch the manifest
+        env:
+          ASSETS_S3_REGION: ${{ secrets.ASSETS_S3_REGION }}
+          ASSETS_S3_BUCKET_NAME: ${{ secrets.ASSETS_S3_BUCKET_NAME }}
+        run: |
+          npx tsx scripts/normalize-app-icons.ts \
+            --refresh-existing \
+            --upload \
+            --write-manifest \
+            --cdn-base-url "${{ vars.NEXT_PUBLIC_IMAGES_CDN_URL || 'https://world-id-assets.com' }}"
+
+      - name: Open a PR if anything changed
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(portal): refresh pixel strip app icons"
+          title: "chore(portal): refresh pixel strip app icons"
+          body: |
+            Automated weekly refresh of the app icons used by the World
+            logomark's hover-lens icon reveal on the homepage.
+
+            Re-fetched and re-normalized icon bytes for apps already in
+            `icon-manifest.ts`, in case an app owner updated their icon.
+            Only `logoUrl` values change - no entries were added, removed, or
+            reordered, so the pixel-grid placement (`CELL_APP_INDICES`)
+            stays valid.
+
+            Please review before merging: check the diff is reasonably small
+            (a mass change usually means the upstream rankings API had a
+            problem) and that CI passes.
+          branch: automated/refresh-pixel-strip-icons
+          delete-branch: true
+          labels: automated

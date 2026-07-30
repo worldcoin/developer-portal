@@ -6,7 +6,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
 import { ComponentType } from "react";
-import { BasePixelStrip } from "../components/BasePixelStrip";
+import { LazyBasePixelStrip } from "../components/BasePixelStrip/lazy";
 import { DeveloperStories } from "../components/DeveloperStories";
 import { HoverVideo } from "../components/HoverVideo";
 import {
@@ -324,7 +324,7 @@ export const HomePage = async () => {
           </div>
 
           <div className="relative aspect-626/700 w-full overflow-hidden rounded-2xl bg-[#f9f9f8] lg:h-[700px] lg:w-[626px]">
-            <BasePixelStrip />
+            <LazyBasePixelStrip />
           </div>
         </div>
       </section>

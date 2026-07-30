@@ -1801,6 +1801,10 @@ export const BasePixelStrip = () => {
   const iconElsRef = useRef<Map<string, SVGImageElement>>(new Map());
   const iconHrefCacheRef = useRef<Map<number, string>>(new Map());
   const iconLoadingRef = useRef<Set<number>>(new Set());
+  // Cells whose icon failed to load (404, network error, CORS, ...). Without
+  // this, sweeping the cursor back over the same broken cell re-fetches the
+  // same dead URL on every pass for the life of the page.
+  const iconFailedRef = useRef<Set<number>>(new Set());
   const revealedRef = useRef<Set<string>>(new Set());
   const ripplesRef = useRef<Array<{ x: number; y: number; start: number }>>([]);
   const rippleActiveRef = useRef<Set<string>>(new Set());
@@ -2004,7 +2008,8 @@ export const BasePixelStrip = () => {
               revealedRef.current.add(key);
             } else if (
               !iconLoadingRef.current.has(i) &&
-              !iconHrefCacheRef.current.has(i)
+              !iconHrefCacheRef.current.has(i) &&
+              !iconFailedRef.current.has(i)
             ) {
               iconLoadingRef.current.add(i);
               const href = ICON_SOURCES[i];
@@ -2015,7 +2020,9 @@ export const BasePixelStrip = () => {
                 })
                 .catch(() => {
                   // No icon overlay for this cell; the halftone dot alone
-                  // still reads fine.
+                  // still reads fine. Remembered so a broken icon isn't
+                  // re-fetched every time the cursor sweeps back over it.
+                  iconFailedRef.current.add(i);
                 })
                 .finally(() => {
                   iconLoadingRef.current.delete(i);
