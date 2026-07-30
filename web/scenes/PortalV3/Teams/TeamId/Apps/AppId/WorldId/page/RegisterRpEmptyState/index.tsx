@@ -8,11 +8,11 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 // Show a fallback while an initially open dialog loads.
-const CreateAppDialogV4 = dynamic(
+const EnableWorldIdDialog = dynamic(
   () =>
-    import("@/scenes/PortalV3/layout/CreateAppDialog/index-v4").then(
-      (module) => module.CreateAppDialogV4,
-    ),
+    import(
+      "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/EnableWorldId40/Dialog"
+    ).then((module) => module.EnableWorldIdDialog),
   {
     loading: () => (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
@@ -80,9 +80,8 @@ export const RegisterRpEmptyState = (props: {
       ) : null}
 
       {open ? (
-        <CreateAppDialogV4
+        <EnableWorldIdDialog
           open={open}
-          initialStep="enable-world-id-4-0"
           appId={props.appId}
           onComplete={() => {
             completedRef.current = true;

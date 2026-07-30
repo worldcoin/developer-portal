@@ -1,3 +1,4 @@
+import { AppCreatedToast } from "@/scenes/common/Apps/AppCreatedToast";
 import { TeamCreatedToast } from "@/scenes/common/Teams/TeamCreatedToast";
 import { ReactNode } from "react";
 
@@ -17,6 +18,7 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
 
   return (
     <>
+      <AppCreatedToast />
       <TeamCreatedToast />
       {props.children}
     </>

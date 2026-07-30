@@ -210,6 +210,15 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  /* Radix otherwise adds the scrollbar width a second time while menus open. */
+  html > body[data-scroll-locked] {
+    margin-right: 0 !important;
+  }
+
   *,
   ::after,
   ::before,

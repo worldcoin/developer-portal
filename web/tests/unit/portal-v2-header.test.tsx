@@ -21,10 +21,6 @@ jest.mock("@/scenes/Portal/layout/AppSelector", () => ({
   AppSelector: () => null,
 }));
 
-jest.mock("@/scenes/Portal/layout/CreateAppDialog/index-v4", () => ({
-  CreateAppDialogV4: () => null,
-}));
-
 jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
   SandboxButton: () => <button>World ID Sandbox</button>,
 }));

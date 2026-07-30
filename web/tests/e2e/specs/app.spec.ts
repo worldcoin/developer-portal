@@ -17,7 +17,9 @@ test.describe("App", () => {
     await expect(page.getByText("Let's create your first app.")).toBeVisible();
     await page.getByTestId("button-create-new-app").click();
 
-    await expect(page.getByText("Setup your app")).toBeVisible({
+    await expect(
+      page.getByRole("heading", { name: "Create a new app" }),
+    ).toBeVisible({
       timeout: 90_000,
     });
     await expect(page.getByTestId("button-create-app")).toBeDisabled();
@@ -32,6 +34,8 @@ test.describe("App", () => {
     await expect(
       page.getByRole("button", { name: "Create action" }),
     ).toBeVisible();
-    await expect(page.getByText(appName)).toBeVisible();
+    // The arrival toast ("New app <name> was created") also renders the app
+    // name, so the bare text query is ambiguous while it is on screen.
+    await expect(page.getByText(appName).first()).toBeVisible();
   });
 });
