@@ -1,0 +1,329 @@
+"use client";
+
+import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
+import { EditIcon } from "@/components/Icons/EditIcon";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
+import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import clsx from "clsx";
+import { useAtom } from "jotai";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AppStoreForm } from "../AppStore/app-store";
+import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
+import { AppStoreActions } from "../AppStoreActions";
+import { BasicInformationHandle } from "../BasicInformation";
+import { useCreateNewDraft } from "../hook/use-create-new-draft";
+import { isMiniAppAtom, viewModeAtom } from "../layout/ImagesProvider";
+import { SaveStatusIndicator } from "../SaveStatus";
+import { AvailabilityStep } from "./AvailabilityStep";
+import {
+  BasicInformationStep,
+  useResolvedLogoUrl,
+  WizardLogoUpload,
+} from "./BasicInformationStep";
+import { LocalisedContentStep } from "./LocalisedContentStep";
+import { ReviewStep } from "./ReviewStep";
+import { StoreListingStep } from "./StoreListingStep";
+import {
+  getWizardStepForField,
+  getWizardSteps,
+  Stepper,
+  WizardStep,
+} from "./Stepper";
+
+const secondaryButtonClassName =
+  "flex h-12 items-center justify-center rounded-[10px] bg-portal-canvas px-6 text-15 leading-[1.2] font-semibold text-portal-ink transition-colors hover:bg-portal-border disabled:cursor-not-allowed disabled:opacity-60";
+const primaryButtonClassName =
+  "flex h-12 items-center justify-center rounded-[10px] bg-portal-ink px-6 text-15 leading-[1.2] font-semibold text-white transition-colors hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:opacity-60";
+
+/**
+ * Q3 2026 configuration wizard (Figma: Dev Portal Q3 2026). The designed
+ * steps bind straight into the machinery the previous page used — the shared
+ * App Store form (autosave + language sync), the basic-information form, the
+ * image upload pipeline, and the submit-for-review flow — so every behavior
+ * from the previous configuration page keeps working.
+ */
+export const ConfigurationWizard = (props: {
+  appId: `app_${string}`;
+  teamId: `team_${string}`;
+  app: FetchAppMetadataQuery["app"][0];
+  appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
+  teamName: string;
+  activeStep: WizardStep;
+  setActiveStep: (step: WizardStep) => void;
+}) => {
+  const {
+    appId,
+    teamId,
+    app,
+    appMetadata,
+    teamName,
+    activeStep,
+    setActiveStep,
+  } = props;
+  const basicInfoRef = useRef<BasicInformationHandle>(null);
+  const { user } = useUser() as Auth0SessionUser;
+  const [viewMode, setViewMode] = useAtom(viewModeAtom);
+
+  // Seed the optimistic mode atom from the row before using it for later
+  // in-place mode changes. Until this row is synced, derive the first render
+  // directly from metadata so the step count never flashes.
+  const [optimisticIsMiniApp, setOptimisticIsMiniApp] = useAtom(isMiniAppAtom);
+  const [modeMetadataId, setModeMetadataId] = useState<string | null>(null);
+  const isMiniApp =
+    modeMetadataId === appMetadata.id
+      ? optimisticIsMiniApp
+      : appMetadata.app_mode === "mini-app";
+  useEffect(() => {
+    setOptimisticIsMiniApp(appMetadata.app_mode === "mini-app");
+    setModeMetadataId(appMetadata.id);
+  }, [appMetadata.app_mode, appMetadata.id, setOptimisticIsMiniApp]);
+
+  const steps = useMemo(() => getWizardSteps(isMiniApp), [isMiniApp]);
+  const activeIndex = Math.max(
+    0,
+    steps.findIndex((step) => step.id === activeStep),
+  );
+  const nextStep = steps[activeIndex + 1];
+
+  const handleStepChange = useCallback(
+    (step: WizardStep) => {
+      setActiveStep(step);
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    },
+    [setActiveStep],
+  );
+
+  // Switching to external drops the store-listing step; land somewhere valid.
+  useEffect(() => {
+    if (!steps.some((step) => step.id === activeStep)) {
+      handleStepChange(WizardStep.AVAILABILITY);
+    }
+  }, [activeStep, handleStepChange, steps]);
+
+  const handleValidationError = useCallback(
+    (fieldPath?: string) => {
+      const target = getWizardStepForField(isMiniApp, fieldPath);
+      handleStepChange(
+        steps.some((step) => step.id === target) ? target : WizardStep.BASIC,
+      );
+    },
+    [handleStepChange, isMiniApp, steps],
+  );
+
+  // Draft lifecycle, mirroring the previous page's footer.
+  const hasDraft = app.app_metadata.length > 0;
+  const hasVerified = app.verified_app_metadata.length > 0;
+  const draft = app.app_metadata[0];
+  const { removeFromReview, loading: isUnsubmitting } = useRemoveFromReview({
+    metadataId: draft?.id,
+  });
+  const { createNewDraft, isCreating } = useCreateNewDraft({
+    appId,
+    teamId,
+    hasDraft,
+    hasVerifiedVersion: hasVerified,
+  });
+  const canManageDraft = checkUserPermissions(user, teamId, [
+    Role_Enum.Owner,
+    Role_Enum.Admin,
+  ]);
+
+  const isVerifiedView = viewMode === "verified" && hasVerified;
+  const isAwaiting =
+    !isVerifiedView && draft?.verification_status === "awaiting_review";
+  const isEditable =
+    !isVerifiedView && draft?.verification_status === "unverified";
+  // Verified view without a draft: only Owner/Admin may create one.
+  const showVersionAction =
+    hasVerified && (!isVerifiedView || hasDraft || canManageDraft);
+
+  const logoUrl = useResolvedLogoUrl(appId, appMetadata as AppMetadata);
+
+  const stepWrapperClassName = (step: WizardStep, marginClassName: string) =>
+    clsx("w-full", marginClassName, activeStep !== step && "hidden");
+
+  return (
+    <div className="flex min-h-full w-full flex-col px-6 pt-[43px] pb-16 font-world">
+      <div className="relative flex w-full justify-center">
+        <Stepper steps={steps} activeIndex={activeIndex} />
+        {/* Static cue for which version the form shows — not a control.
+            Draft-only apps have a single version; nothing worth labelling. */}
+        {hasVerified && (
+          <div
+            data-testid="configuration-version-indicator"
+            role="img"
+            aria-label={isVerifiedView ? "Verified version" : "Draft version"}
+            title={isVerifiedView ? "Verified version" : "Draft version"}
+            className="absolute top-1/2 right-0 -translate-y-1/2"
+          >
+            {isVerifiedView ? (
+              <CheckmarkBadge className="size-4 text-system-warning-500" />
+            ) : (
+              <EditIcon className="size-4 text-grey-700" />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Every step stays mounted (inactive ones are CSS-hidden) so autosave
+          debounces and review-time validation keep their field state, exactly
+          like the previous page's sections. */}
+      <AppStoreForm
+        appId={appId}
+        teamId={teamId}
+        appMetadata={appMetadata as AppMetadata}
+      >
+        <div
+          className={stepWrapperClassName(WizardStep.BASIC, "")}
+          aria-hidden={activeStep !== WizardStep.BASIC}
+        >
+          <div className="mt-[76px] flex justify-center">
+            <WizardLogoUpload
+              appId={appId}
+              teamId={teamId}
+              appMetadata={appMetadata as AppMetadata}
+              canEdit={isEditable && canManageDraft}
+            />
+          </div>
+          <div className="mx-auto mt-10 w-full max-w-[626px]">
+            <BasicInformationStep
+              ref={basicInfoRef}
+              appId={appId}
+              teamId={teamId}
+              app={app}
+              appMetadata={appMetadata as AppMetadata}
+              publisher={teamName}
+            />
+          </div>
+        </div>
+
+        {isMiniApp && (
+          <div
+            className={stepWrapperClassName(
+              WizardStep.STORE_LISTING,
+              "mx-auto mt-[76px] max-w-[626px]",
+            )}
+            aria-hidden={activeStep !== WizardStep.STORE_LISTING}
+          >
+            <StoreListingStep />
+          </div>
+        )}
+
+        <div
+          className={stepWrapperClassName(
+            WizardStep.AVAILABILITY,
+            "mx-auto mt-[76px] max-w-[626px]",
+          )}
+          aria-hidden={activeStep !== WizardStep.AVAILABILITY}
+        >
+          <AvailabilityStep isMiniApp={isMiniApp} />
+        </div>
+
+        <div
+          className={stepWrapperClassName(
+            WizardStep.LOCALISED_CONTENT,
+            "mx-auto mt-[76px] max-w-[626px]",
+          )}
+          aria-hidden={activeStep !== WizardStep.LOCALISED_CONTENT}
+        >
+          <LocalisedContentStep isMiniApp={isMiniApp} />
+        </div>
+
+        <div
+          className={stepWrapperClassName(
+            WizardStep.REVIEW,
+            "mx-auto mt-[73px] max-w-[626px]",
+          )}
+          aria-hidden={activeStep !== WizardStep.REVIEW}
+        >
+          <ReviewStep
+            teamName={teamName}
+            isMiniApp={isMiniApp}
+            logoUrl={logoUrl || undefined}
+          />
+        </div>
+      </AppStoreForm>
+
+      <div className="mx-auto mt-8 flex w-full max-w-[626px] items-center gap-3">
+        <div className="flex flex-1 justify-start">
+          {activeIndex > 0 && (
+            <button
+              type="button"
+              onClick={() => handleStepChange(steps[activeIndex - 1].id)}
+              className={secondaryButtonClassName}
+            >
+              Back
+            </button>
+          )}
+        </div>
+
+        <div className="flex min-w-0 items-center justify-center gap-3">
+          {showVersionAction && (
+            <button
+              type="button"
+              disabled={isCreating}
+              className={secondaryButtonClassName}
+              onClick={() => {
+                if (!isVerifiedView) {
+                  setViewMode("verified");
+                  return;
+                }
+                if (hasDraft) {
+                  setViewMode("unverified");
+                } else {
+                  // The draft hook flips the view after the new row lands.
+                  void createNewDraft();
+                }
+              }}
+            >
+              {isVerifiedView ? "New draft" : "Verified"}
+            </button>
+          )}
+
+          <div className="hidden min-w-0 items-center sm:flex">
+            {isAwaiting ? (
+              <p className="min-w-0 truncate text-13 leading-[1.3] font-[350] text-portal-subtle">
+                In review — editing is locked until review completes.
+              </p>
+            ) : isEditable ? (
+              <SaveStatusIndicator />
+            ) : null}
+          </div>
+        </div>
+
+        <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+          {isAwaiting && canManageDraft && (
+            <button
+              type="button"
+              disabled={isUnsubmitting}
+              onClick={removeFromReview}
+              className={secondaryButtonClassName}
+            >
+              Un-submit
+            </button>
+          )}
+
+          <AppStoreActions
+            appId={appId}
+            teamId={teamId}
+            appMetadata={appMetadata}
+            nextStep={nextStep ? { title: nextStep.label } : undefined}
+            onContinue={() => {
+              if (nextStep) handleStepChange(nextStep.id);
+            }}
+            basicInfoRef={basicInfoRef}
+            onValidationError={handleValidationError}
+            className={primaryButtonClassName}
+            hideArrowIcon
+          />
+        </div>
+      </div>
+    </div>
+  );
+};

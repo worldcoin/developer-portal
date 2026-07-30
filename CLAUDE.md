@@ -29,6 +29,25 @@ Always run formatting and type checks before committing. Make sure tests pass as
 
 Never commit or push to a branch other than the one currently being worked on — especially a branch with its own open pull request — without asking first. Propose the change and wait for explicit approval.
 
+## Icons and glyph optical centering (required check when adding icons or badges)
+
+Any change that adds an icon, a numbered/lettered bubble, or a glyph beside a
+text label MUST be checked for optical centering — geometric centering is not
+enough, because flex centers the text's **line box**, not the glyph, and the
+World Pro font reserves descender space that digits/caps don't use:
+
+- **Icon beside cap-height text** → wrap it with `opticalIconClassName`
+  (exported from `web/scenes/PortalV3/common/Icon`); otherwise it reads ~1px low.
+- **Digit/cap glyph inside a fixed circle or pill** (stepper dots, count
+  badges) → wrap the glyph with `bubbleDigitClassName` from the same file;
+  otherwise it paints ~0.03em high (a full device pixel at 2x DPR).
+- Verify with `cd web && node scripts/check-optical-centering.mjs` — it
+  renders the bubble recipe with the real font and fails if the corrected
+  glyph drifts more than 0.15px from the circle's center. Run it whenever you
+  touch bubble markup, the correction offsets, or `WorldProMVP.ttf`.
+- Zoomed screenshots are the manual fallback: capture the element at 4x+ and
+  compare the ink's top/bottom gaps before calling the UI done.
+
 ## Pull request follow-up
 
 After pushing a branch with an open pull request, wait 5 minutes, then check the
