@@ -254,14 +254,21 @@ const createTestUserIdentifiers = () => {
 };
 
 // Helper for creating test user
-export const createTestUser = async (email: string, teamId?: string) => {
+export const createTestUser = async (
+  email: string,
+  teamId?: string,
+  auth0Id?: string,
+) => {
   try {
-    const { auth0Id, ironcladId, worldIdNullifier } =
-      createTestUserIdentifiers();
+    const {
+      auth0Id: generatedAuth0Id,
+      ironcladId,
+      worldIdNullifier,
+    } = createTestUserIdentifiers();
     const response = (await adminGraphqlClient.request(CREATE_USER_MUTATION, {
       object: {
         email,
-        auth0Id,
+        auth0Id: auth0Id ?? generatedAuth0Id,
         ...(teamId && { team_id: teamId }),
         ironclad_id: ironcladId,
         world_id_nullifier: worldIdNullifier,

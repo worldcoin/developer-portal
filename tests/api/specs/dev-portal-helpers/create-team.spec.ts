@@ -25,13 +25,18 @@ describe("Dev Portal Helpers API Endpoints", () => {
 
     it("Create team successfully for existing user", async () => {
       const userEmail = `qa+${NAME_SLUG}+${Date.now()}@toolsforhumanity.com`;
-      const testUserId = await createTestUser(userEmail);
+
+      // The endpoint determines whether the user exists by looking up the
+      // session's Auth0 ID in Hasura, so the fixture must use the same ID.
+      const uniqueAuth0Id = `auth0|test_existing_user_${Date.now()}`;
+      const testUserId = await createTestUser(
+        userEmail,
+        undefined,
+        uniqueAuth0Id,
+      );
 
       // Add cleanup functions
       cleanUpFunctions.push(async () => await deleteTestUser(testUserId));
-
-      // Generate unique auth0Id to prevent constraint violations
-      const uniqueAuth0Id = `auth0|test_existing_user_${Date.now()}`;
 
       const existingUserSession = await createAppSession({
         user: {
