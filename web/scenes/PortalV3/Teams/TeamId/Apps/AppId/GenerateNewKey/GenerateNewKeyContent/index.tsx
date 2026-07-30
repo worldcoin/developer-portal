@@ -2,13 +2,15 @@
 
 import { Checkbox } from "@/components/Checkbox";
 import { CopyButton } from "@/components/CopyButton";
-import { DecoratedButton } from "@/components/DecoratedButton";
+import {
+  formDialogInputClassName,
+  formDialogLabelClassName,
+  formDialogPrimaryActionClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
 import { EyeIcon } from "@/components/Icons/EyeIcon";
 import { EyeSlashIcon } from "@/components/Icons/EyeSlashIcon";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
-import { Input } from "@/components/Input";
-import { Notification } from "@/components/Notification";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { Wallet } from "ethers";
 import { useEffect, useMemo, useState } from "react";
@@ -23,6 +25,8 @@ export type GenerateNewKeyContentProps = {
   onContinue: (publicKey: string) => void;
   className?: string;
   loading?: boolean;
+  /** Skip the internal heading when a dialog header already carries it. */
+  hideTitle?: boolean;
 };
 
 export const GenerateNewKeyContent = ({
@@ -30,6 +34,7 @@ export const GenerateNewKeyContent = ({
   onContinue,
   className,
   loading,
+  hideTitle,
 }: GenerateNewKeyContentProps) => {
   const [privateKey, setPrivateKey] = useState<string>("");
   const [publicKey, setPublicKey] = useState<string>("");
@@ -84,34 +89,49 @@ export const GenerateNewKeyContent = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={clsx("grid w-full max-w-[580px] gap-y-8", className)}
+      className={clsx("grid w-full gap-y-6", className)}
     >
-      <div className="grid gap-y-3">
-        <Typography variant={TYPOGRAPHY.H6}>Generate new key</Typography>
-        <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
-          We&apos;ve generated a secure signing key for your application. Save
-          this key securely - you&apos;ll need it to sign operations in your
-          app.
-        </Typography>
-      </div>
+      {!hideTitle && (
+        <h2 className="font-world text-15 leading-[1.2] font-medium text-portal-ink">
+          Generate new key
+        </h2>
+      )}
+      <p className="font-world text-14 leading-[1.5] text-portal-muted">
+        We&apos;ve generated a secure signing key for your application. Save
+        this key securely — you&apos;ll need it to sign operations in your app.
+      </p>
 
-      <Input
-        label="Private Key"
-        value={privateKey}
-        readOnly
-        disabled
-        addOnRight={
-          <div className="flex items-center gap-x-2">
+      <div>
+        <label
+          htmlFor="generate-new-key-private-key"
+          className={formDialogLabelClassName}
+        >
+          Private key
+        </label>
+        <div className="relative">
+          <input
+            id="generate-new-key-private-key"
+            value={privateKey}
+            readOnly
+            disabled
+            className={`${formDialogInputClassName} pr-20`}
+            style={{
+              filter: isBlurred ? "blur(4px)" : "none",
+              transition: "filter 0.2s ease",
+            }}
+            data-testid="input-private-key"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center gap-x-1 pr-3">
             <button
               type="button"
               onClick={() => setIsBlurred(!isBlurred)}
-              className="flex items-center justify-center p-1 hover:opacity-70"
+              className="flex size-7 items-center justify-center rounded-8 text-portal-muted transition-colors hover:bg-portal-border hover:text-portal-text"
               aria-label={isBlurred ? "Show private key" : "Hide private key"}
             >
               {isBlurred ? (
-                <EyeIcon className="size-5 text-grey-900" />
+                <EyeIcon className="size-5" />
               ) : (
-                <EyeSlashIcon className="size-5 text-grey-900" />
+                <EyeSlashIcon className="size-5" />
               )}
             </button>
             <CopyButton
@@ -120,75 +140,64 @@ export const GenerateNewKeyContent = ({
               disabled={!privateKey}
             />
           </div>
-        }
-        style={{
-          filter: isBlurred ? "blur(4px)" : "none",
-          transition: "filter 0.2s ease",
-        }}
-        data-testid="input-private-key"
-      />
+        </div>
+      </div>
 
-      <Typography
-        as="button"
+      <button
         type="button"
         onClick={handleDownload}
-        variant={TYPOGRAPHY.R3}
-        className="text-left text-blue-600 underline hover:opacity-70"
         disabled={!privateKey}
+        className="justify-self-start font-world text-13 font-medium text-portal-blue underline underline-offset-2 transition-colors hover:text-portal-ink disabled:cursor-not-allowed disabled:text-portal-faint"
       >
-        Download Key File (.json)
-      </Typography>
+        Download key file (.json)
+      </button>
 
-      <Notification variant="warning">
-        <div className="max-w-[65ch] text-system-warning-800">
-          <Typography as="p" variant={TYPOGRAPHY.S3}>
-            Important
-          </Typography>
-          <Typography as="ul" variant={TYPOGRAPHY.S4} className="grid">
-            <li className="pl-4 -indent-4">
-              • Save this private key securely - it cannot be recovered if lost
-            </li>
-            <li className="pl-4 -indent-4">
-              • Never share your private key or commit it to version control
-            </li>
-            <li className="pl-4 -indent-4">
-              • Use environment variables to store the key in your application
-            </li>
-          </Typography>
-        </div>
-      </Notification>
+      <div className="rounded-[10px] bg-system-warning-75 p-4">
+        <p className="font-world text-13 leading-[1.4] font-medium text-system-warning-650">
+          Important
+        </p>
+        <ul className="mt-1 grid gap-y-1 font-world text-13 leading-[1.4] font-[350] text-system-warning-650">
+          <li className="pl-4 -indent-4">
+            • Save this private key securely — it cannot be recovered if lost
+          </li>
+          <li className="pl-4 -indent-4">
+            • Never share your private key or commit it to version control
+          </li>
+          <li className="pl-4 -indent-4">
+            • Use environment variables to store the key in your application
+          </li>
+        </ul>
+      </div>
 
       <label className="flex items-center gap-x-3">
         <Checkbox register={register("confirmed", { required: true })} />
-        <Typography as="span" variant={TYPOGRAPHY.R4} className="text-grey-500">
+        <span className="font-world text-13 leading-[1.4] text-portal-text select-none">
           I have saved my private key securely
-        </Typography>
+        </span>
       </label>
 
-      <div className="flex justify-end gap-x-4">
-        <DecoratedButton
+      <div className="grid w-full gap-3 md:grid-cols-2">
+        <button
           type="button"
-          variant="secondary"
-          className="w-28 rounded-3xl py-3"
           onClick={onBack}
-          testId="generate-new-key-back"
+          disabled={loading}
+          data-testid="button-generate-new-key-back"
+          className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
         >
           Back
-        </DecoratedButton>
-        <DecoratedButton
+        </button>
+        <button
           type="submit"
-          variant="primary"
-          className="w-32 rounded-3xl py-3"
           disabled={!isValid || loading}
-          loading={loading}
-          testId="generate-new-key-create"
+          data-testid="button-generate-new-key-create"
+          className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
         >
           {loading ? (
-            <SpinnerIcon className="size-6 animate-spin" />
+            <SpinnerIcon className="size-5 animate-spin" />
           ) : (
             "Continue"
           )}
-        </DecoratedButton>
+        </button>
       </div>
     </form>
   );

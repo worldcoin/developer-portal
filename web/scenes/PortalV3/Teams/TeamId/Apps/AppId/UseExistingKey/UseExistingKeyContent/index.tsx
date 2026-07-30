@@ -1,9 +1,13 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
+import {
+  formDialogErrorClassName,
+  formDialogInputClassName,
+  formDialogLabelClassName,
+  formDialogPrimaryActionClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
-import { Input } from "@/components/Input";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { isAddress } from "ethers";
@@ -36,6 +40,8 @@ export type UseExistingKeyContentProps = {
   onContinue: (publicKey: string) => void;
   className?: string;
   loading?: boolean;
+  /** Skip the internal heading when a dialog header already carries it. */
+  hideTitle?: boolean;
 };
 
 export const UseExistingKeyContent = ({
@@ -43,6 +49,7 @@ export const UseExistingKeyContent = ({
   onContinue,
   className,
   loading = false,
+  hideTitle,
 }: UseExistingKeyContentProps) => {
   const defaultValues: FormValues = useMemo(() => ({ public_key: "" }), []);
 
@@ -63,48 +70,64 @@ export const UseExistingKeyContent = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={clsx("grid w-full max-w-[580px] gap-y-6", className)}
+      className={clsx("grid w-full gap-y-6", className)}
     >
-      <div className="grid gap-y-3">
-        <Typography as="h1" variant={TYPOGRAPHY.H6}>
-          Use Existing Key
-        </Typography>
-        <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
-          Provide a secp256k1 public key you control (e.g. Ethereum address)
-        </Typography>
-      </div>
+      {!hideTitle && (
+        <h2 className="font-world text-15 leading-[1.2] font-medium text-portal-ink">
+          Use existing key
+        </h2>
+      )}
+      <p className="font-world text-14 leading-[1.5] text-portal-muted">
+        Provide a secp256k1 public key you control (e.g. an Ethereum address).
+      </p>
 
-      <div className="mt-[0.84rem]">
-        <Input
-          register={register("public_key")}
-          label="Public Key"
-          placeholder="0x1234...abcd"
+      <div>
+        <label
+          htmlFor="use-existing-key-public-key"
+          className={formDialogLabelClassName}
+        >
+          Public key *
+        </label>
+        <input
+          id="use-existing-key-public-key"
           required
-          errors={errors.public_key}
+          {...register("public_key")}
+          className={formDialogInputClassName}
+          placeholder="0x1234...abcd"
           data-testid="input-public-key"
+          aria-invalid={Boolean(errors.public_key)}
+          aria-describedby={
+            errors.public_key ? "use-existing-key-public-key-error" : undefined
+          }
         />
+        {errors.public_key?.message && (
+          <p
+            id="use-existing-key-public-key-error"
+            className={formDialogErrorClassName}
+          >
+            {errors.public_key.message}
+          </p>
+        )}
       </div>
 
-      <div className="flex justify-between gap-x-4">
-        <DecoratedButton
+      <div className="grid w-full gap-3 md:grid-cols-2">
+        <button
           type="button"
-          variant="secondary"
-          className="py-3"
           onClick={onBack}
-          testId="use-existing-key-back"
+          disabled={loading}
+          data-testid="button-use-existing-key-back"
+          className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
         >
           Back
-        </DecoratedButton>
-        <DecoratedButton
+        </button>
+        <button
           type="submit"
-          variant="primary"
-          className="py-3"
           disabled={!isValid || loading}
-          loading={loading}
-          testId="use-existing-key-create"
+          data-testid="button-use-existing-key-create"
+          className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
         >
           {loading ? <SpinnerIcon className="size-5 animate-spin" /> : "Create"}
-        </DecoratedButton>
+        </button>
       </div>
     </form>
   );
