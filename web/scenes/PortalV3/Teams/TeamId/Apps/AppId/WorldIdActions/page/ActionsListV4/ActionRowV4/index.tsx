@@ -27,10 +27,10 @@ export const ActionRowV4 = (props: ActionRowV4Props) => {
         action_id: action.id,
       })}
       className={clsx(
-        "group *:border-gray-100 *:px-2 max-md:grid max-md:grid-cols-1fr/auto max-md:rounded-2xl max-md:border max-md:px-2 max-md:hover:bg-grey-25 md:contents md:*:border-b",
+        "group *:border-gray-100 *:px-2 max-md:grid max-md:grid-cols-1fr/auto max-md:rounded-2xl max-md:border max-md:px-2 max-md:hover:bg-portal-hover md:contents md:*:border-b",
       )}
     >
-      <div className="grid grid-cols-auto/1fr items-center gap-x-4 py-4 md:group-hover:bg-grey-25">
+      <div className="grid grid-cols-auto/1fr items-center gap-x-4 py-4 md:group-hover:bg-portal-hover">
         <ActionAvatar identifier={action.action} />
 
         <div className="grid gap-y-0.5">
@@ -57,7 +57,7 @@ export const ActionRowV4 = (props: ActionRowV4Props) => {
         </div>
       </div>
 
-      <div className="grid items-center md:group-hover:bg-grey-25">
+      <div className="grid items-center md:group-hover:bg-portal-hover">
         <Typography variant={TYPOGRAPHY.R4} className="truncate text-grey-500">
           {action.uses.toLocaleString()}
         </Typography>

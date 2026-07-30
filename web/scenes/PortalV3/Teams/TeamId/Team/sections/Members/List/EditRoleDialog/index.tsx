@@ -215,7 +215,7 @@ export const EditRoleDialog = (props: {
                             <SelectOption
                               key={`edit-role-option-${index}`}
                               value={option}
-                              className="size-full transition-colors hover:bg-grey-100"
+                              className="size-full transition-colors hover:bg-portal-hover"
                             >
                               {option.label}
                             </SelectOption>

@@ -111,7 +111,7 @@ export const McpSetup = () => {
             <button
               type="button"
               aria-label="Copy MCP setup command"
-              className="flex size-8 shrink-0 items-center justify-center rounded-8 text-blue-500 transition-colors hover:bg-grey-100 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
+              className="flex size-8 shrink-0 items-center justify-center rounded-8 text-blue-500 transition-colors hover:bg-portal-hover hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
               onClick={copyCommand}
             >
               <CopyIcon className="size-4" />

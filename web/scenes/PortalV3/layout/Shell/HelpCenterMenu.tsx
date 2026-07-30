@@ -28,7 +28,8 @@ import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 
-const itemClass = "h-10 cursor-pointer gap-3 text-portal-text focus:bg-grey-50";
+const itemClass =
+  "h-10 cursor-pointer gap-3 rounded-8 px-3 text-portal-text focus:bg-portal-hover";
 const labelClass = "px-2 py-1.5 text-portal-subtle";
 
 const HelpLink = (props: {
@@ -75,7 +76,7 @@ export const HelpCenterMenu = () => {
           <SidebarMenuButton
             aria-label="Help center"
             title="Help center"
-            className="h-10 cursor-pointer rounded-[10px] px-3 font-world text-13 leading-none text-portal-muted hover:bg-portal-border hover:text-portal-text"
+            className="h-10 cursor-pointer rounded-[10px] px-3 font-world text-13 leading-none text-portal-muted hover:bg-portal-hover hover:text-portal-text"
           >
             <Icon
               name="nav-help"

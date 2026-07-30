@@ -34,7 +34,8 @@ import { CSSProperties } from "react";
 
 export type PortalUser = { name: string; email?: string };
 
-const itemClass = "h-10 cursor-pointer text-portal-text focus:bg-grey-50";
+const itemClass =
+  "h-10 cursor-pointer rounded-8 px-3 text-portal-text focus:bg-portal-hover";
 
 const accountLinks = [
   {
@@ -129,7 +130,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               size="lg"
               aria-label="Account menu"
               title={user.name}
-              className="cursor-pointer text-portal-text hover:bg-portal-border focus-visible:bg-portal-border focus-visible:ring-0 data-open:bg-portal-border"
+              className="cursor-pointer text-portal-text hover:bg-portal-hover focus-visible:bg-portal-hover focus-visible:ring-0 data-open:bg-portal-hover"
             >
               <UserAvatar name={user.name} color={color} />
               <span className="min-w-0 flex-1 truncate font-world text-13 leading-none font-medium group-data-[collapsible=icon]:hidden">

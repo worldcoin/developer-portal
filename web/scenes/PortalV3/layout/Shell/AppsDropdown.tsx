@@ -103,7 +103,7 @@ export const AppsDropdown = () => {
           aria-expanded={open}
           className={cn(
             switcherTriggerClassName,
-            "text-portal-text hover:bg-portal-border hover:text-portal-text disabled:cursor-default",
+            "text-portal-text hover:bg-portal-hover hover:text-portal-text disabled:cursor-default",
           )}
         >
           {current ? <AppAvatar name={current.name} /> : null}

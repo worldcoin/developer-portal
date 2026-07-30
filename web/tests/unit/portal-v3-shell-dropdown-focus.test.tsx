@@ -48,7 +48,7 @@ describe("Portal v3 shell dropdown focus treatment", () => {
     });
 
     for (const trigger of [teamTrigger, profileTrigger]) {
-      expect(trigger).toHaveClass("focus-visible:bg-portal-border");
+      expect(trigger).toHaveClass("focus-visible:bg-portal-hover");
       expect(trigger).toHaveClass("focus-visible:ring-0");
     }
   });

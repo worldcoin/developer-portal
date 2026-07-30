@@ -18,13 +18,13 @@ export const Item = (props: ItemProps) => {
   return (
     <div
       className={clsx(
-        "group *:border-gray-100 *:px-2 max-md:grid max-md:grid-cols-1fr/auto max-md:rounded-2xl max-md:border max-md:px-2 max-md:hover:bg-grey-25 md:contents md:*:border-b",
+        "group *:border-gray-100 *:px-2 max-md:grid max-md:grid-cols-1fr/auto max-md:rounded-2xl max-md:border max-md:px-2 max-md:hover:bg-portal-hover md:contents md:*:border-b",
         {
           "cursor-pointer": !!item,
         },
       )}
     >
-      <div className="grid grid-cols-auto/1fr items-center gap-x-4 py-4 md:group-hover:bg-grey-25">
+      <div className="grid grid-cols-auto/1fr items-center gap-x-4 py-4 md:group-hover:bg-portal-hover">
         {item ? (
           <div className="flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-500 uppercase">
             <Typography variant={TYPOGRAPHY.M3}>{item.name[0]}</Typography>
@@ -57,7 +57,7 @@ export const Item = (props: ItemProps) => {
         </div>
       </div>
 
-      <div className="grid items-center md:group-hover:bg-grey-25">
+      <div className="grid items-center md:group-hover:bg-portal-hover">
         <Typography variant={TYPOGRAPHY.R4} className="truncate text-grey-500">
           {item ? (
             item.nullifiers.aggregate?.sum?.uses ?? 0
@@ -68,7 +68,7 @@ export const Item = (props: ItemProps) => {
       </div>
 
       <div
-        className="grid items-center max-md:hidden md:group-hover:bg-grey-25"
+        className="grid items-center max-md:hidden md:group-hover:bg-portal-hover"
         onClick={(e) => e.stopPropagation()}
       >
         {!item ? (
@@ -77,7 +77,7 @@ export const Item = (props: ItemProps) => {
           </div>
         ) : (
           <Dropdown>
-            <Dropdown.Button className="flex size-8 items-center justify-center rounded-lg hover:bg-grey-100">
+            <Dropdown.Button className="flex size-8 items-center justify-center rounded-lg hover:bg-portal-hover">
               <ElementsIcon />
             </Dropdown.Button>
 

@@ -44,7 +44,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
               size="lg"
               className={cn(
                 switcherTriggerClassName,
-                "text-portal-text hover:bg-portal-border focus-visible:bg-portal-border focus-visible:ring-0 aria-expanded:bg-portal-border",
+                "text-portal-text hover:bg-portal-hover focus-visible:bg-portal-hover focus-visible:ring-0 aria-expanded:bg-portal-hover",
               )}
             >
               <span className="min-w-0 flex-1 truncate font-world text-13 leading-none font-medium group-data-[collapsible=icon]:hidden">

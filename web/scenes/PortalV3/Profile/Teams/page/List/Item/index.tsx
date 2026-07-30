@@ -46,7 +46,7 @@ export const Item = (props: ItemsProps) => {
   }
 
   return (
-    <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-t border-grey-100 px-5 py-3 transition-colors hover:bg-grey-25 md:px-6">
+    <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-t border-grey-100 px-5 py-3 transition-colors hover:bg-portal-hover md:px-6">
       <Button
         href={urls.teams({ team_id: item.team.id })}
         className="flex min-w-0 items-center gap-3 rounded-8 outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2"
@@ -68,7 +68,7 @@ export const Item = (props: ItemsProps) => {
         <Dropdown>
           <Dropdown.Button
             aria-label={`Open actions for ${item.team.name ?? "team"}`}
-            className="flex size-8 items-center justify-center rounded-8 text-grey-500 outline-hidden hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-grey-300"
+            className="flex size-8 items-center justify-center rounded-8 text-grey-500 outline-hidden hover:bg-portal-hover focus-visible:ring-2 focus-visible:ring-grey-300"
           >
             <MoreVerticalIcon />
           </Dropdown.Button>

@@ -355,7 +355,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                   type="button"
                   onClick={() => handleDelete(imagePath)}
                   disabled={disabled}
-                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-grey-0 shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-grey-0 shadow-xs transition-colors hover:bg-portal-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <TrashIcon className="text-grey-500" />
                 </Button>
@@ -413,7 +413,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                   type="button"
                   onClick={() => handleDelete(imagePath)}
                   disabled={disabled}
-                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-grey-0 shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-grey-0 shadow-xs transition-colors hover:bg-portal-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <TrashIcon className="text-grey-500" />
                 </Button>

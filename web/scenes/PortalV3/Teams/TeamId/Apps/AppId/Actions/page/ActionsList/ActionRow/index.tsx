@@ -53,7 +53,7 @@ export const ActionRow = (props: {
       onClick={(event) => event.stopPropagation()}
     >
       <Dropdown>
-        <Dropdown.Button className="flex size-8 items-center justify-center rounded-lg hover:bg-grey-100">
+        <Dropdown.Button className="flex size-8 items-center justify-center rounded-lg hover:bg-portal-hover">
           <ElementsIcon />
         </Dropdown.Button>
 

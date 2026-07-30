@@ -128,7 +128,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           <button
             type="button"
             onClick={onClose}
-            className={`${actionClassName} border border-grey-200 bg-grey-0 text-portal-text enabled:hover:bg-grey-50 disabled:text-grey-300`}
+            className={`${actionClassName} border border-grey-200 bg-grey-0 text-portal-text enabled:hover:bg-portal-hover disabled:text-grey-300`}
             disabled={isSubmitting}
           >
             Keep account

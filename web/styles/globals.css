@@ -754,6 +754,10 @@
 
   --color-portal-canvas: #f7f7f7;
   --color-portal-border: #f1f1f1;
+  /* The one quiet-hover wash for rows, menu items, and ghost triggers. Fill
+     buttons keep their own hover (ink-hover, error tints); nothing else may
+     invent a hover grey. */
+  --color-portal-hover: #f4f4f4;
   --color-portal-heading: #0b1928;
   --color-portal-text: #181818;
   --color-portal-muted: #757575;
@@ -1022,38 +1026,41 @@
 /*
   ---break---
 */
+/* shadcn semantic tokens, dark: aligned to the derived neutral scale below so
+   shell popovers/menus sit on the same elevation ladder as portal surfaces —
+   canvas #171717 < card #1f1f1f < popover #242424 < hover wash #2a2a2a. */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  --background: #171717;
+  --foreground: #ececec;
+  --card: #1f1f1f;
+  --card-foreground: #ececec;
+  --popover: #242424;
+  --popover-foreground: #ececec;
+  --primary: #ececec;
+  --primary-foreground: #1f1f1f;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #ececec;
+  --muted: #2a2a2a;
+  --muted-foreground: #b4b4b4;
+  --accent: #2a2a2a;
+  --accent-foreground: #ececec;
+  --destructive: #ff5f4d;
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: #6e6e6e;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar: #171717;
+  --sidebar-foreground: #ececec;
+  --sidebar-primary: #ececec;
+  --sidebar-primary-foreground: #1f1f1f;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #ececec;
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: #6e6e6e;
 }
 
 /*
@@ -1118,6 +1125,8 @@
      subtlest #96999E neutralized. */
   --color-portal-canvas: #171717;
   --color-portal-border: #2c2c2c;
+  /* ChatGPT menu hover ≈ white @ 6% over the surface. */
+  --color-portal-hover: #2a2a2a;
   --color-portal-heading: #f0f0f0;
   --color-portal-text: #ececec;
   --color-portal-muted: #b4b4b4;

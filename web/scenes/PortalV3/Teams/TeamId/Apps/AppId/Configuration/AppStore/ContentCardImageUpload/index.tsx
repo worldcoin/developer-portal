@@ -249,7 +249,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
               onClick={removeImage}
               disabled={loading || !isEditable}
               className={clsx(
-                "absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-grey-0 shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50",
+                "absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-grey-0 shadow-xs transition-colors hover:bg-portal-hover disabled:cursor-not-allowed disabled:opacity-50",
                 { hidden: !isEditable },
               )}
             >
@@ -259,7 +259,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         ) : (
           <label
             className={clsx(
-              "flex h-[168px] w-full cursor-pointer flex-col items-center justify-center gap-y-3 rounded-[10px] border border-dashed bg-grey-50 p-6 hover:bg-grey-100",
+              "flex h-[168px] w-full cursor-pointer flex-col items-center justify-center gap-y-3 rounded-[10px] border border-dashed bg-grey-50 p-6 hover:bg-portal-hover",
               isError
                 ? "border-system-error-500 bg-system-error-50"
                 : "border-grey-200",

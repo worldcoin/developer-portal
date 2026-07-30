@@ -128,7 +128,7 @@ export const TeamSettingsForm = (props: {
           <button
             type="submit"
             disabled={!isValid || isSubmitting}
-            className="h-8 rounded-8 bg-grey-0 px-4 font-world text-13 font-medium text-portal-ink transition-colors hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:bg-grey-300 disabled:text-grey-500"
+            className="h-8 rounded-8 bg-grey-0 px-4 font-world text-13 font-medium text-portal-ink transition-colors hover:bg-portal-hover focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:bg-grey-300 disabled:text-grey-500"
           >
             Save
           </button>

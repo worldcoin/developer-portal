@@ -78,7 +78,7 @@ const stepActionClassName =
   "inline-flex h-10 w-44 shrink-0 items-center justify-center gap-2 rounded-lg px-5 text-center leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
 const secondaryStepActionClassName = clsx(
   stepActionClassName,
-  "border border-grey-200 bg-grey-0 text-grey-700 hover:bg-grey-50 disabled:cursor-not-allowed disabled:border-grey-100 disabled:text-grey-300",
+  "border border-grey-200 bg-grey-0 text-grey-700 hover:bg-portal-hover disabled:cursor-not-allowed disabled:border-grey-100 disabled:text-grey-300",
 );
 const primaryStepActionClassName = clsx(
   stepActionClassName,

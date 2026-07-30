@@ -56,7 +56,7 @@ const EntryRow = (props: EntryRowProps) => {
       <CopyButton
         fieldName={copyFieldName}
         fieldValue={value}
-        className="rounded-lg p-2 pr-2! hover:bg-grey-100"
+        className="rounded-lg p-2 pr-2! hover:bg-portal-hover"
         iconClassName="size-4 text-grey-500"
       />
 
@@ -65,7 +65,7 @@ const EntryRow = (props: EntryRowProps) => {
           type="button"
           onClick={onRemove}
           aria-label={`Remove ${value}`}
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-grey-500 hover:bg-grey-100 hover:text-grey-900"
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-grey-500 hover:bg-portal-hover hover:text-grey-900"
         >
           <CloseIcon className="size-3.5" strokeWidth={1.5} />
         </button>
@@ -209,7 +209,7 @@ export const EntryList = (props: EntryListProps) => {
                   }
                   aria-expanded={isExpanded}
                   aria-label={`Show ${nextRevealCount} more ${copyFieldName.toLowerCase()} entries`}
-                  className="flex min-w-0 flex-1 items-center justify-between gap-x-3 px-4 text-left transition-colors hover:bg-grey-50"
+                  className="flex min-w-0 flex-1 items-center justify-between gap-x-3 px-4 text-left transition-colors hover:bg-portal-hover"
                 >
                   <span className="font-world text-[14px] font-medium">
                     Show {nextRevealCount} more
@@ -225,7 +225,7 @@ export const EntryList = (props: EntryListProps) => {
                   aria-expanded="true"
                   aria-label={`Show fewer ${copyFieldName.toLowerCase()} entries`}
                   className={clsx(
-                    "flex min-w-0 items-center justify-between gap-x-3 px-4 text-left transition-colors hover:bg-grey-50",
+                    "flex min-w-0 items-center justify-between gap-x-3 px-4 text-left transition-colors hover:bg-portal-hover",
                     remainingCount > 0
                       ? "flex-1 border-l border-grey-100"
                       : "w-full",

@@ -36,7 +36,7 @@ import {
 } from "./Stepper";
 
 const secondaryButtonClassName =
-  "flex h-10 items-center justify-center rounded-[10px] bg-portal-canvas px-6 text-15 leading-[1.2] font-semibold text-portal-ink transition-colors hover:bg-portal-border disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-portal-canvas";
+  "flex h-10 items-center justify-center rounded-[10px] bg-portal-canvas px-6 text-15 leading-[1.2] font-semibold text-portal-ink transition-colors hover:bg-portal-hover disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-portal-canvas";
 const primaryButtonClassName =
   "flex h-10 items-center justify-center rounded-[10px] bg-portal-ink px-6 text-15 leading-[1.2] font-semibold text-grey-0 transition-colors hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:opacity-60";
 

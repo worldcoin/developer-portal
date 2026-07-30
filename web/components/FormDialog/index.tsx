@@ -41,7 +41,7 @@ const actionClassName =
   "inline-flex h-11 w-full items-center justify-center rounded-8 px-4 font-world text-13 leading-none font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed";
 
 export const formDialogPrimaryActionClassName = `${actionClassName} bg-portal-ink text-grey-0 enabled:hover:bg-portal-ink-hover disabled:bg-grey-200 disabled:text-grey-400`;
-export const formDialogSecondaryActionClassName = `${actionClassName} border border-grey-200 bg-grey-0 text-portal-text enabled:hover:bg-grey-50 disabled:text-grey-300`;
+export const formDialogSecondaryActionClassName = `${actionClassName} border border-grey-200 bg-grey-0 text-portal-text enabled:hover:bg-portal-hover disabled:text-grey-300`;
 export const formDialogDangerActionClassName = `${actionClassName} bg-system-error-600 text-white enabled:hover:bg-system-error-500 disabled:bg-grey-200 disabled:text-grey-400`;
 export const formDialogLabelClassName =
   "mb-2 block font-world text-13 leading-none font-medium text-portal-text";
@@ -89,7 +89,7 @@ export const FormDialog = ({
               onClick={onClose}
               disabled={!dismissable}
               aria-label={closeLabel}
-              className="flex size-8 shrink-0 items-center justify-center rounded-8 text-portal-muted transition-colors hover:bg-portal-border hover:text-portal-text focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-portal-muted"
+              className="flex size-8 shrink-0 items-center justify-center rounded-8 text-portal-muted transition-colors hover:bg-portal-hover hover:text-portal-text focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-portal-muted"
             >
               <RemoveCustomIcon className="size-4" />
             </button>

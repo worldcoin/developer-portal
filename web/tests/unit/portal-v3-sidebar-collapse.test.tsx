@@ -59,7 +59,8 @@ it("fully closes the desktop sidebar and exposes only the header reopen control"
   expect(collapseRail.querySelector("span")).toHaveClass(
     "cursor-pointer",
     "hover:border-grey-300",
-    "hover:bg-grey-100",
+    // The unified quiet-hover wash (see --color-portal-hover in globals.css).
+    "hover:bg-portal-hover",
   );
   expect(collapseRail).toContainElement(
     collapseRail.querySelector("svg") as SVGSVGElement,

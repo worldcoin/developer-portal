@@ -46,7 +46,7 @@ export const PortalShell = (props: {
             <SidebarTrigger
               aria-label="Open sidebar"
               title="Open sidebar"
-              className="size-8 shrink-0 text-portal-muted hover:bg-portal-border hover:text-portal-text md:data-[state=expanded]:hidden"
+              className="size-8 shrink-0 text-portal-muted hover:bg-portal-hover hover:text-portal-text md:data-[state=expanded]:hidden"
             />
             <AppsDropdown />
           </header>

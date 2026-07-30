@@ -177,7 +177,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                     {data?.members.map((member) => (
                       <SelectOption
                         key={member.id}
-                        className="transition hover:bg-grey-100"
+                        className="transition hover:bg-portal-hover"
                         value={member}
                       >
                         {getName(member)}{" "}
