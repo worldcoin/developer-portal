@@ -75,7 +75,7 @@ export const HelpCenterMenu = () => {
           <SidebarMenuButton
             aria-label="Help center"
             title="Help center"
-            className="h-10 rounded-[10px] px-3 font-world text-13 leading-none text-portal-muted hover:bg-portal-border hover:text-portal-text"
+            className="h-10 cursor-pointer rounded-[10px] px-3 font-world text-13 leading-none text-portal-muted hover:bg-portal-border hover:text-portal-text"
           >
             <Icon
               name="nav-help"
