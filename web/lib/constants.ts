@@ -48,7 +48,8 @@ export const FACE_SEQUENCER_STAGING =
 // ANCHOR: OIDC Base URL
 export const OIDC_BASE_URL = "https://id.worldcoin.org";
 export const DOCS_URL = "https://docs.world.org";
-export const DOCS_CLOUD_URL = "https://docs.world.org/id/cloud";
+export const DOCS_IDKIT_INTEGRATION_URL =
+  "https://docs.world.org/world-id/idkit/integrate";
 
 // ANCHOR: JWKs
 export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated
@@ -57,7 +58,7 @@ export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated
 export const SIMULATOR_URL = "https://simulator.worldcoin.org";
 export const TELEGRAM_DEVELOPERS_GROUP_URL = "https://t.me/worldcoindevelopers";
 export const TELEGRAM_MATEO_URL = "https://t.me/MateoSauton";
-export const DISCORD_URL = "https://world.org/discord";
+export const DISCORD_URL = "https://discord.com/invite/worldcoin";
 export const WORLD_STATUS_URL = "https://status.world.org/";
 export const WORLD_PRIVACY_URL = "https://world.org/privacy";
 export const FAQ_URL = "https://world.org/faqs";
