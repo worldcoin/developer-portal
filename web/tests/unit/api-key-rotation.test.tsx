@@ -93,6 +93,12 @@ const findRotateTrigger = () =>
 const confirmation = () => screen.getByRole("dialog");
 const confirmRotation = () =>
   within(confirmation()).getByRole("button", { name: /^rotate key$/i });
+const keepCurrentKey = () =>
+  within(confirmation()).getByRole("button", { name: /keep current key/i });
+const closeButton = () =>
+  within(confirmation()).getByRole("button", {
+    name: /close rotate key dialog/i,
+  });
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -208,6 +214,62 @@ describe("API key rotation flow", () => {
       ),
     ).toBeInTheDocument();
     expect(toastErrorMock).not.toHaveBeenCalled();
+  });
+
+  it("cannot be dismissed once rotation is confirmed", async () => {
+    // Rotation invalidates the old key immediately and its response carries the
+    // only copy of the new one, so every exit — Escape, the backdrop, the header
+    // X and the cancel button — has to be sealed until the reveal renders.
+    renderSection([
+      fetchKeysMock([API_KEY]),
+      { ...resetKeyMock, delay: 50 },
+      fetchKeysMock([ROTATED_KEY]),
+    ]);
+
+    fireEvent.click(await findRotateTrigger());
+    fireEvent.click(confirmRotation());
+
+    expect(keepCurrentKey()).toBeDisabled();
+    expect(closeButton()).toBeDisabled();
+
+    fireEvent.click(keepCurrentKey());
+    fireEvent.click(closeButton());
+    fireEvent.keyDown(confirmation(), { key: "Escape" });
+
+    // Still open, and it goes on to reveal the secret rather than losing it.
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(
+      await within(await screen.findByRole("dialog")).findByText(
+        "API key rotated",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(new RegExp(NEW_SECRET)).length).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it("becomes dismissable again when the rotation fails", async () => {
+    // The lock must track the in-flight window only. A failed rotation has no
+    // secret to protect, so leaving it engaged would strand the user.
+    renderSection([
+      fetchKeysMock([API_KEY]),
+      {
+        request: resetKeyMock.request,
+        error: new Error("network error"),
+        delay: 20,
+      },
+    ]);
+
+    fireEvent.click(await findRotateTrigger());
+    fireEvent.click(confirmRotation());
+
+    await waitFor(() => expect(keepCurrentKey()).toBeEnabled());
+    expect(closeButton()).toBeEnabled();
+
+    fireEvent.click(keepCurrentKey());
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
   });
 
   it("reports a failed rotation without revealing a secret", async () => {

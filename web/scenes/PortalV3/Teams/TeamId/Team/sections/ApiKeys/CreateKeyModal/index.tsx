@@ -38,10 +38,13 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const isOpenRef = useRef(isOpen);
   const requestIdRef = useRef(0);
-  const [insertKeyMutation, { loading: creatingKey }] =
-    useMutation(InsertKeyDocument);
-  const [resetApiKeyMutation, { loading: revealingKey }] =
-    useMutation(ResetApiKeyDocument);
+  // Creation is two chained mutations (insert, then reset to obtain the secret).
+  // Tracking "in flight" with one explicit flag instead of the two Apollo
+  // loading flags matters: those both read false in the render between the
+  // mutations, which would briefly unlock dismissal mid-operation.
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [insertKeyMutation] = useMutation(InsertKeyDocument);
+  const [resetApiKeyMutation] = useMutation(ResetApiKeyDocument);
 
   const {
     register,
@@ -76,9 +79,10 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
   };
 
   const submit = async (values: CreateKeyFormValues) => {
-    if (creatingKey || revealingKey) return;
+    if (isSubmitting) return;
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
+    setIsSubmitting(true);
 
     try {
       const result = await insertKeyMutation({
@@ -132,6 +136,12 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
       }
 
       toast.error("Error occurred while creating API key.");
+    } finally {
+      // Only the newest attempt owns the flag, so a superseded one cannot
+      // unlock the dialog while its replacement is still running.
+      if (requestIdRef.current === requestId) {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -140,6 +150,10 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
       open={isOpen}
       onClose={close}
       afterLeave={afterLeave}
+      // The key exists server-side the moment the first mutation lands, and the
+      // second returns its only copy: dismissing between them leaves a key in
+      // the table that can never be revealed. Hold the user until the reveal.
+      dismissable={!isSubmitting}
       closeLabel="Close API key dialog"
       title={createdKey ? "API key created" : "Create a new API key"}
       panelClassName={
@@ -205,6 +219,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
             <button
               className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
               type="button"
+              disabled={isSubmitting}
               onClick={close}
             >
               Cancel
@@ -212,10 +227,12 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
 
             <button
               type="submit"
-              disabled={!teamId || creatingKey || revealingKey}
+              disabled={!teamId || isSubmitting}
+              // Keeps an accessible name while the label is a spinner.
+              aria-label="Create new key"
               className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
             >
-              {creatingKey || revealingKey ? (
+              {isSubmitting ? (
                 <SpinnerIcon className="size-5 animate-spin" />
               ) : (
                 "Create new key"

@@ -3,6 +3,7 @@ import {
   formDialogDangerActionClassName,
   formDialogPrimaryActionClassName,
 } from "@/components/FormDialog";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { ApiKeySecretFields } from "../../ApiKeySecretFields";
 
 type RotateKeyModalProps = {
@@ -24,6 +25,12 @@ export const RotateKeyModal = (props: RotateKeyModalProps) => {
       open={isOpen}
       onClose={onClose}
       afterLeave={afterLeave}
+      // Confirming rotation invalidates the old key server-side and the response
+      // carries the only copy of the new one, so there is no safe exit between
+      // the two: hold the user here until the reveal renders. A failed rotation
+      // clears `loading` with no secret, which unlocks the dialog again rather
+      // than trapping them on a dead confirm view.
+      dismissable={!loading}
       title={rotatedKey ? "API key rotated" : "Are you sure?"}
       closeLabel="Close rotate key dialog"
       panelClassName={
@@ -65,13 +72,20 @@ export const RotateKeyModal = (props: RotateKeyModalProps) => {
               type="button"
               disabled={loading}
               onClick={onConfirm}
+              // Keeps an accessible name while the label is a spinner.
+              aria-label="Rotate key"
               className={`${formDialogDangerActionClassName} order-2 md:order-none`}
             >
-              Rotate key
+              {loading ? (
+                <SpinnerIcon className="size-5 animate-spin" />
+              ) : (
+                "Rotate key"
+              )}
             </button>
 
             <button
               type="button"
+              disabled={loading}
               onClick={onClose}
               className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
             >
