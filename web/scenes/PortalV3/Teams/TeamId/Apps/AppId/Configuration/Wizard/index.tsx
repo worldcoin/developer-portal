@@ -35,9 +35,9 @@ import {
 } from "./Stepper";
 
 const secondaryButtonClassName =
-  "flex h-12 items-center justify-center rounded-[10px] bg-portal-canvas px-6 text-15 leading-[1.2] font-semibold text-portal-ink transition-colors hover:bg-portal-border disabled:cursor-not-allowed disabled:opacity-60";
+  "flex h-10 items-center justify-center rounded-[10px] bg-portal-canvas px-6 text-15 leading-[1.2] font-semibold text-portal-ink transition-colors hover:bg-portal-border disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-portal-canvas";
 const primaryButtonClassName =
-  "flex h-12 items-center justify-center rounded-[10px] bg-portal-ink px-6 text-15 leading-[1.2] font-semibold text-white transition-colors hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:opacity-60";
+  "flex h-10 items-center justify-center rounded-[10px] bg-portal-ink px-6 text-15 leading-[1.2] font-semibold text-white transition-colors hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:opacity-60";
 
 /**
  * Q3 2026 configuration wizard (Figma: Dev Portal Q3 2026). The designed
@@ -271,15 +271,16 @@ export const ConfigurationWizard = (props: {
       <div className="-mx-6 shrink-0 border-t border-portal-border bg-white px-6 py-3">
         <div className="mx-auto flex w-full max-w-[626px] items-center gap-3">
           <div className="flex flex-1 justify-start">
-            {activeIndex > 0 && (
-              <button
-                type="button"
-                onClick={() => handleStepChange(steps[activeIndex - 1].id)}
-                className={secondaryButtonClassName}
-              >
-                Back
-              </button>
-            )}
+            {/* Always rendered: a disabled Back on the first step reads as
+                "you're at the start", where a missing button reads as broken. */}
+            <button
+              type="button"
+              disabled={activeIndex === 0}
+              onClick={() => handleStepChange(steps[activeIndex - 1].id)}
+              className={secondaryButtonClassName}
+            >
+              Back
+            </button>
           </div>
 
           <div className="flex min-w-0 items-center justify-center gap-3">
