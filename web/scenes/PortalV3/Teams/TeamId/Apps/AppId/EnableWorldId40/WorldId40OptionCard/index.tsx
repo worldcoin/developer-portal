@@ -28,9 +28,11 @@ export const WorldId40OptionCard = (
   const stampContent = disabled
     ? props.disabledStampText ?? props.stampText
     : props.stampText;
+  // Neutral hairline chip; the azure dot carries the stamp's accent instead
+  // of a tinted container.
   const stampClassName = disabled
-    ? "rounded-full bg-grey-100 px-2 py-0.5 text-grey-500"
-    : "rounded-full bg-additional-azure-100 px-2 py-0.5 text-additional-azure-500";
+    ? "flex items-center gap-x-1.5 rounded-full border border-grey-200 px-2 py-0.5 text-grey-500"
+    : "flex items-center gap-x-1.5 rounded-full border border-grey-200 px-2 py-0.5 text-portal-text";
   return (
     <label
       className={twMerge(
@@ -65,6 +67,12 @@ export const WorldId40OptionCard = (
               variant={TYPOGRAPHY.M5}
               className={stampClassName}
             >
+              {!disabled && (
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 rounded-full bg-additional-azure-500"
+                />
+              )}
               {stampContent}
             </Typography>
             {disabled && props.disabledReason && (

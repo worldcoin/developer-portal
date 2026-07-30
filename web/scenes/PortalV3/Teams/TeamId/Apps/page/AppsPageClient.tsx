@@ -34,7 +34,13 @@ const ActionCard = (props: {
 }) => (
   <section className="relative flex min-h-[244px] flex-col rounded-[10px] border border-portal-border bg-grey-0 p-6 shadow-portal-card">
     {props.badge ? (
-      <div className="absolute top-6 right-6 rounded-full bg-portal-purple/10 px-2 py-1 font-world text-12 leading-none font-medium text-portal-purple">
+      // Neutral hairline chip with the purple dot carrying the accent — no
+      // tinted container, per the portal status/tag grammar.
+      <div className="absolute top-6 right-6 flex items-center gap-x-1.5 rounded-full border border-grey-200 bg-grey-0 px-2 py-1 font-world text-12 leading-none font-medium text-portal-text">
+        <span
+          aria-hidden="true"
+          className="size-1.5 rounded-full bg-portal-purple"
+        />
         {props.badge}
       </div>
     ) : null}
