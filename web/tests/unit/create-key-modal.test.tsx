@@ -34,8 +34,11 @@ jest.mock("@apollo/client/react", () => ({
 }));
 
 // `dismissable` is surfaced as an attribute so tests can assert the dialog is
-// sealed for exactly as long as an unrecoverable secret is in flight.
+// sealed for exactly as long as an unrecoverable secret is in flight. The
+// button/label/input/error primitives stay real so the tests exercise the
+// markup users actually get.
 jest.mock("@/components/FormDialog", () => ({
+  ...jest.requireActual("@/components/FormDialog"),
   FormDialog: ({
     children,
     open,
@@ -52,11 +55,6 @@ jest.mock("@/components/FormDialog", () => ({
         {children}
       </div>
     ) : null,
-  formDialogErrorClassName: "",
-  formDialogInputClassName: "",
-  formDialogLabelClassName: "",
-  formDialogPrimaryActionClassName: "",
-  formDialogSecondaryActionClassName: "",
 }));
 
 jest.mock(

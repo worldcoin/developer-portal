@@ -1,9 +1,4 @@
-import {
-  FormDialog,
-  formDialogDangerActionClassName,
-  formDialogPrimaryActionClassName,
-} from "@/components/FormDialog";
-import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
+import { FormDialog, FormDialogButton } from "@/components/FormDialog";
 import { ApiKeySecretFields } from "../../ApiKeySecretFields";
 
 type RotateKeyModalProps = {
@@ -49,13 +44,7 @@ export const RotateKeyModal = (props: RotateKeyModalProps) => {
 
           <ApiKeySecretFields apiKey={rotatedKey} />
 
-          <button
-            type="button"
-            className={formDialogPrimaryActionClassName}
-            onClick={onClose}
-          >
-            Done
-          </button>
+          <FormDialogButton onClick={onClose}>Done</FormDialogButton>
         </div>
       ) : (
         <div className="grid gap-5">
@@ -68,29 +57,24 @@ export const RotateKeyModal = (props: RotateKeyModalProps) => {
           </p>
 
           <div className="grid w-full gap-3 md:grid-cols-2">
-            <button
-              type="button"
-              disabled={loading}
+            <FormDialogButton
+              variant="danger"
+              loading={loading}
               onClick={onConfirm}
               // Keeps an accessible name while the label is a spinner.
               aria-label="Rotate key"
-              className={`${formDialogDangerActionClassName} order-2 md:order-none`}
+              className="order-2 md:order-none"
             >
-              {loading ? (
-                <SpinnerIcon className="size-5 animate-spin" />
-              ) : (
-                "Rotate key"
-              )}
-            </button>
+              Rotate key
+            </FormDialogButton>
 
-            <button
-              type="button"
+            <FormDialogButton
               disabled={loading}
               onClick={onClose}
-              className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
+              className="order-1 md:order-none"
             >
               Keep current key
-            </button>
+            </FormDialogButton>
           </div>
         </div>
       )}

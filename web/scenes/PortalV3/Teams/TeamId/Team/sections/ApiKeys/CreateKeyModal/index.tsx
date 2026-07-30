@@ -1,13 +1,11 @@
 "use client";
 import {
   FormDialog,
-  formDialogErrorClassName,
-  formDialogInputClassName,
-  formDialogLabelClassName,
-  formDialogPrimaryActionClassName,
-  formDialogSecondaryActionClassName,
+  FormDialogButton,
+  FormDialogError,
+  FormDialogInput,
+  FormDialogLabel,
 } from "@/components/FormDialog";
-import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -172,13 +170,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
 
           <ApiKeySecretFields apiKey={createdKey} />
 
-          <button
-            type="button"
-            className={formDialogPrimaryActionClassName}
-            onClick={close}
-          >
-            Done
-          </button>
+          <FormDialogButton onClick={close}>Done</FormDialogButton>
         </div>
       ) : (
         <form className="grid w-full gap-y-6" onSubmit={handleSubmit(submit)}>
@@ -187,17 +179,13 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
           </p>
 
           <div>
-            <label
-              htmlFor="create-api-key-name"
-              className={formDialogLabelClassName}
-            >
+            <FormDialogLabel htmlFor="create-api-key-name">
               Key name <span aria-hidden="true">*</span>
-            </label>
+            </FormDialogLabel>
 
-            <input
+            <FormDialogInput
               id="create-api-key-name"
               {...register("name")}
-              className={formDialogInputClassName}
               placeholder="api_key_123"
               aria-invalid={Boolean(errors.name)}
               aria-describedby={
@@ -206,38 +194,32 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
             />
 
             {errors.name?.message && (
-              <p
-                id="create-api-key-name-error"
-                className={formDialogErrorClassName}
-              >
+              <FormDialogError id="create-api-key-name-error">
                 {errors.name.message}
-              </p>
+              </FormDialogError>
             )}
           </div>
 
           <div className="grid w-full gap-3 md:grid-cols-2">
-            <button
-              className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
-              type="button"
+            <FormDialogButton
+              variant="secondary"
+              className="order-2 md:order-none"
               disabled={isSubmitting}
               onClick={close}
             >
               Cancel
-            </button>
+            </FormDialogButton>
 
-            <button
+            <FormDialogButton
               type="submit"
-              disabled={!teamId || isSubmitting}
+              disabled={!teamId}
+              loading={isSubmitting}
               // Keeps an accessible name while the label is a spinner.
               aria-label="Create new key"
-              className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
+              className="order-1 md:order-none"
             >
-              {isSubmitting ? (
-                <SpinnerIcon className="size-5 animate-spin" />
-              ) : (
-                "Create new key"
-              )}
-            </button>
+              Create new key
+            </FormDialogButton>
           </div>
         </form>
       )}

@@ -4,8 +4,9 @@ import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { DialogTitle } from "@headlessui/react";
-import type { ReactNode } from "react";
+import type { ComponentPropsWithRef, ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
 type FormDialogProps = {
@@ -40,15 +41,89 @@ const ignoreDismiss = () => {};
 const actionClassName =
   "inline-flex h-11 w-full items-center justify-center rounded-8 px-4 font-world text-13 leading-none font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed";
 
-export const formDialogPrimaryActionClassName = `${actionClassName} bg-portal-ink text-white enabled:hover:bg-portal-ink-hover disabled:bg-grey-200 disabled:text-grey-400`;
-export const formDialogSecondaryActionClassName = `${actionClassName} border border-grey-200 bg-white text-portal-text enabled:hover:bg-grey-50 disabled:text-grey-300`;
-export const formDialogDangerActionClassName = `${actionClassName} bg-system-error-600 text-white enabled:hover:bg-system-error-500 disabled:bg-grey-200 disabled:text-grey-400`;
-export const formDialogLabelClassName =
-  "mb-2 block font-world text-13 leading-none font-medium text-portal-text";
-export const formDialogInputClassName =
-  "h-11 w-full rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200 disabled:bg-grey-50 disabled:text-grey-400";
-export const formDialogErrorClassName =
-  "mt-2 font-world text-12 leading-[1.4] text-system-error-600";
+const actionVariantClassNames = {
+  primary:
+    "bg-portal-ink text-white enabled:hover:bg-portal-ink-hover disabled:bg-grey-200 disabled:text-grey-400",
+  secondary:
+    "border border-grey-200 bg-white text-portal-text enabled:hover:bg-grey-50 disabled:text-grey-300",
+  danger:
+    "bg-system-error-600 text-white enabled:hover:bg-system-error-500 disabled:bg-grey-200 disabled:text-grey-400",
+};
+
+// Plain join, not twMerge: twMerge reads the custom text-13/text-14 size
+// utilities as text colors, so a later color class (text-white) silently
+// drops the font size.
+const joinClassNames = (...classNames: Array<string | undefined>) =>
+  classNames.filter(Boolean).join(" ");
+
+type FormDialogButtonProps = ComponentPropsWithRef<"button"> & {
+  variant?: keyof typeof actionVariantClassNames;
+  // Swaps the label for a spinner and disables the button. The spinner has no
+  // text, so callers must keep an aria-label for the accessible name.
+  loading?: boolean;
+};
+
+export const FormDialogButton = ({
+  variant = "primary",
+  loading = false,
+  type = "button",
+  disabled = false,
+  className,
+  children,
+  ...rest
+}: FormDialogButtonProps) => (
+  <button
+    type={type}
+    disabled={disabled || loading}
+    className={joinClassNames(
+      actionClassName,
+      actionVariantClassNames[variant],
+      className,
+    )}
+    {...rest}
+  >
+    {loading ? <SpinnerIcon className="size-5 animate-spin" /> : children}
+  </button>
+);
+
+export const FormDialogLabel = ({
+  className,
+  ...rest
+}: ComponentPropsWithRef<"label">) => (
+  <label
+    className={joinClassNames(
+      "mb-2 block font-world text-13 leading-none font-medium text-portal-text",
+      className,
+    )}
+    {...rest}
+  />
+);
+
+export const FormDialogInput = ({
+  className,
+  ...rest
+}: ComponentPropsWithRef<"input">) => (
+  <input
+    className={joinClassNames(
+      "h-11 w-full rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200 disabled:bg-grey-50 disabled:text-grey-400",
+      className,
+    )}
+    {...rest}
+  />
+);
+
+export const FormDialogError = ({
+  className,
+  ...rest
+}: ComponentPropsWithRef<"p">) => (
+  <p
+    className={joinClassNames(
+      "mt-2 font-world text-12 leading-[1.4] text-system-error-600",
+      className,
+    )}
+    {...rest}
+  />
+);
 
 export const FormDialog = ({
   children,

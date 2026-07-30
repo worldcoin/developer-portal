@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  FormDialog,
-  formDialogPrimaryActionClassName,
-  formDialogSecondaryActionClassName,
-} from "@/components/FormDialog";
-import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
+import { FormDialog, FormDialogButton } from "@/components/FormDialog";
 import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
@@ -71,26 +66,24 @@ export const InviteTeamMemberDialog = () => {
         />
 
         <div className="grid w-full gap-3 md:grid-cols-2">
-          <button
-            type="button"
+          <FormDialogButton
+            variant="secondary"
             onClick={onClose}
-            className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
+            className="order-2 md:order-none"
           >
             Cancel
-          </button>
+          </FormDialogButton>
 
-          <button
-            type="button"
-            disabled={loading || emails.length === 0}
+          <FormDialogButton
+            disabled={emails.length === 0}
+            loading={loading}
             onClick={handleInvite}
-            className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
+            // Keeps an accessible name while the label is a spinner.
+            aria-label="Send invite"
+            className="order-1 md:order-none"
           >
-            {loading ? (
-              <SpinnerIcon className="size-5 animate-spin" />
-            ) : (
-              "Send invite"
-            )}
-          </button>
+            Send invite
+          </FormDialogButton>
         </div>
       </div>
     </FormDialog>
