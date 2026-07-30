@@ -8,7 +8,6 @@ import { Auth0SessionUser } from "@/lib/types";
 import { DeleteAccountDialog } from "@/scenes/PortalV3/Profile/DangerZone/DeleteAccountDialog";
 import { List } from "@/scenes/PortalV3/Profile/Teams/page/List";
 import { InkButton } from "@/scenes/PortalV3/common/InkButton";
-import { CreateTeamDialog } from "@/scenes/PortalV3/Profile/page/CreateTeamDialog";
 import { WorldIdAccountMigration } from "@/scenes/common/Profile/page/WorldIdAccountMigration";
 import { UpdateUserDocument } from "@/scenes/common/Profile/page/graphql/client/update-user.generated";
 import { useMeQuery } from "@/scenes/common/me-query/client";
@@ -16,14 +15,7 @@ import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useMutation } from "@apollo/client/react";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  ReactNode,
-  Suspense,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -218,10 +210,6 @@ export const ProfilePage = () => {
         open={isDeleteAccountOpen}
         onClose={setIsDeleteAccountOpen}
       />
-
-      <Suspense fallback={null}>
-        <CreateTeamDialog />
-      </Suspense>
     </>
   );
 };

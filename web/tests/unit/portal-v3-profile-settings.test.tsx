@@ -46,9 +46,6 @@ jest.mock("@/scenes/PortalV3/Profile/DangerZone/DeleteAccountDialog", () => ({
   DeleteAccountDialog: ({ open }: { open: boolean }) =>
     open ? <div data-testid="delete-account-dialog" /> : null,
 }));
-jest.mock("@/scenes/PortalV3/Profile/page/CreateTeamDialog", () => ({
-  CreateTeamDialog: () => null,
-}));
 jest.mock("react-toastify", () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));

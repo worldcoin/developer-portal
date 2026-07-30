@@ -5,7 +5,7 @@ import { LeaveTeamDialog } from "@/scenes/PortalV3/Profile/Teams/page/LeaveTeamD
 import { TransferTeamDialog } from "@/scenes/PortalV3/Profile/Teams/page/TransferTeamDialog";
 import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
 import { InkButton } from "@/scenes/PortalV3/common/InkButton";
-import { CREATE_TEAM_DIALOG_URL } from "@/scenes/PortalV3/Profile/page/CreateTeamDialog/dialogRouting";
+import { PROFILE_CREATE_TEAM_DIALOG_URL } from "@/scenes/Onboarding/CreateTeam/dialogRouting";
 import { FetchMeQuery } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useState } from "react";
 import { Item } from "./Item";
@@ -46,7 +46,7 @@ export const List = (props: {
         </p>
 
         <InkButton
-          href={CREATE_TEAM_DIALOG_URL}
+          href={PROFILE_CREATE_TEAM_DIALOG_URL}
           className="h-8"
           icon={<PlusIcon className="size-4" />}
         >
