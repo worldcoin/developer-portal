@@ -103,7 +103,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           <input
             id="delete-account-confirmation"
             {...register("confirmation")}
-            className="h-11 w-full rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200"
+            className="h-11 w-full rounded-8 border border-grey-200 bg-grey-0 px-3 font-world text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200"
             aria-invalid={Boolean(errors.confirmation)}
             aria-describedby={
               errors.confirmation
@@ -128,7 +128,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           <button
             type="button"
             onClick={onClose}
-            className={`${actionClassName} border border-grey-200 bg-white text-portal-text enabled:hover:bg-grey-50 disabled:text-grey-300`}
+            className={`${actionClassName} border border-grey-200 bg-grey-0 text-portal-text enabled:hover:bg-grey-50 disabled:text-grey-300`}
             disabled={isSubmitting}
           >
             Keep account

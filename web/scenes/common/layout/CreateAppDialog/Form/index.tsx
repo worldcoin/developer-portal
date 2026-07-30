@@ -112,7 +112,7 @@ export const CreateAppForm = ({ teamId }: CreateAppFormProps) => {
           autoComplete="off"
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? errorId : undefined}
-          className={`h-11 w-full rounded-8 border bg-white px-3 text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200 ${
+          className={`h-11 w-full rounded-8 border bg-grey-0 px-3 text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200 ${
             errors.name ? "border-system-error-400" : "border-grey-200"
           }`}
           data-testid="input-app-name"
@@ -130,7 +130,7 @@ export const CreateAppForm = ({ teamId }: CreateAppFormProps) => {
       <button
         type="submit"
         disabled={!isValid || isPending}
-        className="inline-flex h-11 w-full items-center justify-center rounded-8 bg-portal-ink px-4 text-13 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400"
+        className="inline-flex h-11 w-full items-center justify-center rounded-8 bg-portal-ink px-4 text-13 leading-none font-medium text-grey-0 transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400"
         data-testid="button-create-app"
       >
         {isPending ? "Creating app…" : "Create app"}

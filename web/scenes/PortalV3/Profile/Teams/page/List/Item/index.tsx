@@ -60,7 +60,7 @@ export const Item = (props: ItemsProps) => {
         </span>
       </Button>
 
-      <span className="rounded-full border border-grey-200 bg-white px-2.5 py-1 font-world text-12 leading-none text-grey-500">
+      <span className="rounded-full border border-grey-200 bg-grey-0 px-2.5 py-1 font-world text-12 leading-none text-grey-500">
         {roleName[item.role]}
       </span>
 

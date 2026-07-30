@@ -8,7 +8,7 @@ type MobileNavLink = {
   label: string;
 };
 
-const linkClassName = "rounded-xl px-4 py-4 no-underline hover:bg-grey-50";
+const linkClassName = "rounded-xl px-4 py-4 no-underline hover:bg-[#f9fafb]";
 
 // Client island for the home header's mobile menu. Kept separate so the
 // layout stays a server component. The menu is a native <details>; we only
@@ -66,7 +66,7 @@ export const HomeMobileNav = ({
 
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-2 top-16 hidden rounded-2xl border border-grey-100 bg-white p-2 font-world text-[16px] leading-none tracking-[0.08em] text-black shadow-lg group-open:grid"
+        className="fixed inset-x-2 top-16 hidden rounded-2xl border border-[#f3f4f5] bg-white p-2 font-world text-[16px] leading-none tracking-[0.08em] text-black shadow-lg group-open:grid"
       >
         {links.map((link) => (
           <a

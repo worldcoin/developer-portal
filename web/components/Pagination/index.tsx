@@ -34,7 +34,7 @@ export const Pagination: React.FC<FooterProps> = ({
     <div
       className={twMerge(
         clsx(
-          "sticky bottom-0 grid w-full items-center justify-between gap-x-4 bg-white py-4 text-xs",
+          "sticky bottom-0 grid w-full items-center justify-between gap-x-4 bg-grey-0 py-4 text-xs",
           Boolean(rowsPerPageOptions) ? "grid-cols-3" : "grid-cols-2",
           className,
         ),

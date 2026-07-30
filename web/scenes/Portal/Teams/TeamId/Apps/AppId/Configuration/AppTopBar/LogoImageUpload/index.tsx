@@ -296,7 +296,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             type="button"
             onClick={() => setShowDialog(true)}
             className={clsx(
-              "absolute -right-2 -bottom-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
+              "absolute -right-2 -bottom-2 rounded-full border-2 border-grey-200 bg-grey-0 p-2 text-grey-500 hover:bg-grey-50",
               { hidden: !editable || viewMode === "verified" },
             )}
           >

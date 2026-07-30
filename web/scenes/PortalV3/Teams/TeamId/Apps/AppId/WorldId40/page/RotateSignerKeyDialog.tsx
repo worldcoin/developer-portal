@@ -92,7 +92,7 @@ export const RotateSignerKeyDialog = ({
   return (
     <Dialog open={open} onClose={handleClose} className="z-50">
       <DialogPanel className="fixed inset-0 overflow-y-scroll p-0">
-        <header className="fixed z-10 max-h-[56px] w-full border-b border-grey-100 bg-white py-4">
+        <header className="fixed z-10 max-h-[56px] w-full border-b border-grey-100 bg-grey-0 py-4">
           <SizingWrapper>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-x-3">
@@ -260,7 +260,7 @@ const RotateConfigureContent = ({
         <button
           type="button"
           onClick={() => onContinue(setup)}
-          className="rounded-full bg-grey-900 px-6 py-3 text-white hover:opacity-90"
+          className="rounded-full bg-grey-900 px-6 py-3 text-grey-0 hover:opacity-90"
         >
           <Typography variant={TYPOGRAPHY.M4}>Continue</Typography>
         </button>

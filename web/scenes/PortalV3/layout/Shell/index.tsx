@@ -41,7 +41,7 @@ export const PortalShell = (props: {
           sandboxRequest={sandboxRequest}
         />
 
-        <SidebarInset className="min-h-[100dvh] min-w-0 bg-white">
+        <SidebarInset className="min-h-[100dvh] min-w-0 bg-grey-0">
           <header className="flex h-(--portal-header-height) shrink-0 items-center gap-3 border-b border-portal-border bg-portal-canvas px-4 md:px-5">
             <SidebarTrigger
               aria-label="Open sidebar"
@@ -51,7 +51,7 @@ export const PortalShell = (props: {
             <AppsDropdown />
           </header>
 
-          <div className="min-w-0 flex-1 overflow-auto bg-white">
+          <div className="min-w-0 flex-1 overflow-auto bg-grey-0">
             {children}
           </div>
         </SidebarInset>

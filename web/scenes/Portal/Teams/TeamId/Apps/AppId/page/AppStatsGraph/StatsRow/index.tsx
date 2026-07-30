@@ -134,7 +134,7 @@ export const TimePeriodSelector = ({
 }: TimePeriodSelectorProps) => {
   return (
     <Select value={timePeriod} onChange={onTimePeriodChange}>
-      <SelectButton className="flex h-10 w-32 items-center justify-between rounded-lg border border-gray-200 bg-white px-4">
+      <SelectButton className="flex h-10 w-32 items-center justify-between rounded-lg border border-gray-200 bg-grey-0 px-4">
         <span className="font-gta text-base font-normal text-zinc-700">
           {timePeriodOptions.find((o) => o.value === timePeriod)?.label}
         </span>

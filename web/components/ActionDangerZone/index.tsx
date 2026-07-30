@@ -100,7 +100,7 @@ export const ActionDangerZone = (props: ActionDangerZoneProps) => {
           <div className="grid w-full gap-4 md:grid-cols-2">
             <DecoratedButton
               type="button"
-              className="h-14 w-full rounded-full border border-grey-200 bg-white hover:bg-grey-50"
+              className="h-14 w-full rounded-full border border-grey-200 bg-grey-0 hover:bg-grey-50"
               onClick={() => setOpenDeleteModal(false)}
             >
               <Typography

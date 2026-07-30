@@ -126,13 +126,13 @@ export const ProfilePage = () => {
           </header>
 
           <div className="grid gap-6">
-            <section className="overflow-hidden rounded-12 border border-grey-200 bg-white">
+            <section className="overflow-hidden rounded-12 border border-grey-200 bg-grey-0">
               <CardHeader title="Teams" />
               <List memberships={user?.memberships} loading={loading} />
             </section>
 
             <form
-              className="overflow-hidden rounded-12 border border-grey-200 bg-white"
+              className="overflow-hidden rounded-12 border border-grey-200 bg-grey-0"
               onSubmit={handleDisplayNameSubmit(submitDisplayName)}
             >
               <CardHeader title="Display name" />
@@ -197,7 +197,7 @@ export const ProfilePage = () => {
               <Button
                 type="button"
                 onClick={() => setIsDeleteAccountOpen(true)}
-                className="inline-flex h-8 items-center justify-center rounded-8 border border-system-error-300 bg-white px-4 font-world text-13 leading-none font-medium text-system-error-600 outline-hidden transition-colors hover:border-system-error-400 hover:bg-system-error-50 focus-visible:ring-2 focus-visible:ring-system-error-300 focus-visible:ring-offset-2"
+                className="inline-flex h-8 items-center justify-center rounded-8 border border-system-error-300 bg-grey-0 px-4 font-world text-13 leading-none font-medium text-system-error-600 outline-hidden transition-colors hover:border-system-error-400 hover:bg-system-error-50 focus-visible:ring-2 focus-visible:ring-system-error-300 focus-visible:ring-offset-2"
               >
                 Delete account
               </Button>

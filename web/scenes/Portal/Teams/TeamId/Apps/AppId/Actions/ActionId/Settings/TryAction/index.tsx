@@ -51,7 +51,7 @@ export const TryAction = (props: TryActionProps) => {
               type="button"
               onClick={() => setShowCode(false)}
               className={clsx(
-                "flex size-11 items-center justify-center rounded-xl bg-white shadow-button hover:bg-grey-50",
+                "flex size-11 items-center justify-center rounded-xl bg-grey-0 shadow-button hover:bg-grey-50",
                 { "border border-grey-200": showKioskView },
               )}
             >
@@ -68,7 +68,7 @@ export const TryAction = (props: TryActionProps) => {
               type="button"
               onClick={() => setShowCode(true)}
               className={clsx(
-                "flex size-11 items-center justify-center rounded-xl bg-white shadow-button hover:bg-grey-50",
+                "flex size-11 items-center justify-center rounded-xl bg-grey-0 shadow-button hover:bg-grey-50",
                 { "border border-grey-200": showCodeView },
               )}
             >

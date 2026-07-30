@@ -113,14 +113,14 @@ export const TeamSettingsForm = (props: {
 
       {canWrite && isDirty ? (
         <div className="fixed bottom-6 left-1/2 z-40 flex max-w-[calc(100vw-48px)] -translate-x-1/2 items-center gap-2 rounded-12 bg-portal-ink p-2 pl-4 shadow-lg md:left-[calc(50%+140px)]">
-          <span className="mr-2 font-world text-13 whitespace-nowrap text-white/75">
+          <span className="mr-2 font-world text-13 whitespace-nowrap text-grey-0/75">
             Unsaved changes
           </span>
 
           <button
             type="button"
             onClick={() => reset({ name: teamName })}
-            className="h-8 rounded-8 px-3 font-world text-13 font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:outline-hidden"
+            className="h-8 rounded-8 px-3 font-world text-13 font-medium text-grey-0/75 transition-colors hover:bg-grey-0/10 hover:text-grey-0 focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:outline-hidden"
           >
             Cancel
           </button>
@@ -128,7 +128,7 @@ export const TeamSettingsForm = (props: {
           <button
             type="submit"
             disabled={!isValid || isSubmitting}
-            className="h-8 rounded-8 bg-white px-4 font-world text-13 font-medium text-portal-ink transition-colors hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:bg-grey-300 disabled:text-grey-500"
+            className="h-8 rounded-8 bg-grey-0 px-4 font-world text-13 font-medium text-portal-ink transition-colors hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:bg-grey-300 disabled:text-grey-500"
           >
             Save
           </button>

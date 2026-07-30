@@ -31,7 +31,7 @@ export const Switcher = (props: SwitchProps) => {
             "translate-x-[1.1rem]": enabled,
             "translate-x-[.15rem]": !enabled,
           },
-          "inline-block size-[20px] rounded-full bg-white transition",
+          "inline-block size-[20px] rounded-full bg-grey-0 transition",
           "from-[#D3D4D645] to-white after:absolute after:top-1/2 after:left-1/2 after:size-[17px] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full after:bg-linear-to-b after:content-['']",
         )}
       />

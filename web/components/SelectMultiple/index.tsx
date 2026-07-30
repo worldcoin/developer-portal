@@ -221,7 +221,7 @@ export const SelectMultiple = <T extends FieldValues>(
                 clearAll?.();
               }}
               className={clsx(
-                "h-8 rounded-full bg-grey-900 px-3 text-white hover:bg-grey-700",
+                "h-8 rounded-full bg-grey-900 px-3 text-grey-0 hover:bg-grey-700",
                 {
                   "cursor-not-allowed opacity-50": !props.canClearAll,
                 },
@@ -240,7 +240,7 @@ export const SelectMultiple = <T extends FieldValues>(
         ref={refs.setFloating}
         style={floatingStyles}
         className={clsx(
-          "z-50 grid min-h-0 w-full grid-rows-auto/1fr gap-y-1 rounded-xl border border-grey-200 bg-white py-2 shadow-lg",
+          "z-50 grid min-h-0 w-full grid-rows-auto/1fr gap-y-1 rounded-xl border border-grey-200 bg-grey-0 py-2 shadow-lg",
           { hidden: !open },
         )}
         {...getFloatingProps()}

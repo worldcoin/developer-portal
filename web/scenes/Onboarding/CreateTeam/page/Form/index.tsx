@@ -97,7 +97,7 @@ export const Form = () => {
     <form onSubmit={handleSubmit(handleCreateTeam)} className="mt-12 grid">
       <label
         htmlFor="team-name"
-        className="block text-13 leading-none font-medium text-portal-text"
+        className="block text-13 leading-none font-medium text-[#181818]"
       >
         Team name
       </label>
@@ -109,7 +109,7 @@ export const Form = () => {
         autoComplete="organization"
         aria-invalid={Boolean(errors.teamName)}
         aria-describedby={errors.teamName ? "team-name-error" : undefined}
-        className="mt-2 w-full border-0 border-b-2 border-black/30 bg-transparent px-0 pb-3 text-[clamp(34px,5vw,52px)] leading-none font-light tracking-[-0.035em] text-portal-text outline-hidden transition-colors focus:border-black focus:ring-0"
+        className="mt-2 w-full border-0 border-b-2 border-black/30 bg-transparent px-0 pb-3 text-[clamp(34px,5vw,52px)] leading-none font-light tracking-[-0.035em] text-[#181818] outline-hidden transition-colors focus:border-black focus:ring-0"
       />
 
       {errors.teamName ? (
@@ -126,15 +126,15 @@ export const Form = () => {
           <input
             {...register("termsAndConditions")}
             type="checkbox"
-            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-grey-300 accent-portal-ink"
+            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-[#d6d9dd] accent-portal-ink"
           />
-          <span className="text-13 leading-[1.5] text-portal-muted">
+          <span className="text-13 leading-[1.5] text-[#757575]">
             I agree to the{" "}
             <a
               href={urls.tos()}
               target="_blank"
               rel="noreferrer"
-              className="font-medium text-portal-text underline underline-offset-2"
+              className="font-medium text-[#181818] underline underline-offset-2"
             >
               Terms &amp; Conditions
             </a>{" "}
@@ -143,7 +143,7 @@ export const Form = () => {
               href={urls.privacyStatement()}
               target="_blank"
               rel="noreferrer"
-              className="font-medium text-portal-text underline underline-offset-2"
+              className="font-medium text-[#181818] underline underline-offset-2"
             >
               Privacy Policy
             </a>
@@ -161,7 +161,7 @@ export const Form = () => {
       <button
         type="submit"
         disabled={!isValid || isPending}
-        className="mt-10 inline-flex h-12 w-full max-w-[220px] cursor-pointer items-center justify-center rounded-8 bg-portal-ink px-6 text-14 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:opacity-40"
+        className="mt-10 inline-flex h-12 w-full max-w-[220px] cursor-pointer items-center justify-center rounded-8 bg-[#1f1f1f] px-6 text-14 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-[#333333] disabled:cursor-not-allowed disabled:opacity-40"
       >
         {isPending ? "Creating team…" : "Create team"}
       </button>

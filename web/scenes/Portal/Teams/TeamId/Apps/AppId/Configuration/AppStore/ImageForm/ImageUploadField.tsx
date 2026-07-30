@@ -336,7 +336,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                   type="button"
                   onClick={() => handleDelete(imagePath)}
                   disabled={disabled}
-                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-grey-0 shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <TrashIcon className="text-grey-500" />
                 </Button>
@@ -394,7 +394,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                   type="button"
                   onClick={() => handleDelete(imagePath)}
                   disabled={disabled}
-                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-grey-0 shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <TrashIcon className="text-grey-500" />
                 </Button>
@@ -468,7 +468,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
               <button
                 type="button"
                 onClick={() => setLightboxUrl(null)}
-                className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full bg-white/95 text-grey-700 shadow-md transition-colors hover:bg-white"
+                className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full bg-grey-0/95 text-grey-700 shadow-md transition-colors hover:bg-grey-0"
                 aria-label="Close"
               >
                 <CloseIcon className="size-4" />

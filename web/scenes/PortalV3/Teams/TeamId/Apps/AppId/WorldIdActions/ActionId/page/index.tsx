@@ -74,7 +74,7 @@ export const WorldIdActionDetailPage = (props: {
           )}
         </div>
 
-        <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
+        <div className="rounded-16 border border-portal-border bg-grey-0 p-6 shadow-portal-card">
           {!action ? (
             <Skeleton height={48} />
           ) : (
@@ -92,7 +92,7 @@ export const WorldIdActionDetailPage = (props: {
         </div>
 
         {action ? (
-          <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
+          <div className="rounded-16 border border-portal-border bg-grey-0 p-6 shadow-portal-card">
             <div className="flex flex-col gap-1">
               <span className="font-world text-sm text-portal-muted">
                 Verifications
@@ -111,7 +111,7 @@ export const WorldIdActionDetailPage = (props: {
             />
           </div>
         ) : (
-          <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
+          <div className="rounded-16 border border-portal-border bg-grey-0 p-6 shadow-portal-card">
             <div className="flex flex-col gap-1">
               <span className="font-world text-sm text-portal-muted">
                 Verifications

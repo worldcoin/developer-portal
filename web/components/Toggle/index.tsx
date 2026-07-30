@@ -47,7 +47,7 @@ export const Toggle = (props: ToggleProps) => {
     >
       <span
         className={clsx(
-          "pointer-events-none inline-block size-5 rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
+          "pointer-events-none inline-block size-5 rounded-full bg-grey-0 shadow-sm ring-0 transition duration-200 ease-in-out",
           {
             "translate-x-5": checked,
             "translate-x-0": !checked,

@@ -42,7 +42,7 @@ const STORIES: DeveloperStory[] = [
 const PlayGlyph = () => (
   <svg
     aria-hidden="true"
-    className="size-4 translate-x-px fill-portal-text md:size-6"
+    className="size-4 translate-x-px fill-[#181818] md:size-6"
     viewBox="0 0 24 24"
   >
     <path d="M8 5v14l11-7z" />
@@ -132,7 +132,7 @@ export const DeveloperStories = () => {
   }, []);
 
   return (
-    <div className="flex w-full flex-col gap-10 text-portal-text">
+    <div className="flex w-full flex-col gap-10 text-[#181818]">
       <div className="flex items-end justify-between gap-6">
         <div className="flex max-w-[625px] flex-col gap-4">
           <h2 className="text-[clamp(32px,2.8vw,48px)] leading-[1.2] tracking-[-0.02em]">

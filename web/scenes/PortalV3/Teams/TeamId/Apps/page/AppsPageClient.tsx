@@ -32,7 +32,7 @@ const ActionCard = (props: {
   badge?: string;
   children: ReactNode;
 }) => (
-  <section className="relative flex min-h-[244px] flex-col rounded-[10px] border border-portal-border bg-white p-6 shadow-portal-card">
+  <section className="relative flex min-h-[244px] flex-col rounded-[10px] border border-portal-border bg-grey-0 p-6 shadow-portal-card">
     {props.badge ? (
       <div className="absolute top-6 right-6 rounded-full bg-portal-purple/10 px-2 py-1 font-world text-12 leading-none font-medium text-portal-purple">
         {props.badge}

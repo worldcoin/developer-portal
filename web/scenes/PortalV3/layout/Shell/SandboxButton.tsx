@@ -230,7 +230,7 @@ export const SandboxButton = (props: {
                   className={clsx(
                     "flex h-8 items-center justify-center rounded-8 px-5 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-grey-300",
                     platform === p
-                      ? "bg-white text-grey-900 shadow-portal-card"
+                      ? "bg-grey-0 text-grey-900 shadow-portal-card"
                       : "text-grey-500 hover:text-grey-700",
                   )}
                 >
@@ -261,7 +261,7 @@ export const SandboxButton = (props: {
                     onChange={(e) => setRequestEmail(e.target.value)}
                     aria-label="Google account email"
                     placeholder="google-account@gmail.com"
-                    className="h-9 min-w-0 flex-1 rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300 disabled:bg-grey-100 disabled:text-grey-500"
+                    className="h-9 min-w-0 flex-1 rounded-8 border border-grey-200 bg-grey-0 px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300 disabled:bg-grey-100 disabled:text-grey-500"
                   />
                   <DecoratedButton
                     type="submit"

@@ -54,7 +54,7 @@ export const TextField = (props: {
             ? "border-[#ea392a] bg-system-error-50"
             : props.muted
               ? "border-portal-border bg-portal-canvas"
-              : "border-portal-border bg-white",
+              : "border-portal-border bg-grey-0",
         )}
       >
         <span className="flex min-w-0 flex-1 flex-col overflow-clip">

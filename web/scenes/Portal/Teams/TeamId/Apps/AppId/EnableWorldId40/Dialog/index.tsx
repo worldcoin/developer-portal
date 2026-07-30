@@ -208,7 +208,7 @@ export const EnableWorldIdDialog = ({
       <DialogPanel
         className={clsx("fixed inset-0 overflow-y-scroll p-0", props.className)}
       >
-        <header className="fixed z-10 max-h-[56px] w-full border-b border-grey-100 bg-white py-4">
+        <header className="fixed z-10 max-h-[56px] w-full border-b border-grey-100 bg-grey-0 py-4">
           <SizingWrapper>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-x-3">

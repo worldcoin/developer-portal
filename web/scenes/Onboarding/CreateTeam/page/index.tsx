@@ -35,7 +35,7 @@ export const CreateTeamPage = async () => {
   const signedInAs = user.email || user.name;
 
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[#faf9f7] font-world text-portal-text">
+    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[#faf9f7] font-world text-[#181818]">
       <WorldIcon
         variant="outline"
         aria-hidden="true"
@@ -54,7 +54,7 @@ export const CreateTeamPage = async () => {
 
       <main className="relative z-10 flex flex-1 items-center px-6 md:px-12">
         <div className="mx-auto w-full max-w-[640px] py-16">
-          <h1 className="text-12 leading-none font-medium tracking-[0.14em] text-portal-muted uppercase">
+          <h1 className="text-12 leading-none font-medium tracking-[0.14em] text-[#757575] uppercase">
             Create your first team
           </h1>
 
@@ -63,12 +63,12 @@ export const CreateTeamPage = async () => {
       </main>
 
       <footer className="relative z-10 px-6 pb-8 md:px-12">
-        <p className="mx-auto w-full max-w-[640px] text-12 leading-none text-portal-subtle">
-          Signed in as <span className="text-portal-muted">{signedInAs}</span>
+        <p className="mx-auto w-full max-w-[640px] text-12 leading-none text-[#9c9c9c]">
+          Signed in as <span className="text-[#757575]">{signedInAs}</span>
           {" · "}
           <a
             href={urls.logout()}
-            className="underline underline-offset-2 transition-colors hover:text-portal-text"
+            className="underline underline-offset-2 transition-colors hover:text-[#181818]"
           >
             Log out
           </a>

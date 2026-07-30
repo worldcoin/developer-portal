@@ -13,7 +13,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
     <section
       className={twMerge(
         clsx(
-          "flex h-full min-w-0 flex-col overflow-hidden rounded-16 border bg-white shadow-portal-card",
+          "flex h-full min-w-0 flex-col overflow-hidden rounded-16 border bg-grey-0 shadow-portal-card",
           {
             "border-portal-border": tone === "default",
             "border-system-error-200": tone === "danger",

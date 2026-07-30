@@ -15,7 +15,7 @@ const EnableWorldIdDialog = dynamic(
     ).then((module) => module.EnableWorldIdDialog),
   {
     loading: () => (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-grey-0">
         <SpinnerIcon className="size-6 animate-spin text-grey-500" />
       </div>
     ),

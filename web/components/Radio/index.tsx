@@ -30,7 +30,7 @@ export const Radio: React.FC<RadioProps> = memo(function Radio(
         id={value}
         {...restProps}
         className={clsx(
-          "bg-white after:size-[12px] after:shadow-[0_1px_1.4px_rgba(0,0,0,0.12)]", // Drop shadow with blur of 2.4 and 12% opacity
+          "bg-grey-0 after:size-[12px] after:shadow-[0_1px_1.4px_rgba(0,0,0,0.12)]", // Drop shadow with blur of 2.4 and 12% opacity
           "peer scale-125",
           "border-2 border-grey-300", // Base classes for border and background
           "focus:ring-0 focus:ring-transparent focus:outline-hidden",
@@ -43,7 +43,7 @@ export const Radio: React.FC<RadioProps> = memo(function Radio(
           },
           "checked:before:bg-grey-900 checked:before:bg-linear-to-b checked:before:from-white/15 checked:before:to-transparent",
           "after:absolute after:inset-0 after:m-auto after:content-['']", // Positioning the pseudo-element
-          "after:rounded-full checked:after:size-[5px] checked:after:bg-white",
+          "after:rounded-full checked:after:size-[5px] checked:after:bg-grey-0",
         )}
         disabled={disabled}
       />

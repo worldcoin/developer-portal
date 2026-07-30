@@ -35,7 +35,7 @@ export const WorldId40OptionCard = (
     <label
       className={twMerge(
         clsx(
-          "grid gap-y-3 rounded-lg border border-grey-100 bg-white px-6 py-5 shadow-[0_1.3px_2.6px_rgba(0,0,0,0.053)] transition-colors",
+          "grid gap-y-3 rounded-lg border border-grey-100 bg-grey-0 px-6 py-5 shadow-[0_1.3px_2.6px_rgba(0,0,0,0.053)] transition-colors",
           !disabled && "cursor-pointer",
           disabled && "cursor-not-allowed opacity-60",
           props.className,

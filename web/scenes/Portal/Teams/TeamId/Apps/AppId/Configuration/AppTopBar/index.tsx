@@ -249,7 +249,7 @@ const AppIconButton = ({
           className="size-full rounded-full object-cover drop-shadow-lg"
         />
         {viewMode !== "verified" && !isInReview && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -307,7 +307,7 @@ const AppIconButton = ({
             </Typography>
           )}
         </div>
-        <div className="absolute inset-0 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100" />
+        <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100" />
       </>
     ) : null}
   </button>

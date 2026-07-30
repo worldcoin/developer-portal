@@ -97,7 +97,7 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
                   "flex h-8 items-center justify-center gap-1 rounded-2xl py-1.5 pr-3.5 pl-1.5",
                   isActive
                     ? "bg-portal-canvas"
-                    : "border border-portal-border bg-white",
+                    : "border border-portal-border bg-grey-0",
                   hasErrors && "border border-[#ea392a]",
                 )}
               >

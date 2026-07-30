@@ -82,7 +82,7 @@ const secondaryStepActionClassName = clsx(
 );
 const primaryStepActionClassName = clsx(
   stepActionClassName,
-  "bg-grey-900 text-white hover:bg-grey-700 disabled:cursor-not-allowed disabled:bg-grey-100 disabled:text-grey-400",
+  "bg-grey-900 text-grey-0 hover:bg-grey-700 disabled:cursor-not-allowed disabled:bg-grey-100 disabled:text-grey-400",
 );
 
 /** Static top-right cue for which version the form shows — not a control. */

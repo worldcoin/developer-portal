@@ -31,7 +31,7 @@ export const DecoratedButton = memo(function DecoratedButton(
   const buttonStyles = {
     primary: {
       normal:
-        "bg-grey-900 text-white bg-linear-to-b border-grey-900 from-white/15 to-transparent shadow-button",
+        "bg-grey-900 text-grey-0 bg-linear-to-b border-grey-900 from-white/15 to-transparent shadow-button",
       hover: "hover:bg-linear-to-b hover:from-white/20 hover:to-transparent ",
       disabled: "bg-grey-100 text-grey-300 pointer-events-none",
       loading: "bg-grey-100 text-grey-400 pointer-events-none",

@@ -48,7 +48,7 @@ export const SkeletonCard = (props: {
   <div
     aria-hidden
     className={clsx(
-      "flex min-h-[144px] flex-col gap-2 rounded-[10px] border border-portal-border bg-white p-5",
+      "flex min-h-[144px] flex-col gap-2 rounded-[10px] border border-portal-border bg-grey-0 p-5",
       props.className,
     )}
   >

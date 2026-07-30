@@ -125,7 +125,7 @@ export const ChipSelect = (props: {
           <ul
             role="listbox"
             className={clsx(
-              "absolute z-10 max-h-64 w-full overflow-y-auto rounded-[10px] border border-portal-border bg-white p-1 shadow-portal-card",
+              "absolute z-10 max-h-64 w-full overflow-y-auto rounded-[10px] border border-portal-border bg-grey-0 p-1 shadow-portal-card",
               opensUpward ? "bottom-full mb-2" : "top-full mt-2",
             )}
           >

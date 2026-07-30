@@ -34,7 +34,7 @@ export const NavItem = (props: {
         isActive={active}
         tooltip={label}
         className={cn(
-          "h-10 cursor-pointer rounded-[10px] px-3 font-world text-13 leading-none font-normal text-portal-muted hover:bg-portal-border hover:text-portal-text data-[active=true]:border data-[active=true]:border-portal-border data-[active=true]:bg-white data-[active=true]:text-portal-text data-[active=true]:shadow-portal-card",
+          "h-10 cursor-pointer rounded-[10px] px-3 font-world text-13 leading-none font-normal text-portal-muted hover:bg-portal-border hover:text-portal-text data-[active=true]:border data-[active=true]:border-portal-border data-[active=true]:bg-grey-0 data-[active=true]:text-portal-text data-[active=true]:shadow-portal-card",
           className,
         )}
       >

@@ -276,7 +276,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               disabled={!isValid || isSubmitting}
               className="mt-4 px-6 py-3"
             >
-              <Typography variant={TYPOGRAPHY.R4} className="text-white">
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-0">
                 Save Changes
               </Typography>
             </DecoratedButton>

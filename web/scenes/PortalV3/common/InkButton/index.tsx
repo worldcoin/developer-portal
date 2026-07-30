@@ -9,7 +9,7 @@ type InkButtonProps = CommonButtonProps & {
 };
 
 const inkButtonClassName =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-8 bg-portal-ink px-4 font-world text-[length:var(--text-13)] leading-none font-medium text-white outline-hidden transition-colors hover:bg-portal-ink-hover focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400 disabled:hover:bg-grey-200";
+  "inline-flex h-10 items-center justify-center gap-2 rounded-8 bg-portal-ink px-4 font-world text-[length:var(--text-13)] leading-none font-medium text-grey-0 outline-hidden transition-colors hover:bg-portal-ink-hover focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400 disabled:hover:bg-grey-200";
 
 /**
  * Portal V3's dark pill control. Its flex icon slot owns the optical nudge so

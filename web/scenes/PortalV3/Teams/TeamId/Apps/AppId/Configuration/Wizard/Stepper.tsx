@@ -112,7 +112,11 @@ export const Stepper = (props: {
                     opticalIconClassName,
                   )}
                 >
-                  <Icon name="radio-check" className="size-[13.333px]" />
+                  <Icon
+                    name="radio-check"
+                    unthemed
+                    className="size-[13.333px]"
+                  />
                 </span>
               ) : (
                 <span
@@ -120,7 +124,7 @@ export const Stepper = (props: {
                     "flex size-5 items-center justify-center rounded-full text-center text-13 leading-[1.2] font-medium",
                     opticalIconClassName,
                     isActive
-                      ? "bg-portal-ink text-white"
+                      ? "bg-portal-ink text-grey-0"
                       : "bg-portal-canvas text-portal-subtle",
                   )}
                 >

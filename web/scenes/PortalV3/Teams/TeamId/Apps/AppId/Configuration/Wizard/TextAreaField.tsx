@@ -36,7 +36,7 @@ export const TextAreaField = (props: {
           props.disabled ? "cursor-default opacity-60" : "cursor-text",
           props.error
             ? "border-[#ea392a] bg-system-error-50"
-            : "border-portal-border bg-white",
+            : "border-portal-border bg-grey-0",
         )}
       >
         <span

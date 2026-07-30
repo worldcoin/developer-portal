@@ -50,7 +50,7 @@ export const SettingsCard = (props: {
   }, [action.id, appId, teamId, router, apolloClient, onDeleted]);
 
   return (
-    <details className="group flex flex-col overflow-hidden rounded-16 border border-portal-border bg-white shadow-portal-card">
+    <details className="group flex flex-col overflow-hidden rounded-16 border border-portal-border bg-grey-0 shadow-portal-card">
       <summary className="flex cursor-pointer items-center gap-2.5 px-4 py-3.5 select-none">
         <Icon
           name="chevron-down"

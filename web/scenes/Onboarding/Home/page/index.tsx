@@ -278,7 +278,7 @@ export const HomePage = async () => {
   const networkStats = await getNetworkStats();
 
   return (
-    <div className="min-h-full bg-[#f9f9f8] font-world font-[325] text-portal-text">
+    <div className="min-h-full bg-[#f9f9f8] font-world font-[325] text-[#181818]">
       <section className={CONTAINER_CLASS}>
         <div className="grid items-center gap-12 pt-20 pb-[160px] md:pt-16 lg:grid-cols-[minmax(0,626px)_minmax(0,626px)] lg:justify-between lg:gap-8 lg:pt-[102px] lg:pb-[100px]">
           <div className="flex max-w-[626px] flex-col items-start gap-10 lg:gap-16">
@@ -302,7 +302,7 @@ export const HomePage = async () => {
 
             <div className="flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
               <a
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-portal-text px-8 py-4 text-[22px] leading-[1.4] text-[#f9f9f8] transition-colors hover:bg-black"
+                className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#181818] px-8 py-4 text-[22px] leading-[1.4] text-[#f9f9f8] transition-colors hover:bg-black"
                 href={urls.api.authLogin()}
               >
                 Go to console
@@ -312,7 +312,7 @@ export const HomePage = async () => {
               </a>
 
               <a
-                className="group inline-flex items-center justify-center gap-2 rounded-full border border-portal-text px-8 py-4 text-[22px] leading-[1.4] text-portal-text transition-colors hover:bg-portal-text/5"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-[#181818] px-8 py-4 text-[22px] leading-[1.4] text-[#181818] transition-colors hover:bg-[#181818]/5"
                 href="https://docs.world.org"
                 rel="noopener noreferrer"
                 target="_blank"
