@@ -62,20 +62,19 @@ export const Item = (props: ItemProps) => {
         </div>
       </div>
 
+      {/* One neutral chip for both role and state; a pending invite is
+          marked by the warning dot, not a tinted container. */}
       <div className="flex">
         {!item ? (
           <Skeleton width={60} height={24} borderRadius={999} />
         ) : (
-          <span
-            className={clsx(
-              "rounded-full border px-2.5 py-1 font-world text-12 leading-4 font-medium",
-              {
-                "border-system-warning-200 bg-system-warning-50 text-system-warning-650":
-                  isInviteRow,
-                "border-grey-200 text-grey-500": !isInviteRow,
-              },
-            )}
-          >
+          <span className="flex items-center gap-x-1.5 rounded-full border border-grey-200 px-2.5 py-1 font-world text-12 leading-4 font-medium text-grey-500">
+            {isInviteRow ? (
+              <span
+                aria-hidden="true"
+                className="size-1.5 rounded-full bg-system-warning-500"
+              />
+            ) : null}
             {isInviteRow ? "Pending" : roleName[item.role]}
           </span>
         )}
@@ -90,7 +89,7 @@ export const Item = (props: ItemProps) => {
           <Dropdown>
             <Dropdown.Button
               disabled={!isEnoughPermissions || isCurrent}
-              className={clsx("rounded-8 hover:bg-grey-100", {
+              className={clsx("rounded-8 hover:bg-portal-hover", {
                 "pointer-events-none invisible":
                   !isEnoughPermissions || isCurrent,
               })}

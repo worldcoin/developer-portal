@@ -18,13 +18,12 @@ export const AppStatus = (props: {
           Enables users to verify with World ID for this app
         </Typography>
       </div>
+      {/* Status reads as dot + plain text: the hue lives only in the dot,
+          the label stays neutral. No tinted pill container. */}
       <div
         className={clsx(
-          "grid h-fit grid-cols-auto/1fr items-center gap-x-1.5 rounded-xl px-3 py-1",
-          {
-            "bg-system-success-50 text-system-success-500": status,
-            "bg-gray-50 text-grey-400": !status,
-          },
+          "grid h-fit grid-cols-auto/1fr items-center gap-x-1.5 py-1",
+          status ? "text-portal-text" : "text-portal-muted",
         )}
       >
         <div
