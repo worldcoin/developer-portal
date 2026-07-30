@@ -989,7 +989,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-color: #ebecef;
+  border-color: var(--color-grey-200);
   border-width: 1px;
   min-height: 50px;
   font-size: 14px;
@@ -1054,4 +1054,180 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/*
+  Dark theme.
+
+  Tailwind v4 compiles every color utility to `var(--color-*)`, so re-mapping
+  the palette variables here re-themes every call site without touching it.
+  The mapping mirrors the light ramp (surfaces stay ordered darkest→lightest
+  exactly as they are lightest→darkest in light mode), which preserves each
+  pairing's contrast relationship.
+
+  Contract:
+  - `white` / `black` are NOT themed. They mean literal white/black forever
+    (QR quiet zones, media overlays, scrims, text on colored fills). A surface
+    that should follow the theme uses `grey-0`, which is white in light mode.
+  - The `.dark` class is applied to <html> by next-themes (see RootLayout);
+    nothing renders dark unless the user opts in from the account menu.
+*/
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Grey ramp — surfaces (0–100), borders (200–300), text (400–900). */
+  --color-grey-0: #17191c;
+  --color-grey-25: #1a1d21;
+  --color-grey-50: #1d2025;
+  --color-grey-70: #212429;
+  --color-grey-100: #24282d;
+  --color-grey-200: #2e3238;
+  --color-grey-300: #3b4046;
+  --color-grey-400: #7d8794;
+  --color-grey-500: #9aa4b0;
+  --color-grey-700: #ced3d9;
+  --color-grey-900: #f2f3f5;
+
+  /* Portal v3 semantic tokens. Canvas sits below cards (grey-0). */
+  --color-portal-canvas: #131518;
+  --color-portal-border: #26292e;
+  --color-portal-heading: #f5f7f9;
+  --color-portal-text: #ececec;
+  --color-portal-muted: #a3a3a3;
+  --color-portal-subtle: #8a8a8a;
+  --color-portal-faint: #666666;
+  --color-portal-ink: #ececec;
+  --color-portal-ink-hover: #d9d9d9;
+  --color-portal-accent: #14273f;
+  --color-portal-accent-ring: #24466e;
+  --color-portal-blue: #3d9aff;
+  --color-portal-purple: #a04dff;
+
+  --color-danger: #ff5c47;
+
+  --color-blue-50: #15161d;
+  --color-blue-100: #1a1b26;
+  --color-blue-150: #262447;
+  --color-blue-500: #6d65f0;
+
+  /* `additional-*`: 100s are tinted fills, 500s sit on them or act as accents. */
+  --color-additional-blue-100: #14202c;
+  --color-additional-blue-500: #5ba3f5;
+  --color-additional-blue-600: #4285ff;
+
+  --color-additional-azure-100: #141f2e;
+  --color-additional-azure-500: #6b8dfe;
+
+  --color-additional-purple-100: #211a2e;
+  --color-additional-purple-500: #ae6fff;
+
+  --color-additional-green-100: #122b17;
+  --color-additional-green-500: #22d43b;
+
+  --color-additional-sea-100: #0f2624;
+  --color-additional-sea-500: #21d6c9;
+
+  --color-additional-yellow-100: #2a2410;
+  --color-additional-yellow-500: #ffd23f;
+
+  --color-additional-orange-100: #2b1a15;
+  --color-additional-orange-500: #ff7f63;
+
+  --color-additional-lightOrange-100: #2b2015;
+  --color-additional-lightOrange-500: #ffb066;
+
+  --color-additional-pink-100: #2b1620;
+  --color-additional-pink-500: #ff6ea8;
+
+  /* System ramps: low steps are tinted fills (darkened), mid steps are the
+     accent itself (brightened for dark contrast), high steps are text on the
+     tinted fills (lightened). */
+  --color-system-error-50: #251312;
+  --color-system-error-100: #291514;
+  --color-system-error-200: #38201d;
+  --color-system-error-300: #4d2a26;
+  --color-system-error-400: #ff9a8e;
+  --color-system-error-500: #ff5f4d;
+  --color-system-error-600: #ef4a44;
+  --color-system-error-700: #ff7288;
+  --color-system-error-800: #f8b6ae;
+  --color-system-error-900: #fbd0ca;
+
+  --color-system-success-50: #142a14;
+  --color-system-success-100: #102310;
+  --color-system-success-300: #79d979;
+  --color-system-success-400: #47d647;
+  --color-system-success-500: #1fca1f;
+  --color-system-success-600: #33a033;
+  --color-system-success-700: #2ad43c;
+  --color-system-success-800: #a8dfa8;
+  --color-system-success-900: #c2eac2;
+
+  --color-system-warning-50: #2a250f;
+  --color-system-warning-75: #292112;
+  --color-system-warning-100: #272113;
+  --color-system-warning-200: #4d4117;
+  --color-system-warning-300: #665420;
+  --color-system-warning-500: #ffc233;
+  --color-system-warning-600: #eaa620;
+  --color-system-warning-650: #d99f1f;
+  --color-system-warning-700: #ffc033;
+  --color-system-warning-800: #f5c67a;
+
+  /* Light-tinted shadows disappear on dark surfaces; use black-based ones. */
+  --shadow-button: 0px 1px 2px 0px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0px 4px 6px -2px rgba(0, 0, 0, 0.25),
+    0px 12px 16px -4px rgba(0, 0, 0, 0.4);
+  --shadow-qrCode: 0px 16px 20px -8px rgba(0, 0, 0, 0.45);
+  --shadow-image: 0px 10px 15px 0px rgba(0, 0, 0, 0.35);
+  --shadow-tab: 0px 1px 2px 0px rgba(0, 0, 0, 0.4),
+    0px 1px 3px 0px rgba(0, 0, 0, 0.5);
+  --shadow-portal-card: 0 1px 2px rgba(0, 0, 0, 0.5);
+
+  /* Tailwind default-palette colors still used by legacy v2 scenes. Only the
+     steps that appear in the codebase are themed. */
+  --color-gray-50: #1d2025;
+  --color-gray-100: #24282d;
+  --color-gray-200: #2e3238;
+  --color-gray-300: #3b4046;
+  --color-gray-400: #7d8794;
+  --color-gray-500: #9aa4b0;
+  --color-gray-900: #f2f3f5;
+  --color-zinc-700: #ced3d9;
+  --color-zinc-900: #f2f3f5;
+  --color-red-50: #291514;
+  --color-red-200: #38201d;
+  --color-red-500: #f87171;
+  --color-green-50: #102310;
+  --color-green-500: #4ade80;
+  --color-yellow-50: #2a250f;
+  --color-yellow-500: #facc15;
+  --color-amber-500: #fbbf24;
+
+  /* Toasts (react-toastify renders with its own "light" variables). */
+  --toastify-color-light: #1d2025;
+  --toastify-text-color-light: #ececec;
+}
+
+/* Loading skeletons: react-loading-skeleton reads these two custom properties.
+   Deriving them from the grey ramp themes them in both modes; the light values
+   resolve to the exact colors previously hardcoded on <SkeletonTheme>. The
+   body prefix outranks the library stylesheet, which is imported after this
+   file. */
+body .react-loading-skeleton {
+  --base-color: var(--color-grey-100);
+  --highlight-color: var(--color-grey-200);
+}
+
+@layer base {
+  /* Pages that never set an explicit background relied on the UA's white
+     body; keep that in light mode and follow the theme in dark. */
+  body {
+    background-color: var(--color-grey-0);
+    color: var(--color-grey-900);
+  }
 }
