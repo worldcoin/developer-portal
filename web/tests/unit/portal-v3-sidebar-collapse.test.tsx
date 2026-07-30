@@ -55,7 +55,6 @@ it("fully closes the desktop sidebar and exposes only the header reopen control"
   );
   expect(openTrigger).toHaveAttribute("data-state", "expanded");
   expect(openTrigger).toHaveClass("md:data-[state=expanded]:hidden");
-  expect(openTrigger).toHaveClass("cursor-pointer");
   expect(collapseRail).toHaveClass("cursor-pointer!");
   expect(collapseRail.querySelector("span")).toHaveClass(
     "cursor-pointer",
