@@ -42,6 +42,9 @@ jest.mock("@/scenes/Onboarding/CreateTeam/Dialog", () => ({
 jest.mock("@/scenes/common/layout/CreateAppDialog", () => ({
   CreateAppDialog: () => <div data-testid="create-app-dialog" />,
 }));
+jest.mock("@/scenes/common/layout/PortalContextTracker", () => ({
+  PortalContextTracker: () => <div data-testid="portal-context-tracker" />,
+}));
 
 import PortalRootLayout from "../../app/(portal)/layout";
 
@@ -68,6 +71,7 @@ it("mounts the selected v3 shell and page inside Apollo", async () => {
   expect(screen.getByTestId("v3-portal")).toBeInTheDocument();
   expect(screen.getByTestId("create-app-dialog")).toBeInTheDocument();
   expect(screen.getByTestId("create-team-dialog")).toBeInTheDocument();
+  expect(screen.getByTestId("portal-context-tracker")).toBeInTheDocument();
   expect(screen.queryByTestId("v2-portal")).not.toBeInTheDocument();
 });
 

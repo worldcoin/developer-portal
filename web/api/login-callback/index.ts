@@ -25,6 +25,11 @@ import {
 } from "./graphql/accept-team-invite.generated";
 
 import { logger } from "@/lib/logger";
+import {
+  PORTAL_CONTEXT_COOKIE,
+  parsePortalContext,
+  selectPreferredTeamId,
+} from "@/lib/portal-context";
 import { Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { isEmailUser } from "../helpers/is-email-user";
@@ -325,8 +330,19 @@ export const loginCallback = async (req: NextRequest) => {
     }
   }
 
-  // If a user just accepted an invite, redirect them to that teams page.
-  const teamId = team_id_from_invite ?? user?.memberships[0]?.team.id;
+  const preferredTeamId = user
+    ? selectPreferredTeamId({
+        context: parsePortalContext(
+          req.cookies?.get(PORTAL_CONTEXT_COOKIE)?.value,
+        ),
+        userId: user.id,
+        teamIds: user.memberships.map((membership) => membership.team.id),
+      })
+    : undefined;
+
+  // A newly accepted invite intentionally wins over the remembered team.
+  const teamId =
+    team_id_from_invite ?? preferredTeamId ?? user?.memberships[0]?.team.id;
   let url: string = urls.profile();
   const rawReturnTo = req.nextUrl.searchParams.get("returnTo");
   let returnTo: string | null = null;

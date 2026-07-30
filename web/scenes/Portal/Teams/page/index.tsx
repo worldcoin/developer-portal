@@ -1,6 +1,12 @@
+import { auth0 } from "@/lib/auth0";
+import {
+  PORTAL_CONTEXT_COOKIE,
+  parsePortalContext,
+  selectPreferredTeamId,
+} from "@/lib/portal-context";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { auth0 } from "@/lib/auth0";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export const TeamsPage = async () => {
@@ -24,5 +30,16 @@ export const TeamsPage = async () => {
     return redirect(urls.createTeam());
   }
 
-  return redirect(urls.teams({ team_id: memberships[0].team?.id }));
+  const context = parsePortalContext(
+    (await cookies()).get(PORTAL_CONTEXT_COOKIE)?.value,
+  );
+  const teamId = selectPreferredTeamId({
+    context,
+    userId: user.hasura.id,
+    teamIds: memberships.flatMap((membership) =>
+      membership.team?.id ? [membership.team.id] : [],
+    ),
+  });
+
+  return redirect(urls.teams({ team_id: teamId }));
 };

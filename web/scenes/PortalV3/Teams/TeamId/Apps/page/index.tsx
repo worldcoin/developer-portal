@@ -1,9 +1,8 @@
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { Role_Enum } from "@/graphql/graphql";
 import { auth0 } from "@/lib/auth0";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { getSdk as getInitialAppSdk } from "@/scenes/Portal/Teams/TeamId/Apps/page/graphql/server/apps.generated";
+import { resolveInitialAppId } from "@/scenes/common/Teams/TeamId/Apps/server/resolve-initial-app";
 import { redirect } from "next/navigation";
 import { AppsPageClient } from "./AppsPageClient";
 
@@ -33,11 +32,13 @@ export const AppsPage = async (props: AppsPageProps) => {
     );
   }
 
-  const client = await getAPIServiceGraphqlClient();
-  const { app } = await getInitialAppSdk(client).InitialApp({ teamId });
+  const appId = await resolveInitialAppId({
+    teamId,
+    userId: user.hasura.id,
+  });
 
-  if (app.length > 0) {
-    return redirect(`/teams/${teamId}/apps/${app[0].id}/world-id-4-0`);
+  if (appId) {
+    return redirect(urls.worldId40({ team_id: teamId, app_id: appId }));
   }
 
   return (

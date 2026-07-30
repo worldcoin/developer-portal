@@ -1,10 +1,9 @@
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { auth0 } from "@/lib/auth0";
 import { urls } from "@/lib/urls";
+import { resolveInitialAppId } from "@/scenes/common/Teams/TeamId/Apps/server/resolve-initial-app";
 import { redirect } from "next/navigation";
 import { AppsPageClient } from "./AppsPageClient";
-import { getSdk as getInitialAppSdk } from "./graphql/server/apps.generated";
 
 type AppPage = {
   params: Promise<Record<string, string>>;
@@ -36,14 +35,13 @@ export const AppsPage = async (props: AppPage) => {
     );
   }
 
-  const client = await getAPIServiceGraphqlClient();
-
-  const { app } = await getInitialAppSdk(client).InitialApp({
+  const appId = await resolveInitialAppId({
     teamId,
+    userId: user.hasura.id,
   });
 
-  if (app.length > 0) {
-    return redirect(`/teams/${teamId}/apps/${app[0].id}`);
+  if (appId) {
+    return redirect(urls.app({ team_id: teamId, app_id: appId }));
   }
 
   // Use new app creation flow for teams with World ID 4.0 enabled

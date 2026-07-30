@@ -1,0 +1,29 @@
+query ResolveInitialApp(
+  $teamId: String!
+  $userId: String!
+  $preferredAppId: String!
+) {
+  preferredApp: app(
+    where: {
+      id: { _eq: $preferredAppId }
+      team_id: { _eq: $teamId }
+      deleted_at: { _is_null: true }
+      team: { memberships: { user_id: { _eq: $userId } } }
+    }
+    limit: 1
+  ) {
+    id
+  }
+
+  fallbackApp: app(
+    where: {
+      team_id: { _eq: $teamId }
+      deleted_at: { _is_null: true }
+      team: { memberships: { user_id: { _eq: $userId } } }
+    }
+    order_by: { created_at: asc }
+    limit: 1
+  ) {
+    id
+  }
+}

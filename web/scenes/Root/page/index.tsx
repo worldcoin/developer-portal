@@ -1,10 +1,16 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
+import {
+  PORTAL_CONTEXT_COOKIE,
+  parsePortalContext,
+  selectPreferredTeamId,
+} from "@/lib/portal-context";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { HomeLayout } from "@/scenes/Onboarding/Home/layout";
 import { HomePage } from "@/scenes/Onboarding/Home/page";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import {
@@ -58,6 +64,14 @@ export const RootPage = async () => {
     return redirect(urls.createTeam());
   }
 
-  const team_id = membership[0].team_id;
-  return redirect(urls.apps({ team_id }));
+  const context = parsePortalContext(
+    (await cookies()).get(PORTAL_CONTEXT_COOKIE)?.value,
+  );
+  const teamId = selectPreferredTeamId({
+    context,
+    userId: hasuraUserId,
+    teamIds: membership.map(({ team_id }) => team_id),
+  });
+
+  return redirect(teamId ? urls.apps({ team_id: teamId }) : urls.createTeam());
 };

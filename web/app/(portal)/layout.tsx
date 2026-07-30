@@ -4,6 +4,7 @@ import { CreateTeamDialog } from "@/scenes/Onboarding/CreateTeam/Dialog";
 import { PortalLayout as PortalLayoutV2 } from "@/scenes/Portal/layout";
 import { PortalLayout as PortalLayoutV3 } from "@/scenes/PortalV3/layout";
 import { CreateAppDialog } from "@/scenes/common/layout/CreateAppDialog";
+import { PortalContextTracker } from "@/scenes/common/layout/PortalContextTracker";
 import { headers } from "next/headers";
 import { Suspense, type ReactNode } from "react";
 
@@ -16,6 +17,7 @@ export default async function PortalRootLayout(props: { children: ReactNode }) {
 
   return (
     <ApolloWrapper nonce={nonce}>
+      <PortalContextTracker />
       {portal}
       <Suspense fallback={null}>
         <CreateAppDialog />
