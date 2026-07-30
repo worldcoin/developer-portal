@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import clsx from "clsx";
 
 export type AppMode = "mini-app" | "external";
@@ -52,6 +52,9 @@ export const AppModeCards = (props: {
               aria-hidden="true"
               className={clsx(
                 "flex size-5 shrink-0 items-center justify-center rounded-full",
+                // Optical lift against the cap-height card title, applied to
+                // both selected and unselected markers so they stay aligned.
+                opticalIconClassName,
                 isSelected
                   ? "bg-portal-ink"
                   : "border-[1.25px] border-portal-border",
