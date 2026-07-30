@@ -84,6 +84,7 @@ describe("v3 SidebarNav [navigation hierarchy]", () => {
     renderSidebar();
 
     expect(link("World ID")).toBeInTheDocument();
+    expect(link("World ID")).toHaveClass("cursor-pointer");
     expect(
       screen.queryByRole("link", { name: "Dashboard" }),
     ).not.toBeInTheDocument();
@@ -135,6 +136,7 @@ describe("v3 SidebarNav [active section]", () => {
     expect(link("World ID")).toBeInTheDocument();
     expect(link("Permissions")).toHaveAttribute("aria-current", "page");
     expect(link("Permissions")).toHaveAttribute("data-active", "true");
+    expect(link("Permissions")).toHaveClass("cursor-pointer");
     expect(link("Permissions").querySelector("svg")).toHaveClass(
       "lucide-lock-keyhole",
     );

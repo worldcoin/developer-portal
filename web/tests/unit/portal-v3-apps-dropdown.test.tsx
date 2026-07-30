@@ -109,10 +109,12 @@ it("shows the route app and links app rows directly to World ID", () => {
   renderDropdown();
 
   expect(trigger()).toHaveTextContent("My App");
-  expect(screen.getByRole("link", { name: /My App/ })).toHaveAttribute(
+  const appLink = screen.getByRole("link", { name: /My App/ });
+  expect(appLink).toHaveAttribute(
     "href",
     "/teams/team_1/apps/app_1/world-id-4-0",
   );
+  expect(appLink).toHaveClass("cursor-pointer");
 });
 
 it("remembers the route app on team-scoped routes", () => {
