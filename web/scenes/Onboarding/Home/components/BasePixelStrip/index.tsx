@@ -1728,24 +1728,24 @@ const RIPPLE_DURATION_MS = 1100;
 const RIPPLE_MAX_RADIUS = 420;
 const RIPPLE_BAND_WIDTH = 40;
 const RIPPLE_MAX_SCALE_BOOST = 1.4;
-// Icons reach full, sharp, disproportionate zoom only within this tighter
-// radius (see ICON_BLUR_RADIUS below for the softer ring just beyond it) -
-// cells outside both just stay zoomed halftone dots.
-const ICON_REVEAL_RADIUS = 40;
-// Icons get their own (steeper) falloff, scaled against ICON_REVEAL_RADIUS
-// rather than the wider LENS_RADIUS, so the icon nearest the cursor pops
-// disproportionately relative to ones even one cell away instead of all
-// revealed icons growing at roughly the same rate.
+// Icons fetch/reveal anywhere within this radius - lazily, so this bounds
+// the icon-fetch count per hover, same reasoning as before.
+const ICON_REVEAL_RADIUS = 60;
+// Scale gets a steep falloff, scaled against ICON_REVEAL_RADIUS rather than
+// the wider LENS_RADIUS, so the icon nearest the cursor pops disproportion-
+// ately relative to ones even one cell away instead of all revealed icons
+// growing at roughly the same rate.
 const ICON_MAX_SCALE = 9;
-const ICON_FALLOFF_POWER = 3;
-// A modest ring just beyond ICON_REVEAL_RADIUS: icons there fetch/reveal at
-// rest size but blurred, coming into focus as the cursor approaches, instead
-// of popping in sharp from nothing. Kept narrow and lightly blurred on
-// purpose - this is decoration, not the interaction focus, so it shouldn't
-// meaningfully add to the icon-fetch count or per-frame filter cost.
-const ICON_BLUR_RADIUS = 60;
+const ICON_SCALE_FALLOFF_POWER = 3;
+// Opacity and blur share the same falloff as scale but with a much gentler
+// power, so neighboring icons stay legible (softly blurred, partly faded)
+// across the whole radius instead of the focused icon being the only one
+// visible at all - the intended effect is "coming into focus", not a hard
+// on/off switch between one sharp icon and everything else invisible.
+const ICON_MIN_OPACITY = 0.2;
+const ICON_OPACITY_FALLOFF_POWER = 1;
 const ICON_MAX_BLUR = 3;
-const ICON_RING_MIN_OPACITY = 0.35;
+const ICON_BLUR_FALLOFF_POWER = 1;
 // Cell width/height in the source grid (see CELLS above).
 const CELL_SIZE = 8;
 
@@ -1757,6 +1757,10 @@ const CELL_SIZE = 8;
 const PRESS_COMPRESS_SCALE = 0.8;
 const PRESS_COMPRESS_DURATION_MS = 120;
 const PRESS_RELEASE_DURATION_MS = 380;
+// Neighboring icons echo the same compress/release motion, scaled down by
+// distance from the pressed one, so a click reads as one cohesive pulse
+// through the grid rather than a single icon reacting in isolation.
+const PRESS_RIPPLE_RADIUS = 100;
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
@@ -1810,6 +1814,8 @@ export const BasePixelStrip = () => {
   const rippleActiveRef = useRef<Set<string>>(new Set());
   const pressRef = useRef<{
     key: string;
+    x: number;
+    y: number;
     phase: "compress" | "release";
     start: number;
   } | null>(null);
@@ -1872,13 +1878,17 @@ export const BasePixelStrip = () => {
       const now = performance.now();
       const pointer = pointerRef.current;
       const nextActive = new Set<string>();
-      const revealedIcons: Array<{ image: SVGImageElement; scale: number }> =
-        [];
+      const revealedIcons: Array<{
+        key: string;
+        image: SVGImageElement;
+        scale: number;
+      }> = [];
 
-      // The press spring only ever targets one specific cell (fixed at
-      // pointerdown time), so its multiplier is computed once per frame
-      // rather than per cell.
-      let pressKey: string | null = null;
+      // The press spring's time-based curve is the same everywhere - only
+      // computed once per frame - but how much of it a given cell feels
+      // depends on its distance from the press origin (see PRESS_RIPPLE_
+      // RADIUS below), so the origin is kept alongside it.
+      let pressOrigin: { x: number; y: number } | null = null;
       let pressMultiplier = 1;
 
       if (pressRef.current) {
@@ -1898,7 +1908,7 @@ export const BasePixelStrip = () => {
           }
         }
 
-        pressKey = press.key;
+        pressOrigin = { x: press.x, y: press.y };
       }
 
       if (pointer) {
@@ -1941,11 +1951,11 @@ export const BasePixelStrip = () => {
             }
           }
 
-          // Only cells within the blur ring "develop" into icons - lazily
-          // fetching just those keeps this cheap (no upfront requests for
-          // all 1,645 cells) and matches the lens metaphor: you reveal an
-          // icon by approaching it, not before.
-          if (dist < ICON_BLUR_RADIUS) {
+          // Only cells within the reveal radius "develop" into icons -
+          // lazily fetching just those keeps this cheap (no upfront
+          // requests for all 1,645 cells) and matches the lens metaphor:
+          // you reveal an icon by approaching it, not before.
+          if (dist < ICON_REVEAL_RADIUS) {
             const cachedHref = iconHrefCacheRef.current.get(i);
 
             if (cachedHref) {
@@ -1955,46 +1965,55 @@ export const BasePixelStrip = () => {
                 image.setAttribute("href", cachedHref);
               }
 
-              if (dist < ICON_REVEAL_RADIUS) {
-                const iconFalloff = 1 - dist / ICON_REVEAL_RADIUS;
-                const baseIconScale =
-                  1 + ICON_MAX_SCALE * iconFalloff ** ICON_FALLOFF_POWER;
-                // The press spring is layered on top of the lens's own
-                // scale for whichever one cell is currently pressed - it
-                // doesn't replace it.
-                const iconScale =
-                  key === pressKey
-                    ? baseIconScale * pressMultiplier
-                    : baseIconScale;
-                // A quarter of the icon's current on-screen size - enough
-                // that the pointer doesn't fully cover it, while still
-                // overlapping it rather than sitting at its edge.
-                const iconOffset = (CELL_SIZE * iconScale) / 4;
+              // 0 at the edge of the reveal radius, 1 right at the cursor.
+              // Scale uses a steep power of this so the focused icon pops
+              // disproportionately; opacity and blur use a gentler power of
+              // the SAME falloff so neighbors stay legible instead of
+              // snapping between "invisible" and "fully focused" - and so
+              // two icons trading places in z-order are already close in
+              // opacity/blur at the moment they cross, instead of both
+              // being fully opaque and popping.
+              const falloff = 1 - dist / ICON_REVEAL_RADIUS;
+              const baseIconScale =
+                1 + ICON_MAX_SCALE * falloff ** ICON_SCALE_FALLOFF_POWER;
+              // The press spring is layered on top of the lens's own scale,
+              // strongest at the pressed cell and rippling outward - not
+              // replacing the lens scale, and not an on/off switch for one
+              // cell.
+              let iconScale = baseIconScale;
 
-                image.style.transform = `translate(${iconOffset.toFixed(3)}px, ${(-iconOffset).toFixed(3)}px) scale(${iconScale.toFixed(3)})`;
-                image.style.opacity = "1";
-                image.style.filter = "";
+              if (pressOrigin) {
+                const pdx = x + 4 - pressOrigin.x;
+                const pdy = y + 4 - pressOrigin.y;
+                const pressDist = Math.sqrt(pdx * pdx + pdy * pdy);
 
-                // Defer stacking: the most-zoomed icon must always paint on
-                // top, and which icon that is changes every frame as the
-                // cursor moves - so z-order is resolved once below, by
-                // current scale, rather than by activation order here.
-                revealedIcons.push({ image, scale: iconScale });
-              } else {
-                // The blur ring: icons here sit at rest size, blurred and
-                // partly faded, sharpening into full focus as the cursor
-                // gets closer instead of popping in abruptly.
-                const ringT =
-                  (dist - ICON_REVEAL_RADIUS) /
-                  (ICON_BLUR_RADIUS - ICON_REVEAL_RADIUS);
-
-                image.style.transform = "";
-                image.style.opacity = (
-                  1 -
-                  ringT * (1 - ICON_RING_MIN_OPACITY)
-                ).toFixed(3);
-                image.style.filter = `blur(${(ICON_MAX_BLUR * ringT).toFixed(2)}px)`;
+                if (pressDist < PRESS_RIPPLE_RADIUS) {
+                  const rippleFalloff = 1 - pressDist / PRESS_RIPPLE_RADIUS;
+                  const localPressMultiplier =
+                    1 + (pressMultiplier - 1) * rippleFalloff;
+                  iconScale = baseIconScale * localPressMultiplier;
+                }
               }
+              // A quarter of the icon's current on-screen size - enough
+              // that the pointer doesn't fully cover it, while still
+              // overlapping it rather than sitting at its edge.
+              const iconOffset = (CELL_SIZE * iconScale) / 4;
+              const iconOpacity =
+                ICON_MIN_OPACITY +
+                (1 - ICON_MIN_OPACITY) * falloff ** ICON_OPACITY_FALLOFF_POWER;
+              const iconBlur =
+                ICON_MAX_BLUR * (1 - falloff) ** ICON_BLUR_FALLOFF_POWER;
+
+              image.style.transform = `translate(${iconOffset.toFixed(3)}px, ${(-iconOffset).toFixed(3)}px) scale(${iconScale.toFixed(3)})`;
+              image.style.opacity = iconOpacity.toFixed(3);
+              image.style.filter =
+                iconBlur > 0.01 ? `blur(${iconBlur.toFixed(2)}px)` : "";
+
+              // Defer stacking: the most-zoomed icon must always paint on
+              // top, and which icon that is changes every frame as the
+              // cursor moves - so z-order is resolved once below, by
+              // current scale, rather than by activation order here.
+              revealedIcons.push({ key, image, scale: iconScale });
 
               if (rect) {
                 // Fade the underlying halftone dot out so the icon reads
@@ -2030,9 +2049,9 @@ export const BasePixelStrip = () => {
                 });
             }
           } else if (revealedRef.current.has(key)) {
-            // Outside the blur ring but already revealed earlier - settle
-            // at rest (no zoom, no blur, no cursor-avoidance offset) rather
-            // than hiding it again.
+            // Outside the reveal radius but already revealed earlier -
+            // settle at rest (no zoom, no blur, no cursor-avoidance offset)
+            // rather than hiding it again.
             const image = iconElsRef.current.get(key);
 
             if (image) {
@@ -2180,8 +2199,8 @@ export const BasePixelStrip = () => {
     // The pressed cell is fixed at pointerdown time (the nearest icon
     // currently in full sharp focus) and the spring plays out on that one
     // cell regardless of where the pointer moves before release.
-    const findPressedIconKey = (point: { x: number; y: number }) => {
-      let bestKey: string | null = null;
+    const findPressedIcon = (point: { x: number; y: number }) => {
+      let best: { key: string; x: number; y: number } | null = null;
       let bestDist = Infinity;
 
       for (let i = 0; i < CELLS.length; i++) {
@@ -2196,11 +2215,11 @@ export const BasePixelStrip = () => {
 
         if (dist < ICON_REVEAL_RADIUS && dist < bestDist) {
           bestDist = dist;
-          bestKey = `${x},${y}`;
+          best = { key: `${x},${y}`, x, y };
         }
       }
 
-      return bestKey;
+      return best;
     };
 
     const handlePointerMove = (event: PointerEvent) => {
@@ -2231,13 +2250,17 @@ export const BasePixelStrip = () => {
         return;
       }
 
-      const key = findPressedIconKey(point);
+      const pressed = findPressedIcon(point);
 
-      if (!key) {
+      if (!pressed) {
         return;
       }
 
-      pressRef.current = { key, phase: "compress", start: performance.now() };
+      pressRef.current = {
+        ...pressed,
+        phase: "compress",
+        start: performance.now(),
+      };
       scheduleFrame();
     };
 
