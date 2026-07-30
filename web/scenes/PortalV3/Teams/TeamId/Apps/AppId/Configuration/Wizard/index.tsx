@@ -65,6 +65,7 @@ export const ConfigurationWizard = (props: {
     setActiveStep,
   } = props;
   const basicInfoRef = useRef<BasicInformationHandle>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const { user } = useUser() as Auth0SessionUser;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
 
@@ -93,7 +94,9 @@ export const ConfigurationWizard = (props: {
     (step: WizardStep) => {
       setActiveStep(step);
       requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        // The shell scrolls an inner overflow container, not the window —
+        // scrollIntoView targets whichever ancestor actually scrolls.
+        rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     },
     [setActiveStep],
@@ -149,7 +152,13 @@ export const ConfigurationWizard = (props: {
     clsx("w-full", marginClassName, activeStep !== step && "hidden");
 
   return (
-    <div className="flex min-h-full w-full flex-col px-6 pt-[43px] pb-16 font-world">
+    // Fills the shell's scroll area (viewport minus the 67px header, via the
+    // shell's CSS variable) so the action bar below can sit at the viewport
+    // bottom even on short steps, like the previous page's docked footer.
+    <div
+      ref={rootRef}
+      className="flex min-h-[calc(100dvh-var(--portal-header-height))] w-full flex-col px-6 pt-[43px] font-world"
+    >
       <div className="relative flex w-full justify-center">
         <Stepper steps={steps} activeIndex={activeIndex} />
         {/* Static cue for which version the form shows — not a control.
@@ -173,155 +182,163 @@ export const ConfigurationWizard = (props: {
 
       {/* Every step stays mounted (inactive ones are CSS-hidden) so autosave
           debounces and review-time validation keep their field state, exactly
-          like the previous page's sections. */}
-      <AppStoreForm
-        appId={appId}
-        teamId={teamId}
-        appMetadata={appMetadata as AppMetadata}
-      >
-        <div
-          className={stepWrapperClassName(WizardStep.BASIC, "")}
-          aria-hidden={activeStep !== WizardStep.BASIC}
+          like the previous page's sections. `grow` pushes the sticky action
+          bar to the viewport bottom while a step is shorter than the screen. */}
+      <div className="w-full grow pb-8">
+        <AppStoreForm
+          appId={appId}
+          teamId={teamId}
+          appMetadata={appMetadata as AppMetadata}
         >
-          <div className="mt-[76px] flex justify-center">
-            <WizardLogoUpload
-              appId={appId}
-              teamId={teamId}
-              appMetadata={appMetadata as AppMetadata}
-              canEdit={isEditable && canManageDraft}
-            />
+          <div
+            className={stepWrapperClassName(WizardStep.BASIC, "")}
+            aria-hidden={activeStep !== WizardStep.BASIC}
+          >
+            <div className="mt-[76px] flex justify-center">
+              <WizardLogoUpload
+                appId={appId}
+                teamId={teamId}
+                appMetadata={appMetadata as AppMetadata}
+                canEdit={isEditable && canManageDraft}
+              />
+            </div>
+            <div className="mx-auto mt-10 w-full max-w-[626px]">
+              <BasicInformationStep
+                ref={basicInfoRef}
+                appId={appId}
+                teamId={teamId}
+                app={app}
+                appMetadata={appMetadata as AppMetadata}
+                publisher={teamName}
+              />
+            </div>
           </div>
-          <div className="mx-auto mt-10 w-full max-w-[626px]">
-            <BasicInformationStep
-              ref={basicInfoRef}
-              appId={appId}
-              teamId={teamId}
-              app={app}
-              appMetadata={appMetadata as AppMetadata}
-              publisher={teamName}
-            />
-          </div>
-        </div>
 
-        {isMiniApp && (
+          {isMiniApp && (
+            <div
+              className={stepWrapperClassName(
+                WizardStep.STORE_LISTING,
+                "mx-auto mt-[76px] max-w-[626px]",
+              )}
+              aria-hidden={activeStep !== WizardStep.STORE_LISTING}
+            >
+              <StoreListingStep />
+            </div>
+          )}
+
           <div
             className={stepWrapperClassName(
-              WizardStep.STORE_LISTING,
+              WizardStep.AVAILABILITY,
               "mx-auto mt-[76px] max-w-[626px]",
             )}
-            aria-hidden={activeStep !== WizardStep.STORE_LISTING}
+            aria-hidden={activeStep !== WizardStep.AVAILABILITY}
           >
-            <StoreListingStep />
+            <AvailabilityStep isMiniApp={isMiniApp} />
           </div>
-        )}
 
-        <div
-          className={stepWrapperClassName(
-            WizardStep.AVAILABILITY,
-            "mx-auto mt-[76px] max-w-[626px]",
-          )}
-          aria-hidden={activeStep !== WizardStep.AVAILABILITY}
-        >
-          <AvailabilityStep isMiniApp={isMiniApp} />
-        </div>
+          <div
+            className={stepWrapperClassName(
+              WizardStep.LOCALISED_CONTENT,
+              "mx-auto mt-[76px] max-w-[626px]",
+            )}
+            aria-hidden={activeStep !== WizardStep.LOCALISED_CONTENT}
+          >
+            <LocalisedContentStep isMiniApp={isMiniApp} />
+          </div>
 
-        <div
-          className={stepWrapperClassName(
-            WizardStep.LOCALISED_CONTENT,
-            "mx-auto mt-[76px] max-w-[626px]",
-          )}
-          aria-hidden={activeStep !== WizardStep.LOCALISED_CONTENT}
-        >
-          <LocalisedContentStep isMiniApp={isMiniApp} />
-        </div>
+          <div
+            className={stepWrapperClassName(
+              WizardStep.REVIEW,
+              "mx-auto mt-[73px] max-w-[626px]",
+            )}
+            aria-hidden={activeStep !== WizardStep.REVIEW}
+          >
+            <ReviewStep
+              teamName={teamName}
+              isMiniApp={isMiniApp}
+              logoUrl={logoUrl || undefined}
+            />
+          </div>
+        </AppStoreForm>
+      </div>
 
-        <div
-          className={stepWrapperClassName(
-            WizardStep.REVIEW,
-            "mx-auto mt-[73px] max-w-[626px]",
-          )}
-          aria-hidden={activeStep !== WizardStep.REVIEW}
-        >
-          <ReviewStep
-            teamName={teamName}
-            isMiniApp={isMiniApp}
-            logoUrl={logoUrl || undefined}
-          />
-        </div>
-      </AppStoreForm>
+      {/* Docked action bar: stays at the viewport bottom while a step's
+          content scrolls, matching the previous page's fixed footer. The
+          white full-bleed background masks content passing beneath. */}
+      <div className="sticky bottom-0 z-10 -mx-6 border-t border-portal-border bg-white px-6 py-3">
+        <div className="mx-auto flex w-full max-w-[626px] items-center gap-3">
+          <div className="flex flex-1 justify-start">
+            {activeIndex > 0 && (
+              <button
+                type="button"
+                onClick={() => handleStepChange(steps[activeIndex - 1].id)}
+                className={secondaryButtonClassName}
+              >
+                Back
+              </button>
+            )}
+          </div>
 
-      <div className="mx-auto mt-8 flex w-full max-w-[626px] items-center gap-3">
-        <div className="flex flex-1 justify-start">
-          {activeIndex > 0 && (
-            <button
-              type="button"
-              onClick={() => handleStepChange(steps[activeIndex - 1].id)}
-              className={secondaryButtonClassName}
-            >
-              Back
-            </button>
-          )}
-        </div>
+          <div className="flex min-w-0 items-center justify-center gap-3">
+            {showVersionAction && (
+              <button
+                type="button"
+                disabled={isCreating}
+                className={secondaryButtonClassName}
+                onClick={() => {
+                  if (!isVerifiedView) {
+                    setViewMode("verified");
+                    return;
+                  }
+                  if (hasDraft) {
+                    setViewMode("unverified");
+                  } else {
+                    // The draft hook flips the view after the new row lands.
+                    void createNewDraft();
+                  }
+                }}
+              >
+                {isVerifiedView ? "New draft" : "Verified"}
+              </button>
+            )}
 
-        <div className="flex min-w-0 items-center justify-center gap-3">
-          {showVersionAction && (
-            <button
-              type="button"
-              disabled={isCreating}
-              className={secondaryButtonClassName}
-              onClick={() => {
-                if (!isVerifiedView) {
-                  setViewMode("verified");
-                  return;
-                }
-                if (hasDraft) {
-                  setViewMode("unverified");
-                } else {
-                  // The draft hook flips the view after the new row lands.
-                  void createNewDraft();
-                }
+            <div className="hidden min-w-0 items-center sm:flex">
+              {isAwaiting ? (
+                <p className="min-w-0 truncate text-13 leading-[1.3] font-[350] text-portal-subtle">
+                  In review — editing is locked until review completes.
+                </p>
+              ) : isEditable ? (
+                <SaveStatusIndicator />
+              ) : null}
+            </div>
+          </div>
+
+          <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+            {isAwaiting && canManageDraft && (
+              <button
+                type="button"
+                disabled={isUnsubmitting}
+                onClick={removeFromReview}
+                className={secondaryButtonClassName}
+              >
+                Un-submit
+              </button>
+            )}
+
+            <AppStoreActions
+              appId={appId}
+              teamId={teamId}
+              appMetadata={appMetadata}
+              nextStep={nextStep ? { title: nextStep.label } : undefined}
+              onContinue={() => {
+                if (nextStep) handleStepChange(nextStep.id);
               }}
-            >
-              {isVerifiedView ? "New draft" : "Verified"}
-            </button>
-          )}
-
-          <div className="hidden min-w-0 items-center sm:flex">
-            {isAwaiting ? (
-              <p className="min-w-0 truncate text-13 leading-[1.3] font-[350] text-portal-subtle">
-                In review — editing is locked until review completes.
-              </p>
-            ) : isEditable ? (
-              <SaveStatusIndicator />
-            ) : null}
+              basicInfoRef={basicInfoRef}
+              onValidationError={handleValidationError}
+              className={primaryButtonClassName}
+              hideArrowIcon
+            />
           </div>
-        </div>
-
-        <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
-          {isAwaiting && canManageDraft && (
-            <button
-              type="button"
-              disabled={isUnsubmitting}
-              onClick={removeFromReview}
-              className={secondaryButtonClassName}
-            >
-              Un-submit
-            </button>
-          )}
-
-          <AppStoreActions
-            appId={appId}
-            teamId={teamId}
-            appMetadata={appMetadata}
-            nextStep={nextStep ? { title: nextStep.label } : undefined}
-            onContinue={() => {
-              if (nextStep) handleStepChange(nextStep.id);
-            }}
-            basicInfoRef={basicInfoRef}
-            onValidationError={handleValidationError}
-            className={primaryButtonClassName}
-            hideArrowIcon
-          />
         </div>
       </div>
     </div>
