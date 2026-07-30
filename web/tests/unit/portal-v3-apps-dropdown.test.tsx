@@ -95,7 +95,7 @@ it("enables the trigger with the default label after loading", () => {
 
   expect(trigger()).toBeEnabled();
   expect(trigger()).toHaveTextContent("All apps");
-  expect(trigger()).toHaveClass("h-9", "cursor-pointer", "px-3");
+  expect(trigger()).toHaveClass("h-9", "px-3");
 });
 
 it("shows the route app and links app rows directly to World ID", () => {
@@ -109,10 +109,12 @@ it("shows the route app and links app rows directly to World ID", () => {
   renderDropdown();
 
   expect(trigger()).toHaveTextContent("My App");
-  expect(screen.getByRole("link", { name: /My App/ })).toHaveAttribute(
+  const appLink = screen.getByRole("link", { name: /My App/ });
+  expect(appLink).toHaveAttribute(
     "href",
     "/teams/team_1/apps/app_1/world-id-4-0",
   );
+  expect(appLink).toHaveClass("cursor-pointer");
 });
 
 it("remembers the route app on team-scoped routes", () => {
@@ -157,9 +159,6 @@ it("filters all loaded apps without hiding the create action", () => {
 
   expect(screen.getByRole("link", { name: /Beta App/ })).toBeVisible();
   expect(screen.queryByRole("link", { name: /Alpha/ })).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Create new app" })).toHaveClass(
-    "cursor-pointer",
-  );
 });
 
 it("shows a no-results state when the app search has no matches", () => {
