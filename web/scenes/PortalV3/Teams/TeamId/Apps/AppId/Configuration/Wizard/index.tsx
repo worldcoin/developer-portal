@@ -2,6 +2,7 @@
 
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { EditIcon } from "@/components/Icons/EditIcon";
+import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
@@ -302,7 +303,7 @@ export const ConfigurationWizard = (props: {
               <button
                 type="button"
                 disabled={isCreating}
-                className={secondaryButtonClassName}
+                className={clsx(secondaryButtonClassName, "gap-2")}
                 onClick={() => {
                   if (!isVerifiedView) {
                     setViewMode("verified");
@@ -316,7 +317,19 @@ export const ConfigurationWizard = (props: {
                   }
                 }}
               >
-                {isVerifiedView ? "New draft" : "Verified"}
+                {/* Named for the destination, not the current view — with the
+                    destination's icon so the pair reads as a toggle. */}
+                {isVerifiedView ? (
+                  <EditIcon className={clsx("size-4", opticalIconClassName)} />
+                ) : (
+                  <CheckmarkBadge
+                    className={clsx(
+                      "size-4 text-system-warning-500",
+                      opticalIconClassName,
+                    )}
+                  />
+                )}
+                {isVerifiedView ? "Go to draft" : "Go to Verified"}
               </button>
             )}
 
