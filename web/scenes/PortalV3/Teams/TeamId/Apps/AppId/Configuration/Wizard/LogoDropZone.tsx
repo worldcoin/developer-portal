@@ -36,7 +36,7 @@ export const LogoDropZone = (props: {
           isInert ? "cursor-default" : "cursor-pointer",
           props.disabled && "opacity-60",
           props.error
-            ? "border-[#ea392a] bg-system-error-50"
+            ? "border-system-error-500 bg-system-error-50"
             : // Dashed stroke is Figma nucleus/stroke-transparent (#00000014) —
               // no portal token for it yet.
               "border-black/8 bg-portal-canvas",
@@ -82,7 +82,7 @@ export const LogoDropZone = (props: {
         />
       </label>
       {props.error && (
-        <p className="max-w-52 text-center text-13 leading-[1.3] font-[350] text-[#ea392a]">
+        <p className="max-w-52 text-center text-13 leading-[1.3] font-[350] text-system-error-500">
           {props.error}
         </p>
       )}

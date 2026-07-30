@@ -35,8 +35,8 @@ export const TextField = (props: {
   const isInert = props.readOnly || props.disabled;
 
   const requiredMark = props.required && (
-    // Figma nucleus/status-negative (#ea392a) — no portal token for it yet.
-    <span className="text-[#ea392a]"> *</span>
+    // Figma nucleus/status-negative (#ea392a) = system-error-500.
+    <span className="text-system-error-500"> *</span>
   );
 
   return (
@@ -51,7 +51,7 @@ export const TextField = (props: {
           isInert ? "cursor-default" : "cursor-text",
           props.disabled && "opacity-60",
           props.error
-            ? "border-[#ea392a] bg-system-error-50"
+            ? "border-system-error-500 bg-system-error-50"
             : props.muted
               ? "border-portal-border bg-portal-canvas"
               : "border-portal-border bg-grey-0",
@@ -61,7 +61,7 @@ export const TextField = (props: {
           <span
             className={clsx(
               "w-full text-13 leading-[1.3] font-[350]",
-              props.error ? "text-[#ea392a]" : "text-portal-subtle",
+              props.error ? "text-system-error-500" : "text-portal-subtle",
               !isFloating && "hidden",
             )}
           >
@@ -96,7 +96,7 @@ export const TextField = (props: {
         {props.trailing}
       </label>
       {props.error && (
-        <p className="text-13 leading-[1.3] font-[350] text-[#ea392a]">
+        <p className="text-13 leading-[1.3] font-[350] text-system-error-500">
           {props.error}
         </p>
       )}

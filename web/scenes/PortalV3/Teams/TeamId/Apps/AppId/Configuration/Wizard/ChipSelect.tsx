@@ -97,7 +97,7 @@ export const ChipSelect = (props: {
           className={clsx(
             "flex h-14 w-full items-center gap-2 rounded-[10px] p-4",
             props.error
-              ? "border border-[#ea392a] bg-system-error-50"
+              ? "border border-system-error-500 bg-system-error-50"
               : "bg-portal-canvas",
             props.disabled && "opacity-60",
           )}
@@ -164,7 +164,7 @@ export const ChipSelect = (props: {
       </div>
 
       {props.error && (
-        <p className="text-13 leading-[1.3] font-[350] text-[#ea392a]">
+        <p className="text-13 leading-[1.3] font-[350] text-system-error-500">
           {props.error}
         </p>
       )}
