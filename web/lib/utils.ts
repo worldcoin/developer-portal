@@ -1,6 +1,8 @@
 import { Role_Enum } from "@/graphql/graphql";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { Auth0EmailUser, Auth0User } from "@/lib/types";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 import {
   DOCUMENT_SEQUENCER,
   DOCUMENT_SEQUENCER_STAGING,
@@ -509,3 +511,6 @@ export const fetchWithRetry = async (
 
   throw lastError;
 };
+
+/** Merge conditional Tailwind classes without conflicts. */
+export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
