@@ -15,24 +15,9 @@ jest.mock(
   }),
 );
 
-// Mirror open/close state without loading the real dialog.
-jest.mock("next/dynamic", () => ({
-  __esModule: true,
-  default:
-    () =>
-    ({
-      open,
-      onClose,
-    }: {
-      open: boolean;
-      onClose: (value: boolean) => void;
-    }) => (
-      <div data-testid="create-app-dialog" data-open={String(open)}>
-        <button type="button" onClick={() => onClose(false)}>
-          close-dialog
-        </button>
-      </div>
-    ),
+const mockOpenCreateAppDialog = jest.fn();
+jest.mock("@/scenes/common/layout/CreateAppDialog/useCreateAppDialog", () => ({
+  useCreateAppDialog: () => ({ open: mockOpenCreateAppDialog }),
 }));
 
 jest.mock("@radix-ui/react-dropdown-menu", () => ({
@@ -138,23 +123,7 @@ it("shows the current app and navigates directly when selected", () => {
   expect(push).toHaveBeenCalledWith("/teams/team_1/apps/app_1/world-id-4-0");
 });
 
-it("mounts the create-app dialog only after the create action is selected", async () => {
-  fetchApps.mockReturnValue({
-    data: { app: [] },
-    loading: false,
-    error: undefined,
-  });
-  render(<AppsDropdown />);
-
-  expect(screen.queryByTestId("create-app-dialog")).not.toBeInTheDocument();
-
-  fireEvent.click(screen.getByRole("menuitem", { name: "Create new app" }));
-
-  expect(await screen.findByTestId("create-app-dialog")).toBeInTheDocument();
-});
-
-// Closing hides the dialog without unmounting it.
-it("keeps the create-app dialog mounted (closed) after it is dismissed", async () => {
+it("opens the shared create-app dialog from the create action", () => {
   fetchApps.mockReturnValue({
     data: { app: [] },
     loading: false,
@@ -163,15 +132,6 @@ it("keeps the create-app dialog mounted (closed) after it is dismissed", async (
   render(<AppsDropdown />);
 
   fireEvent.click(screen.getByRole("menuitem", { name: "Create new app" }));
-  expect(await screen.findByTestId("create-app-dialog")).toHaveAttribute(
-    "data-open",
-    "true",
-  );
 
-  fireEvent.click(screen.getByText("close-dialog"));
-
-  expect(screen.getByTestId("create-app-dialog")).toHaveAttribute(
-    "data-open",
-    "false",
-  );
+  expect(mockOpenCreateAppDialog).toHaveBeenCalledTimes(1);
 });
