@@ -43,9 +43,7 @@ export const ReviewStep = (props: {
 
   const name = basicInfoDraft.name || appMetadata.name || "";
   const tagline =
-    en?.world_app_description ||
-    appMetadata.world_app_description ||
-    "A one-line summary of your app";
+    en?.world_app_description || appMetadata.world_app_description || "";
   const description = en?.description_overview ?? "";
 
   const showcasePaths = (en?.showcase_img_urls ?? []).filter(
@@ -81,9 +79,11 @@ export const ReviewStep = (props: {
         <h1 className="text-[34px] leading-[1.2] font-[550] tracking-[-0.51px] break-words text-portal-text">
           {name}
         </h1>
-        <p className="text-17 leading-[1.3] font-[350] text-portal-text">
-          {tagline}
-        </p>
+        {tagline && (
+          <p className="text-17 leading-[1.3] font-[350] text-portal-text">
+            {tagline}
+          </p>
+        )}
       </div>
 
       <div className="mt-10 flex w-full flex-col gap-14">
