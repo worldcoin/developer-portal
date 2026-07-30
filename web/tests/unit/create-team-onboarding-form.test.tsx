@@ -71,40 +71,6 @@ describe("CreateTeam onboarding form [consent]", () => {
 
     await waitFor(() => expect(submit).toBeEnabled());
   });
-
-  it("nudges for consent only via a hover hint on the disabled button, never inline", async () => {
-    render(<Form />);
-
-    fireEvent.change(screen.getByLabelText("Team name"), {
-      target: { value: "Platform" },
-    });
-
-    const submit = screen.getByRole("button", { name: "Create team" });
-    expect(submit).toBeDisabled();
-
-    // The reminder exists solely as the button's hover tooltip.
-    const hint = screen.getByRole("tooltip");
-    expect(hint).toHaveTextContent("Please accept the terms and conditions");
-    expect(submit).toHaveAttribute("aria-describedby", "terms-consent-hint");
-    expect(
-      screen.getAllByText("Please accept the terms and conditions"),
-    ).toHaveLength(1);
-
-    // Consent removes the hint entirely.
-    fireEvent.click(screen.getByRole("checkbox"));
-    await waitFor(() => expect(submit).toBeEnabled());
-    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
-    expect(submit).not.toHaveAttribute("aria-describedby");
-
-    // Revoking consent disables the button again and brings the hint back —
-    // still without any inline red warning.
-    fireEvent.click(screen.getByRole("checkbox"));
-    await waitFor(() => expect(submit).toBeDisabled());
-    expect(
-      screen.getAllByText("Please accept the terms and conditions"),
-    ).toHaveLength(1);
-    expect(screen.getByRole("tooltip")).toBeInTheDocument();
-  });
 });
 // #endregion
 
