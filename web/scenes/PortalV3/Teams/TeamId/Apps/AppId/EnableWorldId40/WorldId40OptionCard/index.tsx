@@ -3,12 +3,19 @@
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { InformationCircleIcon } from "@/components/Icons/InformationCircleIcon";
-import { Radio, RadioProps } from "@/components/Radio";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { RadioProps } from "@/components/Radio";
+import {
+  bubbleDigitClassName,
+  Icon,
+  opticalIconClassName,
+} from "@/scenes/PortalV3/common/Icon";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
 
 type Bullet = { text: string; variant: "check" | "x" };
+
+const markerBaseClassName =
+  "flex size-5 shrink-0 items-center justify-center rounded-full transition-colors";
 
 export const WorldId40OptionCard = (
   props: Omit<RadioProps, "value"> & {
@@ -31,13 +38,15 @@ export const WorldId40OptionCard = (
   // Neutral hairline chip; the azure dot carries the stamp's accent instead
   // of a tinted container.
   const stampClassName = disabled
-    ? "flex items-center gap-x-1.5 rounded-full border border-grey-200 px-2 py-0.5 text-grey-500"
-    : "flex items-center gap-x-1.5 rounded-full border border-grey-200 px-2 py-0.5 text-portal-text";
+    ? "bg-portal-canvas text-portal-muted"
+    : "bg-portal-accent text-portal-blue";
   return (
     <label
       className={twMerge(
         clsx(
-          "grid gap-y-3 rounded-lg border border-grey-100 bg-grey-0 px-6 py-5 shadow-[0_1.3px_2.6px_rgba(0,0,0,0.053)] transition-colors",
+          "grid gap-y-2.5 rounded-[10px] border border-portal-border bg-white px-5 py-4 transition-colors",
+          "has-checked:border-portal-ink",
+          "has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-grey-300 has-[input:focus-visible]:ring-offset-2",
           !disabled && "cursor-pointer",
           disabled && "cursor-not-allowed opacity-60",
           props.className,
@@ -46,75 +55,93 @@ export const WorldId40OptionCard = (
       {...(props.testId ? { "data-testid": `card-${props.testId}` } : {})}
       {...(disabled ? { "data-disabled": "true" } : {})}
     >
-      <div className="flex items-center justify-between">
-        <div className="grid grid-cols-auto/1fr items-center gap-x-2">
-          <Radio
-            register={props.register}
+      <div className="flex items-center justify-between gap-x-3">
+        <span className="font-world text-15 leading-[1.2] font-medium text-portal-ink select-none">
+          {props.option.label}
+        </span>
+
+        <div className="flex items-center gap-x-2">
+          {stampContent && (
+            <span
+              className={clsx(
+                "inline-flex h-5 items-center rounded-full px-2 font-world text-12 leading-none font-medium whitespace-nowrap",
+                stampClassName,
+              )}
+            >
+              <span className={bubbleDigitClassName}>{stampContent}</span>
+            </span>
+          )}
+          {disabled && props.disabledReason && (
+            <div className="group relative">
+              <span
+                tabIndex={0}
+                aria-label={props.disabledReason}
+                title={props.disabledReason}
+                className="inline-flex outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-1"
+              >
+                <InformationCircleIcon className="size-4 text-portal-subtle" />
+              </span>
+              <div className="pointer-events-none absolute -top-2 right-0 z-20 w-48 -translate-y-full rounded-md bg-portal-ink px-2 py-1.5 font-world text-12 leading-[1.4] text-white opacity-0 shadow-lg transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+                {props.disabledReason}
+                <div className="absolute right-3 -bottom-1 h-2 w-2 rotate-45 bg-portal-ink" />
+              </div>
+            </div>
+          )}
+
+          <input
+            type="radio"
+            {...props.register}
             value={props.option.value}
             disabled={disabled}
+            className="peer sr-only"
             {...(props.testId
               ? { "data-testid": `radio-${props.testId}` }
               : {})}
           />
-          <Typography variant={TYPOGRAPHY.M3} className="select-none">
-            {props.option.label}
-          </Typography>
-        </div>
-        {stampContent && (
-          <div className="flex items-center gap-x-1.5">
-            <Typography
-              as="div"
-              variant={TYPOGRAPHY.M5}
-              className={stampClassName}
-            >
-              {!disabled && (
-                <span
-                  aria-hidden="true"
-                  className="size-1.5 rounded-full bg-additional-azure-500"
-                />
-              )}
-              {stampContent}
-            </Typography>
-            {disabled && props.disabledReason && (
-              <div className="group relative">
-                <span
-                  tabIndex={0}
-                  aria-label={props.disabledReason}
-                  title={props.disabledReason}
-                  className="inline-flex outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-1"
-                >
-                  <InformationCircleIcon className="size-4 text-grey-400" />
-                </span>
-                <div className="pointer-events-none absolute -top-2 right-0 z-20 w-48 -translate-y-full rounded-md bg-grey-900 px-2 py-1.5 text-xs text-grey-0 opacity-0 shadow-lg transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
-                  {props.disabledReason}
-                  <div className="absolute right-3 -bottom-1 h-2 w-2 rotate-45 bg-grey-900" />
-                </div>
-              </div>
+          <span
+            aria-hidden="true"
+            className={clsx(
+              markerBaseClassName,
+              opticalIconClassName,
+              "border-[1.25px] border-portal-border peer-checked:hidden",
             )}
-          </div>
-        )}
+          />
+          <span
+            aria-hidden="true"
+            className={clsx(
+              markerBaseClassName,
+              opticalIconClassName,
+              "hidden bg-portal-ink peer-checked:flex",
+            )}
+          >
+            <Icon name="radio-check" className="size-[13.333px]" />
+          </span>
+        </div>
       </div>
 
-      <Typography variant={TYPOGRAPHY.R4} className="text-[#939BA5]">
+      <p className="font-world text-13 leading-[1.3] font-[350] text-[#7d7d7d]">
         {props.subtitle}
-      </Typography>
+      </p>
 
       {(props.bullets?.length ?? 0) > 0 && (
-        <ul className="grid gap-y-2">
+        <ul className="grid gap-y-1.5">
           {props.bullets.map((bullet, i) => (
-            <li key={i} className="flex items-center gap-x-2">
+            <li key={i} className="flex items-start gap-x-2">
               {bullet.variant === "check" ? (
-                <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-additional-azure-100 text-additional-azure-500">
-                  <CheckIcon size="16" variant="shortTail" className="size-3" />
-                </span>
+                <CheckIcon
+                  size="16"
+                  variant="shortTail"
+                  className="mt-px size-3.5 shrink-0 text-portal-ink"
+                />
               ) : (
-                <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-system-error-50 text-system-error-500">
-                  <CloseIcon className="size-3" strokeWidth={2} />
-                </span>
+                <CloseIcon
+                  className="mt-px size-3.5 shrink-0 text-system-error-500"
+                  strokeWidth={2}
+                />
               )}
-              <Typography variant={TYPOGRAPHY.R4} className="text-[#939BA5]">
+              <span className="font-world text-13 leading-[1.4] font-[350] text-[#7d7d7d]">
                 {bullet.text}
-              </Typography>
+              </span>
             </li>
           ))}
         </ul>

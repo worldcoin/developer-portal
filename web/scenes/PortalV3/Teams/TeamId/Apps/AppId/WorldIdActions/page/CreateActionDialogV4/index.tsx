@@ -1,16 +1,18 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { CopyButton } from "@/components/CopyButton";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { Input } from "@/components/Input";
-import { LoggedUserNav } from "@/components/LoggedUserNav";
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import {
+  FormDialog,
+  formDialogErrorClassName,
+  formDialogInputClassName,
+  formDialogLabelClassName,
+  formDialogPrimaryActionClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { validateAndInsertActionV4 } from "./server";
@@ -24,18 +26,26 @@ type CreateActionDialogV4Props = {
   onClose: (success?: boolean) => void;
 };
 
+/** Auto-transform identifier: lowercase, spaces/underscores → dashes. */
+const transformIdentifier = (value: string): string =>
+  value
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-{2,}/g, "-")
+    .slice(0, 32);
+
 export const CreateActionDialogV4 = (props: CreateActionDialogV4Props) => {
   const { open, onClose } = props;
   const params = useParams();
   const appId = params?.appId as `app_${string}`;
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     control,
     register,
-    formState: { errors, isValid },
+    formState: { errors, isValid, isSubmitting },
     handleSubmit,
-    setValue,
+    reset,
     watch,
   } = useForm<CreateActionSchemaV4>({
     resolver: yupResolver(createActionSchemaV4),
@@ -46,132 +56,161 @@ export const CreateActionDialogV4 = (props: CreateActionDialogV4Props) => {
     },
   });
 
+  const actionValue = watch("action");
+
+  const close = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
+  // Clear fields after the leave transition so content doesn't snap mid-fade.
+  const afterLeave = useCallback(() => {
+    reset();
+  }, [reset]);
+
   const submit = useCallback(
     async (values: CreateActionSchemaV4) => {
-      setIsSubmitting(true);
-
       const result = await validateAndInsertActionV4(values, appId);
 
       if (!result.success) {
         toast.error(result.message);
-        // Dialog stays open - user can fix and retry
-      } else {
-        toast.success(`Action "${values.action}" created.`);
-        onClose(true);
+        return;
       }
 
-      setIsSubmitting(false);
+      toast.success(`Action "${values.action}" created.`);
+      onClose(true);
     },
     [appId, onClose],
   );
 
-  // Auto-transform identifier: lowercase and replace spaces/underscores with dashes
-  const transformIdentifier = (value: string): string => {
-    return value
-      .toLowerCase()
-      .replace(/[\s_]+/g, "-") // Replace spaces and underscores with dashes
-      .replace(/[^a-z0-9-]/g, "") // Remove other invalid chars
-      .replace(/-{2,}/g, "-") // Collapse multiple consecutive dashes
-      .slice(0, 32); // Limit to 32 chars
-  };
-
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-10 grid w-full justify-center bg-grey-0">
-      <div className="grid h-dvh w-dvw grid-rows-auto/1fr">
-        <header className="max-h-[56px] w-full border-b border-grey-100 py-4">
-          <SizingWrapper>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-x-3">
-                <Button
-                  type="button"
-                  onClick={() => onClose()}
-                  className="flex"
-                  aria-label="Close dialog"
-                >
-                  <CloseIcon className="size-4" />
-                </Button>
-                <span className="text-grey-200">|</span>
-                <Typography variant={TYPOGRAPHY.M4}>
-                  Create new action
-                </Typography>
-              </div>
-              <LoggedUserNav />
-            </div>
-          </SizingWrapper>
-        </header>
+    <FormDialog
+      open={open}
+      onClose={close}
+      afterLeave={afterLeave}
+      dismissable={!isSubmitting}
+      title="Create new action"
+      closeLabel="Close create action dialog"
+    >
+      <form className="grid w-full gap-y-6" onSubmit={handleSubmit(submit)}>
+        <p className="font-world text-14 leading-[1.5] text-portal-muted">
+          This identifier is the value you will use in IDKit and any API calls.
+        </p>
 
-        <SizingWrapper
-          gridClassName="overflow-y-auto no-scrollbar"
-          className="py-10"
-        >
-          <form
-            onSubmit={handleSubmit(submit)}
-            className="mx-auto grid w-full max-w-[580px] grid-cols-1 gap-6"
-          >
-            <Typography className="mb-2" variant={TYPOGRAPHY.H6}>
-              Create new action
-            </Typography>
-
-            <Controller
-              name="action"
-              control={control}
-              render={({ field }) => (
-                <div>
-                  <Input
-                    {...field}
-                    onChange={(e) => {
-                      const transformed = transformIdentifier(e.target.value);
-                      field.onChange(transformed);
-                    }}
-                    value={field.value}
-                    errors={errors.action}
-                    label="Identifier"
-                    placeholder="proposal-102"
-                    data-testid="input-action"
-                    required
-                    addOnRight={
-                      <CopyButton
-                        fieldName="Action identifier"
-                        fieldValue={watch("action")}
-                      />
-                    }
-                  />
-                  <div className="mt-2 flex items-center justify-between px-2 text-xs text-grey-500">
-                    <span>
-                      This is the value you will use in IDKit and any API calls.
-                    </span>
-                    <span className="ml-4 whitespace-nowrap">
-                      {watch("action").length}/32 characters
-                    </span>
-                  </div>
-                </div>
-              )}
-            />
-
-            <Input
-              register={register("description")}
-              errors={errors.description}
-              label="Short description"
-              placeholder="Cast your vote on proposal #102"
-              data-testid="input-description"
-            />
-
-            <div className="flex w-full justify-end">
-              <DecoratedButton
-                variant="primary"
-                type="submit"
-                disabled={!isValid || isSubmitting}
-                className="px-10 py-3"
-                testId="create-action-v4"
+        <Controller
+          name="action"
+          control={control}
+          render={({ field }) => (
+            <div>
+              <label
+                htmlFor="create-action-identifier"
+                className={formDialogLabelClassName}
               >
-                <Typography variant={TYPOGRAPHY.R3}>Create action</Typography>
-              </DecoratedButton>
+                Identifier <span aria-hidden="true">*</span>
+              </label>
+
+              <div className="relative">
+                <input
+                  id="create-action-identifier"
+                  {...field}
+                  onChange={(event) => {
+                    field.onChange(transformIdentifier(event.target.value));
+                  }}
+                  className={`${formDialogInputClassName} pr-12`}
+                  placeholder="proposal-102"
+                  data-testid="input-action"
+                  aria-invalid={Boolean(errors.action)}
+                  aria-describedby={
+                    errors.action
+                      ? "create-action-identifier-error"
+                      : "create-action-identifier-hint"
+                  }
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center">
+                  <CopyButton
+                    fieldName="Action identifier"
+                    fieldValue={actionValue}
+                    className="pr-3"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-2 flex items-center justify-between gap-4">
+                {errors.action?.message ? (
+                  <p
+                    id="create-action-identifier-error"
+                    className={formDialogErrorClassName}
+                  >
+                    {errors.action.message}
+                  </p>
+                ) : (
+                  <p
+                    id="create-action-identifier-hint"
+                    className="font-world text-12 leading-[1.4] text-portal-muted"
+                  >
+                    Lowercase letters, numbers, and dashes.
+                  </p>
+                )}
+                <span className="shrink-0 font-world text-12 text-portal-muted">
+                  {actionValue.length}/32
+                </span>
+              </div>
             </div>
-          </form>
-        </SizingWrapper>
-      </div>
-    </div>
+          )}
+        />
+
+        <div>
+          <label
+            htmlFor="create-action-description"
+            className={formDialogLabelClassName}
+          >
+            Short description
+          </label>
+          <input
+            id="create-action-description"
+            {...register("description")}
+            className={formDialogInputClassName}
+            placeholder="Cast your vote on proposal #102"
+            data-testid="input-description"
+            aria-invalid={Boolean(errors.description)}
+            aria-describedby={
+              errors.description ? "create-action-description-error" : undefined
+            }
+          />
+          {errors.description?.message && (
+            <p
+              id="create-action-description-error"
+              className={formDialogErrorClassName}
+            >
+              {errors.description.message}
+            </p>
+          )}
+        </div>
+
+        <div className="grid w-full gap-3 md:grid-cols-2">
+          <button
+            type="button"
+            onClick={close}
+            disabled={isSubmitting}
+            className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            disabled={!isValid || isSubmitting}
+            data-testid="create-action-v4"
+            aria-label="Create action"
+            className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
+          >
+            {isSubmitting ? (
+              <SpinnerIcon className="size-5 animate-spin" />
+            ) : (
+              "Create action"
+            )}
+          </button>
+        </div>
+      </form>
+    </FormDialog>
   );
 };

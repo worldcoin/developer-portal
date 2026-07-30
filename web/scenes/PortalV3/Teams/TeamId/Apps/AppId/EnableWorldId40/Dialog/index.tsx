@@ -1,16 +1,9 @@
 "use client";
 
-import { Button } from "@/components/Button";
-import { Dialog, DialogProps } from "@/components/Dialog";
-import { DialogPanel } from "@/components/DialogPanel";
-import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { LoggedUserNav } from "@/components/LoggedUserNav";
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { FormDialog } from "@/components/FormDialog";
 import { getGraphQLErrorCode } from "@/lib/errors";
 import { RegisterRpDocument } from "@/scenes/common/layout/CreateAppDialog/client/register-rp.generated";
 import { useMutation } from "@apollo/client/react";
-import clsx from "clsx";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -43,13 +36,15 @@ type EnableWorldIdDialogStep =
 
 const STEP_TITLES: Record<EnableWorldIdDialogStep, string> = {
   "enable-world-id-4-0": "Enable World ID",
-  "configure-signer-key": "Enable World ID",
-  "use-existing-key": "Enable World ID",
-  "generate-new-key": "Enable World ID",
-  "self-managed-transaction": "Enable World ID",
+  "configure-signer-key": "Configure signer key",
+  "use-existing-key": "Use existing key",
+  "generate-new-key": "Generate new key",
+  "self-managed-transaction": "Self-managed registration",
 };
 
-type EnableWorldIdDialogProps = DialogProps & {
+type EnableWorldIdDialogProps = {
+  open: boolean;
+  onClose: (value: boolean) => void;
   appId: string;
   onComplete?: () => void;
 };
@@ -81,11 +76,17 @@ export const EnableWorldIdDialog = ({
     useState<SignerKeySetup>("generate");
 
   const onClose = useCallback(() => {
+    props.onClose(false);
+  }, [props]);
+
+  // Reset only after the leave transition: the dialog keeps rendering while it
+  // fades out, so resetting in onClose would snap the content back to step one
+  // mid-fade.
+  const afterLeave = useCallback(() => {
     setStep("enable-world-id-4-0");
     setWorldIdMode("managed");
     setSignerKeySetup("generate");
-    props.onClose(false);
-  }, [props]);
+  }, []);
 
   const completeRpSetup = useCallback(() => {
     onComplete?.();
@@ -200,81 +201,70 @@ export const EnableWorldIdDialog = ({
   );
 
   return (
-    // Animate the initial lazy-mounted open.
-    <Dialog open={props.open} onClose={onClose} className="z-50" appear>
-      <DialogPanel
-        className={clsx("fixed inset-0 overflow-y-scroll p-0", props.className)}
-      >
-        <header className="fixed z-10 max-h-[56px] w-full border-b border-grey-100 bg-grey-0 py-4">
-          <SizingWrapper>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-x-3">
-                {step === "enable-world-id-4-0" && (
-                  <>
-                    <Button type="button" onClick={onClose} className="flex">
-                      <CloseIcon className="size-4" />
-                    </Button>
-                    <span className="text-grey-200">|</span>
-                  </>
-                )}
-                <Typography variant={TYPOGRAPHY.M4}>
-                  {STEP_TITLES[step]}
-                </Typography>
-              </div>
-              <LoggedUserNav />
-            </div>
-          </SizingWrapper>
-        </header>
-        <div className="relative mt-10 grid w-full grid-rows-auto/1fr items-center pb-4">
-          <SizingWrapper
-            gridClassName="overflow-y-auto"
-            className="flex items-start justify-center"
-          >
-            {step === "enable-world-id-4-0" && (
-              <EnableWorldId40Content
-                onContinue={onEnableContinue}
-                isSelfManagedEnabled={isSelfManagedEnabled}
-                initialMode={worldIdMode}
-                className="justify-self-center py-10"
-              />
-            )}
-            {step === "self-managed-transaction" && (
-              <SelfManagedTransactionInfoContent
-                appId={appId}
-                title="Self-Managed"
-                onBack={() => setStep("enable-world-id-4-0")}
-                onComplete={onSelfManagedComplete}
-                completionLoading={registeringRp}
-                className="justify-self-center py-10"
-              />
-            )}
-            {step === "configure-signer-key" && (
-              <ConfigureSignerKeyContent
-                onBack={onConfigureBack}
-                onContinue={onConfigureContinue}
-                initialSetup={signerKeySetup}
-                className="justify-self-center py-10"
-              />
-            )}
-            {step === "use-existing-key" && (
-              <UseExistingKeyContent
-                onBack={onSignerKeyBack}
-                onContinue={onSignerKeyContinue}
-                className="justify-self-center py-10"
-                loading={registeringRp}
-              />
-            )}
-            {step === "generate-new-key" && (
-              <GenerateNewKeyContent
-                onBack={onSignerKeyBack}
-                onContinue={onSignerKeyContinue}
-                className="justify-self-center py-10"
-                loading={registeringRp}
-              />
-            )}
-          </SizingWrapper>
-        </div>
-      </DialogPanel>
-    </Dialog>
+    <FormDialog
+      open={props.open}
+      onClose={onClose}
+      afterLeave={afterLeave}
+      dismissable={!registeringRp}
+      // This dialog lazy-mounts already open behind a loading overlay that
+      // mimics the backdrop; animating the first mount would un-dim the page
+      // between the overlay unmounting and the fade-in.
+      appear={false}
+      title={STEP_TITLES[step]}
+      closeLabel="Close World ID setup dialog"
+      // The self-managed step lists full contract addresses and a function
+      // signature — widen the panel so they fit, and let the body scroll on
+      // short viewports instead of clipping.
+      panelClassName={
+        step === "self-managed-transaction"
+          ? "max-h-[calc(100dvh-2rem)] md:w-[544px] md:max-w-[calc(100vw-2rem)]"
+          : undefined
+      }
+      bodyClassName={
+        step === "self-managed-transaction"
+          ? "min-h-0 overflow-y-auto"
+          : undefined
+      }
+    >
+      {step === "enable-world-id-4-0" && (
+        <EnableWorldId40Content
+          onContinue={onEnableContinue}
+          onCancel={onClose}
+          isSelfManagedEnabled={isSelfManagedEnabled}
+          initialMode={worldIdMode}
+        />
+      )}
+      {step === "self-managed-transaction" && (
+        <SelfManagedTransactionInfoContent
+          appId={appId}
+          onBack={() => setStep("enable-world-id-4-0")}
+          onComplete={onSelfManagedComplete}
+          completionLoading={registeringRp}
+        />
+      )}
+      {step === "configure-signer-key" && (
+        <ConfigureSignerKeyContent
+          onBack={onConfigureBack}
+          onContinue={onConfigureContinue}
+          initialSetup={signerKeySetup}
+        />
+      )}
+      {step === "use-existing-key" && (
+        <UseExistingKeyContent
+          onBack={onSignerKeyBack}
+          onContinue={onSignerKeyContinue}
+          loading={registeringRp}
+          hideTitle
+        />
+      )}
+      {step === "generate-new-key" && (
+        <GenerateNewKeyContent
+          onBack={onSignerKeyBack}
+          onContinue={onSignerKeyContinue}
+          loading={registeringRp}
+          hideTitle
+        />
+      )}
+    </FormDialog>
   );
 };

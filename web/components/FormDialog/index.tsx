@@ -30,6 +30,12 @@ type FormDialogProps = {
   // same window — this covers Escape, the backdrop and the header X, not
   // buttons in the dialog body.
   dismissable?: boolean;
+  // Set false when the dialog is lazy-mounted behind a loading overlay that
+  // mimics the backdrop: animating the initial mount would restart the
+  // backdrop from transparent, visibly un-dimming the page between the
+  // overlay unmounting and the fade-in. Subsequent open/close transitions
+  // still animate — this only skips the first-mount animation.
+  appear?: boolean;
   bodyClassName?: string;
   dialogClassName?: string;
   panelClassName?: string;
@@ -58,6 +64,7 @@ export const FormDialog = ({
   title,
   afterLeave,
   dismissable = true,
+  appear = true,
   bodyClassName,
   dialogClassName,
   panelClassName,
@@ -66,7 +73,7 @@ export const FormDialog = ({
     <Dialog
       open={open}
       onClose={dismissable ? onClose : ignoreDismiss}
-      appear
+      appear={appear}
       afterLeave={afterLeave}
       className={dialogClassName}
     >
