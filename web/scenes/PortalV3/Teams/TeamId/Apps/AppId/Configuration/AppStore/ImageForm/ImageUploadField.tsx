@@ -9,6 +9,7 @@ import { getCDNImageUrl } from "@/lib/utils";
 import { Dialog as HeadlessDialog, Transition } from "@headlessui/react";
 import {
   Fragment,
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -17,6 +18,7 @@ import {
 } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
+import { twMerge } from "tailwind-merge";
 import { useCroppedImageUpload, useImage } from "../../hook/use-image";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
@@ -42,6 +44,10 @@ interface ImageUploadFieldConfig {
   onUploadStart?: () => void;
   onUploadSuccess?: () => void;
   onUploadError?: (error: any) => void;
+  /** Overrides the empty drop zone's box styling (e.g. wizard theming). */
+  dropZoneClassName?: string;
+  /** Overrides the drop zone's inner icon/copy (e.g. wizard theming). */
+  dropZoneContent?: ReactNode;
 }
 
 interface ImageUploadFieldProps extends ImageUploadFieldConfig {
@@ -82,6 +88,8 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
     onUploadSuccess,
     onUploadError,
     error,
+    dropZoneClassName,
+    dropZoneContent,
   } = props;
 
   const [isUploading, setIsUploading] = useState(false);
@@ -299,9 +307,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           uploadImage={uploadImage}
           imageType={imageTypeNamer(0)}
           error={error}
-          className="h-[168px] rounded-xl!"
+          className={dropZoneClassName ?? "h-[168px] rounded-xl!"}
         >
-          {dropZoneChildren}
+          {dropZoneContent ?? dropZoneChildren}
         </ImageDropZone>
       )}
 
@@ -433,9 +441,13 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                 uploadImage={uploadImage}
                 imageType={imageTypeNamer(value.length)}
                 error={error}
-                className="h-full rounded-xl!"
+                className={
+                  dropZoneClassName
+                    ? twMerge(dropZoneClassName, "h-full")
+                    : "h-full rounded-xl!"
+                }
               >
-                {dropZoneChildren}
+                {dropZoneContent ?? dropZoneChildren}
               </ImageDropZone>
             </div>
           )}
