@@ -86,10 +86,11 @@ export const UseExistingKeyContent = ({
           htmlFor="use-existing-key-public-key"
           className={formDialogLabelClassName}
         >
-          Public key <span aria-hidden="true">*</span>
+          Public key *
         </label>
         <input
           id="use-existing-key-public-key"
+          required
           {...register("public_key")}
           className={formDialogInputClassName}
           placeholder="0x1234...abcd"
