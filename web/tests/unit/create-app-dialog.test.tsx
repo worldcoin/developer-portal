@@ -5,8 +5,9 @@ import { createStore, Provider } from "jotai";
 import React from "react";
 
 // #region Mocks
+let mockTeamId = "team_1";
 jest.mock("next/navigation", () => ({
-  useParams: () => ({ teamId: "team_1" }),
+  useParams: () => ({ teamId: mockTeamId }),
 }));
 
 const mockValidateAndInsertApp = jest.fn();
@@ -66,16 +67,25 @@ const DialogControls = () => {
   );
 };
 
+const DialogHarness = () => (
+  <>
+    <DialogControls />
+    <CreateAppDialog />
+  </>
+);
+
 const renderDialog = () => {
   const store = createStore();
 
-  render(
-    <Provider store={store}>
-      <DialogControls />
-      <CreateAppDialog />
-    </Provider>,
-  );
+  return render(<DialogHarness />, {
+    wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
+  });
 };
+
+beforeEach(() => {
+  mockTeamId = "team_1";
+  jest.clearAllMocks();
+});
 
 // #region Atom-backed dialog state
 describe("CreateAppDialog [atom state]", () => {
@@ -128,6 +138,29 @@ describe("CreateAppDialog [atom state]", () => {
       screen.getByRole("button", { name: "Open create app dialog" }),
     );
 
+    expect(screen.getByLabelText("App name")).toHaveValue("");
+  });
+
+  it("closes and resets form state when the route team changes", () => {
+    const { rerender } = renderDialog();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open create app dialog" }),
+    );
+
+    fireEvent.change(screen.getByLabelText("App name"), {
+      target: { value: "Team A draft" },
+    });
+    expect(screen.getByLabelText("App name")).toHaveValue("Team A draft");
+
+    mockTeamId = "team_2";
+    rerender(<DialogHarness />);
+
+    expect(screen.getByText("closed")).toBeInTheDocument();
+    expect(screen.queryByLabelText("App name")).not.toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open create app dialog" }),
+    );
     expect(screen.getByLabelText("App name")).toHaveValue("");
   });
 });
