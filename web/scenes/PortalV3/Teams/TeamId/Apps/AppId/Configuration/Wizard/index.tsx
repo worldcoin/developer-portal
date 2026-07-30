@@ -65,7 +65,7 @@ export const ConfigurationWizard = (props: {
     setActiveStep,
   } = props;
   const basicInfoRef = useRef<BasicInformationHandle>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { user } = useUser() as Auth0SessionUser;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
 
@@ -94,9 +94,7 @@ export const ConfigurationWizard = (props: {
     (step: WizardStep) => {
       setActiveStep(step);
       requestAnimationFrame(() => {
-        // The shell scrolls an inner overflow container, not the window —
-        // scrollIntoView targets whichever ancestor actually scrolls.
-        rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
       });
     },
     [setActiveStep],
@@ -152,14 +150,14 @@ export const ConfigurationWizard = (props: {
     clsx("w-full", marginClassName, activeStep !== step && "hidden");
 
   return (
-    // Fills the shell's scroll area (viewport minus the 67px header, via the
-    // shell's CSS variable) so the action bar below can sit at the viewport
-    // bottom even on short steps, like the previous page's docked footer.
-    <div
-      ref={rootRef}
-      className="flex min-h-[calc(100dvh-var(--portal-header-height))] w-full flex-col px-6 pt-[43px] font-world"
-    >
-      <div className="relative flex w-full justify-center">
+    // Fixed frame filling the shell's scroll area (viewport minus the header,
+    // via the shell's CSS variable): the stepper and action bar stay pinned
+    // while the step content scrolls in its own region between them, like the
+    // previous page's docked layout. overflow-x-clip keeps stray wide content
+    // from ever handing the shell a horizontal scrollbar (which focus would
+    // then jump along).
+    <div className="flex h-[calc(100dvh-var(--portal-header-height))] w-full flex-col overflow-x-clip px-6 pt-[43px] font-world">
+      <div className="relative flex w-full shrink-0 justify-center">
         <Stepper steps={steps} activeIndex={activeIndex} />
         {/* Static cue for which version the form shows — not a control.
             Draft-only apps have a single version; nothing worth labelling. */}
@@ -182,9 +180,15 @@ export const ConfigurationWizard = (props: {
 
       {/* Every step stays mounted (inactive ones are CSS-hidden) so autosave
           debounces and review-time validation keep their field state, exactly
-          like the previous page's sections. `grow` pushes the sticky action
-          bar to the viewport bottom while a step is shorter than the screen. */}
-      <div className="w-full grow pb-8">
+          like the previous page's sections. This is the wizard's only scroll
+          region — min-h-0 lets it shrink inside the fixed flex frame, and
+          overflow-x-hidden means wide content clips rather than ever growing
+          a horizontal scrollbar. Full-bleed (-mx-6) so the scrollbar hugs the
+          frame edge instead of floating beside the content column. */}
+      <div
+        ref={scrollContainerRef}
+        className="-mx-6 min-h-0 w-auto flex-1 overflow-x-hidden overflow-y-auto px-6 pb-8"
+      >
         <AppStoreForm
           appId={appId}
           teamId={teamId}
@@ -262,10 +266,9 @@ export const ConfigurationWizard = (props: {
         </AppStoreForm>
       </div>
 
-      {/* Docked action bar: stays at the viewport bottom while a step's
-          content scrolls, matching the previous page's fixed footer. The
-          white full-bleed background masks content passing beneath. */}
-      <div className="sticky bottom-0 z-10 -mx-6 border-t border-portal-border bg-white px-6 py-3">
+      {/* Docked action bar: pinned below the scroll region, matching the
+          previous page's fixed footer. */}
+      <div className="-mx-6 shrink-0 border-t border-portal-border bg-white px-6 py-3">
         <div className="mx-auto flex w-full max-w-[626px] items-center gap-3">
           <div className="flex flex-1 justify-start">
             {activeIndex > 0 && (

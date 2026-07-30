@@ -4,11 +4,12 @@ import clsx from "clsx";
 import { useState } from "react";
 
 /**
- * Multiline sibling of TextField with the same floating-label behavior:
- * empty + unfocused shows a single 15px placeholder line on the canvas
- * background; focused or filled shows the 13px label above the value.
- * The error state keeps `bg-system-error-50` so the review flow's
- * scroll-to-first-error (which queries that class) can find the field.
+ * Multiline sibling of TextField with the same floating-label behavior on a
+ * constant white bordered box (empty fields must not read as greyed-out):
+ * empty + unfocused shows a single 15px placeholder line; focused or filled
+ * shows the 13px label above the value. The error state keeps
+ * `bg-system-error-50` so the review flow's scroll-to-first-error (which
+ * queries that class) can find the field.
  */
 export const TextAreaField = (props: {
   label: string;
@@ -33,9 +34,7 @@ export const TextAreaField = (props: {
           props.disabled ? "cursor-default opacity-60" : "cursor-text",
           props.error
             ? "border-[#ea392a] bg-system-error-50"
-            : isFloating
-              ? "border-portal-border bg-white"
-              : "border-transparent bg-portal-canvas",
+            : "border-portal-border bg-white",
         )}
       >
         <span

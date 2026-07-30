@@ -74,7 +74,9 @@ export const Stepper = (props: {
   steps: WizardStepConfig[];
   activeIndex: number;
 }) => (
-  <ol className="flex items-center gap-4">
+  // flex-wrap: on narrow windows the row breaks into lines instead of ever
+  // producing a horizontal scrollbar.
+  <ol className="flex flex-wrap items-center justify-center gap-4">
     {props.steps.map((step, index) => {
       const isActive = index === props.activeIndex;
       const isCompleted = index < props.activeIndex;

@@ -4,12 +4,14 @@ import clsx from "clsx";
 import { ReactNode, useState } from "react";
 
 /**
- * Wizard text field with the label floating inside the box. Empty + unfocused
- * shows a single 15px placeholder line on the canvas background; focused or
- * filled shows the 13px label above the 15px value on a white bordered box.
- * `muted` (the app ID) keeps the canvas background with a border instead.
- * The error state keeps `bg-system-error-50` so the review flow's
- * scroll-to-first-error (which queries that class) can find the field.
+ * Wizard text field with the label floating inside the box. The box chrome is
+ * a constant white bordered box — empty fields must not read as greyed-out
+ * (and a constant box means focusing never reflows the layout); only the
+ * label floats: a single 15px placeholder line when empty + unfocused, the
+ * 13px label above the 15px value otherwise. `muted` (the app ID) uses the
+ * canvas background instead. The error state keeps `bg-system-error-50` so
+ * the review flow's scroll-to-first-error (which queries that class) can
+ * find the field.
  */
 export const TextField = (props: {
   label: string;
@@ -48,11 +50,7 @@ export const TextField = (props: {
             ? "border-[#ea392a] bg-system-error-50"
             : props.muted
               ? "border-portal-border bg-portal-canvas"
-              : isFloating
-                ? "border-portal-border bg-white"
-                : // Borderless in Figma; transparent border keeps the box
-                  // metrics identical across states.
-                  "border-transparent bg-portal-canvas",
+              : "border-portal-border bg-white",
         )}
       >
         <span className="flex min-w-0 flex-1 flex-col overflow-clip">

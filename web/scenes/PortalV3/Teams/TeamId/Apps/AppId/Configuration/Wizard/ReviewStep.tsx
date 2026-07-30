@@ -76,7 +76,9 @@ export const ReviewStep = (props: {
       </div>
 
       <div className="mt-12 flex flex-col gap-4">
-        <h1 className="text-[34px] leading-[1.2] font-[550] tracking-[-0.51px] whitespace-nowrap text-portal-text">
+        {/* No nowrap: app names run to 50 chars and must wrap rather than
+            widen the page (the wizard clips horizontal overflow). */}
+        <h1 className="text-[34px] leading-[1.2] font-[550] tracking-[-0.51px] break-words text-portal-text">
           {name}
         </h1>
         <p className="text-17 leading-[1.3] font-[350] text-portal-text">
