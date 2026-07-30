@@ -1,12 +1,13 @@
 "use client";
-import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
-import { KeyIcon } from "@/components/Icons/KeyIcon";
-import { Input } from "@/components/Input";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import {
+  FormDialog,
+  formDialogErrorClassName,
+  formDialogInputClassName,
+  formDialogLabelClassName,
+  formDialogPrimaryActionClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -37,10 +38,13 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const isOpenRef = useRef(isOpen);
   const requestIdRef = useRef(0);
-  const [insertKeyMutation, { loading: creatingKey }] =
-    useMutation(InsertKeyDocument);
-  const [resetApiKeyMutation, { loading: revealingKey }] =
-    useMutation(ResetApiKeyDocument);
+  // Creation is two chained mutations (insert, then reset to obtain the secret).
+  // Tracking "in flight" with one explicit flag instead of the two Apollo
+  // loading flags matters: those both read false in the render between the
+  // mutations, which would briefly unlock dismissal mid-operation.
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [insertKeyMutation] = useMutation(InsertKeyDocument);
+  const [resetApiKeyMutation] = useMutation(ResetApiKeyDocument);
 
   const {
     register,
@@ -53,19 +57,32 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
 
   useEffect(() => {
     isOpenRef.current = isOpen;
-  }, [isOpen]);
+    // Fresh session on open: covers reopening during an interrupted leave
+    // transition, where afterLeave (the usual cleanup) never fired.
+    if (isOpen) {
+      setCreatedKey(null);
+      reset();
+    }
+  }, [isOpen, reset]);
 
   const close = () => {
     requestIdRef.current += 1;
-    reset();
-    setCreatedKey(null);
     setIsOpen(false);
   };
 
+  // Clear content only after the leave transition: the dialog keeps rendering
+  // while it fades out, and clearing on close snaps the created-key reveal
+  // back to the create form mid-fade (visible flicker).
+  const afterLeave = () => {
+    reset();
+    setCreatedKey(null);
+  };
+
   const submit = async (values: CreateKeyFormValues) => {
-    if (creatingKey || revealingKey) return;
+    if (isSubmitting) return;
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
+    setIsSubmitting(true);
 
     try {
       const result = await insertKeyMutation({
@@ -119,108 +136,111 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
       }
 
       toast.error("Error occurred while creating API key.");
+    } finally {
+      // Only the newest attempt owns the flag, so a superseded one cannot
+      // unlock the dialog while its replacement is still running.
+      if (requestIdRef.current === requestId) {
+        setIsSubmitting(false);
+      }
     }
   };
 
   return (
-    <Dialog open={isOpen} onClose={close}>
-      <DialogOverlay />
+    <FormDialog
+      open={isOpen}
+      onClose={close}
+      afterLeave={afterLeave}
+      // The key exists server-side the moment the first mutation lands, and the
+      // second returns its only copy: dismissing between them leaves a key in
+      // the table that can never be revealed. Hold the user until the reveal.
+      dismissable={!isSubmitting}
+      closeLabel="Close API key dialog"
+      title={createdKey ? "API key created" : "Create a new API key"}
+      panelClassName={
+        createdKey
+          ? "max-h-[calc(100dvh-2rem)] md:w-[544px] md:max-w-[calc(100vw-2rem)]"
+          : undefined
+      }
+      bodyClassName={createdKey ? "min-h-0 overflow-y-auto" : undefined}
+    >
+      {createdKey ? (
+        <div className="grid w-full gap-y-5">
+          <p className="font-world text-14 leading-[1.5] text-portal-muted">
+            Your new key is ready. Save it now because you {"won't"} be able to
+            see it again.
+          </p>
 
-      <DialogPanel
-        className={
-          createdKey
-            ? "max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-20 p-5 sm:p-6 md:w-136 md:max-w-[calc(100vw-2rem)]"
-            : "md:max-w-xl"
-        }
-      >
-        <div
-          className={
-            createdKey
-              ? "grid grid-cols-1 justify-items-center gap-y-5"
-              : "grid grid-cols-1 justify-items-center gap-y-10"
-          }
-        >
-          {createdKey ? (
-            <div className="flex size-12 items-center justify-center rounded-full border border-blue-150 bg-blue-50 text-blue-500">
-              <KeyIcon className="size-5" />
-            </div>
-          ) : (
-            <CircleIconContainer variant={"info"}>
-              <KeyIcon className="text-blue-500" />
-            </CircleIconContainer>
-          )}
+          <ApiKeySecretFields apiKey={createdKey} />
 
-          <div
-            className={
-              createdKey
-                ? "grid w-full justify-items-center gap-y-2 text-center"
-                : "grid w-full justify-items-center gap-y-4 text-center"
-            }
+          <button
+            type="button"
+            className={formDialogPrimaryActionClassName}
+            onClick={close}
           >
-            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
-              {createdKey ? "API key created" : "Create a new API key"}
-            </Typography>
+            Done
+          </button>
+        </div>
+      ) : (
+        <form className="grid w-full gap-y-6" onSubmit={handleSubmit(submit)}>
+          <p className="font-world text-14 leading-[1.5] text-portal-muted">
+            Create a secure API key to seamlessly connect with your App.
+          </p>
 
-            <Typography
-              variant={createdKey ? TYPOGRAPHY.R4 : TYPOGRAPHY.R3}
-              className={
-                createdKey ? "max-w-[24rem] text-grey-500" : "text-grey-500"
-              }
+          <div>
+            <label
+              htmlFor="create-api-key-name"
+              className={formDialogLabelClassName}
             >
-              {createdKey
-                ? "Your new key is ready. Save it now because you won't be able to see it again."
-                : "Create a secure API key to seamlessly connect with your App."}
-            </Typography>
+              Key name <span aria-hidden="true">*</span>
+            </label>
+
+            <input
+              id="create-api-key-name"
+              {...register("name")}
+              className={formDialogInputClassName}
+              placeholder="api_key_123"
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={
+                errors.name ? "create-api-key-name-error" : undefined
+              }
+            />
+
+            {errors.name?.message && (
+              <p
+                id="create-api-key-name-error"
+                className={formDialogErrorClassName}
+              >
+                {errors.name.message}
+              </p>
+            )}
           </div>
 
-          {createdKey ? (
-            <div className="grid w-full gap-y-5">
-              <ApiKeySecretFields apiKey={createdKey} />
-
-              <DecoratedButton
-                type="button"
-                className="min-h-11"
-                onClick={close}
-              >
-                Done
-              </DecoratedButton>
-            </div>
-          ) : (
-            <form
-              className="grid w-full gap-y-10"
-              onSubmit={handleSubmit(submit)}
+          <div className="grid w-full gap-3 md:grid-cols-2">
+            <button
+              className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
+              type="button"
+              disabled={isSubmitting}
+              onClick={close}
             >
-              <Input
-                register={register("name")}
-                label="Key name"
-                required
-                errors={errors.name}
-                placeholder="api_key_123"
-              />
+              Cancel
+            </button>
 
-              <div className="grid w-full gap-x-4 gap-y-2 md:grid-cols-2">
-                <DecoratedButton
-                  className="order-2 md:order-1"
-                  type="button"
-                  variant="secondary"
-                  onClick={close}
-                >
-                  Cancel
-                </DecoratedButton>
-
-                <DecoratedButton
-                  type="submit"
-                  disabled={!teamId || creatingKey || revealingKey}
-                  loading={creatingKey || revealingKey}
-                  className="order-1 whitespace-nowrap"
-                >
-                  Create new key
-                </DecoratedButton>
-              </div>
-            </form>
-          )}
-        </div>
-      </DialogPanel>
-    </Dialog>
+            <button
+              type="submit"
+              disabled={!teamId || isSubmitting}
+              // Keeps an accessible name while the label is a spinner.
+              aria-label="Create new key"
+              className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
+            >
+              {isSubmitting ? (
+                <SpinnerIcon className="size-5 animate-spin" />
+              ) : (
+                "Create new key"
+              )}
+            </button>
+          </div>
+        </form>
+      )}
+    </FormDialog>
   );
 };
