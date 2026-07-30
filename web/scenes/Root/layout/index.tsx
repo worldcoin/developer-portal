@@ -3,6 +3,7 @@ import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
 import "@/styles/globals.css";
 import { Auth0Provider } from "@auth0/nextjs-auth0/client";
 import { Provider } from "jotai";
+import { ThemeProvider } from "next-themes";
 import { IBM_Plex_Mono, Rubik } from "next/font/google";
 import localFont from "next/font/local";
 import { headers } from "next/headers";
@@ -86,31 +87,46 @@ export const RootLayout = async ({
   const currentPath = requestHeaders.get("x-current-path");
   const disableUserIdentification =
     currentPath === "/admin" || currentPath?.startsWith("/admin/");
+  // next-themes injects an inline script that applies the stored theme before
+  // first paint; it needs the per-request CSP nonce to pass `web/proxy.ts`.
+  const cspNonce = requestHeaders.get("x-nonce") ?? undefined;
 
+  // suppressHydrationWarning: next-themes mutates the <html> class/style on
+  // the client before hydration, which is an expected server/client mismatch.
   return (
-    <html lang="en" className={fontVariables}>
+    <html lang="en" className={fontVariables} suppressHydrationWarning>
       <body>
-        <ToastContainer
-          autoClose={4000}
-          transition={Slide}
-          hideProgressBar
-          position="bottom-right"
-        />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+          nonce={cspNonce}
+        >
+          <ToastContainer
+            autoClose={4000}
+            transition={Slide}
+            hideProgressBar
+            position="bottom-right"
+          />
 
-        <Auth0Provider>
-          <WithPostHogIdentifier
-            disableUserIdentification={disableUserIdentification}
-          >
-            <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
-              <Provider>
-                <Suspense fallback={null}>
-                  <PostHogPageView />
-                </Suspense>
-                {children}
-              </Provider>
-            </SkeletonTheme>
-          </WithPostHogIdentifier>
-        </Auth0Provider>
+          <Auth0Provider>
+            <WithPostHogIdentifier
+              disableUserIdentification={disableUserIdentification}
+            >
+              {/* Skeleton colors live in globals.css (.react-loading-skeleton)
+                  so they can follow the theme. */}
+              <SkeletonTheme>
+                <Provider>
+                  <Suspense fallback={null}>
+                    <PostHogPageView />
+                  </Suspense>
+                  {children}
+                </Provider>
+              </SkeletonTheme>
+            </WithPostHogIdentifier>
+          </Auth0Provider>
+        </ThemeProvider>
       </body>
     </html>
   );

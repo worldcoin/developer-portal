@@ -30,6 +30,25 @@ export const opticalIconClassName = "shrink-0 -translate-y-px";
 export const bubbleDigitClassName = "inline-block translate-y-[0.12em]";
 
 /**
+ * Icons whose color is meaningful (brand marks, status accents, white glyphs
+ * that sit on fills which stay colored in dark mode). Everything else is a
+ * monochrome grey glyph that `dark:invert` re-themes correctly — the SVGs are
+ * loaded via <img>, so their baked-in fills can't see our CSS variables and a
+ * filter is the only way to theme them without touching the assets.
+ */
+const UNTHEMED_ICONS = new Set([
+  "clock",
+  "clock-active",
+  "edit-pencil",
+  "dropdown-check",
+  "card-wand",
+  "card-toolkit",
+  "credential-banner",
+  "warning-triangle",
+  "world-id-sandbox-app-icon",
+]);
+
+/**
  * Renders a static SVG asset from `public/images/portal-v3/icons`. Decorative
  * by default (`alt=""` + `aria-hidden`), so give the surrounding control its
  * own accessible label. Pass `className` for sizing/color.
@@ -38,13 +57,25 @@ export const bubbleDigitClassName = "inline-block translate-y-[0.12em]";
  * descender gap, which pushes the glyph a couple px off-center from adjacent
  * labels (e.g. the sidebar rows). Block removes that so `items-center` lines it
  * up exactly. Callers can still override the display via `className`.
+ *
+ * Pass `unthemed` when a normally-inverted icon sits on a fill that keeps its
+ * color in dark mode (e.g. the white `radio-check` on the stepper's green
+ * chip).
  */
-export const Icon = (props: { name: string; className?: string }) => (
+export const Icon = (props: {
+  name: string;
+  className?: string;
+  unthemed?: boolean;
+}) => (
   <img
     src={`${ICON_PATH}/${props.name}.svg`}
     alt=""
     aria-hidden="true"
     draggable={false}
-    className={twMerge("block", props.className)}
+    className={twMerge(
+      "block",
+      !props.unthemed && !UNTHEMED_ICONS.has(props.name) && "dark:invert",
+      props.className,
+    )}
   />
 );

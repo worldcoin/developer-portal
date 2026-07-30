@@ -6,6 +6,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -18,7 +21,14 @@ import { Color } from "@/scenes/common/Profile/types";
 import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { useAtomValue } from "jotai";
-import { ChevronsUpDownIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronsUpDownIcon,
+  MonitorIcon,
+  MoonIcon,
+  SunIcon,
+} from "lucide-react";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import { CSSProperties } from "react";
 
@@ -33,6 +43,46 @@ const accountLinks = [
     icon: "profile-menu-profile",
   },
 ];
+
+const themeOptions = [
+  { value: "light", label: "Light", icon: SunIcon },
+  { value: "dark", label: "Dark", icon: MoonIcon },
+  { value: "system", label: "System", icon: MonitorIcon },
+] as const;
+
+const ThemeSubmenu = () => {
+  // Rendered only inside the opened (client-mounted) dropdown, so reading the
+  // resolved theme here can't cause a hydration mismatch.
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger className={itemClass}>
+        <SunIcon
+          className={`${opticalIconClassName} size-4 text-portal-muted`}
+        />
+        <span className="min-w-0 flex-1 truncate">Theme</span>
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent className="w-40 border border-portal-border font-world">
+        {themeOptions.map((option) => (
+          <DropdownMenuItem
+            key={option.value}
+            className={itemClass}
+            onClick={() => setTheme(option.value)}
+          >
+            <option.icon
+              className={`${opticalIconClassName} size-4 text-portal-muted`}
+            />
+            <span className="min-w-0 flex-1 truncate">{option.label}</span>
+            {theme === option.value && (
+              <CheckIcon className={`${opticalIconClassName} size-4`} />
+            )}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  );
+};
 
 const getInitials = (name: string) => {
   const parts = name
@@ -106,6 +156,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
                 </Link>
               </DropdownMenuItem>
             ))}
+            <ThemeSubmenu />
             <DropdownMenuSeparator className="my-2 bg-portal-border" />
             <DropdownMenuItem asChild className={itemClass}>
               <a
