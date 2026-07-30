@@ -1,7 +1,9 @@
 "use client";
 
+import { APP_CREATED_TOAST_STORAGE_KEY } from "@/lib/app-created-toast";
 import { yupResolver } from "@hookform/resolvers/yup";
 import posthog from "posthog-js";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { createAppSchemaV4, type CreateAppSchemaV4 } from "../form-schema-v4";
@@ -15,15 +17,15 @@ const defaultValues: Partial<CreateAppSchemaV4> = {
 
 type CreateAppFormProps = {
   teamId?: string;
-  onSuccess: () => void;
 };
 
-export const CreateAppForm = ({ teamId, onSuccess }: CreateAppFormProps) => {
+export const CreateAppForm = ({ teamId }: CreateAppFormProps) => {
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
   const {
     register,
     formState: { isValid, errors, isSubmitting },
     handleSubmit,
-    reset,
   } = useForm<CreateAppSchemaV4>({
     mode: "onChange",
     resolver: yupResolver(createAppSchemaV4),
@@ -60,9 +62,21 @@ export const CreateAppForm = ({ teamId, onSuccess }: CreateAppFormProps) => {
         engine: values.verification,
       });
 
-      reset(defaultValues);
-      onSuccess();
+      // Keep the dialog open with the button pending until the browser swaps
+      // pages — closing first flashes the stale screen underneath.
+      setIsRedirecting(true);
 
+      try {
+        window.sessionStorage.setItem(
+          APP_CREATED_TOAST_STORAGE_KEY,
+          values.name,
+        );
+      } catch {
+        // Storage availability should not prevent navigation to the new app.
+      }
+
+      // Full navigation (not a client push) so the session-fed portal layout is
+      // rebuilt with the freshly created app.
       window.location.replace(
         newAppId ? `/teams/${teamId}/apps/${newAppId}` : `/teams/${teamId}`,
       );
@@ -76,6 +90,8 @@ export const CreateAppForm = ({ teamId, onSuccess }: CreateAppFormProps) => {
       });
     }
   };
+
+  const isPending = isSubmitting || isRedirecting;
 
   const inputId = "create-app-name";
   const errorId = `${inputId}-error`;
@@ -94,7 +110,6 @@ export const CreateAppForm = ({ teamId, onSuccess }: CreateAppFormProps) => {
           {...register("name")}
           autoFocus
           autoComplete="off"
-          placeholder="My app"
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? errorId : undefined}
           className={`h-11 w-full rounded-8 border bg-white px-3 text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200 ${
@@ -114,11 +129,11 @@ export const CreateAppForm = ({ teamId, onSuccess }: CreateAppFormProps) => {
 
       <button
         type="submit"
-        disabled={!isValid || isSubmitting}
+        disabled={!isValid || isPending}
         className="inline-flex h-11 w-full cursor-pointer items-center justify-center rounded-8 bg-portal-ink px-4 text-13 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400"
         data-testid="button-create-app"
       >
-        {isSubmitting ? "Creating app…" : "Create app"}
+        {isPending ? "Creating app…" : "Create app"}
       </button>
     </form>
   );

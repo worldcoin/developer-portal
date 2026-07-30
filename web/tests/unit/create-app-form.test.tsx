@@ -45,6 +45,7 @@ const enterValidName = async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  window.sessionStorage.clear();
   Object.defineProperty(window, "location", {
     value: { replace: mockLocationReplace },
     writable: true,
@@ -63,14 +64,13 @@ afterEach(() => {
 // #region Submission branches
 describe("CreateAppForm [submission]", () => {
   it("creates a production cloud app and hard-navigates to its returned id", async () => {
-    const onSuccess = jest.fn();
     mockValidateAndInsertApp.mockResolvedValue({
       success: true,
       message: "App created successfully",
       app_id: "app_00000000000000000000000000000000",
     });
 
-    render(<CreateAppForm teamId="team_1" onSuccess={onSuccess} />);
+    render(<CreateAppForm teamId="team_1" />);
 
     expect(screen.getByTestId("button-create-app")).toBeDisabled();
     await enterValidName();
@@ -94,9 +94,18 @@ describe("CreateAppForm [submission]", () => {
         app_id: "app_00000000000000000000000000000000",
       }),
     );
-    expect(onSuccess).toHaveBeenCalledTimes(1);
     expect(mockLocationReplace).toHaveBeenCalledWith(
       "/teams/team_1/apps/app_00000000000000000000000000000000",
+    );
+    // The confirmation is handed to the destination page via sessionStorage
+    // because the hard navigation would drop an in-flight toast.
+    expect(window.sessionStorage.getItem("app-created-toast")).toBe(
+      "Voting app",
+    );
+    // The dialog stays up with the button latched until the page swap.
+    expect(screen.getByTestId("button-create-app")).toBeDisabled();
+    expect(screen.getByTestId("button-create-app")).toHaveTextContent(
+      "Creating app…",
     );
   });
 
@@ -106,7 +115,7 @@ describe("CreateAppForm [submission]", () => {
       message: "App created successfully",
     });
 
-    render(<CreateAppForm teamId="team_1" onSuccess={jest.fn()} />);
+    render(<CreateAppForm teamId="team_1" />);
     await enterValidName();
     fireEvent.click(screen.getByTestId("button-create-app"));
 
@@ -116,14 +125,13 @@ describe("CreateAppForm [submission]", () => {
   });
 
   it("keeps the modal open and shows the server message when creation is rejected", async () => {
-    const onSuccess = jest.fn();
     mockValidateAndInsertApp.mockResolvedValue({
       success: false,
       message: "The user does not have permission to create apps",
       error: "unauthorized",
     });
 
-    render(<CreateAppForm teamId="team_1" onSuccess={onSuccess} />);
+    render(<CreateAppForm teamId="team_1" />);
     await enterValidName();
     fireEvent.click(screen.getByTestId("button-create-app"));
 
@@ -136,12 +144,14 @@ describe("CreateAppForm [submission]", () => {
       "app_creation_failed",
       expect.objectContaining({ team_id: "team_1", error: "unauthorized" }),
     );
-    expect(onSuccess).not.toHaveBeenCalled();
     expect(mockLocationReplace).not.toHaveBeenCalled();
+    // The button must recover so the user can retry after fixing the issue.
+    expect(screen.getByTestId("button-create-app")).toBeEnabled();
+    expect(window.sessionStorage.getItem("app-created-toast")).toBeNull();
   });
 
   it("does not submit when the dialog has no team context", async () => {
-    render(<CreateAppForm onSuccess={jest.fn()} />);
+    render(<CreateAppForm />);
     await enterValidName();
     fireEvent.click(screen.getByTestId("button-create-app"));
 
@@ -153,10 +163,9 @@ describe("CreateAppForm [submission]", () => {
   });
 
   it("surfaces an unexpected action failure without closing or navigating", async () => {
-    const onSuccess = jest.fn();
     mockValidateAndInsertApp.mockRejectedValue(new Error("network failed"));
 
-    render(<CreateAppForm teamId="team_1" onSuccess={onSuccess} />);
+    render(<CreateAppForm teamId="team_1" />);
     await enterValidName();
     fireEvent.click(screen.getByTestId("button-create-app"));
 
@@ -172,8 +181,8 @@ describe("CreateAppForm [submission]", () => {
         error: "network failed",
       }),
     );
-    expect(onSuccess).not.toHaveBeenCalled();
     expect(mockLocationReplace).not.toHaveBeenCalled();
+    expect(screen.getByTestId("button-create-app")).toBeEnabled();
   });
 });
 // #endregion

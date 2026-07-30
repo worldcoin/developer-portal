@@ -16,7 +16,7 @@ export const CreateAppDialog = () => {
       title="Create a new app"
       closeLabel="Close create app dialog"
     >
-      <CreateAppForm teamId={teamId} onSuccess={close} />
+      <CreateAppForm teamId={teamId} />
     </FormDialog>
   );
 };
