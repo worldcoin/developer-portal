@@ -74,45 +74,25 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
         return toast.error(result.message || "Error deleting team");
       }
 
-      const refetched = await refetch();
-      const membershipsCount = refetched?.data?.user_by_pk?.memberships?.length;
+      // Refetch before invalidate: invalidate updates the Auth0 client user,
+      // which can flip canWrite false on team settings and unmount this dialog.
+      // Parallel refetch then rejects on the unmounted Apollo hook and we toast
+      // an error even though the delete already succeeded.
+      await refetch();
 
       // The action rewrites the cookie itself; this only covers its failure.
-      let sessionSynced = Boolean(result.sessionUpdated);
-
-      if (!sessionSynced) {
-        const response = await fetch("/api/update-session", {
-          method: "POST",
-        }).catch(() => null);
-
-        const data = response?.ok
-          ? await response.json().catch(() => null)
-          : null;
-
-        sessionSynced = Boolean(data?.success);
+      if (!result.sessionUpdated) {
+        await fetch("/api/update-session", { method: "POST" }).catch(
+          () => null,
+        );
       }
 
       await invalidate();
       toast.success("Team deleted");
 
-      if (!sessionSynced) {
-        console.error("Delete Team Dialog: session sync failed after delete");
-      }
-
-      // Deleting the last team keeps the user in the portal: land them on
-      // their profile, which owns teams and can create the next one.
-      if (typeof membershipsCount === "number" && membershipsCount === 0) {
-        if (path !== urls.profile()) {
-          return router.push(urls.profile());
-        }
-
-        router.refresh();
-        return onClose();
-      }
-
-      // A push inside the same layout won't re-render the session-fed sidebar.
+      // Refresh so the session-fed sidebar drops the deleted team; push alone
+      // is a no-op when already on /profile (same layout).
       router.refresh();
-
       if (path !== urls.profile()) {
         return router.push(urls.profile());
       }
