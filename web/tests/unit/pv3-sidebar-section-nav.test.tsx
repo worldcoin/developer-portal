@@ -73,6 +73,7 @@ describe("v3 SidebarNav", () => {
   it("maps app routes (including legacy paths) to their active item", () => {
     const cases: Array<[string, string]> = [
       [base, "World ID"],
+      [`${base}/world-id`, "World ID"],
       [`${base}/world-id-4-0`, "World ID"],
       [`${base}/world-id-actions`, "World ID"],
       [`${base}/actions`, "World ID"],
@@ -83,10 +84,7 @@ describe("v3 SidebarNav", () => {
       const { unmount } = renderSidebar();
       expect(isCurrent(label)).toBe(true);
       if (path === base) {
-        expect(link("World ID")).toHaveAttribute(
-          "href",
-          `${base}/world-id-4-0`,
-        );
+        expect(link("World ID")).toHaveAttribute("href", `${base}/world-id`);
       }
       unmount();
     }

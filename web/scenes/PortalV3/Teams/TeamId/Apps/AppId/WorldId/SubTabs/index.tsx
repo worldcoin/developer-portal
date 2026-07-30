@@ -12,8 +12,8 @@ export const WorldIdSubTabs = (props: { hasLegacyActions: boolean }) => {
     team_id: params?.teamId ?? "",
     app_id: params?.appId ?? "",
   };
-  const worldId40Path = urls.worldId40(ids);
-  const worldIdPath = `${worldId40Path}?tab=world-id-4-0`;
+  const worldIdPath = urls.worldId(ids);
+  const worldIdSettingsPath = `${worldIdPath}?tab=world-id-4-0`;
   const actionDetailPath = urls.worldIdActions(ids);
   const legacyActionsPath = urls.actions(ids);
 
@@ -22,15 +22,17 @@ export const WorldIdSubTabs = (props: { hasLegacyActions: boolean }) => {
       items={[
         {
           label: "Actions",
-          href: worldId40Path,
+          href: worldIdPath,
           segment: "world-id-actions",
           active: pathname.startsWith(actionDetailPath),
         },
         {
           label: "World ID",
-          href: worldIdPath,
+          href: worldIdSettingsPath,
           segment: "world-id-4-0",
-          active: pathname.startsWith(worldId40Path),
+          active:
+            pathname.startsWith(worldIdPath) &&
+            !pathname.startsWith(actionDetailPath),
         },
         ...(props.hasLegacyActions
           ? [

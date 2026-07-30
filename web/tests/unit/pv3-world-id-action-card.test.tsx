@@ -135,12 +135,9 @@ it("keeps the route-level tabs in the same order as the overview", () => {
     "World ID",
     "Legacy Actions",
   ]);
-  expect(links[0]).toHaveAttribute(
-    "href",
-    "/teams/team_1/apps/app_1/world-id-4-0",
-  );
+  expect(links[0]).toHaveAttribute("href", "/teams/team_1/apps/app_1/world-id");
   expect(links[1]).toHaveAttribute(
     "href",
-    "/teams/team_1/apps/app_1/world-id-4-0?tab=world-id-4-0",
+    "/teams/team_1/apps/app_1/world-id?tab=world-id-4-0",
   );
 });

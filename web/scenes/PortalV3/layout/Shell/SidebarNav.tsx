@@ -158,7 +158,7 @@ export const SidebarNav = (props: {
     teamId && appId ? urls.app({ team_id: teamId, app_id: appId }) : undefined;
   const ids = teamId && appId ? { team_id: teamId, app_id: appId } : undefined;
 
-  const worldIdHref = ids ? urls.worldId40(ids) : teamOverviewHref;
+  const worldIdHref = ids ? urls.worldId(ids) : teamOverviewHref;
   const configurationHref = ids ? urls.configuration(ids) : teamOverviewHref;
   const miniAppHref = ids ? urls.miniAppPermissions(ids) : teamOverviewHref;
   const teamSettingsHref = teamId
@@ -175,6 +175,7 @@ export const SidebarNav = (props: {
 
   const worldIdActive =
     (Boolean(appBase) && currentPath === appBase) ||
+    withinApp("/world-id") ||
     withinApp("/world-id-4-0") ||
     withinApp("/world-id-actions") ||
     withinApp("/actions");

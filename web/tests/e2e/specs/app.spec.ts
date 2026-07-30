@@ -29,7 +29,7 @@ test.describe("App", () => {
     await page.getByTestId("button-create-app").click();
 
     await expect(page).toHaveURL(
-      new RegExp(`/teams/${constants.teamId}/apps/app_[a-f0-9]+/world-id-4-0$`),
+      new RegExp(`/teams/${constants.teamId}/apps/app_[a-f0-9]+/world-id$`),
     );
     await expect(
       page.getByRole("button", { name: "Create action" }),

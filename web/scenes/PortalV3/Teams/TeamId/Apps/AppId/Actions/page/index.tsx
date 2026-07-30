@@ -67,12 +67,12 @@ export const ActionsPage = (props: ActionsPageProps) => {
     if (showLegacyList) {
       return;
     }
-    const worldIdActionsUrl = urls.worldIdActions({
+    const worldIdUrl = urls.worldId({
       team_id: teamId,
       app_id: appId,
     });
 
-    router.replace(worldIdActionsUrl);
+    router.replace(worldIdUrl);
   }, [
     appRes.loading,
     actionsRes.loading,

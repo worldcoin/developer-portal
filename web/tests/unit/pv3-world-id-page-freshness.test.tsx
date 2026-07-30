@@ -28,7 +28,7 @@ const push = jest.fn();
 const refresh = jest.fn();
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ replace, push, refresh }),
-  usePathname: () => "/teams/team_1/apps/app_1/world-id-4-0",
+  usePathname: () => "/teams/team_1/apps/app_1/world-id",
   useSearchParams: () => searchParams,
 }));
 
