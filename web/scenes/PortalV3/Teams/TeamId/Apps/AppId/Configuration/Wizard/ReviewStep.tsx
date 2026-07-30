@@ -43,7 +43,7 @@ export const ReviewStep = (props: {
 
   const name = basicInfoDraft.name || appMetadata.name || "";
   const tagline =
-    (props.isMiniApp && en?.world_app_description) ||
+    en?.world_app_description ||
     appMetadata.world_app_description ||
     "A one-line summary of your app";
   const description = en?.description_overview ?? "";
