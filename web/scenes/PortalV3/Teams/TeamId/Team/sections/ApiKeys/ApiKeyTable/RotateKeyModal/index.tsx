@@ -1,4 +1,8 @@
-import { FormDialog, FormDialogButton } from "@/components/FormDialog";
+import {
+  FormDialog,
+  FormDialogButton,
+  FormDialogFooter,
+} from "@/components/FormDialog";
 import { ApiKeySecretFields } from "../../ApiKeySecretFields";
 
 type RotateKeyModalProps = {
@@ -56,26 +60,21 @@ export const RotateKeyModal = (props: RotateKeyModalProps) => {
             new key is shown only once.
           </p>
 
-          <div className="grid w-full gap-3 md:grid-cols-2">
+          <FormDialogFooter>
             <FormDialogButton
               variant="danger"
               loading={loading}
               onClick={onConfirm}
               // Keeps an accessible name while the label is a spinner.
               aria-label="Rotate key"
-              className="order-2 md:order-none"
             >
               Rotate key
             </FormDialogButton>
 
-            <FormDialogButton
-              disabled={loading}
-              onClick={onClose}
-              className="order-1 md:order-none"
-            >
+            <FormDialogButton disabled={loading} onClick={onClose}>
               Keep current key
             </FormDialogButton>
-          </div>
+          </FormDialogFooter>
         </div>
       )}
     </FormDialog>

@@ -86,6 +86,21 @@ export const FormDialogButton = ({
   </button>
 );
 
+// Two-action footer: render [secondary, primary]. flex-col-reverse stacks the
+// primary (last) action on top on mobile; md shows source order side by side.
+export const FormDialogFooter = ({
+  className,
+  ...rest
+}: ComponentPropsWithRef<"div">) => (
+  <div
+    className={joinClassNames(
+      "flex w-full flex-col-reverse gap-3 md:grid md:grid-cols-2",
+      className,
+    )}
+    {...rest}
+  />
+);
+
 export const FormDialogLabel = ({
   className,
   ...rest
@@ -112,7 +127,7 @@ export const FormDialogInput = ({
   />
 );
 
-export const FormDialogError = ({
+export const FormDialogFieldError = ({
   className,
   ...rest
 }: ComponentPropsWithRef<"p">) => (

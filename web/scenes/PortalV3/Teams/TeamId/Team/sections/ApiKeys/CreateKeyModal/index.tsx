@@ -2,7 +2,8 @@
 import {
   FormDialog,
   FormDialogButton,
-  FormDialogError,
+  FormDialogFieldError,
+  FormDialogFooter,
   FormDialogInput,
   FormDialogLabel,
 } from "@/components/FormDialog";
@@ -194,16 +195,15 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
             />
 
             {errors.name?.message && (
-              <FormDialogError id="create-api-key-name-error">
+              <FormDialogFieldError id="create-api-key-name-error">
                 {errors.name.message}
-              </FormDialogError>
+              </FormDialogFieldError>
             )}
           </div>
 
-          <div className="grid w-full gap-3 md:grid-cols-2">
+          <FormDialogFooter>
             <FormDialogButton
               variant="secondary"
-              className="order-2 md:order-none"
               disabled={isSubmitting}
               onClick={close}
             >
@@ -216,11 +216,10 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
               loading={isSubmitting}
               // Keeps an accessible name while the label is a spinner.
               aria-label="Create new key"
-              className="order-1 md:order-none"
             >
               Create new key
             </FormDialogButton>
-          </div>
+          </FormDialogFooter>
         </form>
       )}
     </FormDialog>

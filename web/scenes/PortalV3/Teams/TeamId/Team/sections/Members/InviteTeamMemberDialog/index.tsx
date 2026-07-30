@@ -1,6 +1,10 @@
 "use client";
 
-import { FormDialog, FormDialogButton } from "@/components/FormDialog";
+import {
+  FormDialog,
+  FormDialogButton,
+  FormDialogFooter,
+} from "@/components/FormDialog";
 import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
@@ -65,12 +69,8 @@ export const InviteTeamMemberDialog = () => {
           className="w-full"
         />
 
-        <div className="grid w-full gap-3 md:grid-cols-2">
-          <FormDialogButton
-            variant="secondary"
-            onClick={onClose}
-            className="order-2 md:order-none"
-          >
+        <FormDialogFooter>
+          <FormDialogButton variant="secondary" onClick={onClose}>
             Cancel
           </FormDialogButton>
 
@@ -80,11 +80,10 @@ export const InviteTeamMemberDialog = () => {
             onClick={handleInvite}
             // Keeps an accessible name while the label is a spinner.
             aria-label="Send invite"
-            className="order-1 md:order-none"
           >
             Send invite
           </FormDialogButton>
-        </div>
+        </FormDialogFooter>
       </div>
     </FormDialog>
   );
