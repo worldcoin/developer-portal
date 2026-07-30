@@ -160,10 +160,7 @@ export const AppsPageClient = (props: {
           >
             <InkButton
               type="button"
-              onClick={() => {
-                setDialogMounted(true);
-                setCreateAppOpen(true);
-              }}
+              onClick={openCreateAppDialog}
               data-testid="button-create-new-app"
             >
               Create new app
