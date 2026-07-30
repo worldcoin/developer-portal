@@ -43,7 +43,11 @@ export const TextField = (props: {
     <div className={clsx("flex w-full flex-col gap-1.5", props.className)}>
       <label
         className={clsx(
-          "flex h-14 w-full items-center gap-2 rounded-[10px] border p-4",
+          // relative: the empty-state input is `sr-only` (absolute) but keeps
+          // w-full, so without a positioned label its 100% resolves against
+          // the page-wide inset and the invisible box drags a horizontal
+          // scrollbar into whitespace.
+          "relative flex h-14 w-full items-center gap-2 rounded-[10px] border p-4",
           isInert ? "cursor-default" : "cursor-text",
           props.disabled && "opacity-60",
           props.error

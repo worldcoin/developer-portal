@@ -40,7 +40,8 @@ World Pro font reserves descender space that digits/caps don't use:
   (exported from `web/scenes/PortalV3/common/Icon`); otherwise it reads ~1px low.
 - **Digit/cap glyph inside a fixed circle or pill** (stepper dots, count
   badges) → wrap the glyph with `bubbleDigitClassName` from the same file;
-  otherwise it paints ~0.03em high (a full device pixel at 2x DPR).
+  otherwise it paints ~2.75px high at text-13. The class applies 0.12em, an
+  optical value chosen by eye — exact ink-centering (0.21em) reads too low.
 - Verify with `cd web && node scripts/check-optical-centering.mjs` — it
   renders the bubble recipe with the real font and fails if the corrected
   glyph drifts more than 0.15px from the circle's center. Run it whenever you

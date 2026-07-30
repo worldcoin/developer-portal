@@ -1,16 +1,24 @@
-// Verifies that a digit inside a stepper-style bubble paints optically
-// centered with the real WorldProMVP font. Flex centers the text's LINE BOX,
-// not the glyph: World Pro reserves descender space below digits (which have
-// none), so an uncorrected digit paints ~0.42px high at text-13 — a full
-// device pixel at 2x DPR. `bubbleDigitClassName` in
-// scenes/PortalV3/common/Icon compensates with translate-y-[0.03em]; this
-// script renders the bubble recipe with and without that correction and
-// measures the glyph ink against the circle center, pixel row by pixel row.
+// Verifies the stepper-bubble digit correction against the real WorldProMVP
+// font. Flex centers the text's LINE BOX, not the glyph: World Pro reserves
+// descender space below digits (which have none), so an uncorrected digit
+// paints ~2.75px high at text-13. Exact ink-centering reads too LOW to the
+// eye, so `bubbleDigitClassName` applies an optical 0.12em (chosen by eye);
+// this script asserts (a) the font really loaded, (b) the uncorrected drift
+// still matches the font's known metrics, and (c) the correction shifts the
+// glyph by exactly the codified offset.
+//
+// The page is written to disk and loaded via file:// — a setContent page is
+// about:blank, which silently refuses file:// fonts, and the measurement
+// then validates the fallback font instead. That exact failure once hid the
+// 2.75px drift behind a passing check, so the script now also hard-fails
+// when document.fonts.check says WorldPro didn't load.
 //
 // Run after touching bubble markup, the correction offset, or the font file:
 //   node scripts/check-optical-centering.mjs
 // Exits non-zero if the corrected bubble drifts more than TOLERANCE_PX.
 import { chromium } from "@playwright/test";
+import fs from "node:fs";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -19,8 +27,12 @@ const FONT_PATH = path.resolve(
   "../app/fonts/WorldProMVP.ttf",
 );
 // Must mirror bubbleDigitClassName in scenes/PortalV3/common/Icon.
-const CORRECTION = "0.03em";
-const TOLERANCE_PX = 0.15;
+const CORRECTION = "0.12em";
+const CORRECTION_PX = 0.12 * 13;
+// Uncorrected ink drift of WorldProMVP digits at text-13 — re-derive if the
+// font file changes.
+const EXPECTED_BASELINE_PX = 2.69;
+const TOLERANCE_PX = 0.2;
 const SCALE = 8;
 const DIGITS = ["1", "2", "3", "4"];
 
@@ -46,7 +58,13 @@ const dots = ["0px", CORRECTION]
   )
   .join("\n");
 
-await page.setContent(`
+const probePath = path.join(
+  fs.mkdtempSync(path.join(os.tmpdir(), "optical-centering-")),
+  "probe.html",
+);
+fs.writeFileSync(
+  probePath,
+  `
   <style>
     @font-face { font-family: WorldPro; src: url('file://${FONT_PATH}'); font-weight: 300 800; }
     body { margin: 0; background: #fff; }
@@ -59,8 +77,17 @@ await page.setContent(`
     }
   </style>
   ${dots}
-`);
+`,
+);
+await page.goto(`file://${probePath}`);
 await page.evaluate(() => document.fonts.ready);
+if (!(await page.evaluate(() => document.fonts.check("13px WorldPro")))) {
+  console.error(
+    "WorldPro failed to load — the measurement would silently validate a fallback font.",
+  );
+  await browser.close();
+  process.exit(1);
+}
 
 const measure = async (id) => {
   const buf = await page.locator(`#${id}`).screenshot();
@@ -96,7 +123,7 @@ const measure = async (id) => {
   }, b64);
 };
 
-let failed = false;
+const averages = {};
 for (const [oi, label] of [
   ["0", "uncorrected"],
   ["1", "corrected  "],
@@ -107,25 +134,36 @@ for (const [oi, label] of [
     drifts.push(((height - 1) / 2 - (minY + maxY) / 2) / SCALE);
   }
   const avg = drifts.reduce((a, b) => a + b, 0) / drifts.length;
-  const status =
-    label.trim() === "corrected"
-      ? Math.abs(avg) <= TOLERANCE_PX
-        ? "OK"
-        : "FAIL"
-      : "(baseline)";
-  if (status === "FAIL") failed = true;
+  averages[label.trim()] = avg;
   console.log(
-    `${label} drift per digit [${drifts.map((d) => d.toFixed(2)).join(", ")}] avg=${avg.toFixed(3)}px ${status}`,
+    `${label} drift per digit [${drifts.map((d) => d.toFixed(2)).join(", ")}] avg=${avg.toFixed(3)}px`,
   );
 }
 
 await browser.close();
 
-if (failed) {
+// The font's metrics still match what the offset was derived against…
+const baselineOff = Math.abs(averages.uncorrected - EXPECTED_BASELINE_PX);
+// …and the codified correction really moves the glyph by that amount.
+const appliedShift = averages.uncorrected - averages.corrected;
+const shiftOff = Math.abs(appliedShift - CORRECTION_PX);
+console.log(
+  `applied shift ${appliedShift.toFixed(3)}px (expected ${CORRECTION_PX.toFixed(2)}px)`,
+);
+
+if (baselineOff > TOLERANCE_PX) {
   console.error(
-    `\nCorrected bubble digit drifts more than ${TOLERANCE_PX}px from center.` +
-      `\nRe-derive the offset (see bubbleDigitClassName in scenes/PortalV3/common/Icon).`,
+    `\nUncorrected drift ${averages.uncorrected.toFixed(2)}px no longer matches the` +
+      ` font's known ${EXPECTED_BASELINE_PX}px — the font file changed; re-derive` +
+      ` the offset (see bubbleDigitClassName in scenes/PortalV3/common/Icon).`,
   );
   process.exit(1);
 }
-console.log("\nBubble digits are optically centered.");
+if (shiftOff > TOLERANCE_PX) {
+  console.error(
+    `\nThe rendered correction (${appliedShift.toFixed(2)}px) doesn't match the` +
+      ` codified ${CORRECTION} — bubble markup and bubbleDigitClassName drifted apart.`,
+  );
+  process.exit(1);
+}
+console.log("\nBubble digits carry the codified optical correction.");

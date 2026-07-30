@@ -16,14 +16,18 @@ export const opticalIconClassName = "shrink-0 -translate-y-px";
  * Optical alignment for a digit (or other cap-height glyph) inside a fixed
  * circle/pill, e.g. the wizard stepper dots. Flex centers the text's LINE BOX,
  * but World Pro's descender space hangs below digits that have none, so the
- * glyph paints high — a full device pixel at 2x DPR. Measured drift with the
- * bundled WorldProMVP.ttf is ~0.42px at text-13 and scales with font size,
- * hence the em unit; no line-height value can fix it (the drift is
- * line-height-independent). Wrap the glyph in a span with this class.
- * Verify with `node web/scripts/check-optical-centering.mjs` after touching
- * bubble markup, the font file, or this offset.
+ * glyph paints high — measured ink drift with the real WorldProMVP.ttf is
+ * ~2.75px at text-13 (≈0.21em). Exact ink-bounding-box centering (0.21em)
+ * reads too LOW to the eye — digits want to sit slightly above true center —
+ * so this offset is the eyeballed optical middle, roughly half the metric
+ * drift. The em unit keeps it proportional to font size. Wrap the glyph in a
+ * span with this class and verify with
+ * `node web/scripts/check-optical-centering.mjs` after touching bubble
+ * markup, the font file, or this offset — the script hard-fails if the font
+ * doesn't load, because measuring a fallback font once hid the full 2.75px
+ * drift behind a passing check.
  */
-export const bubbleDigitClassName = "inline-block translate-y-[0.03em]";
+export const bubbleDigitClassName = "inline-block translate-y-[0.12em]";
 
 /**
  * Renders a static SVG asset from `public/images/portal-v3/icons`. Decorative

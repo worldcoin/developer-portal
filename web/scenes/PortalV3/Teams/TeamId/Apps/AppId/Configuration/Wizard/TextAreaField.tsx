@@ -30,7 +30,9 @@ export const TextAreaField = (props: {
     <div className={clsx("flex w-full flex-col gap-1.5", props.className)}>
       <label
         className={clsx(
-          "flex h-30 w-full flex-col rounded-[10px] border p-4",
+          // relative: see TextField — the sr-only empty-state control keeps
+          // w-full and must resolve it against this box, not the page.
+          "relative flex h-30 w-full flex-col rounded-[10px] border p-4",
           props.disabled ? "cursor-default opacity-60" : "cursor-text",
           props.error
             ? "border-[#ea392a] bg-system-error-50"

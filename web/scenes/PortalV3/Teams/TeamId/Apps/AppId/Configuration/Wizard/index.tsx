@@ -158,7 +158,11 @@ export const ConfigurationWizard = (props: {
     // then jump along).
     <div className="flex h-[calc(100dvh-var(--portal-header-height))] w-full flex-col overflow-x-clip px-6 pt-[43px] font-world">
       <div className="relative flex w-full shrink-0 justify-center">
-        <Stepper steps={steps} activeIndex={activeIndex} />
+        <Stepper
+          steps={steps}
+          activeIndex={activeIndex}
+          onStepSelect={handleStepChange}
+        />
         {/* Static cue for which version the form shows — not a control.
             Draft-only apps have a single version; nothing worth labelling. */}
         {hasVerified && (

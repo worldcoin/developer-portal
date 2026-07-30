@@ -68,11 +68,14 @@ export const getWizardStepForField = (
 
 /**
  * Numbered-dot step indicator across the top of the configuration wizard.
- * Purely presentational — the active step is driven by the wizard root.
+ * True to the Figma frames: steps behind the active one show the green
+ * check, the active and upcoming ones show their number. Each step is a
+ * button that jumps straight to it.
  */
 export const Stepper = (props: {
   steps: WizardStepConfig[];
   activeIndex: number;
+  onStepSelect?: (step: WizardStep) => void;
 }) => (
   // flex-wrap: on narrow windows the row breaks into lines instead of ever
   // producing a horizontal scrollbar.
@@ -91,47 +94,50 @@ export const Stepper = (props: {
               )}
             />
           )}
-          <li
-            aria-current={isActive ? "step" : undefined}
-            className="flex items-center gap-2"
-          >
-            {/* Both bubble variants and the connector carry the same 1px
-                optical lift against the cap-height label — correcting only
-                one would misalign the markers against each other. */}
-            {isCompleted ? (
-              // Figma nucleus/status-success (#00c230) — no portal token for
-              // it yet (closest, additional-green-500, is #00c313).
-              <span
-                className={clsx(
-                  "flex size-5 items-center justify-center rounded-full bg-[#00c230]",
-                  opticalIconClassName,
-                )}
-              >
-                <Icon name="radio-check" className="size-[13.333px]" />
-              </span>
-            ) : (
-              <span
-                className={clsx(
-                  "flex size-5 items-center justify-center rounded-full text-center text-13 leading-[1.2] font-medium",
-                  opticalIconClassName,
-                  isActive
-                    ? "bg-portal-ink text-white"
-                    : "bg-portal-canvas text-portal-subtle",
-                )}
-              >
-                <span className={bubbleDigitClassName}>{index + 1}</span>
-              </span>
-            )}
-            <span
-              className={clsx(
-                "text-13 leading-[1.2] font-medium whitespace-nowrap",
-                isActive || isCompleted
-                  ? "text-portal-ink"
-                  : "text-portal-subtle",
-              )}
+          <li aria-current={isActive ? "step" : undefined}>
+            <button
+              type="button"
+              onClick={() => props.onStepSelect?.(step.id)}
+              className="flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-70"
             >
-              {step.label}
-            </span>
+              {/* Both bubble variants and the connector carry the same 1px
+                  optical lift against the cap-height label — correcting only
+                  one would misalign the markers against each other. */}
+              {isCompleted ? (
+                // Figma nucleus/status-success (#00c230) — no portal token
+                // for it yet (closest, additional-green-500, is #00c313).
+                <span
+                  className={clsx(
+                    "flex size-5 items-center justify-center rounded-full bg-[#00c230]",
+                    opticalIconClassName,
+                  )}
+                >
+                  <Icon name="radio-check" className="size-[13.333px]" />
+                </span>
+              ) : (
+                <span
+                  className={clsx(
+                    "flex size-5 items-center justify-center rounded-full text-center text-13 leading-[1.2] font-medium",
+                    opticalIconClassName,
+                    isActive
+                      ? "bg-portal-ink text-white"
+                      : "bg-portal-canvas text-portal-subtle",
+                  )}
+                >
+                  <span className={bubbleDigitClassName}>{index + 1}</span>
+                </span>
+              )}
+              <span
+                className={clsx(
+                  "text-13 leading-[1.2] font-medium whitespace-nowrap",
+                  isActive || isCompleted
+                    ? "text-portal-ink"
+                    : "text-portal-subtle",
+                )}
+              >
+                {step.label}
+              </span>
+            </button>
           </li>
         </Fragment>
       );
