@@ -1,4 +1,8 @@
-import { bubbleDigitClassName, Icon } from "@/scenes/PortalV3/common/Icon";
+import {
+  bubbleDigitClassName,
+  Icon,
+  opticalIconClassName,
+} from "@/scenes/PortalV3/common/Icon";
 import clsx from "clsx";
 import { Fragment } from "react";
 
@@ -77,22 +81,37 @@ export const Stepper = (props: {
       return (
         <Fragment key={step.id}>
           {index > 0 && (
-            <li aria-hidden="true" className="h-px w-8 bg-portal-border" />
+            <li
+              aria-hidden="true"
+              className={clsx(
+                "h-px w-8 bg-portal-border",
+                opticalIconClassName,
+              )}
+            />
           )}
           <li
             aria-current={isActive ? "step" : undefined}
             className="flex items-center gap-2"
           >
+            {/* Both bubble variants and the connector carry the same 1px
+                optical lift against the cap-height label — correcting only
+                one would misalign the markers against each other. */}
             {isCompleted ? (
               // Figma nucleus/status-success (#00c230) — no portal token for
               // it yet (closest, additional-green-500, is #00c313).
-              <span className="flex size-5 items-center justify-center rounded-full bg-[#00c230]">
+              <span
+                className={clsx(
+                  "flex size-5 items-center justify-center rounded-full bg-[#00c230]",
+                  opticalIconClassName,
+                )}
+              >
                 <Icon name="radio-check" className="size-[13.333px]" />
               </span>
             ) : (
               <span
                 className={clsx(
                   "flex size-5 items-center justify-center rounded-full text-center text-13 leading-[1.2] font-medium",
+                  opticalIconClassName,
                   isActive
                     ? "bg-portal-ink text-white"
                     : "bg-portal-canvas text-portal-subtle",
