@@ -1065,6 +1065,23 @@
   exactly as they are lightest→darkest in light mode), which preserves each
   pairing's contrast relationship.
 
+  Provenance — values are derived from the measured palettes of three shipped
+  dark modes, not invented, following the rule those systems share: a dark
+  palette inherits the hue temperature of its light palette. The portal's
+  light palette is zero-hue neutral (#181818 / #f7f7f7 / #f1f1f1), so its
+  dark surfaces are carbon-neutral, anchored on:
+  - ChatGPT (neutral, like us): #ffffff→#212121 main, #f9f9f9→#171717
+    sidebar, text #0d0d0d→#ececec, secondary →#b4b4b4.
+  - Atlassian @atlaskit/tokens v16 (near-neutral): surface #FFFFFF→#1F1F21,
+    raised →#242528, overlay →#2B2C2F, text #292A2E→#CECFD2,
+    subtlest #6B6E76→#96999E, border = white @ 12% alpha.
+  - GitHub Primer (blue-cast greys — used only for its functional-color
+    ratios, not its surfaces): accent #0969da→#4493f8, danger #d1242f→#f85149,
+    success #1a7f37→#3fb950, attention #9a6700→#d29922, i.e. accents gain
+    lightness in dark; tinted fills become accent @ ~8–30% alpha over the
+    surface (e.g. accent-muted = #388bfd1a). Every *-50/100/200/300 tint
+    below is computed with exactly that formula over grey-0 #1f1f1f.
+
   Contract:
   - `white` / `black` are NOT themed. They mean literal white/black forever
     (QR quiet zones, media overlays, scrims, text on colored fills). A surface
@@ -1079,77 +1096,84 @@
 .dark {
   color-scheme: dark;
 
-  /* Grey ramp — surfaces (0–100), borders (200–300), text (400–900). */
-  --color-grey-0: #17191c;
-  --color-grey-25: #1a1d21;
-  --color-grey-50: #1d2025;
-  --color-grey-70: #212429;
-  --color-grey-100: #24282d;
-  --color-grey-200: #2e3238;
-  --color-grey-300: #3b4046;
-  --color-grey-400: #7d8794;
-  --color-grey-500: #9aa4b0;
-  --color-grey-700: #ced3d9;
-  --color-grey-900: #f2f3f5;
+  /* Grey ramp — surfaces (0–100), borders (200–300), text (400–900).
+     Carbon neutral (R=G=B): grey-0 ≈ Atlassian surface #1F1F21, grey-50 ≈
+     ChatGPT main #212121, grey-100 ≈ Atlassian overlay #2B2C2F, grey-300 ≈
+     Primer border #3d444d, grey-700 ≈ Atlassian text #CECFD2, grey-900 =
+     ChatGPT primary text. */
+  --color-grey-0: #1f1f1f;
+  --color-grey-25: #222222;
+  --color-grey-50: #242424;
+  --color-grey-70: #272727;
+  --color-grey-100: #2b2b2b;
+  --color-grey-200: #343434;
+  --color-grey-300: #434343;
+  --color-grey-400: #7d7d7d;
+  --color-grey-500: #a1a1a1;
+  --color-grey-700: #d1d1d1;
+  --color-grey-900: #ececec;
 
-  /* Portal v3 semantic tokens. Canvas sits below cards (grey-0). */
-  --color-portal-canvas: #131518;
-  --color-portal-border: #26292e;
-  --color-portal-heading: #f5f7f9;
+  /* Portal v3 semantic tokens. Canvas = ChatGPT sidebar #171717, below cards
+     (grey-0); muted = ChatGPT secondary #b4b4b4; subtle = Atlassian
+     subtlest #96999E neutralized. */
+  --color-portal-canvas: #171717;
+  --color-portal-border: #2c2c2c;
+  --color-portal-heading: #f0f0f0;
   --color-portal-text: #ececec;
-  --color-portal-muted: #a3a3a3;
-  --color-portal-subtle: #8a8a8a;
-  --color-portal-faint: #666666;
+  --color-portal-muted: #b4b4b4;
+  --color-portal-subtle: #969696;
+  --color-portal-faint: #6e6e6e;
   --color-portal-ink: #ececec;
   --color-portal-ink-hover: #d9d9d9;
-  --color-portal-accent: #14273f;
-  --color-portal-accent-ring: #24466e;
-  --color-portal-blue: #3d9aff;
-  --color-portal-purple: #a04dff;
+  --color-portal-accent: #222b35;
+  --color-portal-accent-ring: #2d4f79;
+  --color-portal-blue: #4296ff;
+  --color-portal-purple: #a35bff;
 
-  --color-danger: #ff5c47;
+  --color-danger: #ff5f4d;
 
-  --color-blue-50: #15161d;
-  --color-blue-100: #1a1b26;
-  --color-blue-150: #262447;
-  --color-blue-500: #6d65f0;
+  --color-blue-50: #252530;
+  --color-blue-100: #2a293c;
+  --color-blue-150: #36345e;
+  --color-blue-500: #8781f4;
 
-  /* `additional-*`: 100s are tinted fills, 500s sit on them or act as accents. */
-  --color-additional-blue-100: #14202c;
+  /* `additional-*`: 100s are tinted fills (500 @ 10–12% over grey-0), 500s
+     sit on them or act as accents. */
+  --color-additional-blue-100: #262f39;
   --color-additional-blue-500: #5ba3f5;
   --color-additional-blue-600: #4285ff;
 
-  --color-additional-azure-100: #141f2e;
+  --color-additional-azure-100: #282c3a;
   --color-additional-azure-500: #6b8dfe;
 
-  --color-additional-purple-100: #211a2e;
+  --color-additional-purple-100: #30293a;
   --color-additional-purple-500: #ae6fff;
 
-  --color-additional-green-100: #122b17;
+  --color-additional-green-100: #1f3122;
   --color-additional-green-500: #22d43b;
 
-  --color-additional-sea-100: #0f2624;
+  --color-additional-sea-100: #1f3130;
   --color-additional-sea-500: #21d6c9;
 
-  --color-additional-yellow-100: #2a2410;
+  --color-additional-yellow-100: #353122;
   --color-additional-yellow-500: #ffd23f;
 
-  --color-additional-orange-100: #2b1a15;
+  --color-additional-orange-100: #352926;
   --color-additional-orange-500: #ff7f63;
 
-  --color-additional-lightOrange-100: #2b2015;
+  --color-additional-lightOrange-100: #352e26;
   --color-additional-lightOrange-500: #ffb066;
 
-  --color-additional-pink-100: #2b1620;
+  --color-additional-pink-100: #35272d;
   --color-additional-pink-500: #ff6ea8;
 
-  /* System ramps: low steps are tinted fills (darkened), mid steps are the
-     accent itself (brightened for dark contrast), high steps are text on the
-     tinted fills (lightened). */
-  --color-system-error-50: #251312;
-  --color-system-error-100: #291514;
-  --color-system-error-200: #38201d;
-  --color-system-error-300: #4d2a26;
+  /* System ramps: low steps are tinted fills (500 @ 8–28% over grey-0), mid
+     steps are the accent itself (brightened, per the Primer ratios above),
+     high steps are text on the tinted fills (lightened). */
+  --color-system-error-50: #312423;
+  --color-system-error-100: #352524;
+  --color-system-error-200: #472b27;
+  --color-system-error-300: #5e312c;
   --color-system-error-400: #ff9a8e;
   --color-system-error-500: #ff5f4d;
   --color-system-error-600: #ef4a44;
@@ -1157,8 +1181,8 @@
   --color-system-error-800: #f8b6ae;
   --color-system-error-900: #fbd0ca;
 
-  --color-system-success-50: #142a14;
-  --color-system-success-100: #102310;
+  --color-system-success-50: #1f301f;
+  --color-system-success-100: #1f2d1f;
   --color-system-success-300: #79d979;
   --color-system-success-400: #47d647;
   --color-system-success-500: #1fca1f;
@@ -1167,11 +1191,11 @@
   --color-system-success-800: #a8dfa8;
   --color-system-success-900: #c2eac2;
 
-  --color-system-warning-50: #2a250f;
-  --color-system-warning-75: #292112;
-  --color-system-warning-100: #272113;
-  --color-system-warning-200: #4d4117;
-  --color-system-warning-300: #665420;
+  --color-system-warning-50: #332e21;
+  --color-system-warning-75: #312c21;
+  --color-system-warning-100: #2f2a20;
+  --color-system-warning-200: #4c4023;
+  --color-system-warning-300: #625025;
   --color-system-warning-500: #ffc233;
   --color-system-warning-600: #eaa620;
   --color-system-warning-650: #d99f1f;
@@ -1189,27 +1213,27 @@
   --shadow-portal-card: 0 1px 2px rgba(0, 0, 0, 0.5);
 
   /* Tailwind default-palette colors still used by legacy v2 scenes. Only the
-     steps that appear in the codebase are themed. */
-  --color-gray-50: #1d2025;
-  --color-gray-100: #24282d;
-  --color-gray-200: #2e3238;
-  --color-gray-300: #3b4046;
-  --color-gray-400: #7d8794;
-  --color-gray-500: #9aa4b0;
-  --color-gray-900: #f2f3f5;
-  --color-zinc-700: #ced3d9;
-  --color-zinc-900: #f2f3f5;
-  --color-red-50: #291514;
-  --color-red-200: #38201d;
+     steps that appear in the codebase are themed; greys mirror the ramp. */
+  --color-gray-50: #242424;
+  --color-gray-100: #2b2b2b;
+  --color-gray-200: #343434;
+  --color-gray-300: #434343;
+  --color-gray-400: #7d7d7d;
+  --color-gray-500: #a1a1a1;
+  --color-gray-900: #ececec;
+  --color-zinc-700: #d1d1d1;
+  --color-zinc-900: #ececec;
+  --color-red-50: #352524;
+  --color-red-200: #472b27;
   --color-red-500: #f87171;
-  --color-green-50: #102310;
+  --color-green-50: #1f2d1f;
   --color-green-500: #4ade80;
-  --color-yellow-50: #2a250f;
+  --color-yellow-50: #332e21;
   --color-yellow-500: #facc15;
   --color-amber-500: #fbbf24;
 
   /* Toasts (react-toastify renders with its own "light" variables). */
-  --toastify-color-light: #1d2025;
+  --toastify-color-light: #242424;
   --toastify-text-color-light: #ececec;
 }
 
