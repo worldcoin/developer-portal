@@ -348,7 +348,7 @@ const MiniAppPreviewCard = ({
         <CopyButton
           fieldName="Mini App preview link"
           fieldValue={miniAppUrl}
-          className="rounded-lg border border-grey-200 p-2 pr-2! hover:bg-grey-50"
+          className="rounded-lg border border-grey-200 p-2 pr-2! hover:bg-portal-hover"
           iconClassName="size-4 text-grey-700"
         />
       </div>
@@ -516,7 +516,7 @@ export const SetupForm = ({
           <div className="grid gap-y-2">
             <Typography
               as="h1"
-              className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
+              className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-grey-900"
             >
               Permissions
             </Typography>

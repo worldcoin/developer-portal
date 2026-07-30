@@ -245,7 +245,7 @@ export const NotificationsPage = () => {
 
   return (
     <div className="my-8 grid max-w-[1180px] gap-y-10">
-      <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-[#E6F0FF] p-4 sm:p-5">
+      <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-portal-accent p-4 sm:p-5">
         <NotificationBellIcon className="size-8" aria-hidden="true" />
 
         <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
@@ -270,7 +270,7 @@ export const NotificationsPage = () => {
       <div className="grid gap-y-10">
         <Typography
           as="h1"
-          className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
+          className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-grey-900"
         >
           Notifications
         </Typography>
