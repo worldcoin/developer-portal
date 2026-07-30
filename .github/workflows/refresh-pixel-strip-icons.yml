@@ -32,14 +32,14 @@ jobs:
         working-directory: web
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@a15d269cd4658e1107c09f1fabf4cbd7bd1f308a # v4.4.0
         with:
           version: 9
 
       - name: Set up Node 20
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
           cache: "pnpm"
@@ -53,7 +53,7 @@ jobs:
       # exists, prefer aws-actions/configure-aws-credentials with
       # `role-to-assume` instead of static keys here.
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
           aws-access-key-id: ${{ secrets.PIXEL_STRIP_ICONS_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.PIXEL_STRIP_ICONS_AWS_SECRET_ACCESS_KEY }}
@@ -71,7 +71,7 @@ jobs:
             --cdn-base-url "${{ vars.NEXT_PUBLIC_IMAGES_CDN_URL || 'https://world-id-assets.com' }}"
 
       - name: Open a PR if anything changed
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6.1.0
         with:
           commit-message: "chore(portal): refresh pixel strip app icons"
           title: "chore(portal): refresh pixel strip app icons"

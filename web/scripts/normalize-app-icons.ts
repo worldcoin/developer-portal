@@ -56,6 +56,13 @@ const S3_PREFIX = "pixel-strip-icons";
 
 const OUTPUT_DIR = path.join(__dirname, "output", "icons");
 
+// app_id ultimately flows into local file paths and S3 object keys below.
+// It's normally a stable, code-generated identifier (e.g. "app_<32 hex>"),
+// but it's still data from an external API response, not something we
+// control - reject anything that isn't a plain identifier before it
+// touches a path, rather than trusting the rankings API's shape blindly.
+const SAFE_APP_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
+
 type RankedApp = {
   app_id: string;
   name: string;
@@ -223,6 +230,12 @@ async function main() {
 
   for (const app of targets) {
     try {
+      if (!SAFE_APP_ID_PATTERN.test(app.app_id)) {
+        throw new Error(
+          `app_id has unexpected characters: ${JSON.stringify(app.app_id)}`,
+        );
+      }
+
       const sourceBytes = await fetchWithCap(app.logo_img_url);
       const normalized = await normalizeIcon(sourceBytes);
       const fileName = `${app.app_id}.webp`;
