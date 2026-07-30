@@ -127,15 +127,6 @@ export const ConfigurationWizardPage = ({
           onResolve={removeFromReview}
         />
 
-        {isRejected && (
-          <div className="mx-auto w-full max-w-[626px] px-6 pt-6">
-            <RejectionBanner
-              message={appMetadata?.review_message}
-              onResolve={() => setShowResolveModal(true)}
-            />
-          </div>
-        )}
-
         <ConfigurationWizard
           appId={appId}
           teamId={teamId}
@@ -144,6 +135,16 @@ export const ConfigurationWizardPage = ({
           teamName={app.team?.name ?? ""}
           activeStep={activeStep}
           setActiveStep={setActiveStep}
+          // Inside the wizard's fixed frame: rendered out here it would push
+          // the docked action bar below the fold.
+          banner={
+            isRejected ? (
+              <RejectionBanner
+                message={appMetadata?.review_message}
+                onResolve={() => setShowResolveModal(true)}
+              />
+            ) : undefined
+          }
         />
       </SaveStatusProvider>
     </AppStoreFormProvider>

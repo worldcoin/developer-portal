@@ -54,6 +54,11 @@ export const ConfigurationWizard = (props: {
   teamName: string;
   activeStep: WizardStep;
   setActiveStep: (step: WizardStep) => void;
+  /**
+   * Rendered inside the fixed frame, above the stepper — an alert placed
+   * outside would push the docked action bar below the fold.
+   */
+  banner?: React.ReactNode;
 }) => {
   const {
     appId,
@@ -157,6 +162,11 @@ export const ConfigurationWizard = (props: {
     // from ever handing the shell a horizontal scrollbar (which focus would
     // then jump along).
     <div className="flex h-[calc(100dvh-var(--portal-header-height))] w-full flex-col overflow-x-clip px-6 pt-[43px] font-world">
+      {props.banner && (
+        <div className="mx-auto mb-6 w-full max-w-[626px] shrink-0">
+          {props.banner}
+        </div>
+      )}
       <div className="relative flex w-full shrink-0 justify-center">
         <Stepper
           steps={steps}
@@ -329,7 +339,7 @@ export const ConfigurationWizard = (props: {
                 onClick={removeFromReview}
                 className={secondaryButtonClassName}
               >
-                Un-submit
+                {isUnsubmitting ? "Un-submitting…" : "Un-submit"}
               </button>
             )}
 

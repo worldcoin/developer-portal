@@ -35,7 +35,31 @@ export const ChipSelect = (props: {
 }) => {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [opensUpward, setOpensUpward] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // The wizard's content is a clipping scroll region, so a dropdown opening
+  // downward near its bottom edge would be cut off. Flip upward when the
+  // space below the input (inside the nearest scroll container) can't fit
+  // the panel — the previous page's SelectMultiple did the same via
+  // floating-ui.
+  useEffect(() => {
+    if (!isOpen) return;
+    const el = containerRef.current;
+    if (!el) return;
+    let parent = el.parentElement;
+    while (
+      parent &&
+      !/(auto|scroll)/.test(getComputedStyle(parent).overflowY)
+    ) {
+      parent = parent.parentElement;
+    }
+    const boundBottom = parent
+      ? parent.getBoundingClientRect().bottom
+      : window.innerHeight;
+    // max-h-64 panel + mt-2 gap + a little slack.
+    setOpensUpward(boundBottom - el.getBoundingClientRect().bottom < 280);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -100,7 +124,10 @@ export const ChipSelect = (props: {
         {isOpen && !props.disabled && filteredItems.length > 0 && (
           <ul
             role="listbox"
-            className="absolute top-full z-10 mt-2 max-h-64 w-full overflow-y-auto rounded-[10px] border border-portal-border bg-white p-1 shadow-portal-card"
+            className={clsx(
+              "absolute z-10 max-h-64 w-full overflow-y-auto rounded-[10px] border border-portal-border bg-white p-1 shadow-portal-card",
+              opensUpward ? "bottom-full mb-2" : "top-full mt-2",
+            )}
           >
             {filteredItems.map((item) => {
               const isSelected = props.values.includes(item.value);
