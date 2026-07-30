@@ -107,6 +107,23 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
+  it("refetches me-query before invalidating session (avoids unmount race)", async () => {
+    const order: string[] = [];
+    refetch.mockImplementation(async () => {
+      order.push("refetch");
+      return refetchResultWithMemberships(1);
+    });
+    invalidate.mockImplementation(async () => {
+      order.push("invalidate");
+    });
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
+    expect(order).toEqual(["refetch", "invalidate"]);
+  });
+
   it("closes the dialog in place when deleted from the profile page", async () => {
     pathname = "/profile";
     refetch.mockResolvedValue(refetchResultWithMemberships(0));

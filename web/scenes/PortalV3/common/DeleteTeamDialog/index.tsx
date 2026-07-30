@@ -74,6 +74,12 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
         return toast.error(result.message || "Error deleting team");
       }
 
+      // Refetch before invalidate: invalidate updates the Auth0 client user,
+      // which can flip canWrite false on team settings and unmount this dialog.
+      // Parallel refetch then rejects on the unmounted Apollo hook and we toast
+      // an error even though the delete already succeeded.
+      await refetch();
+
       // The action rewrites the cookie itself; this only covers its failure.
       if (!result.sessionUpdated) {
         await fetch("/api/update-session", { method: "POST" }).catch(
@@ -81,8 +87,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
         );
       }
 
-      // Refetch me-query cache (profile teams list) + Auth0 client user.
-      await Promise.all([refetch(), invalidate()]);
+      await invalidate();
       toast.success("Team deleted");
 
       // Refresh so the session-fed sidebar drops the deleted team; push alone
