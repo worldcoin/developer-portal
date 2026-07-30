@@ -60,6 +60,8 @@ type AppStoreActionsButtonProps = {
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
   onValidationError?: (fieldPath?: string) => void;
   className: string;
+  /** Drops the trailing arrow (the wizard's designed button is text-only). */
+  hideArrowIcon?: boolean;
 };
 
 /** Persistent footer action that advances steps, then submits on the last one. */
@@ -74,6 +76,7 @@ export const AppStoreActionsButton = ({
   basicInfoRef,
   onValidationError,
   className,
+  hideArrowIcon = false,
 }: AppStoreActionsButtonProps) => {
   const form = useFormContext<AppStoreFormValues>();
   const searchParams = useSearchParams();
@@ -349,7 +352,7 @@ export const AppStoreActionsButton = ({
               ? "Processing..."
               : "Submit for review"}
         </Typography>
-        <ArrowRightIcon className="size-4 shrink-0" />
+        {!hideArrowIcon && <ArrowRightIcon className="size-4 shrink-0" />}
       </span>
     </Button>
   );

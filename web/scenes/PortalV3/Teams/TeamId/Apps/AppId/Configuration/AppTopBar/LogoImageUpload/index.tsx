@@ -22,11 +22,12 @@ type LogoImageUploadProps = {
 };
 
 /**
- * Headless logo upload: a hidden file input plus the shared crop dialog.
- * Selecting a square file uploads immediately; other aspect ratios open the
- * cropper first.
+ * Owns the logo upload pipeline: presigned S3 POST, unverified-image atom
+ * update, the UpdateLogo mutation, and the square-crop gate. Shared between
+ * the headless component below and the configuration wizard's designed drop
+ * zone so both surfaces persist through the exact same path.
  */
-export const LogoImageUpload = ({
+export const useLogoUpload = ({
   appId,
   appMetadataId,
   teamId,
@@ -36,7 +37,6 @@ export const LogoImageUpload = ({
   const [isUploading, setIsUploading] = useState(false);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [updateLogoMutation] = useMutation(UpdateLogoDocument);
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const { getImage, uploadViaPresignedPost } = useImage();
 
   const uploadLogo = async (file: File): Promise<boolean> => {
@@ -81,6 +81,36 @@ export const LogoImageUpload = ({
       targetHeight: 512,
       upload: uploadLogo,
     });
+
+  return {
+    isUploading,
+    uploadLogo,
+    cropCandidate,
+    clearCropCandidate,
+    handleFileSelected,
+  };
+};
+
+/**
+ * Headless logo upload: a hidden file input plus the shared crop dialog.
+ * Selecting a square file uploads immediately; other aspect ratios open the
+ * cropper first.
+ */
+export const LogoImageUpload = ({
+  appId,
+  appMetadataId,
+  teamId,
+  open,
+  onClose,
+}: LogoImageUploadProps) => {
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const {
+    isUploading,
+    uploadLogo,
+    cropCandidate,
+    clearCropCandidate,
+    handleFileSelected,
+  } = useLogoUpload({ appId, appMetadataId, teamId });
 
   useEffect(() => {
     if (!open) return;

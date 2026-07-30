@@ -16,7 +16,7 @@ export const Option = (props: OptionProps) => {
   return (
     <Button
       type="button"
-      className={clsx("cursor-pointer", className)}
+      className={clsx(className)}
       {...otherProps}
       style={
         {

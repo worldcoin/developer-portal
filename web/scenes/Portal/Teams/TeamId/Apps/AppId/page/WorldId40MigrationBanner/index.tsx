@@ -2,7 +2,7 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
+import { EnableWorldIdDialog } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/EnableWorldId40/Dialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -96,10 +96,9 @@ export const WorldId40MigrationBanner = ({
         </div>
       </div>
 
-      <CreateAppDialogV4
+      <EnableWorldIdDialog
         open={dialogOpen}
         onClose={closeDialog}
-        initialStep="enable-world-id-4-0"
         appId={appId}
       />
     </div>

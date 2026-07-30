@@ -26,7 +26,13 @@ type MiniAppConfigurationProps = {
   appMetadata: AppMetadata;
 };
 
-export const MiniAppConfiguration = ({
+/**
+ * Owns the app-mode toggle: optimistic `isMiniAppAtom` flip, the
+ * `updateAppMode` server action with revert-on-failure, and save-status
+ * reporting under id "mini-app-toggle". Shared between the card below and the
+ * configuration wizard's designed mode selector.
+ */
+export const useAppModeToggle = ({
   appId,
   teamId,
   appMetadata,
@@ -124,6 +130,13 @@ export const MiniAppConfiguration = ({
   handleAppModeToggleRef.current = handleAppModeToggle;
 
   const isDisabled = !isEditable || !isEnoughPermissions || isUpdatingMode;
+
+  return { isMiniApp, isDisabled, handleAppModeToggle };
+};
+
+export const MiniAppConfiguration = (props: MiniAppConfigurationProps) => {
+  const { isMiniApp, isDisabled, handleAppModeToggle } =
+    useAppModeToggle(props);
 
   const modeOptions = [
     {

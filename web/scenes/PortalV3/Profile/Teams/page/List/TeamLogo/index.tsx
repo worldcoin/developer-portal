@@ -14,7 +14,7 @@ export const TeamLogo = (props: {
     <div className={props.className}>
       {src && (
         <Image
-          className="size-12"
+          className="size-7 rounded-full object-cover"
           src={src}
           alt="team logo"
           onError={() => setSrc(null)}
@@ -22,8 +22,8 @@ export const TeamLogo = (props: {
       )}
 
       {!src && (
-        <div className="flex size-12 items-center justify-center rounded-lg bg-grey-100">
-          <span className="text-14 text-grey-400 uppercase">
+        <div className="flex size-7 items-center justify-center rounded-full bg-grey-100">
+          <span className="font-world text-12 font-medium text-grey-500 uppercase">
             {props.name[0]}
           </span>
         </div>

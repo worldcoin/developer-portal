@@ -19,6 +19,8 @@ interface MetaTagImageFieldProps {
   error?: string | null;
   onAutosaveSuccess?: () => void;
   onAutosaveError?: (error: any) => void;
+  dropZoneClassName?: string;
+  dropZoneContent?: React.ReactNode;
 }
 
 const TOAST_ID = "upload_meta_tag_toast";
@@ -37,6 +39,8 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     onAutosaveSuccess,
     onAutosaveError,
     error,
+    dropZoneClassName,
+    dropZoneContent,
   } = props;
 
   // en is not considered a localization, since we set english properties on app metadata
@@ -182,6 +186,8 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
       onUploadSuccess={handleUploadSuccess}
       onUploadError={handleUploadError}
       error={error}
+      dropZoneClassName={dropZoneClassName}
+      dropZoneContent={dropZoneContent}
     />
   );
 };

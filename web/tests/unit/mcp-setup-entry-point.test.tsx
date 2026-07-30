@@ -29,26 +29,22 @@ jest.mock("@/lib/utils", () => ({
   ) => checkUserPermissionsMock(...args),
 }));
 
-// Prop-discriminating dialog stub. AppsPageClient dynamics two different
-// dialogs; a single undifferentiated stub would make the independent-state
-// case unwritable. CreateAppDialogV4 takes open/onClose, CreateKeyModal takes
-// isOpen/setIsOpen -- "isOpen" is the discriminator.
+const mockOpenCreateAppDialog = jest.fn();
+jest.mock("@/scenes/common/layout/CreateAppDialog/useCreateAppDialog", () => ({
+  useCreateAppDialog: () => ({ open: mockOpenCreateAppDialog }),
+}));
+
 const DialogStub = (props: any) => {
-  const isKeyModal = "isOpen" in props;
   return (
     <div
-      data-testid={isKeyModal ? "create-key-modal" : "create-app-dialog"}
-      data-open={String(isKeyModal ? props.isOpen : props.open)}
+      data-testid="create-key-modal"
+      data-open={String(props.isOpen)}
       data-team-id={props.teamId}
     >
-      {/* Distinct testids: the mirror half of the independence case has both
-          dialogs mounted at once, so a shared label would be ambiguous. */}
       <button
         type="button"
-        data-testid={isKeyModal ? "close-key-dialog" : "close-app-dialog"}
-        onClick={() =>
-          isKeyModal ? props.setIsOpen(false) : props.onClose(false)
-        }
+        data-testid="close-key-dialog"
+        onClick={() => props.setIsOpen(false)}
       >
         close-dialog
       </button>
@@ -152,11 +148,11 @@ describe("AppsPageClient MCP card [in-place dialog]", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  it("does not mount either dialog until its button is clicked", () => {
+  it("does not mount the create-key dialog until its button is clicked", () => {
     render(<AppsPageClient teamId="team_1" />);
 
     expect(screen.queryByTestId("create-key-modal")).toBeNull();
-    expect(screen.queryByTestId("create-app-dialog")).toBeNull();
+    expect(mockOpenCreateAppDialog).not.toHaveBeenCalled();
   });
 
   it("keeps the dialog mounted after it closes and reopens it", () => {
@@ -179,7 +175,7 @@ describe("AppsPageClient MCP card [in-place dialog]", () => {
     );
   });
 
-  it("controls the create-key and create-app dialogs independently", () => {
+  it("opens the shared create-app dialog without reopening the key modal", () => {
     render(<AppsPageClient teamId="team_1" />);
 
     fireEvent.click(createKeyButton()!);
@@ -187,17 +183,11 @@ describe("AppsPageClient MCP card [in-place dialog]", () => {
       "data-open",
       "true",
     );
-    expect(screen.queryByTestId("create-app-dialog")).toBeNull();
 
-    // Mirror half runs in the same render, after the key modal has mounted --
-    // on a fresh render the lazy mount makes the attribute unassertable.
     fireEvent.click(screen.getByTestId("close-key-dialog"));
     fireEvent.click(screen.getByTestId("button-create-new-app"));
 
-    expect(screen.getByTestId("create-app-dialog")).toHaveAttribute(
-      "data-open",
-      "true",
-    );
+    expect(mockOpenCreateAppDialog).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId("create-key-modal")).toHaveAttribute(
       "data-open",
       "false",
