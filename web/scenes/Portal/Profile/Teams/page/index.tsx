@@ -1,10 +1,10 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { urls } from "@/lib/urls";
-import { List } from "@/scenes/Portal/Profile/Teams/page/List";
-import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { Section } from "@/components/Section";
+import { SizingWrapper } from "@/components/SizingWrapper";
+import { CREATE_TEAM_DIALOG_URL } from "@/scenes/Onboarding/CreateTeam/dialogRouting";
+import { List } from "@/scenes/Portal/Profile/Teams/page/List";
+import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 
 export const TeamsPage = () => {
   return (
@@ -21,7 +21,7 @@ export const TeamsPage = () => {
             <Section.Header.Button>
               <DecoratedButton
                 variant="primary"
-                href={urls.createTeam()}
+                href={CREATE_TEAM_DIALOG_URL}
                 className="py-3"
               >
                 <PlusIcon className="size-5" /> New team

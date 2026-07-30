@@ -11,7 +11,9 @@ import { createStore, Provider } from "jotai";
 // #region Mocks
 jest.mock("next/navigation", () => ({
   useParams: () => ({ teamId: "team_1" }),
-  useRouter: () => ({ push: jest.fn() }),
+  usePathname: () => "/teams/team_1/apps",
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 // #endregion
 

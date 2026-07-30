@@ -17,8 +17,17 @@
 - `cd web && npx jest --no-cache` — Run all tests
 - `cd web && pnpm format:check` — Check code formatting
 
+## Feature flags
+
+All feature flags are exposed through the single `featureFlags` object in `web/lib/feature-flags/index.ts`, accessed as `featureFlags.<featureName>.<accessor>()` (e.g. `featureFlags.portalV3.isEnabled()`). New flags register a namespace there; call sites must import `featureFlags` rather than individual flag modules.
+
+Pros: every flag in the system is discoverable from one import via autocomplete. Each decision's source is obvious at the call site from the `featureFlags.` prefix. Resolution backends (env, hardcoded lists, a future vendor provider) can change without touching call sites.
+
 ## Making Changes
+
 Always run formatting and type checks before committing. Make sure tests pass as well.
+
+Never commit or push to a branch other than the one currently being worked on — especially a branch with its own open pull request — without asking first. Propose the change and wait for explicit approval.
 
 ## Pull request follow-up
 
@@ -42,9 +51,12 @@ Mock at the **I/O boundary only**: GraphQL SDK calls, external RPC, Redis, third
 ```typescript
 // Good: mock the generated GraphQL SDK
 const GetRpRegistration = jest.fn();
-jest.mock("../../../api/v4/rp-status/[rp_id]/graphql/get-rp-registration.generated", () => ({
-  getSdk: () => ({ GetRpRegistration }),
-}));
+jest.mock(
+  "../../../api/v4/rp-status/[rp_id]/graphql/get-rp-registration.generated",
+  () => ({
+    getSdk: () => ({ GetRpRegistration }),
+  }),
+);
 
 // Good: mock external RPC
 jest.mock("../../../api/helpers/temporal-rpc", () => ({
