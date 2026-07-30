@@ -32,7 +32,7 @@ export const Toggle = (props: ToggleProps) => {
     <button
       type="button"
       className={clsx(
-        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden",
+        "relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden",
         {
           "bg-grey-900": checked,
           "bg-grey-200": !checked,

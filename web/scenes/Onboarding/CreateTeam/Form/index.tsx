@@ -118,7 +118,7 @@ export const CreateTeamForm = () => {
       <button
         type="submit"
         disabled={!isValid || isPending}
-        className="inline-flex h-11 w-full cursor-pointer items-center justify-center rounded-8 bg-portal-ink px-4 text-13 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400"
+        className="inline-flex h-11 w-full items-center justify-center rounded-8 bg-portal-ink px-4 text-13 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400"
       >
         {isPending ? "Creating team…" : "Create team"}
       </button>
