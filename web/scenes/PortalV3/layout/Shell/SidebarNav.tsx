@@ -185,7 +185,7 @@ export const SidebarNav = (props: {
                                 asChild
                                 size="sm"
                                 isActive={item.active}
-                                className="h-9 px-3 font-world text-portal-muted hover:bg-portal-border hover:text-portal-text data-[active=true]:bg-white data-[active=true]:text-portal-text [&>svg]:text-current"
+                                className="h-9 cursor-pointer px-3 font-world text-portal-muted hover:bg-portal-border hover:text-portal-text data-[active=true]:bg-white data-[active=true]:text-portal-text [&>svg]:text-current"
                               >
                                 <Link
                                   href={item.href}
