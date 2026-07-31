@@ -101,7 +101,7 @@ export const Sparkline = (props: {
       {interactive && hover !== null ? (
         <>
           <div
-            className="pointer-events-none absolute inset-y-0 border-l border-dashed border-portal-border"
+            className="pointer-events-none absolute inset-y-0 border-l border-dashed border-portal-subtle"
             style={{ left: `${hoverLeftPct}%` }}
           />
           <div
