@@ -1,5 +1,6 @@
-"use server";
-
+// Deliberately not a "use server" module: only the server-rendered page calls
+// this, and marking it would expose an unauthorized server action that answers
+// app_mode for any app id. Same shape as layout/server/fetch-app-env.
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logger } from "@/lib/logger";
 import { getSdk as getAppModeSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/graphql/server/get-app-mode.generated";
