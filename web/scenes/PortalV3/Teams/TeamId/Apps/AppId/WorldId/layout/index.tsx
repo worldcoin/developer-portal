@@ -397,7 +397,7 @@ export const WorldIdLayout = (props: {
                   />
                 ) : null}
 
-                {app ? (
+                {rp ? (
                   <div className="w-full max-w-[580px]">
                     <DangerZoneSection
                       appId={props.appId}

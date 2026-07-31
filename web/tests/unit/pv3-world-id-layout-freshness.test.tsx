@@ -332,7 +332,7 @@ describe("WorldIdLayout [setup to create handoff]", () => {
     );
   });
 
-  it("hides the Actions section until the app has an RP registration", () => {
+  it("hides Actions and app deletion until the app has an RP registration", () => {
     setQuery({ data: makeData({ rp: false }), loading: false });
     render(el());
 
@@ -342,6 +342,7 @@ describe("WorldIdLayout [setup to create handoff]", () => {
     );
     expect(screen.queryByTestId("actions-grid")).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("danger-zone-section")).not.toBeInTheDocument();
   });
 
   it("still defaults to Configuration when legacy actions exist without an RP", () => {
