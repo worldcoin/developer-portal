@@ -4,6 +4,7 @@ import { urls } from "@/lib/urls";
 import clsx from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ActionsSearch } from "./ActionsSearch";
 
 const tabClass = (active: boolean) =>
   clsx(
@@ -18,6 +19,8 @@ export const WorldIdTabs = (props: {
   appId: string;
   hasLegacyActions: boolean;
   showActions?: boolean;
+  search: string;
+  onSearchChange: (value: string) => void;
 }) => {
   const pathname = usePathname() ?? "";
   const ids = { team_id: props.teamId, app_id: props.appId };
@@ -32,7 +35,7 @@ export const WorldIdTabs = (props: {
   const showActions = props.showActions ?? true;
 
   return (
-    <div className="flex min-h-[40px] items-end border-b border-portal-border">
+    <div className="flex min-h-[40px] flex-col gap-3 border-b border-portal-border sm:flex-row sm:items-end sm:justify-between">
       <div className="flex items-center gap-6">
         {showActions ? (
           <Link
@@ -53,6 +56,13 @@ export const WorldIdTabs = (props: {
             Legacy Actions
           </Link>
         ) : null}
+      </div>
+
+      <div className="w-full pb-3 sm:w-64">
+        <ActionsSearch
+          value={props.search}
+          onChange={(event) => props.onSearchChange(event.target.value)}
+        />
       </div>
     </div>
   );

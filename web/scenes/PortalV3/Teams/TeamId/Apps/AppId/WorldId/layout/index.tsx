@@ -75,6 +75,7 @@ export const WorldIdLayout = (props: {
   const obsoleteSettingsTab = searchParams.get("tab") === "world-id-4-0";
   const [setupRequested, setSetupRequested] = useState(false);
   const [createAfterSetup, setCreateAfterSetup] = useState(false);
+  const [actionsSearch, setActionsSearch] = useState("");
   const [reconciledRpStatus, setReconciledRpStatus] = useState<{
     rpId: string;
     status: RpRegistrationStatus;
@@ -236,6 +237,7 @@ export const WorldIdLayout = (props: {
       appId: props.appId,
       canManageWorldId: props.canManageWorldId,
       actions,
+      actionsSearch,
       hasActiveRp,
       shouldOpenCreateAction: openAction || (hasCreateIntent && hasActiveRp),
       requestCreateActionSetup,
@@ -244,6 +246,7 @@ export const WorldIdLayout = (props: {
     }),
     [
       actions,
+      actionsSearch,
       consumeCreateAction,
       hasActiveRp,
       hasCreateIntent,
@@ -345,6 +348,8 @@ export const WorldIdLayout = (props: {
                 appId={props.appId}
                 hasLegacyActions={hasLegacyActions}
                 showActions={hasRpRegistration}
+                search={actionsSearch}
+                onSearchChange={setActionsSearch}
               />
             ) : null}
             {props.children}

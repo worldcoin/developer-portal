@@ -5,8 +5,8 @@ import { Notification } from "@/components/Notification";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import { useWorldIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/context";
 import { ActionCardSkeleton } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionCard/Skeleton";
-import { ActionsSearch } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsSearch";
 import {
   GetActionsDocument,
   type GetActionsQuery,
@@ -14,7 +14,7 @@ import {
 import { GetAppDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/app.generated";
 import { useQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect } from "react";
 import { LegacyActionsGrid } from "./LegacyActionsGrid";
 
 const EMPTY_ACTIONS: GetActionsQuery["actions"] = [];
@@ -26,7 +26,7 @@ type LegacyActionsPageProps = {
 export const LegacyActionsPage = (props: LegacyActionsPageProps) => {
   const params = use(props.params);
   const router = useRouter();
-  const [search, setSearch] = useState("");
+  const { actionsSearch } = useWorldIdLayout();
 
   const appResult = useQuery(GetAppDocument, {
     variables: { app_id: params.appId },
@@ -113,11 +113,6 @@ export const LegacyActionsPage = (props: LegacyActionsPageProps) => {
         </div>
       </Notification>
 
-      <ActionsSearch
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-      />
-
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <ActionCardSkeleton />
@@ -127,7 +122,7 @@ export const LegacyActionsPage = (props: LegacyActionsPageProps) => {
       ) : (
         <LegacyActionsGrid
           actions={actions}
-          search={search}
+          search={actionsSearch}
           getActionHref={getActionHref}
         />
       )}

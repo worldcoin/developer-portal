@@ -9,6 +9,11 @@ import {
 } from "@testing-library/react";
 import React, { Suspense } from "react";
 import { LegacyActionsPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/LegacyActions/page";
+import {
+  WorldIdLayoutContext,
+  type WorldIdLayoutContextValue,
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/context";
+import { WorldIdTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/Tabs";
 
 // #region Mocks
 const useQueryMock = jest.fn();
@@ -28,6 +33,7 @@ jest.mock(
 const replace = jest.fn();
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ replace }),
+  usePathname: () => "/teams/team_1/apps/app_1/world-id/legacy-actions",
 }));
 // #endregion
 
@@ -51,11 +57,40 @@ let actions = [
   },
 ];
 
+const LegacyActionsHarness = () => {
+  const [actionsSearch, setActionsSearch] = React.useState("");
+  const contextValue: WorldIdLayoutContextValue = {
+    teamId: "team_1",
+    appId: "app_1",
+    canManageWorldId: true,
+    actions: [],
+    actionsSearch,
+    hasActiveRp: true,
+    shouldOpenCreateAction: false,
+    requestCreateActionSetup: jest.fn(),
+    consumeCreateAction: jest.fn(),
+    refreshOverview: jest.fn(),
+  };
+
+  return (
+    <WorldIdLayoutContext.Provider value={contextValue}>
+      <WorldIdTabs
+        teamId="team_1"
+        appId="app_1"
+        hasLegacyActions
+        search={actionsSearch}
+        onSearchChange={setActionsSearch}
+      />
+      <LegacyActionsPage params={params} />
+    </WorldIdLayoutContext.Provider>
+  );
+};
+
 const renderPage = async () => {
   await act(async () => {
     render(
       <Suspense fallback={<div data-testid="loading" />}>
-        <LegacyActionsPage params={params} />
+        <LegacyActionsHarness />
       </Suspense>,
     );
   });
@@ -111,13 +146,16 @@ describe("LegacyActionsPage", () => {
     });
 
     expect(
-      warning.compareDocumentPosition(search) &
+      search.compareDocumentPosition(warning) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(
-      search.compareDocumentPosition(firstCard) &
+      warning.compareDocumentPosition(firstCard) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "Legacy Actions" }).closest(".border-b"),
+    ).toContainElement(search);
     expect(firstCard).toHaveAttribute(
       "href",
       "/teams/team_1/apps/app_1/actions/legacy_1",

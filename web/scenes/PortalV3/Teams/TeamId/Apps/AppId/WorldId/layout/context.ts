@@ -13,6 +13,7 @@ export type WorldIdLayoutContextValue = {
   appId: string;
   canManageWorldId: boolean;
   actions: WorldIdActionItem[];
+  actionsSearch: string;
   hasActiveRp: boolean;
   shouldOpenCreateAction: boolean;
   requestCreateActionSetup: () => void;

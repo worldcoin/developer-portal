@@ -137,6 +137,8 @@ it("renders route-backed Actions and optional Legacy Actions tabs", () => {
     teamId: "team_1",
     appId: "app_1",
     hasLegacyActions: false,
+    search: "",
+    onSearchChange: jest.fn(),
   };
   const { rerender } = render(<WorldIdTabs {...props} />);
 
@@ -150,6 +152,9 @@ it("renders route-backed Actions and optional Legacy Actions tabs", () => {
   );
   expect(screen.queryByRole("link", { name: "World ID" })).toBeNull();
   expect(screen.queryByRole("link", { name: "Legacy Actions" })).toBeNull();
+  expect(
+    screen.getByRole("textbox", { name: "Search actions" }),
+  ).toBeInTheDocument();
 
   rerender(<WorldIdTabs {...props} hasLegacyActions />);
   expect(screen.getByRole("link", { name: "Legacy Actions" })).toHaveAttribute(
