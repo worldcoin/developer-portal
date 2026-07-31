@@ -183,12 +183,12 @@ describe("World ID analytics [backfill and validation gate]", () => {
       "Raw/rollup parity validation failed",
     );
 
-    const stateAfterFailure = await pool.query(
-      `SELECT processed_through
+    const stateAfterFailure = await pool.query<{ finite: boolean }>(
+      `SELECT isfinite(processed_through) AS finite
          FROM public.world_id_analytics_state
         WHERE singleton`,
     );
-    expect(stateAfterFailure.rows).toEqual([]);
+    expect(stateAfterFailure.rows).toEqual([{ finite: true }]);
 
     await removeParitySabotage();
 

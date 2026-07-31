@@ -9,10 +9,26 @@ CREATE TEMP TABLE analytics_gate_evidence (
   processed_through timestamptz NOT NULL
 ) ON COMMIT PRESERVE ROWS;
 
--- Build the complete historical rollup, catch up rows committed during that
--- scan, and validate parity in one transaction. If validation fails, rolling
--- back the historical watermark keeps the gate restartable.
+-- Phase one: acquire the rollup lock and force a complete historical rebuild.
+-- Resetting the watermark on every attempt makes the gate restartable even if
+-- an earlier validation failure left a finite watermark and an old bad row.
 BEGIN;
+
+DO $gate$
+BEGIN
+  IF NOT pg_try_advisory_xact_lock(533214, 43) THEN
+    RAISE EXCEPTION USING
+      ERRCODE = '55P03',
+      MESSAGE =
+        'Historical analytics backfill did not acquire the advisory lock';
+  END IF;
+END
+$gate$;
+
+INSERT INTO public.world_id_analytics_state (singleton, processed_through)
+VALUES (true, '-infinity'::timestamptz)
+ON CONFLICT (singleton) DO UPDATE
+SET processed_through = EXCLUDED.processed_through;
 
 INSERT INTO analytics_gate_evidence (phase, processed_through)
 SELECT 'historical_backfill', processed_through
@@ -28,10 +44,17 @@ BEGIN
     RAISE EXCEPTION USING
       ERRCODE = '55P03',
       MESSAGE =
-        'Historical analytics backfill did not acquire the advisory lock';
+        'Historical analytics backfill returned no state row';
   END IF;
 END
 $gate$;
+
+COMMIT;
+
+-- Phase two gets a fresh snapshot containing writes committed during the
+-- historical scan. Keep one repeatable-read snapshot through catch-up and
+-- parity validation so both observe the same canonical source rows.
+BEGIN ISOLATION LEVEL REPEATABLE READ;
 
 INSERT INTO analytics_gate_evidence (phase, processed_through)
 SELECT 'catch_up', processed_through
