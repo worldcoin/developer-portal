@@ -65,6 +65,8 @@ export const urls = {
 
   createTeam: (): "/create-team" => "/create-team",
 
+  dashboard: (): "/dashboard" => "/dashboard",
+
   signInWorldId: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/sign-in-with-world-id`,
 
