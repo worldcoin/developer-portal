@@ -1,7 +1,10 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import {
+  formDialogPrimaryActionClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import clsx from "clsx";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -39,6 +42,7 @@ const SELF_MANAGED_BULLETS = [
 
 export type EnableWorldId40ContentProps = {
   onContinue: (mode: WorldId40Mode) => void;
+  onCancel?: () => void;
   isSelfManagedEnabled: boolean;
   initialMode?: WorldId40Mode;
   isManagedEnabled?: boolean;
@@ -49,6 +53,7 @@ export type EnableWorldId40ContentProps = {
 
 export const EnableWorldId40Content = ({
   onContinue,
+  onCancel,
   isSelfManagedEnabled,
   initialMode,
   isManagedEnabled = true,
@@ -73,19 +78,14 @@ export const EnableWorldId40Content = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={clsx("grid w-full max-w-[580px] gap-y-6", className)}
+      className={clsx("grid w-full gap-y-6", className)}
     >
-      <div className="grid gap-y-3">
-        <Typography as="h1" variant={TYPOGRAPHY.H6}>
-          Enable World ID
-        </Typography>
-        <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
-          Enable the next generation of World ID with improved privacy,
-          multi-device support, and enhanced security.
-        </Typography>
-      </div>
+      <p className="font-world text-14 leading-[1.5] text-portal-muted">
+        Enable the next generation of World ID with improved privacy,
+        multi-device support, and enhanced security.
+      </p>
 
-      <div className="mt-[0.84rem] grid gap-y-4">
+      <div className="grid gap-y-3">
         <WorldId40OptionCard
           register={register("world_id_4_0_mode")}
           option={{ value: "managed", label: "Managed" }}
@@ -110,15 +110,34 @@ export const EnableWorldId40Content = ({
         />
       </div>
 
-      <DecoratedButton
-        type="submit"
-        variant="primary"
-        className="justify-self-end py-3"
-        disabled={loading}
-        testId="enable-world-id-40-continue"
-      >
-        {loading ? "Processing..." : "Continue"}
-      </DecoratedButton>
+      <div className="grid w-full gap-3 md:grid-cols-2">
+        {onCancel ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
+          >
+            Cancel
+          </button>
+        ) : null}
+
+        <button
+          type="submit"
+          disabled={loading}
+          data-testid="button-enable-world-id-40-continue"
+          className={clsx(
+            `${formDialogPrimaryActionClassName} order-1 md:order-none`,
+            !onCancel && "md:col-span-2",
+          )}
+        >
+          {loading ? (
+            <SpinnerIcon className="size-5 animate-spin" />
+          ) : (
+            "Continue"
+          )}
+        </button>
+      </div>
     </form>
   );
 };
