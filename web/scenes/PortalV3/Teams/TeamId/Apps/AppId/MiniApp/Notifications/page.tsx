@@ -346,7 +346,7 @@ export const NotificationsPage = () => {
               />
 
               <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
-                {walletAddressCount}/1000 addresses - Enter one or more wallet
+                {walletAddressCount}/1000 addresses. Enter one or more wallet
                 addresses, separated by commas
               </p>
               {errors.walletAddresses?.message && (
