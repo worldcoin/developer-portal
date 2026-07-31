@@ -9,11 +9,11 @@ export const NavBar = () => {
   return (
     <UIModule
       className={clsx(
-        // Base (mobile): floating bottom tab bar
-        "sticky bottom-4 z-40 w-fit self-end justify-self-center",
+        // Mobile: fixed bottom tab bar so document scroll is never trapped
+        "fixed bottom-4 left-1/2 z-40 w-fit -translate-x-1/2",
 
-        // Desktop: floating sidebar card, sticky within the viewport
-        "lg:sticky lg:top-4 lg:bottom-auto lg:left-auto lg:order-first lg:translate-x-0",
+        // Desktop: sidebar card in the grid column
+        "lg:relative lg:bottom-auto lg:left-auto lg:order-first lg:translate-x-0",
         "lg:grid lg:h-[calc(100dvh-2rem)] lg:content-start lg:justify-items-start lg:gap-y-1",
         "lg:p-3",
 

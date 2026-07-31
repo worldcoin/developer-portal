@@ -90,15 +90,13 @@ export const fetchAdminHome = async () => {
 
     return {
       inventory: {
-        activeApiKeys: toCount(inventory.active_api_keys),
         activeApps: toCount(inventory.active_apps),
         activeTeams: toCount(inventory.active_teams),
-        deletedApps: toCount(inventory.deleted_apps),
-        deletedTeams: toCount(inventory.deleted_teams),
         newApps: toCount(inventory.new_apps),
         newTeams: toCount(inventory.new_teams),
         newUsers: toCount(inventory.new_users),
-        pendingInvites: toCount(inventory.pending_invites),
+        sandboxPending: toCount(data.sandbox_pending.aggregate?.count),
+        sandboxTotal: toCount(data.sandbox_total.aggregate?.count),
         totalUsers: toCount(inventory.total_users),
       },
       queues: {
