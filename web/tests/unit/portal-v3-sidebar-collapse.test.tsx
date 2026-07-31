@@ -20,8 +20,8 @@ jest.mock("@/scenes/PortalV3/layout/Shell/SidebarNav", () => ({
   SidebarNav: () => <nav>sidebar-navigation</nav>,
 }));
 
-jest.mock("@/scenes/PortalV3/layout/Shell/TeamsDropdown", () => ({
-  TeamsDropdown: () => <div>teams-dropdown</div>,
+jest.mock("@/scenes/PortalV3/layout/Shell/SidebarContextHeader", () => ({
+  SidebarContextHeader: () => <div>sidebar-context-header</div>,
 }));
 
 jest.mock("@/scenes/PortalV3/layout/Shell/UserPopup", () => ({

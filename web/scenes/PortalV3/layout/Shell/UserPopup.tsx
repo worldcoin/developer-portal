@@ -21,6 +21,7 @@ import { useAtomValue } from "jotai";
 import { ChevronsUpDownIcon } from "lucide-react";
 import Link from "next/link";
 import { CSSProperties } from "react";
+import { HelpCenterMenu } from "./HelpCenterMenu";
 
 export type PortalUser = { name: string; email?: string };
 
@@ -106,6 +107,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
                 </Link>
               </DropdownMenuItem>
             ))}
+            <HelpCenterMenu />
             <DropdownMenuSeparator className="my-2 bg-portal-border" />
             <DropdownMenuItem asChild className={itemClass}>
               <a

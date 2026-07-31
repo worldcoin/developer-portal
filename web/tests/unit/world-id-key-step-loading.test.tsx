@@ -46,6 +46,26 @@ jest.mock("@/components/Dialog", () => ({
   Dialog: ({ children, open }: React.PropsWithChildren<{ open: boolean }>) =>
     open ? <div role="dialog">{children}</div> : null,
 }));
+// The PortalV3 dialog renders through FormDialog (modal flow); the Portal one
+// still uses the raw Dialog/DialogPanel takeover above.
+jest.mock("@/components/FormDialog", () => ({
+  FormDialog: ({
+    children,
+    open,
+    title,
+  }: React.PropsWithChildren<{ open: boolean; title: React.ReactNode }>) =>
+    open ? (
+      <div role="dialog">
+        <h2>{title}</h2>
+        {children}
+      </div>
+    ) : null,
+  formDialogErrorClassName: "",
+  formDialogInputClassName: "",
+  formDialogLabelClassName: "",
+  formDialogPrimaryActionClassName: "",
+  formDialogSecondaryActionClassName: "",
+}));
 jest.mock("@/components/DialogPanel", () => ({
   DialogPanel: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
 }));
@@ -112,7 +132,8 @@ it.each(cases)(
     );
 
     fireEvent.click(screen.getByTestId("button-enable-world-id-40-continue"));
-    await screen.findByText("Configure Signer Key");
+    // Title case in Portal, sentence case in the PortalV3 modal header.
+    await screen.findByText(/configure signer key/i);
 
     if (setup === "existing") {
       fireEvent.click(screen.getByTestId("radio-existing"));
@@ -126,7 +147,7 @@ it.each(cases)(
 
     const dialog = screen.getByRole("dialog");
     expect(
-      within(dialog).getByText("Configure Signer Key"),
+      within(dialog).getByText(/configure signer key/i),
     ).toBeInTheDocument();
     expect(
       within(dialog).getByRole("button", { name: "Loading signer key step" }),
@@ -142,7 +163,7 @@ it.each(cases)(
       await within(dialog).findByTestId(`${setup}-key-step`),
     ).toBeInTheDocument();
     expect(
-      within(dialog).queryByText("Configure Signer Key"),
+      within(dialog).queryByText(/configure signer key/i),
     ).not.toBeInTheDocument();
   },
 );

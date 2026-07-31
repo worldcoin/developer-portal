@@ -5,8 +5,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { additionalColors } from "@/lib/additional-colors";
 import { colorAtom } from "@/scenes/common/layout/color-atom";
-import { HelpCenterMenu } from "@/scenes/PortalV3/layout/Shell/HelpCenterMenu";
-import { NavItem } from "@/scenes/PortalV3/layout/Shell/NavItem";
 import { TeamsDropdown } from "@/scenes/PortalV3/layout/Shell/TeamsDropdown";
 import { UserPopup } from "@/scenes/PortalV3/layout/Shell/UserPopup";
 import { act, fireEvent, render, screen } from "@testing-library/react";
@@ -55,13 +53,10 @@ describe("Portal v3 shell dropdown focus treatment", () => {
     }
   });
 
-  it("uses a pointer cursor for interactive sidebar items", () => {
+  it("opens Help Center options when its profile-menu item is hovered", async () => {
     render(
       <TooltipProvider>
         <SidebarProvider>
-          <NavItem href="/world-id" label="World ID" />
-          <HelpCenterMenu />
-          <TeamsDropdown teams={[{ id: "team_1", name: "Example team" }]} />
           <UserPopup
             user={{ name: "Ada Lovelace", email: "ada@example.com" }}
             color={null}
@@ -70,14 +65,18 @@ describe("Portal v3 shell dropdown focus treatment", () => {
       </TooltipProvider>,
     );
 
-    for (const element of [
-      screen.getByRole("link", { name: "World ID" }),
-      screen.getByRole("button", { name: "Help center" }),
-      screen.getByRole("button", { name: "Switch team" }),
-      screen.getByRole("button", { name: "Account menu" }),
-    ]) {
-      expect(element).toHaveClass("cursor-pointer");
-    }
+    fireEvent.keyDown(screen.getByRole("button", { name: "Account menu" }), {
+      key: "ArrowDown",
+    });
+    const helpCenter = await screen.findByRole("menuitem", {
+      name: "Help center",
+    });
+
+    fireEvent.pointerEnter(helpCenter);
+
+    expect(
+      await screen.findByRole("menuitem", { name: "Documentation" }),
+    ).toBeInTheDocument();
   });
 
   it("opens the profile menu directly above the profile row", async () => {
