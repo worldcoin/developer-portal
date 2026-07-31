@@ -16,6 +16,9 @@ jest.mock(
 jest.mock("@/lib/logger", () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
+jest.mock("next/headers", () => ({
+  headers: async () => ({ get: () => "/profile" }),
+}));
 
 // Stub the shell so we test only PortalLayout's session -> shell wiring.
 jest.mock("@/scenes/PortalV3/layout/Shell", () => ({

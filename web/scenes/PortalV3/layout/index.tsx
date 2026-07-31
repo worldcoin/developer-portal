@@ -3,6 +3,9 @@ import { auth0 } from "@/lib/auth0";
 import { isWorldUser } from "@/lib/is-world-user";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
+import { rememberLatestTeam } from "@/scenes/PortalV3/Dashboard/server/latest-team";
+import { headers } from "next/headers";
+import { after } from "next/server";
 import { ReactNode } from "react";
 import { PortalShell } from "./Shell";
 
@@ -15,8 +18,17 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
     .filter((t): t is NonNullable<typeof t> => !!t?.id)
     .map((t) => ({ id: t.id, name: t.name ?? "Untitled team" }));
 
-  let sandboxRequest = null;
+  const pathname = (await headers()).get("x-current-path");
+  const visitedTeamId = pathname?.match(/^\/teams\/([^/]+)(?:\/|$)/)?.[1];
   const userId = user?.hasura?.id;
+  const isTeamMember = teams.some((team) => team.id === visitedTeamId);
+
+  if (userId && visitedTeamId && isTeamMember) {
+    // Persist after rendering so remembering a preference never delays the page.
+    after(() => rememberLatestTeam(userId, visitedTeamId));
+  }
+
+  let sandboxRequest = null;
   if (userId) {
     try {
       sandboxRequest = await fetchSandboxAccessRequest(userId);

@@ -158,6 +158,7 @@ const checkRouteRolesRestrictions = (
 };
 
 const protectedMatchers = [
+  /^\/dashboard$/,
   /^\/teams(\/|$)/,
   /^\/create-team$/,
   /^\/profile(\/|$)/,
@@ -417,6 +418,7 @@ export const config = {
   matcher: [
     "/",
     "/api/auth/:path*",
+    "/dashboard",
     "/teams/:path*",
     "/create-team",
     "/profile/:path*",
