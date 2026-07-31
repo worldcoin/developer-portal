@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Placeholder } from "@/components/PlaceholderImage";
 import { Button } from "@/components/ui/button";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -52,12 +52,12 @@ export const useCurrentAppId = (): string | undefined => {
 const appName = (app: FetchAppsQuery["app"][number]) =>
   app.app_metadata?.[0]?.name ?? "Untitled app";
 
-const AppAvatar = (props: { name: string }) => (
-  <Avatar className="size-6">
-    <AvatarFallback className="bg-[#d6f0d5] font-world text-[11px] leading-none font-normal text-[#00c230]">
-      {props.name[0]?.toUpperCase() ?? "A"}
-    </AvatarFallback>
-  </Avatar>
+const AppAvatar = (props: DropdownApp) => (
+  <Placeholder
+    name={props.name}
+    seed={props.id}
+    className="size-6 shrink-0 rounded-full font-world text-[11px] leading-none font-normal"
+  />
 );
 
 export const AppsDropdown = () => {
@@ -106,12 +106,12 @@ export const AppsDropdown = () => {
             "text-portal-text hover:bg-portal-border hover:text-portal-text disabled:cursor-default",
           )}
         >
-          {current ? <AppAvatar name={current.name} /> : null}
+          {current ? <AppAvatar {...current} /> : null}
           <span className="max-w-[260px] truncate">{currentLabel}</span>
           <ChevronsUpDownIcon className="size-4 text-portal-muted" />
         </Button>
       )}
-      renderLeading={(app) => <AppAvatar name={app.name} />}
+      renderLeading={(app) => <AppAvatar {...app} />}
       getItemHref={(app) =>
         urls.worldId40({
           team_id: teamId,
