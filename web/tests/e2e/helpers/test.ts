@@ -40,7 +40,8 @@ export const test = base.extend<{}, { workerStorageState: string }>({
         .fill(process.env.TEST_USER_PASSWORD);
       await page.locator("[name='submit']").click();
 
-      await expect(page).toHaveURL(/\/teams\/team_[a-f0-9]+\/apps$/);
+      // Portal V3 resolves the dashboard entry point to the latest team overview.
+      await expect(page).toHaveURL(/\/teams\/team_[a-f0-9]+$/);
 
       // Save storage state of the authenticated browser
       await page.context().storageState({ path: fileName });

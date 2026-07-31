@@ -1,19 +1,15 @@
 "use client";
 
 import {
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
 import {
   DISCORD_URL,
   DOCS_URL,
@@ -27,6 +23,7 @@ import { urls } from "@/lib/urls";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
+import { useState } from "react";
 
 const itemClass = "h-10 cursor-pointer gap-3 text-portal-text focus:bg-grey-50";
 const labelClass = "px-2 py-1.5 text-portal-subtle";
@@ -50,15 +47,14 @@ const HelpLink = (props: {
   </DropdownMenuItem>
 );
 
-/** Single home for documentation, support, community, and legal links. */
+/** Documentation, support, community, and legal links inside the user menu. */
 export const HelpCenterMenu = () => {
+  const [open, setOpen] = useState(false);
   const params = useParams<{
     teamId?: string;
     appId?: string;
     actionId?: string;
   }>();
-  const { isMobile } = useSidebar();
-
   const track = (destination: string) => () => {
     posthog.capture("clicked_help", {
       helpLink: destination,
@@ -69,26 +65,20 @@ export const HelpCenterMenu = () => {
   };
 
   return (
-    <SidebarMenuItem>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <SidebarMenuButton
-            aria-label="Help center"
-            title="Help center"
-            className="h-10 cursor-pointer rounded-[10px] px-3 font-world text-13 leading-none text-portal-muted hover:bg-portal-border hover:text-portal-text"
-          >
-            <Icon
-              name="nav-help"
-              className={`${opticalIconClassName} size-4`}
-            />
-            <span>Help center</span>
-          </SidebarMenuButton>
-        </DropdownMenuTrigger>
+    <DropdownMenuSub open={open} onOpenChange={setOpen}>
+      <DropdownMenuSubTrigger
+        aria-label="Help center"
+        className={itemClass}
+        chevronClassName={`${opticalIconClassName} size-4`}
+        onPointerEnter={() => setOpen(true)}
+      >
+        <Icon name="nav-help" className={`${opticalIconClassName} size-4`} />
+        <span className="min-w-0 flex-1 truncate">Help center</span>
+      </DropdownMenuSubTrigger>
 
-        <DropdownMenuContent
-          side={isMobile ? "bottom" : "right"}
-          align="end"
-          sideOffset={12}
+      <DropdownMenuPortal>
+        <DropdownMenuSubContent
+          sideOffset={8}
           collisionPadding={16}
           className="w-72 border border-portal-border font-world"
         >
@@ -167,8 +157,8 @@ export const HelpCenterMenu = () => {
               onSelect={track("terms_of_service")}
             />
           </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </SidebarMenuItem>
+        </DropdownMenuSubContent>
+      </DropdownMenuPortal>
+    </DropdownMenuSub>
   );
 };
