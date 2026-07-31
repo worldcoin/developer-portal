@@ -41,6 +41,7 @@ import {
   WorldIdLayoutContext,
   type WorldIdLayoutContextValue,
 } from "./context";
+import { WorldIdAnalyticsGraph } from "../common/WorldIdAnalyticsGraph";
 
 const BanBanner = () => {
   const [, setIsOpened] = useAtom(banMessageDialogOpenedAtom);
@@ -336,6 +337,19 @@ export const WorldIdLayout = (props: {
     <WorldIdLayoutContext.Provider value={contextValue}>
       <SizingWrapper className="flex flex-col gap-8 py-8">
         {app?.is_banned ? <BanBanner /> : null}
+
+        {app ? (
+          <div className="rounded-[10px] border border-portal-border bg-white p-6">
+            <WorldIdAnalyticsGraph
+              appId={props.appId}
+              environment={app.is_staging ? "staging" : "production"}
+              scope={{ type: "app" }}
+            />
+            <p className="mt-2 font-world text-13 text-portal-muted">
+              Includes legacy World ID actions
+            </p>
+          </div>
+        ) : null}
 
         {initialLoading ? (
           <div className="rounded-xl border border-grey-100 bg-white p-5">

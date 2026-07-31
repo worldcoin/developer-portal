@@ -14,11 +14,6 @@ query GetWorldIdActionDetail($action_id: String!, $app_id: String!) {
     rp_registration {
       app_id
     }
-    nullifiers_aggregate {
-      aggregate {
-        count
-      }
-    }
     nullifiers(limit: 100, order_by: { created_at: desc }) {
       id
       created_at

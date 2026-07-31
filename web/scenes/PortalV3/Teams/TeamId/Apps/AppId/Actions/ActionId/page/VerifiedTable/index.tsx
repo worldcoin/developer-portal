@@ -16,7 +16,7 @@ export type VerifiedTableColumn = "human" | "uses" | "time";
 const getColumnLabel = (column: VerifiedTableColumn): string => {
   switch (column) {
     case "human":
-      return "Human";
+      return "Nullifier";
     case "uses":
       return "Uses";
     case "time":
@@ -110,7 +110,7 @@ export const VerifiedTable = (props: {
     <div className="flex w-full items-center justify-end">
       <div className="grid w-full gap-y-6">
         <div className="mt-6 flex items-center justify-start gap-x-2">
-          <Typography variant={TYPOGRAPHY.H7}>Verified humans</Typography>
+          <Typography variant={TYPOGRAPHY.H7}>Recent verifications</Typography>
 
           {showCount ? (
             <Typography
@@ -161,14 +161,16 @@ export const VerifiedTable = (props: {
             </div>
           </div>
 
-          <Pagination
-            totalResults={totalResultsCount}
-            currentPage={currentPage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={rowsPerPageOptions}
-            handlePageChange={handlePageChange}
-            handleRowsPerPageChange={handleRowsPerPageChange}
-          />
+          {showCount ? (
+            <Pagination
+              totalResults={totalResultsCount}
+              currentPage={currentPage}
+              rowsPerPage={rowsPerPage}
+              rowsPerPageOptions={rowsPerPageOptions}
+              handlePageChange={handlePageChange}
+              handleRowsPerPageChange={handleRowsPerPageChange}
+            />
+          ) : null}
         </div>
       </div>
     </div>

@@ -17,13 +17,6 @@ export type GetWorldIdActionDetailQuery = {
     rp_id: string;
     created_at: string;
     rp_registration: { __typename?: "rp_registration"; app_id: string };
-    nullifiers_aggregate: {
-      __typename?: "nullifier_v4_aggregate";
-      aggregate?: {
-        __typename?: "nullifier_v4_aggregate_fields";
-        count: number;
-      } | null;
-    };
     nullifiers: Array<{
       __typename?: "nullifier_v4";
       id: string;
@@ -153,28 +146,6 @@ export const GetWorldIdActionDetailDocument = {
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "app_id" },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "nullifiers_aggregate" },
-                  selectionSet: {
-                    kind: "SelectionSet",
-                    selections: [
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "aggregate" },
-                        selectionSet: {
-                          kind: "SelectionSet",
-                          selections: [
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "count" },
-                            },
-                          ],
-                        },
                       },
                     ],
                   },
