@@ -14,7 +14,7 @@ import {
 import { urls } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
-import { SectionLoading } from "@/scenes/PortalV3/common/SectionLoading";
+import { LoadingPageAnimation } from "@/scenes/PortalV3/common/LoadingPageAnimation";
 import { BellIcon, LockKeyholeIcon, WalletCardsIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -46,7 +46,7 @@ const useShellNavigation = (): ShellNavigation => {
   const value = useContext(ShellNavigationContext);
   if (!value) {
     throw new Error(
-      "useShellNavigation must be used inside ShellNavigationProvider",
+      "useShellNavigation must be used inside SidebarAnimationShell",
     );
   }
   return value;
@@ -59,7 +59,7 @@ const useShellNavigation = (): ShellNavigation => {
  * clearing effect needed: when the transition ends, consumers fall back to the
  * real pathname, which either confirms or reverts the pending target.
  */
-export const ShellNavigationProvider = (props: { children: ReactNode }) => {
+export const SidebarAnimationShell = (props: { children: ReactNode }) => {
   const router = useRouter();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [isNavigating, startTransition] = useTransition();
@@ -88,7 +88,7 @@ export const ShellNavigationProvider = (props: { children: ReactNode }) => {
  * Optimistic content skeleton: covers the content column the moment a sidebar
  * navigation starts, in sync with the sliding pill, instead of holding the old
  * page until the new section's Suspense boundary mounts. Invisible for the
- * first 300ms (same budget as SectionLoading) so fast navigations never blank
+ * first 300ms (same budget as LoadingPageAnimation) so fast navigations never blank
  * the page they're about to keep.
  */
 export const ContentNavigationLoading = () => {
@@ -98,7 +98,7 @@ export const ContentNavigationLoading = () => {
 
   return (
     <div className="absolute inset-0 z-10 animate-in bg-white delay-300 duration-200 fill-mode-both fade-in">
-      <SectionLoading immediate />
+      <LoadingPageAnimation immediate />
     </div>
   );
 };

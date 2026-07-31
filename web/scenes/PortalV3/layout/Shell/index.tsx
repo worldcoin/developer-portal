@@ -8,10 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CSSProperties, ReactNode } from "react";
 import { AppsDropdown } from "./AppsDropdown";
 import { PortalSidebar } from "./PortalSidebar";
-import {
-  ContentNavigationLoading,
-  ShellNavigationProvider,
-} from "./SidebarNav";
+import { ContentNavigationLoading, SidebarAnimationShell } from "./SidebarNav";
 
 /** Portal shell, mounted at the (portal) root for allow-listed users. */
 export const PortalShell = (props: {
@@ -39,7 +36,7 @@ export const PortalShell = (props: {
           } as CSSProperties
         }
       >
-        <ShellNavigationProvider>
+        <SidebarAnimationShell>
           <PortalSidebar
             user={user}
             teams={teams}
@@ -64,7 +61,7 @@ export const PortalShell = (props: {
               <div className="size-full min-w-0 overflow-auto">{children}</div>
             </div>
           </SidebarInset>
-        </ShellNavigationProvider>
+        </SidebarAnimationShell>
       </SidebarProvider>
     </TooltipProvider>
   );

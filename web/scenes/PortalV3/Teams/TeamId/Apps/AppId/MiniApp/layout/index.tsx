@@ -1,5 +1,5 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { SectionLoading } from "@/scenes/PortalV3/common/SectionLoading";
+import { LoadingPageAnimation } from "@/scenes/PortalV3/common/LoadingPageAnimation";
 import { ReactNode, Suspense } from "react";
 
 // Left-aligned, full-width frame (overrides SizingWrapper's centered column).
@@ -15,7 +15,7 @@ export const MiniAppLayout = (props: { children: ReactNode }) => {
     >
       {/* Boundary below the persistent shell: entering Mini App commits the
           navigation immediately and streams the page in behind it. */}
-      <Suspense fallback={<SectionLoading />}>{props.children}</Suspense>
+      <Suspense fallback={<LoadingPageAnimation />}>{props.children}</Suspense>
     </SizingWrapper>
   );
 };

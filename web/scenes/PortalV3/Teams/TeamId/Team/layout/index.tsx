@@ -1,4 +1,4 @@
-import { SectionLoading } from "@/scenes/PortalV3/common/SectionLoading";
+import { LoadingPageAnimation } from "@/scenes/PortalV3/common/LoadingPageAnimation";
 import { ReactNode, Suspense } from "react";
 
 type Params = {
@@ -15,5 +15,7 @@ type TeamLayoutProps = {
 // (navigation commits below the persistent shell while the page streams in)
 // and otherwise passes through to avoid a double nav.
 export const TeamLayout = async (props: TeamLayoutProps) => {
-  return <Suspense fallback={<SectionLoading />}>{props.children}</Suspense>;
+  return (
+    <Suspense fallback={<LoadingPageAnimation />}>{props.children}</Suspense>
+  );
 };

@@ -41,18 +41,17 @@ global.MessageChannel ??= MicrotaskMessageChannel as unknown as {
 };
 global.TextEncoder ??= TextEncoder as unknown as typeof global.TextEncoder;
 global.TextDecoder ??= TextDecoder as unknown as typeof global.TextDecoder;
-// Required (not imported) so the polyfill above is installed first.
+// Required (not imported) so the polyfills above are installed first.
 const { renderToString } =
   require("react-dom/server") as typeof import("react-dom/server");
 
 // #region Mocks
 const usePathname = jest.fn();
 const useParams = jest.fn();
-const routerPush = jest.fn();
 jest.mock("next/navigation", () => ({
   usePathname: () => usePathname(),
   useParams: () => useParams(),
-  useRouter: () => ({ push: routerPush, prefetch: jest.fn() }),
+  useRouter: () => ({ push: jest.fn(), prefetch: jest.fn() }),
 }));
 
 jest.mock("@/hooks/use-mobile", () => ({
@@ -67,9 +66,8 @@ jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
   SandboxButton: () => <button type="button">World ID Sandbox</button>,
 }));
 
-// jsdom has no ResizeObserver; NavActivePill uses it to track the active item.
-// The stub records constructions so tests can tell whether the pill's
-// measuring effect ran past its early exits.
+// The stub records constructions so the test can tell the pill's measuring
+// effect ran past its early exits on the hydration commit.
 const observerInstances: unknown[] = [];
 global.ResizeObserver = class {
   constructor(cb: ResizeObserverCallback) {
@@ -82,21 +80,19 @@ global.ResizeObserver = class {
 // #endregion
 
 import {
-  ShellNavigationProvider,
+  SidebarAnimationShell,
   SidebarNav,
 } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 
 // #region Test Data
-const teamId = "team_1";
-const appId = "app_1";
-const base = `/teams/${teamId}/apps/${appId}`;
+const base = "/teams/team_1/apps/app_1";
 
 const tree = (
   <TooltipProvider>
     <SidebarProvider>
-      <ShellNavigationProvider>
+      <SidebarAnimationShell>
         <SidebarNav />
-      </ShellNavigationProvider>
+      </SidebarAnimationShell>
     </SidebarProvider>
   </TooltipProvider>
 );
@@ -115,72 +111,49 @@ const realRect = {
   toJSON: () => ({}),
 } as DOMRect;
 
-const activeLinkFrom = (root: ParentNode) =>
+const activeLink = (root: ParentNode) =>
   Array.from(root.querySelectorAll("a")).find(
     (a) => a.getAttribute("data-active") === "true",
-  );
+  )!;
 
-const pillFrom = (root: ParentNode) =>
-  root.querySelector('nav > span[aria-hidden="true"]');
+const pill = (root: ParentNode) =>
+  root.querySelector('nav > span[aria-hidden="true"]')!;
 // #endregion
-
-beforeEach(() => {
-  jest.clearAllMocks();
-  observerInstances.length = 0;
-  useParams.mockReturnValue({ teamId, appId });
-  usePathname.mockReturnValue(`${base}/world-id-4-0`);
-  jest
-    .spyOn(Element.prototype, "getBoundingClientRect")
-    .mockReturnValue(realRect);
-});
-
-afterEach(() => {
-  jest.restoreAllMocks();
-});
 
 // The sheath must survive a hard refresh: the server HTML carries a static
 // active card (there is no measured pill yet), and hydration swaps it for the
 // live pill without a frame where neither exists.
-// #region SSR → hydration hand-off
-describe("v3 SidebarNav [SSR → hydration]", () => {
-  it("server-renders a static active card and no visible pill", () => {
-    const html = renderToString(tree);
-    const doc = document.createElement("div");
-    doc.innerHTML = html;
+it("hands the static SSR active card off to the measured pill at hydration", async () => {
+  useParams.mockReturnValue({ teamId: "team_1", appId: "app_1" });
+  usePathname.mockReturnValue(`${base}/world-id-4-0`);
+  jest
+    .spyOn(Element.prototype, "getBoundingClientRect")
+    .mockReturnValue(realRect);
 
-    const active = activeLinkFrom(doc);
-    expect(active).toBeDefined();
-    expect(active!.className).toContain("data-[active=true]:bg-white");
-    // The pill span is mounted (its effect locates the nav through it on the
-    // first commit) but hidden until it has measured a placement.
-    const pill = pillFrom(doc);
-    expect(pill).not.toBeNull();
-    expect(pill!.classList.contains("hidden")).toBe(true);
+  const container = document.createElement("div");
+  container.innerHTML = renderToString(tree);
+  document.body.appendChild(container);
+
+  // Server HTML: static active card; the pill span is mounted (its effect
+  // locates the nav through it on the first commit) but hidden.
+  expect(activeLink(container).className).toContain(
+    "data-[active=true]:bg-white",
+  );
+  expect(pill(container).classList.contains("hidden")).toBe(true);
+
+  await act(async () => {
+    render(tree, { container, hydrate: true });
   });
 
-  it("hydration replaces the static card with the measured pill", async () => {
-    const container = document.createElement("div");
-    container.innerHTML = renderToString(tree);
-    document.body.appendChild(container);
+  // The measuring effect must run on the hydration commit itself: a hard
+  // refresh gives no second render to recover on.
+  expect(observerInstances.length).toBeGreaterThan(0);
+  // The static card is gone because the measured pill has taken over.
+  expect(activeLink(container).className).not.toContain(
+    "data-[active=true]:bg-white",
+  );
+  expect(pill(container).classList.contains("hidden")).toBe(false);
+  expect(pill(container)).toHaveStyle({ width: "248px", height: "40px" });
 
-    await act(async () => {
-      render(tree, { container, hydrate: true });
-    });
-
-    const active = activeLinkFrom(container);
-    expect(active).toBeDefined();
-    // The measuring effect must run on the hydration commit itself: a hard
-    // refresh gives no second render to recover on.
-    expect(observerInstances.length).toBeGreaterThan(0);
-    // Post-hydration the static card is gone…
-    expect(active!.className).not.toContain("data-[active=true]:bg-white");
-    // …because the measured pill has taken over.
-    const pill = pillFrom(container);
-    expect(pill).not.toBeNull();
-    expect(pill!.classList.contains("hidden")).toBe(false);
-    expect(pill).toHaveStyle({ width: "248px", height: "40px" });
-
-    document.body.removeChild(container);
-  });
+  document.body.removeChild(container);
 });
-// #endregion

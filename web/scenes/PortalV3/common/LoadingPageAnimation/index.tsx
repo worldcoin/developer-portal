@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
  * (the shell's optimistic navigation overlay), so the spinner doesn't wait
  * out two stacked 300ms budgets.
  */
-export const SectionLoading = (props: { immediate?: boolean }) => (
+export const LoadingPageAnimation = (props: { immediate?: boolean }) => (
   <div
     role="status"
     aria-label="Loading"
