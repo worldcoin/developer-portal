@@ -1,9 +1,9 @@
 "use client";
 import { CopyButton } from "@/components/CopyButton";
-import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { FlaskIcon } from "@/components/Icons/FlaskIcon";
 import { QuickAction } from "@/components/QuickAction";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { WarningBadgeIcon } from "@/scenes/PortalV3/common/Icon";
 import Image from "next/image";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
@@ -37,9 +37,7 @@ export const QrQuickAction = (props: {
     <div className="grid w-fit gap-y-4">
       {showDraftMiniAppFlag && (
         <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-4">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
-            <AlertIcon className="size-4 text-white" />
-          </div>
+          <WarningBadgeIcon />
           <div className="flex flex-1 flex-col gap-0.5">
             <Typography
               variant={TYPOGRAPHY.S3}
