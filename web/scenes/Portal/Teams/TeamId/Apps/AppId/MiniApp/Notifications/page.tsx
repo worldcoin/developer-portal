@@ -251,7 +251,7 @@ export const NotificationsPage = () => {
             Send notifications to specific wallet addresses. Unverified apps are
             limited to 40 notifications per 4 hours.{" "}
             <a
-              href="https://docs.world.org/mini-apps/reference/api#send-notification"
+              href="https://docs.world.org/api-reference/developer-portal/send-notification"
               target="_blank"
               className="inline-block whitespace-nowrap underline"
               rel="noopener noreferrer"

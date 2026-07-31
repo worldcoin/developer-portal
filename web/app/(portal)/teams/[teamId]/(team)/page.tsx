@@ -1,9 +1,8 @@
 import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
-import { urls } from "@/lib/urls";
 import { TeamIdPage } from "@/scenes/Portal/Teams/TeamId/Team/page";
+import { TeamIdPage as TeamIdPageV3 } from "@/scenes/PortalV3/Teams/TeamId/Team/page";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Overview" }),
@@ -18,7 +17,7 @@ export default async function Page(props: {
     props.searchParams,
   ]);
   return pickPortalVersion(
-    () => redirect(urls.apps({ team_id: params.teamId })),
+    () => <TeamIdPageV3 params={params} searchParams={searchParams} />,
     () => <TeamIdPage params={params} searchParams={searchParams} />,
   );
 }

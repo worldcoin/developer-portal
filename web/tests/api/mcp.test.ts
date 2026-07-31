@@ -1,5 +1,5 @@
 import { generateHashedSecret } from "@/api/helpers/utils";
-import { POST } from "@/api/mcp";
+import { GET, OPTIONS, POST } from "@/api/mcp";
 import { logger } from "@/lib/logger";
 import { generateRpIdString } from "@/lib/rp";
 import { NextRequest } from "next/server";
@@ -2108,3 +2108,92 @@ describe("/api/mcp", () => {
     );
   });
 });
+
+// #region Transport
+// createRequest JSON.stringifies an object, so malformed envelopes need a raw
+// body. Auth header stays valid so a 400 can only mean "bad shape", not "bad key".
+const rawRequest = (body: string) =>
+  new NextRequest("http://localhost:3000/api/mcp", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${validApiKey}`,
+    },
+    body,
+  });
+
+describe("/api/mcp [transport]", () => {
+  it("rejects GET with 405 and advertises only POST and OPTIONS", async () => {
+    const res = await GET();
+
+    expect(res.status).toBe(405);
+    expect(res.headers.get("Allow")).toBe("POST, OPTIONS");
+    // A 200 here makes the MCP SDK treat the JSON body as an SSE stream and
+    // reconnect ~1/sec forever, so the handshake descriptor must be gone.
+    expect(await res.text()).not.toMatch(/"transport"\s*:\s*"streamable-http"/);
+  });
+
+  it("advertises only POST and OPTIONS from OPTIONS", async () => {
+    const res = await OPTIONS();
+
+    expect(res.status).toBe(204);
+    expect(res.headers.get("Allow")).toBe("POST, OPTIONS");
+    expect(await res.text()).toBe("");
+    expect(
+      String(res.headers.get("Access-Control-Allow-Methods")),
+    ).not.toContain("GET");
+  });
+
+  it("returns an invalid-request error for a literal null body", async () => {
+    const res = await POST(rawRequest("null"));
+
+    expect(res.status).toBe(400);
+    expect(res.headers.get("content-type")).toContain("application/json");
+    const body = await res.json();
+    expect(body.jsonrpc).toBe("2.0");
+    expect(body.id).toBeNull();
+    expect(body.error.code).toBe(-32600);
+    expect(logger.error).not.toHaveBeenCalled();
+    expect(requestMock).not.toHaveBeenCalled();
+  });
+
+  it("returns an invalid-request error for a JSON-RPC batch array", async () => {
+    const res = await POST(
+      rawRequest(JSON.stringify([{ jsonrpc: "2.0", id: 1, method: "ping" }])),
+    );
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32600);
+    expect(logger.error).not.toHaveBeenCalled();
+  });
+
+  it("returns an invalid-request error for a primitive body", async () => {
+    const res = await POST(rawRequest('"tools/list"'));
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32600);
+  });
+
+  it("returns method-not-found, not a transport error, when method is missing", async () => {
+    const res = await POST(createRequest({ jsonrpc: "2.0", id: 1 }));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.id).toBe(1);
+    expect(body.error.code).toBe(-32601);
+  });
+
+  it("answers ping with an empty result and echoes a string id", async () => {
+    const res = await POST(
+      createRequest({ jsonrpc: "2.0", id: "abc-1", method: "ping" }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.id).toBe("abc-1");
+    expect(body.result).toEqual({});
+  });
+});
+// #endregion

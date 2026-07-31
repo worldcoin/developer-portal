@@ -9,6 +9,7 @@ import { getCDNImageUrl } from "@/lib/utils";
 import { Dialog as HeadlessDialog, Transition } from "@headlessui/react";
 import {
   Fragment,
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -17,6 +18,7 @@ import {
 } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
+import { twMerge } from "tailwind-merge";
 import { useCroppedImageUpload, useImage } from "../../hook/use-image";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
@@ -42,6 +44,10 @@ interface ImageUploadFieldConfig {
   onUploadStart?: () => void;
   onUploadSuccess?: () => void;
   onUploadError?: (error: any) => void;
+  /** Overrides the empty drop zone's box styling (e.g. wizard theming). */
+  dropZoneClassName?: string;
+  /** Overrides the drop zone's inner icon/copy (e.g. wizard theming). */
+  dropZoneContent?: ReactNode;
 }
 
 interface ImageUploadFieldProps extends ImageUploadFieldConfig {
@@ -82,6 +88,8 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
     onUploadSuccess,
     onUploadError,
     error,
+    dropZoneClassName,
+    dropZoneContent,
   } = props;
 
   const [isUploading, setIsUploading] = useState(false);
@@ -98,6 +106,10 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       abortControllerRef.current = abortController;
 
       const fileTypeEnding = file.type.split("/")[1];
+      // Flips once S3 accepts the file: aborts after this point are unmount
+      // bookkeeping (e.g. the keyed provider remounting and killing an
+      // in-flight refetch), NOT a cancelled upload — don't toast for them.
+      let s3UploadCompleted = false;
 
       try {
         setIsUploading(true);
@@ -113,7 +125,16 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           isLocalized ? locale : undefined,
           abortController.signal,
         );
+        s3UploadCompleted = true;
+        // File is on S3 — don't let unmount abort() invent a cancel toast
+        // while getImage / autosave bookkeeping finishes.
+        abortControllerRef.current = null;
 
+        // S3 has the file from here on — the remaining steps are bookkeeping
+        // and must run even if this component instance unmounts mid-flight
+        // (the form provider is keyed on metadata id + view mode and can
+        // remount during autosave). Persistence is ownerless; only UI
+        // updates below are gated on being mounted.
         const imageUrl = await getImage(
           fileTypeEnding,
           appId,
@@ -122,30 +143,34 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           isLocalized ? locale : undefined,
         );
 
-        // check if component is still mounted/valid before updating
-        if (!isMountedRef.current) {
-          return false;
-        }
-
         const extractedPath =
           extractImagePathWithExtensionFromActualUrl(imageUrl);
         const newUrls =
           maxImages === 1 ? [extractedPath] : [...value, extractedPath];
 
         await onAutosave(newUrls);
+        // Writes into the shared Apollo cache, so a remounted successor
+        // instance watching the same query re-renders with the new image.
         await onRefetchImages();
-        onChange(newUrls);
 
+        if (isMountedRef.current) {
+          onChange(newUrls);
+        }
+        // Parent toast / bookkeeping — must not be skipped on remount mid-upload.
         onUploadSuccess?.();
         return true;
       } catch (error) {
-        console.error("error uploading image:", error);
-
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Upload was cancelled", { autoClose: 5000 });
+        const isAbort = error instanceof Error && error.name === "AbortError";
+        if (isAbort) {
+          // Unmount can abort either the active S3 upload or post-upload
+          // bookkeeping. Only the former is a real cancellation.
+          if (!s3UploadCompleted) {
+            toast.error("Upload was cancelled", { autoClose: 5000 });
+          }
           return false;
         }
 
+        console.error("error uploading image:", error);
         onUploadError?.(error);
         return false;
       } finally {
@@ -282,9 +307,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           uploadImage={uploadImage}
           imageType={imageTypeNamer(0)}
           error={error}
-          className="h-[168px] rounded-xl!"
+          className={dropZoneClassName ?? "h-[168px] rounded-xl!"}
         >
-          {dropZoneChildren}
+          {dropZoneContent ?? dropZoneChildren}
         </ImageDropZone>
       )}
 
@@ -416,9 +441,13 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                 uploadImage={uploadImage}
                 imageType={imageTypeNamer(value.length)}
                 error={error}
-                className="h-full rounded-xl!"
+                className={
+                  dropZoneClassName
+                    ? twMerge(dropZoneClassName, "h-full")
+                    : "h-full rounded-xl!"
+                }
               >
-                {dropZoneChildren}
+                {dropZoneContent ?? dropZoneChildren}
               </ImageDropZone>
             </div>
           )}

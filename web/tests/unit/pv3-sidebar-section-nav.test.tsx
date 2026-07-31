@@ -1,5 +1,7 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { render, screen } from "@testing-library/react";
 import React from "react";
 
@@ -11,20 +13,18 @@ jest.mock("next/navigation", () => ({
   useParams: () => useParams(),
 }));
 
-jest.mock("@auth0/nextjs-auth0/client", () => ({
-  useUser: () => ({ user: {} }),
+jest.mock("@/hooks/use-mobile", () => ({
+  useIsMobile: () => false,
 }));
 
 jest.mock("@/lib/utils", () => ({
-  checkUserPermissions: () => true,
+  cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
 }));
 
-const useCurrentAppId = jest.fn();
-jest.mock("@/scenes/PortalV3/layout/Shell/AppsDropdown", () => ({
-  useCurrentAppId: () => useCurrentAppId(),
+jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
+  SandboxButton: () => <button type="button">World ID Sandbox</button>,
 }));
 
-// Control the apps query result per test.
 const fetchApps = jest.fn();
 jest.mock("@apollo/client/react", () => ({
   useQuery: () => fetchApps(),
@@ -36,15 +36,27 @@ jest.mock(
   }),
 );
 
-import { SidebarNav } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
+const useCurrentAppId = jest.fn();
+jest.mock("@/scenes/PortalV3/layout/Shell/AppsDropdown", () => ({
+  useCurrentAppId: () => useCurrentAppId(),
+}));
 // #endregion
+
+import { SidebarNav } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 
 // #region Test Data
 const teamId = "team_1";
 const appId = "app_1";
 const base = `/teams/${teamId}/apps/${appId}`;
 
-const renderSidebar = () => render(<SidebarNav />);
+const renderSidebar = () =>
+  render(
+    <TooltipProvider>
+      <SidebarProvider>
+        <SidebarNav />
+      </SidebarProvider>
+    </TooltipProvider>,
+  );
 
 const link = (label: string) => screen.getByRole("link", { name: label });
 const isCurrent = (label: string) =>
@@ -55,7 +67,6 @@ beforeEach(() => {
   jest.clearAllMocks();
   useParams.mockReturnValue({ teamId, appId });
   useCurrentAppId.mockReturnValue(appId);
-  // Default: FetchApps has already confirmed the current app exists.
   fetchApps.mockReturnValue({
     data: { app: [{ id: appId }] },
     loading: false,
@@ -63,12 +74,13 @@ beforeEach(() => {
   usePathname.mockReturnValue(base);
 });
 
-// Mini App keeps its durable child routes.
 // #region navigation hierarchy
 describe("v3 SidebarNav [navigation hierarchy]", () => {
-  it("leads with World ID (no Dashboard) and keeps Mini App children collapsed", () => {
+  it("leads with World ID and keeps Mini App children collapsed", () => {
     renderSidebar();
+
     expect(link("World ID")).toBeInTheDocument();
+    expect(link("World ID")).toHaveClass("cursor-pointer");
     expect(
       screen.queryByRole("link", { name: "Dashboard" }),
     ).not.toBeInTheDocument();
@@ -79,8 +91,8 @@ describe("v3 SidebarNav [navigation hierarchy]", () => {
     ).not.toBeInTheDocument();
     expect(link("Team settings")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Help center" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Help center" }),
+    ).not.toBeInTheDocument();
     expect(link("Danger zone")).toHaveAttribute(
       "href",
       `${base}/configuration/danger`,
@@ -102,7 +114,7 @@ describe("v3 SidebarNav [active section]", () => {
     expect(isCurrent("Configuration")).toBe(true);
   });
 
-  it("marks Danger zone current on the configuration danger route", () => {
+  it("marks only Danger zone current on the danger route", () => {
     usePathname.mockReturnValue(`${base}/configuration/danger`);
     renderSidebar();
     expect(isCurrent("Danger zone")).toBe(true);
@@ -112,42 +124,44 @@ describe("v3 SidebarNav [active section]", () => {
   it("expands Mini App children and marks the current child route", () => {
     usePathname.mockReturnValue(`${base}/mini-app/permissions`);
     renderSidebar();
-    expect(link("Mini App")).toHaveClass("bg-white");
+    expect(link("Mini App")).toHaveAttribute("data-active", "true");
     expect(isCurrent("Mini App")).toBe(false);
+    expect(
+      screen.getByRole("list", { name: "Mini App navigation" }),
+    ).toHaveClass("mt-2");
     expect(link("World ID")).toBeInTheDocument();
     expect(link("Permissions")).toHaveAttribute("aria-current", "page");
+    expect(link("Permissions")).toHaveAttribute("data-active", "true");
+    expect(link("Permissions")).toHaveClass("cursor-pointer");
+    expect(link("Permissions").querySelector("svg")).toHaveClass(
+      "lucide-lock-keyhole",
+    );
+    expect(link("Transactions").querySelector("svg")).toHaveClass(
+      "lucide-wallet-cards",
+    );
+    expect(link("Notifications").querySelector("svg")).toHaveClass(
+      "lucide-bell",
+    );
     expect(link("Transactions")).toBeInTheDocument();
     expect(link("Notifications")).toBeInTheDocument();
   });
 
-  it("treats the legacy top-level /transactions route as the Mini App section", () => {
+  it("treats the legacy top-level transactions route as Mini App", () => {
     usePathname.mockReturnValue(`${base}/transactions`);
     renderSidebar();
-    expect(link("Mini App")).toHaveClass("bg-white");
+    expect(link("Mini App")).toHaveAttribute("data-active", "true");
     expect(isCurrent("Transactions")).toBe(true);
   });
 
   it("marks Notifications current on its Mini App route", () => {
     usePathname.mockReturnValue(`${base}/mini-app/notifications`);
     renderSidebar();
-    expect(link("Mini App")).toHaveClass("bg-white");
+    expect(link("Mini App")).toHaveAttribute("data-active", "true");
     expect(isCurrent("Mini App")).toBe(false);
     expect(isCurrent("Notifications")).toBe(true);
   });
 
-  it("marks World ID current on the new /world-id route with no sidebar sub-items", () => {
-    usePathname.mockReturnValue(`${base}/world-id-4-0`);
-    renderSidebar();
-    expect(isCurrent("World ID")).toBe(true);
-    expect(
-      screen.queryByRole("link", { name: "World ID 4.0" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Actions" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("keeps World ID current on legacy World ID routes", () => {
+  it("keeps World ID current across current and legacy World ID routes", () => {
     for (const suffix of ["/world-id-4-0", "/world-id-actions", "/actions"]) {
       usePathname.mockReturnValue(`${base}${suffix}`);
       const { unmount } = renderSidebar();
@@ -160,7 +174,7 @@ describe("v3 SidebarNav [active section]", () => {
 
 // #region World ID href
 describe("v3 SidebarNav [World ID href]", () => {
-  it("routes World ID to the new /world-id landing for the selected app", () => {
+  it("routes World ID to the 4.0 landing for the route app", () => {
     renderSidebar();
     expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
   });
@@ -172,35 +186,30 @@ describe("v3 SidebarNav [no app selected]", () => {
   beforeEach(() => {
     useParams.mockReturnValue({ teamId });
     useCurrentAppId.mockReturnValue(undefined);
-    usePathname.mockReturnValue(`/teams/${teamId}/apps`);
+    usePathname.mockReturnValue(`/teams/${teamId}`);
   });
 
-  it("keeps World ID first, pointed at the apps list, and current there", () => {
+  it("shows the team overview and hides app-only entries", () => {
     renderSidebar();
-    expect(link("World ID")).toHaveAttribute("href", `/teams/${teamId}/apps`);
-    expect(isCurrent("World ID")).toBe(true);
+    expect(link("Overview")).toHaveAttribute("href", `/teams/${teamId}`);
+    expect(isCurrent("Overview")).toBe(true);
+    expect(
+      screen.queryByRole("link", { name: "World ID" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Configuration" }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Mini App" }),
     ).not.toBeInTheDocument();
-  });
-
-  it("hides Danger zone when there is no app context", () => {
-    renderSidebar();
     expect(
       screen.queryByRole("link", { name: "Danger zone" }),
     ).not.toBeInTheDocument();
   });
 
-  it("hides Danger zone until FetchApps confirms the app exists", () => {
+  it("hides Danger zone until FetchApps confirms the route app", () => {
     useParams.mockReturnValue({ teamId, appId });
-    useCurrentAppId.mockReturnValue(appId);
-    fetchApps.mockReturnValue({
-      data: undefined,
-      loading: true,
-    });
+    fetchApps.mockReturnValue({ data: undefined, loading: true });
     usePathname.mockReturnValue(base);
     renderSidebar();
     expect(
@@ -208,13 +217,9 @@ describe("v3 SidebarNav [no app selected]", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("hides Danger zone when FetchApps returns no apps", () => {
+  it("hides Danger zone when the route app is absent from FetchApps", () => {
     useParams.mockReturnValue({ teamId, appId });
-    useCurrentAppId.mockReturnValue(appId);
-    fetchApps.mockReturnValue({
-      data: { app: [] },
-      loading: false,
-    });
+    fetchApps.mockReturnValue({ data: { app: [] }, loading: false });
     usePathname.mockReturnValue(base);
     renderSidebar();
     expect(
@@ -224,7 +229,34 @@ describe("v3 SidebarNav [no app selected]", () => {
 });
 // #endregion
 
-// Team-less links fall back to /teams.
+// #region route-owned app context
+describe("v3 SidebarNav [route-owned app context]", () => {
+  beforeEach(() => {
+    useParams.mockReturnValue({ teamId });
+    useCurrentAppId.mockReturnValue(appId);
+    usePathname.mockReturnValue(`/teams/${teamId}/settings`);
+  });
+
+  it("does not carry app links into a team-scoped route", () => {
+    renderSidebar();
+
+    expect(link("Overview")).toHaveAttribute("href", `/teams/${teamId}`);
+    expect(
+      screen.queryByRole("link", { name: "World ID" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Configuration" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Mini App" }),
+    ).not.toBeInTheDocument();
+    expect(link("Team settings")).toHaveAttribute("aria-current", "page");
+  });
+});
+// #endregion
+
+// Team-scoped links disappear without a team in the route: they could only
+// bounce to an arbitrary first team, which is disorienting on /profile.
 // #region team-less pages
 describe("v3 SidebarNav [team-less pages]", () => {
   beforeEach(() => {
@@ -233,15 +265,28 @@ describe("v3 SidebarNav [team-less pages]", () => {
     usePathname.mockReturnValue("/profile");
   });
 
-  it("routes World ID to the /teams landing when the route has no teamId", () => {
+  it("hides World ID when the route has no teamId", () => {
     renderSidebar();
-    expect(link("World ID")).toHaveAttribute("href", "/teams");
-    expect(isCurrent("World ID")).toBe(false);
+    expect(
+      screen.queryByRole("link", { name: "World ID" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("routes Team settings to the /teams landing rather than a dead link", () => {
+  it("hides Team settings when the route has no teamId", () => {
     renderSidebar();
-    expect(link("Team settings")).toHaveAttribute("href", "/teams");
+    expect(
+      screen.queryByRole("link", { name: "Team settings" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the sandbox button visible without duplicating Help Center", () => {
+    renderSidebar();
+    expect(
+      screen.queryByRole("button", { name: /Help center/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /World ID Sandbox/i }),
+    ).toBeInTheDocument();
   });
 });
 // #endregion

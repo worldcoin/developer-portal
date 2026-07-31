@@ -38,24 +38,33 @@ jest.mock("next/navigation", () => ({
   useParams: () => ({ teamId: "team_1" }),
   useRouter: () => ({ refresh: jest.fn(), replace: jest.fn() }),
 }));
-jest.mock("posthog-js", () => ({
-  __esModule: true,
-  default: { capture: jest.fn() },
-}));
 jest.mock("react-toastify", () => ({
   toast: { error: jest.fn(), success: jest.fn() },
 }));
 jest.mock("@/lib/errors", () => ({ getGraphQLErrorCode: jest.fn() }));
-jest.mock("@/lib/use-refetch-queries", () => ({
-  useRefetchQueries: () => ({ refetch: jest.fn() }),
-}));
-jest.mock("@/scenes/common/layout/CreateAppDialog/server/v4/submit", () => ({
-  validateAndInsertAppServerSideV4: jest.fn(),
-}));
-
 jest.mock("@/components/Dialog", () => ({
   Dialog: ({ children, open }: React.PropsWithChildren<{ open: boolean }>) =>
     open ? <div role="dialog">{children}</div> : null,
+}));
+// The PortalV3 dialog renders through FormDialog (modal flow); the Portal one
+// still uses the raw Dialog/DialogPanel takeover above.
+jest.mock("@/components/FormDialog", () => ({
+  FormDialog: ({
+    children,
+    open,
+    title,
+  }: React.PropsWithChildren<{ open: boolean; title: React.ReactNode }>) =>
+    open ? (
+      <div role="dialog">
+        <h2>{title}</h2>
+        {children}
+      </div>
+    ) : null,
+  formDialogErrorClassName: "",
+  formDialogInputClassName: "",
+  formDialogLabelClassName: "",
+  formDialogPrimaryActionClassName: "",
+  formDialogSecondaryActionClassName: "",
 }));
 jest.mock("@/components/DialogPanel", () => ({
   DialogPanel: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
@@ -89,8 +98,8 @@ jest.mock(
   () => ({ UseExistingKeyContent: mockExistingKeyStep }),
 );
 
-import { CreateAppDialogV4 as PortalDialog } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
-import { CreateAppDialogV4 as PortalV3Dialog } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
+import { EnableWorldIdDialog as PortalDialog } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/EnableWorldId40/Dialog";
+import { EnableWorldIdDialog as PortalV3Dialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/EnableWorldId40/Dialog";
 
 const cases = [
   ["Portal", "generate", PortalDialog],
@@ -116,7 +125,6 @@ it.each(cases)(
       <Suspense fallback={<div data-testid="outer-loading" />}>
         <DialogComponent
           appId="app_00000000000000000000000000000000"
-          initialStep="enable-world-id-4-0"
           onClose={jest.fn()}
           open
         />
@@ -124,7 +132,8 @@ it.each(cases)(
     );
 
     fireEvent.click(screen.getByTestId("button-enable-world-id-40-continue"));
-    await screen.findByText("Configure Signer Key");
+    // Title case in Portal, sentence case in the PortalV3 modal header.
+    await screen.findByText(/configure signer key/i);
 
     if (setup === "existing") {
       fireEvent.click(screen.getByTestId("radio-existing"));
@@ -138,7 +147,7 @@ it.each(cases)(
 
     const dialog = screen.getByRole("dialog");
     expect(
-      within(dialog).getByText("Configure Signer Key"),
+      within(dialog).getByText(/configure signer key/i),
     ).toBeInTheDocument();
     expect(
       within(dialog).getByRole("button", { name: "Loading signer key step" }),
@@ -154,7 +163,7 @@ it.each(cases)(
       await within(dialog).findByTestId(`${setup}-key-step`),
     ).toBeInTheDocument();
     expect(
-      within(dialog).queryByText("Configure Signer Key"),
+      within(dialog).queryByText(/configure signer key/i),
     ).not.toBeInTheDocument();
   },
 );

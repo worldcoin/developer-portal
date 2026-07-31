@@ -28,6 +28,21 @@ insert_permissions:
         - staging_status
         - staging_operation_hash
 select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - rp_id
+        - created_at
+        - updated_at
+        - app_id
+        - mode
+        - signer_address
+        - status
+        - operation_hash
+        - staging_status
+        - staging_operation_hash
+      filter: {}
+      allow_aggregations: true
   - role: service
     permission:
       columns:

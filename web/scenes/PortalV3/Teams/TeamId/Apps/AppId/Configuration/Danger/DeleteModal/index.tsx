@@ -39,7 +39,9 @@ export const DeleteModal = (props: DeleteModalProps) => {
   const { openDeleteModal, setOpenDeleteModal, appName, appId, teamId } = props;
   const [deletingApp, setDeletingApp] = useState(false);
   const router = useRouter();
-  const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument);
+  const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
+    teamId,
+  });
   const schema = createSchema(appName);
 
   const handleDeleteApp = async () => {
