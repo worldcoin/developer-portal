@@ -6,10 +6,26 @@ import {
   MouseEventHandler,
   ReactNode,
   RefObject,
-  useEffect,
   useLayoutEffect,
+  useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
+
+const noopSubscribe = () => () => {};
+
+/**
+ * False during SSR and the hydration render, true right after. The nav items
+ * paint a static active card while this is false, so a cold load shows the
+ * correct active state straight from the URL (even before — or without —
+ * client JS); the measured NavActivePill takes over once hydration completes.
+ */
+export const useHydrated = () =>
+  useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
 
 export const NavItem = (props: {
   href: string;
@@ -36,6 +52,8 @@ export const NavItem = (props: {
     onNavigate,
   } = props;
 
+  const hydrated = useHydrated();
+
   return (
     <SidebarMenuItem>
       {/* The active surface (white card) is NavActivePill sliding behind the
@@ -49,6 +67,8 @@ export const NavItem = (props: {
         tooltip={label}
         className={cn(
           "h-10 cursor-pointer rounded-[10px] px-3 font-world text-13 leading-none font-normal text-portal-muted transition-colors duration-200 ease-out hover:text-portal-text data-[active=false]:hover:bg-portal-border data-[active=true]:bg-transparent data-[active=true]:text-portal-text data-[active=true]:hover:bg-transparent",
+          !hydrated &&
+            "data-[active=true]:border data-[active=true]:border-portal-border data-[active=true]:bg-white data-[active=true]:shadow-portal-card data-[active=true]:hover:bg-white",
           className,
         )}
       >
@@ -87,6 +107,8 @@ const sameBox = (a: PillBox | null, b: PillBox) =>
   a.width === b.width &&
   a.height === b.height;
 
+type PillPlacement = { box: PillBox; animate: boolean };
+
 /**
  * The single card surface backing the active sidebar item. Each item painting
  * its own active background can only pop in/out, so instead one absolutely
@@ -95,6 +117,14 @@ const sameBox = (a: PillBox | null, b: PillBox) =>
  * SidebarMenuButton), which follows the nav's optimistic active state — so the
  * slide starts on click, not when the route settles.
  *
+ * The slide only plays when the ACTIVE ITEM changes (keyed by href). A
+ * reposition of the same item snaps instead — post-hydration layout settles
+ * on a cold load, or the nav restructuring around the item — because the
+ * items themselves jump instantly, so an animated pill chasing them reads as
+ * drift, not intent. This also covers first placement: the pill never slides
+ * in from (0, 0), which is what lets the host remount it (via `key`) to force
+ * an instant re-place when the nav's item set is rebuilt.
+ *
  * The measuring effect deliberately has no dependency array: everything that
  * moves the items (active change, Mini App submenu expanding, Danger zone
  * appearing) is render-driven, and one rect read per render is negligible.
@@ -102,10 +132,9 @@ const sameBox = (a: PillBox | null, b: PillBox) =>
  */
 export const NavActivePill = (props: {
   navRef: RefObject<HTMLElement | null>;
-  variant?: "default" | "danger";
 }) => {
-  const [box, setBox] = useState<PillBox | null>(null);
-  const [animated, setAnimated] = useState(false);
+  const [placement, setPlacement] = useState<PillPlacement | null>(null);
+  const activeKeyRef = useRef<string | null>(null);
 
   useLayoutEffect(() => {
     const nav = props.navRef.current;
@@ -114,21 +143,29 @@ export const NavActivePill = (props: {
       '[data-sidebar="menu-button"][data-active="true"]',
     );
     if (!activeItem) {
-      setBox(null);
+      activeKeyRef.current = null;
+      setPlacement(null);
       return;
     }
     const measure = () => {
+      const key = activeItem.getAttribute("href") ?? activeItem.textContent;
+      const slide = key !== activeKeyRef.current;
+      activeKeyRef.current = key;
       // Deltas of client rects stay valid while the sidebar scrolls or slides
       // in from offcanvas, since nav and item move together.
       const navRect = nav.getBoundingClientRect();
       const rect = activeItem.getBoundingClientRect();
-      const next = {
+      const box = {
         top: rect.top - navRect.top,
         left: rect.left - navRect.left,
         width: rect.width,
         height: rect.height,
       };
-      setBox((prev) => (sameBox(prev, next) ? prev : next));
+      setPlacement((prev) =>
+        prev && sameBox(prev.box, box)
+          ? prev
+          : { box, animate: slide && prev !== null },
+      );
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -149,22 +186,17 @@ export const NavActivePill = (props: {
     };
   });
 
-  // Enable transitions one paint after the first placement so the pill never
-  // slides in from (0, 0) when it mounts on an already-active item.
-  const placed = box !== null;
-  useEffect(() => setAnimated(placed), [placed]);
+  if (!placement) return null;
 
-  if (!box) return null;
+  const { box, animate } = placement;
 
   return (
     <span
       aria-hidden="true"
       className={cn(
         "pointer-events-none absolute top-0 left-0 rounded-[10px] border border-portal-border bg-white shadow-portal-card",
-        props.variant === "danger" &&
-          "border-system-error-200 bg-system-error-50 shadow-none",
-        animated &&
-          "transition-[transform,width,height,background-color,border-color,box-shadow] duration-200 ease-out motion-reduce:transition-none",
+        animate &&
+          "transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none",
       )}
       style={{
         transform: `translate(${box.left}px, ${box.top}px)`,

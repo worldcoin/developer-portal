@@ -13,10 +13,8 @@ import {
 } from "@/components/ui/sidebar";
 import { urls } from "@/lib/urls";
 import { cn } from "@/lib/utils";
-import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { SectionLoading } from "@/scenes/PortalV3/common/SectionLoading";
-import { useQuery } from "@apollo/client/react";
 import { BellIcon, LockKeyholeIcon, WalletCardsIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -264,11 +262,7 @@ export const SidebarNav = (props: {
       aria-label="Primary navigation"
       className="relative flex min-h-0 flex-1 flex-col"
     >
-      <NavActivePill
-        key={pillContextKey}
-        navRef={navRef}
-        variant={configurationDangerActive ? "danger" : "default"}
-      />
+      <NavActivePill key={pillContextKey} navRef={navRef} />
       {teamId ? (
         <>
           <SidebarGroup className="px-4 py-2 group-data-[collapsible=icon]:px-3">
