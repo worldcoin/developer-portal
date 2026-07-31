@@ -5,21 +5,25 @@ import { render, screen } from "@testing-library/react";
 import React from "react";
 
 // #region Mocks
-const getTransactionData = jest.fn();
 const getIsUserAllowedToReadApp = jest.fn();
 const GetAppMode = jest.fn();
+const signedFetch = jest.fn();
 
 jest.mock("@/lib/permissions", () => ({
   getIsUserAllowedToReadApp: (...args: unknown[]) =>
     getIsUserAllowedToReadApp(...args),
 }));
 
-jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/server",
-  () => ({
-    getTransactionData: (...args: unknown[]) => getTransactionData(...args),
-  }),
-);
+jest.mock("@/api/helpers/signed-fetch", () => ({
+  getTransactionSignedFetch: () => signedFetch,
+}));
+
+jest.mock("@/lib/server-utils", () => ({
+  ...jest.requireActual("@/lib/server-utils"),
+  getPathFromHeaders: jest
+    .fn()
+    .mockResolvedValue("/teams/team_1234567890abcdef/apps/test"),
+}));
 
 // The table pulls in `ox` through lib/utils, which needs browser globals jsdom
 // doesn't provide. None of these branches render rows.
@@ -77,24 +81,26 @@ const renderPage = async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT =
+    "https://payments.example.com";
   getIsUserAllowedToReadApp.mockResolvedValue(true);
-  getTransactionData.mockResolvedValue({ success: true, data: [] });
+  GetAppMode.mockResolvedValue(appModeResponse({ draft: "mini-app" }));
+  signedFetch.mockResolvedValue({
+    ok: true,
+    json: jest.fn().mockResolvedValue({ result: { transactions: [] } }),
+  });
 });
 
 // #region External app gate
 describe("PortalV3 mini app transactions [external apps]", () => {
   it("does not read app mode before authorization", async () => {
     getIsUserAllowedToReadApp.mockResolvedValue(false);
-    getTransactionData.mockResolvedValue({
-      success: false,
-      message: "User is not allowed to access this app",
-    });
 
     await renderPage();
 
     expect(getIsUserAllowedToReadApp).toHaveBeenCalledWith(appId);
     expect(GetAppMode).not.toHaveBeenCalled();
-    expect(getTransactionData).toHaveBeenCalledWith(appId);
+    expect(signedFetch).not.toHaveBeenCalled();
     expect(screen.getByText("Failed to load transactions")).toBeInTheDocument();
   });
 
@@ -103,8 +109,9 @@ describe("PortalV3 mini app transactions [external apps]", () => {
 
     await renderPage();
 
+    expect(getIsUserAllowedToReadApp).toHaveBeenCalledTimes(1);
     expect(screen.getByText("Transactions unavailable")).toBeInTheDocument();
-    expect(getTransactionData).not.toHaveBeenCalled();
+    expect(signedFetch).not.toHaveBeenCalled();
   });
 
   it("prefers verified metadata over the autosaved draft", async () => {
@@ -115,16 +122,15 @@ describe("PortalV3 mini app transactions [external apps]", () => {
     await renderPage();
 
     expect(screen.getByText("Transactions unavailable")).toBeInTheDocument();
-    expect(getTransactionData).not.toHaveBeenCalled();
+    expect(signedFetch).not.toHaveBeenCalled();
   });
 
-  it("loads transactions for mini apps", async () => {
-    GetAppMode.mockResolvedValue(appModeResponse({ draft: "mini-app" }));
-
+  it("loads transactions for mini apps after one authorization lookup", async () => {
     await renderPage();
 
+    expect(getIsUserAllowedToReadApp).toHaveBeenCalledTimes(1);
     expect(screen.getByText("No transactions yet")).toBeInTheDocument();
-    expect(getTransactionData).toHaveBeenCalledWith(appId);
+    expect(signedFetch).toHaveBeenCalledTimes(1);
   });
 
   it("loads transactions when the app mode lookup fails", async () => {
@@ -132,7 +138,8 @@ describe("PortalV3 mini app transactions [external apps]", () => {
 
     await renderPage();
 
-    expect(getTransactionData).toHaveBeenCalledWith(appId);
+    expect(signedFetch).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("No transactions yet")).toBeInTheDocument();
   });
 });
 // #endregion

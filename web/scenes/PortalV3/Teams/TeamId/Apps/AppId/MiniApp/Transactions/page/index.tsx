@@ -1,7 +1,7 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { PaymentMetadata } from "@/lib/types";
-import { getIsExternalApp } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/server/getIsExternalApp";
+import { getTransactionData } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/server/getTransactionData";
 import { noticeIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { WalletCardsIcon } from "lucide-react";
 import { ComponentProps } from "react";
@@ -9,7 +9,6 @@ import { Suspense } from "react";
 import { SkeletonTable } from "@/components/Skeletons";
 import { ErrorState } from "./ErrorState";
 import { TransactionsTable } from "./TransactionsTable";
-import { getTransactionData } from "./server";
 
 type TransactionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -162,17 +161,15 @@ export const TransactionsPage = async (props: TransactionsPageProps) => {
   const { params } = props;
   const appId = params?.appId as `app_${string}`;
 
-  // External apps have no Mini App payments, so the payments endpoint only ever
-  // errors here — show the same unavailable notice as permissions/notifications.
-  if (await getIsExternalApp(appId)) {
+  const result = await getTransactionData(appId);
+
+  if (result.kind === "external-app") {
     return (
       <TransactionsPageLayout showHeading={false}>
         <ExternalAppNotice />
       </TransactionsPageLayout>
     );
   }
-
-  const result = await getTransactionData(appId);
 
   // Early return for error state
   if (!result.success) {
