@@ -2,16 +2,25 @@
 import "@testing-library/jest-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
 // #region Mocks
 const usePathname = jest.fn();
 const useParams = jest.fn();
+const routerPush = jest.fn();
 jest.mock("next/navigation", () => ({
   usePathname: () => usePathname(),
   useParams: () => useParams(),
+  useRouter: () => ({ push: routerPush, prefetch: jest.fn() }),
 }));
+
+// jsdom has no ResizeObserver; NavActivePill uses it to track the active item.
+global.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+} as unknown as typeof ResizeObserver;
 
 jest.mock("@/hooks/use-mobile", () => ({
   useIsMobile: () => false,
@@ -42,7 +51,10 @@ jest.mock("@/scenes/PortalV3/layout/Shell/AppsDropdown", () => ({
 }));
 // #endregion
 
-import { SidebarNav } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
+import {
+  ShellNavigationProvider,
+  SidebarNav,
+} from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 
 // #region Test Data
 const teamId = "team_1";
@@ -53,7 +65,11 @@ const renderSidebar = () =>
   render(
     <TooltipProvider>
       <SidebarProvider>
-        <SidebarNav />
+        {/* Owns the optimistic navigation state SidebarNav consumes, exactly
+            as PortalShell mounts it in production. */}
+        <ShellNavigationProvider>
+          <SidebarNav />
+        </ShellNavigationProvider>
       </SidebarProvider>
     </TooltipProvider>,
   );
@@ -251,6 +267,23 @@ describe("v3 SidebarNav [route-owned app context]", () => {
       screen.queryByRole("link", { name: "Mini App" }),
     ).not.toBeInTheDocument();
     expect(link("Team settings")).toHaveAttribute("aria-current", "page");
+  });
+});
+// #endregion
+
+// #region optimistic navigation
+describe("v3 SidebarNav [optimistic navigation]", () => {
+  it("routes plain clicks through the client router", () => {
+    renderSidebar();
+    fireEvent.click(link("Configuration"));
+    expect(routerPush).toHaveBeenCalledWith(`${base}/configuration`);
+  });
+
+  it("leaves modifier clicks to the Link default (new tab)", () => {
+    renderSidebar();
+    fireEvent.click(link("Configuration"), { metaKey: true });
+    fireEvent.click(link("Configuration"), { ctrlKey: true });
+    expect(routerPush).not.toHaveBeenCalled();
   });
 });
 // #endregion

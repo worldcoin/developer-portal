@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+import { SectionLoading } from "@/scenes/PortalV3/common/SectionLoading";
+import { ReactNode, Suspense } from "react";
 import { ImagesProvider } from "./ImagesProvider";
 
 type Params = {
@@ -20,7 +21,9 @@ export const AppProfileLayout = (props: AppProfileLayout) => {
   return (
     <div className="flex flex-col items-start">
       <ImagesProvider teamId={params?.teamId} appId={params?.appId}>
-        {props.children}
+        {/* Boundary below the persistent shell: entering Configuration commits
+            the navigation immediately and streams the page in behind it. */}
+        <Suspense fallback={<SectionLoading />}>{props.children}</Suspense>
       </ImagesProvider>
     </div>
   );

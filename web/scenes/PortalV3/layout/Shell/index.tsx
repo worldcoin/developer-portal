@@ -8,6 +8,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CSSProperties, ReactNode } from "react";
 import { AppsDropdown } from "./AppsDropdown";
 import { PortalSidebar } from "./PortalSidebar";
+import {
+  ContentNavigationLoading,
+  ShellNavigationProvider,
+} from "./SidebarNav";
 
 /** Portal shell, mounted at the (portal) root for allow-listed users. */
 export const PortalShell = (props: {
@@ -35,26 +39,32 @@ export const PortalShell = (props: {
           } as CSSProperties
         }
       >
-        <PortalSidebar
-          user={user}
-          teams={teams}
-          sandboxRequest={sandboxRequest}
-        />
+        <ShellNavigationProvider>
+          <PortalSidebar
+            user={user}
+            teams={teams}
+            sandboxRequest={sandboxRequest}
+          />
 
-        <SidebarInset className="min-h-[100dvh] min-w-0 bg-white">
-          <header className="flex h-(--portal-header-height) shrink-0 items-center gap-3 border-b border-portal-border bg-portal-canvas px-4 md:px-5">
-            <SidebarTrigger
-              aria-label="Open sidebar"
-              title="Open sidebar"
-              className="size-8 shrink-0 text-portal-muted hover:bg-portal-border hover:text-portal-text md:data-[state=expanded]:hidden"
-            />
-            <AppsDropdown />
-          </header>
+          <SidebarInset className="min-h-[100dvh] min-w-0 bg-white">
+            <header className="flex h-(--portal-header-height) shrink-0 items-center gap-3 border-b border-portal-border bg-portal-canvas px-4 md:px-5">
+              <SidebarTrigger
+                aria-label="Open sidebar"
+                title="Open sidebar"
+                className="size-8 shrink-0 text-portal-muted hover:bg-portal-border hover:text-portal-text md:data-[state=expanded]:hidden"
+              />
+              <AppsDropdown />
+            </header>
 
-          <div className="min-w-0 flex-1 overflow-auto bg-white">
-            {children}
-          </div>
-        </SidebarInset>
+            {/* The overlay needs a non-scrolling positioning box, so the
+                scroll container moves one level down; sticky elements inside
+                pages keep the same nearest scroll ancestor behavior. */}
+            <div className="relative min-w-0 flex-1 overflow-hidden bg-white">
+              <ContentNavigationLoading />
+              <div className="size-full min-w-0 overflow-auto">{children}</div>
+            </div>
+          </SidebarInset>
+        </ShellNavigationProvider>
       </SidebarProvider>
     </TooltipProvider>
   );
