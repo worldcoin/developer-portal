@@ -35,21 +35,21 @@ export const TextAreaField = (props: {
           "relative flex h-30 w-full flex-col rounded-[10px] border p-4",
           props.disabled ? "cursor-default opacity-60" : "cursor-text",
           props.error
-            ? "border-system-error-500 bg-system-error-50"
+            ? "border-[#ea392a] bg-system-error-50"
             : "border-portal-border bg-grey-0",
         )}
       >
         <span
           className={clsx(
             "w-full text-13 leading-[1.3] font-[350]",
-            props.error ? "text-system-error-500" : "text-portal-subtle",
+            props.error ? "text-[#ea392a]" : "text-portal-subtle",
             !isFloating && "hidden",
           )}
         >
           {props.label}
           {props.required && (
-            // Figma nucleus/status-negative (#ea392a) = system-error-500.
-            <span className="text-system-error-500"> *</span>
+            // Figma nucleus/status-negative (#ea392a) — no portal token yet.
+            <span className="text-[#ea392a]"> *</span>
           )}
         </span>
         <textarea
@@ -80,7 +80,7 @@ export const TextAreaField = (props: {
         )}
       </label>
       {props.error && (
-        <p className="text-13 leading-[1.3] font-[350] text-system-error-500">
+        <p className="text-13 leading-[1.3] font-[350] text-[#ea392a]">
           {props.error}
         </p>
       )}

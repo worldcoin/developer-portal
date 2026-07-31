@@ -692,74 +692,67 @@
   --color-grey-700: #3c424b;
   --color-grey-900: #191c20;
 
-  /* Decorative pastel family (avatars, category chips). Hues are legacy; the
-     100 tints are uniform: 500 @ 9% over white, so every pastel sits at the
-     same depth. Green is unified with nucleus status-success. */
-  --color-additional-blue-100: #eef5fe;
+  /* Light chromatic values are deliberately the legacy ones — the v2 tree
+     shares these tokens, and dark mode ships scoped to portal v3, so the
+     light layer must render bit-identical to main. The nucleus-anchored
+     redesign of the chromatic palette lives in the .dark block only. */
+  --color-additional-blue-100: #e4f2fe;
   --color-additional-blue-500: #4292f4;
   --color-additional-blue-600: #005cff;
 
-  --color-additional-azure-100: #eef2ff;
+  --color-additional-azure-100: #e8f2ff;
   --color-additional-azure-500: #4572fe;
 
-  --color-additional-purple-100: #f6efff;
+  --color-additional-purple-100: #f7f1ff;
   --color-additional-purple-500: #9d50ff;
 
-  --color-additional-green-100: #e8faec;
-  --color-additional-green-500: #00c230;
+  --color-additional-green-100: #ebfaec;
+  --color-additional-green-500: #00c313;
 
-  --color-additional-sea-100: #e8faf8;
+  --color-additional-sea-100: #ebfaf9;
   --color-additional-sea-500: #00c3b6;
 
-  --color-additional-yellow-100: #fffae8;
+  --color-additional-yellow-100: #fffbeb;
   --color-additional-yellow-500: #ffc700;
 
-  --color-additional-orange-100: #fff1ef;
+  --color-additional-orange-100: #fff3f0;
   --color-additional-orange-500: #ff6848;
 
-  --color-additional-lightOrange-100: #fff6ef;
+  --color-additional-lightOrange-100: #fff7f0;
   --color-additional-lightOrange-500: #ffa048;
 
-  --color-additional-pink-100: #ffeff6;
+  --color-additional-pink-100: #fff1f7;
   --color-additional-pink-500: #ff5096;
 
-  /* Functional status ramps, anchored on the Q3 nucleus palette
-     (status-negative #ea392a, status-success #00c230, status-warning #ffae00
-     — previously hardcoded at call sites as "no portal token yet").
-     Steps are formula-derived from the 500: 50/100/200/300 = tints over
-     white at 5/9/16/26% (warning-75 stays the nucleus-mapped #fff6e6),
-     400 = 500 mixed 45% toward white, 600/650 = the same hue darkened to
-     ≥4.5:1 on white for readable ink. 700–900 keep their legacy values —
-     they carry legacy roles (kiosk screens, placeholders), not status. */
-  --color-system-error-50: #fef5f4;
-  --color-system-error-100: #fdedec;
-  --color-system-error-200: #fcdfdd;
-  --color-system-error-300: #faccc8;
-  --color-system-error-400: #f3928a;
-  --color-system-error-500: #ea392a;
-  --color-system-error-600: #de3628;
+  --color-system-error-50: #fff5f3;
+  --color-system-error-100: #fff2f0;
+  --color-system-error-200: #ffe5e2;
+  --color-system-error-300: #ffcbc5;
+  --color-system-error-400: #ff897c;
+  --color-system-error-500: #ff4732;
+  --color-system-error-600: #db2824;
   --color-system-error-700: #ff5a76;
   --color-system-error-800: #930f22;
   --color-system-error-900: #7a0922;
 
-  --color-system-success-50: #f2fcf5;
-  --color-system-success-100: #e8faec;
-  --color-system-success-300: #bdefc9;
-  --color-system-success-400: #73dd8d;
-  --color-system-success-500: #00c230;
-  --color-system-success-600: #008a22;
+  --color-system-success-50: #e9f8e9;
+  --color-system-success-100: #f5fdf6;
+  --color-system-success-300: #66cc66;
+  --color-system-success-400: #29cc29;
+  --color-system-success-500: #00b800;
+  --color-system-success-600: #008000;
   --color-system-success-700: #00c313;
   --color-system-success-800: #004d00;
   --color-system-success-900: #003700;
 
-  --color-system-warning-50: #fffbf2;
+  --color-system-warning-50: #fffae5;
   --color-system-warning-75: #fff6e6;
-  --color-system-warning-100: #fff8e8;
-  --color-system-warning-200: #fff2d6;
-  --color-system-warning-300: #ffeabd;
-  --color-system-warning-500: #ffae00;
-  --color-system-warning-600: #9e6c00;
-  --color-system-warning-650: #8e6100;
+  --color-system-warning-100: #fff9ef;
+  --color-system-warning-200: #ffe999;
+  --color-system-warning-300: #ffda66;
+  --color-system-warning-500: #ffb200;
+  --color-system-warning-600: #db9200;
+  --color-system-warning-650: #cc8b00;
   --color-system-warning-700: #ffb11b;
   --color-system-warning-800: #935900;
 

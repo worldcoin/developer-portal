@@ -54,7 +54,7 @@ const appName = (app: FetchAppsQuery["app"][number]) =>
 
 const AppAvatar = (props: { name: string }) => (
   <Avatar className="size-6">
-    <AvatarFallback className="bg-[#d6f0d5] font-world text-[11px] leading-none font-normal text-system-success-500">
+    <AvatarFallback className="bg-[#d6f0d5] font-world text-[11px] leading-none font-normal text-[#00c230]">
       {props.name[0]?.toUpperCase() ?? "A"}
     </AvatarFallback>
   </Avatar>

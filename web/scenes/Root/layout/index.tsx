@@ -1,3 +1,4 @@
+import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import PostHogPageView from "@/scenes/Root/providers/PostHogPageView";
 import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
 import "@/styles/globals.css";
@@ -91,6 +92,14 @@ export const RootLayout = async ({
   // first paint; it needs the per-request CSP nonce to pass `web/proxy.ts`.
   const cspNonce = requestHeaders.get("x-nonce") ?? undefined;
 
+  // Dark mode ships with portal v3 only: the same gate that picks the v3
+  // scene tree pins everyone else (v2 users, signed-out visitors) to light,
+  // regardless of any stored preference.
+  const forcedTheme = await pickPortalVersion(
+    () => undefined,
+    () => "light" as const,
+  );
+
   // suppressHydrationWarning: next-themes mutates the <html> class/style on
   // the client before hydration, which is an expected server/client mismatch.
   return (
@@ -102,6 +111,7 @@ export const RootLayout = async ({
           enableSystem
           disableTransitionOnChange
           nonce={cspNonce}
+          forcedTheme={forcedTheme}
         >
           <ToastContainer
             autoClose={4000}

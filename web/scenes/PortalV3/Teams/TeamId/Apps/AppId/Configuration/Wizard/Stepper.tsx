@@ -104,10 +104,11 @@ export const Stepper = (props: {
                   optical lift against the cap-height label — correcting only
                   one would misalign the markers against each other. */}
               {isCompleted ? (
-                // Figma nucleus/status-success (#00c230) = system-success-500.
+                // Figma nucleus/status-success (#00c230) — no portal token
+                // for it yet (closest, additional-green-500, is #00c313).
                 <span
                   className={clsx(
-                    "flex size-5 items-center justify-center rounded-full bg-system-success-500",
+                    "flex size-5 items-center justify-center rounded-full bg-[#00c230]",
                     opticalIconClassName,
                   )}
                 >

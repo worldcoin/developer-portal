@@ -98,7 +98,7 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
                   isActive
                     ? "bg-portal-canvas"
                     : "border border-portal-border bg-grey-0",
-                  hasErrors && "border border-system-error-500",
+                  hasErrors && "border border-[#ea392a]",
                 )}
               >
                 {flagCode && (
@@ -113,7 +113,7 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
                 <span
                   className={clsx(
                     "text-13 leading-[1.2] font-semibold whitespace-nowrap",
-                    hasErrors ? "text-system-error-500" : "text-portal-ink",
+                    hasErrors ? "text-[#ea392a]" : "text-portal-ink",
                   )}
                 >
                   {localeLabel(locale)}
