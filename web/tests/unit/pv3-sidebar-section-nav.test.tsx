@@ -124,8 +124,14 @@ describe("v3 SidebarNav [navigation hierarchy]", () => {
     ).toBeInTheDocument();
     expect(isCurrent("Actions")).toBe(true);
     expect(link("Configuration")).toBeInTheDocument();
+    expect(link("Configuration").querySelector("svg")).toHaveClass(
+      "lucide-badge-check",
+    );
     noLink("Legacy actions");
     expect(link("Get verified")).toBeInTheDocument();
+    expect(link("Get verified").querySelector("svg")).toHaveClass(
+      "lucide-badge-check",
+    );
     expect(link("Mini App")).toBeInTheDocument();
     noLink("Permissions");
     expect(link("Team settings")).toBeInTheDocument();

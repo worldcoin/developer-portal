@@ -11,7 +11,12 @@ import {
 import { urls } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
-import { BellIcon, LockKeyholeIcon, WalletCardsIcon } from "lucide-react";
+import {
+  BadgeCheckIcon,
+  BellIcon,
+  LockKeyholeIcon,
+  WalletCardsIcon,
+} from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   createContext,
@@ -260,10 +265,7 @@ export const SidebarNav = (props: {
                       active={configurationActive}
                       onNavigate={beginNavigation(configurationHref)}
                       icon={
-                        <NavIcon
-                          name="nav-configuration"
-                          active={configurationActive}
-                        />
+                        <BadgeCheckIcon strokeWidth={1.5} className="size-4" />
                       }
                     />
                     <NavItem

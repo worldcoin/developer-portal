@@ -123,6 +123,15 @@ jest.mock(
     ),
   }),
 );
+
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Danger/DangerZoneDisclosure",
+  () => ({
+    DangerZoneDisclosure: (props: { appName: string }) => (
+      <div data-testid="danger-zone-disclosure" data-app-name={props.appName} />
+    ),
+  }),
+);
 // #endregion
 
 // #region Test Data
@@ -141,6 +150,8 @@ const makeData = (
       engine: "cloud",
       is_staging: false,
       is_banned: over.banned ?? false,
+      app_metadata: [{ name: "World ID App" }],
+      verified_app_metadata: [],
       rp_registration:
         over.rp === false
           ? []
@@ -249,6 +260,17 @@ describe("WorldIdLayout [optimistic status]", () => {
     expect(screen.getByTestId("rp-summary")).toBeInTheDocument();
     expect(screen.queryByTestId("actions-grid")).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
+  });
+
+  it("moves the app deletion disclosure into World ID Configuration", () => {
+    searchParams = new URLSearchParams("tab=configuration");
+    setQuery({ data: makeData(), loading: false });
+    render(el());
+
+    expect(screen.getByTestId("danger-zone-disclosure")).toHaveAttribute(
+      "data-app-name",
+      "World ID App",
+    );
   });
 
   it("shows existing Actions but disables creation while registration is pending", () => {

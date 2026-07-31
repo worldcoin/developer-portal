@@ -13,6 +13,7 @@ import {
   resolveAvailableWorldIdTab,
   WORLD_ID_TABS,
 } from "@/lib/world-id-tabs";
+import { DangerZoneDisclosure } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Danger/DangerZoneDisclosure";
 import { BanMessageDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/common/BanMessageDialog";
 import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
@@ -143,6 +144,7 @@ export const WorldIdLayout = (props: {
   );
 
   const app = data?.app?.[0];
+  const appMetadata = app?.app_metadata?.[0] ?? app?.verified_app_metadata?.[0];
   const rp = app?.rp_registration?.[0];
   const hasResolvedApp = Boolean(app);
   const hasRpRegistration = Boolean(rp);
@@ -383,6 +385,14 @@ export const WorldIdLayout = (props: {
                         consumeSearchParams("enableWorldId4", "createAction");
                       }
                     }}
+                  />
+                ) : null}
+
+                {app ? (
+                  <DangerZoneDisclosure
+                    appId={props.appId}
+                    teamId={props.teamId}
+                    appName={appMetadata?.name ?? props.appId}
                   />
                 ) : null}
               </div>

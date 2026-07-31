@@ -14,6 +14,8 @@ export type GetWorldIdOverviewQuery = {
     engine: string;
     is_banned: boolean;
     is_staging: boolean;
+    app_metadata: Array<{ __typename?: "app_metadata"; name: string }>;
+    verified_app_metadata: Array<{ __typename?: "app_metadata"; name: string }>;
     rp_registration: Array<{
       __typename?: "rp_registration";
       rp_id: string;
@@ -98,6 +100,91 @@ export const GetWorldIdOverviewDocument = {
                 { kind: "Field", name: { kind: "Name", value: "engine" } },
                 { kind: "Field", name: { kind: "Name", value: "is_banned" } },
                 { kind: "Field", name: { kind: "Name", value: "is_staging" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "app_metadata" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "where" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: {
+                              kind: "Name",
+                              value: "verification_status",
+                            },
+                            value: {
+                              kind: "ObjectValue",
+                              fields: [
+                                {
+                                  kind: "ObjectField",
+                                  name: { kind: "Name", value: "_neq" },
+                                  value: {
+                                    kind: "StringValue",
+                                    value: "verified",
+                                    block: false,
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  alias: { kind: "Name", value: "verified_app_metadata" },
+                  name: { kind: "Name", value: "app_metadata" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "where" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: {
+                              kind: "Name",
+                              value: "verification_status",
+                            },
+                            value: {
+                              kind: "ObjectValue",
+                              fields: [
+                                {
+                                  kind: "ObjectField",
+                                  name: { kind: "Name", value: "_eq" },
+                                  value: {
+                                    kind: "StringValue",
+                                    value: "verified",
+                                    block: false,
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "rp_registration" },
