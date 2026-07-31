@@ -1893,14 +1893,15 @@ export const BasePixelStrip = () => {
   // same dead URL on every pass for the life of the page.
   const iconFailedRef = useRef<Set<number>>(new Set());
   const revealedRef = useRef<Set<string>>(new Set());
-  const ripplesRef = useRef<
-    Array<{ x: number; y: number; start: number; reverse: boolean }>
-  >([]);
-  // Remembers where the pointer went down so pointerup can send its
-  // reverse ripple from that same spot, even if the pointer has since
-  // drifted (e.g. a press-and-drag) or never landed on an icon at all -
-  // matching how the forward ripple on pointerdown also fires unconditionally.
-  const pressPointRef = useRef<{ x: number; y: number } | null>(null);
+  type Ripple = { x: number; y: number; start: number; reverse: boolean };
+  const ripplesRef = useRef<Ripple[]>([]);
+  // The forward ripple object pushed on pointerdown (same reference as
+  // whatever's in ripplesRef.current, if it hasn't expired yet) - lets
+  // pointerup find and reverse THIS specific wave in place instead of
+  // guessing at an origin point. Also doubles as the origin for a release
+  // that happens unconditionally, even if the pointer never landed on an
+  // icon or has since drifted (e.g. a press-and-drag).
+  const pressRippleRef = useRef<Ripple | null>(null);
   const rippleActiveRef = useRef<Set<string>>(new Set());
   // Icons the ripple wave is currently blurring despite being outside the
   // cursor's current LENS_RADIUS - the main per-cell loop never visits
@@ -2659,12 +2660,13 @@ export const BasePixelStrip = () => {
       // animation below, which only kicks in when there's actually an icon
       // nearby to press (that's also what drives the radial push that
       // clears space around it - see PRESS_PUSH_MAX_DISTANCE above).
-      ripplesRef.current.push({
+      const forwardRipple: Ripple = {
         ...point,
         start: performance.now(),
         reverse: false,
-      });
-      pressPointRef.current = point;
+      };
+      ripplesRef.current.push(forwardRipple);
+      pressRippleRef.current = forwardRipple;
 
       const pressed = findPressedIcon(point);
 
@@ -2680,16 +2682,48 @@ export const BasePixelStrip = () => {
     };
 
     const handlePointerUp = () => {
-      // Send the reverse ripple from the same spot the forward one started
-      // - unconditionally, same as pointerdown, not gated on an icon having
-      // been pressed.
-      if (pressPointRef.current) {
+      // Reverse the SAME wave in place rather than layering an independent
+      // second ripple on top - releasing mid-flight used to start a fresh
+      // reverse ripple from the outer edge while the still-expanding
+      // forward one kept going, which read as a second wave coming in from
+      // the edge instead of the one wave changing direction. Unconditional,
+      // same as pointerdown, not gated on an icon having been pressed.
+      const forwardRipple = pressRippleRef.current;
+
+      if (forwardRipple) {
+        const now = performance.now();
+        const stillExpanding = ripplesRef.current.includes(forwardRipple);
+        // 0 right as it started, 1 once it's fully played out (or already
+        // expired and filtered out of ripplesRef.current by the time we
+        // get here - in which case treat it as fully expired for this
+        // purpose too).
+        const forwardProgress = stillExpanding
+          ? Math.min(
+              1,
+              Math.max(0, (now - forwardRipple.start) / RIPPLE_DURATION_MS),
+            )
+          : 1;
+
+        if (stillExpanding) {
+          ripplesRef.current = ripplesRef.current.filter(
+            (ripple) => ripple !== forwardRipple,
+          );
+        }
+
+        // Backdating the reverse ripple's start makes it begin already
+        // partway through its own collapse, at exactly the radius/intensity
+        // the forward wave had reached - continuing seamlessly instead of
+        // resetting to the outer edge. At forwardProgress 0 (barely
+        // started) this collapses to an instant no-op; at 1 (already fully
+        // played out) it reduces to the original "fresh collapse from the
+        // edge" behavior.
         ripplesRef.current.push({
-          ...pressPointRef.current,
-          start: performance.now(),
+          x: forwardRipple.x,
+          y: forwardRipple.y,
+          start: now - (1 - forwardProgress) * RIPPLE_REVERSE_DURATION_MS,
           reverse: true,
         });
-        pressPointRef.current = null;
+        pressRippleRef.current = null;
       }
 
       if (pressRef.current?.phase === "compress") {
