@@ -22,7 +22,7 @@ export const PeriodSelector = (props: {
   <Select value={props.period} onChange={props.onPeriodChange}>
     <SelectButton
       aria-label="Unique Verifications period"
-      className="flex h-10 items-center justify-center gap-2 rounded-8 border border-portal-border bg-white py-2.5 pr-3 pl-4 font-world text-13 leading-none text-portal-heading transition-colors outline-none hover:bg-portal-canvas focus-visible:ring-2 focus-visible:ring-grey-300"
+      className="flex h-10 shrink-0 items-center justify-center gap-2 rounded-8 border border-portal-border bg-white py-2.5 pr-3 pl-4 font-world text-13 leading-none whitespace-nowrap text-portal-heading transition-colors outline-none hover:bg-portal-canvas focus-visible:ring-2 focus-visible:ring-grey-300"
     >
       <span>
         {periodOptions.find((option) => option.value === props.period)?.label}

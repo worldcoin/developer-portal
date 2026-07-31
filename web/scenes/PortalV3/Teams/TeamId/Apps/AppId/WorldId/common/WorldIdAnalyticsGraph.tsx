@@ -124,7 +124,7 @@ export function WorldIdAnalyticsGraph(props: {
 
   return (
     <section className="flex flex-col gap-5">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="flex flex-col gap-1.5">
           <h2 className="font-world text-13 font-normal text-portal-muted">
             Unique Verifications
