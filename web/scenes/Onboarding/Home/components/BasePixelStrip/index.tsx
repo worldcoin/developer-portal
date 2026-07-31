@@ -1745,7 +1745,12 @@ const POP_MAX_CONCURRENT = 3;
 const RIPPLE_DURATION_MS = 1100;
 const RIPPLE_REVERSE_DURATION_MS = 320;
 const RIPPLE_MAX_RADIUS = 420;
-const RIPPLE_BAND_WIDTH = 40;
+// Deliberately narrower than the visual design alone would call for: every
+// dot inside this band gets its style rewritten every single frame the
+// ripple is active, and profiling showed that per-frame DOM/style cost (not
+// JS compute) as the actual source of jank during a click. Narrowing the
+// band directly cuts how many dots are touched per frame.
+const RIPPLE_BAND_WIDTH = 20;
 const RIPPLE_MAX_SCALE_BOOST = 1.4;
 // The same wavefront also blurs any revealed icon it sweeps through (even
 // ones the "stay sharp forever" rule above would otherwise keep pin-sharp -
@@ -1868,6 +1873,17 @@ export const BasePixelStrip = () => {
   const rectsRef = useRef<Map<string, SVGRectElement>>(new Map());
   const activeRef = useRef<Set<string>>(new Set());
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
+  // The halftone dot's own scale/color under the lens is a pure function of
+  // (cell position, pointer position) - nothing time-based. While a press,
+  // shake, or ripple keeps the frame loop running with the pointer sitting
+  // still (the common case: press-and-hold), re-writing those same dot
+  // styles every single frame is pure waste - profiling showed it as the
+  // dominant per-frame cost (browser style recalculation), not the JS
+  // computing it. Tracks the pointer position the dot styles were last
+  // written for, so that work can be skipped on frames where it hasn't
+  // moved (the icon-level effects still update every frame - those DO
+  // depend on time).
+  const lastDotStylePointerRef = useRef<{ x: number; y: number } | null>(null);
   const frameRef = useRef<number | null>(null);
   const iconElsRef = useRef<Map<string, SVGImageElement>>(new Map());
   const iconHrefCacheRef = useRef<Map<number, string>>(new Map());
@@ -2068,262 +2084,424 @@ export const BasePixelStrip = () => {
 
       shakingIconKeyRef.current = shakingKey;
 
-      if (pointer) {
+      // Ripple pass: independent of the lens/hover state above, and only
+      // touches cells neither the lens nor a settled icon reveal already
+      // owns, so it never clobbers those effects.
+      ripplesRef.current = ripplesRef.current.filter(
+        (ripple) =>
+          now - ripple.start <
+          (ripple.reverse ? RIPPLE_REVERSE_DURATION_MS : RIPPLE_DURATION_MS),
+      );
+
+      // The lens, the ripple's dot effect, and the ripple's icon-blur wave
+      // each used to walk the full 1,645-cell grid in their own separate
+      // loop - fine on their own, but stacking up to three full passes
+      // every single frame during a click (lens + ripple dots + icon wave,
+      // all active at once) is what actually made clicking/holding janky,
+      // not any one pass being slow by itself. Merged into one pass: each
+      // cell is visited once and handles whichever of the three apply to
+      // it, instead of three separate visits.
+      const hasRipples = ripplesRef.current.length > 0;
+      const rippleDotsActive = hasRipples || rippleActiveRef.current.size > 0;
+      const iconWaveActive = hasRipples || iconWaveActiveRef.current.size > 0;
+      // See lastDotStylePointerRef above - only the halftone dot's own
+      // lens styling is skippable here; nothing about the ripple/icon-wave
+      // passes below depends on the pointer being still, so they're
+      // unaffected by this.
+      const pointerMoved =
+        !pointer ||
+        !lastDotStylePointerRef.current ||
+        pointer.x !== lastDotStylePointerRef.current.x ||
+        pointer.y !== lastDotStylePointerRef.current.y;
+      lastDotStylePointerRef.current = pointer;
+
+      if (pointer || rippleDotsActive || iconWaveActive) {
+        const nextRippleActive = new Set<string>();
+        const nextIconWaveActive = new Set<string>();
+        // Small, transitional lists (typically just the handful of cells at
+        // the ripple's leading edge each frame) - restacked after the loop
+        // below, in the same relative order as before (all lens re-stacks
+        // first, then all ripple re-stacks), so merging the two loops
+        // together doesn't disturb the "ripple always paints over the
+        // lens" guarantee those appendChild calls exist for.
+        const rippleRestackKeys: string[] = [];
+
         for (let i = 0; i < CELLS.length; i++) {
           const [x, y, opacity] = CELLS[i];
-          const dx = x + 4 - pointer.x;
-          const dy = y + 4 - pointer.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist >= LENS_RADIUS) {
-            continue;
-          }
-
           const key = `${x},${y}`;
-          const falloff = 1 - dist / LENS_RADIUS;
-          const scale = 1 + LENS_MAX_SCALE * falloff * falloff;
-          const opacityFactor = 1 - falloff * (1 - LENS_MIN_OPACITY_FACTOR);
-          const rect = rectsRef.current.get(key);
+          let isActive = false;
 
-          if (rect) {
-            rect.style.transform = `scale(${scale.toFixed(3)})`;
-            rect.style.fillOpacity = `${(opacity * opacityFactor).toFixed(3)}`;
+          if (pointer) {
+            const dx = x + 4 - pointer.x;
+            const dy = y + 4 - pointer.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
-            const dotR = Math.round(
-              DOT_BASE_RGB[0] + (DOT_LIGHT_RGB[0] - DOT_BASE_RGB[0]) * falloff,
-            );
-            const dotG = Math.round(
-              DOT_BASE_RGB[1] + (DOT_LIGHT_RGB[1] - DOT_BASE_RGB[1]) * falloff,
-            );
-            const dotB = Math.round(
-              DOT_BASE_RGB[2] + (DOT_LIGHT_RGB[2] - DOT_BASE_RGB[2]) * falloff,
-            );
-            rect.style.fill = `rgb(${dotR}, ${dotG}, ${dotB})`;
+            if (dist < LENS_RADIUS) {
+              isActive = true;
 
-            // Scaled-up cells overlap their neighbors; repaint them last (on
-            // top) the moment they become active so the zoom reads cleanly
-            // instead of getting clipped under a later, unscaled sibling.
-            if (!activeRef.current.has(key)) {
-              rect.parentNode?.appendChild(rect);
-            }
-          }
+              const falloff = 1 - dist / LENS_RADIUS;
+              const scale = 1 + LENS_MAX_SCALE * falloff * falloff;
+              const opacityFactor = 1 - falloff * (1 - LENS_MIN_OPACITY_FACTOR);
+              const rect = rectsRef.current.get(key);
 
-          // Only cells within the reveal radius "develop" into icons -
-          // lazily fetching just those keeps this cheap (no upfront
-          // requests for all 1,645 cells) and matches the lens metaphor:
-          // you reveal an icon by approaching it, not before.
-          if (dist < ICON_REVEAL_RADIUS) {
-            const cachedHref = iconHrefCacheRef.current.get(i);
+              // Purely a function of (cell, pointer) - identical to last
+              // frame's write whenever the pointer hasn't moved, so skip
+              // rewriting it (see lastDotStylePointerRef above). Since the
+              // active SET can't change either without the pointer moving,
+              // the re-stacking below would never fire on a stationary
+              // frame anyway - skipping it here isn't losing anything.
+              if (rect && pointerMoved) {
+                rect.style.transform = `scale(${scale.toFixed(3)})`;
+                rect.style.fillOpacity = `${(opacity * opacityFactor).toFixed(3)}`;
 
-            if (cachedHref) {
-              const image = getOrCreateIconEl(key, x, y);
+                const dotR = Math.round(
+                  DOT_BASE_RGB[0] +
+                    (DOT_LIGHT_RGB[0] - DOT_BASE_RGB[0]) * falloff,
+                );
+                const dotG = Math.round(
+                  DOT_BASE_RGB[1] +
+                    (DOT_LIGHT_RGB[1] - DOT_BASE_RGB[1]) * falloff,
+                );
+                const dotB = Math.round(
+                  DOT_BASE_RGB[2] +
+                    (DOT_LIGHT_RGB[2] - DOT_BASE_RGB[2]) * falloff,
+                );
+                rect.style.fill = `rgb(${dotR}, ${dotG}, ${dotB})`;
 
-              if (image.getAttribute("href") !== cachedHref) {
-                image.setAttribute("href", cachedHref);
-              }
-
-              // 0 at the edge of the reveal radius, 1 right at the cursor.
-              // Scale uses a steep power of this so the focused icon pops
-              // disproportionately; opacity and blur use a gentler power of
-              // the SAME falloff so neighbors stay legible instead of
-              // snapping between "invisible" and "fully focused" - and so
-              // two icons trading places in z-order are already close in
-              // opacity/blur at the moment they cross, instead of both
-              // being fully opaque and popping.
-              const falloff = 1 - dist / ICON_REVEAL_RADIUS;
-              const baseIconScale =
-                1 + ICON_MAX_SCALE * falloff ** ICON_SCALE_FALLOFF_POWER;
-              // The press spring is layered on top of the lens's own scale
-              // as an inverted pyramid: the pressed cell's scale blends
-              // toward a fixed, just-above-resting target (not just a
-              // fraction of itself - see PRESS_TARGET_SCALE above), a
-              // mid-distance band around it multiplicatively bulges up, and
-              // both fade to nothing at PRESS_RIPPLE_RADIUS - not replacing
-              // the lens scale, and not an on/off switch for one cell.
-              let iconScale = baseIconScale;
-              // Radial push away from the press origin - zero at the
-              // pressed icon itself, strongest just outside it, fading to
-              // nothing by PRESS_DIP_RADIUS. This is what actually clears
-              // "negative space" around the pressed icon (the scale change
-              // above alone isn't enough to keep a big neighbor from
-              // visually overlapping it, especially now that the pressed
-              // icon stays close to full size instead of shrinking away).
-              // Reuses pdx/pdy/pressDist from the dip/bulge math below - no
-              // extra per-cell work, and (unlike the old shockwave) no
-              // per-click precompute pass or Map lookup.
-              let pushDx = 0;
-              let pushDy = 0;
-
-              if (pressOrigin) {
-                const pdx = x + 4 - pressOrigin.x;
-                const pdy = y + 4 - pressOrigin.y;
-                const pressDist = Math.sqrt(pdx * pdx + pdy * pdy);
-
-                if (pressDist < PRESS_RIPPLE_RADIUS) {
-                  const dipShape =
-                    Math.max(0, 1 - pressDist / PRESS_DIP_RADIUS) **
-                    PRESS_DIP_POWER;
-                  // The bulge only starts beyond the dip radius - a clean
-                  // "not the immediate ones" gap - and ramps 0 -> peak -> 0
-                  // across the remaining band out to PRESS_RIPPLE_RADIUS.
-                  // Without this gap the bulge is already substantial right
-                  // next to the pressed icon, so a swollen neighbor visually
-                  // overlaps and hides it instead of framing it.
-                  const bulgeT =
-                    (pressDist - PRESS_DIP_RADIUS) /
-                    (PRESS_RIPPLE_RADIUS - PRESS_DIP_RADIUS);
-                  const bulgeShape =
-                    bulgeT > 0 && bulgeT < 1 ? 4 * bulgeT * (1 - bulgeT) : 0;
-
-                  const dipBlend =
-                    Math.max(0, Math.min(1, pressProgress)) * dipShape;
-                  const settledScale =
-                    baseIconScale +
-                    (PRESS_TARGET_SCALE - baseIconScale) * dipBlend;
-                  const bulgeMultiplier =
-                    1 + PRESS_BULGE_STRENGTH * pressProgress * bulgeShape;
-
-                  iconScale = settledScale * bulgeMultiplier;
-                }
-
-                if (pressDist > 0.01 && pressDist < PRESS_DIP_RADIUS) {
-                  const pushFalloff = 1 - pressDist / PRESS_DIP_RADIUS;
-                  const pushMagnitude =
-                    PRESS_PUSH_MAX_DISTANCE *
-                    pushFalloff *
-                    Math.max(0, Math.min(1, pressProgress));
-                  pushDx = (pdx / pressDist) * pushMagnitude;
-                  pushDy = (pdy / pressDist) * pushMagnitude;
+                // Scaled-up cells overlap their neighbors; repaint them last
+                // (on top) the moment they become active so the zoom reads
+                // cleanly instead of getting clipped under a later,
+                // unscaled sibling.
+                if (!activeRef.current.has(key)) {
+                  rect.parentNode?.appendChild(rect);
                 }
               }
 
-              // The pressed icon itself shakes in place for as long as it's
-              // held (see SHAKE_AMPLITUDE_PX above). Its own transform
-              // transition is switched off for the duration so the jitter
-              // reads as an immediate vibration rather than getting eased
-              // out by the class's normal 180ms transform easing - restored
-              // the moment it stops being the pressed icon (see
-              // shakingIconKeyRef handling above).
-              let shakeDx = 0;
-              let shakeDy = 0;
+              // Only cells within the reveal radius "develop" into icons -
+              // lazily fetching just those keeps this cheap (no upfront
+              // requests for all 1,645 cells) and matches the lens
+              // metaphor: you reveal an icon by approaching it, not before.
+              if (dist < ICON_REVEAL_RADIUS) {
+                const cachedHref = iconHrefCacheRef.current.get(i);
 
-              if (key === shakingKey) {
-                shakeDx =
-                  Math.sin(shakeElapsed * SHAKE_FREQUENCY_X) *
-                  SHAKE_AMPLITUDE_PX;
-                shakeDy =
-                  Math.sin(shakeElapsed * SHAKE_FREQUENCY_Y + 1.7) *
-                  SHAKE_AMPLITUDE_PX;
-                image.style.transition =
-                  "opacity 220ms ease-out, filter 220ms ease-out";
+                if (cachedHref) {
+                  const image = getOrCreateIconEl(key, x, y);
+
+                  if (image.getAttribute("href") !== cachedHref) {
+                    image.setAttribute("href", cachedHref);
+                  }
+
+                  // 0 at the edge of the reveal radius, 1 right at the
+                  // cursor. Scale uses a steep power of this so the focused
+                  // icon pops disproportionately; opacity and blur use a
+                  // gentler power of the SAME falloff so neighbors stay
+                  // legible instead of snapping between "invisible" and
+                  // "fully focused" - and so two icons trading places in
+                  // z-order are already close in opacity/blur at the moment
+                  // they cross, instead of both being fully opaque and
+                  // popping.
+                  const falloff = 1 - dist / ICON_REVEAL_RADIUS;
+                  const baseIconScale =
+                    1 + ICON_MAX_SCALE * falloff ** ICON_SCALE_FALLOFF_POWER;
+                  // The press spring is layered on top of the lens's own
+                  // scale as an inverted pyramid: the pressed cell's scale
+                  // blends toward a fixed, just-above-resting target (not
+                  // just a fraction of itself - see PRESS_TARGET_SCALE
+                  // above), a mid-distance band around it multiplicatively
+                  // bulges up, and both fade to nothing at
+                  // PRESS_RIPPLE_RADIUS - not replacing the lens scale, and
+                  // not an on/off switch for one cell.
+                  let iconScale = baseIconScale;
+                  // Radial push away from the press origin - zero at the
+                  // pressed icon itself, strongest just outside it, fading
+                  // to nothing by PRESS_DIP_RADIUS. This is what actually
+                  // clears "negative space" around the pressed icon (the
+                  // scale change above alone isn't enough to keep a big
+                  // neighbor from visually overlapping it, especially now
+                  // that the pressed icon stays close to full size instead
+                  // of shrinking away). Reuses pdx/pdy/pressDist from the
+                  // dip/bulge math below - no extra per-cell work, and
+                  // (unlike the old shockwave) no per-click precompute pass
+                  // or Map lookup.
+                  let pushDx = 0;
+                  let pushDy = 0;
+
+                  if (pressOrigin) {
+                    const pdx = x + 4 - pressOrigin.x;
+                    const pdy = y + 4 - pressOrigin.y;
+                    const pressDist = Math.sqrt(pdx * pdx + pdy * pdy);
+
+                    if (pressDist < PRESS_RIPPLE_RADIUS) {
+                      const dipShape =
+                        Math.max(0, 1 - pressDist / PRESS_DIP_RADIUS) **
+                        PRESS_DIP_POWER;
+                      // The bulge only starts beyond the dip radius - a
+                      // clean "not the immediate ones" gap - and ramps 0 ->
+                      // peak -> 0 across the remaining band out to
+                      // PRESS_RIPPLE_RADIUS. Without this gap the bulge is
+                      // already substantial right next to the pressed icon,
+                      // so a swollen neighbor visually overlaps and hides
+                      // it instead of framing it.
+                      const bulgeT =
+                        (pressDist - PRESS_DIP_RADIUS) /
+                        (PRESS_RIPPLE_RADIUS - PRESS_DIP_RADIUS);
+                      const bulgeShape =
+                        bulgeT > 0 && bulgeT < 1
+                          ? 4 * bulgeT * (1 - bulgeT)
+                          : 0;
+
+                      const dipBlend =
+                        Math.max(0, Math.min(1, pressProgress)) * dipShape;
+                      const settledScale =
+                        baseIconScale +
+                        (PRESS_TARGET_SCALE - baseIconScale) * dipBlend;
+                      const bulgeMultiplier =
+                        1 + PRESS_BULGE_STRENGTH * pressProgress * bulgeShape;
+
+                      iconScale = settledScale * bulgeMultiplier;
+                    }
+
+                    if (pressDist > 0.01 && pressDist < PRESS_DIP_RADIUS) {
+                      const pushFalloff = 1 - pressDist / PRESS_DIP_RADIUS;
+                      const pushMagnitude =
+                        PRESS_PUSH_MAX_DISTANCE *
+                        pushFalloff *
+                        Math.max(0, Math.min(1, pressProgress));
+                      pushDx = (pdx / pressDist) * pushMagnitude;
+                      pushDy = (pdy / pressDist) * pushMagnitude;
+                    }
+                  }
+
+                  // The pressed icon itself shakes in place for as long as
+                  // it's held (see SHAKE_AMPLITUDE_PX above). Its own
+                  // transform transition is switched off for the duration
+                  // so the jitter reads as an immediate vibration rather
+                  // than getting eased out by the class's normal 180ms
+                  // transform easing - restored the moment it stops being
+                  // the pressed icon (see shakingIconKeyRef handling
+                  // above).
+                  let shakeDx = 0;
+                  let shakeDy = 0;
+
+                  if (key === shakingKey) {
+                    shakeDx =
+                      Math.sin(shakeElapsed * SHAKE_FREQUENCY_X) *
+                      SHAKE_AMPLITUDE_PX;
+                    shakeDy =
+                      Math.sin(shakeElapsed * SHAKE_FREQUENCY_Y + 1.7) *
+                      SHAKE_AMPLITUDE_PX;
+                    image.style.transition =
+                      "opacity 220ms ease-out, filter 220ms ease-out";
+                  }
+                  // A quarter of the icon's current on-screen size - enough
+                  // that the pointer doesn't fully cover it, while still
+                  // overlapping it rather than sitting at its edge.
+                  const iconOffset = (CELL_SIZE * iconScale) / 4;
+                  // Blurring/fading back out on every pass is only right
+                  // for the FIRST reveal (that's the "developing into
+                  // focus" moment). Once an icon has actually been shown,
+                  // re-blurring it as the cursor wanders back nearby (but
+                  // not exactly onto it) reads as pointlessly hiding
+                  // something the visitor already saw - so a
+                  // previously-revealed icon stays fully sharp/opaque here
+                  // on, only its scale keeps responding to distance.
+                  const alreadyRevealed = revealedRef.current.has(key);
+                  const iconOpacity = alreadyRevealed
+                    ? 1
+                    : ICON_MIN_OPACITY +
+                      (1 - ICON_MIN_OPACITY) *
+                        falloff ** ICON_OPACITY_FALLOFF_POWER;
+                  const iconBlur = alreadyRevealed
+                    ? 0
+                    : ICON_MAX_BLUR * (1 - falloff) ** ICON_BLUR_FALLOFF_POWER;
+
+                  // A click's ripple wave blurs icons as its wavefront
+                  // reaches them - independent of (and layered on top of)
+                  // whatever the lens itself has this icon's blur set to.
+                  const finalIconBlur = Math.max(
+                    iconBlur,
+                    getIconWaveBlur(x, y),
+                  );
+
+                  image.style.transform = `translate(${(iconOffset + pushDx + shakeDx).toFixed(3)}px, ${(-iconOffset + pushDy + shakeDy).toFixed(3)}px) scale(${iconScale.toFixed(3)})`;
+                  image.style.opacity = iconOpacity.toFixed(3);
+                  image.style.filter =
+                    finalIconBlur > 0.01
+                      ? `blur(${finalIconBlur.toFixed(2)}px)`
+                      : "";
+
+                  // Defer stacking: the most-zoomed icon must always paint
+                  // on top, and which icon that is changes every frame as
+                  // the cursor moves - so z-order is resolved once below,
+                  // by current scale, rather than by activation order here.
+                  revealedIcons.push({ key, image, scale: iconScale });
+
+                  if (rect) {
+                    // Fade the underlying halftone dot out so the icon
+                    // reads clearly once it's revealed.
+                    rect.style.fillOpacity = `${(opacity * opacityFactor * 0.15).toFixed(3)}`;
+                  }
+
+                  // Once shown, an icon stays part of the grid permanently
+                  // - it doesn't revert to the halftone dot when the cursor
+                  // moves away.
+                  revealedRef.current.add(key);
+                } else if (
+                  !iconLoadingRef.current.has(i) &&
+                  !iconHrefCacheRef.current.has(i) &&
+                  !iconFailedRef.current.has(i)
+                ) {
+                  iconLoadingRef.current.add(i);
+                  const href = ICON_SOURCES[i];
+
+                  loadImage(href)
+                    .then(() => {
+                      iconHrefCacheRef.current.set(i, href);
+                    })
+                    .catch(() => {
+                      // No icon overlay for this cell; the halftone dot
+                      // alone still reads fine. Remembered so a broken icon
+                      // isn't re-fetched every time the cursor sweeps back
+                      // over it.
+                      iconFailedRef.current.add(i);
+                    })
+                    .finally(() => {
+                      iconLoadingRef.current.delete(i);
+                      scheduleFrame();
+                    });
+                }
+              } else if (revealedRef.current.has(key)) {
+                // Outside the reveal radius but already revealed earlier -
+                // settle at rest (no zoom, no cursor-avoidance offset)
+                // rather than hiding it again. Still susceptible to a
+                // click's ripple wave, though - that's a deliberate
+                // transient effect, not the ambient hover blur this icon
+                // is otherwise exempt from. (The press push doesn't reach
+                // this branch - PRESS_DIP_RADIUS is well inside
+                // ICON_REVEAL_RADIUS, so any icon it affects is still
+                // handled by the sharp-reveal branch above.)
+                const image = iconElsRef.current.get(key);
+
+                if (image) {
+                  const settledWaveBlur = getIconWaveBlur(x, y);
+
+                  image.style.transform = "";
+                  image.style.opacity = "1";
+                  image.style.filter =
+                    settledWaveBlur > 0.01
+                      ? `blur(${settledWaveBlur.toFixed(2)}px)`
+                      : "";
+                }
+
+                if (rect) {
+                  rect.style.fillOpacity = `${(opacity * opacityFactor * 0.15).toFixed(3)}`;
+                }
+              } else {
+                const image = iconElsRef.current.get(key);
+
+                if (image) {
+                  image.style.opacity = "0";
+                }
               }
-              // A quarter of the icon's current on-screen size - enough
-              // that the pointer doesn't fully cover it, while still
-              // overlapping it rather than sitting at its edge.
-              const iconOffset = (CELL_SIZE * iconScale) / 4;
-              // Blurring/fading back out on every pass is only right for the
-              // FIRST reveal (that's the "developing into focus" moment).
-              // Once an icon has actually been shown, re-blurring it as the
-              // cursor wanders back nearby (but not exactly onto it) reads
-              // as pointlessly hiding something the visitor already saw -
-              // so a previously-revealed icon stays fully sharp/opaque here
-              // on, only its scale keeps responding to distance.
-              const alreadyRevealed = revealedRef.current.has(key);
-              const iconOpacity = alreadyRevealed
-                ? 1
-                : ICON_MIN_OPACITY +
-                  (1 - ICON_MIN_OPACITY) *
-                    falloff ** ICON_OPACITY_FALLOFF_POWER;
-              const iconBlur = alreadyRevealed
-                ? 0
-                : ICON_MAX_BLUR * (1 - falloff) ** ICON_BLUR_FALLOFF_POWER;
 
-              // A click's ripple wave blurs icons as its wavefront reaches
-              // them - independent of (and layered on top of) whatever the
-              // lens itself has this icon's blur set to.
-              const finalIconBlur = Math.max(iconBlur, getIconWaveBlur(x, y));
-
-              image.style.transform = `translate(${(iconOffset + pushDx + shakeDx).toFixed(3)}px, ${(-iconOffset + pushDy + shakeDy).toFixed(3)}px) scale(${iconScale.toFixed(3)})`;
-              image.style.opacity = iconOpacity.toFixed(3);
-              image.style.filter =
-                finalIconBlur > 0.01
-                  ? `blur(${finalIconBlur.toFixed(2)}px)`
-                  : "";
-
-              // Defer stacking: the most-zoomed icon must always paint on
-              // top, and which icon that is changes every frame as the
-              // cursor moves - so z-order is resolved once below, by
-              // current scale, rather than by activation order here.
-              revealedIcons.push({ key, image, scale: iconScale });
-
-              if (rect) {
-                // Fade the underlying halftone dot out so the icon reads
-                // clearly once it's revealed.
-                rect.style.fillOpacity = `${(opacity * opacityFactor * 0.15).toFixed(3)}`;
-              }
-
-              // Once shown, an icon stays part of the grid permanently -
-              // it doesn't revert to the halftone dot when the cursor
-              // moves away.
-              revealedRef.current.add(key);
-            } else if (
-              !iconLoadingRef.current.has(i) &&
-              !iconHrefCacheRef.current.has(i) &&
-              !iconFailedRef.current.has(i)
-            ) {
-              iconLoadingRef.current.add(i);
-              const href = ICON_SOURCES[i];
-
-              loadImage(href)
-                .then(() => {
-                  iconHrefCacheRef.current.set(i, href);
-                })
-                .catch(() => {
-                  // No icon overlay for this cell; the halftone dot alone
-                  // still reads fine. Remembered so a broken icon isn't
-                  // re-fetched every time the cursor sweeps back over it.
-                  iconFailedRef.current.add(i);
-                })
-                .finally(() => {
-                  iconLoadingRef.current.delete(i);
-                  scheduleFrame();
-                });
-            }
-          } else if (revealedRef.current.has(key)) {
-            // Outside the reveal radius but already revealed earlier -
-            // settle at rest (no zoom, no cursor-avoidance offset) rather
-            // than hiding it again. Still susceptible to a click's ripple
-            // wave, though - that's a deliberate transient effect, not the
-            // ambient hover blur this icon is otherwise exempt from. (The
-            // press push doesn't reach this branch - PRESS_DIP_RADIUS is
-            // well inside ICON_REVEAL_RADIUS, so any icon it affects is
-            // still handled by the sharp-reveal branch above.)
-            const image = iconElsRef.current.get(key);
-
-            if (image) {
-              const settledWaveBlur = getIconWaveBlur(x, y);
-
-              image.style.transform = "";
-              image.style.opacity = "1";
-              image.style.filter =
-                settledWaveBlur > 0.01
-                  ? `blur(${settledWaveBlur.toFixed(2)}px)`
-                  : "";
-            }
-
-            if (rect) {
-              rect.style.fillOpacity = `${(opacity * opacityFactor * 0.15).toFixed(3)}`;
-            }
-          } else {
-            const image = iconElsRef.current.get(key);
-
-            if (image) {
-              image.style.opacity = "0";
+              nextActive.add(key);
             }
           }
 
-          nextActive.add(key);
+          if (!isActive) {
+            // Ripple dot effect: only touches cells the lens isn't
+            // claiming this frame, and not ones an icon reveal already
+            // owns permanently.
+            if (rippleDotsActive && !revealedRef.current.has(key)) {
+              let intensity = 0;
+
+              for (const ripple of ripplesRef.current) {
+                const rippleDuration = ripple.reverse
+                  ? RIPPLE_REVERSE_DURATION_MS
+                  : RIPPLE_DURATION_MS;
+                const progress = (now - ripple.start) / rippleDuration;
+                const currentRadius = ripple.reverse
+                  ? RIPPLE_MAX_RADIUS * (1 - progress)
+                  : progress * RIPPLE_MAX_RADIUS;
+                const rdx = x + 4 - ripple.x;
+                const rdy = y + 4 - ripple.y;
+                const cellDist = Math.sqrt(rdx * rdx + rdy * rdy);
+                const bandDist = Math.abs(cellDist - currentRadius);
+
+                if (bandDist >= RIPPLE_BAND_WIDTH) {
+                  continue;
+                }
+
+                const bandFalloff = 1 - bandDist / RIPPLE_BAND_WIDTH;
+                const envelope = ripple.reverse ? progress : 1 - progress;
+                intensity = Math.max(intensity, bandFalloff * envelope);
+              }
+
+              const rect = rectsRef.current.get(key);
+
+              if (intensity > 0.02) {
+                if (rect) {
+                  const rippleScale = 1 + RIPPLE_MAX_SCALE_BOOST * intensity;
+                  rect.style.transform = `scale(${rippleScale.toFixed(3)})`;
+                  rect.style.fillOpacity = `${Math.min(1, opacity + intensity * 0.3).toFixed(3)}`;
+
+                  const rippleR = Math.round(
+                    DOT_BASE_RGB[0] +
+                      (DOT_LIGHT_RGB[0] - DOT_BASE_RGB[0]) * intensity,
+                  );
+                  const rippleG = Math.round(
+                    DOT_BASE_RGB[1] +
+                      (DOT_LIGHT_RGB[1] - DOT_BASE_RGB[1]) * intensity,
+                  );
+                  const rippleB = Math.round(
+                    DOT_BASE_RGB[2] +
+                      (DOT_LIGHT_RGB[2] - DOT_BASE_RGB[2]) * intensity,
+                  );
+                  rect.style.fill = `rgb(${rippleR}, ${rippleG}, ${rippleB})`;
+
+                  // Newly rippling cells repaint last so the wavefront
+                  // isn't clipped under a neighbor it hasn't reached yet.
+                  if (!rippleActiveRef.current.has(key)) {
+                    rippleRestackKeys.push(key);
+                  }
+                }
+
+                nextRippleActive.add(key);
+              } else if (rippleActiveRef.current.has(key) && rect) {
+                rect.style.transform = "";
+                rect.style.fillOpacity = "";
+                rect.style.fill = "";
+              }
+            }
+
+            // Icon wave-blur effect: for icons the lens isn't claiming this
+            // frame - a ripple wave (RIPPLE_MAX_RADIUS) travels much
+            // further than LENS_RADIUS, so an already-settled icon far
+            // from the cursor still needs to catch the wave as it passes.
+            if (iconWaveActive && iconHrefCacheRef.current.has(i)) {
+              const image = iconElsRef.current.get(key);
+
+              if (image) {
+                const waveBlur = getIconWaveBlur(x, y);
+
+                if (waveBlur > 0.01) {
+                  image.style.filter = `blur(${waveBlur.toFixed(2)}px)`;
+                  nextIconWaveActive.add(key);
+                } else if (iconWaveActiveRef.current.has(key)) {
+                  image.style.filter = "";
+                }
+              }
+            }
+          }
         }
+
+        for (const key of rippleRestackKeys) {
+          const rect = rectsRef.current.get(key);
+          rect?.parentNode?.appendChild(rect);
+        }
+
+        rippleActiveRef.current = nextRippleActive;
+        iconWaveActiveRef.current = nextIconWaveActive;
       }
 
       // Repaint every revealed icon last (in ascending scale order), so the
@@ -2358,132 +2536,6 @@ export const BasePixelStrip = () => {
       }
 
       activeRef.current = nextActive;
-
-      // Ripple pass: independent of the lens/hover state above, and only
-      // touches cells neither the lens nor a settled icon reveal already
-      // owns, so it never clobbers those effects.
-      ripplesRef.current = ripplesRef.current.filter(
-        (ripple) =>
-          now - ripple.start <
-          (ripple.reverse ? RIPPLE_REVERSE_DURATION_MS : RIPPLE_DURATION_MS),
-      );
-
-      if (ripplesRef.current.length > 0 || rippleActiveRef.current.size > 0) {
-        const nextRippleActive = new Set<string>();
-
-        for (let i = 0; i < CELLS.length; i++) {
-          const [x, y, opacity] = CELLS[i];
-          const key = `${x},${y}`;
-
-          if (activeRef.current.has(key) || revealedRef.current.has(key)) {
-            continue;
-          }
-
-          let intensity = 0;
-
-          for (const ripple of ripplesRef.current) {
-            const rippleDuration = ripple.reverse
-              ? RIPPLE_REVERSE_DURATION_MS
-              : RIPPLE_DURATION_MS;
-            const progress = (now - ripple.start) / rippleDuration;
-            const currentRadius = ripple.reverse
-              ? RIPPLE_MAX_RADIUS * (1 - progress)
-              : progress * RIPPLE_MAX_RADIUS;
-            const dx = x + 4 - ripple.x;
-            const dy = y + 4 - ripple.y;
-            const cellDist = Math.sqrt(dx * dx + dy * dy);
-            const bandDist = Math.abs(cellDist - currentRadius);
-
-            if (bandDist >= RIPPLE_BAND_WIDTH) {
-              continue;
-            }
-
-            const bandFalloff = 1 - bandDist / RIPPLE_BAND_WIDTH;
-            const envelope = ripple.reverse ? progress : 1 - progress;
-            intensity = Math.max(intensity, bandFalloff * envelope);
-          }
-
-          const rect = rectsRef.current.get(key);
-
-          if (intensity > 0.02) {
-            if (rect) {
-              const rippleScale = 1 + RIPPLE_MAX_SCALE_BOOST * intensity;
-              rect.style.transform = `scale(${rippleScale.toFixed(3)})`;
-              rect.style.fillOpacity = `${Math.min(1, opacity + intensity * 0.3).toFixed(3)}`;
-
-              const rippleR = Math.round(
-                DOT_BASE_RGB[0] +
-                  (DOT_LIGHT_RGB[0] - DOT_BASE_RGB[0]) * intensity,
-              );
-              const rippleG = Math.round(
-                DOT_BASE_RGB[1] +
-                  (DOT_LIGHT_RGB[1] - DOT_BASE_RGB[1]) * intensity,
-              );
-              const rippleB = Math.round(
-                DOT_BASE_RGB[2] +
-                  (DOT_LIGHT_RGB[2] - DOT_BASE_RGB[2]) * intensity,
-              );
-              rect.style.fill = `rgb(${rippleR}, ${rippleG}, ${rippleB})`;
-
-              // Newly rippling cells repaint last so the wavefront isn't
-              // clipped under a neighbor it hasn't reached yet.
-              if (!rippleActiveRef.current.has(key)) {
-                rect.parentNode?.appendChild(rect);
-              }
-            }
-
-            nextRippleActive.add(key);
-          } else if (rippleActiveRef.current.has(key) && rect) {
-            rect.style.transform = "";
-            rect.style.fillOpacity = "";
-            rect.style.fill = "";
-          }
-        }
-
-        rippleActiveRef.current = nextRippleActive;
-      }
-
-      // Icon wave-blur pass, for icons the main per-cell loop above never
-      // visits this frame - it only walks cells within LENS_RADIUS of the
-      // CURSOR, but a ripple wave (RIPPLE_MAX_RADIUS) travels much further,
-      // so an already-settled icon far from the cursor still needs to catch
-      // the wave as it passes.
-      if (ripplesRef.current.length > 0 || iconWaveActiveRef.current.size > 0) {
-        const nextIconWaveActive = new Set<string>();
-
-        for (let i = 0; i < CELLS.length; i++) {
-          if (!iconHrefCacheRef.current.has(i)) {
-            continue;
-          }
-
-          const [x, y] = CELLS[i];
-          const key = `${x},${y}`;
-
-          // The main per-cell loop already handled (or will handle) this
-          // cell's blur this frame if the cursor is anywhere near it -
-          // don't fight it here.
-          if (activeRef.current.has(key)) {
-            continue;
-          }
-
-          const image = iconElsRef.current.get(key);
-
-          if (!image) {
-            continue;
-          }
-
-          const waveBlur = getIconWaveBlur(x, y);
-
-          if (waveBlur > 0.01) {
-            image.style.filter = `blur(${waveBlur.toFixed(2)}px)`;
-            nextIconWaveActive.add(key);
-          } else if (iconWaveActiveRef.current.has(key)) {
-            image.style.filter = "";
-          }
-        }
-
-        iconWaveActiveRef.current = nextIconWaveActive;
-      }
 
       // Ambient pop-and-spin pass: independent of pointer/press/ripple, and
       // yields to any of them immediately if the cursor (or a ripple)
