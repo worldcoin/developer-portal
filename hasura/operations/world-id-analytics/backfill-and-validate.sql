@@ -9,9 +9,9 @@ CREATE TEMP TABLE analytics_gate_evidence (
   processed_through timestamptz NOT NULL
 ) ON COMMIT PRESERVE ROWS;
 
--- Phase one: build the complete historical rollup. The function deliberately
--- returns zero rows when another transaction owns its advisory lock, so turn
--- that otherwise-successful no-op into a deployment failure.
+-- Build the complete historical rollup, catch up rows committed during that
+-- scan, and validate parity in one transaction. If validation fails, rolling
+-- back the historical watermark keeps the gate restartable.
 BEGIN;
 
 INSERT INTO analytics_gate_evidence (phase, processed_through)
@@ -33,13 +33,6 @@ BEGIN
 END
 $gate$;
 
-COMMIT;
-
--- Phase two: rebuild the overlap so rows committed during the historical scan
--- are included. Keep this transaction open through parity validation so its
--- advisory lock prevents cron from moving the watermark underneath the check.
-BEGIN;
-
 INSERT INTO analytics_gate_evidence (phase, processed_through)
 SELECT 'catch_up', processed_through
 FROM public.rollup_world_id_analytics();
@@ -58,8 +51,8 @@ BEGIN
 END
 $gate$;
 
--- Compare every v4 action/day/count through the catch-up watermark in both
--- directions. A total-only comparison could hide compensating errors.
+-- Compare every v3 and v4 action/day/count through the catch-up watermark in
+-- both directions. A total-only comparison could hide compensating errors.
 CREATE TEMP TABLE analytics_gate_mismatches
 ON COMMIT DROP
 AS
@@ -70,18 +63,46 @@ WITH watermark AS (
 ),
 canonical AS (
   SELECT
-    source.action_v4_id,
-    (source.created_at AT TIME ZONE 'UTC')::date AS date_utc,
+    'v3'::text AS source,
+    raw.action_id,
+    (raw.created_at AT TIME ZONE 'UTC')::date AS date_utc,
     count(*)::bigint AS unique_count
-  FROM public.nullifier_v4 AS source
+  FROM public.nullifier AS raw
   CROSS JOIN watermark
-  WHERE source.created_at < watermark.processed_through
+  WHERE raw.created_at < watermark.processed_through
   GROUP BY
-    source.action_v4_id,
-    (source.created_at AT TIME ZONE 'UTC')::date
+    raw.action_id,
+    (raw.created_at AT TIME ZONE 'UTC')::date
+
+  UNION ALL
+
+  SELECT
+    'v4',
+    raw.action_v4_id,
+    (raw.created_at AT TIME ZONE 'UTC')::date AS date_utc,
+    count(*)::bigint AS unique_count
+  FROM public.nullifier_v4 AS raw
+  CROSS JOIN watermark
+  WHERE raw.created_at < watermark.processed_through
+  GROUP BY
+    raw.action_v4_id,
+    (raw.created_at AT TIME ZONE 'UTC')::date
 ),
 rolled AS (
-  SELECT action_v4_id, date_utc, unique_count
+  SELECT
+    'v3'::text AS source,
+    action_id,
+    date_utc,
+    unique_count
+  FROM public.action_v3_stats_daily
+
+  UNION ALL
+
+  SELECT
+    'v4',
+    action_v4_id,
+    date_utc,
+    unique_count
   FROM public.action_v4_stats_daily
 ),
 canonical_minus_rolled AS (
@@ -107,7 +128,7 @@ FROM rolled_minus_canonical;
 -- Print a bounded diagnostic sample before failing the deployment.
 SELECT *
 FROM analytics_gate_mismatches
-ORDER BY direction, action_v4_id, date_utc
+ORDER BY direction, source, action_id, date_utc
 LIMIT 20;
 
 DO $gate$
@@ -120,7 +141,7 @@ BEGIN
 
   IF mismatch_count <> 0 THEN
     RAISE EXCEPTION
-      'Raw-v4/rollup parity validation failed with % difference(s)',
+      'Raw/rollup parity validation failed with % difference(s)',
       mismatch_count;
   END IF;
 END

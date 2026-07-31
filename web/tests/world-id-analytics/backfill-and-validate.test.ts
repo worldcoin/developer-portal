@@ -4,6 +4,7 @@ import path from "node:path";
 import { Pool } from "pg";
 import {
   fixture,
+  insertV3Nullifier,
   insertV4Nullifier,
   resetFixture,
   seedFixture,
@@ -63,8 +64,11 @@ const commandOutput = (result: ReturnType<typeof runBackfillAndValidate>) =>
 
 const removeParitySabotage = async () => {
   await pool.query(`
+    DROP TRIGGER IF EXISTS contract_corrupt_v3_analytics_rollup
+      ON public.action_v3_stats_daily;
     DROP TRIGGER IF EXISTS contract_corrupt_v4_analytics_rollup
       ON public.action_v4_stats_daily;
+    DROP FUNCTION IF EXISTS public.contract_corrupt_v3_analytics_rollup();
     DROP FUNCTION IF EXISTS public.contract_corrupt_v4_analytics_rollup();
   `);
 };
@@ -93,7 +97,7 @@ jest.setTimeout(150_000);
 
 // #region Deployment gate
 describe("World ID analytics [backfill and validation gate]", () => {
-  it("runs the historical backfill, catch-up, and raw-v4 parity check", async () => {
+  it("runs the historical backfill, catch-up, and raw parity check", async () => {
     const createdAt = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     await insertV4Nullifier(pool, {
       id: "nullifier_v4_gate_success",
@@ -164,8 +168,66 @@ describe("World ID analytics [backfill and validation gate]", () => {
       FOR EACH ROW
       EXECUTE FUNCTION public.contract_corrupt_v4_analytics_rollup();
     `);
+    const createdAt = new Date(
+      Date.now() - 7 * 24 * 60 * 60 * 1000,
+    ).toISOString();
     await insertV4Nullifier(pool, {
       id: "nullifier_v4_gate_mismatch",
+      createdAt,
+    });
+
+    const result = runBackfillAndValidate();
+
+    expect(result.status).not.toBe(0);
+    expect(commandOutput(result)).toContain(
+      "Raw/rollup parity validation failed",
+    );
+
+    const stateAfterFailure = await pool.query(
+      `SELECT processed_through
+         FROM public.world_id_analytics_state
+        WHERE singleton`,
+    );
+    expect(stateAfterFailure.rows).toEqual([]);
+
+    await removeParitySabotage();
+
+    const retry = runBackfillAndValidate();
+    expect({
+      error: retry.error,
+      output: commandOutput(retry),
+      status: retry.status,
+    }).toEqual(expect.objectContaining({ error: undefined, status: 0 }));
+
+    const rolled = await pool.query<{ unique_count: string }>(
+      `SELECT unique_count::text
+         FROM public.action_v4_stats_daily
+        WHERE action_v4_id = $1
+          AND date_utc = $2::timestamptz::date`,
+      [fixture.productionV4ActionId, createdAt],
+    );
+    expect(rolled.rows).toEqual([{ unique_count: "1" }]);
+  });
+
+  it("fails when rolled v3 counts differ from the canonical raw rows", async () => {
+    await pool.query(`
+      CREATE FUNCTION public.contract_corrupt_v3_analytics_rollup()
+      RETURNS trigger
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        NEW.unique_count := NEW.unique_count + 1;
+        RETURN NEW;
+      END
+      $$;
+
+      CREATE TRIGGER contract_corrupt_v3_analytics_rollup
+      BEFORE INSERT ON public.action_v3_stats_daily
+      FOR EACH ROW
+      EXECUTE FUNCTION public.contract_corrupt_v3_analytics_rollup();
+    `);
+    await insertV3Nullifier(pool, {
+      id: "nullifier_v3_gate_mismatch",
       createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     });
 
@@ -173,7 +235,7 @@ describe("World ID analytics [backfill and validation gate]", () => {
 
     expect(result.status).not.toBe(0);
     expect(commandOutput(result)).toContain(
-      "Raw-v4/rollup parity validation failed",
+      "Raw/rollup parity validation failed",
     );
   });
 });
