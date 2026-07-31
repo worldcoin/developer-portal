@@ -113,10 +113,7 @@ it("shows the route app and offers explicit app and overview destinations", () =
 
   expect(trigger()).toHaveTextContent("My App");
   const appLink = screen.getByRole("link", { name: /My App/ });
-  expect(appLink).toHaveAttribute(
-    "href",
-    "/teams/team_1/apps/app_1/world-id-4-0",
-  );
+  expect(appLink).toHaveAttribute("href", "/teams/team_1/apps/app_1/world-id");
   expect(appLink).toHaveClass("cursor-pointer");
   expect(screen.getByRole("link", { name: "All apps" })).toHaveAttribute(
     "href",

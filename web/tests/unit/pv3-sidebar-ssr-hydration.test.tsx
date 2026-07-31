@@ -48,12 +48,25 @@ const { renderToString } =
 // #region Mocks
 const usePathname = jest.fn();
 const useParams = jest.fn();
+const useSearchParams = jest.fn();
 jest.mock("next/navigation", () => ({
   usePathname: () => usePathname(),
   useParams: () => useParams(),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => useSearchParams(),
   useRouter: () => ({ push: jest.fn(), prefetch: jest.fn() }),
 }));
+
+const useQueryMock = jest.fn();
+jest.mock("@apollo/client/react", () => ({
+  useQuery: (...args: unknown[]) => useQueryMock(...args),
+}));
+
+jest.mock(
+  "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/navigation/graphql/client/get-world-id-navigation.generated",
+  () => ({
+    GetWorldIdNavigationDocument: { __mockDoc: "worldIdNavigation" },
+  }),
+);
 
 jest.mock("@/hooks/use-mobile", () => ({
   useIsMobile: () => false,
@@ -127,6 +140,24 @@ const pill = (root: ParentNode) =>
 it("hands the static SSR active card off to the measured pill at hydration", async () => {
   useParams.mockReturnValue({ teamId: "team_1", appId: "app_1" });
   usePathname.mockReturnValue(`${base}/world-id-4-0`);
+  useSearchParams.mockReturnValue(new URLSearchParams());
+  useQueryMock.mockReturnValue({
+    data: {
+      app: [
+        {
+          id: "app_1",
+          rp_registration: [
+            {
+              rp_id: "rp_0123456789abcdef",
+              status: "registered",
+            },
+          ],
+        },
+      ],
+      action: [],
+    },
+    loading: false,
+  });
   jest
     .spyOn(Element.prototype, "getBoundingClientRect")
     .mockReturnValue(realRect);
