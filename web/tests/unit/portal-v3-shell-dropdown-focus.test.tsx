@@ -2,11 +2,12 @@
 
 import "@testing-library/jest-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { additionalColors } from "@/lib/additional-colors";
 import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { TeamsDropdown } from "@/scenes/PortalV3/layout/Shell/TeamsDropdown";
 import { UserPopup } from "@/scenes/PortalV3/layout/Shell/UserPopup";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 
 // #region Mocks
@@ -30,13 +31,15 @@ jest.mock("@/hooks/use-mobile", () => ({
 describe("Portal v3 shell dropdown focus treatment", () => {
   it("uses a clean background cue instead of a persistent focus ring", () => {
     render(
-      <SidebarProvider>
-        <TeamsDropdown teams={[{ id: "team_1", name: "Example team" }]} />
-        <UserPopup
-          user={{ name: "Ada Lovelace", email: "ada@example.com" }}
-          color={null}
-        />
-      </SidebarProvider>,
+      <TooltipProvider>
+        <SidebarProvider>
+          <TeamsDropdown teams={[{ id: "team_1", name: "Example team" }]} />
+          <UserPopup
+            user={{ name: "Ada Lovelace", email: "ada@example.com" }}
+            color={null}
+          />
+        </SidebarProvider>
+      </TooltipProvider>,
     );
 
     const teamTrigger = screen.getByRole("button", { name: "Switch team" });
@@ -50,17 +53,40 @@ describe("Portal v3 shell dropdown focus treatment", () => {
     }
   });
 
+  it("opens the profile menu directly above the profile row", async () => {
+    render(
+      <TooltipProvider>
+        <SidebarProvider>
+          <UserPopup
+            user={{ name: "Ada Lovelace", email: "ada@example.com" }}
+            color={null}
+          />
+        </SidebarProvider>
+      </TooltipProvider>,
+    );
+
+    fireEvent.keyDown(screen.getByRole("button", { name: "Account menu" }), {
+      key: "ArrowDown",
+    });
+
+    const menu = await screen.findByRole("menu");
+    expect(menu).toHaveAttribute("data-side", "top");
+    expect(menu).toHaveClass("w-(--radix-dropdown-menu-trigger-width)");
+  });
+
   it("updates the profile avatar when the profile color changes", () => {
     const store = createStore();
 
     render(
       <Provider store={store}>
-        <SidebarProvider>
-          <UserPopup
-            user={{ name: "Ada Lovelace", email: "ada@example.com" }}
-            color={additionalColors.pink}
-          />
-        </SidebarProvider>
+        <TooltipProvider>
+          <SidebarProvider>
+            <UserPopup
+              user={{ name: "Ada Lovelace", email: "ada@example.com" }}
+              color={additionalColors.pink}
+            />
+          </SidebarProvider>
+        </TooltipProvider>
       </Provider>,
     );
 

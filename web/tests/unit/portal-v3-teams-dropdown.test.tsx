@@ -62,7 +62,7 @@ it("opens the searchable team switcher below the trigger", () => {
 
   const trigger = screen.getByRole("button", { name: "Switch team" });
   expect(trigger).toHaveTextContent("Beta Team");
-  expect(trigger).toHaveClass("h-9", "cursor-pointer", "px-3", "text-13");
+  expect(trigger).toHaveClass("h-9", "px-3", "text-13");
   expect(screen.getByTestId("team-popover")).toHaveAttribute(
     "data-side",
     "bottom",

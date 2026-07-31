@@ -1,5 +1,6 @@
 import { fetchSandboxAccessRequest } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
 import { auth0 } from "@/lib/auth0";
+import { isWorldUser } from "@/lib/is-world-user";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { ReactNode } from "react";
@@ -30,7 +31,10 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
 
   return (
     <PortalShell
-      user={{ name: user?.name, email: user?.email }}
+      user={{
+        name: user && isWorldUser(user) ? "Anonymous user" : user?.name,
+        email: user?.email,
+      }}
       teams={teams}
       sandboxRequest={sandboxRequest}
     >

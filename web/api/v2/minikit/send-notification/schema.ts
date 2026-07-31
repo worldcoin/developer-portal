@@ -6,6 +6,7 @@ import {
 import * as yup from "yup";
 
 const USERNAME_SPECIAL_STRING = "${username}";
+const PULSE_ZOOM_DEEP_FACE_TEMPLATE_KEY = "pulse_zoom_deep_face";
 
 const isProduction = process.env.NEXT_PUBLIC_APP_ENV === "production";
 
@@ -141,6 +142,19 @@ export const sendNotificationBodySchemaV2 = yup
         },
       ),
     draft_id: yup.string().optional(),
+    template_key: yup
+      .string()
+      .oneOf([PULSE_ZOOM_DEEP_FACE_TEMPLATE_KEY])
+      .strict()
+      .optional(),
+    template_args: yup
+      .object({
+        app_name: yup.string().oneOf(["Zoom"]).strict().required(),
+        is_self: yup.string().oneOf(["yes", "no"]).strict().required(),
+      })
+      .noUnknown()
+      .strict()
+      .optional(),
     localisations: yup
       .array()
       .of(
@@ -175,4 +189,11 @@ export const sendNotificationBodySchemaV2 = yup
         return Boolean(value?.find(({ language }) => language === "en"));
       }),
   })
+  .test(
+    "pulse-template-pair",
+    "template_key and template_args must be provided together",
+    (value) =>
+      (value?.template_key === undefined) ===
+      (value?.template_args === undefined),
+  )
   .noUnknown();

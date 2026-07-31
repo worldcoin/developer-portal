@@ -21,9 +21,6 @@
 
 Always run formatting and type checks before committing. Make sure tests pass as well.
 
-After UI changes, remove generic or AI-sounding placeholder/example copy. Leave
-fields without placeholder text unless the product explicitly requires it.
-
 ## Pull request follow-up
 
 After pushing a branch with an open pull request, wait 5 minutes, then check the

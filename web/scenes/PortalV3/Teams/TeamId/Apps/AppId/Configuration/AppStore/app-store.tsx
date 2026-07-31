@@ -45,7 +45,7 @@ const AppStoreFormContext = createContext<AppStoreFormContextValue | null>(
   null,
 );
 
-const useAppStoreFormContext = () => {
+export const useAppStoreFormContext = () => {
   const value = useContext(AppStoreFormContext);
 
   if (!value) {
