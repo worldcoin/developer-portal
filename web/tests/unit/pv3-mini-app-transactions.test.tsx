@@ -6,7 +6,13 @@ import React from "react";
 
 // #region Mocks
 const getTransactionData = jest.fn();
+const getIsUserAllowedToReadApp = jest.fn();
 const GetAppMode = jest.fn();
+
+jest.mock("@/lib/permissions", () => ({
+  getIsUserAllowedToReadApp: (...args: unknown[]) =>
+    getIsUserAllowedToReadApp(...args),
+}));
 
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/server",
@@ -71,11 +77,27 @@ const renderPage = async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  getIsUserAllowedToReadApp.mockResolvedValue(true);
   getTransactionData.mockResolvedValue({ success: true, data: [] });
 });
 
 // #region External app gate
 describe("PortalV3 mini app transactions [external apps]", () => {
+  it("does not read app mode before authorization", async () => {
+    getIsUserAllowedToReadApp.mockResolvedValue(false);
+    getTransactionData.mockResolvedValue({
+      success: false,
+      message: "User is not allowed to access this app",
+    });
+
+    await renderPage();
+
+    expect(getIsUserAllowedToReadApp).toHaveBeenCalledWith(appId);
+    expect(GetAppMode).not.toHaveBeenCalled();
+    expect(getTransactionData).toHaveBeenCalledWith(appId);
+    expect(screen.getByText("Failed to load transactions")).toBeInTheDocument();
+  });
+
   it("shows the unavailable notice and skips the payments fetch", async () => {
     GetAppMode.mockResolvedValue(appModeResponse({ draft: "external" }));
 

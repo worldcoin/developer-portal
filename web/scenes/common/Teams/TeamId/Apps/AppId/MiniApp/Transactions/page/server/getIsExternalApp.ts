@@ -1,8 +1,9 @@
 // Deliberately not a "use server" module: only the server-rendered page calls
-// this, and marking it would expose an unauthorized server action that answers
-// app_mode for any app id. Same shape as layout/server/fetch-app-env.
+// this, so it does not need to be exposed as a server action. Same shape as
+// layout/server/fetch-app-env.
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logger } from "@/lib/logger";
+import { getIsUserAllowedToReadApp } from "@/lib/permissions";
 import { getSdk as getAppModeSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/graphql/server/get-app-mode.generated";
 
 // `category` may be the "External" app-store category even for a Mini App, so
@@ -11,6 +12,12 @@ import { getSdk as getAppModeSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId
 // verified version, matching the notifications gate.
 export const getIsExternalApp = async (appId: string) => {
   try {
+    // Layout authorization is not guaranteed to run before every page request.
+    // Recheck membership before querying app mode with the service role.
+    if (!(await getIsUserAllowedToReadApp(appId))) {
+      return false;
+    }
+
     const { app } = await getAppModeSdk(
       await getAPIServiceGraphqlClient(),
     ).GetAppMode({ id: appId });
