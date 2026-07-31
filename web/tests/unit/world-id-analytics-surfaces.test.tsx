@@ -470,8 +470,7 @@ describe.each([
         expect(
           fetchMock.mock.calls.some(
             (call) =>
-              requestUrl(call[0]).searchParams.get("environment") ===
-              "staging",
+              requestUrl(call[0]).searchParams.get("environment") === "staging",
           ),
         ).toBe(true),
       );
