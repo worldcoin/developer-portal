@@ -1,157 +1,182 @@
 "use client";
 
-import { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
-import { Button } from "@/components/Button";
-import { Checkbox } from "@/components/Checkbox";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Input } from "@/components/Input";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import type { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
 import { teamNameSchema } from "@/lib/schema";
+import { TEAM_CREATED_TOAST_STORAGE_KEY } from "@/lib/team-created-toast";
 import { urls } from "@/lib/urls";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 
-export const Form = (props: { hasUser: boolean }) => {
-  const router = useRouter();
-  const { invalidate } = useUser();
+const schema = yup
+  .object({
+    teamName: teamNameSchema,
+    termsAndConditions: yup
+      .boolean()
+      .required("Please accept the terms and conditions")
+      .test(
+        "accepted",
+        "Please accept the terms and conditions",
+        (value) => value === true,
+      ),
+  })
+  .noUnknown();
 
-  const schema = useMemo(
-    () =>
-      yup
-        .object({
-          hasUser: yup.boolean().default(props.hasUser),
-          teamName: teamNameSchema,
-          termsAndConditions: yup.boolean().when("hasUser", {
-            is: false,
-            then: (schema) =>
-              schema
-                .isTrue("Please, accept terms and conditions")
-                .required("Please, accept terms and conditions"),
-            otherwise: (schema) => schema.notRequired(),
-          }),
+type FormValues = yup.InferType<typeof schema>;
 
-          // FIXME: Return when we have product updates
-          // productUpdates: yup.boolean().optional(),
-        })
-        .noUnknown(),
-    [props.hasUser],
-  );
-
-  type FormValues = yup.InferType<typeof schema>;
+// First-signup form: submitting records the terms acceptance and creates the
+// user row alongside the team (see /api/create-team). Existing users never
+// reach this form — the page redirects them to their profile.
+export const Form = () => {
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { isValid, errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
+    defaultValues: {
+      teamName: "",
+      termsAndConditions: false,
+    },
   });
 
-  const submit = useCallback(
-    async (values: FormValues) => {
-      const body: CreateTeamBody = {
-        team_name: values.teamName,
-        hasUser: values.hasUser,
-      };
+  const termsAccepted = watch("termsAndConditions");
 
-      let data: CreateTeamResponse | null = null;
+  const handleCreateTeam = async (values: FormValues) => {
+    const requestBody: CreateTeamBody = {
+      team_name: values.teamName,
+      hasUser: false,
+    };
 
-      try {
-        const res = await fetch("/api/create-team", {
-          method: "POST",
-          body: JSON.stringify(body),
-        });
+    let returnTo: string;
 
-        if (!res.ok) {
-          const error = await res.json();
-          throw error;
-        }
+    try {
+      const response = await fetch("/api/create-team", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
 
-        data = await res.json();
-      } catch (error) {
-        return toast.error("Something went wrong");
+      if (!response.ok) {
+        throw new Error("Create team request failed");
       }
 
-      if (!data || !data.returnTo) {
-        return console.log("Something went wrong");
+      const responseBody = (await response.json()) as CreateTeamResponse;
+      if (!responseBody.returnTo) {
+        throw new Error("Create team response did not include a destination");
       }
 
-      await invalidate();
-      router.push(data.returnTo);
-    },
-    [invalidate, router],
-  );
+      returnTo = responseBody.returnTo;
+    } catch {
+      toast.error("We couldn't create your team. Please try again.");
+      return;
+    }
+
+    setIsRedirecting(true);
+
+    try {
+      window.sessionStorage.setItem(
+        TEAM_CREATED_TOAST_STORAGE_KEY,
+        values.teamName,
+      );
+    } catch {
+      // Storage availability should not prevent navigation to the new team.
+    }
+
+    // Full navigation (not a client push) so the session-fed portal layout is
+    // rebuilt with the freshly created team.
+    window.location.replace(returnTo);
+  };
+
+  const isPending = isSubmitting || isRedirecting;
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="grid gap-y-8">
-      <Input
-        register={register("teamName")}
-        label="Team name"
-        className="w-full"
-        placeholder="Name will be visible to the members"
-        required
-        errors={errors.teamName}
+    <form onSubmit={handleSubmit(handleCreateTeam)} className="mt-12 grid">
+      <label
+        htmlFor="team-name"
+        className="block text-13 leading-none font-medium text-portal-text"
+      >
+        Team name
+      </label>
+
+      <input
+        id="team-name"
+        {...register("teamName")}
+        autoFocus
+        autoComplete="organization"
+        aria-invalid={Boolean(errors.teamName)}
+        aria-describedby={errors.teamName ? "team-name-error" : undefined}
+        className="mt-2 w-full border-0 border-b-2 border-black/30 bg-transparent px-0 pb-3 text-[clamp(34px,5vw,52px)] leading-none font-light tracking-[-0.035em] text-portal-text outline-hidden transition-colors focus:border-black focus:ring-0"
       />
 
-      {!props.hasUser && (
-        <div className="grid gap-y-8 rounded-xl border border-grey-200 p-6">
-          <div className="grid grid-cols-auto/1fr gap-x-3">
-            <Checkbox register={register("termsAndConditions")} />
-            <Typography variant={TYPOGRAPHY.R3}>
-              I agree with the{" "}
-              <Button href={urls.tos()} target="_blank" className="underline">
-                Terms & Conditions
-              </Button>{" "}
-              and{" "}
-              <Button
-                href={urls.privacyStatement()}
-                target="_blank"
-                className="underline"
-              >
-                Privacy Policy
-              </Button>
-              <span className="text-system-error-600">*</span>
-            </Typography>
-          </div>
+      {errors.teamName ? (
+        <p
+          id="team-name-error"
+          className="mt-3 text-12 leading-[1.4] text-system-error-600"
+        >
+          {errors.teamName.message}
+        </p>
+      ) : null}
 
-          {/* FIXME: Return when we have product updates */}
-          {/* <div className="grid grid-cols-auto/1fr gap-x-3 gap-y-1">
-            <Checkbox
-              register={register("productUpdates")}
-              className="col-start-1 row-start-1"
-            />
-
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              className="col-start-2 row-start-1"
+      <div className="mt-8">
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            {...register("termsAndConditions")}
+            type="checkbox"
+            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-grey-300 accent-portal-ink"
+          />
+          <span className="text-13 leading-[1.5] text-portal-muted">
+            I agree to the{" "}
+            <a
+              href={urls.tos()}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-portal-text underline underline-offset-2"
             >
-              I want to receive product updates
-            </Typography>
-
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              className="col-start-2 row-start-2 text-gray-400"
+              Terms &amp; Conditions
+            </a>{" "}
+            and{" "}
+            <a
+              href={urls.privacyStatement()}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-portal-text underline underline-offset-2"
             >
-              Once in a while we will send you an email with current updates
-              about World ID for developers
-            </Typography>
-          </div> */}
-        </div>
-      )}
+              Privacy Policy
+            </a>
+            .
+          </span>
+        </label>
+      </div>
 
-      <DecoratedButton
-        type="submit"
-        className="mt-2 w-[180px] justify-self-center"
-        disabled={!isValid || isSubmitting}
-      >
-        <Typography variant={TYPOGRAPHY.M3}>Create team</Typography>
-      </DecoratedButton>
+      {/* The disabled state already signals the missing consent; the reminder
+          only surfaces as a hover hint so the form never shouts in red. */}
+      <div className="group relative mt-10 w-full max-w-[220px]">
+        <button
+          type="submit"
+          disabled={!isValid || isPending}
+          aria-describedby={!termsAccepted ? "terms-consent-hint" : undefined}
+          className="inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-8 bg-portal-ink px-6 text-14 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {isPending ? "Creating team…" : "Create team"}
+        </button>
+
+        {!termsAccepted ? (
+          <span
+            id="terms-consent-hint"
+            role="tooltip"
+            className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full rounded-8 bg-portal-ink px-3 py-2 text-12 leading-none whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
+          >
+            Please accept the terms and conditions
+          </span>
+        ) : null}
+      </div>
     </form>
   );
 };

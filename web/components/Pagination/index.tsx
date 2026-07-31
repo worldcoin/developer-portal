@@ -52,7 +52,7 @@ export const Pagination: React.FC<FooterProps> = ({
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className={clsx(
-            "group flex size-8 cursor-pointer items-center justify-center rounded-lg border border-grey-200",
+            "group flex size-8 items-center justify-center rounded-lg border border-grey-200",
             {
               "disabled:cursor-not-allowed disabled:opacity-50":
                 currentPage === 1,
@@ -75,7 +75,7 @@ export const Pagination: React.FC<FooterProps> = ({
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === pageCount}
           className={clsx(
-            "group flex size-8 cursor-pointer items-center justify-center rounded-lg border border-grey-200",
+            "group flex size-8 items-center justify-center rounded-lg border border-grey-200",
             {
               "disabled:cursor-not-allowed disabled:opacity-50":
                 currentPage === pageCount,

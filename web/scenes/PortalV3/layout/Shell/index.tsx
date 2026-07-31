@@ -1,11 +1,13 @@
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
-import { calculateColorFromString } from "@/lib/calculate-color-from-string";
-import { ReactNode } from "react";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { CSSProperties, ReactNode } from "react";
 import { AppsDropdown } from "./AppsDropdown";
-import { ShellFrame } from "./ShellFrame";
-import { SidebarNav } from "./SidebarNav";
-import { TeamsDropdown } from "./TeamsDropdown";
-import { UserPopup } from "./UserPopup";
+import { PortalSidebar } from "./PortalSidebar";
 
 /** Portal shell, mounted at the (portal) root for allow-listed users. */
 export const PortalShell = (props: {
@@ -15,29 +17,45 @@ export const PortalShell = (props: {
   children?: ReactNode;
 }) => {
   const { user, teams = [], sandboxRequest = null, children } = props;
-  const color = calculateColorFromString(user.name ?? user.email ?? "");
 
   return (
-    <ShellFrame
-      appSwitcher={<AppsDropdown />}
-      sidebar={
-        <>
-          <TeamsDropdown teams={teams} />
-          <SidebarNav initialSandboxRequest={sandboxRequest} />
+    <TooltipProvider>
+      <SidebarProvider
+        data-testid="portal-shell"
+        className="min-h-[100dvh] bg-portal-canvas font-world"
+        style={
+          {
+            "--sidebar-width": "280px",
+            "--portal-header-height": "67px",
+            "--sidebar": "var(--color-portal-canvas)",
+            "--sidebar-foreground": "var(--color-portal-muted)",
+            "--sidebar-accent": "var(--color-portal-border)",
+            "--sidebar-accent-foreground": "var(--color-portal-text)",
+            "--sidebar-border": "var(--color-portal-border)",
+          } as CSSProperties
+        }
+      >
+        <PortalSidebar
+          user={user}
+          teams={teams}
+          sandboxRequest={sandboxRequest}
+        />
 
-          <div className="mt-auto px-4 pb-4">
-            <UserPopup
-              user={{
-                name: user.name ?? user.email ?? "Account",
-                email: user.email ?? undefined,
-              }}
-              color={color}
+        <SidebarInset className="min-h-[100dvh] min-w-0 bg-white">
+          <header className="flex h-(--portal-header-height) shrink-0 items-center gap-3 border-b border-portal-border bg-portal-canvas px-4 md:px-5">
+            <SidebarTrigger
+              aria-label="Open sidebar"
+              title="Open sidebar"
+              className="size-8 shrink-0 text-portal-muted hover:bg-portal-border hover:text-portal-text md:data-[state=expanded]:hidden"
             />
+            <AppsDropdown />
+          </header>
+
+          <div className="min-w-0 flex-1 overflow-auto bg-white">
+            {children}
           </div>
-        </>
-      }
-    >
-      {children}
-    </ShellFrame>
+        </SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 };

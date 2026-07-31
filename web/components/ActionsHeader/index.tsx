@@ -4,7 +4,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { DocsIcon } from "@/components/Icons/DocsIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { DOCS_CLOUD_URL } from "@/lib/constants";
+import { DOCS_IDKIT_INTEGRATION_URL } from "@/lib/constants";
 import clsx from "clsx";
 import Link from "next/link";
 import posthog from "posthog-js";
@@ -36,7 +36,7 @@ export const ActionsHeader = memo(function ActionsHeader(
     displayText,
     backText,
     backUrl,
-    learnMoreUrl = DOCS_CLOUD_URL,
+    learnMoreUrl = DOCS_IDKIT_INTEGRATION_URL,
     isLoading = false,
     className,
     environment,

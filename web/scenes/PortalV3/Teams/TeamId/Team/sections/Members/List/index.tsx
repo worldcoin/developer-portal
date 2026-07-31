@@ -1,5 +1,4 @@
 "use client";
-import { Pagination } from "@/components/Pagination";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -8,7 +7,7 @@ import { useMutation, useQuery } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { InviteTeamMembersDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/invite-team-members.generated";
 import { EditRoleDialog, editRoleDialogAtom } from "./EditRoleDialog";
@@ -65,32 +64,6 @@ export const List = (props: ListProps) => {
       })),
     ] satisfies FetchTeamMembersQuery["members"][number][];
   }, [membersRes]);
-
-  const ROWS_PER_PAGE = 5;
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // reset to page 1 whenever the (server-side) search keyword changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [props.keyword]);
-
-  const pageCount = Math.max(1, Math.ceil(items.length / ROWS_PER_PAGE));
-  // clamp the active page so it can't fall out of range when items shrink (e.g. after remove/cancel)
-  const safePage = Math.min(currentPage, pageCount);
-
-  const paginatedItems = useMemo(() => {
-    const start = (safePage - 1) * ROWS_PER_PAGE;
-    return items.slice(start, start + ROWS_PER_PAGE);
-  }, [items, safePage]);
-
-  const membersToRenderHasInvitedMember = useMemo(() => {
-    for (const member of paginatedItems) {
-      if (member.id.startsWith("inv_")) {
-        return true;
-      }
-    }
-    return false;
-  }, [paginatedItems]);
 
   const onEditUser = useCallback(
     (membership: FetchTeamMembersQuery["members"][number]) => {
@@ -173,72 +146,44 @@ export const List = (props: ListProps) => {
   );
 
   return (
-    <div className="order-2">
-      <div className="grid md:grid-cols-[max-content_auto_auto_auto_max-content] md:items-center">
-        <div className="contents text-12 leading-4 text-grey-400">
-          <div className="hidden md:contents">
-            <Typography variant={TYPOGRAPHY.R5} className="col-span-2 py-3">
-              Member
-            </Typography>
-
-            <Typography variant={TYPOGRAPHY.R5} className="col-span-3 py-3">
-              Role
-            </Typography>
-          </div>
-
-          <div className="col-span-full border-b border-grey-100 max-md:hidden" />
-
-          {membersToRenderHasInvitedMember && (
-            <div className="mt-8 max-md:order-1 max-md:col-span-full max-md:mb-1 md:hidden">
-              Invited
-            </div>
-          )}
-
-          <div className="mt-8 max-md:order-2 max-md:col-span-full max-md:mb-1 md:hidden">
-            Active
-          </div>
-
-          {membersRes.loading &&
-            Array.from({ length: 3 }).map((_, i) => <Item key={i} />)}
-
-          {paginatedItems.map((item) => (
-            <Item
-              key={item.id}
-              item={item}
-              isCurrent={isCurrentMember(item)}
-              isEnoughPermissions={isEnoughPermissions}
-              onEdit={() => onEditUser(item)}
-              onRemove={() => onRemoveUser(item)}
-              onResendInvite={() => resendInvite(item)}
-              onCancelInvite={() => cancelInvite(item)}
-            />
-          ))}
-        </div>
+    <>
+      <div className="grid grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-y border-grey-100 bg-grey-25 px-5 py-2.5 font-gta text-12 leading-4 text-grey-400">
+        <span>Member</span>
+        <span>Access</span>
+        <span aria-hidden="true" />
       </div>
 
-      {!membersRes.loading && items.length > ROWS_PER_PAGE && (
-        <Pagination
-          totalResults={items.length}
-          currentPage={safePage}
-          rowsPerPage={ROWS_PER_PAGE}
-          handlePageChange={setCurrentPage}
-          className="relative"
-        />
-      )}
+      <div className="max-h-[229px] [scrollbar-width:thin] overflow-y-auto">
+        {membersRes.loading &&
+          Array.from({ length: 3 }).map((_, i) => <Item key={i} />)}
 
-      {membersRes.data && items.length === 0 && props.keyword && (
-        <div className="flex h-[240px] w-full items-center justify-center rounded-2xl border border-grey-200">
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
-            No results
-          </Typography>
-        </div>
-      )}
+        {items.map((item) => (
+          <Item
+            key={item.id}
+            item={item}
+            isCurrent={isCurrentMember(item)}
+            isEnoughPermissions={isEnoughPermissions}
+            onEdit={() => onEditUser(item)}
+            onRemove={() => onRemoveUser(item)}
+            onResendInvite={() => resendInvite(item)}
+            onCancelInvite={() => cancelInvite(item)}
+          />
+        ))}
+
+        {membersRes.data && items.length === 0 && props.keyword && (
+          <div className="flex h-36 w-full items-center justify-center">
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
+              No results
+            </Typography>
+          </div>
+        )}
+      </div>
 
       <RemoveUserDialog name={userToRemove?.name ?? ""} id={userToRemove?.id} />
 
       <EditRoleDialog membership={userToEditRole} />
 
       <PermissionsDialog />
-    </div>
+    </>
   );
 };

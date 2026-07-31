@@ -1,17 +1,22 @@
 "use client";
 
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
-import { LockIcon } from "@/components/Icons/LockIcon";
-import { SendIcon } from "@/components/Icons/SendIcon";
-import { TrashIcon } from "@/components/Icons/TrashIcon";
-import { WalletIcon } from "@/components/Icons/WalletIcon";
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarSeparator,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { urls } from "@/lib/urls";
-import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
-import { useQuery } from "@apollo/client/react";
+import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
+import { BellIcon, LockKeyholeIcon, WalletCardsIcon } from "lucide-react";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useCurrentAppId } from "./AppsDropdown";
-import { HelpCenterMenu } from "./HelpCenterMenu";
+import { useEffect } from "react";
 import { NavItem } from "./NavItem";
 import { SandboxButton } from "./SandboxButton";
 
@@ -28,55 +33,40 @@ export const SidebarNav = (props: {
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
   const teamId = params?.teamId;
-  const routeAppId = params?.appId;
-  const appId = useCurrentAppId();
-  // Same FetchApps as AppsDropdown — Apollo serves the cache after the first
-  // fetch, so this is not a second network round-trip.
-  const { data: appsData, loading: appsLoading } = useQuery(FetchAppsDocument, {
-    variables: { teamId: teamId! },
-    skip: !teamId,
-  });
-  const hasConfirmedApp = Boolean(
-    appId && !appsLoading && appsData?.app?.some((app) => app.id === appId),
-  );
+  const appId = params?.appId;
+  const { setOpenMobile } = useSidebar();
+
+  useEffect(() => setOpenMobile(false), [pathname, setOpenMobile]);
 
   const teamsLandingHref = urls.teams({});
-
-  const appsListHref = teamId
-    ? urls.apps({ team_id: teamId })
+  const teamOverviewHref = teamId
+    ? urls.teams({ team_id: teamId })
     : teamsLandingHref;
   const appBase =
     teamId && appId ? urls.app({ team_id: teamId, app_id: appId }) : undefined;
-
   const ids = teamId && appId ? { team_id: teamId, app_id: appId } : undefined;
 
-  const worldIdHref = ids ? urls.worldId40(ids) : appsListHref;
-
-  const configurationHref = ids ? urls.configuration(ids) : appsListHref;
-  const configurationDangerHref =
-    ids && hasConfirmedApp ? urls.configurationDanger(ids) : undefined;
-  const miniAppHref = ids ? urls.miniAppPermissions(ids) : appsListHref;
+  const worldIdHref = ids ? urls.worldId40(ids) : teamOverviewHref;
+  const configurationHref = ids ? urls.configuration(ids) : teamOverviewHref;
+  const miniAppHref = ids ? urls.miniAppPermissions(ids) : teamOverviewHref;
   const teamSettingsHref = teamId
     ? urls.teamSettings({ team_id: teamId })
     : teamsLandingHref;
 
   const withinApp = (prefix: string) => {
-    if (!routeAppId || !teamId) return false;
-    const routeBase = urls.app({ team_id: teamId, app_id: routeAppId });
+    if (!appId || !teamId) return false;
+    const routeBase = urls.app({ team_id: teamId, app_id: appId });
     if (!pathname.startsWith(routeBase)) return false;
-    const rel = pathname.slice(routeBase.length);
-    return rel === prefix || rel.startsWith(`${prefix}/`);
+    const relativePath = pathname.slice(routeBase.length);
+    return relativePath === prefix || relativePath.startsWith(`${prefix}/`);
   };
 
   const worldIdActive =
-    pathname === appsListHref ||
     (Boolean(appBase) && pathname === appBase) ||
     withinApp("/world-id-4-0") ||
     withinApp("/world-id-actions") ||
     withinApp("/actions");
-  const configurationActive =
-    withinApp("/configuration") && !withinApp("/configuration/danger");
-  const configurationDangerActive = withinApp("/configuration/danger");
+  const configurationActive = withinApp("/configuration");
   const miniAppActive =
     withinApp("/mini-app") ||
     withinApp("/transactions") ||
@@ -89,94 +79,151 @@ export const SidebarNav = (props: {
     withinApp("/mini-app/transactions") || withinApp("/transactions");
   const miniAppNotificationsActive =
     withinApp("/mini-app/notifications") || withinApp("/notifications");
+  const miniAppItems = ids
+    ? [
+        {
+          label: "Permissions",
+          href: urls.miniAppPermissions(ids),
+          active: miniAppPermissionsActive,
+          icon: (
+            <LockKeyholeIcon
+              strokeWidth={1.5}
+              className={`${opticalIconClassName} size-4`}
+            />
+          ),
+        },
+        {
+          label: "Transactions",
+          href: urls.miniAppTransactions(ids),
+          active: miniAppTransactionsActive,
+          icon: (
+            <WalletCardsIcon
+              strokeWidth={1.5}
+              className={`${opticalIconClassName} size-4`}
+            />
+          ),
+        },
+        {
+          label: "Notifications",
+          href: urls.miniAppNotifications(ids),
+          active: miniAppNotificationsActive,
+          icon: (
+            <BellIcon
+              strokeWidth={1.5}
+              className={`${opticalIconClassName} size-4`}
+            />
+          ),
+        },
+      ]
+    : [];
 
   return (
-    <nav className="no-scrollbar flex flex-1 flex-col overflow-y-auto px-4 pt-[27px]">
-      <div className="grid gap-2">
-        <NavItem
-          label="World ID"
-          href={worldIdHref}
-          active={worldIdActive}
-          icon={<NavIcon name="nav-world-id" active={worldIdActive} />}
-        />
+    <nav
+      aria-label="Primary navigation"
+      className="flex min-h-0 flex-1 flex-col"
+    >
+      {teamId ? (
+        <>
+          <SidebarGroup className="px-4 py-2 group-data-[collapsible=icon]:px-3">
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-2">
+                {appId ? (
+                  <>
+                    <NavItem
+                      label="World ID"
+                      href={worldIdHref}
+                      active={worldIdActive}
+                      icon={
+                        <NavIcon name="nav-world-id" active={worldIdActive} />
+                      }
+                    />
+                    <NavItem
+                      label="Configuration"
+                      href={configurationHref}
+                      active={configurationActive}
+                      icon={
+                        <NavIcon
+                          name="nav-configuration"
+                          active={configurationActive}
+                        />
+                      }
+                    />
+                    <NavItem
+                      label="Mini App"
+                      href={miniAppHref}
+                      active={miniAppActive}
+                      current={false}
+                      icon={
+                        <NavIcon name="nav-mini-app" active={miniAppActive} />
+                      }
+                    >
+                      {miniAppActive ? (
+                        <SidebarMenuSub
+                          aria-label="Mini App navigation"
+                          className="mt-2 mr-0 ml-5 border-portal-border pr-0 pl-2.5"
+                        >
+                          {miniAppItems.map((item) => (
+                            <SidebarMenuSubItem key={item.href}>
+                              <SidebarMenuSubButton
+                                asChild
+                                size="sm"
+                                isActive={item.active}
+                                className="h-9 cursor-pointer px-3 font-world text-portal-muted hover:bg-portal-border hover:text-portal-text data-[active=true]:bg-white data-[active=true]:text-portal-text [&>svg]:text-current"
+                              >
+                                <Link
+                                  href={item.href}
+                                  prefetch={false}
+                                  aria-current={
+                                    item.active ? "page" : undefined
+                                  }
+                                >
+                                  {item.icon}
+                                  <span>{item.label}</span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      ) : null}
+                    </NavItem>
+                  </>
+                ) : (
+                  <NavItem
+                    label="Overview"
+                    href={teamOverviewHref}
+                    active={pathname === teamOverviewHref}
+                    icon={
+                      <NavIcon
+                        name="nav-home"
+                        active={pathname === teamOverviewHref}
+                      />
+                    }
+                  />
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
 
-        {appId ? (
-          <>
-            <NavItem
-              label="Configuration"
-              href={configurationHref}
-              active={configurationActive}
-              icon={
-                <NavIcon
-                  name="nav-configuration"
-                  active={configurationActive}
-                />
-              }
-            />
-            <NavItem
-              label="Mini App"
-              href={miniAppHref}
-              active={miniAppActive}
-              current={false}
-              icon={<NavIcon name="nav-mini-app" active={miniAppActive} />}
-            />
-            {miniAppActive && ids ? (
-              <div className="ml-5 grid gap-1 border-l border-portal-border pl-2">
-                <NavItem
-                  label="Permissions"
-                  href={urls.miniAppPermissions(ids)}
-                  active={miniAppPermissionsActive}
-                  className="h-9 rounded-8 pr-3 pl-3 text-12"
-                  icon={<LockIcon className="size-3.5" />}
-                />
-                <NavItem
-                  label="Transactions"
-                  href={urls.miniAppTransactions(ids)}
-                  active={miniAppTransactionsActive}
-                  className="h-9 rounded-8 pr-3 pl-3 text-12"
-                  icon={<WalletIcon className="size-3.5" />}
-                />
-                <NavItem
-                  label="Notifications"
-                  href={urls.miniAppNotifications(ids)}
-                  active={miniAppNotificationsActive}
-                  className="h-9 rounded-8 pr-3 pl-3 text-12"
-                  icon={<SendIcon className="size-3.5" />}
-                />
-              </div>
-            ) : null}
-          </>
-        ) : null}
-      </div>
+          <SidebarSeparator className="mx-4 my-0 bg-portal-border" />
+        </>
+      ) : null}
 
-      <div className="my-2 h-px w-full">
-        <Icon name="nav-separator" className="h-px w-full" />
-      </div>
+      {teamId ? (
+        <SidebarGroup className="px-4 pt-3 pb-2 group-data-[collapsible=icon]:px-3">
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-2">
+              <NavItem
+                label="Team settings"
+                href={teamSettingsHref}
+                active={settingsActive}
+                icon={<NavIcon name="nav-settings" active={settingsActive} />}
+              />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      ) : null}
 
-      <div className="grid gap-2">
-        <NavItem
-          label="Team settings"
-          href={teamSettingsHref}
-          active={settingsActive}
-          icon={<NavIcon name="nav-settings" active={settingsActive} />}
-        />
-        <HelpCenterMenu />
-        {configurationDangerHref ? (
-          <NavItem
-            label="Danger zone"
-            href={configurationDangerHref}
-            active={configurationDangerActive}
-            icon={<TrashIcon className="size-4" />}
-            className={
-              configurationDangerActive
-                ? "border-system-error-200 bg-system-error-50 text-system-error-600 shadow-none hover:bg-system-error-50 hover:text-system-error-600"
-                : "hover:bg-system-error-50 hover:text-system-error-600"
-            }
-          />
-        ) : null}
-      </div>
-
-      <div className="mt-auto pt-6 pb-3">
+      <div className="mt-auto px-4 pt-3 pb-3 group-data-[collapsible=icon]:hidden">
         <SandboxButton
           className="-ml-1 w-[calc(100%_+_8px)]"
           initialRequest={props.initialSandboxRequest}

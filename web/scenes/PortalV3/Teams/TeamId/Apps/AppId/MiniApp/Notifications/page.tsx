@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { FormSkeleton } from "../../Configuration/PageComponents/FormSkeleton";
 import { useQuery } from "@apollo/client/react";
 import { FetchNotificationAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated";
+import { noticeIconClassName } from "@/scenes/PortalV3/common/Icon";
 
 type NotificationFormData = {
   walletAddresses: string;
@@ -29,7 +30,10 @@ const NotificationsNotice = ({
 }) => (
   <div className="my-8 grid max-w-[1180px] gap-y-10">
     <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
-      <NotificationBellIcon className="size-8" aria-hidden="true" />
+      <NotificationBellIcon
+        className={`${noticeIconClassName} size-8`}
+        aria-hidden="true"
+      />
 
       <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
         <Typography as="p" className="font-world text-[13px] font-semibold">
@@ -256,7 +260,7 @@ export const NotificationsPage = () => {
             Send notifications to specific wallet addresses. Unverified apps are
             limited to 40 notifications per 4 hours.{" "}
             <a
-              href="https://docs.world.org/mini-apps/reference/api#send-notification"
+              href="https://docs.world.org/api-reference/developer-portal/send-notification"
               target="_blank"
               className="inline-block whitespace-nowrap underline"
               rel="noopener noreferrer"

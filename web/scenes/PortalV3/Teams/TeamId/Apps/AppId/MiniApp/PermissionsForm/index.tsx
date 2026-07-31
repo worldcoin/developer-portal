@@ -12,6 +12,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { noticeIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
@@ -490,7 +491,10 @@ export const SetupForm = ({
   if (appMetadata?.app_mode === "external") {
     return (
       <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
-        <LockIcon className="size-8 text-grey-900" aria-hidden="true" />
+        <LockIcon
+          className={`${noticeIconClassName} size-8 text-grey-900`}
+          aria-hidden="true"
+        />
 
         <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
           <Typography as="p" className="font-world text-[13px] font-semibold">

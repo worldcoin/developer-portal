@@ -19,6 +19,8 @@ interface ShowcaseImagesFieldProps {
   error?: string | null;
   onAutosaveSuccess?: () => void;
   onAutosaveError?: (error: any) => void;
+  dropZoneClassName?: string;
+  dropZoneContent?: React.ReactNode;
 }
 
 const TOAST_ID = "upload_showcase_toast";
@@ -37,6 +39,8 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     error,
     onAutosaveSuccess,
     onAutosaveError,
+    dropZoneClassName,
+    dropZoneContent,
   } = props;
 
   // en is not considered a localization, since we set english properties on app metadata
@@ -166,6 +170,8 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
       onUploadSuccess={handleUploadSuccess}
       onUploadError={handleUploadError}
       error={error}
+      dropZoneClassName={dropZoneClassName}
+      dropZoneContent={dropZoneContent}
     />
   );
 };

@@ -1,18 +1,15 @@
-import clsx from "clsx";
-import { urls } from "@/lib/urls";
-import { TeamLogo } from "@/scenes/PortalV3/Profile/Teams/page/List/TeamLogo";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Button } from "@/components/Button";
 import { Dropdown } from "@/components/Dropdown";
-import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
-import Link from "next/link";
-import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
-import { Role_Enum } from "@/graphql/graphql";
 import { EditIcon } from "@/components/Icons/EditIcon";
 import { ExchangeIcon } from "@/components/Icons/ExchangeIcon";
+import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
 import { LogoutIcon } from "@/components/Icons/LogoutIcon";
-import { Button } from "@/components/Button";
+import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
+import { Role_Enum } from "@/graphql/graphql";
+import { urls } from "@/lib/urls";
+import { TeamLogo } from "@/scenes/PortalV3/Profile/Teams/page/List/TeamLogo";
 import { FetchMeQuery } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
-import { ReactNode } from "react";
+import Link from "next/link";
 import Skeleton from "react-loading-skeleton";
 
 const roleName: Record<Role_Enum, string> = {
@@ -33,179 +30,128 @@ type ItemsProps = {
 export const Item = (props: ItemsProps) => {
   const { item } = props;
 
-  const componentProps = !item
-    ? {
-        type: "button",
-      }
-    : {
-        href: urls.teams({ team_id: item.team.id }),
-      };
-
-  const Component = (props: { className: string; children: ReactNode }) => {
-    if (item) {
-      return (
-        <Button
-          className={props.className}
-          href={urls.teams({ team_id: item.team.id })}
-        >
-          {props.children}
-        </Button>
-      );
-    }
+  if (!item) {
     return (
-      <Button className={props.className} type="button">
-        {props.children}
-      </Button>
-    );
-  };
-
-  return (
-    <Component
-      className={clsx(
-        "md:group rounded-2xl border border-grey-100 max-md:grid max-md:grid-cols-[1fr_auto] md:contents md:max-w-full",
-        {
-          "cursor-default": !item,
-          "cursor-pointer": !!item,
-        },
-      )}
-    >
-      <div className="max-md:grid max-md:grid-cols-auto-1fr-auto max-md:items-center max-md:gap-x-4 max-md:p-4 md:contents">
-        <div className="md:py-4 md:pr-4">
-          {!item ? (
-            <Skeleton className="size-12 rounded-lg leading-normal" inline />
-          ) : (
-            <TeamLogo
-              src={""}
-              name={
-                item.team.name ?? "" /*FIXME: team.name must be non nullable*/
-              }
-            />
-          )}
+      <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-t border-grey-100 px-5 py-3 md:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <Skeleton width={28} height={28} circle inline />
+          <Skeleton width={160} />
         </div>
-
-        <div className="max-md:grid max-md:gap-y-1 md:contents">
-          <div className="truncate group-hover:bg-grey-50 md:grid md:items-center md:self-stretch">
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              className="truncate leading-6 group-hover:bg-grey-50 md:pr-4 md:leading-5"
-            >
-              {!item ? (
-                <Skeleton width={200} />
-              ) : (
-                item.team.name ?? "" /*FIXME: team.name must be non nullable*/
-              )}
-            </Typography>
-          </div>
-
-          <div className="truncate group-hover:bg-grey-50 md:grid md:items-center md:self-stretch">
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              className="truncate text-14 leading-5 text-grey-500 md:py-4"
-            >
-              {!item ? <Skeleton width={100} /> : roleName[item.role]}
-            </Typography>
-          </div>
-        </div>
-
-        <div
-          className="group-hover:bg-grey-50 md:px-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {!item ? (
-            <div className="flex size-8 items-center justify-center">
-              <MoreVerticalIcon className="text-grey-400" />
-            </div>
-          ) : (
-            <Dropdown>
-              <Dropdown.Button className="rounded-8 hover:bg-grey-100">
-                <MoreVerticalIcon />
-              </Dropdown.Button>
-
-              <Dropdown.List
-                align="end"
-                heading={item.team.name ?? ""} // TODO: replace header with team card in separate task
-                hideBackButton
-              >
-                <Dropdown.ListItem asChild>
-                  <Link href={urls.teams({ team_id: item.team.id })}>
-                    <Dropdown.ListItemIcon asChild>
-                      <LoginSquareIcon />
-                    </Dropdown.ListItemIcon>
-
-                    <Dropdown.ListItemText>
-                      Switch to team
-                    </Dropdown.ListItemText>
-                  </Link>
-                </Dropdown.ListItem>
-
-                {(item.role === Role_Enum.Owner ||
-                  item.role === Role_Enum.Admin) && (
-                  <Dropdown.ListItem asChild>
-                    <Link
-                      href={urls.teamSettings({
-                        team_id: item.team.id,
-                      })}
-                    >
-                      <Dropdown.ListItemIcon asChild>
-                        <EditIcon />
-                      </Dropdown.ListItemIcon>
-
-                      <Dropdown.ListItemText>Edit team</Dropdown.ListItemText>
-                    </Link>
-                  </Dropdown.ListItem>
-                )}
-
-                {item.role === Role_Enum.Owner && (
-                  <Dropdown.ListItem asChild>
-                    <button type="button" onClick={props.onClickTransfer}>
-                      <Dropdown.ListItemIcon asChild>
-                        <ExchangeIcon />
-                      </Dropdown.ListItemIcon>
-
-                      <Dropdown.ListItemText>
-                        Transfer ownership
-                      </Dropdown.ListItemText>
-                    </button>
-                  </Dropdown.ListItem>
-                )}
-
-                {item.role === Role_Enum.Owner && (
-                  <Dropdown.ListItem className="text-system-error-600" asChild>
-                    <button type="button" onClick={props.onClickDelete}>
-                      <Dropdown.ListItemIcon
-                        className="text-system-error-600"
-                        asChild
-                      >
-                        <LogoutIcon />
-                      </Dropdown.ListItemIcon>
-
-                      <Dropdown.ListItemText>Delete team</Dropdown.ListItemText>
-                    </button>
-                  </Dropdown.ListItem>
-                )}
-
-                {(item.role === Role_Enum.Admin ||
-                  item.role === Role_Enum.Member) && (
-                  <Dropdown.ListItem className="text-system-error-600" asChild>
-                    <button type="button" onClick={props.onClickLeave}>
-                      <Dropdown.ListItemIcon
-                        className="text-system-error-600"
-                        asChild
-                      >
-                        <LogoutIcon />
-                      </Dropdown.ListItemIcon>
-
-                      <Dropdown.ListItemText>Leave team</Dropdown.ListItemText>
-                    </button>
-                  </Dropdown.ListItem>
-                )}
-              </Dropdown.List>
-            </Dropdown>
-          )}
+        <Skeleton width={56} height={24} borderRadius={999} />
+        <div className="flex size-8 items-center justify-center text-grey-400">
+          <MoreVerticalIcon />
         </div>
       </div>
+    );
+  }
 
-      <hr className="max-md:hidden md:col-span-4 md:border-t md:border-grey-100" />
-    </Component>
+  return (
+    <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-t border-grey-100 px-5 py-3 transition-colors hover:bg-grey-25 md:px-6">
+      <Button
+        href={urls.teams({ team_id: item.team.id })}
+        className="flex min-w-0 items-center gap-3 rounded-8 outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2"
+      >
+        <TeamLogo
+          src=""
+          name={item.team.name ?? "" /*FIXME: team.name must be non nullable*/}
+        />
+        <span className="truncate font-world text-13 leading-5 font-medium text-portal-text">
+          {item.team.name ?? "" /*FIXME: team.name must be non nullable*/}
+        </span>
+      </Button>
+
+      <span className="rounded-full border border-grey-200 bg-white px-2.5 py-1 font-world text-12 leading-none text-grey-500">
+        {roleName[item.role]}
+      </span>
+
+      <div onClick={(event) => event.stopPropagation()}>
+        <Dropdown>
+          <Dropdown.Button
+            aria-label={`Open actions for ${item.team.name ?? "team"}`}
+            className="flex size-8 items-center justify-center rounded-8 text-grey-500 outline-hidden hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-grey-300"
+          >
+            <MoreVerticalIcon />
+          </Dropdown.Button>
+
+          <Dropdown.List
+            align="end"
+            heading={item.team.name ?? ""} // TODO: replace header with team card in separate task
+            hideBackButton
+          >
+            <Dropdown.ListItem asChild>
+              <Link href={urls.teams({ team_id: item.team.id })}>
+                <Dropdown.ListItemIcon asChild>
+                  <LoginSquareIcon />
+                </Dropdown.ListItemIcon>
+
+                <Dropdown.ListItemText>Switch to team</Dropdown.ListItemText>
+              </Link>
+            </Dropdown.ListItem>
+
+            {(item.role === Role_Enum.Owner ||
+              item.role === Role_Enum.Admin) && (
+              <Dropdown.ListItem asChild>
+                <Link
+                  href={urls.teamSettings({
+                    team_id: item.team.id,
+                  })}
+                >
+                  <Dropdown.ListItemIcon asChild>
+                    <EditIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText>Edit team</Dropdown.ListItemText>
+                </Link>
+              </Dropdown.ListItem>
+            )}
+
+            {item.role === Role_Enum.Owner && (
+              <Dropdown.ListItem asChild>
+                <button type="button" onClick={props.onClickTransfer}>
+                  <Dropdown.ListItemIcon asChild>
+                    <ExchangeIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText>
+                    Transfer ownership
+                  </Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
+            )}
+
+            {item.role === Role_Enum.Owner && (
+              <Dropdown.ListItem className="text-system-error-600" asChild>
+                <button type="button" onClick={props.onClickDelete}>
+                  <Dropdown.ListItemIcon
+                    className="text-system-error-600"
+                    asChild
+                  >
+                    <LogoutIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText>Delete team</Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
+            )}
+
+            {(item.role === Role_Enum.Admin ||
+              item.role === Role_Enum.Member) && (
+              <Dropdown.ListItem className="text-system-error-600" asChild>
+                <button type="button" onClick={props.onClickLeave}>
+                  <Dropdown.ListItemIcon
+                    className="text-system-error-600"
+                    asChild
+                  >
+                    <LogoutIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText>Leave team</Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
+            )}
+          </Dropdown.List>
+        </Dropdown>
+      </div>
+    </div>
   );
 };

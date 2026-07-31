@@ -25,6 +25,7 @@ import {
 } from "./graphql/accept-team-invite.generated";
 
 import { logger } from "@/lib/logger";
+import { isPortalV3EnabledForEmail } from "@/lib/feature-flags/portal-v3/flag";
 import { Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { isEmailUser } from "../helpers/is-email-user";
@@ -325,7 +326,9 @@ export const loginCallback = async (req: NextRequest) => {
     }
   }
 
-  // If a user just accepted an invite, redirect them to that teams page.
+  // Portal V2 keeps its original first-team apps destination. Only V3 uses
+  // the cross-device latest-team resolver.
+  const isPortalV3 = isPortalV3EnabledForEmail(auth0User.email);
   const teamId = team_id_from_invite ?? user?.memberships[0]?.team.id;
   let url: string = urls.profile();
   const rawReturnTo = req.nextUrl.searchParams.get("returnTo");
@@ -347,7 +350,15 @@ export const loginCallback = async (req: NextRequest) => {
     url = returnTo;
   }
 
-  if (!returnTo && teamId) {
+  if (!returnTo && isPortalV3 && team_id_from_invite) {
+    url = urls.teams({ team_id: team_id_from_invite });
+  }
+
+  if (!returnTo && isPortalV3 && !team_id_from_invite && teamId) {
+    url = urls.dashboard();
+  }
+
+  if (!returnTo && !isPortalV3 && teamId) {
     url = urls.apps({ team_id: teamId });
   }
 
