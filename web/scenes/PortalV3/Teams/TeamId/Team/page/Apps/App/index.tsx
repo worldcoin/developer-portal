@@ -2,27 +2,24 @@
 
 import { AppStatus, StatusVariant } from "@/components/AppStatus";
 import { Button } from "@/components/Button";
-import { Environment } from "@/components/Environment";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { TYPOGRAPHY } from "@/components/Typography";
 import { urls } from "@/lib/urls";
+import { FetchAppsQuery } from "@/scenes/common/Teams/TeamId/Team/page/Apps/graphql/client/fetch-apps.generated";
+import {
+  actionCardFrameClassName,
+  actionCardTitleClassName,
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionCard";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import { FetchAppsQuery } from "@/scenes/common/Teams/TeamId/Team/page/Apps/graphql/client/fetch-apps.generated";
 import { AppLogo } from "./AppLogo";
 
 /** Card geometry, shared with the loading skeleton. */
-export const appCardFrameClassName =
-  "relative grid justify-center justify-items-center gap-y-4 rounded-20 border border-grey-200 px-8 pt-10 pb-6";
+export const appCardFrameClassName = `${actionCardFrameClassName} relative transition-shadow hover:shadow-portal-card`;
 
 export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
   const { teamId } = useParams() as { teamId: string };
   const app = useMemo(() => props.app, [props.app]);
   const metadata = useMemo(() => app.app_metadata?.[0], [app.app_metadata]);
-
-  const environment = useMemo(
-    () => (app.is_staging ? "staging" : "production"),
-    [app.is_staging],
-  );
 
   return (
     <Button
@@ -31,7 +28,7 @@ export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
     >
       <AppStatus
         status={metadata.verification_status as StatusVariant}
-        className="absolute top-4 right-4 px-2 py-1"
+        className="absolute top-5 right-5 px-2 py-1"
         typography={TYPOGRAPHY.R5}
       />
 
@@ -42,14 +39,10 @@ export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
         verification_status={metadata.verification_status as StatusVariant}
       />
 
-      <div className="grid max-w-[200px] justify-center gap-y-1">
-        <Typography variant={TYPOGRAPHY.M3} className="truncate text-center">
+      <div className="mt-auto min-w-0">
+        <span className={`${actionCardTitleClassName} block truncate`}>
           {metadata.name}
-        </Typography>
-
-        <div className="flex items-center justify-center gap-x-4">
-          <Environment environment={environment} engine={app.engine} />
-        </div>
+        </span>
       </div>
     </Button>
   );

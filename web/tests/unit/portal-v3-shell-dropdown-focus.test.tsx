@@ -53,6 +53,32 @@ describe("Portal v3 shell dropdown focus treatment", () => {
     }
   });
 
+  it("opens Help Center options when its profile-menu item is hovered", async () => {
+    render(
+      <TooltipProvider>
+        <SidebarProvider>
+          <UserPopup
+            user={{ name: "Ada Lovelace", email: "ada@example.com" }}
+            color={null}
+          />
+        </SidebarProvider>
+      </TooltipProvider>,
+    );
+
+    fireEvent.keyDown(screen.getByRole("button", { name: "Account menu" }), {
+      key: "ArrowDown",
+    });
+    const helpCenter = await screen.findByRole("menuitem", {
+      name: "Help center",
+    });
+
+    fireEvent.pointerEnter(helpCenter);
+
+    expect(
+      await screen.findByRole("menuitem", { name: "Documentation" }),
+    ).toBeInTheDocument();
+  });
+
   it("opens the profile menu directly above the profile row", async () => {
     render(
       <TooltipProvider>

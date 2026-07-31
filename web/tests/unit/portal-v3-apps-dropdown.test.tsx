@@ -98,7 +98,7 @@ it("enables the trigger with the default label after loading", () => {
   expect(trigger()).toHaveClass("h-9", "px-3");
 });
 
-it("shows the route app and links app rows directly to World ID", () => {
+it("shows the route app and offers explicit app and overview destinations", () => {
   mockParams = { teamId: "team_1", appId: "app_1" };
   fetchApps.mockReturnValue({
     data: { app: [{ id: "app_1", app_metadata: [{ name: "My App" }] }] },
@@ -115,9 +115,13 @@ it("shows the route app and links app rows directly to World ID", () => {
     "/teams/team_1/apps/app_1/world-id-4-0",
   );
   expect(appLink).toHaveClass("cursor-pointer");
+  expect(screen.getByRole("link", { name: "All apps" })).toHaveAttribute(
+    "href",
+    "/teams/team_1",
+  );
 });
 
-it("remembers the route app on team-scoped routes", () => {
+it("uses only the route app as context on team-scoped routes", () => {
   mockParams = { teamId: "team_1", appId: "app_1" };
   fetchApps.mockReturnValue({
     data: { app: [{ id: "app_1", app_metadata: [{ name: "My App" }] }] },
@@ -136,7 +140,11 @@ it("remembers the route app on team-scoped routes", () => {
     </Provider>,
   );
 
-  expect(trigger()).toHaveTextContent("My App");
+  expect(trigger()).toHaveTextContent("All apps");
+  expect(screen.getByRole("link", { name: "All apps" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
 });
 
 it("filters all loaded apps without hiding the create action", () => {

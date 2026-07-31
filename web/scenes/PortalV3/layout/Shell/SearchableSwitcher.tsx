@@ -25,7 +25,7 @@ import {
 export type SwitcherItem = { id: string; name: string };
 
 export const switcherTriggerClassName =
-  "h-9 min-w-0 px-3 font-world text-13 leading-none font-medium";
+  "h-9 min-w-0 cursor-pointer px-3 font-world text-13 leading-none font-medium";
 
 const createActionClassName =
   "h-10 w-full justify-start gap-2 rounded-8 px-3 font-world text-13 font-medium text-portal-text hover:bg-portal-hover hover:text-portal-text";

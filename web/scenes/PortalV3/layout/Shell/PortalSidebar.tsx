@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/sidebar";
 import { calculateColorFromString } from "@/lib/calculate-color-from-string";
 import { ChevronLeftIcon } from "lucide-react";
+import { SidebarContextHeader } from "./SidebarContextHeader";
 import { SidebarNav } from "./SidebarNav";
-import { TeamsDropdown } from "./TeamsDropdown";
 import { UserPopup } from "./UserPopup";
 
 export const PortalSidebar = (props: {
@@ -23,7 +23,7 @@ export const PortalSidebar = (props: {
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader className="h-(--portal-header-height) shrink-0 justify-center border-b border-portal-border px-4 py-0">
-        <TeamsDropdown teams={teams} />
+        <SidebarContextHeader teams={teams} />
       </SidebarHeader>
 
       <SidebarContent className="gap-0 pt-3">

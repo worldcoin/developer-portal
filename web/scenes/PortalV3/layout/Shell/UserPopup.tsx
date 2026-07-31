@@ -31,6 +31,7 @@ import {
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { CSSProperties } from "react";
+import { HelpCenterMenu } from "./HelpCenterMenu";
 
 export type PortalUser = { name: string; email?: string };
 
@@ -157,6 +158,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
                 </Link>
               </DropdownMenuItem>
             ))}
+            <HelpCenterMenu />
             <ThemeSubmenu />
             <DropdownMenuSeparator className="my-2 bg-portal-border" />
             <DropdownMenuItem asChild className={itemClass}>
