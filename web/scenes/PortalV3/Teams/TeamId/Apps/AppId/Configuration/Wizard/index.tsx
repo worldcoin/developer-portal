@@ -11,6 +11,7 @@ import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/ho
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppStoreForm } from "../AppStore/app-store";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
@@ -72,6 +73,7 @@ export const ConfigurationWizard = (props: {
   } = props;
   const basicInfoRef = useRef<BasicInformationHandle>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const { user } = useUser() as Auth0SessionUser;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
 
@@ -286,12 +288,15 @@ export const ConfigurationWizard = (props: {
       <div className="-mx-6 shrink-0 border-t border-portal-border bg-white px-6 py-3">
         <div className="mx-auto flex w-full max-w-[626px] items-center gap-3">
           <div className="flex flex-1 justify-start">
-            {/* Always rendered: a disabled Back on the first step reads as
-                "you're at the start", where a missing button reads as broken. */}
             <button
               type="button"
-              disabled={activeIndex === 0}
-              onClick={() => handleStepChange(steps[activeIndex - 1].id)}
+              onClick={() => {
+                if (activeIndex === 0) {
+                  router.back();
+                  return;
+                }
+                handleStepChange(steps[activeIndex - 1].id);
+              }}
               className={secondaryButtonClassName}
             >
               Back
