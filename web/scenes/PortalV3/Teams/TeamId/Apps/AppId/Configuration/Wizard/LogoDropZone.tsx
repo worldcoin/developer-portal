@@ -32,7 +32,7 @@ export const LogoDropZone = (props: {
         onDragOver={(event) => event.preventDefault()}
         onDrop={handleDrop}
         className={clsx(
-          "relative flex size-36 flex-col items-center justify-center gap-2 overflow-clip rounded-full border border-dashed px-4 py-3",
+          "group relative flex size-36 flex-col items-center justify-center gap-2 overflow-clip rounded-full border border-dashed px-4 py-3",
           isInert ? "cursor-default" : "cursor-pointer",
           props.disabled && "opacity-60",
           props.error
@@ -43,14 +43,22 @@ export const LogoDropZone = (props: {
         )}
       >
         {props.imageUrl ? (
-          <img
-            src={props.imageUrl}
-            alt="App logo"
-            className={clsx(
-              "absolute inset-0 size-full object-cover",
-              props.isUploading && "opacity-50",
+          <>
+            <img
+              src={props.imageUrl}
+              alt="App logo"
+              className={clsx(
+                "absolute inset-0 size-full object-cover",
+                props.isUploading && "opacity-50",
+              )}
+            />
+            {!isInert && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-grey-900/50 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+              />
             )}
-          />
+          </>
         ) : (
           <>
             <Icon name="share-ios" className="size-6" />
