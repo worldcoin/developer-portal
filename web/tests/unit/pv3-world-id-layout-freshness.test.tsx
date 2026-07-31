@@ -125,10 +125,14 @@ jest.mock(
 );
 
 jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Danger/DangerZoneDisclosure",
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Danger/DangerZoneSection",
   () => ({
-    DangerZoneDisclosure: (props: { appName: string }) => (
-      <div data-testid="danger-zone-disclosure" data-app-name={props.appName} />
+    DangerZoneSection: (props: { appName: string; variant?: string }) => (
+      <div
+        data-testid="danger-zone-section"
+        data-app-name={props.appName}
+        data-variant={props.variant}
+      />
     ),
   }),
 );
@@ -267,9 +271,16 @@ describe("WorldIdLayout [optimistic status]", () => {
     setQuery({ data: makeData(), loading: false });
     render(el());
 
-    expect(screen.getByTestId("danger-zone-disclosure")).toHaveAttribute(
+    expect(
+      screen.getByRole("heading", { name: "World ID Configuration" }),
+    ).toBeVisible();
+    expect(screen.getByTestId("danger-zone-section")).toHaveAttribute(
       "data-app-name",
       "World ID App",
+    );
+    expect(screen.getByTestId("danger-zone-section")).toHaveAttribute(
+      "data-variant",
+      "compact",
     );
   });
 

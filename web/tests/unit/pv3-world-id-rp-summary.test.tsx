@@ -92,6 +92,14 @@ it("shows the vertical RP identity fields and management controls", () => {
   expect(
     screen.getByRole("button", { name: "Copy Signer address" }),
   ).toBeEnabled();
+  const copyButtons = [
+    screen.getByRole("button", { name: "Copy App ID" }),
+    screen.getByRole("button", { name: "Copy RP ID" }),
+    screen.getByRole("button", { name: "Copy Signer address" }),
+  ];
+  for (const copyButton of copyButtons) {
+    expect(copyButton).toHaveClass("ml-auto", "shrink-0");
+  }
   const rotateButton = screen.getByRole("button", {
     name: "Rotate signer key",
   });

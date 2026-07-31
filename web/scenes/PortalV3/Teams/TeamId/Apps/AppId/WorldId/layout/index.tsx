@@ -5,6 +5,7 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { SkeletonForm } from "@/components/Skeletons";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import type { EngineType } from "@/lib/types";
 import {
@@ -13,7 +14,7 @@ import {
   resolveAvailableWorldIdTab,
   WORLD_ID_TABS,
 } from "@/lib/world-id-tabs";
-import { DangerZoneDisclosure } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Danger/DangerZoneDisclosure";
+import { DangerZoneSection } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Danger/DangerZoneSection";
 import { BanMessageDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/common/BanMessageDialog";
 import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
@@ -351,6 +352,14 @@ export const WorldIdLayout = (props: {
 
             {activeTab === WORLD_ID_TABS.Configuration ? (
               <div className="flex flex-col gap-4">
+                <Typography
+                  as="h2"
+                  variant={TYPOGRAPHY.H7}
+                  className="text-portal-ink"
+                >
+                  World ID Configuration
+                </Typography>
+
                 {rp ? (
                   <RpSummary
                     appId={props.appId}
@@ -389,11 +398,14 @@ export const WorldIdLayout = (props: {
                 ) : null}
 
                 {app ? (
-                  <DangerZoneDisclosure
-                    appId={props.appId}
-                    teamId={props.teamId}
-                    appName={appMetadata?.name ?? props.appId}
-                  />
+                  <div className="w-full max-w-[580px]">
+                    <DangerZoneSection
+                      appId={props.appId}
+                      teamId={props.teamId}
+                      appName={appMetadata?.name ?? props.appId}
+                      variant="compact"
+                    />
+                  </div>
                 ) : null}
               </div>
             ) : (

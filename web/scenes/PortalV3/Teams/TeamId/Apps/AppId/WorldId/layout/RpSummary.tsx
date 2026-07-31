@@ -21,11 +21,11 @@ const SummaryField = (props: {
   value: string;
   copy?: boolean;
 }) => (
-  <div className="min-w-0">
+  <div className="w-full min-w-0">
     <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
       {props.label}
     </Typography>
-    <div className="mt-1 flex min-w-0 items-center gap-2">
+    <div className="mt-1 flex min-w-0 items-center justify-between gap-2">
       <Typography
         variant={TYPOGRAPHY.B3}
         className="min-w-0 truncate text-grey-900"
@@ -37,7 +37,7 @@ const SummaryField = (props: {
         <CopyButton
           fieldName={props.label}
           fieldValue={props.value}
-          className="shrink-0 !pr-0 text-grey-500"
+          className="ml-auto shrink-0 !pr-0 text-grey-500"
           iconClassName={clsx("!size-4", opticalIconClassName)}
         />
       ) : null}
