@@ -49,7 +49,12 @@ export const ActionsGrid = (props: {
     (page - 1) * ACTIONS_PER_PAGE,
     page * ACTIONS_PER_PAGE,
   );
-  const [previews, setPreviews] = useState<Record<string, string>>({});
+  const [previews, setPreviews] = useState<
+    Record<
+      string,
+      { count: string; series: Array<{ count: string; date: string }> }
+    >
+  >({});
 
   useEffect(() => {
     if (!pageActions.length) return;
@@ -66,13 +71,24 @@ export const ActionsGrid = (props: {
         if (!response.ok) throw new Error("analytics request failed");
         return response.json();
       })
-      .then((body: { actions?: Array<{ id: string; count: string }> }) => {
-        setPreviews(
-          Object.fromEntries(
-            (body.actions ?? []).map((item) => [item.id, item.count]),
-          ),
-        );
-      })
+      .then(
+        (body: {
+          actions?: Array<{
+            id: string;
+            count: string;
+            series: Array<{ count: string; date: string }>;
+          }>;
+        }) => {
+          setPreviews(
+            Object.fromEntries(
+              (body.actions ?? []).map((item) => [
+                item.id,
+                { count: item.count, series: item.series },
+              ]),
+            ),
+          );
+        },
+      )
       .catch(() => {});
     return () => controller.abort();
   }, [props.appId, page, props.search]);
@@ -107,7 +123,8 @@ export const ActionsGrid = (props: {
             teamId={props.teamId}
             appId={props.appId}
             action={action}
-            previewCount={previews[action.id]}
+            previewCount={previews[action.id]?.count}
+            previewSeries={previews[action.id]?.series}
           />
         ))}
       </div>
