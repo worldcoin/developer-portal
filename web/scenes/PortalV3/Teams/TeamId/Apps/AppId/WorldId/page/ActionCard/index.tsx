@@ -11,8 +11,15 @@ export type ActionCardItem = {
   description: string;
 };
 
-/** Card chrome, shared with the loading skeleton. */
+/**
+ * Card chrome shared beyond this scene — the team app tiles compose it too,
+ * so its metrics are not analytics' to change. Analytics' own taller frame
+ * lives below.
+ */
 export const actionCardFrameClassName =
+  "flex min-h-[144px] flex-col gap-1 rounded-[10px] border border-portal-border bg-white p-5";
+/** Analytics action card: taller, to seat the sparkline and count footer. */
+export const worldIdActionCardFrameClassName =
   "flex min-h-[220px] flex-col justify-between gap-4 rounded-[10px] border border-portal-border bg-white p-5";
 export const actionCardTitleClassName =
   "font-ibm text-13 leading-[1.2] text-portal-heading";
@@ -38,7 +45,7 @@ export const ActionCard = (props: {
       // Keep the accessible name to the action identifier; the preview
       // stats inside the link would otherwise concatenate into it.
       aria-label={action.action}
-      className={`${actionCardFrameClassName} transition-shadow hover:shadow-portal-card`}
+      className={`${worldIdActionCardFrameClassName} transition-shadow hover:shadow-portal-card`}
     >
       <div className="flex flex-col gap-1">
         <span className={actionCardTitleClassName}>{action.action}</span>
