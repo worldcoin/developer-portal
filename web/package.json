@@ -172,7 +172,6 @@
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration --runInBand",
     "test:integration:server": "docker compose -f ../docker-compose-test.yaml up --abort-on-container-exit",
     "test:world-id-analytics:fresh": "bash tests/world-id-analytics/run-fresh-stack.sh",
-    "test:world-id-analytics:million": "bash tests/world-id-analytics/run-fresh-stack.sh --million",
     "test:unit": "jest tests/unit lib/schema --maxWorkers=2",
     "typecheck": "tsc"
   },

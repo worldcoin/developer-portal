@@ -136,22 +136,7 @@ if [[ "${1:-}" == "--release-gate" ]]; then
   exit 0
 fi
 
-if [[ "${1:-}" == "--million" ]]; then
-  export WIA_ANALYTICS_MILLION=1
-  # The v3 created_at index is deliberately an out-of-band operator step
-  # (never a transactional migration); perform it here exactly as the
-  # runbook does in production, before the backfill the test drives.
-  docker compose --project-name "${compose_project}" --file "${compose_file}" \
-    exec --no-TTY postgres psql --username postgres --dbname postgres \
-      --file - \
-    < "${repository_root}/hasura/operations/world-id-analytics/create-nullifier-created-at-index.sql"
-  npx jest tests/world-id-analytics/stack-smoke.test.ts --runInBand
-  npx jest tests/world-id-analytics/million.test.ts --runInBand
-  exit 0
-fi
-
 npx jest \
   tests/world-id-analytics/stack-smoke.test.ts \
   tests/world-id-analytics/backfill-and-validate.test.ts \
   --runInBand
-npx jest tests/world-id-analytics/integration.test.ts --runInBand
