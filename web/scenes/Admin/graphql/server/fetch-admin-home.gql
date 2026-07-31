@@ -11,6 +11,18 @@ query FetchAdminHome($recentLimit: Int!) {
     pending_invites
     total_users
   }
+  sandbox_total: sandbox_access_request_aggregate {
+    aggregate {
+      count
+    }
+  }
+  sandbox_pending: sandbox_access_request_aggregate(
+    where: { accepted: { _eq: false } }
+  ) {
+    aggregate {
+      count
+    }
+  }
   queues: admin_dashboard_queues {
     email
     id
