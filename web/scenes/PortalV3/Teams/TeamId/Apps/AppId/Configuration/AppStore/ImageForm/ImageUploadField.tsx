@@ -7,19 +7,11 @@ import { ImageDropZone } from "@/components/ImageDropZone";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getCDNImageUrl } from "@/lib/utils";
 import { Dialog as HeadlessDialog, Transition } from "@headlessui/react";
-import {
-  Fragment,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Fragment, ReactNode, useCallback, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { twMerge } from "tailwind-merge";
-import { useCroppedImageUpload, useImage } from "../../hook/use-image";
+import { useCroppedImageUpload } from "../../hook/use-image";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
@@ -39,11 +31,6 @@ interface ImageUploadFieldConfig {
   imageConstraints: ImageConstraints;
   imageTypeNamer: (currentCount: number) => string;
   title: string;
-  description: string;
-  required?: boolean;
-  onUploadStart?: () => void;
-  onUploadSuccess?: () => void;
-  onUploadError?: (error: any) => void;
   /** Overrides the empty drop zone's box styling (e.g. wizard theming). */
   dropZoneClassName?: string;
   /** Overrides the drop zone's inner icon/copy (e.g. wizard theming). */
@@ -51,164 +38,54 @@ interface ImageUploadFieldConfig {
 }
 
 interface ImageUploadFieldProps extends ImageUploadFieldConfig {
+  /** Committed metadata paths (e.g. "showcase_img_1.png"). */
   value: string[];
-  onChange: (urls: string[]) => void;
-  onAutosave: (urls: string[]) => Promise<void>;
   disabled?: boolean;
   appId: string;
-  teamId: string;
   locale?: string;
   isAppVerified: boolean;
-  unverifiedImageUrls: string[];
+  /** Signed preview URLs for the unverified images. */
+  previewUrls: string[];
   isImagesLoading: boolean;
-  onRefetchImages: () => Promise<void>;
+  /** True while the upload transaction is in flight. */
+  isUploading: boolean;
+  /** Blob URL of the file being uploaded — shown immediately as a preview. */
+  pendingPreviewUrl: string | null;
+  /** Runs the full upload transaction (S3 → mutation → local state). */
+  onUploadFile: (file: File) => Promise<boolean>;
+  onDelete: (imagePath: string) => Promise<unknown> | void;
   error?: string | null;
 }
 
 export const ImageUploadField = (props: ImageUploadFieldProps) => {
   const {
     value = [],
-    onChange,
-    onAutosave,
     disabled = false,
     appId,
-    teamId,
     locale,
     isAppVerified,
-    unverifiedImageUrls,
+    previewUrls,
     isImagesLoading,
-    onRefetchImages,
+    isUploading,
+    pendingPreviewUrl,
+    onUploadFile,
+    onDelete,
     maxImages,
     imageConstraints,
     imageTypeNamer,
     title,
-    description,
-    required = false,
-    onUploadStart,
-    onUploadSuccess,
-    onUploadError,
     error,
     dropZoneClassName,
     dropZoneContent,
   } = props;
 
-  const [isUploading, setIsUploading] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
-  const isMountedRef = useRef(true);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const isLocalized = locale !== "en";
-
-  const { uploadViaPresignedPost, getImage } = useImage();
-
-  const uploadAcceptedImage = useCallback(
-    async (file: File, height: number, width: number): Promise<boolean> => {
-      const abortController = new AbortController();
-      abortControllerRef.current = abortController;
-
-      const fileTypeEnding = file.type.split("/")[1];
-      // Flips once S3 accepts the file: aborts after this point are unmount
-      // bookkeeping (e.g. the keyed provider remounting and killing an
-      // in-flight refetch), NOT a cancelled upload — don't toast for them.
-      let s3UploadCompleted = false;
-
-      try {
-        setIsUploading(true);
-        onUploadStart?.();
-
-        const imageType = imageTypeNamer(value.length);
-
-        await uploadViaPresignedPost(
-          file,
-          appId,
-          teamId,
-          imageType,
-          isLocalized ? locale : undefined,
-          abortController.signal,
-        );
-        s3UploadCompleted = true;
-        // File is on S3 — don't let unmount abort() invent a cancel toast
-        // while getImage / autosave bookkeeping finishes.
-        abortControllerRef.current = null;
-
-        // S3 has the file from here on — the remaining steps are bookkeeping
-        // and must run even if this component instance unmounts mid-flight
-        // (the form provider is keyed on metadata id + view mode and can
-        // remount during autosave). Persistence is ownerless; only UI
-        // updates below are gated on being mounted.
-        const imageUrl = await getImage(
-          fileTypeEnding,
-          appId,
-          teamId,
-          imageType,
-          isLocalized ? locale : undefined,
-        );
-
-        const extractedPath =
-          extractImagePathWithExtensionFromActualUrl(imageUrl);
-        const newUrls =
-          maxImages === 1 ? [extractedPath] : [...value, extractedPath];
-
-        await onAutosave(newUrls);
-        // Writes into the shared Apollo cache, so a remounted successor
-        // instance watching the same query re-renders with the new image.
-        await onRefetchImages();
-
-        if (isMountedRef.current) {
-          onChange(newUrls);
-        }
-        // Parent toast / bookkeeping — must not be skipped on remount mid-upload.
-        onUploadSuccess?.();
-        return true;
-      } catch (error) {
-        const isAbort = error instanceof Error && error.name === "AbortError";
-        if (isAbort) {
-          // Unmount can abort either the active S3 upload or post-upload
-          // bookkeeping. Only the former is a real cancellation.
-          if (!s3UploadCompleted) {
-            toast.error("Upload was cancelled", { autoClose: 5000 });
-          }
-          return false;
-        }
-
-        console.error("error uploading image:", error);
-        onUploadError?.(error);
-        return false;
-      } finally {
-        abortControllerRef.current = null;
-        if (isMountedRef.current) {
-          setIsUploading(false);
-        }
-      }
-    },
-    [
-      value,
-      maxImages,
-      onUploadStart,
-      imageTypeNamer,
-      uploadViaPresignedPost,
-      appId,
-      teamId,
-      isLocalized,
-      locale,
-      getImage,
-      onAutosave,
-      onRefetchImages,
-      onChange,
-      onUploadSuccess,
-      onUploadError,
-    ],
-  );
 
   const { cropCandidate, clearCropCandidate, handleFileSelected } =
     useCroppedImageUpload({
       targetWidth: imageConstraints.width,
       targetHeight: imageConstraints.height,
-      upload: (file) =>
-        uploadAcceptedImage(
-          file,
-          imageConstraints.height,
-          imageConstraints.width,
-        ),
+      upload: onUploadFile,
     });
 
   const uploadImage = useCallback(
@@ -227,16 +104,6 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
     [maxImages, handleFileSelected, value.length],
   );
 
-  const handleDelete = useCallback(
-    async (imagePath: string) => {
-      const newUrls = value.filter((url) => !url.includes(imagePath));
-      onChange(newUrls);
-      await onAutosave(newUrls);
-      await onRefetchImages();
-    },
-    [value, onChange, onAutosave, onRefetchImages],
-  );
-
   const canUploadMore = value.length < maxImages;
 
   const previewStyle = {
@@ -250,18 +117,32 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         getCDNImageUrl(appId, url, true, locale),
       );
     } else {
-      return unverifiedImageUrls;
+      return previewUrls;
     }
-  }, [isAppVerified, value, unverifiedImageUrls, appId, locale]);
+  }, [isAppVerified, value, previewUrls, appId, locale]);
 
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
+  // The in-flight upload's slot: the local blob renders as the preview the
+  // moment the file is accepted/cropped, before any network promise settles.
+  const uploadingTile = (
+    <div className="relative overflow-hidden rounded-xl" style={previewStyle}>
+      {pendingPreviewUrl ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={pendingPreviewUrl}
+            alt={`${title} upload preview`}
+            className="size-full rounded-xl object-contain"
+          />
+          <div className="absolute inset-0 animate-pulse rounded-xl bg-white/40" />
+        </>
+      ) : (
+        <ImageLoader
+          name={imageTypeNamer(value.length)}
+          className="size-full"
+        />
+      )}
+    </div>
+  );
 
   const dropZoneChildren = (
     <>
@@ -318,10 +199,8 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         <Skeleton height={168} className="rounded-lg" />
       )}
 
-      {/* 0 images: uploading loader */}
-      {value.length === 0 && isUploading && (
-        <ImageLoader name={imageTypeNamer(0)} className="h-[168px]" />
-      )}
+      {/* 0 images: uploading preview */}
+      {value.length === 0 && isUploading && uploadingTile}
 
       {/* ── maxImages === 1: single image, full-width box ── */}
       {value.length > 0 && maxImages === 1 && !isImagesLoading && (
@@ -353,8 +232,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                 </button>
                 <Button
                   type="button"
-                  onClick={() => handleDelete(imagePath)}
+                  onClick={() => onDelete(imagePath)}
                   disabled={disabled}
+                  aria-label={`Delete ${imagePath}`}
                   className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <TrashIcon className="text-grey-500" />
@@ -362,14 +242,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
               </div>
             );
           })}
-          {isUploading && (
-            <div style={previewStyle}>
-              <ImageLoader
-                name={imageTypeNamer(value.length)}
-                className="size-full"
-              />
-            </div>
-          )}
+          {isUploading && uploadingTile}
         </>
       )}
 
@@ -411,8 +284,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                 </button>
                 <Button
                   type="button"
-                  onClick={() => handleDelete(imagePath)}
+                  onClick={() => onDelete(imagePath)}
                   disabled={disabled}
+                  aria-label={`Delete ${imagePath}`}
                   className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <TrashIcon className="text-grey-500" />
@@ -421,15 +295,8 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             );
           })}
 
-          {/* uploading loader occupies next slot */}
-          {isUploading && (
-            <div style={previewStyle}>
-              <ImageLoader
-                name={imageTypeNamer(value.length)}
-                className="size-full"
-              />
-            </div>
-          )}
+          {/* uploading preview occupies next slot */}
+          {isUploading && uploadingTile}
 
           {/* drop zone occupies next slot */}
           {canUploadMore && !isUploading && (
@@ -473,13 +340,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         targetWidth={imageConstraints.width}
         targetHeight={imageConstraints.height}
         isApplying={isUploading}
-        onApply={(file) =>
-          uploadAcceptedImage(
-            file,
-            imageConstraints.height,
-            imageConstraints.width,
-          )
-        }
+        onApply={onUploadFile}
         onClosed={clearCropCandidate}
         previewAlt={`${title} crop preview`}
       />

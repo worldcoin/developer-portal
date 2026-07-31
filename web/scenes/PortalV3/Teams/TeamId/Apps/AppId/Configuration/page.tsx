@@ -447,6 +447,7 @@ const ConfigurationContent = ({
           form in the neighboring column. */}
       <LivePreview
         appId={appId}
+        teamId={teamId}
         teamName={teamName}
         appMetadata={appMetadata}
       />

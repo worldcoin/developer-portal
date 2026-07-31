@@ -3,6 +3,7 @@ import type { FullAppMetadata } from "./types";
 
 type LivePreviewProps = {
   appId: string;
+  teamId: string;
   teamName: string;
   appMetadata: FullAppMetadata;
 };
@@ -10,6 +11,7 @@ type LivePreviewProps = {
 /** Live listing preview, intentionally isolated from page-level actions. */
 export const LivePreview = ({
   appId,
+  teamId,
   teamName,
   appMetadata,
 }: LivePreviewProps) => {
@@ -22,6 +24,7 @@ export const LivePreview = ({
         <div className="min-h-0 flex-1 overflow-y-auto pr-1">
           <LivePreviewContent
             appId={appId}
+            teamId={teamId}
             teamName={teamName}
             appMetadata={appMetadata}
           />

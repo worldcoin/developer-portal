@@ -2,6 +2,7 @@
 
 import { getCDNImageUrl } from "@/lib/utils";
 import { useImageFallback } from "@/scenes/PortalV3/common/useImageFallback";
+import { useUnverifiedImages } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/hooks/use-localised-image-field";
 import { useAtomValue } from "jotai";
 import { useWatch } from "react-hook-form";
 import { selectedLanguageAtom } from "../AppStore/components/FormSections/LocalisationsSection/hooks/useLanguageSelection";
@@ -25,6 +26,7 @@ const ShowcaseSlot = ({ url }: { url?: string }) =>
 
 type LivePreviewProps = {
   appId: string;
+  teamId: string;
   teamName: string;
   appMetadata: {
     verification_status: string;
@@ -55,6 +57,7 @@ const getImageUrl = (
  */
 export const LivePreview = ({
   appId,
+  teamId,
   teamName,
   appMetadata,
 }: LivePreviewProps) => {
@@ -68,6 +71,14 @@ export const LivePreview = ({
   // Follow the locale being edited in Localized content, falling back to
   // English so the preview never goes blank.
   const selectedLanguage = useAtomValue(selectedLanguageAtom);
+  // Showcase uploads patch this exact query entry. Keeping the preview on the
+  // same locale-keyed source means it updates without a refetch or a separate
+  // global-atom synchronization step.
+  const { unverifiedImages } = useUnverifiedImages({
+    appId,
+    teamId,
+    locale: selectedLanguage,
+  });
   const loc =
     localisations?.find((l) => l?.language === selectedLanguage) ??
     localisations?.find((l) => l?.language === "en");
@@ -94,7 +105,7 @@ export const LivePreview = ({
     .filter(Boolean);
   const showcaseUrls = isVerified
     ? metadataShowcaseUrls
-    : images.showcase_image_urls ?? metadataShowcaseUrls;
+    : unverifiedImages?.showcase_img_urls ?? metadataShowcaseUrls;
   const hasWebsite = Boolean(basicInfo.app_website_url?.trim());
   const logo = useImageFallback(logoImgUrl);
 
