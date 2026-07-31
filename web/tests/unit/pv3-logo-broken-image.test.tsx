@@ -25,6 +25,15 @@ describe("LogoDropZone [broken image]", () => {
     expect(logoImg()).toBeNull();
   });
 
+  it("keeps the file input named while a logo covers the label", () => {
+    renderZone("https://cdn.example/unverified/uploaded.png");
+
+    expect(screen.getByLabelText(/Upload app logo/)).toHaveAttribute(
+      "type",
+      "file",
+    );
+  });
+
   it("retries when a new logo url arrives after a failure", () => {
     const rerender = renderZone("https://cdn.example/unverified/missing.png");
     fireEvent.error(logoImg()!);

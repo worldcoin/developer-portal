@@ -44,6 +44,9 @@ export const LogoDropZone = (props: {
               "border-black/8 bg-portal-canvas",
         )}
       >
+        {/* The file input is named by this label's text, which is empty
+            whenever a logo covers it. */}
+        <span className="sr-only">Upload app logo</span>
         {props.imageUrl && !logo.isBroken ? (
           <img
             src={props.imageUrl}
