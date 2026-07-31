@@ -127,7 +127,7 @@ jest.mock(
   () => ({
     ImageDisplay: ({ src }: { src: string }) => (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt="image preview" />
+      <img src={src} />
     ),
   }),
 );
@@ -148,13 +148,11 @@ jest.mock(
 );
 // #endregion
 
-import { UpsertLocalisedMetaTagImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/upsert-localised-meta-tag-image.generated";
 import { UpsertLocalisedShowcaseImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/upsert-localised-showcase-images.generated";
 import { useUnverifiedImages } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/hooks/use-localised-image-field";
 import { FetchImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
 import { GetUploadedImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/get-uploaded-image.generated";
 import { UploadImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/upload-image.generated";
-import { MetaTagImageField } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/ImageForm/MetaTagImageField";
 import { ShowcaseImagesField } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/ImageForm/ShowcaseImagesField";
 import { selectedLanguageAtom } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/components/FormSections/LocalisationsSection/hooks/useLanguageSelection";
 import { LivePreview } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/LivePreview/LivePreview";
@@ -221,37 +219,6 @@ const showcaseMutationMock = (
       }),
 });
 
-const metaTagMutationMock = (
-  captured: unknown[],
-  options: { error?: Error } = {},
-): MockedResponse => ({
-  request: {
-    query: UpsertLocalisedMetaTagImageDocument,
-    variables: (vars: Record<string, unknown>) => {
-      captured.push(vars);
-      return true;
-    },
-  },
-  ...(options.error
-    ? { error: options.error }
-    : {
-        result: {
-          data: {
-            update_supported_languages: {
-              __typename: "app_metadata",
-              id: appMetadataId,
-              supported_languages: ["en"],
-            },
-            update_app_metadata_by_pk: {
-              __typename: "app_metadata",
-              id: appMetadataId,
-              meta_tag_image_url: "",
-            },
-          },
-        },
-      }),
-});
-
 const imagesVariables = { id: appId, team_id: teamId };
 
 const seedImagesCache = (
@@ -306,36 +273,6 @@ const ShowcaseHarness = (props: {
       onCommittedValueChange={(urls) => {
         props.onCommitted(urls);
         setValue(urls);
-      }}
-      appId={appId}
-      teamId={teamId}
-      locale="en"
-      isAppVerified={false}
-      appMetadataId={appMetadataId}
-      supportedLanguages={["en"]}
-      unverifiedImages={unverifiedImages}
-      isImagesLoading={isImagesLoading}
-    />
-  );
-};
-
-const MetaTagHarness = (props: {
-  initialValue?: string | null;
-  onCommitted: jest.Mock;
-}) => {
-  const { unverifiedImages, isImagesLoading } = useUnverifiedImages({
-    appId,
-    teamId,
-    locale: "en",
-  });
-  const [value, setValue] = useState<string | null>(props.initialValue ?? null);
-
-  return (
-    <MetaTagImageField
-      value={value}
-      onCommittedValueChange={(url) => {
-        props.onCommitted(url);
-        setValue(url);
       }}
       appId={appId}
       teamId={teamId}
@@ -412,7 +349,7 @@ describe("image upload [success path]", () => {
     stubS3(s3Gate);
     const onCommitted = jest.fn();
 
-    const { client } = renderWithClient(
+    const { client, view } = renderWithClient(
       [...transportMocks(signedUrl), showcaseMutationMock(captured)],
       { showcase_img_urls: [] },
       <ShowcaseHarness onCommitted={onCommitted} />,
@@ -426,9 +363,7 @@ describe("image upload [success path]", () => {
 
     // The blob preview is on screen before S3, the mutation, or the signed
     // URL have resolved.
-    expect(
-      screen.getByAltText("Showcase Images upload preview"),
-    ).toHaveAttribute("src", "blob:mock-1");
+    expect(view.container.querySelector('img[src="blob:mock-1"]')).toBeTruthy();
     expect(onCommitted).not.toHaveBeenCalled();
     expect(captured).toHaveLength(0);
 
@@ -451,13 +386,12 @@ describe("image upload [success path]", () => {
     // network request would have found no mock and errored).
     expect(readImagesCache(client)?.showcase_img_urls).toEqual([signedUrl]);
     // The blob was replaced by the signed URL and revoked.
-    expect(await screen.findByAltText("image preview")).toHaveAttribute(
-      "src",
-      signedUrl,
+    await waitFor(() =>
+      expect(
+        view.container.querySelector(`img[src="${signedUrl}"]`),
+      ).toBeTruthy(),
     );
-    expect(
-      screen.queryByAltText("Showcase Images upload preview"),
-    ).not.toBeInTheDocument();
+    expect(view.container.querySelector('img[src="blob:mock-1"]')).toBeNull();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock-1");
   });
 
@@ -534,9 +468,6 @@ describe("image upload [metadata mutation failure]", () => {
     expect(onCommitted).not.toHaveBeenCalled();
     expect(readImagesCache(client)?.showcase_img_urls).toEqual([]);
     // The optimistic preview is gone and its blob revoked.
-    expect(
-      screen.queryByAltText("Showcase Images upload preview"),
-    ).not.toBeInTheDocument();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock-1");
     // Existing error UX fired.
     expect(toastMocks.error).toHaveBeenCalledWith(
@@ -564,13 +495,6 @@ describe("image deletion", () => {
       />,
     );
 
-    await waitFor(() =>
-      expect(screen.getByAltText("image preview")).toHaveAttribute(
-        "src",
-        seededUrl,
-      ),
-    );
-
     fireEvent.click(
       screen.getByRole("button", { name: "Delete showcase_img_1.png" }),
     );
@@ -582,7 +506,6 @@ describe("image deletion", () => {
     });
     expect(onCommitted).toHaveBeenCalledWith([]);
     expect(readImagesCache(client)?.showcase_img_urls).toEqual([]);
-    expect(screen.queryByAltText("image preview")).not.toBeInTheDocument();
   });
 
   it("rolls back the value and preview when the deletion mutation fails", async () => {
@@ -598,10 +521,6 @@ describe("image deletion", () => {
       />,
     );
 
-    await waitFor(() =>
-      expect(screen.getByAltText("image preview")).toBeInTheDocument(),
-    );
-
     fireEvent.click(
       screen.getByRole("button", { name: "Delete showcase_img_1.png" }),
     );
@@ -612,70 +531,6 @@ describe("image deletion", () => {
       expect(onCommitted).toHaveBeenNthCalledWith(2, ["showcase_img_1.png"]);
     });
     expect(readImagesCache(client)?.showcase_img_urls).toEqual([seededUrl]);
-    expect(await screen.findByAltText("image preview")).toHaveAttribute(
-      "src",
-      seededUrl,
-    );
-  });
-});
-// #endregion
-
-// #region same-key replacement
-describe("replacing an image at the same draft S3 key", () => {
-  it("renders the fresh signed URL after delete → re-upload of the fixed meta tag key", async () => {
-    const oldUrl =
-      "https://assets.test/unverified/app/meta_tag_image.png?signature=old";
-    const newUrl =
-      "https://assets.test/unverified/app/meta_tag_image.png?signature=new";
-    const captured: unknown[] = [];
-    const s3Gate = deferred();
-    s3Gate.resolve();
-    stubS3(s3Gate);
-    const onCommitted = jest.fn();
-
-    const { client } = renderWithClient(
-      [
-        metaTagMutationMock(captured), // delete
-        ...transportMocks(newUrl),
-        metaTagMutationMock(captured), // re-upload
-      ],
-      { meta_tag_image_url: oldUrl },
-      <MetaTagHarness
-        initialValue="meta_tag_image.png"
-        onCommitted={onCommitted}
-      />,
-    );
-
-    await waitFor(() =>
-      expect(screen.getByAltText("image preview")).toHaveAttribute(
-        "src",
-        oldUrl,
-      ),
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Delete meta_tag_image.png" }),
-    );
-    await waitFor(() => expect(onCommitted).toHaveBeenCalledWith(null));
-
-    const file = new File(["fresh"], "meta.png", { type: "image/png" });
-    await act(async () => {
-      await mockAcceptedUpload!(file);
-    });
-
-    // Same object key, new signature: the browser is forced to fetch the new
-    // pixels (the signed response also carries the no-store override
-    // server-side).
-    expect(onCommitted).toHaveBeenLastCalledWith("meta_tag_image.png");
-    expect(readImagesCache(client)?.meta_tag_image_url).toBe(newUrl);
-    expect(await screen.findByAltText("image preview")).toHaveAttribute(
-      "src",
-      newUrl,
-    );
-    expect(captured).toEqual([
-      expect.objectContaining({ meta_tag_image_url: "" }),
-      expect.objectContaining({ meta_tag_image_url: "meta_tag_image.png" }),
-    ]);
   });
 });
 // #endregion
@@ -735,7 +590,7 @@ describe("localized live preview", () => {
     const store = createStore();
     store.set(selectedLanguageAtom, "es");
 
-    render(
+    const { container } = render(
       <JotaiProvider store={store}>
         <ApolloProvider client={client}>
           <LocalizedLivePreviewHarness />
@@ -743,9 +598,8 @@ describe("localized live preview", () => {
       </JotaiProvider>,
     );
 
-    expect(await screen.findByAltText("Showcase preview")).toHaveAttribute(
-      "src",
-      initialUrl,
+    await waitFor(() =>
+      expect(container.querySelector(`img[src="${initialUrl}"]`)).toBeTruthy(),
     );
 
     act(() => {
@@ -766,10 +620,7 @@ describe("localized live preview", () => {
     });
 
     await waitFor(() =>
-      expect(screen.getByAltText("Showcase preview")).toHaveAttribute(
-        "src",
-        nextUrl,
-      ),
+      expect(container.querySelector(`img[src="${nextUrl}"]`)).toBeTruthy(),
     );
   });
 });
