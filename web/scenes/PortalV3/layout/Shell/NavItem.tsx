@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   MouseEventHandler,
   ReactNode,
-  RefObject,
   useLayoutEffect,
   useRef,
   useState,
@@ -129,15 +128,21 @@ type PillPlacement = { box: PillBox; animate: boolean };
  * moves the items (active change, Mini App submenu expanding, Danger zone
  * appearing) is render-driven, and one rect read per render is negligible.
  * The ResizeObserver covers non-render size changes of the active item.
+ *
+ * The pill finds the nav through its own rendered node instead of a ref
+ * passed from the parent: a parent's element ref is not attached yet when a
+ * child's layout effect runs on the very first commit, and a hard refresh
+ * gives exactly one commit — bailing there left the sheath permanently
+ * missing once the static SSR card handed off. The pill's own node is always
+ * committed before its effect runs, so `closest("nav")` is reliable.
  */
-export const NavActivePill = (props: {
-  navRef: RefObject<HTMLElement | null>;
-}) => {
+export const NavActivePill = () => {
+  const elementRef = useRef<HTMLSpanElement | null>(null);
   const [placement, setPlacement] = useState<PillPlacement | null>(null);
   const activeKeyRef = useRef<string | null>(null);
 
   useLayoutEffect(() => {
-    const nav = props.navRef.current;
+    const nav = elementRef.current?.closest("nav");
     if (!nav) return;
     const activeItem = nav.querySelector<HTMLElement>(
       '[data-sidebar="menu-button"][data-active="true"]',
@@ -192,23 +197,28 @@ export const NavActivePill = (props: {
     };
   });
 
-  if (!placement) return null;
-
-  const { box, animate } = placement;
-
+  // The span stays mounted even before placement (hidden): the effect above
+  // needs it in the DOM to locate the nav on the first — possibly only —
+  // commit after a hard refresh.
   return (
     <span
+      ref={elementRef}
       aria-hidden="true"
       className={cn(
         "pointer-events-none absolute top-0 left-0 rounded-[10px] border border-portal-border bg-white shadow-portal-card",
-        animate &&
+        !placement && "hidden",
+        placement?.animate &&
           "transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none",
       )}
-      style={{
-        transform: `translate(${box.left}px, ${box.top}px)`,
-        width: box.width,
-        height: box.height,
-      }}
+      style={
+        placement
+          ? {
+              transform: `translate(${placement.box.left}px, ${placement.box.top}px)`,
+              width: placement.box.width,
+              height: placement.box.height,
+            }
+          : undefined
+      }
     />
   );
 };

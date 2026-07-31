@@ -11,8 +11,10 @@ const customJestConfig: Config = {
   testEnvironment: "node",
   setupFiles: ["./jest.setup.ts"],
   // .claude holds Claude Code agent worktrees — full stale checkouts of the
-  // repo whose duplicate test files would otherwise run against this tree.
+  // repo whose duplicate test files would otherwise run against this tree
+  // (and whose __mocks__ dirs collide in the haste map).
   testPathIgnorePatterns: ["/node_modules/", "/.next/", "/.claude/"],
+  modulePathIgnorePatterns: ["/.claude/"],
   automock: false,
   resetMocks: false,
   preset: "ts-jest",

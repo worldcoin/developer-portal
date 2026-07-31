@@ -131,7 +131,6 @@ export const SidebarNav = (props: {
   const params = useParams<{ teamId?: string; appId?: string }>();
   const teamId = params?.teamId;
   const appId = params?.appId;
-  const navRef = useRef<HTMLElement>(null);
   const { setOpenMobile } = useSidebar();
 
   // Optimistic route: while a clicked navigation is in flight, the target href
@@ -266,11 +265,10 @@ export const SidebarNav = (props: {
 
   return (
     <nav
-      ref={navRef}
       aria-label="Primary navigation"
       className="relative flex min-h-0 flex-1 flex-col"
     >
-      <NavActivePill key={pillContextKey} navRef={navRef} />
+      <NavActivePill key={pillContextKey} />
       {teamId ? (
         <>
           <SidebarGroup className="px-4 py-2 group-data-[collapsible=icon]:px-3">
