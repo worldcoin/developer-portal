@@ -121,6 +121,26 @@ it("shows the route app and offers explicit app and overview destinations", () =
   );
 });
 
+it("uses the same deterministic app color in the trigger and app row", () => {
+  mockParams = { teamId: "team_1", appId: "app_1" };
+  fetchApps.mockReturnValue({
+    data: { app: [{ id: "app_1", app_metadata: [{ name: "My App" }] }] },
+    loading: false,
+    error: undefined,
+  });
+
+  renderDropdown();
+
+  const initials = screen.getAllByText("M");
+  const backgroundClass = (initial: HTMLElement) =>
+    initial.parentElement?.className
+      .split(" ")
+      .find((className) => className.startsWith("bg-"));
+
+  expect(initials).toHaveLength(2);
+  expect(backgroundClass(initials[0])).toBe(backgroundClass(initials[1]));
+});
+
 it("uses only the route app as context on team-scoped routes", () => {
   mockParams = { teamId: "team_1", appId: "app_1" };
   fetchApps.mockReturnValue({
