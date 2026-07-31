@@ -5,7 +5,7 @@ import {
   formLanguagesList,
   languageMap,
 } from "@/lib/languages";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { WarningBadgeIcon } from "@/scenes/PortalV3/common/Icon";
 import { useMemo, useState } from "react";
 import { Controller } from "react-hook-form";
 import { useAppStoreFormContext } from "../AppStore/app-store";
@@ -18,9 +18,7 @@ const LawsAndRegulationsBanner = () => (
   // (closest, system-warning-500, is #ffb200). The #fff6e6 fill maps to the
   // existing system-warning-75 token.
   <div className="flex w-full items-center gap-3 rounded-[10px] bg-system-warning-75 p-4">
-    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#ffae00]">
-      <Icon name="warning-triangle" className="h-auto w-[15px]" />
-    </span>
+    <WarningBadgeIcon className="bg-[#ffae00]" />
     <p className="min-w-0 flex-1 text-13 leading-[1.2] font-medium text-[#ffae00]">
       Laws and regulations governing mini apps vary by country and region.
       Before launching, ensure your app complies with all relevant local rules,

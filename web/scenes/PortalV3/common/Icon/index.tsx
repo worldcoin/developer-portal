@@ -1,3 +1,4 @@
+import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { twMerge } from "tailwind-merge";
 
 const ICON_PATH = "/images/portal-v3/icons";
@@ -47,4 +48,21 @@ export const Icon = (props: { name: string; className?: string }) => (
     draggable={false}
     className={twMerge("block", props.className)}
   />
+);
+
+/**
+ * Canonical warning glyph for the 32px circular badges used throughout app
+ * configuration. The triangle's visual mass sits below its geometric center,
+ * so the shared optical lift belongs here rather than at each call site.
+ */
+export const WarningBadgeIcon = (props: { className?: string }) => (
+  <span
+    aria-hidden="true"
+    className={twMerge(
+      "flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600",
+      props.className,
+    )}
+  >
+    <AlertIcon className={twMerge("size-4 text-white", opticalIconClassName)} />
+  </span>
 );
