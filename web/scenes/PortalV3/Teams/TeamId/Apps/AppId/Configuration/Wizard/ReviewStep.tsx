@@ -2,6 +2,7 @@
 
 import { getCDNImageUrl } from "@/lib/utils";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { useImageFallback } from "@/scenes/PortalV3/common/useImageFallback";
 import { useAtomValue } from "jotai";
 import { ReactNode } from "react";
 import { useWatch } from "react-hook-form";
@@ -37,6 +38,7 @@ export const ReviewStep = (props: {
   const basicInfoDraft = useAtomValue(basicInfoDraftAtom);
   const unverifiedImages = useAtomValue(unverifiedImageAtom);
   const isVerified = appMetadata.verification_status === "verified";
+  const logo = useImageFallback(props.logoUrl);
 
   const localisations = useWatch({ control, name: "localisations" }) ?? [];
   const en = localisations.find((l) => l.language === "en");
@@ -64,10 +66,11 @@ export const ReviewStep = (props: {
   return (
     <div className="flex w-full flex-col items-start">
       <div className="size-[88px] overflow-clip rounded-[20px] border border-portal-border bg-portal-canvas">
-        {props.logoUrl && (
+        {props.logoUrl && !logo.isBroken && (
           <img
             src={props.logoUrl}
-            alt="App logo"
+            alt=""
+            onError={logo.onError}
             className="pointer-events-none size-full object-cover"
           />
         )}
