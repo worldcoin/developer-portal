@@ -7,6 +7,7 @@ import {
   resolveActiveWorldIdTab,
   WORLD_ID_TABS,
 } from "@/lib/world-id-tabs";
+import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { GetWorldIdNavigationDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/navigation/graphql/client/get-world-id-navigation.generated";
 import { useQuery } from "@apollo/client/react";
 import { BadgeCheckIcon, HistoryIcon, ListChecksIcon } from "lucide-react";
@@ -108,7 +109,7 @@ export const WorldIdNavItem = (props: {
       label: "Configuration",
       href: urls.worldIdTab({ ...ids, tab: WORLD_ID_TABS.Configuration }),
       active: configurationActive,
-      icon: <BadgeCheckIcon strokeWidth={1.5} className="size-4" />,
+      icon: <Icon name="nav-configuration" className="size-4" />,
     },
     ...(showLegacyActions
       ? [
