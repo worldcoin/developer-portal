@@ -30,6 +30,7 @@ import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
 import { getSetupIntent } from "./setup-intent";
 import { WorldId40Pane } from "./WorldId40Pane";
 import { WorldIdTab, WorldIdTabs } from "./WorldIdTabs";
+import { WorldIdAnalyticsGraph } from "../common/WorldIdAnalyticsGraph";
 
 const BanBanner = () => {
   const [, setIsOpened] = useAtom(banMessageDialogOpenedAtom);
@@ -371,6 +372,17 @@ export const WorldIdPage = (props: {
   return (
     <SizingWrapper className="flex flex-col gap-8 py-8">
       {app.is_banned ? <BanBanner /> : null}
+
+      <div className="rounded-[10px] border border-portal-border bg-white p-6">
+        <WorldIdAnalyticsGraph
+          appId={appId}
+          environment={app.is_staging ? "staging" : "production"}
+          scope={{ type: "app" }}
+        />
+        <p className="mt-2 font-world text-13 text-portal-muted">
+          Includes legacy World ID actions
+        </p>
+      </div>
 
       <div className="flex flex-col gap-6">
         <WorldIdTabs

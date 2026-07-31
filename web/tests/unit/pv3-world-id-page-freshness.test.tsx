@@ -18,6 +18,30 @@ jest.mock(
   () => ({ GetWorldIdOverviewDocument: { __mockDoc: "worldIdOverview" } }),
 );
 
+// This file pins the page's own data layer (single useQuery, one listener
+// pair). The analytics hero has its own frozen test file; isolate it here
+// like the other child modules so its listeners/fetches stay out of these
+// counts. Ruled with the fetch mock in the approach note (§8).
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/common/WorldIdAnalyticsGraph",
+  () => ({
+    WorldIdAnalyticsGraph: () => <div data-testid="analytics-graph" />,
+  }),
+);
+
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      period: "last_7_days",
+      app: { count: "0", series: [] },
+      legacy_actions: [],
+      actions: [],
+    }),
+  } as Response),
+) as unknown as typeof fetch;
+
 let searchParams = new URLSearchParams();
 const replace = jest.fn((url: string) => {
   // The page re-derives requestedTab/createActionRequested from

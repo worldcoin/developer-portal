@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { SettingsCard } from "./SettingsCard";
+import { WorldIdAnalyticsGraph } from "../../../WorldId/common/WorldIdAnalyticsGraph";
 
 type Action = GetWorldIdActionDetailQuery["action_v4"][number];
 
@@ -93,16 +94,11 @@ export const WorldIdActionDetailPage = (props: {
 
         {action ? (
           <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
-            <div className="flex flex-col gap-1">
-              <span className="font-world text-sm text-portal-muted">
-                Verifications
-              </span>
-              <span className="font-ibm text-[28px] leading-none font-medium text-portal-heading">
-                {Number(
-                  action.nullifiers_aggregate?.aggregate?.count ?? 0,
-                ).toLocaleString()}
-              </span>
-            </div>
+            <WorldIdAnalyticsGraph
+              appId={appId}
+              environment="production"
+              scope={{ type: "action", source: "v4", actionId }}
+            />
             <VerifiedTable
               columns={["human", "time"]}
               nullifiers={adaptNullifierV4(action.nullifiers)}
@@ -114,15 +110,17 @@ export const WorldIdActionDetailPage = (props: {
           <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
             <div className="flex flex-col gap-1">
               <span className="font-world text-sm text-portal-muted">
-                Verifications
+                Unique Verifications
               </span>
               <Skeleton width={80} height={28} />
             </div>
 
             <div className="mt-6">
-              <Typography variant={TYPOGRAPHY.H7}>Verified humans</Typography>
+              <Typography variant={TYPOGRAPHY.H7}>
+                Recent verifications
+              </Typography>
               <SkeletonTable
-                columns={["Human", "Time"]}
+                columns={["Nullifier", "Time"]}
                 rows={4}
                 className="mt-6"
               />
