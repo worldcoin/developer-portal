@@ -63,6 +63,13 @@ const getDatePredicate = (operator: AppsSearchOperator, value: string) => {
   return { _eq: date };
 };
 
+const REVIEW_STATUSES = new Set([
+  "awaiting_review",
+  "changes_requested",
+  "unverified",
+  "verified",
+]);
+
 const createFieldWhere = (
   token: Extract<ParsedAppsSearchToken, { type: "field" }>,
 ): App_Bool_Exp | null => {
@@ -76,6 +83,41 @@ const createFieldWhere = (
     const predicate = getDatePredicate(token.operator, token.value);
 
     return predicate ? { created_at: predicate } : { id: { _in: [] } };
+  }
+
+  if (token.field === "review") {
+    const status = token.value.toLowerCase();
+
+    if (!REVIEW_STATUSES.has(status)) {
+      return { id: { _in: [] } };
+    }
+
+    const statusPredicate =
+      token.operator === "!=" ? { _neq: status } : { _eq: status };
+
+    return {
+      _and: [
+        { deleted_at: { _is_null: true } },
+        { app_metadata: { verification_status: statusPredicate } },
+      ],
+    };
+  }
+
+  if (token.field === "metadata") {
+    const value = token.value.toLowerCase();
+
+    if (value !== "none") {
+      return { id: { _in: [] } };
+    }
+
+    return {
+      _and: [
+        { deleted_at: { _is_null: true } },
+        token.operator === "!="
+          ? { app_metadata: {} }
+          : { _not: { app_metadata: {} } },
+      ],
+    };
   }
 
   return {
