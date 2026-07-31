@@ -22,8 +22,7 @@ type FieldSearchProps = {
   value: string;
 };
 
-const FIELD_VALUE_PATTERN =
-  /^([A-Za-z_][A-Za-z0-9_]*)(>=|<=|!=|:|=|>|<)(.*)$/;
+const FIELD_VALUE_PATTERN = /^([A-Za-z_][A-Za-z0-9_]*)(>=|<=|!=|:|=|>|<)(.*)$/;
 
 const hasBalancedFieldQuotes = (token: string) => {
   const match = token.match(FIELD_VALUE_PATTERN);

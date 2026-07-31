@@ -50,7 +50,7 @@ export const AdminUserPage = async ({
   }
 
   return (
-    <div className="grid min-h-0 max-lg:h-auto grid-rows-auto/1fr gap-y-4 lg:h-full">
+    <div className="grid min-h-0 grid-rows-auto/1fr gap-y-4 max-lg:h-auto lg:h-full">
       <UIModule className="p-5">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
           <div className="min-w-0">
@@ -82,7 +82,7 @@ export const AdminUserPage = async ({
         </div>
       </UIModule>
 
-      <div className="grid min-h-0 w-full max-lg:h-auto grid-cols-1 gap-4 lg:h-full lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] lg:grid-rows-2">
+      <div className="grid min-h-0 w-full grid-cols-1 gap-4 max-lg:h-auto lg:h-full lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] lg:grid-rows-2">
         <UIModule className="min-h-0 overflow-auto p-5 lg:row-span-2">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-16 font-semibold text-grey-900">Overview</h2>

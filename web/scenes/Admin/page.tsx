@@ -43,7 +43,7 @@ type QueueSectionProps = {
 const QueueSection = ({ children, count, href, title }: QueueSectionProps) => (
   <section className="rounded-12 border border-grey-200 bg-grey-50 p-3">
     <Link
-      className="flex items-center justify-between gap-3 rounded-8 outline-none transition-colors hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500"
+      className="flex items-center justify-between gap-3 rounded-8 transition-colors outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500"
       href={href}
     >
       <h3 className="text-14 font-semibold text-grey-900">{title}</h3>
@@ -87,7 +87,7 @@ const RecentSectionHeader = ({
   title: string;
 }) => (
   <Link
-    className="text-grey-600 text-12 font-semibold tracking-[0.08em] uppercase outline-none transition-colors hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500"
+    className="text-grey-600 text-12 font-semibold tracking-[0.08em] uppercase transition-colors outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500"
     href={href}
   >
     {title}
@@ -98,8 +98,8 @@ export const AdminPage = async () => {
   const home = await fetchAdminHome();
 
   return (
-    <div className="grid min-h-0 max-lg:h-auto grid-rows-[auto_minmax(0,1fr)] gap-4 lg:h-full">
-      <UIModule className="min-h-0 max-lg:overflow-visible p-5 lg:overflow-y-auto">
+    <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-4 max-lg:h-auto lg:h-full">
+      <UIModule className="min-h-0 p-5 max-lg:overflow-visible lg:overflow-y-auto">
         <h1 className="text-24 font-semibold tracking-[-0.02em] text-grey-900">
           Internal dashboard
         </h1>
@@ -135,7 +135,7 @@ export const AdminPage = async () => {
       </UIModule>
 
       <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <UIModule className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] max-lg:overflow-visible p-5 lg:overflow-hidden">
+        <UIModule className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] p-5 max-lg:overflow-visible lg:overflow-hidden">
           <div>
             <h2 className="text-16 font-semibold text-grey-900">
               Needs attention
@@ -144,7 +144,7 @@ export const AdminPage = async () => {
               Data states that may need support or operational follow-up.
             </p>
           </div>
-          <div className="mt-4 grid min-h-0 gap-3 max-lg:overflow-visible pr-1 lg:overflow-y-auto">
+          <div className="mt-4 grid min-h-0 gap-3 pr-1 max-lg:overflow-visible lg:overflow-y-auto">
             <QueueSection
               count={home.queueCounts.appsAwaitingReview}
               href="/admin/apps?query=review%3Aawaiting_review"
@@ -231,7 +231,7 @@ export const AdminPage = async () => {
           </div>
         </UIModule>
 
-        <UIModule className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] max-lg:overflow-visible p-5 lg:overflow-hidden">
+        <UIModule className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] p-5 max-lg:overflow-visible lg:overflow-hidden">
           <div>
             <h2 className="text-16 font-semibold text-grey-900">
               Recent changes
@@ -240,7 +240,7 @@ export const AdminPage = async () => {
               Newly created entities and the latest metadata updates.
             </p>
           </div>
-          <div className="mt-4 grid min-h-0 gap-3 max-lg:overflow-visible pr-1 lg:overflow-y-auto">
+          <div className="mt-4 grid min-h-0 gap-3 pr-1 max-lg:overflow-visible lg:overflow-y-auto">
             <section className="rounded-12 border border-grey-200 bg-grey-50 p-3">
               <RecentSectionHeader
                 href="/admin/apps?sort=createdAt%3Adesc"

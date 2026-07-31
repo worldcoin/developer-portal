@@ -30,7 +30,7 @@ export const AdminSandboxRequestsPage = async () => {
     await fetchSandboxAccessRequests();
 
   return (
-    <div className="grid min-h-0 max-lg:h-auto grid-rows-auto/1fr gap-y-4 lg:h-full">
+    <div className="grid min-h-0 grid-rows-auto/1fr gap-y-4 max-lg:h-auto lg:h-full">
       <UIModule className="p-5">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
           <div className="min-w-0">
@@ -145,9 +145,7 @@ export const AdminSandboxRequestsPage = async () => {
                     <td className="px-3 py-2.5">
                       {request.userName ?? request.userId}
                     </td>
-                    <td className="px-3 py-2.5">
-                      {request.userEmail ?? "—"}
-                    </td>
+                    <td className="px-3 py-2.5">{request.userEmail ?? "—"}</td>
                     <td className="px-3 py-2.5">
                       <StatusBadge accepted={request.accepted} />
                     </td>
