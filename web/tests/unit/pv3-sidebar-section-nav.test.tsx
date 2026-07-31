@@ -394,6 +394,35 @@ describe("v3 SidebarNav [team settings]", () => {
       `/teams/${teamId}`,
     );
   });
+
+  // Crossing the settings boundary restructures the whole nav, so unlike
+  // tab-to-tab moves it must not apply optimistically — the sidebar would
+  // run ahead of a window still loading the old scope.
+  it("keeps the settings sidebar until the back navigation commits", () => {
+    const returnTo = `${base}/world-id?tab=actions`;
+    useSearchParams.mockReturnValue(new URLSearchParams({ returnTo }));
+    renderSidebar();
+
+    fireEvent.click(link("Back to previous page"));
+
+    expect(routerPush).toHaveBeenCalledWith(returnTo);
+    noLink("World ID");
+    noLink("Get verified");
+    expect(link("Team settings")).toHaveAttribute("aria-current", "page");
+    expect(link("Back to previous page")).toBeInTheDocument();
+  });
+
+  it("keeps the app tabs until entering settings commits", () => {
+    usePathname.mockReturnValue(`${base}/world-id`);
+    renderSidebar();
+
+    fireEvent.click(link("Team settings"));
+
+    expect(link("World ID")).toBeInTheDocument();
+    expect(link("Get verified")).toBeInTheDocument();
+    expect(link("Team settings")).not.toHaveAttribute("aria-current", "page");
+    noLink("Back to previous page");
+  });
 });
 // #endregion
 

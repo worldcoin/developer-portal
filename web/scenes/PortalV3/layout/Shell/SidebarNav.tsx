@@ -134,8 +134,24 @@ export const SidebarNav = (props: {
   // `currentHref` falls back to the real pathname, which either confirms the
   // pending target (navigation committed) or reverts it (navigation failed).
   const { pendingHref, isNavigating, navigate } = useShellNavigation();
-  const optimisticHref =
+  const pendingTargetHref =
     isNavigating && pendingHref !== null ? pendingHref : null;
+  const teamsLandingHref = urls.teams({});
+  const teamSettingsHref = teamId
+    ? urls.teamSettings({ team_id: teamId })
+    : teamsLandingHref;
+  const isSettingsHref = (href: string) =>
+    Boolean(teamId) && href.split(/[?#]/, 1)[0].startsWith(teamSettingsHref);
+  // Crossing the team-settings boundary swaps the whole nav structure (app
+  // tabs ↔ isolated settings with its back caret). Doing that optimistically
+  // restructures the sidebar against a window still showing the old scope,
+  // so boundary-crossing navigations wait for the committed route instead;
+  // within-scope navigations keep the instant pill slide.
+  const optimisticHref =
+    pendingTargetHref !== null &&
+    isSettingsHref(pendingTargetHref) === isSettingsHref(pathname)
+      ? pendingTargetHref
+      : null;
   const currentHref = optimisticHref ?? pathname;
   // Sidebar destinations may use query-backed sections. Route ownership and
   // active parent checks must compare only the pathname portion.
@@ -169,7 +185,6 @@ export const SidebarNav = (props: {
     setOpenMobile(false);
   }, [currentHref, setOpenMobile]);
 
-  const teamsLandingHref = urls.teams({});
   const teamOverviewHref = teamId
     ? urls.teams({ team_id: teamId })
     : teamsLandingHref;
@@ -179,9 +194,6 @@ export const SidebarNav = (props: {
 
   const configurationHref = ids ? urls.configuration(ids) : teamOverviewHref;
   const miniAppHref = ids ? urls.miniAppPermissions(ids) : teamOverviewHref;
-  const teamSettingsHref = teamId
-    ? urls.teamSettings({ team_id: teamId })
-    : teamsLandingHref;
 
   const withinApp = (prefix: string) => {
     if (!appId || !teamId) return false;
