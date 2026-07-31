@@ -1,11 +1,11 @@
 "use client";
 
 import { FormLanguage, languageMap } from "@/lib/languages";
-import { useUnverifiedImages } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/hooks/use-localised-image-field";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
+import { useSetAtom } from "jotai";
 import { useAppStoreFormContext } from "../AppStore/app-store";
 import { selectedLanguageAtom } from "../AppStore/components/FormSections/LocalisationsSection/hooks/useLanguageSelection";
 import { MetaTagImageField } from "../AppStore/ImageForm/MetaTagImageField";
@@ -13,7 +13,6 @@ import { ShowcaseImagesField } from "../AppStore/ImageForm/ShowcaseImagesField";
 import { SectionHeader } from "./SectionHeader";
 import { TextAreaField } from "./TextAreaField";
 import { TextField } from "./TextField";
-import { useSetAtom } from "jotai";
 
 const localeLabel = (locale: string) =>
   languageMap[locale as keyof typeof languageMap]?.label ?? locale;
@@ -53,7 +52,6 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
     appId,
     teamId,
     supportedLanguages,
-    installCommittedValue,
   } = useAppStoreFormContext();
   const disabled = !isEditable || !isEnoughPermissions;
   const isAppVerified = appMetadata.verification_status === "verified";
@@ -71,18 +69,9 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
   const selectedLocale = localisations[selectedIndex]?.language ?? "en";
   const setSelectedLanguage = useSetAtom(selectedLanguageAtom);
 
-  // The preview is rendered alongside this wizard, so its locale must follow
-  // the wizard tabs rather than the separate legacy localisation form.
   useEffect(() => {
     setSelectedLanguage(selectedLocale as FormLanguage);
   }, [selectedLocale, setSelectedLanguage]);
-
-  // One images subscription for both image fields of the selected locale.
-  const { unverifiedImages, isImagesLoading } = useUnverifiedImages({
-    appId,
-    teamId,
-    locale: selectedLocale,
-  });
 
   return (
     <div className="flex w-full flex-col gap-14">
@@ -215,12 +204,7 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               value={(field.value ?? []).filter((url): url is string =>
                 Boolean(url),
               )}
-              onCommittedValueChange={(urls) =>
-                installCommittedValue(
-                  `localisations.${selectedIndex}.showcase_img_urls`,
-                  urls,
-                )
-              }
+              onChange={field.onChange}
               disabled={disabled}
               appId={appId}
               teamId={teamId ?? ""}
@@ -228,8 +212,6 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               isAppVerified={isAppVerified}
               appMetadataId={appMetadata.id}
               supportedLanguages={supportedLanguages}
-              unverifiedImages={unverifiedImages}
-              isImagesLoading={isImagesLoading}
               error={fieldErrors?.showcase_img_urls?.message}
               dropZoneClassName="h-42"
               dropZoneContent={dropZoneContent}
@@ -249,12 +231,7 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
           render={({ field }) => (
             <MetaTagImageField
               value={field.value || null}
-              onCommittedValueChange={(url) =>
-                installCommittedValue(
-                  `localisations.${selectedIndex}.meta_tag_image_url`,
-                  url ?? "",
-                )
-              }
+              onChange={(url) => field.onChange(url ?? "")}
               disabled={disabled}
               appId={appId}
               teamId={teamId ?? ""}
@@ -262,8 +239,6 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               isAppVerified={isAppVerified}
               appMetadataId={appMetadata.id}
               supportedLanguages={supportedLanguages}
-              unverifiedImages={unverifiedImages}
-              isImagesLoading={isImagesLoading}
               error={fieldErrors?.meta_tag_image_url?.message}
               dropZoneClassName="h-42"
               dropZoneContent={dropZoneContent}

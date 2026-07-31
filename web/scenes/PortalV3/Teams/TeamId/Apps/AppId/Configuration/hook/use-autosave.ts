@@ -21,8 +21,6 @@ export type UseAutosaveOptions<T extends FieldValues> = {
 export type UseAutosaveResult = {
   flush: () => Promise<boolean>;
   isSaving: () => boolean;
-  /** Runs a committed external update without scheduling the whole-form save. */
-  runWithoutAutosave: <R>(fn: () => R) => R;
 };
 
 const DEFAULT_DEBOUNCE_MS = 1500;
@@ -49,18 +47,6 @@ export function useAutosave<T extends FieldValues>(
   // We rely on this rather than RHF's formState.isDirty because that proxy is
   // only reliably current inside a render — autosave runs in callbacks/timers.
   const hasUnsavedChangesRef = useRef(false);
-  // RHF notifies watch subscribers synchronously from setValue, so this guard
-  // prevents dedicated image mutations from being persisted a second time.
-  const suppressChangesRef = useRef(0);
-
-  const runWithoutAutosave = useCallback(<R>(fn: () => R): R => {
-    suppressChangesRef.current += 1;
-    try {
-      return fn();
-    } finally {
-      suppressChangesRef.current -= 1;
-    }
-  }, []);
 
   const clearDebounce = useCallback(() => {
     if (debounceTimerRef.current) {
@@ -200,7 +186,6 @@ export function useAutosave<T extends FieldValues>(
 
     const subscription = form.watch((_values, info) => {
       if (!info.name) return;
-      if (suppressChangesRef.current > 0) return;
       if (!optionsRef.current.enabled) return;
       hasUnsavedChangesRef.current = true;
       clearDebounce();
@@ -221,5 +206,5 @@ export function useAutosave<T extends FieldValues>(
     };
   }, [clearDebounce]);
 
-  return { flush, isSaving, runWithoutAutosave };
+  return { flush, isSaving };
 }

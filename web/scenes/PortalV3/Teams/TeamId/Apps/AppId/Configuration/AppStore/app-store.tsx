@@ -4,14 +4,8 @@ import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { WarningBadgeIcon } from "@/scenes/PortalV3/common/Icon";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import {
-  createContext,
-  PropsWithChildren,
-  useCallback,
-  useContext,
-  useMemo,
-} from "react";
-import { FieldPath, useFormContext, useWatch } from "react-hook-form";
+import { createContext, PropsWithChildren, useContext, useMemo } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
 import { CategorySection } from "./components/FormSections/CategorySection";
 import { ComplianceSection } from "./components/FormSections/ComplianceSection";
@@ -43,15 +37,6 @@ type AppStoreFormContextValue = ReturnType<typeof useAppStoreForm> &
   AppStoreFormProps & {
     isEnoughPermissions: boolean;
     supportedLanguages: string[];
-    /**
-     * Installs a value a dedicated mutation already committed (e.g. an
-     * uploaded image path) without dirtying the form or scheduling the
-     * whole-form autosave.
-     */
-    installCommittedValue: (
-      name: FieldPath<AppStoreFormValues>,
-      value: unknown,
-    ) => void;
   };
 
 const AppStoreFormContext = createContext<AppStoreFormContextValue | null>(
@@ -92,7 +77,7 @@ export const AppStoreForm = ({
 
   const supportedLanguages = useWatch({ control, name: "supported_languages" });
 
-  const { runWithoutAutosave } = useAutosaveWithStatus<AppStoreFormValues>({
+  useAutosaveWithStatus<AppStoreFormValues>({
     id: "app-store",
     form,
     enabled: isEditable && isEnoughPermissions,
@@ -100,22 +85,6 @@ export const AppStoreForm = ({
       await submitSilent(data, signal);
     },
   });
-
-  const { setValue } = form;
-  const installCommittedValue = useCallback(
-    (name: FieldPath<AppStoreFormValues>, value: unknown) => {
-      runWithoutAutosave(() => {
-        // Not dirty: the dedicated image mutation is the persistence owner,
-        // so the general autosave must not re-save (or block on) this field.
-        setValue(name, value as never, {
-          shouldValidate: true,
-          shouldDirty: false,
-          shouldTouch: false,
-        });
-      });
-    },
-    [runWithoutAutosave, setValue],
-  );
 
   return (
     <AppStoreFormContext.Provider
@@ -126,7 +95,6 @@ export const AppStoreForm = ({
         appMetadata,
         isEnoughPermissions,
         supportedLanguages,
-        installCommittedValue,
       }}
     >
       <form
@@ -230,7 +198,6 @@ export const LocalizedContentFields = () => {
     appId,
     teamId,
     supportedLanguages,
-    installCommittedValue,
   } = useAppStoreFormContext();
 
   return (
@@ -244,7 +211,6 @@ export const LocalizedContentFields = () => {
       appId={appId}
       teamId={teamId}
       supportedLanguages={supportedLanguages}
-      installCommittedValue={installCommittedValue}
     />
   );
 };

@@ -1,11 +1,9 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useUnverifiedImages } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/hooks/use-localised-image-field";
 import {
   Control,
   Controller,
   FieldArrayWithId,
   FieldErrors,
-  FieldPath,
 } from "react-hook-form";
 import { AppStoreFormValues } from "../../../FormSchema/types";
 import {
@@ -27,10 +25,6 @@ interface LocalisationsSectionProps extends FormSectionProps {
   appId: string;
   teamId: string;
   supportedLanguages: string[];
-  installCommittedValue: (
-    name: FieldPath<AppStoreFormValues>,
-    value: unknown,
-  ) => void;
 }
 
 export const LocalisationsSection = ({
@@ -43,7 +37,6 @@ export const LocalisationsSection = ({
   appId,
   teamId,
   supportedLanguages,
-  installCommittedValue,
 }: LocalisationsSectionProps) => {
   const {
     selectedLanguage,
@@ -51,13 +44,6 @@ export const LocalisationsSection = ({
     selectedIndex,
     selectedField,
   } = useLanguageSelection(localisations);
-
-  // One images subscription for both image fields of the selected locale.
-  const { unverifiedImages, isImagesLoading } = useUnverifiedImages({
-    appId,
-    teamId,
-    locale: selectedLanguage,
-  });
 
   // fail-safe for empty state
   // en should always be defined
@@ -112,12 +98,7 @@ export const LocalisationsSection = ({
                   value={(field.value || []).filter((url): url is string =>
                     Boolean(url),
                   )}
-                  onCommittedValueChange={(urls) =>
-                    installCommittedValue(
-                      `localisations.${selectedIndex}.showcase_img_urls`,
-                      urls,
-                    )
-                  }
+                  onChange={field.onChange}
                   disabled={!isEditable || !isEnoughPermissions}
                   appId={appId}
                   teamId={teamId}
@@ -125,8 +106,6 @@ export const LocalisationsSection = ({
                   isAppVerified={appMetadata.verification_status === "verified"}
                   appMetadataId={appMetadata.id}
                   supportedLanguages={supportedLanguages}
-                  unverifiedImages={unverifiedImages}
-                  isImagesLoading={isImagesLoading}
                   error={fieldState.error?.message}
                 />
               )}
@@ -145,12 +124,7 @@ export const LocalisationsSection = ({
               render={({ field, fieldState }) => (
                 <MetaTagImageField
                   value={field.value}
-                  onCommittedValueChange={(url) =>
-                    installCommittedValue(
-                      `localisations.${selectedIndex}.meta_tag_image_url`,
-                      url ?? "",
-                    )
-                  }
+                  onChange={field.onChange}
                   disabled={!isEditable || !isEnoughPermissions}
                   appId={appId}
                   teamId={teamId}
@@ -158,8 +132,6 @@ export const LocalisationsSection = ({
                   isAppVerified={appMetadata.verification_status === "verified"}
                   appMetadataId={appMetadata.id}
                   supportedLanguages={supportedLanguages}
-                  unverifiedImages={unverifiedImages}
-                  isImagesLoading={isImagesLoading}
                   error={fieldState.error?.message}
                 />
               )}
