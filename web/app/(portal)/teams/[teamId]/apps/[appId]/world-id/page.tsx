@@ -1,36 +1,34 @@
 import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
 import { urls } from "@/lib/urls";
-import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
-import { ActionsPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/page";
+import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: generateMetaTitle({ left: "Incognito actions" }),
+  title: generateMetaTitle({ left: "World ID" }),
 };
 
-export default async function Page(props: {
+type Props = {
   params: Promise<{ teamId: string; appId: string }>;
   searchParams: Promise<Record<string, string>>;
-}) {
+};
+
+export default async function Page(props: Props) {
   return pickPortalVersion(
+    () => <WorldIdPage />,
     async () => {
       const [params, searchParams] = await Promise.all([
         props.params,
         props.searchParams,
       ]);
-      return redirect(
-        urls.worldIdTab({
-          team_id: params.teamId,
-          app_id: params.appId,
-          tab: WORLD_ID_TABS.LegacyActions,
-          query: searchParams,
-        }),
-      );
+      const legacyPath = urls.worldId40({
+        team_id: params.teamId,
+        app_id: params.appId,
+      });
+      const query = new URLSearchParams(searchParams).toString();
+
+      return redirect(query ? `${legacyPath}?${query}` : legacyPath);
     },
-    () => (
-      <ActionsPage params={props.params} searchParams={props.searchParams} />
-    ),
   );
 }

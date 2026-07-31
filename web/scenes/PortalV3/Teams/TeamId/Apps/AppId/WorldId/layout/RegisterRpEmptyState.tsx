@@ -4,7 +4,6 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 // Show a fallback while an initially open dialog loads. Mimics the dialog
@@ -30,12 +29,11 @@ export const RegisterRpEmptyState = (props: {
   canManageWorldId: boolean;
   onRegistered: () => void;
   onSetupClosed: (completed: boolean) => void;
-  legacyActionsHref?: string;
 }) => {
   const canEnable = !props.isStaging && props.canManageWorldId;
   const [open, setOpen] = useState(Boolean(props.initialOpen) && canEnable);
-  // Latches true on first open and never unsets: the dialog must stay mounted
-  // through close so its leave transition plays and afterLeave can reset it.
+  // Keep the dialog mounted after its first open so FormDialog can play its
+  // leave transition and reset its wizard state in afterLeave.
   const [hasOpened, setHasOpened] = useState(open);
   const completedRef = useRef(false);
 
@@ -55,10 +53,16 @@ export const RegisterRpEmptyState = (props: {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6 py-20 text-center">
-      <div className="flex flex-col items-center gap-2">
-        <Typography variant={TYPOGRAPHY.H6}>Set up World ID</Typography>
-        <Typography variant={TYPOGRAPHY.R4} className="max-w-md text-grey-500">
+    <section className="flex flex-col items-start justify-between gap-5 rounded-xl border border-grey-100 bg-white p-5 sm:flex-row sm:items-center">
+      <div>
+        <Typography as="h2" variant={TYPOGRAPHY.S2}>
+          Set up World ID
+        </Typography>
+        <Typography
+          as="p"
+          variant={TYPOGRAPHY.R4}
+          className="mt-1 max-w-2xl text-grey-500"
+        >
           {props.isStaging
             ? "World ID isn't available for staging apps."
             : !props.canManageWorldId
@@ -71,6 +75,7 @@ export const RegisterRpEmptyState = (props: {
         <DecoratedButton
           type="button"
           variant="primary"
+          className="shrink-0"
           onClick={() => {
             setOpen(true);
             setHasOpened(true);
@@ -78,15 +83,6 @@ export const RegisterRpEmptyState = (props: {
         >
           Enable World ID
         </DecoratedButton>
-      ) : null}
-
-      {props.legacyActionsHref ? (
-        <Link
-          href={props.legacyActionsHref}
-          className="font-world text-13 text-portal-muted underline transition-colors hover:text-portal-ink"
-        >
-          Looking for your World ID 3.0 legacy actions?
-        </Link>
       ) : null}
 
       {hasOpened ? (
@@ -99,6 +95,6 @@ export const RegisterRpEmptyState = (props: {
           onClose={closeDialog}
         />
       ) : null}
-    </div>
+    </section>
   );
 };
