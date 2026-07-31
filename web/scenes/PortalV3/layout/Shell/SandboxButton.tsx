@@ -165,7 +165,7 @@ export const SandboxButton = (props: {
         onClick={openDialog}
         aria-haspopup="dialog"
         className={clsx(
-          "group flex shrink-0 items-center gap-x-3 rounded-[10px] border border-portal-border px-3 py-2 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
+          "group/sandbox flex shrink-0 items-center gap-x-3 rounded-[10px] px-3 py-2 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
           props.className,
         )}
       >
@@ -185,7 +185,7 @@ export const SandboxButton = (props: {
         </span>
         <span
           aria-hidden
-          className="-mr-[5px] font-world text-13 text-portal-subtle transition-transform duration-200 group-hover:translate-x-0.5"
+          className="-mr-[5px] font-world text-13 text-portal-subtle transition-transform duration-200 group-hover/sandbox:translate-x-0.5"
         >
           →
         </span>
