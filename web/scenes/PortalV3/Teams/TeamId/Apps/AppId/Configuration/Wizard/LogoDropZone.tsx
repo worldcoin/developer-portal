@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { useImageFallback } from "@/scenes/PortalV3/common/useImageFallback";
 import clsx from "clsx";
 import { DragEvent } from "react";
 
@@ -18,6 +19,7 @@ export const LogoDropZone = (props: {
   error?: string;
 }) => {
   const isInert = props.disabled || props.isUploading;
+  const logo = useImageFallback(props.imageUrl);
 
   const handleDrop = (event: DragEvent<HTMLElement>) => {
     event.preventDefault();
@@ -42,10 +44,11 @@ export const LogoDropZone = (props: {
               "border-black/8 bg-portal-canvas",
         )}
       >
-        {props.imageUrl ? (
+        {props.imageUrl && !logo.isBroken ? (
           <img
             src={props.imageUrl}
-            alt="App logo"
+            alt=""
+            onError={logo.onError}
             className={clsx(
               "absolute inset-0 size-full object-cover",
               props.isUploading && "opacity-50",
