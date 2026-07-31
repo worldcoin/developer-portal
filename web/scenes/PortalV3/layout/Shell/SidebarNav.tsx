@@ -20,8 +20,6 @@ import { BellIcon, LockKeyholeIcon, WalletCardsIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { useCurrentAppId } from "./AppsDropdown";
-import { HelpCenterMenu } from "./HelpCenterMenu";
 import { NavItem } from "./NavItem";
 import { SandboxButton } from "./SandboxButton";
 
@@ -38,12 +36,11 @@ export const SidebarNav = (props: {
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
   const teamId = params?.teamId;
-  const routeAppId = params?.appId;
-  const appId = useCurrentAppId();
+  const appId = params?.appId;
   const { setOpenMobile } = useSidebar();
   const { data: appsData, loading: appsLoading } = useQuery(FetchAppsDocument, {
     variables: { teamId: teamId! },
-    skip: !teamId,
+    skip: !teamId || !appId,
   });
 
   useEffect(() => setOpenMobile(false), [pathname, setOpenMobile]);
@@ -52,32 +49,31 @@ export const SidebarNav = (props: {
     appId && !appsLoading && appsData?.app?.some((app) => app.id === appId),
   );
   const teamsLandingHref = urls.teams({});
-  const appsListHref = teamId
-    ? urls.apps({ team_id: teamId })
+  const teamOverviewHref = teamId
+    ? urls.teams({ team_id: teamId })
     : teamsLandingHref;
   const appBase =
     teamId && appId ? urls.app({ team_id: teamId, app_id: appId }) : undefined;
   const ids = teamId && appId ? { team_id: teamId, app_id: appId } : undefined;
 
-  const worldIdHref = ids ? urls.worldId40(ids) : appsListHref;
-  const configurationHref = ids ? urls.configuration(ids) : appsListHref;
+  const worldIdHref = ids ? urls.worldId40(ids) : teamOverviewHref;
+  const configurationHref = ids ? urls.configuration(ids) : teamOverviewHref;
   const configurationDangerHref =
     ids && hasConfirmedApp ? urls.configurationDanger(ids) : undefined;
-  const miniAppHref = ids ? urls.miniAppPermissions(ids) : appsListHref;
+  const miniAppHref = ids ? urls.miniAppPermissions(ids) : teamOverviewHref;
   const teamSettingsHref = teamId
     ? urls.teamSettings({ team_id: teamId })
     : teamsLandingHref;
 
   const withinApp = (prefix: string) => {
-    if (!routeAppId || !teamId) return false;
-    const routeBase = urls.app({ team_id: teamId, app_id: routeAppId });
+    if (!appId || !teamId) return false;
+    const routeBase = urls.app({ team_id: teamId, app_id: appId });
     if (!pathname.startsWith(routeBase)) return false;
     const relativePath = pathname.slice(routeBase.length);
     return relativePath === prefix || relativePath.startsWith(`${prefix}/`);
   };
 
   const worldIdActive =
-    pathname === appsListHref ||
     (Boolean(appBase) && pathname === appBase) ||
     withinApp("/world-id-4-0") ||
     withinApp("/world-id-actions") ||
@@ -145,15 +141,16 @@ export const SidebarNav = (props: {
           <SidebarGroup className="px-4 py-2 group-data-[collapsible=icon]:px-3">
             <SidebarGroupContent>
               <SidebarMenu className="gap-2">
-                <NavItem
-                  label="World ID"
-                  href={worldIdHref}
-                  active={worldIdActive}
-                  icon={<NavIcon name="nav-world-id" active={worldIdActive} />}
-                />
-
                 {appId ? (
                   <>
+                    <NavItem
+                      label="World ID"
+                      href={worldIdHref}
+                      active={worldIdActive}
+                      icon={
+                        <NavIcon name="nav-world-id" active={worldIdActive} />
+                      }
+                    />
                     <NavItem
                       label="Configuration"
                       href={configurationHref}
@@ -185,7 +182,7 @@ export const SidebarNav = (props: {
                                 asChild
                                 size="sm"
                                 isActive={item.active}
-                                className="h-9 px-3 font-world text-portal-muted hover:bg-portal-border hover:text-portal-text data-[active=true]:bg-white data-[active=true]:text-portal-text [&>svg]:text-current"
+                                className="h-9 cursor-pointer px-3 font-world text-portal-muted hover:bg-portal-border hover:text-portal-text data-[active=true]:bg-white data-[active=true]:text-portal-text [&>svg]:text-current"
                               >
                                 <Link
                                   href={item.href}
@@ -204,7 +201,19 @@ export const SidebarNav = (props: {
                       ) : null}
                     </NavItem>
                   </>
-                ) : null}
+                ) : (
+                  <NavItem
+                    label="Overview"
+                    href={teamOverviewHref}
+                    active={pathname === teamOverviewHref}
+                    icon={
+                      <NavIcon
+                        name="nav-home"
+                        active={pathname === teamOverviewHref}
+                      />
+                    }
+                  />
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -213,32 +222,31 @@ export const SidebarNav = (props: {
         </>
       ) : null}
 
-      <SidebarGroup className="px-4 pt-3 pb-2 group-data-[collapsible=icon]:px-3">
-        <SidebarGroupContent>
-          <SidebarMenu className="gap-2">
-            {teamId ? (
+      {teamId ? (
+        <SidebarGroup className="px-4 pt-3 pb-2 group-data-[collapsible=icon]:px-3">
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-2">
               <NavItem
                 label="Team settings"
                 href={teamSettingsHref}
                 active={settingsActive}
                 icon={<NavIcon name="nav-settings" active={settingsActive} />}
               />
-            ) : null}
-            <HelpCenterMenu />
-            {configurationDangerHref ? (
-              <NavItem
-                label="Danger zone"
-                href={configurationDangerHref}
-                active={configurationDangerActive}
-                icon={<TrashIcon className="size-4" />}
-                className="hover:bg-system-error-50 hover:text-system-error-600 data-[active=true]:border-system-error-200 data-[active=true]:bg-system-error-50 data-[active=true]:text-system-error-600 data-[active=true]:shadow-none"
-              />
-            ) : null}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
+              {configurationDangerHref ? (
+                <NavItem
+                  label="Danger zone"
+                  href={configurationDangerHref}
+                  active={configurationDangerActive}
+                  icon={<TrashIcon className="size-4" />}
+                  className="hover:bg-system-error-50 hover:text-system-error-600 data-[active=true]:border-system-error-200 data-[active=true]:bg-system-error-50 data-[active=true]:text-system-error-600 data-[active=true]:shadow-none"
+                />
+              ) : null}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      ) : null}
 
-      <div className="mt-auto px-4 pt-6 pb-3 group-data-[collapsible=icon]:hidden">
+      <div className="mt-auto px-4 pt-3 pb-3 group-data-[collapsible=icon]:hidden">
         <SandboxButton
           className="-ml-1 w-[calc(100%_+_8px)]"
           initialRequest={props.initialSandboxRequest}

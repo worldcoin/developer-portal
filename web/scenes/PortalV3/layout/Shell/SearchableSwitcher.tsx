@@ -28,7 +28,7 @@ export const switcherTriggerClassName =
   "h-9 min-w-0 cursor-pointer px-3 font-world text-13 leading-none font-medium";
 
 const createActionClassName =
-  "h-10 w-full cursor-pointer justify-start gap-2 rounded-8 px-3 font-world text-13 font-medium text-portal-text hover:bg-grey-50 hover:text-portal-text";
+  "h-10 w-full justify-start gap-2 rounded-8 px-3 font-world text-13 font-medium text-portal-text hover:bg-grey-50 hover:text-portal-text";
 
 type CreateAction = {
   label: string;
@@ -178,7 +178,7 @@ export const SearchableSwitcher = <T extends SwitcherItem>(
                   aria-current={isSelected ? "page" : undefined}
                   onClick={() => setPopoverOpen(false)}
                   className={cn(
-                    "flex h-10 items-center gap-2 rounded-8 px-3 font-world text-13 font-medium text-portal-text outline-none hover:bg-grey-50 focus-visible:bg-grey-50",
+                    "flex h-10 cursor-pointer items-center gap-2 rounded-8 px-3 font-world text-13 font-medium text-portal-text outline-none hover:bg-grey-50 focus-visible:bg-grey-50",
                     isSelected && "bg-grey-50",
                   )}
                 >

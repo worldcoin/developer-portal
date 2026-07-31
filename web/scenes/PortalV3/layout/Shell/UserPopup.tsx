@@ -12,7 +12,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { urls } from "@/lib/urls";
 import { Color } from "@/scenes/common/Profile/types";
@@ -22,6 +21,7 @@ import { useAtomValue } from "jotai";
 import { ChevronsUpDownIcon } from "lucide-react";
 import Link from "next/link";
 import { CSSProperties } from "react";
+import { HelpCenterMenu } from "./HelpCenterMenu";
 
 export type PortalUser = { name: string; email?: string };
 
@@ -70,7 +70,6 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
   const { user } = props;
   const selectedColor = useAtomValue(colorAtom);
   const color = selectedColor ?? props.color;
-  const { isMobile } = useSidebar();
 
   return (
     <SidebarMenu>
@@ -81,7 +80,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               size="lg"
               aria-label="Account menu"
               title={user.name}
-              className="text-portal-text hover:bg-portal-border focus-visible:bg-portal-border focus-visible:ring-0 data-open:bg-portal-border"
+              className="cursor-pointer text-portal-text hover:bg-portal-border focus-visible:bg-portal-border focus-visible:ring-0 data-open:bg-portal-border"
             >
               <UserAvatar name={user.name} color={color} />
               <span className="min-w-0 flex-1 truncate font-world text-13 leading-none font-medium group-data-[collapsible=icon]:hidden">
@@ -92,10 +91,10 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={12}
-            className="w-64 border border-portal-border font-world"
+            side="top"
+            align="start"
+            sideOffset={8}
+            className="w-(--radix-dropdown-menu-trigger-width) border border-portal-border font-world"
           >
             {accountLinks.map((item) => (
               <DropdownMenuItem key={item.href} asChild className={itemClass}>
@@ -108,6 +107,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
                 </Link>
               </DropdownMenuItem>
             ))}
+            <HelpCenterMenu />
             <DropdownMenuSeparator className="my-2 bg-portal-border" />
             <DropdownMenuItem asChild className={itemClass}>
               <a

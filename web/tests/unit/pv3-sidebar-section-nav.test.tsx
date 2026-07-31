@@ -21,10 +21,6 @@ jest.mock("@/lib/utils", () => ({
   cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
 }));
 
-jest.mock("@/scenes/PortalV3/layout/Shell/HelpCenterMenu", () => ({
-  HelpCenterMenu: () => <button type="button">Help center</button>,
-}));
-
 jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
   SandboxButton: () => <button type="button">World ID Sandbox</button>,
 }));
@@ -84,6 +80,7 @@ describe("v3 SidebarNav [navigation hierarchy]", () => {
     renderSidebar();
 
     expect(link("World ID")).toBeInTheDocument();
+    expect(link("World ID")).toHaveClass("cursor-pointer");
     expect(
       screen.queryByRole("link", { name: "Dashboard" }),
     ).not.toBeInTheDocument();
@@ -94,8 +91,8 @@ describe("v3 SidebarNav [navigation hierarchy]", () => {
     ).not.toBeInTheDocument();
     expect(link("Team settings")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Help center" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Help center" }),
+    ).not.toBeInTheDocument();
     expect(link("Danger zone")).toHaveAttribute(
       "href",
       `${base}/configuration/danger`,
@@ -135,6 +132,7 @@ describe("v3 SidebarNav [active section]", () => {
     expect(link("World ID")).toBeInTheDocument();
     expect(link("Permissions")).toHaveAttribute("aria-current", "page");
     expect(link("Permissions")).toHaveAttribute("data-active", "true");
+    expect(link("Permissions")).toHaveClass("cursor-pointer");
     expect(link("Permissions").querySelector("svg")).toHaveClass(
       "lucide-lock-keyhole",
     );
@@ -188,13 +186,16 @@ describe("v3 SidebarNav [no app selected]", () => {
   beforeEach(() => {
     useParams.mockReturnValue({ teamId });
     useCurrentAppId.mockReturnValue(undefined);
-    usePathname.mockReturnValue(`/teams/${teamId}/apps`);
+    usePathname.mockReturnValue(`/teams/${teamId}`);
   });
 
-  it("points World ID at the apps list and hides app-only entries", () => {
+  it("shows the team overview and hides app-only entries", () => {
     renderSidebar();
-    expect(link("World ID")).toHaveAttribute("href", `/teams/${teamId}/apps`);
-    expect(isCurrent("World ID")).toBe(true);
+    expect(link("Overview")).toHaveAttribute("href", `/teams/${teamId}`);
+    expect(isCurrent("Overview")).toBe(true);
+    expect(
+      screen.queryByRole("link", { name: "World ID" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Configuration" }),
     ).not.toBeInTheDocument();
@@ -228,22 +229,27 @@ describe("v3 SidebarNav [no app selected]", () => {
 });
 // #endregion
 
-// #region remembered app context
-describe("v3 SidebarNav [remembered app context]", () => {
+// #region route-owned app context
+describe("v3 SidebarNav [route-owned app context]", () => {
   beforeEach(() => {
     useParams.mockReturnValue({ teamId });
     useCurrentAppId.mockReturnValue(appId);
     usePathname.mockReturnValue(`/teams/${teamId}/settings`);
   });
 
-  it("keeps app links available on team-scoped routes without marking an app section current", () => {
+  it("does not carry app links into a team-scoped route", () => {
     renderSidebar();
 
-    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
-    expect(link("Configuration")).toBeInTheDocument();
-    expect(link("Mini App")).toBeInTheDocument();
-    expect(isCurrent("World ID")).toBe(false);
-    expect(isCurrent("Configuration")).toBe(false);
+    expect(link("Overview")).toHaveAttribute("href", `/teams/${teamId}`);
+    expect(
+      screen.queryByRole("link", { name: "World ID" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Configuration" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Mini App" }),
+    ).not.toBeInTheDocument();
     expect(link("Team settings")).toHaveAttribute("aria-current", "page");
   });
 });
@@ -273,11 +279,11 @@ describe("v3 SidebarNav [team-less pages]", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("keeps Help center and the sandbox button visible without a teamId", () => {
+  it("keeps the sandbox button visible without duplicating Help Center", () => {
     renderSidebar();
     expect(
-      screen.getByRole("button", { name: /Help center/i }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: /Help center/i }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /World ID Sandbox/i }),
     ).toBeInTheDocument();

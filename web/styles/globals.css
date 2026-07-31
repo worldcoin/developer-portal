@@ -914,6 +914,23 @@
   }
 }
 
+/*
+  Tailwind CSS v4 Preflight stopped setting `cursor: pointer` on buttons —
+  it now leaves the native OS default (arrow) cursor. Since then, only
+  elements that happen to carry an ad-hoc `cursor-pointer` utility show a
+  pointer, so hover feedback across buttons, switchers, and sidebar items
+  is inconsistent. This is the upstream-recommended base override making
+  every enabled button-like element a pointer again; links already get one
+  natively, and `disabled:cursor-not-allowed` utilities still win where
+  applied because utilities outrank the base layer.
+*/
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
 @utility no-scrollbar {
   /* Hide scrollbar for Chrome, Safari and Opera */
   &::-webkit-scrollbar {
