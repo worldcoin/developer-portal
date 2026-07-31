@@ -1,8 +1,10 @@
 import {
+  getSearchVisualSegments,
   parseSearchTokens,
   type ParsedSearchToken,
   type SearchOperator,
 } from "../common/search-tokens";
+import type { SearchVisualSegment } from "../common/types";
 
 export const parseUsersSearchQuery = (query: string | string[] | undefined) => {
   const rawQuery = Array.isArray(query) ? query[0] : query;
@@ -66,161 +68,11 @@ const FIELD_ALIASES: Record<string, UsersSearchField> = {
   created_at: "created",
 };
 
-const FIELD_VISUAL_TOKEN_PATTERN =
-  /^([A-Za-z_][A-Za-z0-9_]*)(>=|<=|!=|:|=|>|<)(.*)$/;
-
-export const tokenizeUsersSearchQuery = (query: string) => {
-  const tokens: string[] = [];
-  let currentToken = "";
-  let quote: '"' | "'" | null = null;
-
-  for (const character of query) {
-    if ((character === '"' || character === "'") && !quote) {
-      quote = character;
-      currentToken += character;
-      continue;
-    }
-
-    if (character === quote) {
-      quote = null;
-      currentToken += character;
-      continue;
-    }
-
-    if (/\s/.test(character) && !quote) {
-      if (currentToken) {
-        tokens.push(currentToken);
-        currentToken = "";
-      }
-
-      continue;
-    }
-
-    currentToken += character;
-  }
-
-  if (currentToken) {
-    tokens.push(currentToken);
-  }
-
-  return tokens;
-};
-
-const tokenizeUsersSearchQueryWithRanges = (query: string) => {
-  const tokens: Array<{ end: number; start: number; value: string }> = [];
-  let currentToken = "";
-  let currentTokenStart = 0;
-  let quote: '"' | "'" | null = null;
-
-  for (let index = 0; index < query.length; index += 1) {
-    const character = query[index];
-
-    if (!currentToken) {
-      currentTokenStart = index;
-    }
-
-    if ((character === '"' || character === "'") && !quote) {
-      quote = character;
-      currentToken += character;
-      continue;
-    }
-
-    if (character === quote) {
-      quote = null;
-      currentToken += character;
-      continue;
-    }
-
-    if (/\s/.test(character) && !quote) {
-      if (currentToken) {
-        tokens.push({
-          end: index,
-          start: currentTokenStart,
-          value: currentToken,
-        });
-        currentToken = "";
-      }
-
-      continue;
-    }
-
-    currentToken += character;
-  }
-
-  if (currentToken) {
-    tokens.push({
-      end: query.length,
-      start: currentTokenStart,
-      value: currentToken,
-    });
-  }
-
-  return tokens;
-};
-
 export const parseUsersSearchTokens = (
   query: string,
 ): ParsedUsersSearchToken[] => parseSearchTokens(query, FIELD_ALIASES);
 
-export type UsersSearchVisualSegment =
-  | {
-      type: "chip";
-      value: string;
-    }
-  | {
-      type: "text";
-      value: string;
-    };
+export type UsersSearchVisualSegment = SearchVisualSegment;
 
-export const getUsersSearchVisualSegments = (
-  query: string,
-): UsersSearchVisualSegment[] => {
-  const segments: UsersSearchVisualSegment[] = [];
-  let lastIndex = 0;
-
-  for (const token of tokenizeUsersSearchQueryWithRanges(query)) {
-    const match = token.value.match(FIELD_VISUAL_TOKEN_PATTERN);
-
-    if (!match) {
-      continue;
-    }
-
-    const [, rawField] = match;
-    const field = FIELD_ALIASES[rawField.toLowerCase()];
-
-    if (!field) {
-      continue;
-    }
-
-    if (token.start > lastIndex) {
-      segments.push({
-        type: "text",
-        value: query.slice(lastIndex, token.start),
-      });
-    }
-
-    segments.push({
-      type: "chip",
-      value: token.value,
-    });
-    lastIndex = token.end;
-  }
-
-  if (lastIndex < query.length) {
-    segments.push({
-      type: "text",
-      value: query.slice(lastIndex),
-    });
-  }
-
-  if (segments.length === 0) {
-    return [
-      {
-        type: "text",
-        value: query,
-      },
-    ];
-  }
-
-  return segments;
-};
+export const getUsersSearchVisualSegments = (query: string) =>
+  getSearchVisualSegments(query, FIELD_ALIASES);

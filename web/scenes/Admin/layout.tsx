@@ -18,16 +18,21 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
       <div
         className={clsx(
-          // Common styles
-          "relative grid min-h-dvh overflow-x-clip bg-grey-100 p-4",
+          // Mobile: document flow so the page can scroll
+          "relative flex min-h-dvh flex-col overflow-x-clip bg-grey-100 p-4 pb-24",
 
-          // Desktop styles
-          "lg:grid lg:h-dvh lg:grid-cols-[auto_1fr] lg:gap-x-4 lg:overflow-hidden",
+          // Desktop: locked viewport with internal scroll regions
+          "lg:grid lg:h-dvh lg:grid-cols-[auto_1fr] lg:gap-x-4 lg:overflow-hidden lg:pb-4",
           "3xl:p-5",
           "4xl:p-7",
         )}
       >
-        <div className="grid min-w-0 grid-rows-auto/1fr gap-y-4 pb-4 lg:min-h-0 lg:pb-0">
+        <div
+          className={clsx(
+            "flex min-w-0 flex-1 flex-col gap-y-4",
+            "lg:grid lg:min-h-0 lg:grid-rows-auto/1fr lg:gap-y-4 lg:pb-0",
+          )}
+        >
           <header className={clsx("flex items-center", "3xl:p-5", "4xl:p-7")}>
             <div
               className={clsx(
@@ -44,11 +49,15 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
           <main
             id="main-content"
-            className="size-full min-h-0 min-w-0 overflow-x-clip"
+            className={clsx(
+              "min-w-0 flex-1",
+              "lg:size-full lg:min-h-0 lg:overflow-x-clip",
+            )}
           >
             <div
               className={clsx(
-                "mx-auto size-full max-w-7xl",
+                "mx-auto w-full max-w-7xl",
+                "lg:size-full",
                 "3xl:max-w-[1600px]",
                 "4xl:max-w-[2240px]",
               )}
