@@ -13,7 +13,7 @@ export type ActionCardItem = {
 
 /** Card chrome, shared with the loading skeleton. */
 export const actionCardFrameClassName =
-  "flex min-h-[144px] flex-col gap-1 rounded-[10px] border border-portal-border bg-white p-5";
+  "flex min-h-[220px] flex-col justify-between gap-4 rounded-[10px] border border-portal-border bg-white p-5";
 export const actionCardTitleClassName = "font-ibm text-13 text-portal-heading";
 export const actionCardDescriptionClassName =
   "font-world text-13 text-portal-muted";
@@ -47,20 +47,20 @@ export const ActionCard = (props: {
           </span>
         ) : null}
       </div>
-      <div className="mt-auto flex flex-col gap-0.5">
+      <Sparkline
+        points={
+          props.previewSeries?.map((point) => ({ count: point.count })) ?? []
+        }
+        ariaLabel={`Unique Verifications for ${action.action}`}
+        className="h-12 w-full text-portal-heading"
+      />
+      <div className="flex items-baseline gap-1.5">
+        <span className="font-twk text-20 leading-none font-medium text-portal-heading">
+          {BigInt(props.previewCount ?? "0").toLocaleString()}
+        </span>
         <span className="font-world text-13 text-portal-muted">
           Unique Verifications
         </span>
-        <div className="font-twk text-20 leading-none font-medium text-portal-heading">
-          {props.previewCount ?? "0"}
-        </div>
-        <Sparkline
-          points={
-            props.previewSeries?.map((point) => ({ count: point.count })) ?? []
-          }
-          ariaLabel="Unique Verifications"
-          className="mt-1.5 h-9 w-full text-portal-heading"
-        />
       </div>
     </Link>
   );
