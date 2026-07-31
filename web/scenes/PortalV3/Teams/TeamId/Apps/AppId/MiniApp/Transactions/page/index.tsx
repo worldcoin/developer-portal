@@ -1,6 +1,9 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { PaymentMetadata } from "@/lib/types";
+import { getIsExternalApp } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/server/getIsExternalApp";
+import { noticeIconClassName } from "@/scenes/PortalV3/common/Icon";
+import { WalletCardsIcon } from "lucide-react";
 import { ComponentProps } from "react";
 import { Suspense } from "react";
 import { SkeletonTable } from "@/components/Skeletons";
@@ -106,6 +109,27 @@ const EmptyState = () => {
   );
 };
 
+const ExternalAppNotice = () => {
+  return (
+    <div className="grid max-w-[1180px] grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
+      <WalletCardsIcon
+        strokeWidth={1.5}
+        className={`${noticeIconClassName} size-8 text-grey-900`}
+        aria-hidden="true"
+      />
+
+      <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
+        <Typography as="p" className="font-world text-[13px] font-semibold">
+          Transactions unavailable
+        </Typography>
+        <Typography as="p" className="font-world text-[13px] font-medium">
+          Transactions aren&apos;t available for external apps.
+        </Typography>
+      </div>
+    </div>
+  );
+};
+
 const TransactionsContent = ({
   transactionData,
 }: {
@@ -137,6 +161,16 @@ const TransactionsContent = ({
 export const TransactionsPage = async (props: TransactionsPageProps) => {
   const { params } = props;
   const appId = params?.appId as `app_${string}`;
+
+  // External apps have no Mini App payments, so the payments endpoint only ever
+  // errors here — show the same unavailable notice as permissions/notifications.
+  if (await getIsExternalApp(appId)) {
+    return (
+      <TransactionsPageLayout showHeading={false}>
+        <ExternalAppNotice />
+      </TransactionsPageLayout>
+    );
+  }
 
   const result = await getTransactionData(appId);
 

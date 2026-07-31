@@ -13,6 +13,15 @@ const ICON_PATH = "/images/portal-v3/icons";
 export const opticalIconClassName = "shrink-0 -translate-y-px";
 
 /**
+ * Optical alignment for the size-8 icon in a two-line notice card (the Mini App
+ * "unavailable" banners). `items-start` aligns the icon box with the first
+ * line's line box, but the text reads as the band from its cap top to the last
+ * baseline — measured in the browser at text-13/120%, that band's center sits
+ * 2px above the icon's ink center, so the icon reads low. Nudge it up to match.
+ */
+export const noticeIconClassName = "shrink-0 -translate-y-[2px]";
+
+/**
  * Optical alignment for a digit (or other cap-height glyph) inside a fixed
  * circle/pill, e.g. the wizard stepper dots. Flex centers the text's LINE BOX,
  * but World Pro's descender space hangs below digits that have none, so the
