@@ -1,17 +1,19 @@
 "use client";
 
-import { languageMap } from "@/lib/languages";
+import { FormLanguage, languageMap } from "@/lib/languages";
 import { useUnverifiedImages } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/hooks/use-localised-image-field";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import clsx from "clsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
 import { useAppStoreFormContext } from "../AppStore/app-store";
+import { selectedLanguageAtom } from "../AppStore/components/FormSections/LocalisationsSection/hooks/useLanguageSelection";
 import { MetaTagImageField } from "../AppStore/ImageForm/MetaTagImageField";
 import { ShowcaseImagesField } from "../AppStore/ImageForm/ShowcaseImagesField";
 import { SectionHeader } from "./SectionHeader";
 import { TextAreaField } from "./TextAreaField";
 import { TextField } from "./TextField";
+import { useSetAtom } from "jotai";
 
 const localeLabel = (locale: string) =>
   languageMap[locale as keyof typeof languageMap]?.label ?? locale;
@@ -67,6 +69,13 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
   );
   const fieldErrors = errors.localisations?.[selectedIndex];
   const selectedLocale = localisations[selectedIndex]?.language ?? "en";
+  const setSelectedLanguage = useSetAtom(selectedLanguageAtom);
+
+  // The preview is rendered alongside this wizard, so its locale must follow
+  // the wizard tabs rather than the separate legacy localisation form.
+  useEffect(() => {
+    setSelectedLanguage(selectedLocale as FormLanguage);
+  }, [selectedLocale, setSelectedLanguage]);
 
   // One images subscription for both image fields of the selected locale.
   const { unverifiedImages, isImagesLoading } = useUnverifiedImages({
