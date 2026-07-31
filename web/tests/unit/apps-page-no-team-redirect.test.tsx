@@ -23,18 +23,11 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  "../../scenes/PortalV3/Teams/TeamId/Apps/page/AppsPageClient",
-  () => ({
-    AppsPageClient: () => <div data-testid="v3-apps-client" />,
-  }),
-);
 jest.mock("../../scenes/Portal/Teams/TeamId/Apps/page/AppsPageClient", () => ({
   AppsPageClient: () => <div data-testid="v2-apps-client" />,
 }));
 // #endregion
 
-import { AppsPage as AppsPageV3 } from "@/scenes/PortalV3/Teams/TeamId/Apps/page";
 import { AppsPage as AppsPageV2 } from "@/scenes/Portal/Teams/TeamId/Apps/page";
 
 // #region Test Data
@@ -58,32 +51,27 @@ beforeEach(() => {
 });
 
 // #region Users with no team stay in the portal, not logged out
-describe.each([
-  ["v3", AppsPageV3],
-  ["v2", AppsPageV2],
-])("/teams/[teamId]/apps [%s, membership guard]", (_version, AppsPage) => {
+describe("/teams/[teamId]/apps [v2 membership guard]", () => {
   it("redirects a user with zero memberships to their profile", async () => {
     getSession.mockResolvedValue(sessionWithMemberships([]));
 
-    await AppsPage(props("team_1"));
+    await AppsPageV2(props("team_1"));
 
     expect(redirect).toHaveBeenCalledWith("/profile");
-    expect(InitialApp).not.toHaveBeenCalled();
   });
 
   it("redirects a member of another team to their own team's apps", async () => {
     getSession.mockResolvedValue(sessionWithMemberships(["team_mine"]));
 
-    await AppsPage(props("team_foreign"));
+    await AppsPageV2(props("team_foreign"));
 
     expect(redirect).toHaveBeenCalledWith("/teams/team_mine/apps");
-    expect(InitialApp).not.toHaveBeenCalled();
   });
 
   it("does not redirect a member of the requested team", async () => {
     getSession.mockResolvedValue(sessionWithMemberships(["team_1"]));
 
-    const result = await AppsPage(props("team_1"));
+    const result = await AppsPageV2(props("team_1"));
 
     expect(redirect).not.toHaveBeenCalled();
     expect(InitialApp).toHaveBeenCalledWith({ teamId: "team_1" });
