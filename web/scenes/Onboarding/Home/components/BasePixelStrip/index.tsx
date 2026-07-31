@@ -1849,11 +1849,30 @@ const easeOutBack = (t: number) => {
 // every in-flight image alive here until it settles.
 const pendingIconImages = new Set<HTMLImageElement>();
 
+// Every icon is reused 2-3x across the grid's 1,645 cells (see
+// icon-manifest.ts), and the per-cell bookkeeping below (iconLoadingRef/
+// iconHrefCacheRef/iconFailedRef) is keyed by CELL INDEX, not href - so
+// without this, a second cell sharing an already-(or currently-)fetched
+// href would still spin up its own new Image() and network request. Keyed
+// by href instead, shared across the whole page's lifetime (icons, once
+// revealed, stay revealed forever anyway - see revealedRef - so there's
+// nothing to evict), this lets every cell after the first one for a given
+// href reuse the same in-flight or already-settled promise. A failed
+// fetch is intentionally cached too (not retried), matching iconFailedRef's
+// existing per-cell "don't re-fetch a known-broken icon" behavior.
+const hrefLoadCache = new Map<string, Promise<void>>();
+
 // Resolves once the browser has actually fetched/decoded the image, so this
 // behaves like real <img> loading and caching (repeat calls with the same
 // href resolve instantly) rather than assuming the icon is already there.
-const loadImage = (href: string) =>
-  new Promise<void>((resolve, reject) => {
+const loadImage = (href: string) => {
+  const cached = hrefLoadCache.get(href);
+
+  if (cached) {
+    return cached;
+  }
+
+  const promise = new Promise<void>((resolve, reject) => {
     const image = new Image();
     pendingIconImages.add(image);
 
@@ -1867,6 +1886,10 @@ const loadImage = (href: string) =>
       settle(() => reject(new Error(`Failed to load icon: ${href}`)));
     image.src = href;
   });
+
+  hrefLoadCache.set(href, promise);
+  return promise;
+};
 
 export const BasePixelStrip = () => {
   const svgRef = useRef<SVGSVGElement>(null);
