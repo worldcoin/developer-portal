@@ -142,7 +142,7 @@ export const BasicInformationStep = forwardRef<
     isMiniApp,
     isDisabled: isModeDisabled,
     handleAppModeToggle,
-  } = useAppModeToggle({ appId, teamId, appMetadata });
+  } = useAppModeToggle({ teamId, appMetadata });
 
   const disabled = !isEditable || !isEnoughPermissions;
 
