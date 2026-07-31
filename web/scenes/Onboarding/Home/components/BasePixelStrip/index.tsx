@@ -1921,6 +1921,16 @@ export const BasePixelStrip = () => {
   // so it can be cleared the moment the icon stops being the pressed one
   // (release, or a different icon gets pressed instead).
   const shakingIconKeyRef = useRef<string | null>(null);
+  // The z-order (by key, ascending scale) that was actually applied to the
+  // DOM last frame. appendChild on an already-attached node is a real DOM
+  // move (remove + reinsert), not a cheap no-op, even when the node ends up
+  // in the same place - profiling showed this re-stacking running
+  // unconditionally every frame was a real chunk of the browser's
+  // style/layout invalidation cost. Comparing against this lets it skip
+  // the re-stack entirely on frames where the order hasn't actually changed
+  // (the common case: cursor stationary, or moving slowly enough that nearby
+  // icons' relative scale ordering doesn't flip).
+  const lastIconZOrderRef = useRef<string[]>([]);
   // Ambient, randomly-timed "pop and spin" pulses on dots the cursor isn't
   // near - an idle invitation to come hover/click, not a response to
   // anything the visitor did.
@@ -2510,8 +2520,16 @@ export const BasePixelStrip = () => {
       // top - not just whichever cell happened to activate most recently.
       revealedIcons.sort((a, b) => a.scale - b.scale);
 
-      for (const { image } of revealedIcons) {
-        image.parentNode?.appendChild(image);
+      const iconZOrder = revealedIcons.map((r) => r.key);
+      const iconZOrderChanged =
+        iconZOrder.length !== lastIconZOrderRef.current.length ||
+        iconZOrder.some((key, i) => key !== lastIconZOrderRef.current[i]);
+
+      if (iconZOrderChanged) {
+        for (const { image } of revealedIcons) {
+          image.parentNode?.appendChild(image);
+        }
+        lastIconZOrderRef.current = iconZOrder;
       }
 
       for (const key of activeRef.current) {
