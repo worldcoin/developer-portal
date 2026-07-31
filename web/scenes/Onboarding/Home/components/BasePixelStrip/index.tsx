@@ -2414,21 +2414,34 @@ export const BasePixelStrip = () => {
                 // this branch - PRESS_DIP_RADIUS is well inside
                 // ICON_REVEAL_RADIUS, so any icon it affects is still
                 // handled by the sharp-reveal branch above.)
-                const image = iconElsRef.current.get(key);
+                //
+                // Every one of these values is a pure function of (cell,
+                // pointer position, ripple state) - nothing here depends on
+                // press/shake, unlike the sharp-reveal branch above. Once
+                // the grid has a lot of permanently-revealed icons, this
+                // branch's cell count (everywhere in the wider LENS_RADIUS
+                // ring, not just the tight ICON_REVEAL_RADIUS disk) grows
+                // right along with it - rewriting all of them every frame
+                // regardless of whether the pointer moved or a ripple is
+                // even running was real, avoidable per-frame cost that
+                // scaled with how much of the grid had been explored.
+                if (pointerMoved || iconWaveActive) {
+                  const image = iconElsRef.current.get(key);
 
-                if (image) {
-                  const settledWaveBlur = getIconWaveBlur(x, y);
+                  if (image) {
+                    const settledWaveBlur = getIconWaveBlur(x, y);
 
-                  image.style.transform = "";
-                  image.style.opacity = "1";
-                  image.style.filter =
-                    settledWaveBlur > 0.01
-                      ? `blur(${settledWaveBlur.toFixed(2)}px)`
-                      : "";
-                }
+                    image.style.transform = "";
+                    image.style.opacity = "1";
+                    image.style.filter =
+                      settledWaveBlur > 0.01
+                        ? `blur(${settledWaveBlur.toFixed(2)}px)`
+                        : "";
+                  }
 
-                if (rect) {
-                  rect.style.fillOpacity = `${(opacity * opacityFactor * 0.15).toFixed(3)}`;
+                  if (rect) {
+                    rect.style.fillOpacity = `${(opacity * opacityFactor * 0.15).toFixed(3)}`;
+                  }
                 }
               } else {
                 const image = iconElsRef.current.get(key);
