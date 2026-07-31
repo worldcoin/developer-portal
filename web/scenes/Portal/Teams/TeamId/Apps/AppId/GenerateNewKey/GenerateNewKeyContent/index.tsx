@@ -90,8 +90,7 @@ export const GenerateNewKeyContent = ({
         <Typography variant={TYPOGRAPHY.H6}>Generate new key</Typography>
         <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
           We&apos;ve generated a secure signing key for your application. Save
-          this key securely - you&apos;ll need it to sign operations in your
-          app.
+          this key securely. You&apos;ll need it to sign operations in your app.
         </Typography>
       </div>
 
@@ -146,7 +145,7 @@ export const GenerateNewKeyContent = ({
           </Typography>
           <Typography as="ul" variant={TYPOGRAPHY.S4} className="grid">
             <li className="pl-4 -indent-4">
-              • Save this private key securely - it cannot be recovered if lost
+              • Save this private key securely. It cannot be recovered if lost
             </li>
             <li className="pl-4 -indent-4">
               • Never share your private key or commit it to version control

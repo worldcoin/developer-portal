@@ -539,7 +539,7 @@ export const SetupForm = ({
             <section className="grid gap-y-3 pb-4">
               <SectionHeader
                 title="Additional Domains"
-                tooltip="Additional Domains are the external websites your Mini App is allowed to open or make requests to from inside World App. Anything you don't list here is blocked, so add every domain your app needs to reach — you don't need to include subdomains, as they're covered automatically."
+                tooltip="Additional Domains are the external websites your Mini App is allowed to open or make requests to from inside World App. Anything you don't list here is blocked, so add every domain your app needs to reach. You don't need to include subdomains, as they're covered automatically."
               />
 
               <EntryList
@@ -599,7 +599,7 @@ export const SetupForm = ({
               <SectionHeader
                 title="Permit2 Tokens"
                 description="List all the tokens that you intend to use in your Mini App. Any other tokens will be blocked."
-                tooltip="Permit2 is Uniswap's shared approval contract that lets users authorize token spending with a single signature instead of a separate on-chain approval per token. List the ERC-20 tokens your Mini App will move through Permit2 — only these tokens can be used for payments or transfers, and any token not listed here is rejected."
+                tooltip="Permit2 is Uniswap's shared approval contract that lets users authorize token spending with a single signature instead of a separate on-chain approval per token. List the ERC-20 tokens your Mini App will move through Permit2. Only these tokens can be used for payments or transfers, and any token not listed here is rejected."
               />
 
               <EntryList
@@ -626,7 +626,7 @@ export const SetupForm = ({
               <SectionHeader
                 title="Contract Entrypoints"
                 description="List here contracts that you intend to call functions directly on."
-                tooltip="Contract Entrypoints are the smart contracts your Mini App is allowed to call functions on directly. List every contract address your app interacts with — calls to any contract not listed here are blocked, which keeps your app scoped to only the on-chain interactions you expect."
+                tooltip="Contract Entrypoints are the smart contracts your Mini App is allowed to call functions on directly. List every contract address your app interacts with. Calls to any contract not listed here are blocked, which keeps your app scoped to only the on-chain interactions you expect."
               />
 
               <EntryList
