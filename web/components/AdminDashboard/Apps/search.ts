@@ -14,7 +14,9 @@ export const parseAppsSearchQuery = (query: string | string[] | undefined) => {
 export type AppsSearchField =
   | "draft"
   | "id"
+  | "metadata"
   | "name"
+  | "review"
   | "team"
   | "verified"
   | "created";
@@ -30,6 +32,18 @@ export const APPS_SEARCH_FIELDS: Array<SearchField & { label: string }> = [
     examples: ['name:"World App"'],
   },
   { field: "team", label: "Team ID", type: "string", examples: ["team:team_"] },
+  {
+    field: "review",
+    label: "Review status",
+    type: "string",
+    examples: ["review:awaiting_review", "review:changes_requested"],
+  },
+  {
+    field: "metadata",
+    label: "Metadata",
+    type: "string",
+    examples: ["metadata:none"],
+  },
   {
     field: "draft",
     label: "Draft metadata",
@@ -55,9 +69,14 @@ const FIELD_ALIASES: Record<string, AppsSearchField> = {
   created_at: "created",
   draft: "draft",
   id: "id",
+  metadata: "metadata",
   name: "name",
+  review: "review",
+  status: "review",
   team: "team",
   team_id: "team",
+  verification: "review",
+  verification_status: "review",
   verified: "verified",
 };
 
