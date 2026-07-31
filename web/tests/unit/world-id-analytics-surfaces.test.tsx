@@ -212,7 +212,7 @@ beforeEach(() => {
 
 // #region App hero
 describe("World ID app page [combined analytics hero]", () => {
-  it("renders one combined metric with legacy inclusion disclosure", async () => {
+  it("renders one combined metric for the whole app", async () => {
     useQueryMock.mockReturnValue({
       data: overviewData(),
       loading: false,
@@ -230,9 +230,6 @@ describe("World ID app page [combined analytics hero]", () => {
 
     expect(
       await screen.findByRole("heading", { name: "Unique Verifications" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Includes legacy World ID actions"),
     ).toBeInTheDocument();
     expect(screen.getByText("7")).toBeInTheDocument();
 
