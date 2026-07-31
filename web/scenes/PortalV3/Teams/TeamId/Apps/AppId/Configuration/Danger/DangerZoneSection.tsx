@@ -10,7 +10,7 @@ import { useMemo, useState } from "react";
 import { DeleteModal } from "./DeleteModal";
 
 type DangerZoneSectionProps = {
-  appId: `app_${string}`;
+  appId: string;
   teamId: string;
   appName?: string;
 };
@@ -22,7 +22,7 @@ export const DangerZoneCard = ({
   footerAction,
 }: {
   name: React.ReactNode;
-  footerText: React.ReactNode;
+  footerText?: React.ReactNode;
   footerAction?: React.ReactNode;
 }) => (
   <div className="overflow-hidden rounded-2xl border border-system-error-200 bg-grey-0">
@@ -40,19 +40,21 @@ export const DangerZoneCard = ({
       </Typography>
     </div>
 
-    <div className="flex items-center justify-between gap-4 border-t border-system-error-100 bg-system-error-50 px-6 py-4">
-      <Typography variant={TYPOGRAPHY.R4} className="text-system-error-700">
-        {footerText}
-      </Typography>
-
+    <div className="flex items-center gap-4 px-6 pb-6">
       {footerAction}
+
+      {footerText && (
+        <Typography variant={TYPOGRAPHY.R4} className="text-system-error-700">
+          {footerText}
+        </Typography>
+      )}
     </div>
   </div>
 );
 
 /**
- * Destructive app action. Kept on its own route so it cannot be mistaken for
- * another step in the configuration form.
+ * Destructive app action, revealed from the collapsed Danger zone disclosure
+ * in the wizard's Advanced settings.
  */
 export const DangerZoneSection = ({
   appId,
@@ -73,7 +75,7 @@ export const DangerZoneSection = ({
         name={truncateString(appName, 30)}
         footerText={
           isEnoughPermissions
-            ? "You’ll be asked to confirm before anything is deleted."
+            ? undefined
             : "Only a team owner can delete this app."
         }
         footerAction={

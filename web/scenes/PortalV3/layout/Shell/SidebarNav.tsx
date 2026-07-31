@@ -1,7 +1,6 @@
 "use client";
 
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
-import { TrashIcon } from "@/components/Icons/TrashIcon";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -13,9 +12,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { urls } from "@/lib/urls";
-import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
-import { useQuery } from "@apollo/client/react";
 import { BellIcon, LockKeyholeIcon, WalletCardsIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -38,16 +35,9 @@ export const SidebarNav = (props: {
   const teamId = params?.teamId;
   const appId = params?.appId;
   const { setOpenMobile } = useSidebar();
-  const { data: appsData, loading: appsLoading } = useQuery(FetchAppsDocument, {
-    variables: { teamId: teamId! },
-    skip: !teamId || !appId,
-  });
 
   useEffect(() => setOpenMobile(false), [pathname, setOpenMobile]);
 
-  const hasConfirmedApp = Boolean(
-    appId && !appsLoading && appsData?.app?.some((app) => app.id === appId),
-  );
   const teamsLandingHref = urls.teams({});
   const teamOverviewHref = teamId
     ? urls.teams({ team_id: teamId })
@@ -58,8 +48,6 @@ export const SidebarNav = (props: {
 
   const worldIdHref = ids ? urls.worldId40(ids) : teamOverviewHref;
   const configurationHref = ids ? urls.configuration(ids) : teamOverviewHref;
-  const configurationDangerHref =
-    ids && hasConfirmedApp ? urls.configurationDanger(ids) : undefined;
   const miniAppHref = ids ? urls.miniAppPermissions(ids) : teamOverviewHref;
   const teamSettingsHref = teamId
     ? urls.teamSettings({ team_id: teamId })
@@ -78,9 +66,7 @@ export const SidebarNav = (props: {
     withinApp("/world-id-4-0") ||
     withinApp("/world-id-actions") ||
     withinApp("/actions");
-  const configurationActive =
-    withinApp("/configuration") && !withinApp("/configuration/danger");
-  const configurationDangerActive = withinApp("/configuration/danger");
+  const configurationActive = withinApp("/configuration");
   const miniAppActive =
     withinApp("/mini-app") ||
     withinApp("/transactions") ||
@@ -232,15 +218,6 @@ export const SidebarNav = (props: {
                 active={settingsActive}
                 icon={<NavIcon name="nav-settings" active={settingsActive} />}
               />
-              {configurationDangerHref ? (
-                <NavItem
-                  label="Danger zone"
-                  href={configurationDangerHref}
-                  active={configurationDangerActive}
-                  icon={<TrashIcon className="size-4" />}
-                  className="hover:bg-system-error-50 hover:text-system-error-600 data-[active=true]:border-system-error-200 data-[active=true]:bg-system-error-50 data-[active=true]:text-system-error-600 data-[active=true]:shadow-none"
-                />
-              ) : null}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
