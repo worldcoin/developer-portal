@@ -38,19 +38,28 @@ export const Sparkline = (props: {
     [interactive, points.length],
   );
 
-  if (points.length === 0) {
-    return null;
-  }
-
   const values = points.map((point) => Number(point.count));
   const max = Math.max(...values, 1);
   const stepX =
     points.length > 1 ? (VIEW_W - PAD * 2) / (points.length - 1) : 0;
+  const yFor = (value: number) =>
+    VIEW_H - PAD - (value / max) * (VIEW_H - PAD * 2);
+  // Hover anchors: a lone point sits mid-width so its popup centers.
   const coords = values.map((value, index) => ({
     x: points.length > 1 ? PAD + index * stepX : VIEW_W / 2,
-    y: VIEW_H - PAD - (value / max) * (VIEW_H - PAD * 2),
+    y: yFor(value),
   }));
-  const polyline = coords
+  // A one-vertex polyline paints nothing, so a new entity (or an empty
+  // scope) would render a blank box instead of the contracted flat graph.
+  // Span those across the full width at their own height.
+  const line =
+    coords.length > 1
+      ? coords
+      : [
+          { x: PAD, y: yFor(values[0] ?? 0) },
+          { x: VIEW_W - PAD, y: yFor(values[0] ?? 0) },
+        ];
+  const polyline = line
     .map((coord) => `${coord.x.toFixed(1)},${coord.y.toFixed(1)}`)
     .join(" ");
   const flatZero = points.every((point) => point.count === "0");
