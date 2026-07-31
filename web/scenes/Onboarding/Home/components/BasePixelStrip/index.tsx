@@ -1907,9 +1907,9 @@ const PRESS_PUSH_MAX_DISTANCE = 48;
 // frame count, so it doesn't slow down/speed up with the frame rate. Only
 // runs during the "compress" phase (see pressRef) - i.e. for as long as the
 // button is actually held - and stops the instant it's released.
-const SHAKE_AMPLITUDE_PX = 1.5;
-const SHAKE_FREQUENCY_X = 0.035;
-const SHAKE_FREQUENCY_Y = 0.026;
+const SHAKE_AMPLITUDE_PX = 0.8;
+const SHAKE_FREQUENCY_X = 0.022;
+const SHAKE_FREQUENCY_Y = 0.016;
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
