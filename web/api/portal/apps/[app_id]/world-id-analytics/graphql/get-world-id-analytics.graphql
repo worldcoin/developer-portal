@@ -1,0 +1,75 @@
+query GetWorldIdAnalyticsScope($app_id: String!, $action_ids: [String!]!) {
+  app(where: { id: { _eq: $app_id }, deleted_at: { _is_null: true } }) {
+    id
+    created_at
+    is_staging
+    rp_registration {
+      rp_id
+      created_at
+    }
+  }
+  legacy_actions: action(where: { id: { _in: $action_ids } }) {
+    id
+    app_id
+    created_at
+  }
+  actions: action_v4(where: { id: { _in: $action_ids } }) {
+    id
+    rp_id
+    environment
+    created_at
+  }
+  has_v3_history: action_v3_stats_daily(
+    limit: 1
+    where: { action: { app_id: { _eq: $app_id } } }
+  ) {
+    date_utc
+  }
+}
+
+query GetWorldIdAnalyticsAppDaily(
+  $app_id: String!
+  $environment: String!
+  $from: date!
+  $through: date!
+) {
+  world_id_app_stats_daily: world_id_analytics_app_daily(
+    args: {
+      app_id_input: $app_id
+      environment_input: $environment
+      from_date_input: $from
+      through_date_input: $through
+    }
+  ) {
+    date_utc
+    unique_count
+  }
+}
+
+query GetWorldIdAnalyticsActionDaily(
+  $legacy_ids: [String!]!
+  $action_ids: [String!]!
+  $from: date!
+  $through: date!
+) {
+  action_v3_stats_daily(
+    where: {
+      action_id: { _in: $legacy_ids }
+      date_utc: { _gte: $from, _lte: $through }
+    }
+  ) {
+    action_id
+    date_utc
+    unique_count
+  }
+  action_v4_stats_daily(
+    where: {
+      action_v4_id: { _in: $action_ids }
+      date_utc: { _gte: $from, _lte: $through }
+    }
+  ) {
+    action_v4_id
+    date_utc
+    unique_count
+  }
+}
