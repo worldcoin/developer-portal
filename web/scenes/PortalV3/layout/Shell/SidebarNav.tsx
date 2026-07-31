@@ -161,7 +161,15 @@ export const SidebarNav = (props: {
       navigate(href);
     };
 
-  useEffect(() => setOpenMobile(false), [currentPath, setOpenMobile]);
+  // Close the mobile sheet when the route changes — but only on a CHANGE. On
+  // mobile this component mounts inside the sheet itself, so running the
+  // close on mount would instantly shut the sidebar the trigger just opened.
+  const previousPathRef = useRef(currentPath);
+  useEffect(() => {
+    if (previousPathRef.current === currentPath) return;
+    previousPathRef.current = currentPath;
+    setOpenMobile(false);
+  }, [currentPath, setOpenMobile]);
 
   const teamsLandingHref = urls.teams({});
   const teamOverviewHref = teamId

@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
@@ -222,6 +222,55 @@ describe("v3 SidebarNav [route-owned app context]", () => {
       screen.queryByRole("link", { name: "Mini App" }),
     ).not.toBeInTheDocument();
     expect(link("Team settings")).toHaveAttribute("aria-current", "page");
+  });
+});
+// #endregion
+
+// #region mobile sheet behavior
+// On mobile the nav mounts INSIDE the sheet when it opens, so the
+// close-on-navigation effect must not fire for the mount itself — that would
+// instantly flatten the sidebar the trigger just opened.
+const SheetHarness = (props: { showNav: boolean }) => {
+  const { openMobile, setOpenMobile } = useSidebar();
+  return (
+    <>
+      <button type="button" onClick={() => setOpenMobile(true)}>
+        open-sheet
+      </button>
+      <span data-testid="sheet-state">{openMobile ? "open" : "closed"}</span>
+      {props.showNav ? <SidebarNav /> : null}
+    </>
+  );
+};
+
+const sheetTree = (showNav: boolean) => (
+  <TooltipProvider>
+    <SidebarProvider>
+      <ShellNavigationProvider>
+        <SheetHarness showNav={showNav} />
+      </ShellNavigationProvider>
+    </SidebarProvider>
+  </TooltipProvider>
+);
+
+describe("v3 SidebarNav [mobile sheet]", () => {
+  it("keeps the just-opened sheet open when the nav mounts inside it", () => {
+    const view = render(sheetTree(false));
+    fireEvent.click(screen.getByRole("button", { name: "open-sheet" }));
+    expect(screen.getByTestId("sheet-state")).toHaveTextContent("open");
+
+    view.rerender(sheetTree(true));
+    expect(screen.getByTestId("sheet-state")).toHaveTextContent("open");
+  });
+
+  it("closes the sheet when the route changes", () => {
+    const view = render(sheetTree(true));
+    fireEvent.click(screen.getByRole("button", { name: "open-sheet" }));
+    expect(screen.getByTestId("sheet-state")).toHaveTextContent("open");
+
+    usePathname.mockReturnValue(`${base}/configuration`);
+    view.rerender(sheetTree(true));
+    expect(screen.getByTestId("sheet-state")).toHaveTextContent("closed");
   });
 });
 // #endregion

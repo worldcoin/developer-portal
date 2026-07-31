@@ -155,6 +155,12 @@ export const NavActivePill = (props: {
       // in from offcanvas, since nav and item move together.
       const navRect = nav.getBoundingClientRect();
       const rect = activeItem.getBoundingClientRect();
+      // A hidden mid-state (display:none while the sidebar toggles between
+      // its desktop and sheet forms) measures 0×0. Adopting it would leave an
+      // invisible pill that sameBox never lets recover — keep the last real
+      // placement instead; the ResizeObserver re-fires once the item is
+      // visible again.
+      if (rect.width === 0 || rect.height === 0) return;
       const box = {
         top: rect.top - navRect.top,
         left: rect.left - navRect.left,
