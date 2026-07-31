@@ -4,6 +4,7 @@ import { makeRollupOperationResult } from "../contracts/world-id-analytics-graph
 
 // #region Mocks
 const databaseOperation = jest.fn();
+const getAPIServiceGraphqlClient = jest.fn().mockResolvedValue({});
 const loggerInfo = jest.fn();
 const loggerError = jest.fn();
 
@@ -16,7 +17,8 @@ jest.mock("@/lib/logger", () => ({
 }));
 
 jest.mock("@/api/helpers/graphql", () => ({
-  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
+  getAPIServiceGraphqlClient: (...args: unknown[]) =>
+    getAPIServiceGraphqlClient(...args),
 }));
 
 jest.mock(
@@ -48,8 +50,12 @@ const request = (authorization?: string) =>
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.INTERNAL_ENDPOINTS_SECRET = secret;
-  delete process.env.WORLD_ID_ANALYTICS_ROLLUP_DISABLED;
+  delete process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED;
   databaseOperation.mockResolvedValue(makeRollupOperationResult(true));
+});
+
+afterEach(() => {
+  delete process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED;
 });
 
 // #region Authentication
@@ -69,6 +75,8 @@ describe("POST _rollup-world-id-analytics [authentication]", () => {
 // #region Recurring rollup
 describe("POST _rollup-world-id-analytics [rollup]", () => {
   it("invokes exactly one database-owned transaction", async () => {
+    process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED = "true";
+
     const response = await POST(request(`Bearer ${secret}`));
 
     expect(response.status).toBe(200);
@@ -80,17 +88,20 @@ describe("POST _rollup-world-id-analytics [rollup]", () => {
     );
   });
 
-  it("skips the database entirely while the rollout gate disables the rollup", async () => {
-    process.env.WORLD_ID_ANALYTICS_ROLLUP_DISABLED = "true";
-
+  it("skips the database when the rollout gate is unset", async () => {
     const response = await POST(request(secret));
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ success: true });
+    expect(await response.json()).toEqual({
+      success: true,
+      skipped: "disabled",
+    });
+    expect(getAPIServiceGraphqlClient).not.toHaveBeenCalled();
     expect(databaseOperation).not.toHaveBeenCalled();
   });
 
   it("treats the database lock miss as a successful no-op", async () => {
+    process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED = "true";
     databaseOperation.mockResolvedValue(makeRollupOperationResult(false));
 
     const response = await POST(request(secret));
@@ -101,6 +112,7 @@ describe("POST _rollup-world-id-analytics [rollup]", () => {
   });
 
   it("returns 500 when the atomic database operation fails", async () => {
+    process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED = "true";
     databaseOperation.mockRejectedValue(new Error("v4 leg failed"));
 
     const response = await POST(request(secret));

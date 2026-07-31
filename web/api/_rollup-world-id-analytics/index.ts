@@ -8,8 +8,8 @@ export async function POST(request: NextRequest) {
   const auth = protectInternalEndpoint(request);
   if (!auth.isAuthenticated) return auth.errorResponse!;
 
-  if (process.env.WORLD_ID_ANALYTICS_ROLLUP_DISABLED === "true") {
-    return NextResponse.json({ success: true });
+  if (process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED !== "true") {
+    return NextResponse.json({ success: true, skipped: "disabled" });
   }
 
   try {

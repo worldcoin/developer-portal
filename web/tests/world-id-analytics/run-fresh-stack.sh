@@ -115,6 +115,7 @@ export DATABASE_URL="postgres://postgres:password@127.0.0.1:${postgres_port}/pos
 export NEXT_PUBLIC_GRAPHQL_API_URL="${hasura_url}/v1/graphql"
 export HASURA_GRAPHQL_ADMIN_SECRET="secret!"
 export INTERNAL_ENDPOINTS_SECRET="world-id-analytics-test-secret"
+export WORLD_ID_ANALYTICS_ROLLUP_ENABLED=true
 export WIA_HASURA_METADATA_URL="${hasura_url}/v1/metadata"
 export WIA_MIGRATIONS_PROVEN=true
 export WIA_FRESH_STACK=true
@@ -124,6 +125,14 @@ export WIA_COMPOSE_PROJECT="${compose_project}"
 cd "${web_root}"
 if [[ "${1:-}" == "--smoke" ]]; then
   npx jest tests/world-id-analytics/stack-smoke.test.ts --runInBand
+  exit 0
+fi
+
+if [[ "${1:-}" == "--release-gate" ]]; then
+  npx jest \
+    tests/world-id-analytics/stack-smoke.test.ts \
+    tests/world-id-analytics/backfill-and-validate.test.ts \
+    --runInBand
   exit 0
 fi
 
@@ -141,5 +150,8 @@ if [[ "${1:-}" == "--million" ]]; then
   exit 0
 fi
 
-npx jest tests/world-id-analytics/stack-smoke.test.ts --runInBand
+npx jest \
+  tests/world-id-analytics/stack-smoke.test.ts \
+  tests/world-id-analytics/backfill-and-validate.test.ts \
+  --runInBand
 npx jest tests/world-id-analytics/integration.test.ts --runInBand
