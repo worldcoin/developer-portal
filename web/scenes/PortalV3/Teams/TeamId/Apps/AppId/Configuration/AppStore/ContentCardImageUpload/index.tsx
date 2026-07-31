@@ -12,8 +12,8 @@ import { useAtom } from "jotai";
 import Image from "next/image";
 import { ChangeEvent, Fragment, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { useCroppedImageUpload, useImage } from "../../hook/use-image";
+import { useAppImageUpload } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/use-app-image-upload";
+import { useCroppedImageUpload } from "../../hook/use-image";
 import { ImageCropDialog } from "../ImageForm/ImageCropDialog";
 import ImageLoader from "../ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
@@ -50,55 +50,39 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
     contentCardImageFile,
   } = props;
   const [verifiedImageError, setVerifiedImageError] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [disabled] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [viewMode] = useAtom(viewModeAtom);
-  const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const [unverifiedImages] = useAtom(unverifiedImageAtom);
+  // The mutation returns the updated content_card_image_url, so the
+  // app_metadata entity in the Apollo cache stays current without a refetch.
   const [updateContentCardImageMutation, { loading }] = useMutation(
     UpdateContentCardImageDocument,
   );
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const { getImage, uploadViaPresignedPost } = useImage();
+  const {
+    upload,
+    isUploading,
+    pendingPreviewUrl,
+    patchImagesCache,
+    readImagesCache,
+  } = useAppImageUpload({ appId, teamId });
   const handleUpload = () => {
     imageInputRef.current?.click();
   };
 
-  const uploadContentCardImage = async (file: File): Promise<boolean> => {
-    const imageType = "content_card_image";
-    const fileTypeEnding = file.type.split("/")[1];
-
-    try {
-      setIsUploading(true);
-      await uploadViaPresignedPost(file, appId, teamId, imageType);
-
-      const imageUrl = await getImage(fileTypeEnding, appId, teamId, imageType);
-
-      setUnverifiedImages({
-        ...unverifiedImages,
-        content_card_image_url: imageUrl,
-      });
-
-      const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
-
-      await updateContentCardImageMutation({
-        variables: {
-          id: appMetadataId,
-          fileName: `${imageType}.${saveFileType}`,
-        },
-
-        refetchQueries: [FetchAppMetadataDocument],
-      });
-
-      return true;
-    } catch (error) {
-      console.error("Content Card Image Upload Failed: ", error);
-      toast.error("Error uploading image");
-      return false;
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  const uploadContentCardImage = (file: File): Promise<boolean> =>
+    upload({
+      file,
+      imageType: "content_card_image",
+      persist: (fileName) =>
+        updateContentCardImageMutation({
+          variables: { id: appMetadataId, fileName },
+        }),
+      commit: ({ signedUrl }) =>
+        patchImagesCache(() => ({ content_card_image_url: signedUrl })),
+      onError: () => toast.error("Error uploading image"),
+    });
 
   const { cropCandidate, clearCropCandidate, handleFileSelected } =
     useCroppedImageUpload({
@@ -115,11 +99,8 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   };
 
   const removeImage = async () => {
-    const previous = unverifiedImages;
-    setUnverifiedImages({
-      ...unverifiedImages,
-      content_card_image_url: "",
-    });
+    const previous = readImagesCache()?.content_card_image_url ?? null;
+    patchImagesCache(() => ({ content_card_image_url: null }));
 
     try {
       await updateContentCardImageMutation({
@@ -127,11 +108,9 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
           id: appMetadataId,
           fileName: "",
         },
-
-        refetchQueries: [FetchAppMetadataDocument],
       });
     } catch {
-      setUnverifiedImages(previous);
+      patchImagesCache(() => ({ content_card_image_url: previous }));
       toast.error("Failed to remove image");
     }
   };
@@ -205,10 +184,25 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
           </div>
         ))}
 
-      {/* Unverified: uploading loader */}
+      {/* Unverified: uploading preview — the local blob shows immediately */}
       {viewMode === "unverified" && isUploading && (
-        <div style={previewStyle}>
-          <ImageLoader name="content_card_image" className="size-full" />
+        <div
+          className="relative overflow-hidden rounded-xl"
+          style={previewStyle}
+        >
+          {pendingPreviewUrl ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={pendingPreviewUrl}
+                alt="content card image upload preview"
+                className="size-full rounded-xl object-contain"
+              />
+              <div className="absolute inset-0 animate-pulse rounded-xl bg-white/40" />
+            </>
+          ) : (
+            <ImageLoader name="content_card_image" className="size-full" />
+          )}
         </div>
       )}
 

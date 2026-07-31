@@ -1,14 +1,15 @@
 import { useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
-import { FetchImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
-import { UpsertLocalisedShowcaseImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/upsert-localised-showcase-images.generated";
-import { extractImagePathWithExtensionFromActualUrl } from "../utils";
+import {
+  useLocalisedImageField,
+  type UnverifiedImages,
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/hooks/use-localised-image-field";
 import { ImageUploadField } from "./ImageUploadField";
-import { useMutation, useQuery } from "@apollo/client/react";
 
 interface ShowcaseImagesFieldProps {
   value?: string[];
-  onChange: (urls: string[]) => void;
+  /** Installs the committed value without scheduling the form autosave. */
+  onCommittedValueChange: (urls: string[]) => void;
   disabled?: boolean;
   appId: string;
   teamId: string;
@@ -16,9 +17,9 @@ interface ShowcaseImagesFieldProps {
   isAppVerified: boolean;
   appMetadataId?: string;
   supportedLanguages: string[];
+  unverifiedImages: UnverifiedImages | null;
+  isImagesLoading: boolean;
   error?: string | null;
-  onAutosaveSuccess?: () => void;
-  onAutosaveError?: (error: any) => void;
   dropZoneClassName?: string;
   dropZoneContent?: React.ReactNode;
 }
@@ -28,7 +29,7 @@ const TOAST_ID = "upload_showcase_toast";
 export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
   const {
     value = [],
-    onChange,
+    onCommittedValueChange,
     disabled = false,
     appId,
     teamId,
@@ -36,101 +37,14 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     isAppVerified,
     appMetadataId,
     supportedLanguages,
+    unverifiedImages,
+    isImagesLoading,
     error,
-    onAutosaveSuccess,
-    onAutosaveError,
     dropZoneClassName,
     dropZoneContent,
   } = props;
 
-  // en is not considered a localization, since we set english properties on app metadata
-  const isLocalized = locale !== "en";
-
-  const {
-    data: unverifiedImagesData,
-    loading: isImagesLoading,
-    refetch: refetchUnverifiedImages,
-  } = useQuery(FetchImagesDocument, {
-    variables: {
-      id: appId,
-      team_id: teamId,
-      locale: isLocalized ? locale : undefined,
-    },
-    // Signed URLs expire and this query is also the remount-safe source of
-    // truth for previews. Render cached data immediately, then refresh it.
-    fetchPolicy: "cache-and-network",
-  });
-
-  const [upsertShowcaseImages] = useMutation(
-    UpsertLocalisedShowcaseImagesDocument,
-    {
-      onCompleted: () => {
-        toast.success("Showcase images saved successfully");
-        onAutosaveSuccess?.();
-      },
-      onError: (error) => {
-        console.error("autosave failed:", error);
-        toast.error("Failed to auto-save showcase images");
-        onAutosaveError?.(error);
-      },
-    },
-  );
-
-  const handleAutosave = useCallback(
-    async (urls: string[]) => {
-      if (!appMetadataId) {
-        throw new Error("App metadata is unavailable");
-      }
-
-      const newUrls = urls.map((url) =>
-        extractImagePathWithExtensionFromActualUrl(url),
-      );
-
-      try {
-        await upsertShowcaseImages({
-          variables: {
-            app_metadata_id: appMetadataId,
-            showcase_img_urls: newUrls,
-            supported_languages: supportedLanguages,
-            locale: isLocalized ? locale : undefined,
-            is_localized: isLocalized,
-          },
-        });
-      } catch (error) {
-        // error is already handled by the mutation's onError callback
-        console.error("autosave error:", error);
-        throw error;
-      }
-    },
-    [
-      appMetadataId,
-      upsertShowcaseImages,
-      supportedLanguages,
-      isLocalized,
-      locale,
-    ],
-  );
-
-  const handleRefetchImages = useCallback(async () => {
-    await refetchUnverifiedImages();
-  }, [refetchUnverifiedImages]);
-
-  const handleUploadStart = useCallback(() => {
-    toast.info("Uploading showcase image", {
-      toastId: TOAST_ID,
-      autoClose: false,
-    });
-  }, []);
-
-  const handleUploadSuccess = useCallback(() => {
-    toast.update(TOAST_ID, {
-      type: "success",
-      render: "Showcase image uploaded successfully",
-      autoClose: 2000,
-    });
-  }, []);
-
-  const handleUploadError = useCallback((error: any) => {
+  const handleUploadError = useCallback(() => {
     toast.update(TOAST_ID, {
       type: "error",
       render: "Error uploading showcase image",
@@ -138,11 +52,56 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     });
   }, []);
 
+  const handlePersistSuccess = useCallback(() => {
+    toast.success("Showcase images saved successfully");
+  }, []);
+
+  const handlePersistError = useCallback((error: unknown) => {
+    console.error("autosave failed:", error);
+    toast.error("Failed to auto-save showcase images");
+  }, []);
+
+  const { isUploading, pendingPreviewUrl, uploadFile, deleteImage } =
+    useLocalisedImageField({
+      kind: "showcase",
+      appId,
+      teamId,
+      locale,
+      appMetadataId,
+      supportedLanguages,
+      value,
+      installValue: onCommittedValueChange,
+      onUploadError: handleUploadError,
+      onPersistSuccess: handlePersistSuccess,
+      onPersistError: handlePersistError,
+    });
+
+  const handleUploadFile = useCallback(
+    async (file: File) => {
+      toast.info("Uploading showcase image", {
+        toastId: TOAST_ID,
+        autoClose: false,
+      });
+      const succeeded = await uploadFile(
+        file,
+        `showcase_img_${value.length + 1}`,
+      );
+      if (succeeded) {
+        toast.update(TOAST_ID, {
+          type: "success",
+          render: "Showcase image uploaded successfully",
+          autoClose: 2000,
+        });
+      }
+      return succeeded;
+    },
+    [uploadFile, value.length],
+  );
+
   // extract unverified image URLs for base component
-  const unverifiedImageUrls = useMemo(() => {
-    if (!unverifiedImagesData) return undefined;
-    return unverifiedImagesData.unverified_images?.showcase_img_urls ?? [];
-  }, [unverifiedImagesData]);
+  const previewUrls = useMemo(() => {
+    return unverifiedImages?.showcase_img_urls ?? [];
+  }, [unverifiedImages]);
 
   // image type namer for showcase images
   const imageTypeNamer = useCallback((currentCount: number) => {
@@ -152,16 +111,16 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
   return (
     <ImageUploadField
       value={value}
-      onChange={onChange}
-      onAutosave={handleAutosave}
       disabled={disabled}
       appId={appId}
-      teamId={teamId}
       locale={locale}
       isAppVerified={isAppVerified}
-      unverifiedImageUrls={unverifiedImageUrls}
+      previewUrls={previewUrls}
       isImagesLoading={isImagesLoading}
-      onRefetchImages={handleRefetchImages}
+      isUploading={isUploading}
+      pendingPreviewUrl={pendingPreviewUrl}
+      onUploadFile={handleUploadFile}
+      onDelete={deleteImage}
       maxImages={3}
       imageConstraints={{
         width: 1080,
@@ -171,11 +130,6 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
       }}
       imageTypeNamer={imageTypeNamer}
       title="Showcase Images"
-      description="Upload up to 3 images to showcase your application."
-      required={true}
-      onUploadStart={handleUploadStart}
-      onUploadSuccess={handleUploadSuccess}
-      onUploadError={handleUploadError}
       error={error}
       dropZoneClassName={dropZoneClassName}
       dropZoneContent={dropZoneContent}

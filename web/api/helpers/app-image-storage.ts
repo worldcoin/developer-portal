@@ -33,6 +33,15 @@ export type AppImageBasename = keyof typeof APP_IMAGE_BASENAMES;
 // draft objects into public, cacheable assets and would inherit the metadata.
 export const APP_IMAGE_CACHE_CONTROL = "private, no-store, max-age=0";
 
+/**
+ * Single builder for signed app-image GETs. Draft (`unverified/`) objects are
+ * overwritten in place at stable keys, so their responses must never be
+ * browser-cached; verified objects get unique names during approval and stay
+ * cacheable. Deriving the policy from the key prefix keeps every signer
+ * (get-image, get-unverified-images, reviewer retrieval) on one contract, and
+ * anything without the `verified/` prefix falls back to the safe no-store
+ * side.
+ */
 export const createAppImageGetObjectCommand = ({
   bucket,
   key,
@@ -43,7 +52,9 @@ export const createAppImageGetObjectCommand = ({
   new GetObjectCommand({
     Bucket: bucket,
     Key: key,
-    ResponseCacheControl: APP_IMAGE_CACHE_CONTROL,
+    ...(key.startsWith("verified/")
+      ? {}
+      : { ResponseCacheControl: APP_IMAGE_CACHE_CONTROL }),
   });
 
 // MCP-facing alias map: short, human-friendly image_type values that map onto

@@ -14,8 +14,8 @@ import Image from "next/image";
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { ImageValidationError, useImage } from "../../hook/use-image";
+import { useAppImageUpload } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/use-app-image-upload";
+import { useImage } from "../../hook/use-image";
 import ImageLoader from "../../AppStore/ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
 import { useMutation } from "@apollo/client/react";
@@ -50,74 +50,56 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     if (open) setShowDialog(true);
   }, [open]);
   const [verifiedImageError, setVerifiedImageError] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [disabled] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
-  const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const [unverifiedImages] = useAtom(unverifiedImageAtom);
+  // The mutation returns the updated logo_img_url, so the app_metadata entity
+  // in the Apollo cache stays current without a refetch.
   const [updateLogoMutation, { loading }] = useMutation(UpdateLogoDocument);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
-    useImage();
+  const { validateImageAspectRatio } = useImage();
+  const {
+    upload,
+    isUploading,
+    pendingPreviewUrl,
+    patchImagesCache,
+    readImagesCache,
+  } = useAppImageUpload({ appId, teamId });
   const handleUpload = () => {
     imageInputRef.current?.click();
   };
 
+  const uploadLogo = (file: File): Promise<boolean> =>
+    upload({
+      file,
+      imageType: "logo_img",
+      persist: (fileName) =>
+        updateLogoMutation({ variables: { id: appMetadataId, fileName } }),
+      commit: ({ signedUrl }) =>
+        patchImagesCache(() => ({ logo_img_url: signedUrl })),
+      onError: () => toast.error("Error uploading image"),
+    });
+
   const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
-    const imageType = "logo_img";
 
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
-      const fileTypeEnding = file.type.split("/")[1];
-
       try {
-        // Aspect ratio of 1:1
+        // Aspect ratio of 1:1 — validation surfaces its own toast
         await validateImageAspectRatio(file, 1, 1);
+      } catch {
+        return;
+      }
 
-        setIsUploading(true);
-        await uploadViaPresignedPost(file, appId, teamId, imageType);
-
-        const imageUrl = await getImage(
-          fileTypeEnding,
-          appId,
-          teamId,
-          imageType,
-        );
-
-        setUnverifiedImages({
-          ...unverifiedImages,
-          logo_img_url: imageUrl,
-        });
-
-        const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
-
-        await updateLogoMutation({
-          variables: {
-            id: appMetadataId,
-            fileName: `${imageType}.${saveFileType}`,
-          },
-
-          refetchQueries: [FetchAppMetadataDocument],
-        });
-
+      if (await uploadLogo(file)) {
         handleClose();
-      } catch (error) {
-        console.error("Logo Upload Failed: ", error);
-
-        if (!(error instanceof ImageValidationError)) {
-          toast.error("Error uploading image");
-        }
-      } finally {
-        setIsUploading(false);
       }
     }
   };
 
   const removeImage = async () => {
-    const previous = unverifiedImages;
-    setUnverifiedImages({
-      ...unverifiedImages,
-      logo_img_url: "",
-    });
+    const previous = readImagesCache()?.logo_img_url ?? null;
+    patchImagesCache(() => ({ logo_img_url: null }));
 
     try {
       await updateLogoMutation({
@@ -125,11 +107,9 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           id: appMetadataId,
           fileName: "",
         },
-
-        refetchQueries: [FetchAppMetadataDocument],
       });
     } catch {
-      setUnverifiedImages(previous);
+      patchImagesCache(() => ({ logo_img_url: previous }));
       toast.error("Failed to remove image");
     }
 
@@ -170,7 +150,19 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           </div>
           <div className="grid gap-y-6 rounded-xl border border-grey-200 p-6">
             {isUploading ? (
-              <ImageLoader name="App icon" className="h-28 w-full" />
+              pendingPreviewUrl ? (
+                <div className="relative size-28">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={pendingPreviewUrl}
+                    alt="Logo upload preview"
+                    className="size-28 rounded-2xl object-contain drop-shadow-lg"
+                  />
+                  <div className="absolute inset-0 animate-pulse rounded-2xl bg-white/40" />
+                </div>
+              ) : (
+                <ImageLoader name="App icon" className="h-28 w-full" />
+              )
             ) : unverifiedImages?.logo_img_url &&
               unverifiedImages.logo_img_url !== "loading" ? (
               <div>

@@ -3,8 +3,8 @@ import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtomValue } from "jotai";
-import { useMemo } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { useCallback, useMemo } from "react";
+import { FieldPath, useFormContext, useWatch } from "react-hook-form";
 import { useSaveStatus } from "../SaveStatus";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
@@ -41,8 +41,6 @@ export const AppStoreForm = ({
     handleSupportTypeChange,
     submitSilent,
     isEditable,
-    refetchAppMetadata,
-    refetchLocalisations,
   } = useAppStoreForm(appId, appMetadata);
 
   const form = useFormContext<AppStoreFormValues>();
@@ -62,7 +60,7 @@ export const AppStoreForm = ({
 
   const supportedLanguages = useWatch({ control, name: "supported_languages" });
 
-  useAutosaveWithStatus<AppStoreFormValues>({
+  const { runWithoutAutosave } = useAutosaveWithStatus<AppStoreFormValues>({
     id: "app-store",
     form,
     enabled: isEditable && isEnoughPermissions,
@@ -70,6 +68,22 @@ export const AppStoreForm = ({
       await submitSilent(data, signal);
     },
   });
+
+  const { setValue } = form;
+  const installCommittedValue = useCallback(
+    (name: FieldPath<AppStoreFormValues>, value: unknown) => {
+      runWithoutAutosave(() => {
+        // Not dirty: the dedicated image mutation is the persistence owner,
+        // so the general autosave must not re-save (or block on) this field.
+        setValue(name, value as never, {
+          shouldValidate: true,
+          shouldDirty: false,
+          shouldTouch: false,
+        });
+      });
+    },
+    [runWithoutAutosave, setValue],
+  );
 
   return (
     <div className="grid max-w-[700px] grid-cols-1fr/auto">
@@ -154,10 +168,7 @@ export const AppStoreForm = ({
           appId={appId}
           teamId={teamId}
           supportedLanguages={supportedLanguages}
-          onAutosaveSuccess={() => {
-            refetchAppMetadata();
-            refetchLocalisations();
-          }}
+          installCommittedValue={installCommittedValue}
         />
 
         <div className="fixed right-6 bottom-21 z-10 flex items-center gap-x-3 md:bottom-6">

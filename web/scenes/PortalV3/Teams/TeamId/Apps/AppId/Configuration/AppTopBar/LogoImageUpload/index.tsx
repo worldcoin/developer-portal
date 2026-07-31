@@ -1,10 +1,8 @@
-import { useAtom } from "jotai";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
-import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { useCroppedImageUpload, useImage } from "../../hook/use-image";
+import { useAppImageUpload } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/use-app-image-upload";
+import { useCroppedImageUpload } from "../../hook/use-image";
 import { ImageCropDialog } from "../../AppStore/ImageForm/ImageCropDialog";
-import { unverifiedImageAtom } from "../../layout/ImagesProvider";
 import { useMutation } from "@apollo/client/react";
 import { UpdateLogoDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload/graphql/client/update-logo.generated";
 
@@ -22,58 +20,42 @@ type LogoImageUploadProps = {
 };
 
 /**
- * Owns the logo upload pipeline: presigned S3 POST, unverified-image atom
- * update, the UpdateLogo mutation, and the square-crop gate. Shared between
- * the headless component below and the configuration wizard's designed drop
- * zone so both surfaces persist through the exact same path.
+ * Owns the logo upload pipeline: the shared upload transaction (blob preview
+ * → presigned S3 POST → UpdateLogo mutation → local cache commit) plus the
+ * square-crop gate. Shared between the headless component below and the
+ * configuration wizard's designed drop zone so both surfaces persist through
+ * the exact same path. Previews flow from the FetchImages cache entry through
+ * ImagesProvider's atom to every logo renderer — the blob preview lands there
+ * immediately, and the signed URL replaces it on commit.
  */
 export const useLogoUpload = ({
   appId,
   appMetadataId,
   teamId,
-  open,
-  onClose,
-}: LogoImageUploadProps) => {
-  const [isUploading, setIsUploading] = useState(false);
-  const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+}: Pick<LogoImageUploadProps, "appId" | "appMetadataId" | "teamId">) => {
   const [updateLogoMutation] = useMutation(UpdateLogoDocument);
-  const { getImage, uploadViaPresignedPost } = useImage();
+  const { upload, isUploading, patchImagesCache, readImagesCache } =
+    useAppImageUpload({ appId, teamId });
 
-  const uploadLogo = async (file: File): Promise<boolean> => {
-    const imageType = "logo_img";
-    const fileTypeEnding = file.type.split("/")[1];
-
-    try {
-      setIsUploading(true);
-      await uploadViaPresignedPost(file, appId, teamId, imageType);
-
-      const imageUrl = await getImage(fileTypeEnding, appId, teamId, imageType);
-
-      setUnverifiedImages({
-        ...unverifiedImages,
-        logo_img_url: imageUrl,
-      });
-
-      const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
-
-      await updateLogoMutation({
-        variables: {
-          id: appMetadataId,
-          fileName: `${imageType}.${saveFileType}`,
-        },
-
-        refetchQueries: [FetchAppMetadataDocument],
-      });
-
-      return true;
-    } catch (error) {
-      console.error("Logo Upload Failed: ", error);
-      toast.error("Error uploading image");
-      return false;
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  const uploadLogo = (file: File): Promise<boolean> =>
+    upload({
+      file,
+      imageType: "logo_img",
+      applyOptimisticPreview: (blobUrl) => {
+        const previous = readImagesCache()?.logo_img_url ?? null;
+        patchImagesCache(() => ({ logo_img_url: blobUrl }));
+        return () => patchImagesCache(() => ({ logo_img_url: previous }));
+      },
+      persist: (fileName) =>
+        // The mutation returns the updated logo_img_url, so the app_metadata
+        // entity in the Apollo cache stays current without a refetch.
+        updateLogoMutation({
+          variables: { id: appMetadataId, fileName },
+        }),
+      commit: ({ signedUrl }) =>
+        patchImagesCache(() => ({ logo_img_url: signedUrl })),
+      onError: () => toast.error("Error uploading image"),
+    });
 
   const { cropCandidate, clearCropCandidate, handleFileSelected } =
     useCroppedImageUpload({

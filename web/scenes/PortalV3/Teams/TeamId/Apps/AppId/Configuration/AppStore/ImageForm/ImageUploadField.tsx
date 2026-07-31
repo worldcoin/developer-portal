@@ -7,19 +7,11 @@ import { ImageDropZone } from "@/components/ImageDropZone";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getCDNImageUrl } from "@/lib/utils";
 import { Dialog as HeadlessDialog, Transition } from "@headlessui/react";
-import {
-  Fragment,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Fragment, ReactNode, useCallback, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { twMerge } from "tailwind-merge";
-import { useCroppedImageUpload, useImage } from "../../hook/use-image";
+import { useCroppedImageUpload } from "../../hook/use-image";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
@@ -39,11 +31,6 @@ interface ImageUploadFieldConfig {
   imageConstraints: ImageConstraints;
   imageTypeNamer: (currentCount: number) => string;
   title: string;
-  description: string;
-  required?: boolean;
-  onUploadStart?: () => void;
-  onUploadSuccess?: () => void;
-  onUploadError?: (error: any) => void;
   /** Overrides the empty drop zone's box styling (e.g. wizard theming). */
   dropZoneClassName?: string;
   /** Overrides the drop zone's inner icon/copy (e.g. wizard theming). */
@@ -51,214 +38,61 @@ interface ImageUploadFieldConfig {
 }
 
 interface ImageUploadFieldProps extends ImageUploadFieldConfig {
+  /** Committed metadata paths (e.g. "showcase_img_1.png"). */
   value: string[];
-  onChange: (urls: string[]) => void;
-  onAutosave: (urls: string[]) => Promise<void>;
   disabled?: boolean;
   appId: string;
-  teamId: string;
   locale?: string;
   isAppVerified: boolean;
-  unverifiedImageUrls?: string[];
+  /** Signed preview URLs for the unverified images. */
+  previewUrls: string[];
   isImagesLoading: boolean;
-  onRefetchImages: () => Promise<void>;
+  /** True while the upload transaction is in flight. */
+  isUploading: boolean;
+  /** Blob URL of the file being uploaded — shown immediately as a preview. */
+  pendingPreviewUrl: string | null;
+  /** Runs the full upload transaction (S3 → mutation → local state). */
+  onUploadFile: (file: File) => Promise<boolean>;
+  onDelete: (imagePath: string) => Promise<unknown> | void;
   error?: string | null;
 }
 
 export const ImageUploadField = (props: ImageUploadFieldProps) => {
   const {
     value = [],
-    onChange,
-    onAutosave,
     disabled = false,
     appId,
-    teamId,
     locale,
     isAppVerified,
-    unverifiedImageUrls,
+    previewUrls,
     isImagesLoading,
-    onRefetchImages,
+    isUploading,
+    pendingPreviewUrl,
+    onUploadFile,
+    onDelete,
     maxImages,
     imageConstraints,
     imageTypeNamer,
     title,
-    description,
-    required = false,
-    onUploadStart,
-    onUploadSuccess,
-    onUploadError,
     error,
     dropZoneClassName,
     dropZoneContent,
   } = props;
 
-  const [isUploading, setIsUploading] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
-  const isMountedRef = useRef(true);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const lastSyncedServerPathsRef = useRef<string | null>(null);
-  const isLocalized = locale !== "en";
-
-  const { uploadViaPresignedPost, getImage } = useImage();
-
-  // A form instance can unmount while autosave/refetch is in flight. Once the
-  // unverified-images query has data, use it as the canonical preview list so
-  // the successor instance does not depend on the old Controller's onChange.
-  // Until that query resolves, retain the form value to avoid flashing an
-  // already-saved image out of the UI.
-  const serverImagePaths = useMemo(() => {
-    if (unverifiedImageUrls === undefined) return undefined;
-    return unverifiedImageUrls
-      .map(extractImagePathWithExtensionFromActualUrl)
-      .filter((path) => path !== "");
-  }, [unverifiedImageUrls]);
-
-  const imagePaths =
-    isAppVerified || serverImagePaths === undefined ? value : serverImagePaths;
-
-  // Keep validation/submission state aligned too, not just the pixels on
-  // screen. The signature guard prevents an optimistic local delete from
-  // being overwritten while its mutation is still in flight.
-  useEffect(() => {
-    if (isAppVerified) {
-      lastSyncedServerPathsRef.current = null;
-      return;
-    }
-    if (serverImagePaths === undefined) return;
-
-    const serverSignature = JSON.stringify([
-      appId,
-      locale ?? "",
-      serverImagePaths,
-    ]);
-    if (lastSyncedServerPathsRef.current === serverSignature) return;
-    lastSyncedServerPathsRef.current = serverSignature;
-
-    if (JSON.stringify(value) !== JSON.stringify(serverImagePaths)) {
-      onChange(serverImagePaths);
-    }
-  }, [appId, isAppVerified, locale, onChange, serverImagePaths, value]);
-
-  const uploadAcceptedImage = useCallback(
-    async (file: File, height: number, width: number): Promise<boolean> => {
-      const abortController = new AbortController();
-      abortControllerRef.current = abortController;
-
-      const fileTypeEnding = file.type.split("/")[1];
-      // Flips once S3 accepts the file: aborts after this point are unmount
-      // bookkeeping (e.g. the keyed provider remounting and killing an
-      // in-flight refetch), NOT a cancelled upload — don't toast for them.
-      let s3UploadCompleted = false;
-
-      try {
-        setIsUploading(true);
-        onUploadStart?.();
-
-        const imageType = imageTypeNamer(imagePaths.length);
-
-        await uploadViaPresignedPost(
-          file,
-          appId,
-          teamId,
-          imageType,
-          isLocalized ? locale : undefined,
-          abortController.signal,
-        );
-        s3UploadCompleted = true;
-        // File is on S3 — don't let unmount abort() invent a cancel toast
-        // while getImage / autosave bookkeeping finishes.
-        abortControllerRef.current = null;
-
-        // S3 has the file from here on — the remaining steps are bookkeeping
-        // and must run even if this component instance unmounts mid-flight
-        // (the form provider is keyed on metadata id + view mode and can
-        // remount during autosave). Persistence is ownerless; only UI
-        // updates below are gated on being mounted.
-        const imageUrl = await getImage(
-          fileTypeEnding,
-          appId,
-          teamId,
-          imageType,
-          isLocalized ? locale : undefined,
-        );
-
-        const extractedPath =
-          extractImagePathWithExtensionFromActualUrl(imageUrl);
-        if (!extractedPath) {
-          throw new Error("Uploaded image URL has no supported image path");
-        }
-        const newUrls =
-          maxImages === 1 ? [extractedPath] : [...imagePaths, extractedPath];
-
-        await onAutosave(newUrls);
-        // This writes the canonical paths + signed URLs into Apollo's shared
-        // cache. A remounted successor renders from that result even if this
-        // Controller instance can no longer receive onChange.
-        await onRefetchImages();
-
-        if (isMountedRef.current) {
-          onChange(newUrls);
-        }
-        // Parent toast / bookkeeping — must not be skipped on remount mid-upload.
-        onUploadSuccess?.();
-        return true;
-      } catch (error) {
-        const isAbort = error instanceof Error && error.name === "AbortError";
-        if (isAbort) {
-          // Unmount can abort either the active S3 upload or post-upload
-          // bookkeeping. Only the former is a real cancellation.
-          if (!s3UploadCompleted) {
-            toast.error("Upload was cancelled", { autoClose: 5000 });
-          }
-          return false;
-        }
-
-        console.error("error uploading image:", error);
-        onUploadError?.(error);
-        return false;
-      } finally {
-        abortControllerRef.current = null;
-        if (isMountedRef.current) {
-          setIsUploading(false);
-        }
-      }
-    },
-    [
-      imagePaths,
-      maxImages,
-      onUploadStart,
-      imageTypeNamer,
-      uploadViaPresignedPost,
-      appId,
-      teamId,
-      isLocalized,
-      locale,
-      getImage,
-      onAutosave,
-      onRefetchImages,
-      onChange,
-      onUploadSuccess,
-      onUploadError,
-    ],
-  );
 
   const { cropCandidate, clearCropCandidate, handleFileSelected } =
     useCroppedImageUpload({
       targetWidth: imageConstraints.width,
       targetHeight: imageConstraints.height,
-      upload: (file) =>
-        uploadAcceptedImage(
-          file,
-          imageConstraints.height,
-          imageConstraints.width,
-        ),
+      upload: onUploadFile,
     });
 
   const uploadImage = useCallback(
     async (_imageType: string, file: File) => {
       if (!file) return;
 
-      if (imagePaths.length >= maxImages) {
+      if (value.length >= maxImages) {
         toast.error(
           `maximum of ${maxImages} image${maxImages > 1 ? "s" : ""} allowed`,
         );
@@ -267,20 +101,10 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
       await handleFileSelected(file);
     },
-    [maxImages, handleFileSelected, imagePaths.length],
+    [maxImages, handleFileSelected, value.length],
   );
 
-  const handleDelete = useCallback(
-    async (imagePath: string) => {
-      const newUrls = imagePaths.filter((url) => !url.includes(imagePath));
-      onChange(newUrls);
-      await onAutosave(newUrls);
-      await onRefetchImages();
-    },
-    [imagePaths, onChange, onAutosave, onRefetchImages],
-  );
-
-  const canUploadMore = imagePaths.length < maxImages;
+  const canUploadMore = value.length < maxImages;
 
   const previewStyle = {
     height: `${PREVIEW_HEIGHT_PX}px`,
@@ -289,22 +113,36 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
   const resolvedImageUrls = useMemo(() => {
     if (isAppVerified) {
-      return imagePaths.map((url: string) =>
+      return value.map((url: string) =>
         getCDNImageUrl(appId, url, true, locale),
       );
     } else {
-      return unverifiedImageUrls ?? [];
+      return previewUrls;
     }
-  }, [isAppVerified, imagePaths, unverifiedImageUrls, appId, locale]);
+  }, [isAppVerified, value, previewUrls, appId, locale]);
 
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
+  // The in-flight upload's slot: the local blob renders as the preview the
+  // moment the file is accepted/cropped, before any network promise settles.
+  const uploadingTile = (
+    <div className="relative overflow-hidden rounded-xl" style={previewStyle}>
+      {pendingPreviewUrl ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={pendingPreviewUrl}
+            alt={`${title} upload preview`}
+            className="size-full rounded-xl object-contain"
+          />
+          <div className="absolute inset-0 animate-pulse rounded-xl bg-white/40" />
+        </>
+      ) : (
+        <ImageLoader
+          name={imageTypeNamer(value.length)}
+          className="size-full"
+        />
+      )}
+    </div>
+  );
 
   const dropZoneChildren = (
     <>
@@ -342,7 +180,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   return (
     <div className="grid gap-y-4">
       {/* ── 0 images: full-width drop zone ── */}
-      {imagePaths.length === 0 && !isUploading && !isImagesLoading && (
+      {value.length === 0 && !isUploading && !isImagesLoading && (
         <ImageDropZone
           width={imageConstraints.width}
           height={imageConstraints.height}
@@ -357,19 +195,17 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       )}
 
       {/* 0 images: skeleton */}
-      {imagePaths.length === 0 && !isUploading && isImagesLoading && (
+      {value.length === 0 && !isUploading && isImagesLoading && (
         <Skeleton height={168} className="rounded-lg" />
       )}
 
-      {/* 0 images: uploading loader */}
-      {imagePaths.length === 0 && isUploading && (
-        <ImageLoader name={imageTypeNamer(0)} className="h-[168px]" />
-      )}
+      {/* 0 images: uploading preview */}
+      {value.length === 0 && isUploading && uploadingTile}
 
       {/* ── maxImages === 1: single image, full-width box ── */}
-      {imagePaths.length > 0 && maxImages === 1 && !isImagesLoading && (
+      {value.length > 0 && maxImages === 1 && !isImagesLoading && (
         <>
-          {imagePaths.map((url) => {
+          {value.map((url) => {
             const imagePath = extractImagePathWithExtensionFromActualUrl(url);
             const resolvedUrl =
               resolvedImageUrls?.find((imgUrl) => imgUrl.includes(imagePath)) ||
@@ -396,7 +232,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                 </button>
                 <Button
                   type="button"
-                  onClick={() => handleDelete(imagePath)}
+                  onClick={() => onDelete(imagePath)}
                   disabled={disabled}
                   aria-label={`Delete ${imagePath}`}
                   className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -406,19 +242,12 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
               </div>
             );
           })}
-          {isUploading && (
-            <div style={previewStyle}>
-              <ImageLoader
-                name={imageTypeNamer(imagePaths.length)}
-                className="size-full"
-              />
-            </div>
-          )}
+          {isUploading && uploadingTile}
         </>
       )}
 
       {/* maxImages === 1: skeleton */}
-      {imagePaths.length > 0 && maxImages === 1 && isImagesLoading && (
+      {value.length > 0 && maxImages === 1 && isImagesLoading && (
         <div
           className="animate-pulse rounded-xl bg-grey-100"
           style={previewStyle}
@@ -426,9 +255,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       )}
 
       {/* ── maxImages > 1: thumbnails + drop zone inline ── */}
-      {imagePaths.length > 0 && maxImages > 1 && !isImagesLoading && (
+      {value.length > 0 && maxImages > 1 && !isImagesLoading && (
         <div className="flex flex-wrap gap-3">
-          {imagePaths.map((url) => {
+          {value.map((url) => {
             const imagePath = extractImagePathWithExtensionFromActualUrl(url);
             const resolvedUrl =
               resolvedImageUrls?.find((imgUrl) => imgUrl.includes(imagePath)) ||
@@ -455,7 +284,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                 </button>
                 <Button
                   type="button"
-                  onClick={() => handleDelete(imagePath)}
+                  onClick={() => onDelete(imagePath)}
                   disabled={disabled}
                   aria-label={`Delete ${imagePath}`}
                   className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -466,15 +295,8 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             );
           })}
 
-          {/* uploading loader occupies next slot */}
-          {isUploading && (
-            <div style={previewStyle}>
-              <ImageLoader
-                name={imageTypeNamer(imagePaths.length)}
-                className="size-full"
-              />
-            </div>
-          )}
+          {/* uploading preview occupies next slot */}
+          {isUploading && uploadingTile}
 
           {/* drop zone occupies next slot */}
           {canUploadMore && !isUploading && (
@@ -484,7 +306,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                 height={imageConstraints.height}
                 disabled={disabled || !canUploadMore}
                 uploadImage={uploadImage}
-                imageType={imageTypeNamer(imagePaths.length)}
+                imageType={imageTypeNamer(value.length)}
                 error={error}
                 className={
                   dropZoneClassName
@@ -500,9 +322,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       )}
 
       {/* maxImages > 1: skeleton */}
-      {imagePaths.length > 0 && maxImages > 1 && isImagesLoading && (
+      {value.length > 0 && maxImages > 1 && isImagesLoading && (
         <div className="flex flex-wrap gap-3">
-          {imagePaths.map((url, index) => (
+          {value.map((url, index) => (
             <div
               key={`${url}-${index}`}
               className="animate-pulse rounded-xl bg-grey-100"
@@ -518,13 +340,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         targetWidth={imageConstraints.width}
         targetHeight={imageConstraints.height}
         isApplying={isUploading}
-        onApply={(file) =>
-          uploadAcceptedImage(
-            file,
-            imageConstraints.height,
-            imageConstraints.width,
-          )
-        }
+        onApply={onUploadFile}
         onClosed={clearCropCandidate}
         previewAlt={`${title} crop preview`}
       />

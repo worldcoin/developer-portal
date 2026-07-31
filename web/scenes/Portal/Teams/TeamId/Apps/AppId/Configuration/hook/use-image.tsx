@@ -1,8 +1,4 @@
-import { tryParseJSON } from "@/lib/utils";
 import { toast } from "react-toastify";
-import { useLazyQuery } from "@apollo/client/react";
-import { GetUploadedImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/get-uploaded-image.generated";
-import { UploadImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/upload-image.generated";
 
 export class ImageValidationError extends Error {
   public readonly toastId: string;
@@ -13,38 +9,9 @@ export class ImageValidationError extends Error {
   }
 }
 
+// The S3 transport (presigned POST + signed preview URL) lives in the shared
+// upload transaction: scenes/common/.../Configuration/hook/use-app-image-upload.
 export const useImage = () => {
-  // network-only: presigned URLs expire, so a cached result is never useful.
-  const [getUploadedImage] = useLazyQuery(GetUploadedImageDocument, {
-    fetchPolicy: "network-only",
-  });
-
-  const getImage = async (
-    fileType: string, // png, jpeg
-    appId: string,
-    teamId: string,
-    imageType: string, // logo, showcase, hero
-    locale?: string, // optional locale parameter
-  ) => {
-    const response = await getUploadedImage({
-      variables: {
-        app_id: appId,
-        image_type: imageType,
-        content_type_ending: fileType,
-        team_id: teamId,
-        locale: locale,
-      },
-    });
-
-    const imageUrl = response.data?.get_uploaded_image?.url;
-
-    if (!imageUrl) {
-      throw new Error("Failed to get presigned URL");
-    }
-
-    return imageUrl;
-  };
-
   const validateImageAspectRatio = (
     file: File,
     width: number,
@@ -98,69 +65,8 @@ export const useImage = () => {
       img.src = parsedUrl.href;
     });
   };
-  const [uploadImage] = useLazyQuery(UploadImageDocument, {
-    fetchPolicy: "network-only",
-  });
-
-  const uploadViaPresignedPost = async (
-    file: File,
-    appId: string,
-    teamId: string,
-    imageType: string,
-    locale?: string,
-    signal?: AbortSignal,
-  ) => {
-    const response = await uploadImage({
-      variables: {
-        app_id: appId,
-        image_type: imageType,
-        content_type_ending: file.type.split("/")[1],
-        team_id: teamId,
-        locale: locale,
-      },
-    });
-
-    if (!response.data?.upload_image?.url) {
-      throw new Error("Failed to get upload signed URL");
-    }
-
-    const { url, stringifiedFields } = response.data.upload_image;
-
-    const fields = tryParseJSON(stringifiedFields);
-
-    if (!fields) {
-      throw new Error("Failed to parse fields");
-    }
-
-    const formData = new FormData();
-
-    Object.entries(fields).forEach(([key, value]) =>
-      formData.append(key, value as string),
-    );
-
-    formData.append("Content-Type", file.type);
-    formData.append("file", file);
-
-    const uploadResponse = await fetch(url, {
-      method: "POST",
-      body: formData,
-      signal,
-    });
-
-    if (!uploadResponse.ok) {
-      const errorBody = await uploadResponse.text();
-      throw new Error(
-        `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`,
-      );
-    }
-
-    // No post-upload request needed: S3's 2xx above is the upload
-    // confirmation, and callers fetch the display URL via getImage themselves.
-  };
 
   return {
-    getImage,
     validateImageAspectRatio,
-    uploadViaPresignedPost,
   };
 };

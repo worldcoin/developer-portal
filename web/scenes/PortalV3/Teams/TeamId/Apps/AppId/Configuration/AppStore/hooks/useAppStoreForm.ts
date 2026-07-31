@@ -1,4 +1,3 @@
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { useApolloClient } from "@apollo/client/react";
 import { useCallback, useEffect } from "react";
 import {
@@ -8,26 +7,15 @@ import {
   useWatch,
 } from "react-hook-form";
 import { toast } from "react-toastify";
-import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { AppStoreFormValues } from "../FormSchema/types";
-import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import { updateAppStoreMetadata } from "../server/update-app-store";
 import { AppMetadata, SupportType } from "../types/AppStoreFormTypes";
 import { getFirstFormError } from "../utils/form-error-utils";
 import { useSupportType } from "./useSupportType";
 
-export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
+export const useAppStoreForm = (_appId: string, appMetadata: AppMetadata) => {
   const isEditable = appMetadata?.verification_status === "unverified";
   const apolloClient = useApolloClient();
-
-  const { refetch: refetchAppMetadata } = useRefetchQueries(
-    FetchAppMetadataDocument,
-    { id: appId },
-  );
-  const { refetch: refetchLocalisations } = useRefetchQueries(
-    FetchLocalisationsDocument,
-    { app_metadata_id: appMetadata.id },
-  );
 
   const formContext = useFormContext<AppStoreFormValues>();
   const {
@@ -210,7 +198,5 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
     submitSilent,
     onInvalid,
     isEditable,
-    refetchAppMetadata,
-    refetchLocalisations,
   };
 };

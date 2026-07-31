@@ -1,11 +1,11 @@
 import { getSdk as getAppReviewImages } from "@/api/hasura/get-app-review-images/graphql/getAppReviewImages.generated";
-import { APP_IMAGE_CACHE_CONTROL } from "@/api/helpers/app-image-storage";
+import { createAppImageGetObjectCommand } from "@/api/helpers/app-image-storage";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIReviewerGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -104,13 +104,7 @@ export const POST = async (req: NextRequest) => {
   const urlExpiration = 7200;
   const urlPromises = [];
   const createS3ImageGetCommand = (key: string) =>
-    new GetObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-      ...(s3Prefix === "unverified"
-        ? { ResponseCacheControl: APP_IMAGE_CACHE_CONTROL }
-        : {}),
-    });
+    createAppImageGetObjectCommand({ bucket: bucketName, key });
 
   if (app.logo_img_url) {
     urlPromises.push(

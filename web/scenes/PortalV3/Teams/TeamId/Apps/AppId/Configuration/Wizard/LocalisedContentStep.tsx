@@ -1,6 +1,7 @@
 "use client";
 
 import { languageMap } from "@/lib/languages";
+import { useUnverifiedImages } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/hooks/use-localised-image-field";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import clsx from "clsx";
 import { useState } from "react";
@@ -50,8 +51,7 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
     appId,
     teamId,
     supportedLanguages,
-    refetchAppMetadata,
-    refetchLocalisations,
+    installCommittedValue,
   } = useAppStoreFormContext();
   const disabled = !isEditable || !isEnoughPermissions;
   const isAppVerified = appMetadata.verification_status === "verified";
@@ -68,10 +68,12 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
   const fieldErrors = errors.localisations?.[selectedIndex];
   const selectedLocale = localisations[selectedIndex]?.language ?? "en";
 
-  const onImageAutosaveSuccess = () => {
-    refetchAppMetadata();
-    refetchLocalisations();
-  };
+  // One images subscription for both image fields of the selected locale.
+  const { unverifiedImages, isImagesLoading } = useUnverifiedImages({
+    appId,
+    teamId,
+    locale: selectedLocale,
+  });
 
   return (
     <div className="flex w-full flex-col gap-14">
@@ -204,7 +206,12 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               value={(field.value ?? []).filter((url): url is string =>
                 Boolean(url),
               )}
-              onChange={field.onChange}
+              onCommittedValueChange={(urls) =>
+                installCommittedValue(
+                  `localisations.${selectedIndex}.showcase_img_urls`,
+                  urls,
+                )
+              }
               disabled={disabled}
               appId={appId}
               teamId={teamId ?? ""}
@@ -212,8 +219,9 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               isAppVerified={isAppVerified}
               appMetadataId={appMetadata.id}
               supportedLanguages={supportedLanguages}
+              unverifiedImages={unverifiedImages}
+              isImagesLoading={isImagesLoading}
               error={fieldErrors?.showcase_img_urls?.message}
-              onAutosaveSuccess={onImageAutosaveSuccess}
               dropZoneClassName="h-42"
               dropZoneContent={dropZoneContent}
             />
@@ -232,7 +240,12 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
           render={({ field }) => (
             <MetaTagImageField
               value={field.value || null}
-              onChange={(url) => field.onChange(url ?? "")}
+              onCommittedValueChange={(url) =>
+                installCommittedValue(
+                  `localisations.${selectedIndex}.meta_tag_image_url`,
+                  url ?? "",
+                )
+              }
               disabled={disabled}
               appId={appId}
               teamId={teamId ?? ""}
@@ -240,8 +253,9 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               isAppVerified={isAppVerified}
               appMetadataId={appMetadata.id}
               supportedLanguages={supportedLanguages}
+              unverifiedImages={unverifiedImages}
+              isImagesLoading={isImagesLoading}
               error={fieldErrors?.meta_tag_image_url?.message}
-              onAutosaveSuccess={onImageAutosaveSuccess}
               dropZoneClassName="h-42"
               dropZoneContent={dropZoneContent}
             />

@@ -4,8 +4,7 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
-const getImageMock = jest.fn();
-const uploadViaPresignedPostMock = jest.fn();
+const uploadMock = jest.fn().mockResolvedValue(true);
 const toastErrorMock = jest.fn();
 
 jest.mock("react-toastify", () => ({
@@ -16,20 +15,19 @@ jest.mock("@/lib/utils", () => ({
   getCDNImageUrl: (_appId: string, path: string) => `https://cdn/${path}`,
 }));
 
+// The shared transaction is under test elsewhere (use-app-image-upload.test);
+// here it is stubbed so the test isolates the selection → crop gate.
 jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/hook/use-image",
-  () => {
-    const actual = jest.requireActual(
-      "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/hook/use-image",
-    );
-    return {
-      ...actual,
-      useImage: () => ({
-        getImage: getImageMock,
-        uploadViaPresignedPost: uploadViaPresignedPostMock,
-      }),
-    };
-  },
+  "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/use-app-image-upload",
+  () => ({
+    useAppImageUpload: () => ({
+      upload: uploadMock,
+      isUploading: false,
+      pendingPreviewUrl: null,
+      patchImagesCache: jest.fn(),
+      readImagesCache: () => null,
+    }),
+  }),
 );
 
 jest.mock(
@@ -97,8 +95,8 @@ describe("logo upload crop flow", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    uploadMock.mockResolvedValue(true);
     decodedDimensions = { width: 800, height: 400 };
-    getImageMock.mockResolvedValue("https://cdn/logo_img.png");
     Object.defineProperty(URL, "createObjectURL", {
       configurable: true,
       value: jest.fn(() => "blob:logo-preview"),
@@ -159,7 +157,7 @@ describe("logo upload crop flow", () => {
         screen.queryByAltText("Logo crop preview"),
       ).not.toBeInTheDocument(),
     );
-    expect(uploadViaPresignedPostMock).not.toHaveBeenCalled();
+    expect(uploadMock).not.toHaveBeenCalled();
   });
 
   it("uploads a square logo under 500 kB without opening the cropper", async () => {
@@ -170,11 +168,8 @@ describe("logo upload crop flow", () => {
     selectFile(file);
 
     await waitFor(() =>
-      expect(uploadViaPresignedPostMock).toHaveBeenCalledWith(
-        file,
-        "app_9cdd0a714aec9ed17dca660bc9ffe72a",
-        "team_1",
-        "logo_img",
+      expect(uploadMock).toHaveBeenCalledWith(
+        expect.objectContaining({ file, imageType: "logo_img" }),
       ),
     );
     expect(screen.queryByAltText("Logo crop preview")).not.toBeInTheDocument();
@@ -194,7 +189,7 @@ describe("logo upload crop flow", () => {
         "Image size must be under 500kB",
       ),
     );
-    expect(uploadViaPresignedPostMock).not.toHaveBeenCalled();
+    expect(uploadMock).not.toHaveBeenCalled();
     expect(screen.queryByAltText("Logo crop preview")).not.toBeInTheDocument();
   });
 });

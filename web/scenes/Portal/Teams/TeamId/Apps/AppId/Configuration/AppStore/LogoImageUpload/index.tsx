@@ -15,7 +15,7 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { LOGO_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
-import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useAppImageUpload } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/use-app-image-upload";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
 import { UpdateLogoDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/LogoImageUpload/graphql/client/update-logo.generated";
@@ -49,93 +49,82 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [disabled] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
-  const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const [unverifiedImages] = useAtom(unverifiedImageAtom);
+  // The mutation returns the updated logo_img_url, so the app_metadata entity
+  // in the Apollo cache stays current without a refetch.
   const [updateLogoMutation, { loading }] = useMutation(UpdateLogoDocument);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
-    useImage();
+  const { validateImageAspectRatio } = useImage();
+  const {
+    upload,
+    isUploading,
+    pendingPreviewUrl,
+    patchImagesCache,
+    readImagesCache,
+  } = useAppImageUpload({ appId, teamId });
   const handleUpload = () => {
     imageInputRef.current?.click();
   };
 
   const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
-    const imageType = "logo_img";
 
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
-      const fileTypeEnding = file.type.split("/")[1];
-
       try {
-        // Aspect ratio of 1:1
+        // Aspect ratio of 1:1 — validation surfaces its own toast
         await validateImageAspectRatio(file, 1, 1);
+      } catch {
+        return;
+      }
 
-        toast.info("Uploading image", {
-          toastId: LOGO_IMAGE_UPLOAD_TOAST_ID,
-          autoClose: false,
-        });
+      toast.info("Uploading image", {
+        toastId: LOGO_IMAGE_UPLOAD_TOAST_ID,
+        autoClose: false,
+      });
+      toast.dismiss(ImageValidationError.prototype.toastId);
 
-        toast.dismiss(ImageValidationError.prototype.toastId);
-        await uploadViaPresignedPost(file, appId, teamId, imageType);
+      const succeeded = await upload({
+        file,
+        imageType: "logo_img",
+        persist: (fileName) =>
+          updateLogoMutation({ variables: { id: appMetadataId, fileName } }),
+        commit: ({ signedUrl }) =>
+          patchImagesCache(() => ({ logo_img_url: signedUrl })),
+        onError: () => {
+          toast.update(LOGO_IMAGE_UPLOAD_TOAST_ID, {
+            type: "error",
+            render: "Error uploading image",
+            autoClose: 5000,
+          });
+        },
+      });
 
-        const imageUrl = await getImage(
-          fileTypeEnding,
-          appId,
-          teamId,
-          imageType,
-        );
-
-        setUnverifiedImages({
-          ...unverifiedImages,
-          logo_img_url: imageUrl,
-        });
-
-        const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
-
-        await updateLogoMutation({
-          variables: {
-            id: appMetadataId,
-            fileName: `${imageType}.${saveFileType}`,
-          },
-
-          refetchQueries: [FetchAppMetadataDocument],
-        });
-
+      if (succeeded) {
         toast.update(LOGO_IMAGE_UPLOAD_TOAST_ID, {
           type: "success",
           render: "Image uploaded and saved",
           autoClose: 5000,
         });
         setShowDialog(false);
-      } catch (error) {
-        console.error("Logo Upload Failed: ", error);
-
-        if (error instanceof ImageValidationError) {
-          toast.dismiss(LOGO_IMAGE_UPLOAD_TOAST_ID);
-        } else {
-          toast.update(LOGO_IMAGE_UPLOAD_TOAST_ID, {
-            type: "error",
-            render: "Error uploading image",
-            autoClose: 5000,
-          });
-        }
       }
     }
   };
 
   const removeImage = async () => {
-    setUnverifiedImages({
-      ...unverifiedImages,
-      logo_img_url: "",
-    });
+    const previous = readImagesCache()?.logo_img_url ?? null;
+    patchImagesCache(() => ({ logo_img_url: null }));
 
-    await updateLogoMutation({
-      variables: {
-        id: appMetadataId,
-        fileName: "",
-      },
-
-      refetchQueries: [FetchAppMetadataDocument],
-    });
+    try {
+      await updateLogoMutation({
+        variables: {
+          id: appMetadataId,
+          fileName: "",
+        },
+      });
+    } catch {
+      patchImagesCache(() => ({ logo_img_url: previous }));
+      toast.error("Failed to remove image");
+    }
   };
 
   const verifiedImageURL = useMemo(() => {
@@ -173,8 +162,18 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             </Button>
           </div>
           <div className="grid gap-y-6 rounded-xl border border-grey-200 p-6">
-            {unverifiedImages?.logo_img_url &&
-            unverifiedImages.logo_img_url !== "loading" ? (
+            {isUploading && pendingPreviewUrl ? (
+              <div className="relative size-28">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={pendingPreviewUrl}
+                  alt="Logo upload preview"
+                  className="size-28 rounded-2xl object-contain drop-shadow-lg"
+                />
+                <div className="absolute inset-0 animate-pulse rounded-2xl bg-white/40" />
+              </div>
+            ) : unverifiedImages?.logo_img_url &&
+              unverifiedImages.logo_img_url !== "loading" ? (
               <div>
                 <Image
                   src={unverifiedImages.logo_img_url}
