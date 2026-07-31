@@ -1719,15 +1719,40 @@ const LENS_MIN_OPACITY_FACTOR = 0.35;
 const DOT_BASE_RGB = [24, 24, 24] as const; // #181818
 const DOT_LIGHT_RGB = [232, 230, 226] as const; // soft warm light gray
 
+// An ambient nudge, independent of the cursor: every so often, a random dot
+// (never one the lens/reveal/ripple system is already driving) pops up -
+// scaling up and spinning a random direction, a couple of full turns - then
+// settles back down. A passive invitation to interact, not a response to
+// anything the visitor did.
+const POP_MIN_INTERVAL_MS = 800;
+const POP_MAX_INTERVAL_MS = 2000;
+const POP_DURATION_MS = 1100;
+const POP_MAX_SCALE = 1.4;
+const POP_MAX_ROTATION_DEG = 720;
+const POP_MAX_CONCURRENT = 3;
+
 // A click sends a ring expanding outward from the click point across the
 // dot grid over RIPPLE_DURATION_MS, reaching RIPPLE_MAX_RADIUS at the end.
-// Only cells the lens/icon system isn't already actively driving are
-// touched, so the ripple never fights the hover effects for the same style
-// properties.
+// Releasing sends a second ring from the same point that's the time-reverse
+// of the first: it starts already at RIPPLE_MAX_RADIUS (faint) and collapses
+// back to the origin (growing more intense as it closes in), rather than
+// expanding and fading - literally the same wave played backwards, not just
+// a wave traveling the other direction. It plays out much quicker than the
+// forward one (RIPPLE_REVERSE_DURATION_MS), so the release reads as a snap
+// back rather than a slow-motion mirror of the press. Only cells the
+// lens/icon system isn't already actively driving are touched, so neither
+// ripple ever fights the hover effects for the same style properties.
 const RIPPLE_DURATION_MS = 1100;
+const RIPPLE_REVERSE_DURATION_MS = 320;
 const RIPPLE_MAX_RADIUS = 420;
 const RIPPLE_BAND_WIDTH = 40;
 const RIPPLE_MAX_SCALE_BOOST = 1.4;
+// The same wavefront also blurs any revealed icon it sweeps through (even
+// ones the "stay sharp forever" rule above would otherwise keep pin-sharp -
+// this is a deliberate, transient effect, not the ambient hover blur), then
+// clears as the wave passes - a shockwave you can see hit the icons, not
+// just the dots.
+const ICON_RIPPLE_BLUR_MAX = 6;
 // Icons fetch/reveal anywhere within this radius - lazily, so this bounds
 // the icon-fetch count per hover, same reasoning as before.
 const ICON_REVEAL_RADIUS = 60;
@@ -1749,18 +1774,60 @@ const ICON_BLUR_FALLOFF_POWER = 1;
 // Cell width/height in the source grid (see CELLS above).
 const CELL_SIZE = 8;
 
-// Clicking an icon compresses it (like a physical button) over
-// PRESS_COMPRESS_DURATION_MS, then springs back past its normal size before
-// settling, over PRESS_RELEASE_DURATION_MS. This is layered as a multiplier
-// on top of whatever scale the lens/reveal system already computed for that
+// Clicking an icon inverts its little pyramid of prominence: the pressed
+// icon - normally the "peak", possibly zoomed to 5-9x by the lens - settles
+// toward a fixed, still-prominent absolute size over
+// PRESS_COMPRESS_DURATION_MS (a proportional shrink alone wouldn't do this:
+// a 9x icon shrunk by even 90% is still bigger than its 1-2x neighbors, so
+// the settle blends toward a fixed target instead of merely scaling down by
+// a fraction of itself). It stays clearly the most prominent icon on screen
+// rather than shrinking away - the neighbors that would otherwise crowd it
+// get shoved aside instead (see PRESS_PUSH_MAX_DISTANCE below). Meanwhile a
+// ring of icons further out (the mid-distance band) swells past their own
+// resting size, like the pressed icon sank and pushed its surroundings up.
+// It all springs back over PRESS_RELEASE_DURATION_MS. This is layered on
+// top of whatever scale the lens/reveal system already computed for that
 // icon that frame, rather than replacing it.
-const PRESS_COMPRESS_SCALE = 0.8;
-const PRESS_COMPRESS_DURATION_MS = 120;
-const PRESS_RELEASE_DURATION_MS = 380;
-// Neighboring icons echo the same compress/release motion, scaled down by
-// distance from the pressed one, so a click reads as one cohesive pulse
-// through the grid rather than a single icon reacting in isolation.
-const PRESS_RIPPLE_RADIUS = 100;
+const PRESS_TARGET_SCALE = 3;
+const PRESS_COMPRESS_DURATION_MS = 180;
+const PRESS_RELEASE_DURATION_MS = 420;
+// How far the whole effect (dip + surrounding bulge) reaches before fading
+// to nothing. Kept close to ICON_REVEAL_RADIUS (60) - the bulge peaks
+// roughly midway between PRESS_DIP_RADIUS and this radius, so if this were
+// much larger than the visible icon cluster, every revealed icon would sit
+// on the rising half of the curve and never show the taper back to
+// neutral, reading as "everything got bigger" rather than a graduated
+// pyramid.
+const PRESS_RIPPLE_RADIUS = 68;
+// Wide enough to fully quiet the immediate neighborhood - not just the
+// pressed cell, but the neighbors close enough that the lens's OWN zoom
+// would otherwise keep them large regardless of the press - so nothing
+// bulges (or stays lens-big) right next to the pressed icon (this is also
+// the radius the negative-space push below reaches). The bulge band only
+// starts beyond this radius (see below), giving a clear gap.
+const PRESS_DIP_RADIUS = 36;
+const PRESS_DIP_POWER = 1;
+// The bulge is a band that's zero at the pressed icon, peaks around the
+// middle of the ripple radius, and fades back to zero at the outer edge -
+// a `4t(1-t)` bump over t = dist / PRESS_RIPPLE_RADIUS.
+const PRESS_BULGE_STRENGTH = 0.7;
+// On top of the dip/bulge scale change, icons right next to the pressed one
+// also get shoved directly away from it (radially, not randomly). Since the
+// pressed icon no longer shrinks down small (see PRESS_TARGET_SCALE above),
+// this push has to do the real work of keeping it visible - a big, disorga-
+// nized displacement of the neighbors is fine and expected here, not just a
+// subtle nudge. Reuses the dip radius/progress already computed above for
+// the pyramid effect - no separate precompute pass, no per-click state.
+const PRESS_PUSH_MAX_DISTANCE = 48;
+// While the pointer stays down on it, the pressed icon itself shakes in
+// place - two out-of-phase sine waves (different frequencies for x/y so it
+// doesn't just trace a smooth circle) driven off elapsed hold time, not
+// frame count, so it doesn't slow down/speed up with the frame rate. Only
+// runs during the "compress" phase (see pressRef) - i.e. for as long as the
+// button is actually held - and stops the instant it's released.
+const SHAKE_AMPLITUDE_PX = 1.5;
+const SHAKE_FREQUENCY_X = 0.035;
+const SHAKE_FREQUENCY_Y = 0.026;
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
@@ -1810,8 +1877,19 @@ export const BasePixelStrip = () => {
   // same dead URL on every pass for the life of the page.
   const iconFailedRef = useRef<Set<number>>(new Set());
   const revealedRef = useRef<Set<string>>(new Set());
-  const ripplesRef = useRef<Array<{ x: number; y: number; start: number }>>([]);
+  const ripplesRef = useRef<
+    Array<{ x: number; y: number; start: number; reverse: boolean }>
+  >([]);
+  // Remembers where the pointer went down so pointerup can send its
+  // reverse ripple from that same spot, even if the pointer has since
+  // drifted (e.g. a press-and-drag) or never landed on an icon at all -
+  // matching how the forward ripple on pointerdown also fires unconditionally.
+  const pressPointRef = useRef<{ x: number; y: number } | null>(null);
   const rippleActiveRef = useRef<Set<string>>(new Set());
+  // Icons the ripple wave is currently blurring despite being outside the
+  // cursor's current LENS_RADIUS - the main per-cell loop never visits
+  // these, so they need their own pass (see below).
+  const iconWaveActiveRef = useRef<Set<string>>(new Set());
   const pressRef = useRef<{
     key: string;
     x: number;
@@ -1819,6 +1897,19 @@ export const BasePixelStrip = () => {
     phase: "compress" | "release";
     start: number;
   } | null>(null);
+  // The pressed icon's own transform transition is disabled (inline
+  // override) for as long as it's shaking, so the jitter reads as a snappy
+  // vibration instead of getting smeared out by .pixel-icon's normal 180ms
+  // transform easing. Tracks which icon currently has that override applied
+  // so it can be cleared the moment the icon stops being the pressed one
+  // (release, or a different icon gets pressed instead).
+  const shakingIconKeyRef = useRef<string | null>(null);
+  // Ambient, randomly-timed "pop and spin" pulses on dots the cursor isn't
+  // near - an idle invitation to come hover/click, not a response to
+  // anything the visitor did.
+  const popsRef = useRef<Array<{ key: string; start: number; spin: 1 | -1 }>>(
+    [],
+  );
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -1884,12 +1975,64 @@ export const BasePixelStrip = () => {
         scale: number;
       }> = [];
 
+      // How much a click's ripple wave should blur the icon at (x, y) right
+      // now, regardless of where the cursor currently is - the wave can
+      // reach icons the lens isn't even looking at. Shared by the main
+      // per-cell loop below (for icons the lens IS currently driving) and
+      // the icon-wave pass further down (for ones it isn't).
+      const getIconWaveBlur = (x: number, y: number): number => {
+        let waveBlur = 0;
+
+        for (const ripple of ripplesRef.current) {
+          const rippleDuration = ripple.reverse
+            ? RIPPLE_REVERSE_DURATION_MS
+            : RIPPLE_DURATION_MS;
+          const rippleProgress = (now - ripple.start) / rippleDuration;
+
+          if (rippleProgress >= 1) {
+            continue;
+          }
+
+          const rdx = x + 4 - ripple.x;
+          const rdy = y + 4 - ripple.y;
+          const rippleCellDist = Math.sqrt(rdx * rdx + rdy * rdy);
+          const rippleCurrentRadius = ripple.reverse
+            ? RIPPLE_MAX_RADIUS * (1 - rippleProgress)
+            : rippleProgress * RIPPLE_MAX_RADIUS;
+          const rippleBandDist = Math.abs(rippleCellDist - rippleCurrentRadius);
+
+          if (rippleBandDist >= RIPPLE_BAND_WIDTH) {
+            continue;
+          }
+
+          const rippleBandFalloff = 1 - rippleBandDist / RIPPLE_BAND_WIDTH;
+          const rippleEnvelope = ripple.reverse
+            ? rippleProgress
+            : 1 - rippleProgress;
+          waveBlur = Math.max(
+            waveBlur,
+            ICON_RIPPLE_BLUR_MAX * rippleBandFalloff * rippleEnvelope,
+          );
+        }
+
+        return waveBlur;
+      };
+
       // The press spring's time-based curve is the same everywhere - only
       // computed once per frame - but how much of it a given cell feels
       // depends on its distance from the press origin (see PRESS_RIPPLE_
-      // RADIUS below), so the origin is kept alongside it.
+      // RADIUS below), so the origin is kept alongside it. pressProgress is
+      // 0 at rest, 1 at full compression, and dips briefly negative during
+      // the release overshoot (a small complementary give-back, not a
+      // separate animation).
       let pressOrigin: { x: number; y: number } | null = null;
-      let pressMultiplier = 1;
+      let pressProgress = 0;
+      // Set only while the button is still down on this icon (the
+      // "compress" phase spans the whole hold, not just the initial
+      // 180ms dip - see handlePointerUp, which is what actually advances
+      // to "release"). Used below to shake this one icon in place.
+      let shakingKey: string | null = null;
+      let shakeElapsed = 0;
 
       if (pressRef.current) {
         const press = pressRef.current;
@@ -1897,11 +2040,12 @@ export const BasePixelStrip = () => {
 
         if (press.phase === "compress") {
           const t = Math.min(1, elapsed / PRESS_COMPRESS_DURATION_MS);
-          pressMultiplier = 1 - (1 - PRESS_COMPRESS_SCALE) * easeOutCubic(t);
+          pressProgress = easeOutCubic(t);
+          shakingKey = press.key;
+          shakeElapsed = elapsed;
         } else {
           const t = Math.min(1, elapsed / PRESS_RELEASE_DURATION_MS);
-          pressMultiplier =
-            PRESS_COMPRESS_SCALE + (1 - PRESS_COMPRESS_SCALE) * easeOutBack(t);
+          pressProgress = 1 - easeOutBack(t);
 
           if (t >= 1) {
             pressRef.current = null;
@@ -1910,6 +2054,19 @@ export const BasePixelStrip = () => {
 
         pressOrigin = { x: press.x, y: press.y };
       }
+
+      if (
+        shakingIconKeyRef.current &&
+        shakingIconKeyRef.current !== shakingKey
+      ) {
+        const previous = iconElsRef.current.get(shakingIconKeyRef.current);
+
+        if (previous) {
+          previous.style.transition = "";
+        }
+      }
+
+      shakingIconKeyRef.current = shakingKey;
 
       if (pointer) {
         for (let i = 0; i < CELLS.length; i++) {
@@ -1976,11 +2133,26 @@ export const BasePixelStrip = () => {
               const falloff = 1 - dist / ICON_REVEAL_RADIUS;
               const baseIconScale =
                 1 + ICON_MAX_SCALE * falloff ** ICON_SCALE_FALLOFF_POWER;
-              // The press spring is layered on top of the lens's own scale,
-              // strongest at the pressed cell and rippling outward - not
-              // replacing the lens scale, and not an on/off switch for one
-              // cell.
+              // The press spring is layered on top of the lens's own scale
+              // as an inverted pyramid: the pressed cell's scale blends
+              // toward a fixed, just-above-resting target (not just a
+              // fraction of itself - see PRESS_TARGET_SCALE above), a
+              // mid-distance band around it multiplicatively bulges up, and
+              // both fade to nothing at PRESS_RIPPLE_RADIUS - not replacing
+              // the lens scale, and not an on/off switch for one cell.
               let iconScale = baseIconScale;
+              // Radial push away from the press origin - zero at the
+              // pressed icon itself, strongest just outside it, fading to
+              // nothing by PRESS_DIP_RADIUS. This is what actually clears
+              // "negative space" around the pressed icon (the scale change
+              // above alone isn't enough to keep a big neighbor from
+              // visually overlapping it, especially now that the pressed
+              // icon stays close to full size instead of shrinking away).
+              // Reuses pdx/pdy/pressDist from the dip/bulge math below - no
+              // extra per-cell work, and (unlike the old shockwave) no
+              // per-click precompute pass or Map lookup.
+              let pushDx = 0;
+              let pushDy = 0;
 
               if (pressOrigin) {
                 const pdx = x + 4 - pressOrigin.x;
@@ -1988,26 +2160,95 @@ export const BasePixelStrip = () => {
                 const pressDist = Math.sqrt(pdx * pdx + pdy * pdy);
 
                 if (pressDist < PRESS_RIPPLE_RADIUS) {
-                  const rippleFalloff = 1 - pressDist / PRESS_RIPPLE_RADIUS;
-                  const localPressMultiplier =
-                    1 + (pressMultiplier - 1) * rippleFalloff;
-                  iconScale = baseIconScale * localPressMultiplier;
+                  const dipShape =
+                    Math.max(0, 1 - pressDist / PRESS_DIP_RADIUS) **
+                    PRESS_DIP_POWER;
+                  // The bulge only starts beyond the dip radius - a clean
+                  // "not the immediate ones" gap - and ramps 0 -> peak -> 0
+                  // across the remaining band out to PRESS_RIPPLE_RADIUS.
+                  // Without this gap the bulge is already substantial right
+                  // next to the pressed icon, so a swollen neighbor visually
+                  // overlaps and hides it instead of framing it.
+                  const bulgeT =
+                    (pressDist - PRESS_DIP_RADIUS) /
+                    (PRESS_RIPPLE_RADIUS - PRESS_DIP_RADIUS);
+                  const bulgeShape =
+                    bulgeT > 0 && bulgeT < 1 ? 4 * bulgeT * (1 - bulgeT) : 0;
+
+                  const dipBlend =
+                    Math.max(0, Math.min(1, pressProgress)) * dipShape;
+                  const settledScale =
+                    baseIconScale +
+                    (PRESS_TARGET_SCALE - baseIconScale) * dipBlend;
+                  const bulgeMultiplier =
+                    1 + PRESS_BULGE_STRENGTH * pressProgress * bulgeShape;
+
+                  iconScale = settledScale * bulgeMultiplier;
                 }
+
+                if (pressDist > 0.01 && pressDist < PRESS_DIP_RADIUS) {
+                  const pushFalloff = 1 - pressDist / PRESS_DIP_RADIUS;
+                  const pushMagnitude =
+                    PRESS_PUSH_MAX_DISTANCE *
+                    pushFalloff *
+                    Math.max(0, Math.min(1, pressProgress));
+                  pushDx = (pdx / pressDist) * pushMagnitude;
+                  pushDy = (pdy / pressDist) * pushMagnitude;
+                }
+              }
+
+              // The pressed icon itself shakes in place for as long as it's
+              // held (see SHAKE_AMPLITUDE_PX above). Its own transform
+              // transition is switched off for the duration so the jitter
+              // reads as an immediate vibration rather than getting eased
+              // out by the class's normal 180ms transform easing - restored
+              // the moment it stops being the pressed icon (see
+              // shakingIconKeyRef handling above).
+              let shakeDx = 0;
+              let shakeDy = 0;
+
+              if (key === shakingKey) {
+                shakeDx =
+                  Math.sin(shakeElapsed * SHAKE_FREQUENCY_X) *
+                  SHAKE_AMPLITUDE_PX;
+                shakeDy =
+                  Math.sin(shakeElapsed * SHAKE_FREQUENCY_Y + 1.7) *
+                  SHAKE_AMPLITUDE_PX;
+                image.style.transition =
+                  "opacity 220ms ease-out, filter 220ms ease-out";
               }
               // A quarter of the icon's current on-screen size - enough
               // that the pointer doesn't fully cover it, while still
               // overlapping it rather than sitting at its edge.
               const iconOffset = (CELL_SIZE * iconScale) / 4;
-              const iconOpacity =
-                ICON_MIN_OPACITY +
-                (1 - ICON_MIN_OPACITY) * falloff ** ICON_OPACITY_FALLOFF_POWER;
-              const iconBlur =
-                ICON_MAX_BLUR * (1 - falloff) ** ICON_BLUR_FALLOFF_POWER;
+              // Blurring/fading back out on every pass is only right for the
+              // FIRST reveal (that's the "developing into focus" moment).
+              // Once an icon has actually been shown, re-blurring it as the
+              // cursor wanders back nearby (but not exactly onto it) reads
+              // as pointlessly hiding something the visitor already saw -
+              // so a previously-revealed icon stays fully sharp/opaque here
+              // on, only its scale keeps responding to distance.
+              const alreadyRevealed = revealedRef.current.has(key);
+              const iconOpacity = alreadyRevealed
+                ? 1
+                : ICON_MIN_OPACITY +
+                  (1 - ICON_MIN_OPACITY) *
+                    falloff ** ICON_OPACITY_FALLOFF_POWER;
+              const iconBlur = alreadyRevealed
+                ? 0
+                : ICON_MAX_BLUR * (1 - falloff) ** ICON_BLUR_FALLOFF_POWER;
 
-              image.style.transform = `translate(${iconOffset.toFixed(3)}px, ${(-iconOffset).toFixed(3)}px) scale(${iconScale.toFixed(3)})`;
+              // A click's ripple wave blurs icons as its wavefront reaches
+              // them - independent of (and layered on top of) whatever the
+              // lens itself has this icon's blur set to.
+              const finalIconBlur = Math.max(iconBlur, getIconWaveBlur(x, y));
+
+              image.style.transform = `translate(${(iconOffset + pushDx + shakeDx).toFixed(3)}px, ${(-iconOffset + pushDy + shakeDy).toFixed(3)}px) scale(${iconScale.toFixed(3)})`;
               image.style.opacity = iconOpacity.toFixed(3);
               image.style.filter =
-                iconBlur > 0.01 ? `blur(${iconBlur.toFixed(2)}px)` : "";
+                finalIconBlur > 0.01
+                  ? `blur(${finalIconBlur.toFixed(2)}px)`
+                  : "";
 
               // Defer stacking: the most-zoomed icon must always paint on
               // top, and which icon that is changes every frame as the
@@ -2050,14 +2291,24 @@ export const BasePixelStrip = () => {
             }
           } else if (revealedRef.current.has(key)) {
             // Outside the reveal radius but already revealed earlier -
-            // settle at rest (no zoom, no blur, no cursor-avoidance offset)
-            // rather than hiding it again.
+            // settle at rest (no zoom, no cursor-avoidance offset) rather
+            // than hiding it again. Still susceptible to a click's ripple
+            // wave, though - that's a deliberate transient effect, not the
+            // ambient hover blur this icon is otherwise exempt from. (The
+            // press push doesn't reach this branch - PRESS_DIP_RADIUS is
+            // well inside ICON_REVEAL_RADIUS, so any icon it affects is
+            // still handled by the sharp-reveal branch above.)
             const image = iconElsRef.current.get(key);
 
             if (image) {
+              const settledWaveBlur = getIconWaveBlur(x, y);
+
               image.style.transform = "";
               image.style.opacity = "1";
-              image.style.filter = "";
+              image.style.filter =
+                settledWaveBlur > 0.01
+                  ? `blur(${settledWaveBlur.toFixed(2)}px)`
+                  : "";
             }
 
             if (rect) {
@@ -2112,7 +2363,9 @@ export const BasePixelStrip = () => {
       // touches cells neither the lens nor a settled icon reveal already
       // owns, so it never clobbers those effects.
       ripplesRef.current = ripplesRef.current.filter(
-        (ripple) => now - ripple.start < RIPPLE_DURATION_MS,
+        (ripple) =>
+          now - ripple.start <
+          (ripple.reverse ? RIPPLE_REVERSE_DURATION_MS : RIPPLE_DURATION_MS),
       );
 
       if (ripplesRef.current.length > 0 || rippleActiveRef.current.size > 0) {
@@ -2129,8 +2382,13 @@ export const BasePixelStrip = () => {
           let intensity = 0;
 
           for (const ripple of ripplesRef.current) {
-            const progress = (now - ripple.start) / RIPPLE_DURATION_MS;
-            const currentRadius = progress * RIPPLE_MAX_RADIUS;
+            const rippleDuration = ripple.reverse
+              ? RIPPLE_REVERSE_DURATION_MS
+              : RIPPLE_DURATION_MS;
+            const progress = (now - ripple.start) / rippleDuration;
+            const currentRadius = ripple.reverse
+              ? RIPPLE_MAX_RADIUS * (1 - progress)
+              : progress * RIPPLE_MAX_RADIUS;
             const dx = x + 4 - ripple.x;
             const dy = y + 4 - ripple.y;
             const cellDist = Math.sqrt(dx * dx + dy * dy);
@@ -2141,7 +2399,7 @@ export const BasePixelStrip = () => {
             }
 
             const bandFalloff = 1 - bandDist / RIPPLE_BAND_WIDTH;
-            const envelope = 1 - progress;
+            const envelope = ripple.reverse ? progress : 1 - progress;
             intensity = Math.max(intensity, bandFalloff * envelope);
           }
 
@@ -2185,7 +2443,97 @@ export const BasePixelStrip = () => {
         rippleActiveRef.current = nextRippleActive;
       }
 
-      if (ripplesRef.current.length > 0 || pressRef.current) {
+      // Icon wave-blur pass, for icons the main per-cell loop above never
+      // visits this frame - it only walks cells within LENS_RADIUS of the
+      // CURSOR, but a ripple wave (RIPPLE_MAX_RADIUS) travels much further,
+      // so an already-settled icon far from the cursor still needs to catch
+      // the wave as it passes.
+      if (ripplesRef.current.length > 0 || iconWaveActiveRef.current.size > 0) {
+        const nextIconWaveActive = new Set<string>();
+
+        for (let i = 0; i < CELLS.length; i++) {
+          if (!iconHrefCacheRef.current.has(i)) {
+            continue;
+          }
+
+          const [x, y] = CELLS[i];
+          const key = `${x},${y}`;
+
+          // The main per-cell loop already handled (or will handle) this
+          // cell's blur this frame if the cursor is anywhere near it -
+          // don't fight it here.
+          if (activeRef.current.has(key)) {
+            continue;
+          }
+
+          const image = iconElsRef.current.get(key);
+
+          if (!image) {
+            continue;
+          }
+
+          const waveBlur = getIconWaveBlur(x, y);
+
+          if (waveBlur > 0.01) {
+            image.style.filter = `blur(${waveBlur.toFixed(2)}px)`;
+            nextIconWaveActive.add(key);
+          } else if (iconWaveActiveRef.current.has(key)) {
+            image.style.filter = "";
+          }
+        }
+
+        iconWaveActiveRef.current = nextIconWaveActive;
+      }
+
+      // Ambient pop-and-spin pass: independent of pointer/press/ripple, and
+      // yields to any of them immediately if the cursor (or a ripple)
+      // reaches a cell mid-pop, without touching whatever transform that
+      // system just applied this frame.
+      if (popsRef.current.length > 0) {
+        const stillPopping: typeof popsRef.current = [];
+
+        for (const pop of popsRef.current) {
+          const claimed =
+            activeRef.current.has(pop.key) ||
+            revealedRef.current.has(pop.key) ||
+            rippleActiveRef.current.has(pop.key);
+
+          if (claimed) {
+            continue;
+          }
+
+          const progress = (now - pop.start) / POP_DURATION_MS;
+
+          if (progress >= 1) {
+            const rect = rectsRef.current.get(pop.key);
+
+            if (rect) {
+              rect.style.transform = "";
+            }
+
+            continue;
+          }
+
+          stillPopping.push(pop);
+
+          const rect = rectsRef.current.get(pop.key);
+
+          if (rect) {
+            const bump = Math.sin(progress * Math.PI);
+            const scale = 1 + (POP_MAX_SCALE - 1) * bump;
+            const rotation = pop.spin * POP_MAX_ROTATION_DEG * bump;
+            rect.style.transform = `rotate(${rotation.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+          }
+        }
+
+        popsRef.current = stillPopping;
+      }
+
+      if (
+        ripplesRef.current.length > 0 ||
+        pressRef.current ||
+        popsRef.current.length > 0
+      ) {
         scheduleFrame();
       }
     };
@@ -2198,7 +2546,10 @@ export const BasePixelStrip = () => {
 
     // The pressed cell is fixed at pointerdown time (the nearest icon
     // currently in full sharp focus) and the spring plays out on that one
-    // cell regardless of where the pointer moves before release.
+    // cell regardless of where the pointer moves before release. x/y here
+    // are the cell's CENTER (matching how the per-cell loop computes
+    // distance to it, via x + 4), not its top-left corner - mixing the two
+    // would bias the dip/bulge pattern off-center by half a cell.
     const findPressedIcon = (point: { x: number; y: number }) => {
       let best: { key: string; x: number; y: number } | null = null;
       let bestDist = Infinity;
@@ -2215,7 +2566,7 @@ export const BasePixelStrip = () => {
 
         if (dist < ICON_REVEAL_RADIUS && dist < bestDist) {
           bestDist = dist;
-          best = { key: `${x},${y}`, x, y };
+          best = { key: `${x},${y}`, x: x + 4, y: y + 4 };
         }
       }
 
@@ -2250,39 +2601,53 @@ export const BasePixelStrip = () => {
         return;
       }
 
+      // The impact happens the instant contact is made, not after it's
+      // released - the ripple fires here unconditionally (like a click
+      // anywhere on the logo already did), in sync with the press-compress
+      // animation below, which only kicks in when there's actually an icon
+      // nearby to press (that's also what drives the radial push that
+      // clears space around it - see PRESS_PUSH_MAX_DISTANCE above).
+      ripplesRef.current.push({
+        ...point,
+        start: performance.now(),
+        reverse: false,
+      });
+      pressPointRef.current = point;
+
       const pressed = findPressedIcon(point);
 
-      if (!pressed) {
-        return;
+      if (pressed) {
+        pressRef.current = {
+          ...pressed,
+          phase: "compress",
+          start: performance.now(),
+        };
       }
 
-      pressRef.current = {
-        ...pressed,
-        phase: "compress",
-        start: performance.now(),
-      };
       scheduleFrame();
     };
 
     const handlePointerUp = () => {
+      // Send the reverse ripple from the same spot the forward one started
+      // - unconditionally, same as pointerdown, not gated on an icon having
+      // been pressed.
+      if (pressPointRef.current) {
+        ripplesRef.current.push({
+          ...pressPointRef.current,
+          start: performance.now(),
+          reverse: true,
+        });
+        pressPointRef.current = null;
+      }
+
       if (pressRef.current?.phase === "compress") {
         pressRef.current = {
           ...pressRef.current,
           phase: "release",
           start: performance.now(),
         };
-        scheduleFrame();
-      }
-    };
-
-    const handleClick = (event: MouseEvent) => {
-      const point = toSvgPoint(event.clientX, event.clientY);
-
-      if (!point) {
-        return;
       }
 
-      ripplesRef.current.push({ ...point, start: performance.now() });
       scheduleFrame();
     };
 
@@ -2290,14 +2655,62 @@ export const BasePixelStrip = () => {
     svg.addEventListener("pointerleave", handlePointerLeave);
     svg.addEventListener("pointerdown", handlePointerDown);
     svg.addEventListener("pointerup", handlePointerUp);
-    svg.addEventListener("click", handleClick);
+
+    // Ambient pops are scheduled on their own setTimeout chain, not tied to
+    // pointer activity - this is the one part of the effect that needs to
+    // do something while the visitor hasn't touched the grid at all.
+    const tryStartPop = () => {
+      if (popsRef.current.length >= POP_MAX_CONCURRENT) {
+        return;
+      }
+
+      const poppingKeys = new Set(popsRef.current.map((pop) => pop.key));
+
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const index = Math.floor(Math.random() * CELLS.length);
+        const [x, y] = CELLS[index];
+        const key = `${x},${y}`;
+
+        if (
+          activeRef.current.has(key) ||
+          revealedRef.current.has(key) ||
+          rippleActiveRef.current.has(key) ||
+          poppingKeys.has(key)
+        ) {
+          continue;
+        }
+
+        popsRef.current.push({
+          key,
+          start: performance.now(),
+          spin: Math.random() < 0.5 ? 1 : -1,
+        });
+        scheduleFrame();
+        return;
+      }
+    };
+
+    let popTimeoutId: ReturnType<typeof setTimeout>;
+
+    const scheduleNextPop = () => {
+      const delay =
+        POP_MIN_INTERVAL_MS +
+        Math.random() * (POP_MAX_INTERVAL_MS - POP_MIN_INTERVAL_MS);
+
+      popTimeoutId = setTimeout(() => {
+        tryStartPop();
+        scheduleNextPop();
+      }, delay);
+    };
+
+    scheduleNextPop();
 
     return () => {
       svg.removeEventListener("pointermove", handlePointerMove);
       svg.removeEventListener("pointerleave", handlePointerLeave);
       svg.removeEventListener("pointerdown", handlePointerDown);
       svg.removeEventListener("pointerup", handlePointerUp);
-      svg.removeEventListener("click", handleClick);
+      clearTimeout(popTimeoutId);
 
       if (frameRef.current !== null) {
         cancelAnimationFrame(frameRef.current);
