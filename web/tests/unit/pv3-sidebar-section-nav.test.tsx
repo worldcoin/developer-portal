@@ -184,26 +184,28 @@ describe("v3 SidebarNav [no app selected]", () => {
 });
 // #endregion
 
-// #region route-owned app context
-describe("v3 SidebarNav [route-owned app context]", () => {
+// #region persisted app context
+describe("v3 SidebarNav [persisted app context]", () => {
   beforeEach(() => {
     useParams.mockReturnValue({ teamId });
     useCurrentAppId.mockReturnValue(appId);
     usePathname.mockReturnValue(`/teams/${teamId}/settings`);
   });
 
-  it("does not carry app links into a team-scoped route", () => {
+  it("keeps the previously selected app available on a team-scoped route", () => {
     renderSidebar();
 
-    expect(link("Overview")).toHaveAttribute("href", `/teams/${teamId}`);
+    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
+    expect(link("Configuration")).toHaveAttribute(
+      "href",
+      `${base}/configuration`,
+    );
+    expect(link("Mini App")).toHaveAttribute(
+      "href",
+      `${base}/mini-app/permissions`,
+    );
     expect(
-      screen.queryByRole("link", { name: "World ID" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Configuration" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Mini App" }),
+      screen.queryByRole("link", { name: "Overview" }),
     ).not.toBeInTheDocument();
     expect(link("Team settings")).toHaveAttribute("aria-current", "page");
   });

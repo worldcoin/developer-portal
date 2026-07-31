@@ -17,6 +17,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { ChevronsUpDownIcon, LayoutGridIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
+import { useNavigationAppContext } from "./NavigationContext";
 import {
   SearchableSwitcher,
   switcherTriggerClassName,
@@ -25,7 +26,7 @@ import {
 type DropdownApp = { id: string; name: string; isOverview?: boolean };
 
 export const useCurrentAppId = (): string | undefined => {
-  return useParams<{ appId?: string }>()?.appId;
+  return useNavigationAppContext().appId;
 };
 
 const allAppsId = "__all_apps__";

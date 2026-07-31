@@ -17,6 +17,7 @@ import { BellIcon, LockKeyholeIcon, WalletCardsIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { useCurrentAppId } from "./AppsDropdown";
 import { NavItem } from "./NavItem";
 import { SandboxButton } from "./SandboxButton";
 
@@ -31,9 +32,9 @@ export const SidebarNav = (props: {
   initialSandboxRequest?: SandboxAccessRequestState | null;
 }) => {
   const pathname = usePathname() ?? "";
-  const params = useParams<{ teamId?: string; appId?: string }>();
+  const params = useParams<{ teamId?: string }>();
   const teamId = params?.teamId;
-  const appId = params?.appId;
+  const appId = useCurrentAppId();
   const { setOpenMobile } = useSidebar();
 
   useEffect(() => setOpenMobile(false), [pathname, setOpenMobile]);
