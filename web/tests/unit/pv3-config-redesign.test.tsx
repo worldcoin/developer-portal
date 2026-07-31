@@ -591,7 +591,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     });
     renderPage();
 
-    expect(screen.getByAltText("App logo preview")).toHaveAttribute(
+    expect(screen.getByTestId("app-logo-preview")).toHaveAttribute(
       "src",
       "https://cdn.example/unverified/logo.png",
     );
@@ -724,7 +724,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
       "src",
       "https://cdn/logo_img.png",
     );
-    expect(screen.getByAltText("App logo preview")).toHaveAttribute(
+    expect(screen.getByTestId("app-logo-preview")).toHaveAttribute(
       "src",
       "https://cdn/logo_img.png",
     );
