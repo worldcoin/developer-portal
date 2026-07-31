@@ -35,8 +35,6 @@ export const WorldId40OptionCard = (
   const stampContent = disabled
     ? props.disabledStampText ?? props.stampText
     : props.stampText;
-  // Neutral hairline chip; the azure dot carries the stamp's accent instead
-  // of a tinted container.
   const stampClassName = disabled
     ? "bg-portal-canvas text-portal-muted"
     : "bg-portal-accent text-portal-blue";
@@ -44,7 +42,7 @@ export const WorldId40OptionCard = (
     <label
       className={twMerge(
         clsx(
-          "grid gap-y-2.5 rounded-[10px] border border-portal-border bg-white px-5 py-4 transition-colors",
+          "grid gap-y-2.5 rounded-[10px] border border-portal-border bg-grey-0 px-5 py-4 transition-colors",
           "has-checked:border-portal-ink",
           "has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-grey-300 has-[input:focus-visible]:ring-offset-2",
           !disabled && "cursor-pointer",
@@ -81,7 +79,7 @@ export const WorldId40OptionCard = (
               >
                 <InformationCircleIcon className="size-4 text-portal-subtle" />
               </span>
-              <div className="pointer-events-none absolute -top-2 right-0 z-20 w-48 -translate-y-full rounded-md bg-portal-ink px-2 py-1.5 font-world text-12 leading-[1.4] text-white opacity-0 shadow-lg transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+              <div className="pointer-events-none absolute -top-2 right-0 z-20 w-48 -translate-y-full rounded-md bg-portal-ink px-2 py-1.5 font-world text-12 leading-[1.4] text-grey-0 opacity-0 shadow-lg transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
                 {props.disabledReason}
                 <div className="absolute right-3 -bottom-1 h-2 w-2 rotate-45 bg-portal-ink" />
               </div>
