@@ -7,6 +7,7 @@ import { TeamSettingsPage } from "@/scenes/PortalV3/Teams/TeamId/Team/Settings/p
 // #region Mocks
 const teamId = "team_cd7aa5f3c2a797a06e66eb6eefbf2f48";
 let mockSession: unknown;
+let mockSearchParams = new URLSearchParams();
 
 jest.mock("@auth0/nextjs-auth0/client", () => ({
   useUser: () => ({ user: mockSession }),
@@ -32,6 +33,7 @@ jest.mock("@/lib/utils", () => ({
 
 jest.mock("next/navigation", () => ({
   useParams: () => ({ teamId }),
+  useSearchParams: () => mockSearchParams,
 }));
 
 jest.mock("@apollo/client/react", () => ({
@@ -77,6 +79,10 @@ const sessionWithRole = (role: Role_Enum) => ({
 });
 
 describe("Team settings permissions", () => {
+  beforeEach(() => {
+    mockSearchParams = new URLSearchParams();
+  });
+
   it.each([
     {
       role: Role_Enum.Owner,
@@ -120,4 +126,20 @@ describe("Team settings permissions", () => {
       }
     },
   );
+
+  it("returns to the validated prior team route", () => {
+    mockSession = sessionWithRole(Role_Enum.Owner);
+    mockSearchParams = new URLSearchParams({
+      returnTo: `/teams/${teamId}/apps/app_1/configuration?tab=store`,
+    });
+
+    render(<TeamSettingsPage />);
+
+    expect(
+      screen.getByRole("link", { name: "Back to previous page" }),
+    ).toHaveAttribute(
+      "href",
+      `/teams/${teamId}/apps/app_1/configuration?tab=store`,
+    );
+  });
 });

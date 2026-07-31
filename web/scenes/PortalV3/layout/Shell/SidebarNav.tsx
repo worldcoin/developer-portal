@@ -12,12 +12,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { urls } from "@/lib/urls";
+import { getTeamSettingsHref } from "@/lib/team-settings-return-to";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { BellIcon, LockKeyholeIcon, WalletCardsIcon } from "lucide-react";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-import { useCurrentAppId } from "./AppsDropdown";
 import { NavItem } from "./NavItem";
 import { SandboxButton } from "./SandboxButton";
 
@@ -32,9 +32,10 @@ export const SidebarNav = (props: {
   initialSandboxRequest?: SandboxAccessRequestState | null;
 }) => {
   const pathname = usePathname() ?? "";
-  const params = useParams<{ teamId?: string }>();
+  const searchParams = useSearchParams();
+  const params = useParams<{ teamId?: string; appId?: string }>();
   const teamId = params?.teamId;
-  const appId = useCurrentAppId();
+  const appId = params?.appId;
   const { setOpenMobile } = useSidebar();
 
   useEffect(() => setOpenMobile(false), [pathname, setOpenMobile]);
@@ -73,6 +74,13 @@ export const SidebarNav = (props: {
     withinApp("/transactions") ||
     withinApp("/notifications");
   const settingsActive = teamId ? pathname.startsWith(teamSettingsHref) : false;
+  const currentSearch = searchParams.toString();
+  const currentPath = `${pathname}${currentSearch ? `?${currentSearch}` : ""}`;
+  const teamSettingsNavigationHref = teamId
+    ? settingsActive
+      ? teamSettingsHref
+      : getTeamSettingsHref({ teamId, returnTo: currentPath })
+    : teamsLandingHref;
   const miniAppPermissionsActive =
     pathname === (appBase ? `${appBase}/mini-app` : "") ||
     withinApp("/mini-app/permissions");
@@ -123,7 +131,7 @@ export const SidebarNav = (props: {
       aria-label="Primary navigation"
       className="flex min-h-0 flex-1 flex-col"
     >
-      {teamId ? (
+      {teamId && !settingsActive ? (
         <>
           <SidebarGroup className="px-4 py-2 group-data-[collapsible=icon]:px-3">
             <SidebarGroupContent>
@@ -215,7 +223,7 @@ export const SidebarNav = (props: {
             <SidebarMenu className="gap-2">
               <NavItem
                 label="Team settings"
-                href={teamSettingsHref}
+                href={teamSettingsNavigationHref}
                 active={settingsActive}
                 icon={<NavIcon name="nav-settings" active={settingsActive} />}
               />

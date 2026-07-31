@@ -7,7 +7,7 @@ import React from "react";
 // #region Mocks
 const fetchApps = jest.fn();
 jest.mock("@apollo/client/react", () => ({
-  useQuery: () => fetchApps(),
+  useQuery: (...args: unknown[]) => fetchApps(...args),
 }));
 jest.mock(
   "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated",
@@ -39,8 +39,10 @@ jest.mock("@/lib/utils", () => ({
 }));
 
 let mockParams: Record<string, string | undefined> = { teamId: "team_1" };
+let mockPathname = "/teams/team_1";
 jest.mock("next/navigation", () => ({
   useParams: () => mockParams,
+  usePathname: () => mockPathname,
 }));
 // #endregion
 
@@ -57,6 +59,7 @@ const renderDropdown = (store = createStore()) =>
 beforeEach(() => {
   jest.clearAllMocks();
   mockParams = { teamId: "team_1" };
+  mockPathname = "/teams/team_1";
 });
 
 it("disables the trigger while the apps query is loading", () => {
@@ -164,6 +167,25 @@ it("uses only the route app as context on team-scoped routes", () => {
   expect(screen.getByRole("link", { name: "All apps" })).toHaveAttribute(
     "aria-current",
     "page",
+  );
+});
+
+it("hides the switcher and skips its app query on team settings", () => {
+  mockPathname = "/teams/team_1/settings";
+  fetchApps.mockReturnValue({
+    data: undefined,
+    loading: false,
+    error: undefined,
+  });
+
+  renderDropdown();
+
+  expect(
+    screen.queryByRole("button", { name: "Switch app" }),
+  ).not.toBeInTheDocument();
+  expect(fetchApps).toHaveBeenCalledWith(
+    {},
+    expect.objectContaining({ skip: true }),
   );
 });
 

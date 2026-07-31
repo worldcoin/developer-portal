@@ -8,9 +8,11 @@ import React from "react";
 // #region Mocks
 const usePathname = jest.fn();
 const useParams = jest.fn();
+const useSearchParams = jest.fn();
 jest.mock("next/navigation", () => ({
   usePathname: () => usePathname(),
   useParams: () => useParams(),
+  useSearchParams: () => useSearchParams(),
 }));
 
 jest.mock("@/hooks/use-mobile", () => ({
@@ -25,10 +27,6 @@ jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
   SandboxButton: () => <button type="button">World ID Sandbox</button>,
 }));
 
-const useCurrentAppId = jest.fn();
-jest.mock("@/scenes/PortalV3/layout/Shell/AppsDropdown", () => ({
-  useCurrentAppId: () => useCurrentAppId(),
-}));
 // #endregion
 
 import { SidebarNav } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
@@ -55,8 +53,8 @@ const isCurrent = (label: string) =>
 beforeEach(() => {
   jest.clearAllMocks();
   useParams.mockReturnValue({ teamId, appId });
-  useCurrentAppId.mockReturnValue(appId);
   usePathname.mockReturnValue(base);
+  useSearchParams.mockReturnValue(new URLSearchParams());
 });
 
 // #region navigation hierarchy
@@ -163,7 +161,6 @@ describe("v3 SidebarNav [World ID href]", () => {
 describe("v3 SidebarNav [no app selected]", () => {
   beforeEach(() => {
     useParams.mockReturnValue({ teamId });
-    useCurrentAppId.mockReturnValue(undefined);
     usePathname.mockReturnValue(`/teams/${teamId}`);
   });
 
@@ -184,26 +181,36 @@ describe("v3 SidebarNav [no app selected]", () => {
 });
 // #endregion
 
-// #region persisted app context
-describe("v3 SidebarNav [persisted app context]", () => {
+// #region team settings
+describe("v3 SidebarNav [team settings]", () => {
   beforeEach(() => {
-    useParams.mockReturnValue({ teamId });
-    useCurrentAppId.mockReturnValue(appId);
+    useParams.mockReturnValue({ teamId, appId });
     usePathname.mockReturnValue(`/teams/${teamId}/settings`);
   });
 
-  it("keeps the previously selected app available on a team-scoped route", () => {
+  it("includes the prior app route and query in the settings link", () => {
+    usePathname.mockReturnValue(`${base}/configuration`);
+    useSearchParams.mockReturnValue(new URLSearchParams("tab=store"));
     renderSidebar();
 
-    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
-    expect(link("Configuration")).toHaveAttribute(
+    expect(link("Team settings")).toHaveAttribute(
       "href",
-      `${base}/configuration`,
+      `/teams/${teamId}/settings?returnTo=%2Fteams%2F${teamId}%2Fapps%2F${appId}%2Fconfiguration%3Ftab%3Dstore`,
     );
-    expect(link("Mini App")).toHaveAttribute(
-      "href",
-      `${base}/mini-app/permissions`,
-    );
+  });
+
+  it("hides navigation outside the team-settings scope", () => {
+    renderSidebar();
+
+    expect(
+      screen.queryByRole("link", { name: "World ID" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Configuration" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Mini App" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Overview" }),
     ).not.toBeInTheDocument();
@@ -218,7 +225,6 @@ describe("v3 SidebarNav [persisted app context]", () => {
 describe("v3 SidebarNav [team-less pages]", () => {
   beforeEach(() => {
     useParams.mockReturnValue({});
-    useCurrentAppId.mockReturnValue(undefined);
     usePathname.mockReturnValue("/profile");
   });
 
