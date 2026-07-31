@@ -195,9 +195,6 @@ describe("WorldIdLayout [loading boundary]", () => {
     expect(screen.getByTestId("skeleton-form")).toBeInTheDocument();
     expect(screen.queryByTestId("actions-grid")).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Actions" }),
-    ).not.toBeInTheDocument();
   });
 
   it("keeps real content during a background refetch and never remounts the grid", () => {
@@ -213,7 +210,7 @@ describe("WorldIdLayout [loading boundary]", () => {
 
     expect(screen.getByTestId("actions-grid")).toBeInTheDocument();
     expect(screen.getByText(/was banned/)).toBeInTheDocument();
-    expect(screen.getByText("Legacy Actions")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument();
 
     setQuery({ data: { ...data }, loading: false });
     view.rerender(el());
@@ -244,7 +241,7 @@ describe("WorldIdLayout [loading boundary]", () => {
 
 // #region Optimistic status
 describe("WorldIdLayout [optimistic status]", () => {
-  it("shows RP configuration only on the World ID tab", () => {
+  it("shows RP configuration only in the Configuration section", () => {
     searchParams = new URLSearchParams("tab=configuration");
     setQuery({ data: makeData(), loading: false });
     render(el());
@@ -252,10 +249,6 @@ describe("WorldIdLayout [optimistic status]", () => {
     expect(screen.getByTestId("rp-summary")).toBeInTheDocument();
     expect(screen.queryByTestId("actions-grid")).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "World ID" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
   });
 
   it("shows existing Actions but disables creation while registration is pending", () => {
@@ -263,7 +256,6 @@ describe("WorldIdLayout [optimistic status]", () => {
     render(el());
 
     expect(screen.queryByTestId("rp-summary")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Actions" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument();
     expect(screen.getByTestId("actions-grid")).toHaveAttribute(
       "data-dialog-open",
@@ -317,12 +309,9 @@ describe("WorldIdLayout [setup to create handoff]", () => {
     );
     expect(screen.queryByTestId("actions-grid")).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Actions" }),
-    ).not.toBeInTheDocument();
   });
 
-  it("keeps legacy actions reachable while the v4 Actions section is hidden", () => {
+  it("still defaults to Configuration when legacy actions exist without an RP", () => {
     setQuery({
       data: makeData({ rp: false, legacy: true }),
       loading: false,
@@ -332,14 +321,9 @@ describe("WorldIdLayout [setup to create handoff]", () => {
     expect(screen.getByTestId("register-rp")).toBeInTheDocument();
     expect(screen.queryByTestId("actions-grid")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Legacy Actions" }),
-    ).toHaveAttribute(
-      "href",
-      "/teams/team_1/apps/app_1/world-id?tab=legacy-actions",
-    );
-    expect(
-      screen.queryByRole("link", { name: "Actions" }),
+      screen.queryByTestId("legacy-actions-child"),
     ).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
   });
 
   it("renders legacy actions without exposing v4 Actions before RP setup", () => {
@@ -353,12 +337,8 @@ describe("WorldIdLayout [setup to create handoff]", () => {
 
     expect(screen.queryByTestId("register-rp")).not.toBeInTheDocument();
     expect(screen.getByTestId("legacy-actions-child")).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Legacy Actions" }),
-    ).toHaveAttribute("aria-current", "page");
-    expect(
-      screen.queryByRole("link", { name: "Actions" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("actions-grid")).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument();
   });
 
   it("opens setup for a create-action deep link while Actions is hidden", () => {

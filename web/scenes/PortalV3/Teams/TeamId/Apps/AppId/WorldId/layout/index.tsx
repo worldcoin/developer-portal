@@ -33,8 +33,8 @@ import {
 } from "react";
 import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
 import { RpSummary } from "./RpSummary";
+import { ActionsSearchToolbar } from "./ActionsSearchToolbar";
 import { getSetupIntent } from "./setup-intent";
-import { WorldIdTabs } from "./Tabs";
 import {
   WorldIdLayoutContext,
   type WorldIdLayoutContextValue,
@@ -82,8 +82,8 @@ export const WorldIdLayout = (props: {
   const [setupRequested, setSetupRequested] = useState(false);
   const [createAfterSetup, setCreateAfterSetup] = useState(false);
   // Search is intentionally local UI state, matching the previous Actions
-  // page. Tab changes keep this layout mounted, so the filter survives without
-  // creating a second source of truth in the URL.
+  // page. World ID section changes keep this layout mounted, so the filter
+  // survives without creating a second source of truth in the URL.
   const [actionsSearch, setActionsSearch] = useState("");
   const [reconciledRpStatus, setReconciledRpStatus] = useState<{
     rpId: string;
@@ -340,15 +340,12 @@ export const WorldIdLayout = (props: {
           </div>
         ) : (
           <div className="flex flex-col gap-6">
-            <WorldIdTabs
-              teamId={props.teamId}
-              appId={props.appId}
-              activeTab={activeTab}
-              hasLegacyActions={hasLegacyActions}
-              showActions={hasRpRegistration}
-              search={actionsSearch}
-              onSearchChange={setActionsSearch}
-            />
+            {activeTab !== WORLD_ID_TABS.Configuration ? (
+              <ActionsSearchToolbar
+                search={actionsSearch}
+                onSearchChange={setActionsSearch}
+              />
+            ) : null}
 
             {activeTab === WORLD_ID_TABS.Configuration ? (
               <div className="flex flex-col gap-4">

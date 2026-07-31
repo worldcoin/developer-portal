@@ -9,7 +9,7 @@ import {
   WorldIdLayoutContext,
   type WorldIdLayoutContextValue,
 } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/context";
-import { WorldIdTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/Tabs";
+import { ActionsSearchToolbar } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/ActionsSearchToolbar";
 
 // #region Mocks
 const useQueryMock = jest.fn();
@@ -61,11 +61,7 @@ const LegacyActionsHarness = () => {
 
   return (
     <WorldIdLayoutContext.Provider value={contextValue}>
-      <WorldIdTabs
-        teamId="team_1"
-        appId="app_1"
-        hasLegacyActions
-        activeTab={WORLD_ID_TABS.LegacyActions}
+      <ActionsSearchToolbar
         search={actionsSearch}
         onSearchChange={setActionsSearch}
       />
@@ -123,9 +119,7 @@ describe("LegacyActionsPage", () => {
       warning.compareDocumentPosition(firstCard) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
-    expect(
-      screen.getByRole("link", { name: "Legacy Actions" }).closest(".border-b"),
-    ).toContainElement(search);
+    expect(search.closest(".border-b")).toBeInTheDocument();
     expect(firstCard).toHaveAttribute(
       "href",
       "/teams/team_1/apps/app_1/actions/legacy_1",

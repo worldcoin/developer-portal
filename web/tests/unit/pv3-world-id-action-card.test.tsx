@@ -1,10 +1,9 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
+import { ActionsSearchToolbar } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/ActionsSearchToolbar";
 import { ActionCard } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionCard";
 import { ActionsGrid } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsGrid";
-import { WorldIdTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/Tabs";
 
 global.ResizeObserver = class {
   observe() {}
@@ -121,86 +120,15 @@ it("opens a deferred create intent when it becomes actionable", async () => {
   expect(props.onCreateActionConsumed).toHaveBeenCalledTimes(1);
 });
 
-it("renders the shared World ID tabs and hides search on Configuration", () => {
-  const props = {
-    teamId: "team_1",
-    appId: "app_1",
-    hasLegacyActions: false,
-    activeTab: WORLD_ID_TABS.Actions,
-    search: "",
-    onSearchChange: jest.fn(),
-  };
-  const { container, rerender } = render(<WorldIdTabs {...props} />);
-
-  expect(container.firstElementChild).toHaveClass("sm:min-h-[52px]");
-
-  expect(screen.getByRole("link", { name: "Actions" })).toHaveAttribute(
-    "href",
-    "/teams/team_1/apps/app_1/world-id?tab=actions",
-  );
-  expect(screen.getByRole("link", { name: "Actions" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
-  expect(screen.getByRole("link", { name: "World ID" })).toHaveAttribute(
-    "href",
-    "/teams/team_1/apps/app_1/world-id?tab=configuration",
-  );
-  expect(screen.queryByRole("link", { name: "Legacy Actions" })).toBeNull();
-  expect(
-    screen.getByRole("textbox", { name: "Search actions" }),
-  ).toBeInTheDocument();
-
-  rerender(<WorldIdTabs {...props} hasLegacyActions />);
-  expect(screen.getByRole("link", { name: "Legacy Actions" })).toHaveAttribute(
-    "href",
-    "/teams/team_1/apps/app_1/world-id?tab=legacy-actions",
+it("renders the shared actions search toolbar above a stable divider", () => {
+  const onSearchChange = jest.fn();
+  const { container } = render(
+    <ActionsSearchToolbar search="" onSearchChange={onSearchChange} />,
   );
 
-  rerender(
-    <WorldIdTabs
-      {...props}
-      activeTab={WORLD_ID_TABS.Configuration}
-      hasLegacyActions
-    />,
-  );
-  expect(screen.getByRole("link", { name: "World ID" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
-  expect(screen.getByRole("link", { name: "Actions" })).not.toHaveAttribute(
-    "aria-current",
-  );
-  expect(screen.queryByRole("textbox", { name: "Search actions" })).toBeNull();
-  expect(container.firstElementChild).toHaveClass("sm:min-h-[52px]");
-
-  rerender(
-    <WorldIdTabs
-      {...props}
-      activeTab={WORLD_ID_TABS.LegacyActions}
-      hasLegacyActions
-    />,
-  );
-  expect(screen.getByRole("link", { name: "Legacy Actions" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
-  expect(screen.getByRole("link", { name: "Actions" })).not.toHaveAttribute(
-    "aria-current",
-  );
-  expect(
-    screen.getByRole("textbox", { name: "Search actions" }),
-  ).toBeInTheDocument();
-
-  rerender(
-    <WorldIdTabs
-      {...props}
-      activeTab={WORLD_ID_TABS.LegacyActions}
-      hasLegacyActions
-      showActions={false}
-    />,
-  );
-  expect(screen.queryByRole("link", { name: "Actions" })).toBeNull();
-  expect(screen.getByRole("link", { name: "World ID" })).toBeVisible();
-  expect(screen.getByRole("link", { name: "Legacy Actions" })).toBeVisible();
+  expect(container.firstElementChild).toHaveClass("min-h-[52px]", "border-b");
+  const search = screen.getByRole("textbox", { name: "Search actions" });
+  fireEvent.change(search, { target: { value: "vote" } });
+  expect(onSearchChange).toHaveBeenCalledWith("vote");
+  expect(screen.queryByRole("link")).toBeNull();
 });
