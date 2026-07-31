@@ -2,6 +2,7 @@
 
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { Notification } from "@/components/Notification";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
@@ -156,11 +157,9 @@ export const RpSummary = (props: {
               </Typography>
             ) : null}
             <div className="flex flex-wrap items-center gap-3">
-              <DecoratedButton
-                type="button"
-                variant="secondary"
+              <DestructiveTriggerButton
                 disabled={!props.canManageWorldId || !isActive || isSelfManaged}
-                className="h-9 shrink-0 rounded-full px-4 py-0 text-xs"
+                className="shrink-0"
                 aria-describedby={
                   controlsDisabledReason
                     ? "world-id-configuration-disabled-reason"
@@ -169,12 +168,10 @@ export const RpSummary = (props: {
                 onClick={() => setIsRotateOpen(true)}
               >
                 Rotate signer key
-              </DecoratedButton>
-              <DecoratedButton
-                type="button"
-                variant="danger"
+              </DestructiveTriggerButton>
+              <DestructiveTriggerButton
                 disabled={!props.canManageWorldId || !isActive || isSelfManaged}
-                className="h-9 shrink-0 rounded-full px-4 py-0 text-xs"
+                className="shrink-0"
                 aria-describedby={
                   controlsDisabledReason
                     ? "world-id-configuration-disabled-reason"
@@ -183,7 +180,7 @@ export const RpSummary = (props: {
                 onClick={() => setIsSwitchOpen(true)}
               >
                 Switch to self-managed
-              </DecoratedButton>
+              </DestructiveTriggerButton>
             </div>
           </div>
         </div>

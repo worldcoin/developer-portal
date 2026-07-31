@@ -1,6 +1,6 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -108,22 +108,12 @@ export const DangerZoneSection = ({
         }
         footerAction={
           isEnoughPermissions && (
-            <DecoratedButton
-              type="button"
-              variant="destructive"
+            <DestructiveTriggerButton
               onClick={() => setOpenDeleteModal(true)}
-              className={
-                variant === "compact"
-                  ? "h-9 shrink-0 rounded-full px-4 py-0"
-                  : "shrink-0"
-              }
+              className="shrink-0"
             >
-              <Typography
-                variant={variant === "compact" ? TYPOGRAPHY.B3 : TYPOGRAPHY.R3}
-              >
-                Delete app
-              </Typography>
-            </DecoratedButton>
+              Delete app
+            </DestructiveTriggerButton>
           )
         }
       />

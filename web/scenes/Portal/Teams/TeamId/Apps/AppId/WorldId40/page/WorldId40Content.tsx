@@ -2,11 +2,11 @@
 
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { Notification } from "@/components/Notification";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useMutation } from "@apollo/client/react";
-import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { RetryRpDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/retry-rp.generated";
@@ -285,15 +285,13 @@ export const WorldId40Content = ({
                   This will create a new signer key and disable the existing key
                 </Typography>
               </div>
-              <DecoratedButton
+              <DestructiveTriggerButton
                 type="button"
-                variant="secondary"
                 disabled={!isActive || mode === "self_managed"}
-                className="h-8 rounded-full px-4 py-0 text-xs"
                 onClick={() => setIsRotateDialogOpen(true)}
               >
                 Reset
-              </DecoratedButton>
+              </DestructiveTriggerButton>
             </div>
           </div>
         </div>
@@ -314,16 +312,10 @@ export const WorldId40Content = ({
                   Move this RP to a self-managed configuration
                 </Typography>
               </div>
-              <DecoratedButton
+              <DestructiveTriggerButton
                 type="button"
-                variant="danger"
                 disabled={!isActive || mode === "self_managed"}
-                className={clsx(
-                  "h-8 shrink-0 rounded-full px-4 text-[13px] font-semibold",
-                  !isActive || mode === "self_managed"
-                    ? "" // Let DecoratedButton handle disabled styles
-                    : "bg-danger text-white hover:bg-system-error-700",
-                )}
+                className="shrink-0"
                 title={
                   mode === "self_managed"
                     ? "Already in self-managed mode"
@@ -334,7 +326,7 @@ export const WorldId40Content = ({
                 onClick={() => setIsSwitchDialogOpen(true)}
               >
                 Switch
-              </DecoratedButton>
+              </DestructiveTriggerButton>
             </div>
           </div>
         </div>
