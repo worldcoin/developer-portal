@@ -69,7 +69,7 @@ it("uses the newer action-grid design without environment or engine tags", () =>
     "border-portal-border",
     "p-5",
   );
-  expect(screen.getByText("Example app")).toBeInTheDocument();
+  expect(screen.getByText("Example app")).toHaveClass("leading-[1.2]");
   expect(screen.queryByText("Production")).not.toBeInTheDocument();
   expect(screen.queryByText("Cloud")).not.toBeInTheDocument();
 

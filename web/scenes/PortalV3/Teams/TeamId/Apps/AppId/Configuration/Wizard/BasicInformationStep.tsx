@@ -16,6 +16,7 @@ import {
   BasicInformationHandle,
   useBasicInformationForm,
 } from "../BasicInformation";
+import { DangerZoneDisclosure } from "../Danger/DangerZoneDisclosure";
 import { unverifiedImageAtom } from "../layout/ImagesProvider";
 import { useAppModeToggle } from "../MiniAppConfiguration";
 import { AppModeCards } from "./AppModeCards";
@@ -142,7 +143,7 @@ export const BasicInformationStep = forwardRef<
     isMiniApp,
     isDisabled: isModeDisabled,
     handleAppModeToggle,
-  } = useAppModeToggle({ appId, teamId, appMetadata });
+  } = useAppModeToggle({ teamId, appMetadata });
 
   const disabled = !isEditable || !isEnoughPermissions;
 
@@ -247,6 +248,12 @@ export const BasicInformationStep = forwardRef<
               void handleAppModeToggle(wantsMiniApp);
             }
           }}
+        />
+
+        <DangerZoneDisclosure
+          appId={appId}
+          teamId={teamId}
+          appName={appMetadata.name}
         />
       </div>
     </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
-import { TrashIcon } from "@/components/Icons/TrashIcon";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -136,10 +135,6 @@ export const SidebarNav = (props: {
   const appId = params?.appId;
   const navRef = useRef<HTMLElement>(null);
   const { setOpenMobile } = useSidebar();
-  const { data: appsData, loading: appsLoading } = useQuery(FetchAppsDocument, {
-    variables: { teamId: teamId! },
-    skip: !teamId || !appId,
-  });
 
   // Optimistic route: while a clicked navigation is in flight, the target href
   // drives the active styles so the pill slides immediately instead of waiting
@@ -170,9 +165,6 @@ export const SidebarNav = (props: {
 
   useEffect(() => setOpenMobile(false), [currentPath, setOpenMobile]);
 
-  const hasConfirmedApp = Boolean(
-    appId && !appsLoading && appsData?.app?.some((app) => app.id === appId),
-  );
   const teamsLandingHref = urls.teams({});
   const teamOverviewHref = teamId
     ? urls.teams({ team_id: teamId })
@@ -183,8 +175,6 @@ export const SidebarNav = (props: {
 
   const worldIdHref = ids ? urls.worldId40(ids) : teamOverviewHref;
   const configurationHref = ids ? urls.configuration(ids) : teamOverviewHref;
-  const configurationDangerHref =
-    ids && hasConfirmedApp ? urls.configurationDanger(ids) : undefined;
   const miniAppHref = ids ? urls.miniAppPermissions(ids) : teamOverviewHref;
   const teamSettingsHref = teamId
     ? urls.teamSettings({ team_id: teamId })
@@ -203,9 +193,7 @@ export const SidebarNav = (props: {
     withinApp("/world-id-4-0") ||
     withinApp("/world-id-actions") ||
     withinApp("/actions");
-  const configurationActive =
-    withinApp("/configuration") && !withinApp("/configuration/danger");
-  const configurationDangerActive = withinApp("/configuration/danger");
+  const configurationActive = withinApp("/configuration");
   const miniAppActive =
     withinApp("/mini-app") ||
     withinApp("/transactions") ||
@@ -382,16 +370,6 @@ export const SidebarNav = (props: {
                 onNavigate={beginNavigation(teamSettingsHref)}
                 icon={<NavIcon name="nav-settings" active={settingsActive} />}
               />
-              {configurationDangerHref ? (
-                <NavItem
-                  label="Danger zone"
-                  href={configurationDangerHref}
-                  active={configurationDangerActive}
-                  onNavigate={beginNavigation(configurationDangerHref)}
-                  icon={<TrashIcon className="size-4" />}
-                  className="hover:text-system-error-600 data-[active=false]:hover:bg-system-error-50 data-[active=true]:text-system-error-600"
-                />
-              ) : null}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
