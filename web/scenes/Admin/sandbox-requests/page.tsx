@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/AdminDashboard/common/EmptyState";
+import { MobileAdminList } from "@/components/AdminDashboard/common/MobileAdminList";
 import { UIModule } from "@/components/AdminDashboard/UIModule";
 import clsx from "clsx";
 import { fetchSandboxAccessRequests } from "./server/fetch-sandbox-requests";
@@ -29,7 +30,7 @@ export const AdminSandboxRequestsPage = async () => {
     await fetchSandboxAccessRequests();
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-auto/1fr gap-y-4">
+    <div className="grid min-h-0 grid-rows-auto/1fr gap-y-4 max-lg:h-auto lg:h-full">
       <UIModule className="p-5">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
           <div className="min-w-0">
@@ -62,60 +63,112 @@ export const AdminSandboxRequestsPage = async () => {
         </div>
       </UIModule>
 
-      <UIModule className="min-h-0 overflow-auto p-4">
+      <UIModule className="min-h-0 min-w-0 overflow-auto p-4">
         {requests.length === 0 ? (
           <EmptyState>No sandbox access requests yet</EmptyState>
         ) : (
-          <table
-            className="w-full min-w-[860px] border-collapse text-left text-14"
-            aria-label="Sandbox access requests"
-          >
-            <thead>
-              <tr className="border-b border-grey-200 text-11 font-medium tracking-wide text-grey-400 uppercase">
-                <th className="px-3 py-2">Google email</th>
-                <th className="px-3 py-2">User</th>
-                <th className="px-3 py-2">User email</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Requested</th>
-                <th className="px-3 py-2">Processed</th>
-                <th className="px-3 py-2">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((request) => (
-                <tr
+          <>
+            <MobileAdminList
+              data={requests}
+              renderCard={(request) => (
+                <article
+                  className="min-w-0 overflow-hidden rounded-16 border border-grey-100 bg-grey-0 p-3 shadow-sm min-[360px]:p-4"
                   key={request.id}
-                  className="border-b border-grey-100 text-grey-700"
                 >
-                  <td className="px-3 py-2.5 font-medium text-grey-900">
-                    {request.googleEmail}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    {request.userName ?? request.userId}
-                  </td>
-                  <td className="px-3 py-2.5">{request.userEmail ?? "—"}</td>
-                  <td className="px-3 py-2.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-16 font-medium text-grey-900">
+                        {request.googleEmail}
+                      </div>
+                      <div className="mt-1 truncate text-13 text-grey-700">
+                        {request.userName ?? request.userId}
+                      </div>
+                      {request.userEmail && (
+                        <div className="mt-0.5 truncate text-12 text-grey-500">
+                          {request.userEmail}
+                        </div>
+                      )}
+                    </div>
                     <StatusBadge accepted={request.accepted} />
-                  </td>
-                  <td className="px-3 py-2.5">
-                    {formatDate(request.createdAt)}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    {request.processedAt
-                      ? formatDate(request.processedAt)
-                      : "—"}
-                  </td>
-                  <td className="px-3 py-2.5">
+                  </div>
+                  <dl className="mt-3 grid gap-2 text-14 min-[360px]:mt-4">
+                    <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
+                      Requested
+                    </dt>
+                    <dd className="text-grey-700">
+                      {formatDate(request.createdAt)}
+                    </dd>
+                    <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
+                      Processed
+                    </dt>
+                    <dd className="text-grey-700">
+                      {request.processedAt
+                        ? formatDate(request.processedAt)
+                        : "—"}
+                    </dd>
+                  </dl>
+                  <div className="mt-4">
                     {request.accepted ? (
-                      <span className="text-grey-400">Approved</span>
+                      <span className="text-13 text-grey-400">Approved</span>
                     ) : (
                       <ApproveSandboxRequestButton requestId={request.id} />
                     )}
-                  </td>
+                  </div>
+                </article>
+              )}
+            />
+
+            <table
+              className="hidden w-full border-collapse text-left text-14 lg:table"
+              aria-label="Sandbox access requests"
+            >
+              <thead>
+                <tr className="border-b border-grey-200 text-11 font-medium tracking-wide text-grey-400 uppercase">
+                  <th className="px-3 py-2">Google email</th>
+                  <th className="px-3 py-2">User</th>
+                  <th className="px-3 py-2">User email</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Requested</th>
+                  <th className="px-3 py-2">Processed</th>
+                  <th className="px-3 py-2">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {requests.map((request) => (
+                  <tr
+                    key={request.id}
+                    className="border-b border-grey-100 text-grey-700"
+                  >
+                    <td className="px-3 py-2.5 font-medium text-grey-900">
+                      {request.googleEmail}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {request.userName ?? request.userId}
+                    </td>
+                    <td className="px-3 py-2.5">{request.userEmail ?? "—"}</td>
+                    <td className="px-3 py-2.5">
+                      <StatusBadge accepted={request.accepted} />
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {formatDate(request.createdAt)}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {request.processedAt
+                        ? formatDate(request.processedAt)
+                        : "—"}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {request.accepted ? (
+                        <span className="text-grey-400">Approved</span>
+                      ) : (
+                        <ApproveSandboxRequestButton requestId={request.id} />
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
       </UIModule>
     </div>

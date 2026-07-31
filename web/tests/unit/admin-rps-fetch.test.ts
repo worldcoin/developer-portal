@@ -148,23 +148,22 @@ describe("admin RPs query mapping", () => {
       getRpsSearchVisualSegments("test mode:managed status:failed trailing"),
     ).toEqual([
       { type: "text", value: "test " },
-      { type: "chip", value: "mode:managed" },
+      { type: "chip", value: "mode:managed", start: 5, end: 17 },
       { type: "text", value: " " },
-      { type: "chip", value: "status:failed" },
+      { type: "chip", value: "status:failed", start: 18, end: 31 },
       { type: "text", value: " trailing" },
     ]);
   });
 
   it("renders incomplete field chips with a pasted value as one chip", () => {
-    expect(
-      getRpsSearchVisualSegments(
-        "signer: 0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb90",
-      ),
-    ).toEqual([
+    const query =
+      "signer: 0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb90";
+    expect(getRpsSearchVisualSegments(query)).toEqual([
       {
         type: "chip",
-        value:
-          "signer: 0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb90",
+        value: query,
+        start: 0,
+        end: query.length,
       },
     ]);
   });

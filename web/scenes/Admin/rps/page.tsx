@@ -192,7 +192,7 @@ export const AdminRpsPage = async ({
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-[auto_1fr] gap-y-4">
+    <div className="grid min-h-0 grid-rows-[auto_1fr] gap-y-4 max-lg:h-auto lg:h-full">
       <UIModule className="p-5">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
           <div className="min-w-0">
@@ -239,7 +239,7 @@ export const AdminRpsPage = async ({
           <StatusBreakdown inventory={inventory} />
         </div>
       </UIModule>
-      <UIModule className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-y-3 overflow-hidden p-4">
+      <UIModule className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-y-3 p-4 max-lg:overflow-visible lg:overflow-hidden">
         <RpsTableControls
           columnVisibility={columnVisibility}
           currentPage={currentPage}
@@ -248,7 +248,7 @@ export const AdminRpsPage = async ({
           searchQuery={searchQuery}
           totalPages={totalPages}
         />
-        <div className="min-h-0 min-w-0 overflow-hidden">
+        <div className="min-h-0 min-w-0 max-lg:overflow-visible lg:overflow-hidden">
           <RpsTable
             columnVisibility={columnVisibility}
             data={rps}

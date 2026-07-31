@@ -103,7 +103,12 @@ describe("AdminSandboxRequestsPage", () => {
   it("renders Approve in a pending request's Action column", async () => {
     render(await AdminSandboxRequestsPage());
 
-    const requestRow = screen.getByText("tester@example.com").closest("tr");
+    const table = screen.getByRole("table", {
+      name: "Sandbox access requests",
+    });
+    const requestRow = within(table)
+      .getByText("tester@example.com")
+      .closest("tr");
     expect(requestRow).not.toBeNull();
     expect(
       within(requestRow!).getByRole("button", { name: "Approve" }),
@@ -130,7 +135,12 @@ describe("AdminSandboxRequestsPage", () => {
 
     render(await AdminSandboxRequestsPage());
 
-    const requestRow = screen.getByText("tester@example.com").closest("tr");
+    const table = screen.getByRole("table", {
+      name: "Sandbox access requests",
+    });
+    const requestRow = within(table)
+      .getByText("tester@example.com")
+      .closest("tr");
     expect(requestRow).not.toBeNull();
     expect(
       within(requestRow!).getByText("Approved", { selector: "span" }),
