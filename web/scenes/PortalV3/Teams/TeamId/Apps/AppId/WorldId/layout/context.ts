@@ -16,7 +16,6 @@ export type WorldIdLayoutContextValue = {
   actionsSearch: string;
   hasActiveRp: boolean;
   shouldOpenCreateAction: boolean;
-  requestCreateActionSetup: () => void;
   consumeCreateAction: () => void;
   refreshOverview: () => void;
 };

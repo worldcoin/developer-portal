@@ -20,7 +20,6 @@ export const ActionsGrid = (props: {
   search: string;
   canCreate: boolean;
   initialDialogOpen?: boolean;
-  onCreateActionRequested?: () => void;
   onCreateActionConsumed: () => void;
   onActionsChanged: () => void;
 }) => {
@@ -61,11 +60,6 @@ export const ActionsGrid = (props: {
   };
 
   const handleCreateAction = () => {
-    if (props.onCreateActionRequested) {
-      props.onCreateActionRequested();
-      return;
-    }
-
     setDialogOpen(true);
     setHasOpenedDialog(true);
   };

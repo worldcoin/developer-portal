@@ -207,13 +207,6 @@ export const WorldIdLayout = (props: {
     };
   }, [props.appId, refetchOverview]);
 
-  const requestCreateActionSetup = useCallback(() => {
-    if (!props.canManageWorldId) return;
-
-    setCreateAfterSetup(true);
-    setSetupRequested(true);
-  }, [props.canManageWorldId]);
-
   const consumeCreateAction = useCallback(() => {
     setCreateAfterSetup(false);
     consumeSearchParams("createAction");
@@ -240,7 +233,6 @@ export const WorldIdLayout = (props: {
       actionsSearch,
       hasActiveRp,
       shouldOpenCreateAction: openAction || (hasCreateIntent && hasActiveRp),
-      requestCreateActionSetup,
       consumeCreateAction,
       refreshOverview: refetchOverview,
     }),
@@ -255,7 +247,6 @@ export const WorldIdLayout = (props: {
       props.canManageWorldId,
       props.teamId,
       refetchOverview,
-      requestCreateActionSetup,
     ],
   );
 

@@ -12,7 +12,6 @@ export const WorldIdActionsPage = () => {
     actionsSearch,
     hasActiveRp,
     shouldOpenCreateAction,
-    requestCreateActionSetup,
     consumeCreateAction,
     refreshOverview,
   } = useWorldIdLayout();
@@ -23,11 +22,8 @@ export const WorldIdActionsPage = () => {
       teamId={teamId}
       appId={appId}
       search={actionsSearch}
-      canCreate={canManageWorldId}
+      canCreate={canManageWorldId && hasActiveRp}
       initialDialogOpen={shouldOpenCreateAction}
-      onCreateActionRequested={
-        hasActiveRp ? undefined : requestCreateActionSetup
-      }
       onCreateActionConsumed={consumeCreateAction}
       onActionsChanged={refreshOverview}
     />

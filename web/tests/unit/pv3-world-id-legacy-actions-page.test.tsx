@@ -67,7 +67,6 @@ const LegacyActionsHarness = () => {
     actionsSearch,
     hasActiveRp: true,
     shouldOpenCreateAction: false,
-    requestCreateActionSetup: jest.fn(),
     consumeCreateAction: jest.fn(),
     refreshOverview: jest.fn(),
   };

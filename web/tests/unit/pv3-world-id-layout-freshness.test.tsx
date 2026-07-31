@@ -39,9 +39,9 @@ jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsGrid",
   () => ({
     ActionsGrid: (props: {
+      canCreate?: boolean;
       initialDialogOpen?: boolean;
       onActionsChanged?: () => void;
-      onCreateActionRequested?: () => void;
       onCreateActionConsumed?: () => void;
     }) => {
       React.useEffect(() => {
@@ -50,16 +50,11 @@ jest.mock(
       return (
         <div
           data-testid="actions-grid"
+          data-can-create={String(Boolean(props.canCreate))}
           data-dialog-open={String(Boolean(props.initialDialogOpen))}
         >
           <button type="button" onClick={() => props.onActionsChanged?.()}>
             actions-changed
-          </button>
-          <button
-            type="button"
-            onClick={() => props.onCreateActionRequested?.()}
-          >
-            request-create
           </button>
           <button
             type="button"
@@ -244,7 +239,7 @@ describe("WorldIdLayout [loading boundary]", () => {
 
 // #region Optimistic status
 describe("WorldIdLayout [optimistic status]", () => {
-  it("shows Actions for an existing RP even while registration is pending", () => {
+  it("shows existing Actions but disables creation while registration is pending", () => {
     setQuery({ data: makeData({ status: "pending" }), loading: false });
     render(el());
 
@@ -256,6 +251,10 @@ describe("WorldIdLayout [optimistic status]", () => {
     expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument();
     expect(screen.getByTestId("actions-grid")).toHaveAttribute(
       "data-dialog-open",
+      "false",
+    );
+    expect(screen.getByTestId("actions-grid")).toHaveAttribute(
+      "data-can-create",
       "false",
     );
   });
