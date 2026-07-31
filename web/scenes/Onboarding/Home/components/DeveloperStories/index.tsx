@@ -187,7 +187,7 @@ export const DeveloperStories = () => {
                 allowFullScreen
                 className="size-full"
                 src={`https://www.youtube.com/embed/${story.youtubeId}?autoplay=1&rel=0`}
-                title={`${story.name} — developer story`}
+                title={`${story.name}: developer story`}
               />
             ) : (
               <>
