@@ -8,7 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CSSProperties, ReactNode } from "react";
 import { AppsDropdown } from "./AppsDropdown";
 import { PortalSidebar } from "./PortalSidebar";
-import { ContentNavigationLoading, SidebarAnimationShell } from "./SidebarNav";
+import { SidebarAnimationShell } from "./SidebarNav";
 
 /** Portal shell, mounted at the (portal) root for allow-listed users. */
 export const PortalShell = (props: {
@@ -53,12 +53,8 @@ export const PortalShell = (props: {
               <AppsDropdown />
             </header>
 
-            {/* The overlay needs a non-scrolling positioning box, so the
-                scroll container moves one level down; sticky elements inside
-                pages keep the same nearest scroll ancestor behavior. */}
-            <div className="relative min-w-0 flex-1 overflow-hidden bg-white">
-              <ContentNavigationLoading />
-              <div className="size-full min-w-0 overflow-auto">{children}</div>
+            <div className="min-w-0 flex-1 overflow-auto bg-white">
+              {children}
             </div>
           </SidebarInset>
         </SidebarAnimationShell>

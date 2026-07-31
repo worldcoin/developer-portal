@@ -1,6 +1,5 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { LoadingPageAnimation } from "@/scenes/PortalV3/common/LoadingPageAnimation";
-import { ReactNode, Suspense } from "react";
+import { ReactNode } from "react";
 
 // Left-aligned, full-width frame (overrides SizingWrapper's centered column).
 // The shared `nav` variant centers content inside a max-width track, which on
@@ -13,9 +12,7 @@ export const MiniAppLayout = (props: { children: ReactNode }) => {
       className="w-full max-w-[1600px]"
       gridClassName="grid-cols-[24px_minmax(0,1fr)_24px] md:grid-cols-[40px_minmax(0,1fr)_40px] xl:grid-cols-[64px_minmax(0,1fr)_64px]"
     >
-      {/* Boundary below the persistent shell: entering Mini App commits the
-          navigation immediately and streams the page in behind it. */}
-      <Suspense fallback={<LoadingPageAnimation />}>{props.children}</Suspense>
+      {props.children}
     </SizingWrapper>
   );
 };

@@ -14,7 +14,6 @@ import {
 import { urls } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
-import { LoadingPageAnimation } from "@/scenes/PortalV3/common/LoadingPageAnimation";
 import { BellIcon, LockKeyholeIcon, WalletCardsIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -81,25 +80,6 @@ export const SidebarAnimationShell = (props: { children: ReactNode }) => {
     <ShellNavigationContext.Provider value={value}>
       {props.children}
     </ShellNavigationContext.Provider>
-  );
-};
-
-/**
- * Optimistic content skeleton: covers the content column the moment a sidebar
- * navigation starts, in sync with the sliding pill, instead of holding the old
- * page until the new section's Suspense boundary mounts. Invisible for the
- * first 300ms (same budget as LoadingPageAnimation) so fast navigations never blank
- * the page they're about to keep.
- */
-export const ContentNavigationLoading = () => {
-  const { isNavigating } = useShellNavigation();
-
-  if (!isNavigating) return null;
-
-  return (
-    <div className="absolute inset-0 z-10 animate-in bg-white delay-300 duration-200 fill-mode-both fade-in">
-      <LoadingPageAnimation immediate />
-    </div>
   );
 };
 

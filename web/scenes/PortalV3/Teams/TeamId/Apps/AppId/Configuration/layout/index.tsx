@@ -1,5 +1,4 @@
-import { LoadingPageAnimation } from "@/scenes/PortalV3/common/LoadingPageAnimation";
-import { ReactNode, Suspense } from "react";
+import { ReactNode } from "react";
 import { ImagesProvider } from "./ImagesProvider";
 
 type Params = {
@@ -21,11 +20,7 @@ export const AppProfileLayout = (props: AppProfileLayout) => {
   return (
     <div className="flex flex-col items-start">
       <ImagesProvider teamId={params?.teamId} appId={params?.appId}>
-        {/* Boundary below the persistent shell: entering Configuration commits
-            the navigation immediately and streams the page in behind it. */}
-        <Suspense fallback={<LoadingPageAnimation />}>
-          {props.children}
-        </Suspense>
+        {props.children}
       </ImagesProvider>
     </div>
   );

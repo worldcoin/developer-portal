@@ -22,7 +22,6 @@ jest.mock("@/scenes/PortalV3/layout/Shell/SidebarNav", () => ({
   // from this module; pass children through and render nothing, respectively.
   SidebarAnimationShell: (props: { children?: React.ReactNode }) =>
     props.children,
-  ContentNavigationLoading: () => null,
 }));
 
 jest.mock("@/scenes/PortalV3/layout/Shell/SidebarContextHeader", () => ({
