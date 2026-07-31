@@ -376,7 +376,7 @@ export const WorldIdPage = (props: {
       <div className="rounded-[10px] border border-portal-border bg-white p-6">
         <WorldIdAnalyticsGraph
           appId={appId}
-          environment={app.is_staging ? "staging" : "production"}
+          environment="production"
           scope={{ type: "app" }}
         />
       </div>

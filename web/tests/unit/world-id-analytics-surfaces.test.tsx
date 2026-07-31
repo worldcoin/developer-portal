@@ -171,11 +171,11 @@ const v4DetailData = {
   ],
 };
 
-const legacyDetailData = {
+const legacyDetailData = (isStaging = false) => ({
   action: [
     {
       id: v3ActionId,
-      app: { engine: "cloud" },
+      app: { engine: "cloud", is_staging: isStaging },
       nullifiers: [
         {
           id: "nil_1",
@@ -186,7 +186,7 @@ const legacyDetailData = {
       ],
     },
   ],
-};
+});
 
 const fulfilledParams = {
   then(resolve: (value: Record<string, string>) => void) {
@@ -238,6 +238,33 @@ describe("World ID app page [combined analytics hero]", () => {
       .filter((url) => !url.searchParams.has("action_ids"));
     expect(appRequests).toHaveLength(1);
     expect(appRequests[0].searchParams.get("period")).toBe("last_7_days");
+    expect(appRequests[0].searchParams.get("environment")).toBe("production");
+  });
+
+  it("keeps the hero on production even when the app is staging", async () => {
+    useQueryMock.mockReturnValue({
+      data: {
+        ...overviewData(),
+        app: [{ ...overviewData().app[0], is_staging: true }],
+      },
+      loading: false,
+      error: undefined,
+      refetch,
+    });
+
+    render(
+      <WorldIdPage
+        params={{ teamId: "team_1", appId }}
+        searchParams={{}}
+        canManageWorldId={false}
+      />,
+    );
+
+    await screen.findByRole("heading", { name: "Unique Verifications" });
+    const appRequest = fetchMock.mock.calls
+      .map((call) => requestUrl(call[0]))
+      .find((url) => !url.searchParams.has("action_ids"));
+    expect(appRequest?.searchParams.get("environment")).toBe("production");
   });
 
   it("keeps the app total independent of card search and pagination requests", async () => {
@@ -378,7 +405,7 @@ describe.each([
   (_name, LegacyActionPage) => {
     it("replaces ActionStatsGraph while preserving the bounded verification feed", async () => {
       useQueryMock.mockReturnValue({
-        data: legacyDetailData,
+        data: legacyDetailData(),
         loading: false,
         error: undefined,
       });
@@ -407,6 +434,46 @@ describe.each([
       const feedDocument = print(useQueryMock.mock.calls[0][0]);
       expect(feedDocument.replace(/\s+/g, " ")).toMatch(
         /nullifiers\s*\(\s*limit:\s*100/i,
+      );
+      expect(feedDocument).toMatch(/is_staging/);
+      await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+      expect(
+        fetchMock.mock.calls.some(
+          (call) =>
+            requestUrl(call[0]).searchParams.get("environment") ===
+            "production",
+        ),
+      ).toBe(true);
+    });
+
+    it("maps staging apps to the staging analytics environment", async () => {
+      useQueryMock.mockReturnValue({
+        data: legacyDetailData(true),
+        loading: false,
+        error: undefined,
+      });
+
+      await act(async () => {
+        render(
+          <Suspense fallback={<div>loading</div>}>
+            <LegacyActionPage params={fulfilledParams} />
+          </Suspense>,
+        );
+      });
+
+      expect(
+        await screen.findByRole("heading", {
+          name: "Unique Verifications",
+        }),
+      ).toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          fetchMock.mock.calls.some(
+            (call) =>
+              requestUrl(call[0]).searchParams.get("environment") ===
+              "staging",
+          ),
+        ).toBe(true),
       );
     });
   },
