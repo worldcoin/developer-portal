@@ -48,13 +48,21 @@ export const LogoDropZone = (props: {
             whenever a logo covers it. */}
         <span className="sr-only">Upload app logo</span>
         {props.imageUrl && !logo.isBroken ? (
-          <img
-            src={props.imageUrl}
-            alt=""
-            onError={logo.onError}
-            className={clsx(
-              "absolute inset-0 size-full object-cover",
-              props.isUploading && "opacity-50",
+          <>
+            <img
+              src={props.imageUrl}
+              alt=""
+              onError={logo.onError}
+              className={clsx(
+                "absolute inset-0 size-full object-cover",
+                props.isUploading && "opacity-50",
+              )}
+            />
+            {!isInert && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-grey-900/50 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+              />
             )}
           </>
         ) : (

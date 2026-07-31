@@ -155,7 +155,9 @@ describe("LogoDropZone [existing logo]", () => {
       />,
     );
 
-    const editableLabel = screen.getByAltText("App logo").closest("label");
+    // The logo <img> is decorative (alt="") since #2195; the label is named
+    // by its sr-only text instead.
+    const editableLabel = screen.getByText("Upload app logo").closest("label");
     const hoverShade = editableLabel?.querySelector('span[aria-hidden="true"]');
     expect(editableLabel).toHaveClass("group", "cursor-pointer");
     expect(hoverShade).toHaveClass(
@@ -173,7 +175,7 @@ describe("LogoDropZone [existing logo]", () => {
       />,
     );
 
-    const disabledLabel = screen.getByAltText("App logo").closest("label");
+    const disabledLabel = screen.getByText("Upload app logo").closest("label");
     expect(
       disabledLabel?.querySelector('span[aria-hidden="true"]'),
     ).not.toBeInTheDocument();
