@@ -15,7 +15,13 @@ export const WorldIdSubTabs = (props: { hasLegacyActions: boolean }) => {
   const worldIdPath = urls.worldId(ids);
   const worldIdSettingsPath = `${worldIdPath}?tab=world-id-4-0`;
   const actionDetailPath = urls.worldIdActions(ids);
-  const legacyActionsPath = urls.actions(ids);
+  const legacyActionsPath = urls.worldIdLegacyActions(ids);
+  const deprecatedLegacyActionsPath = urls.actions(ids);
+  const legacyActionsActive =
+    pathname === legacyActionsPath ||
+    pathname.startsWith(`${legacyActionsPath}/`) ||
+    pathname === deprecatedLegacyActionsPath ||
+    pathname.startsWith(`${deprecatedLegacyActionsPath}/`);
 
   return (
     <SectionSubTabs
@@ -32,7 +38,8 @@ export const WorldIdSubTabs = (props: { hasLegacyActions: boolean }) => {
           segment: "world-id-4-0",
           active:
             pathname.startsWith(worldIdPath) &&
-            !pathname.startsWith(actionDetailPath),
+            !pathname.startsWith(actionDetailPath) &&
+            !legacyActionsActive,
         },
         ...(props.hasLegacyActions
           ? [
@@ -40,7 +47,7 @@ export const WorldIdSubTabs = (props: { hasLegacyActions: boolean }) => {
                 label: "Legacy Actions",
                 href: legacyActionsPath,
                 segment: "actions",
-                active: pathname.startsWith(legacyActionsPath),
+                active: legacyActionsActive,
               },
             ]
           : []),

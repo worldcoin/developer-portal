@@ -74,6 +74,7 @@ describe("v3 SidebarNav", () => {
     const cases: Array<[string, string]> = [
       [base, "World ID"],
       [`${base}/world-id`, "World ID"],
+      [`${base}/world-id/legacy-actions`, "World ID"],
       [`${base}/world-id-4-0`, "World ID"],
       [`${base}/world-id-actions`, "World ID"],
       [`${base}/actions`, "World ID"],

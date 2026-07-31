@@ -1,4 +1,4 @@
-import { getSetupIntent } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/setup-intent";
+import { getSetupIntent } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/setup-intent";
 
 const defaults = {
   enableRequested: false,
@@ -26,8 +26,12 @@ it("routes create-action intents to the correct dialog", () => {
 
 it("preserves pending create intent and rejects unauthorized setup", () => {
   expect(
-    getSetupIntent({ ...defaults, hasRpRegistration: true }).consumeCreate,
-  ).toBe(false);
+    getSetupIntent({ ...defaults, hasRpRegistration: true }),
+  ).toMatchObject({
+    openSetup: false,
+    openAction: false,
+    consumeCreate: false,
+  });
   expect(
     getSetupIntent({ ...defaults, canManageWorldId: false }),
   ).toMatchObject({ openSetup: false, consumeCreate: true });

@@ -63,7 +63,7 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
         <ActionsHeader
           displayText={action?.name ?? ""}
           backText="Back to Legacy Actions"
-          backUrl={urls.actions({
+          backUrl={urls.worldIdLegacyActions({
             team_id: params.teamId ?? "",
             app_id: params.appId ?? "",
           })}

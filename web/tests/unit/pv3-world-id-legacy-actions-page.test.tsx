@@ -1,0 +1,184 @@
+/** @jest-environment jsdom */
+import "@testing-library/jest-dom";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import React, { Suspense } from "react";
+import { LegacyActionsPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/LegacyActions/page";
+
+// #region Mocks
+const useQueryMock = jest.fn();
+jest.mock("@apollo/client/react", () => ({
+  useQuery: (...args: unknown[]) => useQueryMock(...args),
+}));
+
+jest.mock(
+  "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/app.generated",
+  () => ({ GetAppDocument: { __mockDoc: "app" } }),
+);
+jest.mock(
+  "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/actions.generated",
+  () => ({ GetActionsDocument: { __mockDoc: "actions" } }),
+);
+
+const replace = jest.fn();
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ replace }),
+}));
+// #endregion
+
+// #region Test Data
+let params = Promise.resolve({ teamId: "team_1", appId: "app_1" });
+let engine = "cloud";
+let actions = [
+  {
+    id: "legacy_1",
+    name: "Community vote",
+    action: "community-vote",
+    description: "Vote once in the community poll",
+    nullifiers: { aggregate: { sum: { uses: 4 } } },
+  },
+  {
+    id: "legacy_2",
+    name: "Claim access",
+    action: "claim-access",
+    description: "Unlock access",
+    nullifiers: { aggregate: { sum: { uses: 1 } } },
+  },
+];
+
+const renderPage = async () => {
+  await act(async () => {
+    render(
+      <Suspense fallback={<div data-testid="loading" />}>
+        <LegacyActionsPage params={params} />
+      </Suspense>,
+    );
+  });
+};
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  params = Promise.resolve({ teamId: "team_1", appId: "app_1" });
+  engine = "cloud";
+  actions = [
+    {
+      id: "legacy_1",
+      name: "Community vote",
+      action: "community-vote",
+      description: "Vote once in the community poll",
+      nullifiers: { aggregate: { sum: { uses: 4 } } },
+    },
+    {
+      id: "legacy_2",
+      name: "Claim access",
+      action: "claim-access",
+      description: "Unlock access",
+      nullifiers: { aggregate: { sum: { uses: 1 } } },
+    },
+  ];
+  useQueryMock.mockImplementation(
+    (document: { __mockDoc?: "app" | "actions" }) =>
+      document.__mockDoc === "app"
+        ? {
+            data: { app: { id: "app_1", engine } },
+            loading: false,
+            error: undefined,
+          }
+        : {
+            data: { actions },
+            loading: false,
+            error: undefined,
+          },
+  );
+});
+// #endregion
+
+describe("LegacyActionsPage", () => {
+  it("renders the warning, matching search/grid UI, and read-only cards", async () => {
+    await renderPage();
+
+    const warning = await screen.findByText(
+      /This functionality is deprecated in 4\.0/,
+    );
+    const search = screen.getByRole("textbox", { name: "Search actions" });
+    const firstCard = screen.getByRole("link", {
+      name: /Community vote/,
+    });
+
+    expect(
+      warning.compareDocumentPosition(search) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      search.compareDocumentPosition(firstCard) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(firstCard).toHaveAttribute(
+      "href",
+      "/teams/team_1/apps/app_1/actions/legacy_1",
+    );
+    expect(firstCard).toHaveTextContent("community-vote");
+    expect(firstCard).toHaveTextContent("4 uses");
+    expect(screen.queryByRole("button", { name: "Create action" })).toBeNull();
+  });
+
+  it("filters locally without redirecting when a search has no matches", async () => {
+    await renderPage();
+
+    const search = await screen.findByRole("textbox", {
+      name: "Search actions",
+    });
+    fireEvent.change(search, { target: { value: "does-not-exist" } });
+
+    expect(
+      screen.getByText("No legacy actions match your search."),
+    ).toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it("preserves the on-chain settings destination", async () => {
+    engine = "on-chain";
+    await renderPage();
+
+    expect(
+      await screen.findByRole("link", { name: /Community vote/ }),
+    ).toHaveAttribute(
+      "href",
+      "/teams/team_1/apps/app_1/actions/legacy_1/settings",
+    );
+  });
+
+  it("paginates legacy action cards", async () => {
+    actions = Array.from({ length: 13 }, (_, index) => ({
+      id: `legacy_${index + 1}`,
+      name: `Legacy action ${index + 1}`,
+      action: `legacy-action-${index + 1}`,
+      description: "",
+      nullifiers: { aggregate: { sum: { uses: 0 } } },
+    }));
+    await renderPage();
+
+    expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Legacy action 13/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(
+      screen.getByRole("link", { name: /Legacy action 13/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("returns to World ID when the app has no legacy actions", async () => {
+    actions = [];
+    await renderPage();
+
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith("/teams/team_1/apps/app_1/world-id");
+    });
+  });
+});

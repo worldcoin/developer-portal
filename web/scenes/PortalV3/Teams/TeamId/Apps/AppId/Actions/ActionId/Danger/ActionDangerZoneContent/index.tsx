@@ -15,6 +15,7 @@ import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { useMutation } from "@apollo/client/react";
 import { GetActionsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/actions.generated";
+import { urls } from "@/lib/urls";
 import { GetSingleActionQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Danger/page/graphql/client/get-single-action.generated";
 import { DeleteActionDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Danger/ActionDangerZoneContent/graphql/client/delete-action.generated";
 
@@ -62,8 +63,12 @@ export const ActionDangerZoneContent = (props: {
       if (result instanceof Error) {
         throw result;
       }
-      router.prefetch(`/teams/${teamId}/apps/${appId}/actions`);
-      router.replace(`/teams/${teamId}/apps/${appId}/actions`);
+      const legacyActionsUrl = urls.worldIdLegacyActions({
+        team_id: teamId ?? "",
+        app_id: appId ?? "",
+      });
+      router.prefetch(legacyActionsUrl);
+      router.replace(legacyActionsUrl);
     } catch (error) {
       console.error("Delete Action: ", error);
       return toast.error("Unable to delete action");

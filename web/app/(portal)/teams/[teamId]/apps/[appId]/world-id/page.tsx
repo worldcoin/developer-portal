@@ -1,8 +1,7 @@
 import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
-import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { urls } from "@/lib/urls";
-import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
+import { WorldIdActionsPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
@@ -16,20 +15,13 @@ type Props = {
 };
 
 export default async function Page(props: Props) {
-  const [params, searchParams] = await Promise.all([
-    props.params,
-    props.searchParams,
-  ]);
-
   return pickPortalVersion(
-    async () => (
-      <WorldIdPage
-        params={params}
-        searchParams={searchParams}
-        canManageWorldId={await getIsUserAllowedToUpdateApp(params.appId)}
-      />
-    ),
-    () => {
+    () => <WorldIdActionsPage />,
+    async () => {
+      const [params, searchParams] = await Promise.all([
+        props.params,
+        props.searchParams,
+      ]);
       const legacyPath = urls.worldId40({
         team_id: params.teamId,
         app_id: params.appId,

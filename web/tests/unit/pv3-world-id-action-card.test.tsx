@@ -3,12 +3,13 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ActionCard } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionCard";
 import { ActionsGrid } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsGrid";
-import { WorldIdTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/WorldIdTabs";
+import { WorldIdTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/Tabs";
 import { WorldIdSubTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/SubTabs";
 
+let mockPathname = "/teams/team_1/apps/app_1/world-id";
 jest.mock("next/navigation", () => ({
   useParams: () => ({ teamId: "team_1", appId: "app_1" }),
-  usePathname: () => "/teams/team_1/apps/app_1/actions",
+  usePathname: () => mockPathname,
   useSelectedLayoutSegment: () => "actions",
 }));
 
@@ -21,9 +22,22 @@ global.ResizeObserver = class {
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/page/CreateActionDialogV4",
   () => ({
-    CreateActionDialogV4: () => <div data-testid="create-action-dialog" />,
+    CreateActionDialogV4: (props: {
+      open: boolean;
+      onClose: (success?: boolean) => void;
+    }) => (
+      <div data-testid="create-action-dialog" data-open={String(props.open)}>
+        <button type="button" onClick={() => props.onClose()}>
+          Close create dialog
+        </button>
+      </div>
+    ),
   }),
 );
+
+beforeEach(() => {
+  mockPathname = "/teams/team_1/apps/app_1/world-id";
+});
 
 it("links to the canonical action route", () => {
   render(
@@ -105,28 +119,61 @@ it("opens a deferred create intent when it becomes actionable", async () => {
 
   expect(screen.queryByTestId("create-action-dialog")).not.toBeInTheDocument();
   rerender(<ActionsGrid {...props} initialDialogOpen />);
-  expect(await screen.findByTestId("create-action-dialog")).toBeInTheDocument();
+  expect(await screen.findByTestId("create-action-dialog")).toHaveAttribute(
+    "data-open",
+    "true",
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: "Close create dialog" }));
+  expect(screen.getByTestId("create-action-dialog")).toHaveAttribute(
+    "data-open",
+    "false",
+  );
+  expect(props.onCreateActionConsumed).toHaveBeenCalledTimes(1);
 });
 
-it("only shows Legacy Actions when the app has legacy actions", () => {
+it("renders route-backed Actions and optional Legacy Actions tabs", () => {
   const props = {
-    tab: "actions" as const,
-    onTabChange: jest.fn(),
-    search: "",
-    onSearchChange: jest.fn(),
+    teamId: "team_1",
+    appId: "app_1",
+    hasLegacyActions: false,
   };
   const { rerender } = render(<WorldIdTabs {...props} />);
 
+  expect(screen.getByRole("link", { name: "Actions" })).toHaveAttribute(
+    "href",
+    "/teams/team_1/apps/app_1/world-id",
+  );
+  expect(screen.getByRole("link", { name: "Actions" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  expect(screen.queryByRole("link", { name: "World ID" })).toBeNull();
   expect(screen.queryByRole("link", { name: "Legacy Actions" })).toBeNull();
 
-  rerender(<WorldIdTabs {...props} legacyActionsHref="/legacy-actions" />);
+  rerender(<WorldIdTabs {...props} hasLegacyActions />);
   expect(screen.getByRole("link", { name: "Legacy Actions" })).toHaveAttribute(
     "href",
-    "/legacy-actions",
+    "/teams/team_1/apps/app_1/world-id/legacy-actions",
   );
+
+  mockPathname = "/teams/team_1/apps/app_1/world-id/legacy-actions";
+  rerender(<WorldIdTabs {...props} hasLegacyActions />);
+  expect(screen.getByRole("link", { name: "Legacy Actions" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  expect(screen.getByRole("link", { name: "Actions" })).not.toHaveAttribute(
+    "aria-current",
+  );
+
+  rerender(<WorldIdTabs {...props} hasLegacyActions showActions={false} />);
+  expect(screen.queryByRole("link", { name: "Actions" })).toBeNull();
+  expect(screen.getByRole("link", { name: "Legacy Actions" })).toBeVisible();
 });
 
-it("keeps the route-level tabs in the same order as the overview", () => {
+it("keeps the previous tab set on routes awaiting migration", () => {
+  mockPathname = "/teams/team_1/apps/app_1/actions";
   render(<WorldIdSubTabs hasLegacyActions />);
 
   const links = screen.getAllByRole("link");
@@ -139,5 +186,9 @@ it("keeps the route-level tabs in the same order as the overview", () => {
   expect(links[1]).toHaveAttribute(
     "href",
     "/teams/team_1/apps/app_1/world-id?tab=world-id-4-0",
+  );
+  expect(links[2]).toHaveAttribute(
+    "href",
+    "/teams/team_1/apps/app_1/world-id/legacy-actions",
   );
 });

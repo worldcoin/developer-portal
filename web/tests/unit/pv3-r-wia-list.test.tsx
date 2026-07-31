@@ -13,11 +13,16 @@ jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/page",
   () => ({ WorldIdActionsPage: () => <div data-testid="v3-wia-list" /> }),
 );
-jest.mock("@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout", () => ({
-  WorldIdLayout: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="v3-world-id-layout">{children}</div>
-  ),
-}));
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/CompatibilityLayout",
+  () => ({
+    WorldIdCompatibilityLayout: ({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) => <div data-testid="v3-world-id-layout">{children}</div>,
+  }),
+);
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env",
   () => ({ fetchAppEnvCached: jest.fn().mockResolvedValue({ action: [] }) }),

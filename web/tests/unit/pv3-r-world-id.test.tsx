@@ -10,25 +10,8 @@ jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
     mockPortalVersion === "v3" ? v3() : v2(),
 }));
 
-const getIsUserAllowedToUpdateApp = jest.fn().mockResolvedValue(true);
-jest.mock("@/lib/permissions", () => ({
-  getIsUserAllowedToUpdateApp: (...args: unknown[]) =>
-    getIsUserAllowedToUpdateApp(...args),
-}));
-
 jest.mock("@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page", () => ({
-  WorldIdPage: (props: {
-    params: { appId: string };
-    searchParams: Record<string, string>;
-    canManageWorldId: boolean;
-  }) => (
-    <div
-      data-testid="v3-world-id"
-      data-app-id={props.params.appId}
-      data-create-action={props.searchParams.createAction}
-      data-can-manage={String(props.canManageWorldId)}
-    />
-  ),
+  WorldIdActionsPage: () => <div data-testid="v3-world-id-actions" />,
 }));
 
 const redirectMock = jest.fn();
@@ -53,22 +36,10 @@ beforeEach(() => {
 
 // #region Portal V3
 describe("/world-id [Portal V3]", () => {
-  it("renders the shared World ID scene with route state and permissions", async () => {
+  it("renders the Actions child inside the route layout", async () => {
     render(await RoutePage(props({ createAction: "true" })));
 
-    expect(screen.getByTestId("v3-world-id")).toHaveAttribute(
-      "data-app-id",
-      "app_1",
-    );
-    expect(screen.getByTestId("v3-world-id")).toHaveAttribute(
-      "data-create-action",
-      "true",
-    );
-    expect(screen.getByTestId("v3-world-id")).toHaveAttribute(
-      "data-can-manage",
-      "true",
-    );
-    expect(getIsUserAllowedToUpdateApp).toHaveBeenCalledWith("app_1");
+    expect(screen.getByTestId("v3-world-id-actions")).toBeInTheDocument();
     expect(redirectMock).not.toHaveBeenCalled();
   });
 });
