@@ -1,0 +1,5 @@
+function:
+  name: world_id_analytics_app_daily
+  schema: public
+permissions:
+  - role: service

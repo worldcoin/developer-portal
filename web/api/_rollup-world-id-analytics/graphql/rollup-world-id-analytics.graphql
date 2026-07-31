@@ -1,0 +1,5 @@
+mutation RollupWorldIdAnalytics {
+  rollup_world_id_analytics {
+    processed_through
+  }
+}

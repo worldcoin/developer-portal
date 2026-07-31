@@ -1,0 +1,12 @@
+table:
+  name: action_v3_stats_daily
+  schema: public
+object_relationships:
+  - name: action
+    using:
+      foreign_key_constraint_on: action_id
+select_permissions:
+  - role: service
+    permission:
+      columns: [action_id, date_utc, unique_count]
+      filter: {}
