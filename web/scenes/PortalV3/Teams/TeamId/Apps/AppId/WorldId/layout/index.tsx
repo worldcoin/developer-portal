@@ -6,7 +6,13 @@ import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { SkeletonForm } from "@/components/Skeletons";
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
-import { urls } from "@/lib/urls";
+import type { EngineType } from "@/lib/types";
+import {
+  normalizeWorldIdTab,
+  resolveActiveWorldIdTab,
+  resolveAvailableWorldIdTab,
+  WORLD_ID_TABS,
+} from "@/lib/world-id-tabs";
 import { BanMessageDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/common/BanMessageDialog";
 import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
@@ -72,9 +78,12 @@ export const WorldIdLayout = (props: {
   const searchParams = useSearchParams();
   const enableWorldId4Requested = searchParams.get("enableWorldId4") === "true";
   const createActionRequested = searchParams.get("createAction") === "true";
-  const obsoleteSettingsTab = searchParams.get("tab") === "world-id-4-0";
+  const requestedTab = searchParams.get("tab");
   const [setupRequested, setSetupRequested] = useState(false);
   const [createAfterSetup, setCreateAfterSetup] = useState(false);
+  // Search is intentionally local UI state, matching the previous Actions
+  // page. Tab changes keep this layout mounted, so the filter survives without
+  // creating a second source of truth in the URL.
   const [actionsSearch, setActionsSearch] = useState("");
   const [reconciledRpStatus, setReconciledRpStatus] = useState<{
     rpId: string;
@@ -93,16 +102,17 @@ export const WorldIdLayout = (props: {
     pendingSearchParamsTargetRef.current = null;
   }, [searchParamsString]);
 
-  const consumeSearchParams = useCallback(
-    (...names: string[]) => {
+  const updateSearchParams = useCallback(
+    (update: (nextSearchParams: URLSearchParams) => void) => {
       const nextSearchParams = new URLSearchParams(
         pendingSearchParamsRef.current,
       );
-      if (!names.some((name) => nextSearchParams.has(name))) return;
-
-      for (const name of names) nextSearchParams.delete(name);
+      const previousQuery = nextSearchParams.toString();
+      update(nextSearchParams);
       const query = nextSearchParams.toString();
-      // Compose another consumption against this target even if Next has not
+      if (query === previousQuery) return;
+
+      // Compose another query update against this target even if Next has not
       // committed the preceding replace yet.
       pendingSearchParamsRef.current = query;
       pendingSearchParamsTargetRef.current = query;
@@ -111,6 +121,15 @@ export const WorldIdLayout = (props: {
       });
     },
     [pathname, router],
+  );
+
+  const consumeSearchParams = useCallback(
+    (...names: string[]) => {
+      updateSearchParams((nextSearchParams) => {
+        for (const name of names) nextSearchParams.delete(name);
+      });
+    },
+    [updateSearchParams],
   );
 
   const { data, loading, error, refetch } = useQuery(
@@ -127,6 +146,7 @@ export const WorldIdLayout = (props: {
   const rp = app?.rp_registration?.[0];
   const hasResolvedApp = Boolean(app);
   const hasRpRegistration = Boolean(rp);
+  const hasLegacyActions = (data?.action?.length ?? 0) > 0;
   const effectiveRpStatus =
     reconciledRpStatus &&
     reconciledRpStatus.rpId === rp?.rp_id &&
@@ -134,6 +154,26 @@ export const WorldIdLayout = (props: {
       ? reconciledRpStatus.status
       : rp?.status;
   const hasActiveRp = effectiveRpStatus === RpRegistrationStatus.Registered;
+  const availableTab = resolveAvailableWorldIdTab({
+    requestedTab,
+    hasRpRegistration,
+    hasLegacyActions,
+  });
+  const activeTab = resolveActiveWorldIdTab({
+    requestedTab,
+    hasRpRegistration,
+    hasActiveRp,
+    hasLegacyActions,
+    enableRequested: enableWorldId4Requested,
+    createRequested: createActionRequested || createAfterSetup,
+  });
+  const normalizedRequestedTab = normalizeWorldIdTab(requestedTab);
+  const shouldNormalizeTab =
+    requestedTab !== null &&
+    (requestedTab !== normalizedRequestedTab ||
+      (!createActionRequested &&
+        !enableWorldId4Requested &&
+        requestedTab !== availableTab));
   const { openSetup, openAction, consumeEnable, consumeCreate } =
     getSetupIntent({
       enableRequested: enableWorldId4Requested,
@@ -148,17 +188,18 @@ export const WorldIdLayout = (props: {
 
   const hasBootstrappedCreateIntent = useRef(false);
   useEffect(() => {
-    if (loading || !hasResolvedApp || !hasCreateIntent || hasActiveRp) return;
+    if (loading || !hasResolvedApp || !hasCreateIntent || hasRpRegistration) {
+      return;
+    }
     if (hasBootstrappedCreateIntent.current) return;
 
     hasBootstrappedCreateIntent.current = true;
     setSetupRequested(true);
-  }, [hasActiveRp, hasCreateIntent, hasResolvedApp, loading]);
+  }, [hasCreateIntent, hasResolvedApp, hasRpRegistration, loading]);
 
   useEffect(() => {
     const consumedParams: string[] = [];
 
-    if (obsoleteSettingsTab) consumedParams.push("tab");
     if (consumeEnable) consumedParams.push("enableWorldId4");
     if (consumeCreate) {
       setCreateAfterSetup(false);
@@ -166,9 +207,27 @@ export const WorldIdLayout = (props: {
     }
 
     if (consumedParams.length > 0) {
-      consumeSearchParams(...consumedParams);
+      updateSearchParams((nextSearchParams) => {
+        // A bare enable deep link should stay on World ID after its one-shot
+        // dialog intent is consumed. Preserve an explicit caller-owned tab.
+        if (consumeEnable && !nextSearchParams.has("tab")) {
+          nextSearchParams.set("tab", WORLD_ID_TABS.Configuration);
+        }
+
+        for (const name of consumedParams) nextSearchParams.delete(name);
+      });
     }
-  }, [consumeCreate, consumeEnable, consumeSearchParams, obsoleteSettingsTab]);
+  }, [consumeCreate, consumeEnable, updateSearchParams]);
+
+  useEffect(() => {
+    if (!hasResolvedApp || !shouldNormalizeTab) {
+      return;
+    }
+
+    updateSearchParams((nextSearchParams) => {
+      nextSearchParams.set("tab", availableTab);
+    });
+  }, [hasResolvedApp, shouldNormalizeTab, updateSearchParams, availableTab]);
 
   const refetchOverview = useCallback(
     () => void refetch().catch(() => {}),
@@ -229,6 +288,8 @@ export const WorldIdLayout = (props: {
       teamId: props.teamId,
       appId: props.appId,
       canManageWorldId: props.canManageWorldId,
+      activeTab,
+      appEngine: app?.engine as EngineType | undefined,
       actions,
       actionsSearch,
       hasActiveRp,
@@ -237,8 +298,10 @@ export const WorldIdLayout = (props: {
       refreshOverview: refetchOverview,
     }),
     [
+      activeTab,
       actions,
       actionsSearch,
+      app?.engine,
       consumeCreateAction,
       hasActiveRp,
       hasCreateIntent,
@@ -266,86 +329,71 @@ export const WorldIdLayout = (props: {
     );
   }
 
-  const hasLegacyActions = (data?.action?.length ?? 0) > 0;
-  const legacyActionsPath = urls.worldIdLegacyActions({
-    team_id: props.teamId,
-    app_id: props.appId,
-  });
-  const isLegacyActionsRoute =
-    pathname === legacyActionsPath ||
-    pathname.startsWith(`${legacyActionsPath}/`);
-  const showContent = hasRpRegistration || isLegacyActionsRoute;
-  const showTabs = hasRpRegistration || hasLegacyActions;
-
   return (
     <WorldIdLayoutContext.Provider value={contextValue}>
       <SizingWrapper className="flex flex-col gap-8 py-8">
         {app?.is_banned ? <BanBanner /> : null}
 
-        <div className="flex flex-col gap-4">
-          {initialLoading ? (
-            <div className="rounded-xl border border-grey-100 bg-white p-5">
-              <SkeletonForm count={3} className="max-w-[760px] py-2" />
-            </div>
-          ) : rp ? (
-            <RpSummary
-              appId={props.appId}
-              rpId={rp.rp_id}
-              signerAddress={rp.signer_address ?? null}
-              initialStatus={
-                (effectiveRpStatus as RpRegistrationStatus) ??
-                RpRegistrationStatus.Pending
-              }
-              initialStagingStatus={
-                rp.staging_status == null
-                  ? null
-                  : (rp.staging_status as RpRegistrationStatus)
-              }
-              mode={rp.mode as string}
-              createdAt={rp.created_at}
-              canManageWorldId={props.canManageWorldId}
-              onRpChanged={handleRpChanged}
-            />
-          ) : app ? (
-            <RegisterRpEmptyState
-              appId={props.appId}
-              initialOpen={openSetup || setupRequested}
-              isStaging={app.is_staging}
-              canManageWorldId={props.canManageWorldId}
-              onRegistered={refetchOverview}
-              legacyActionsHref={
-                hasLegacyActions && !isLegacyActionsRoute
-                  ? legacyActionsPath
-                  : undefined
-              }
-              onSetupClosed={(completed) => {
-                setSetupRequested(false);
-                if (completed) {
-                  consumeSearchParams("enableWorldId4");
-                } else {
-                  setCreateAfterSetup(false);
-                  consumeSearchParams("enableWorldId4", "createAction");
-                }
-              }}
-            />
-          ) : null}
-        </div>
-
-        {showContent ? (
-          <div className="flex flex-col gap-6">
-            {showTabs ? (
-              <WorldIdTabs
-                teamId={props.teamId}
-                appId={props.appId}
-                hasLegacyActions={hasLegacyActions}
-                showActions={hasRpRegistration}
-                search={actionsSearch}
-                onSearchChange={setActionsSearch}
-              />
-            ) : null}
-            {props.children}
+        {initialLoading ? (
+          <div className="rounded-xl border border-grey-100 bg-white p-5">
+            <SkeletonForm count={3} className="max-w-[760px] py-2" />
           </div>
-        ) : null}
+        ) : (
+          <div className="flex flex-col gap-6">
+            <WorldIdTabs
+              teamId={props.teamId}
+              appId={props.appId}
+              activeTab={activeTab}
+              hasLegacyActions={hasLegacyActions}
+              showActions={hasRpRegistration}
+              search={actionsSearch}
+              onSearchChange={setActionsSearch}
+            />
+
+            {activeTab === WORLD_ID_TABS.Configuration ? (
+              <div className="flex flex-col gap-4">
+                {rp ? (
+                  <RpSummary
+                    appId={props.appId}
+                    rpId={rp.rp_id}
+                    signerAddress={rp.signer_address ?? null}
+                    initialStatus={
+                      (effectiveRpStatus as RpRegistrationStatus) ??
+                      RpRegistrationStatus.Pending
+                    }
+                    initialStagingStatus={
+                      rp.staging_status == null
+                        ? null
+                        : (rp.staging_status as RpRegistrationStatus)
+                    }
+                    mode={rp.mode as string}
+                    canManageWorldId={props.canManageWorldId}
+                    onRpChanged={handleRpChanged}
+                  />
+                ) : app ? (
+                  <RegisterRpEmptyState
+                    appId={props.appId}
+                    initialOpen={openSetup || setupRequested}
+                    isStaging={app.is_staging}
+                    canManageWorldId={props.canManageWorldId}
+                    onRegistered={refetchOverview}
+                    onSetupClosed={(completed) => {
+                      setSetupRequested(false);
+                      if (completed) {
+                        consumeSearchParams("enableWorldId4");
+                      } else {
+                        setCreateAfterSetup(false);
+                        consumeSearchParams("enableWorldId4", "createAction");
+                      }
+                    }}
+                  />
+                ) : null}
+              </div>
+            ) : (
+              props.children
+            )}
+          </div>
+        )}
       </SizingWrapper>
     </WorldIdLayoutContext.Provider>
   );

@@ -1,21 +1,11 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
-import React from "react";
-
 // #region Mocks
 let mockPortalVersion: "v2" | "v3" = "v3";
 jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
   pickPortalVersion: async (v3: () => unknown, v2: () => unknown) =>
     mockPortalVersion === "v3" ? v3() : v2(),
 }));
-
-jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/LegacyActions/page",
-  () => ({
-    LegacyActionsPage: () => <div data-testid="legacy-actions-page" />,
-  }),
-);
 
 const redirectMock = jest.fn();
 jest.mock("next/navigation", () => ({
@@ -36,11 +26,20 @@ beforeEach(() => {
 });
 
 describe("/world-id/legacy-actions [Portal V3]", () => {
-  it("renders the nested legacy scene", async () => {
-    render(await RoutePage(props()));
+  it("redirects to the canonical Legacy Actions tab", async () => {
+    await RoutePage(props());
 
-    expect(screen.getByTestId("legacy-actions-page")).toBeInTheDocument();
-    expect(redirectMock).not.toHaveBeenCalled();
+    expect(redirectMock).toHaveBeenCalledWith(
+      "/teams/team_1/apps/app_1/world-id?tab=legacy-actions",
+    );
+  });
+
+  it("preserves query parameters and overwrites a stale tab", async () => {
+    await RoutePage(props({ search: "vote", tab: "configuration" }));
+
+    expect(redirectMock).toHaveBeenCalledWith(
+      "/teams/team_1/apps/app_1/world-id?search=vote&tab=legacy-actions",
+    );
   });
 });
 

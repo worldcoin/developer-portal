@@ -11,6 +11,7 @@ export type GetWorldIdOverviewQuery = {
   app: Array<{
     __typename?: "app";
     id: string;
+    engine: string;
     is_banned: boolean;
     is_staging: boolean;
     rp_registration: Array<{
@@ -94,6 +95,7 @@ export const GetWorldIdOverviewDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "engine" } },
                 { kind: "Field", name: { kind: "Name", value: "is_banned" } },
                 { kind: "Field", name: { kind: "Name", value: "is_staging" } },
                 {

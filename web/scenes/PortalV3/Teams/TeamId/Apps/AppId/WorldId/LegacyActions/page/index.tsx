@@ -11,91 +11,47 @@ import {
   GetActionsDocument,
   type GetActionsQuery,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/actions.generated";
-import { GetAppDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/app.generated";
 import { useQuery } from "@apollo/client/react";
-import { useRouter } from "next/navigation";
-import { use, useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { LegacyActionsGrid } from "./LegacyActionsGrid";
 
 const EMPTY_ACTIONS: GetActionsQuery["actions"] = [];
 
-type LegacyActionsPageProps = {
-  params: Promise<{ teamId: string; appId: string }>;
-};
-
-export const LegacyActionsPage = (props: LegacyActionsPageProps) => {
-  const params = use(props.params);
-  const router = useRouter();
-  const { actionsSearch } = useWorldIdLayout();
-
-  const appResult = useQuery(GetAppDocument, {
-    variables: { app_id: params.appId },
-    skip: !params.appId,
-  });
+export const LegacyActionsPage = () => {
+  const { teamId, appId, appEngine, actionsSearch, refreshOverview } =
+    useWorldIdLayout();
   const actionsResult = useQuery(GetActionsDocument, {
     variables: {
-      app_id: params.appId,
+      app_id: appId,
       condition: {},
     },
-    skip: !params.appId,
+    skip: !appId,
   });
 
   const actions = actionsResult.data?.actions ?? EMPTY_ACTIONS;
-  const app = appResult.data?.app;
-  const hasApp = Boolean(app);
-  const loading = appResult.loading || actionsResult.loading;
+  const loading = actionsResult.loading;
 
   useEffect(() => {
-    if (
-      loading ||
-      appResult.error ||
-      actionsResult.error ||
-      !hasApp ||
-      actions.length > 0
-    ) {
-      return;
-    }
-
-    router.replace(
-      urls.worldId({
-        team_id: params.teamId,
-        app_id: params.appId,
-      }),
-    );
-  }, [
-    actions.length,
-    actionsResult.error,
-    appResult.error,
-    hasApp,
-    loading,
-    params.appId,
-    params.teamId,
-    router,
-  ]);
+    if (loading || actionsResult.error || actions.length > 0) return;
+    refreshOverview();
+  }, [actions.length, actionsResult.error, loading, refreshOverview]);
 
   const getActionHref = useCallback(
     (action: (typeof actions)[number]) => {
       const basePath = `${urls.actions({
-        team_id: params.teamId,
-        app_id: params.appId,
+        team_id: teamId,
+        app_id: appId,
       })}/${action.id}`;
 
-      return app?.engine === EngineType.OnChain
+      return appEngine === EngineType.OnChain
         ? `${basePath}/settings`
         : basePath;
     },
-    [app?.engine, params.appId, params.teamId],
+    [appEngine, appId, teamId],
   );
 
-  if (
-    (appResult.error && !appResult.data) ||
-    (actionsResult.error && !actionsResult.data)
-  ) {
+  if (actionsResult.error && !actionsResult.data) {
     return <ErrorPage statusCode={500} title="Failed to load legacy actions" />;
-  }
-
-  if (!appResult.loading && !app) {
-    return <ErrorPage statusCode={404} title="App not found" />;
   }
 
   if (!loading && actions.length === 0) {

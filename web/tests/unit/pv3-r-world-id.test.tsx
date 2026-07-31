@@ -11,7 +11,7 @@ jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
 }));
 
 jest.mock("@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page", () => ({
-  WorldIdActionsPage: () => <div data-testid="v3-world-id-actions" />,
+  WorldIdPage: () => <div data-testid="v3-world-id" />,
 }));
 
 const redirectMock = jest.fn();
@@ -36,10 +36,10 @@ beforeEach(() => {
 
 // #region Portal V3
 describe("/world-id [Portal V3]", () => {
-  it("renders the Actions child inside the route layout", async () => {
+  it("renders the query-backed World ID page inside the route layout", async () => {
     render(await RoutePage(props({ createAction: "true" })));
 
-    expect(screen.getByTestId("v3-world-id-actions")).toBeInTheDocument();
+    expect(screen.getByTestId("v3-world-id")).toBeInTheDocument();
     expect(redirectMock).not.toHaveBeenCalled();
   });
 });

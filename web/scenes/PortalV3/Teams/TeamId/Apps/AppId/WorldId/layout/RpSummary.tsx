@@ -45,13 +45,6 @@ const SummaryField = (props: {
   </div>
 );
 
-const statusLabel: Record<RpRegistrationStatus, string> = {
-  [RpRegistrationStatus.Pending]: "Configuration pending",
-  [RpRegistrationStatus.Registered]: "Registered",
-  [RpRegistrationStatus.Failed]: "Registration failed",
-  [RpRegistrationStatus.Deactivated]: "Deactivated",
-};
-
 export const RpSummary = (props: {
   appId: string;
   rpId: string;
@@ -59,7 +52,6 @@ export const RpSummary = (props: {
   initialStatus: RpRegistrationStatus;
   initialStagingStatus: RpRegistrationStatus | null;
   mode: string;
-  createdAt: string;
   canManageWorldId: boolean;
   onRpChanged?: (status?: RpRegistrationStatus) => void;
 }) => {
@@ -82,7 +74,6 @@ export const RpSummary = (props: {
 
   const isActive = productionStatus === RpRegistrationStatus.Registered;
   const isSelfManaged = props.mode === "self_managed";
-  const modeLabel = isSelfManaged ? "Self-managed" : "Managed";
   const signerAddress = isSelfManaged
     ? "Unavailable in Portal"
     : props.signerAddress ?? "Not available";
@@ -93,12 +84,6 @@ export const RpSummary = (props: {
       : !isActive
         ? "The RP must be active before its configuration can be changed."
         : null;
-  const formattedDate = new Date(props.createdAt).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-
   const handleConfigurationChanged = () => {
     markProductionPending();
     props.onRpChanged?.(RpRegistrationStatus.Pending);
@@ -145,128 +130,100 @@ export const RpSummary = (props: {
   return (
     <>
       <section
-        aria-labelledby="world-id-configuration-title"
-        className="rounded-xl border border-grey-100 bg-white p-5"
+        aria-label="World ID configuration"
+        className="flex w-full max-w-[580px] flex-col gap-4"
       >
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <Typography
-              id="world-id-configuration-title"
-              as="h2"
-              variant={TYPOGRAPHY.S2}
-            >
-              World ID configuration
-            </Typography>
-            <Typography
-              as="p"
-              variant={TYPOGRAPHY.B4}
-              className="mt-1 text-grey-500"
-            >
-              Created {formattedDate}
-            </Typography>
+        <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-5">
+            <SummaryField label="App ID" value={props.appId} copy />
+            <SummaryField label="RP ID" value={props.rpId} copy />
+            <SummaryField
+              label="Signer address"
+              value={signerAddress}
+              copy={!isSelfManaged && Boolean(props.signerAddress)}
+            />
           </div>
-          <span
-            className={clsx(
-              "rounded-full px-3 py-1 font-world text-12 font-medium",
-              productionStatus === RpRegistrationStatus.Registered
-                ? "bg-system-success-50 text-system-success-700"
-                : productionStatus === RpRegistrationStatus.Failed
-                  ? "bg-system-error-50 text-system-error-600"
-                  : "text-grey-600 bg-grey-50",
-            )}
-          >
-            {statusLabel[productionStatus]}
-          </span>
+
+          <div className="flex flex-col items-start gap-3">
+            {controlsDisabledReason ? (
+              <Typography
+                id="world-id-configuration-disabled-reason"
+                as="p"
+                variant={TYPOGRAPHY.B4}
+                className="text-grey-500"
+              >
+                {controlsDisabledReason}
+              </Typography>
+            ) : null}
+            <div className="flex flex-wrap items-center gap-3">
+              <DecoratedButton
+                type="button"
+                variant="secondary"
+                disabled={!props.canManageWorldId || !isActive || isSelfManaged}
+                className="h-9 shrink-0 rounded-full px-4 py-0 text-xs"
+                aria-describedby={
+                  controlsDisabledReason
+                    ? "world-id-configuration-disabled-reason"
+                    : undefined
+                }
+                onClick={() => setIsRotateOpen(true)}
+              >
+                Rotate signer key
+              </DecoratedButton>
+              <DecoratedButton
+                type="button"
+                variant="danger"
+                disabled={!props.canManageWorldId || !isActive || isSelfManaged}
+                className="h-9 shrink-0 rounded-full px-4 py-0 text-xs"
+                aria-describedby={
+                  controlsDisabledReason
+                    ? "world-id-configuration-disabled-reason"
+                    : undefined
+                }
+                onClick={() => setIsSwitchOpen(true)}
+              >
+                Switch to self-managed
+              </DecoratedButton>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-5 grid gap-5 border-t border-grey-100 pt-5 sm:grid-cols-2 xl:grid-cols-4">
-          <SummaryField label="App ID" value={props.appId} copy />
-          <SummaryField label="RP ID" value={props.rpId} copy />
-          <SummaryField
-            label="Signer address"
-            value={signerAddress}
-            copy={!isSelfManaged && Boolean(props.signerAddress)}
-          />
-          <SummaryField label="Management mode" value={modeLabel} />
-        </div>
+        {productionStatus === RpRegistrationStatus.Pending ? (
+          <Notification variant="info">
+            <div>
+              <Typography as="p" variant={TYPOGRAPHY.S3}>
+                Configuration update pending
+              </Typography>
+              <Typography
+                as="p"
+                variant={TYPOGRAPHY.S4}
+                className="mt-1 text-grey-500"
+              >
+                World ID configuration changes will be available after the
+                update completes.
+              </Typography>
+            </div>
+          </Notification>
+        ) : productionStatus === RpRegistrationStatus.Deactivated ? (
+          <Notification variant="warning">
+            <div>
+              <Typography as="p" variant={TYPOGRAPHY.S3}>
+                Registration deactivated
+              </Typography>
+              <Typography
+                as="p"
+                variant={TYPOGRAPHY.S4}
+                className="mt-1 text-grey-500"
+              >
+                This RP is no longer active.
+              </Typography>
+            </div>
+          </Notification>
+        ) : null}
 
-        <div className="mt-5 flex flex-wrap items-center justify-end gap-3 border-t border-grey-100 pt-4">
-          {controlsDisabledReason ? (
-            <Typography
-              id="world-id-configuration-disabled-reason"
-              as="p"
-              variant={TYPOGRAPHY.B4}
-              className="mr-auto text-grey-500"
-            >
-              {controlsDisabledReason}
-            </Typography>
-          ) : null}
-          <DecoratedButton
-            type="button"
-            variant="secondary"
-            disabled={!props.canManageWorldId || !isActive || isSelfManaged}
-            className="h-9 rounded-full px-4 py-0 text-xs"
-            aria-describedby={
-              controlsDisabledReason
-                ? "world-id-configuration-disabled-reason"
-                : undefined
-            }
-            onClick={() => setIsRotateOpen(true)}
-          >
-            Rotate signer key
-          </DecoratedButton>
-          <DecoratedButton
-            type="button"
-            variant="danger"
-            disabled={!props.canManageWorldId || !isActive || isSelfManaged}
-            className="h-9 shrink-0 rounded-full px-4 py-0 text-xs"
-            aria-describedby={
-              controlsDisabledReason
-                ? "world-id-configuration-disabled-reason"
-                : undefined
-            }
-            onClick={() => setIsSwitchOpen(true)}
-          >
-            Switch to self-managed
-          </DecoratedButton>
-        </div>
+        {renderFailure("production")}
+        {renderFailure("staging")}
       </section>
-
-      {productionStatus === RpRegistrationStatus.Pending ? (
-        <Notification variant="info">
-          <div>
-            <Typography as="p" variant={TYPOGRAPHY.S3}>
-              Configuration update pending
-            </Typography>
-            <Typography
-              as="p"
-              variant={TYPOGRAPHY.S4}
-              className="mt-1 text-grey-500"
-            >
-              World ID configuration changes will be available after the update
-              completes.
-            </Typography>
-          </div>
-        </Notification>
-      ) : productionStatus === RpRegistrationStatus.Deactivated ? (
-        <Notification variant="warning">
-          <div>
-            <Typography as="p" variant={TYPOGRAPHY.S3}>
-              Registration deactivated
-            </Typography>
-            <Typography
-              as="p"
-              variant={TYPOGRAPHY.S4}
-              className="mt-1 text-grey-500"
-            >
-              This RP is no longer active.
-            </Typography>
-          </div>
-        </Notification>
-      ) : null}
-
-      {renderFailure("production")}
-      {renderFailure("staging")}
 
       <RotateSignerKeyDialog
         open={isRotateOpen}

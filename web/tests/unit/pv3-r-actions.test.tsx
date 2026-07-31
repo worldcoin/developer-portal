@@ -33,19 +33,19 @@ beforeEach(() => {
 });
 
 describe("/actions [Portal V3 redirect]", () => {
-  it("redirects the retired list route to nested legacy actions", async () => {
+  it("redirects the retired list route to the canonical Legacy Actions tab", async () => {
     await RoutePage(props());
 
     expect(redirectMock).toHaveBeenCalledWith(
-      "/teams/team_1/apps/app_1/world-id/legacy-actions",
+      "/teams/team_1/apps/app_1/world-id?tab=legacy-actions",
     );
   });
 
-  it("preserves query parameters while redirecting", async () => {
-    await RoutePage(props({ search: "vote" }));
+  it("preserves query parameters and overwrites a stale tab", async () => {
+    await RoutePage(props({ search: "vote", tab: "configuration" }));
 
     expect(redirectMock).toHaveBeenCalledWith(
-      "/teams/team_1/apps/app_1/world-id/legacy-actions?search=vote",
+      "/teams/team_1/apps/app_1/world-id?search=vote&tab=legacy-actions",
     );
   });
 });

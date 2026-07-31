@@ -1,5 +1,7 @@
 "use client";
 
+import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
+import { LegacyActionsPage } from "../LegacyActions/page";
 import { useWorldIdLayout } from "../layout/context";
 import { ActionsGrid } from "./ActionsGrid";
 
@@ -28,4 +30,15 @@ export const WorldIdActionsPage = () => {
       onActionsChanged={refreshOverview}
     />
   );
+};
+
+export const WorldIdPage = () => {
+  const { activeTab } = useWorldIdLayout();
+
+  if (activeTab === WORLD_ID_TABS.Actions) return <WorldIdActionsPage />;
+  if (activeTab === WORLD_ID_TABS.LegacyActions) {
+    return <LegacyActionsPage />;
+  }
+
+  return null;
 };

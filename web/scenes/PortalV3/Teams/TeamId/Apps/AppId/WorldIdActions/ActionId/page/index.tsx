@@ -5,6 +5,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { SkeletonTable } from "@/components/Skeletons";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
+import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { useQuery } from "@apollo/client/react";
 import {
   GetWorldIdActionDetailDocument,
@@ -59,7 +60,11 @@ export const WorldIdActionDetailPage = (props: {
       <div className="mx-auto flex w-full max-w-[900px] flex-col gap-4">
         <div className="flex items-baseline gap-2.5">
           <Link
-            href={urls.worldId({ team_id: teamId, app_id: appId })}
+            href={urls.worldIdTab({
+              team_id: teamId,
+              app_id: appId,
+              tab: WORLD_ID_TABS.Actions,
+            })}
             className="font-world text-13 text-portal-muted transition-colors hover:text-portal-text"
           >
             Actions

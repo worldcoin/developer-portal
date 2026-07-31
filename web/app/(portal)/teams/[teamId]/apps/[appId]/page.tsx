@@ -1,6 +1,7 @@
 import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
 import { urls } from "@/lib/urls";
+import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { AppIdPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/page";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -17,17 +18,20 @@ type Props = {
 export default async function Page(props: Props) {
   const params = await props.params;
   const searchParams = await props.searchParams;
-  const worldIdPath = urls.worldId({
-    team_id: params.teamId,
-    app_id: params.appId,
-  });
+  const ids = { team_id: params.teamId, app_id: params.appId };
 
   return pickPortalVersion(
     () => {
       if (searchParams.enableWorldId4 === "true") {
-        return redirect(`${worldIdPath}?enableWorldId4=true`);
+        return redirect(
+          urls.worldIdTab({
+            ...ids,
+            tab: WORLD_ID_TABS.Configuration,
+            query: { enableWorldId4: "true" },
+          }),
+        );
       }
-      return redirect(worldIdPath);
+      return redirect(urls.worldId(ids));
     },
     () => <AppIdPage params={props.params} />,
   );

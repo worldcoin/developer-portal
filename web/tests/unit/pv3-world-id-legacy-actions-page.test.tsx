@@ -1,13 +1,9 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
-import React, { Suspense } from "react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { EngineType } from "@/lib/types";
+import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
+import React from "react";
 import { LegacyActionsPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/LegacyActions/page";
 import {
   WorldIdLayoutContext,
@@ -22,24 +18,13 @@ jest.mock("@apollo/client/react", () => ({
 }));
 
 jest.mock(
-  "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/app.generated",
-  () => ({ GetAppDocument: { __mockDoc: "app" } }),
-);
-jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/actions.generated",
   () => ({ GetActionsDocument: { __mockDoc: "actions" } }),
 );
-
-const replace = jest.fn();
-jest.mock("next/navigation", () => ({
-  useRouter: () => ({ replace }),
-  usePathname: () => "/teams/team_1/apps/app_1/world-id/legacy-actions",
-}));
 // #endregion
 
 // #region Test Data
-let params = Promise.resolve({ teamId: "team_1", appId: "app_1" });
-let engine = "cloud";
+let engine = EngineType.Cloud;
 let actions = [
   {
     id: "legacy_1",
@@ -56,6 +41,7 @@ let actions = [
     nullifiers: { aggregate: { sum: { uses: 1 } } },
   },
 ];
+const refreshOverview = jest.fn();
 
 const LegacyActionsHarness = () => {
   const [actionsSearch, setActionsSearch] = React.useState("");
@@ -63,12 +49,14 @@ const LegacyActionsHarness = () => {
     teamId: "team_1",
     appId: "app_1",
     canManageWorldId: true,
+    activeTab: WORLD_ID_TABS.LegacyActions,
+    appEngine: engine,
     actions: [],
     actionsSearch,
     hasActiveRp: true,
     shouldOpenCreateAction: false,
     consumeCreateAction: jest.fn(),
-    refreshOverview: jest.fn(),
+    refreshOverview,
   };
 
   return (
@@ -77,28 +65,20 @@ const LegacyActionsHarness = () => {
         teamId="team_1"
         appId="app_1"
         hasLegacyActions
+        activeTab={WORLD_ID_TABS.LegacyActions}
         search={actionsSearch}
         onSearchChange={setActionsSearch}
       />
-      <LegacyActionsPage params={params} />
+      <LegacyActionsPage />
     </WorldIdLayoutContext.Provider>
   );
 };
 
-const renderPage = async () => {
-  await act(async () => {
-    render(
-      <Suspense fallback={<div data-testid="loading" />}>
-        <LegacyActionsHarness />
-      </Suspense>,
-    );
-  });
-};
+const renderPage = () => render(<LegacyActionsHarness />);
 
 beforeEach(() => {
   jest.clearAllMocks();
-  params = Promise.resolve({ teamId: "team_1", appId: "app_1" });
-  engine = "cloud";
+  engine = EngineType.Cloud;
   actions = [
     {
       id: "legacy_1",
@@ -115,26 +95,17 @@ beforeEach(() => {
       nullifiers: { aggregate: { sum: { uses: 1 } } },
     },
   ];
-  useQueryMock.mockImplementation(
-    (document: { __mockDoc?: "app" | "actions" }) =>
-      document.__mockDoc === "app"
-        ? {
-            data: { app: { id: "app_1", engine } },
-            loading: false,
-            error: undefined,
-          }
-        : {
-            data: { actions },
-            loading: false,
-            error: undefined,
-          },
-  );
+  useQueryMock.mockImplementation(() => ({
+    data: { actions },
+    loading: false,
+    error: undefined,
+  }));
 });
 // #endregion
 
 describe("LegacyActionsPage", () => {
   it("renders the warning, matching search/grid UI, and read-only cards", async () => {
-    await renderPage();
+    renderPage();
 
     const warning = await screen.findByText(
       /This functionality is deprecated in 4\.0/,
@@ -162,10 +133,18 @@ describe("LegacyActionsPage", () => {
     expect(firstCard).toHaveTextContent("community-vote");
     expect(firstCard).toHaveTextContent("4 uses");
     expect(screen.queryByRole("button", { name: "Create action" })).toBeNull();
+    expect(useQueryMock).toHaveBeenCalledTimes(1);
+    expect(useQueryMock).toHaveBeenCalledWith(
+      { __mockDoc: "actions" },
+      {
+        variables: { app_id: "app_1", condition: {} },
+        skip: false,
+      },
+    );
   });
 
   it("filters locally without redirecting when a search has no matches", async () => {
-    await renderPage();
+    renderPage();
 
     const search = await screen.findByRole("textbox", {
       name: "Search actions",
@@ -175,12 +154,12 @@ describe("LegacyActionsPage", () => {
     expect(
       screen.getByText("No legacy actions match your search."),
     ).toBeInTheDocument();
-    expect(replace).not.toHaveBeenCalled();
+    expect(refreshOverview).not.toHaveBeenCalled();
   });
 
   it("preserves the on-chain settings destination", async () => {
-    engine = "on-chain";
-    await renderPage();
+    engine = EngineType.OnChain;
+    renderPage();
 
     expect(
       await screen.findByRole("link", { name: /Community vote/ }),
@@ -198,7 +177,7 @@ describe("LegacyActionsPage", () => {
       description: "",
       nullifiers: { aggregate: { sum: { uses: 0 } } },
     }));
-    await renderPage();
+    renderPage();
 
     expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Legacy action 13/ })).toBeNull();
@@ -210,12 +189,12 @@ describe("LegacyActionsPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("returns to World ID when the app has no legacy actions", async () => {
+  it("refreshes the World ID overview when the app has no legacy actions", async () => {
     actions = [];
-    await renderPage();
+    renderPage();
 
     await waitFor(() => {
-      expect(replace).toHaveBeenCalledWith("/teams/team_1/apps/app_1/world-id");
+      expect(refreshOverview).toHaveBeenCalledTimes(1);
     });
   });
 });

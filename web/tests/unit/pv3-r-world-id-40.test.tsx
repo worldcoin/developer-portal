@@ -34,15 +34,15 @@ beforeEach(() => {
 
 // #region Portal V3 compatibility redirect
 describe("/world-id-4-0 [Portal V3 compatibility]", () => {
-  it("redirects to the canonical route without adding an empty query", async () => {
+  it("redirects to the canonical Configuration tab", async () => {
     await RoutePage(props());
 
     expect(redirectMock).toHaveBeenCalledWith(
-      "/teams/team_1/apps/app_1/world-id",
+      "/teams/team_1/apps/app_1/world-id?tab=configuration",
     );
   });
 
-  it("redirects to the canonical route and preserves deep-link state", async () => {
+  it("preserves deep-link state and overwrites the retired tab", async () => {
     await RoutePage(
       props({
         enableWorldId4: "true",
@@ -52,7 +52,7 @@ describe("/world-id-4-0 [Portal V3 compatibility]", () => {
     );
 
     expect(redirectMock).toHaveBeenCalledWith(
-      "/teams/team_1/apps/app_1/world-id?enableWorldId4=true&createAction=true&tab=world-id-4-0",
+      "/teams/team_1/apps/app_1/world-id?enableWorldId4=true&createAction=true&tab=configuration",
     );
   });
 });

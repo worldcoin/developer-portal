@@ -59,7 +59,6 @@ const defaultProps = {
   initialStatus: RpRegistrationStatus.Registered,
   initialStagingStatus: null,
   mode: "managed",
-  createdAt: "2026-01-02T12:00:00.000Z",
   canManageWorldId: true,
 };
 
@@ -73,27 +72,36 @@ beforeEach(() => {
   mockStagingStatus = null;
 });
 
-it("shows the compact RP summary and management controls", () => {
+it("shows the vertical RP identity fields and management controls", () => {
   renderSummary();
+
+  const summary = screen.getByRole("region", {
+    name: "World ID configuration",
+  });
+  expect(summary).toHaveClass("flex", "max-w-[580px]", "flex-col");
+  expect(summary).not.toHaveClass("rounded-xl", "border", "bg-white");
 
   expect(screen.getByText("app_1")).toBeInTheDocument();
   expect(screen.getByText("rp_1234567890abcdef")).toBeInTheDocument();
   expect(
     screen.getByText("0x1234567890abcdef1234567890abcdef12345678"),
   ).toBeInTheDocument();
-  expect(screen.getByText("Managed")).toBeInTheDocument();
-  expect(screen.getByText("Created Jan 2, 2026")).toBeInTheDocument();
+  expect(screen.queryByText("Management mode")).toBeNull();
   expect(screen.getByRole("button", { name: "Copy App ID" })).toBeEnabled();
   expect(screen.getByRole("button", { name: "Copy RP ID" })).toBeEnabled();
   expect(
     screen.getByRole("button", { name: "Copy Signer address" }),
   ).toBeEnabled();
-  expect(
-    screen.getByRole("button", { name: "Rotate signer key" }),
-  ).toBeEnabled();
-  expect(
-    screen.getByRole("button", { name: "Switch to self-managed" }),
-  ).toBeEnabled();
+  const rotateButton = screen.getByRole("button", {
+    name: "Rotate signer key",
+  });
+  const switchButton = screen.getByRole("button", {
+    name: "Switch to self-managed",
+  });
+  expect(rotateButton).toBeEnabled();
+  expect(switchButton).toBeEnabled();
+  expect(rotateButton.parentElement).toBe(switchButton.parentElement);
+  expect(rotateButton.parentElement).toHaveClass("flex", "flex-wrap");
 });
 
 it.each([
@@ -117,7 +125,6 @@ it.each([
 it("explains self-managed signer ownership and disables Portal controls", () => {
   renderSummary({ mode: "self_managed" });
 
-  expect(screen.getByText("Self-managed")).toBeInTheDocument();
   expect(screen.getByText("Unavailable in Portal")).toBeInTheDocument();
   expect(
     screen.getByText("Signer keys are managed outside the Portal."),

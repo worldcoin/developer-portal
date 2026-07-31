@@ -4,6 +4,7 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { EngineType } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { usePathname, useRouter } from "next/navigation";
 import { use, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -67,9 +68,10 @@ export const ActionsPage = (props: ActionsPageProps) => {
     if (showLegacyList) {
       return;
     }
-    const worldIdUrl = urls.worldId({
+    const worldIdUrl = urls.worldIdTab({
       team_id: teamId,
       app_id: appId,
+      tab: WORLD_ID_TABS.Actions,
     });
 
     router.replace(worldIdUrl);

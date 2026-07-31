@@ -1,7 +1,7 @@
 import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
 import { urls } from "@/lib/urls";
-import { WorldIdActionsPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
+import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
@@ -16,7 +16,7 @@ type Props = {
 
 export default async function Page(props: Props) {
   return pickPortalVersion(
-    () => <WorldIdActionsPage />,
+    () => <WorldIdPage />,
     async () => {
       const [params, searchParams] = await Promise.all([
         props.params,

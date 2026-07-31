@@ -1,5 +1,7 @@
 "use client";
 
+import type { EngineType } from "@/lib/types";
+import type { WorldIdTab } from "@/lib/world-id-tabs";
 import { createContext, useContext } from "react";
 
 export type WorldIdActionItem = {
@@ -12,6 +14,8 @@ export type WorldIdLayoutContextValue = {
   teamId: string;
   appId: string;
   canManageWorldId: boolean;
+  activeTab: WorldIdTab;
+  appEngine?: EngineType;
   actions: WorldIdActionItem[];
   actionsSearch: string;
   hasActiveRp: boolean;

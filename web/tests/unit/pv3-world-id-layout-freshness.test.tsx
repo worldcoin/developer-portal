@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { WorldIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout";
-import { WorldIdActionsPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
+import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
 
 // #region Mocks
 // The shared layout renders clean in jsdom with no TextEncoder shim, even though
@@ -17,6 +17,13 @@ jest.mock("@apollo/client/react", () => ({
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/page/graphql/client/get-world-id-overview.generated",
   () => ({ GetWorldIdOverviewDocument: { __mockDoc: "worldIdOverview" } }),
+);
+
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/LegacyActions/page",
+  () => ({
+    LegacyActionsPage: () => <div data-testid="legacy-actions-child" />,
+  }),
 );
 
 let searchParams = new URLSearchParams();
@@ -98,15 +105,11 @@ jest.mock(
       initialOpen?: boolean;
       onRegistered?: () => void;
       onSetupClosed?: (completed: boolean) => void;
-      legacyActionsHref?: string;
     }) => (
       <div
         data-testid="register-rp"
         data-open={String(Boolean(props.initialOpen))}
       >
-        {props.legacyActionsHref ? (
-          <a href={props.legacyActionsHref}>Legacy Actions</a>
-        ) : null}
         <button
           type="button"
           onClick={() => {
@@ -135,6 +138,7 @@ const makeData = (
   app: over.app ?? [
     {
       id: "app_1",
+      engine: "cloud",
       is_staging: false,
       is_banned: over.banned ?? false,
       rp_registration:
@@ -158,7 +162,7 @@ const makeData = (
 
 const el = (over?: Partial<React.ComponentProps<typeof WorldIdLayout>>) => (
   <WorldIdLayout teamId="team_1" appId="app_1" canManageWorldId {...over}>
-    <WorldIdActionsPage />
+    <WorldIdPage />
   </WorldIdLayout>
 );
 
@@ -230,23 +234,35 @@ describe("WorldIdLayout [loading boundary]", () => {
 
     expect(screen.queryByTestId("skeleton-form")).not.toBeInTheDocument();
     expect(screen.getByTestId("rp-summary")).toBeInTheDocument();
-    expect(replace).toHaveBeenCalledWith("/teams/team_1/apps/app_1/world-id", {
-      scroll: false,
-    });
+    expect(replace).toHaveBeenCalledWith(
+      "/teams/team_1/apps/app_1/world-id?tab=configuration",
+      { scroll: false },
+    );
   });
 });
 // #endregion
 
 // #region Optimistic status
 describe("WorldIdLayout [optimistic status]", () => {
+  it("shows RP configuration only on the World ID tab", () => {
+    searchParams = new URLSearchParams("tab=configuration");
+    setQuery({ data: makeData(), loading: false });
+    render(el());
+
+    expect(screen.getByTestId("rp-summary")).toBeInTheDocument();
+    expect(screen.queryByTestId("actions-grid")).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "World ID" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
   it("shows existing Actions but disables creation while registration is pending", () => {
     setQuery({ data: makeData({ status: "pending" }), loading: false });
     render(el());
 
-    expect(screen.getByTestId("rp-summary")).toHaveAttribute(
-      "data-status",
-      "pending",
-    );
+    expect(screen.queryByTestId("rp-summary")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Actions" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument();
     expect(screen.getByTestId("actions-grid")).toHaveAttribute(
@@ -279,6 +295,18 @@ describe("WorldIdLayout [optimistic status]", () => {
 
 // #region Setup to create handoff
 describe("WorldIdLayout [setup to create handoff]", () => {
+  it("keeps a consumed enable deep link on World ID configuration", () => {
+    searchParams = new URLSearchParams("enableWorldId4=true");
+    setQuery({ data: makeData(), loading: false });
+    render(el());
+
+    expect(screen.getByTestId("rp-summary")).toBeInTheDocument();
+    expect(replace).toHaveBeenLastCalledWith(
+      "/teams/team_1/apps/app_1/world-id?tab=configuration",
+      { scroll: false },
+    );
+  });
+
   it("hides the Actions section until the app has an RP registration", () => {
     setQuery({ data: makeData({ rp: false }), loading: false });
     render(el());
@@ -307,27 +335,23 @@ describe("WorldIdLayout [setup to create handoff]", () => {
       screen.getByRole("link", { name: "Legacy Actions" }),
     ).toHaveAttribute(
       "href",
-      "/teams/team_1/apps/app_1/world-id/legacy-actions",
+      "/teams/team_1/apps/app_1/world-id?tab=legacy-actions",
     );
     expect(
       screen.queryByRole("link", { name: "Actions" }),
     ).not.toBeInTheDocument();
   });
 
-  it("renders nested legacy actions without exposing v4 Actions before RP setup", () => {
-    pathname = "/teams/team_1/apps/app_1/world-id/legacy-actions";
+  it("renders legacy actions without exposing v4 Actions before RP setup", () => {
+    searchParams = new URLSearchParams("tab=legacy-actions");
     setQuery({
       data: makeData({ rp: false, legacy: true }),
       loading: false,
     });
 
-    render(
-      <WorldIdLayout teamId="team_1" appId="app_1" canManageWorldId>
-        <div data-testid="legacy-actions-child" />
-      </WorldIdLayout>,
-    );
+    render(el());
 
-    expect(screen.getByTestId("register-rp")).toBeInTheDocument();
+    expect(screen.queryByTestId("register-rp")).not.toBeInTheDocument();
     expect(screen.getByTestId("legacy-actions-child")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Legacy Actions" }),
@@ -367,11 +391,8 @@ describe("WorldIdLayout [setup to create handoff]", () => {
     });
     view.rerender(el());
 
-    expect(screen.getByTestId("actions-grid")).toHaveAttribute(
-      "data-dialog-open",
-      "false",
-    );
-    expect(gridMounts).toBe(1);
+    expect(screen.queryByTestId("actions-grid")).not.toBeInTheDocument();
+    expect(gridMounts).toBe(0);
 
     setQuery({ data: makeData(), loading: false });
     view.rerender(el());
@@ -391,14 +412,14 @@ describe("WorldIdLayout [setup to create handoff]", () => {
     render(el());
 
     expect(replace).toHaveBeenLastCalledWith(
-      "/teams/team_1/apps/app_1/world-id?createAction=true&keep=this",
+      "/teams/team_1/apps/app_1/world-id?tab=configuration&createAction=true&keep=this",
       { scroll: false },
     );
 
     fireEvent.click(screen.getByText("consume-create"));
 
     expect(replace).toHaveBeenLastCalledWith(
-      "/teams/team_1/apps/app_1/world-id?keep=this",
+      "/teams/team_1/apps/app_1/world-id?tab=configuration&keep=this",
       { scroll: false },
     );
   });
@@ -407,6 +428,14 @@ describe("WorldIdLayout [setup to create handoff]", () => {
 
 // #region Revalidation
 describe("WorldIdLayout [revalidation]", () => {
+  it("keeps search as local layout state instead of hydrating it from the URL", () => {
+    searchParams = new URLSearchParams("search=vote");
+    setQuery({ data: makeData(), loading: false });
+    render(el());
+
+    expect(screen.getByPlaceholderText(/search/i)).toHaveValue("");
+  });
+
   it("refetches when the tab becomes visible again, and not on mount", () => {
     setQuery({ data: makeData(), loading: false });
     render(el());

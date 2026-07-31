@@ -4,7 +4,6 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 // Show a fallback while an initially open dialog loads. Mimics the dialog
@@ -30,7 +29,6 @@ export const RegisterRpEmptyState = (props: {
   canManageWorldId: boolean;
   onRegistered: () => void;
   onSetupClosed: (completed: boolean) => void;
-  legacyActionsHref?: string;
 }) => {
   const canEnable = !props.isStaging && props.canManageWorldId;
   const [open, setOpen] = useState(Boolean(props.initialOpen) && canEnable);
@@ -71,14 +69,6 @@ export const RegisterRpEmptyState = (props: {
               ? "Ask a team owner or admin to enable World ID."
               : "Register a Relying Party to start requesting World ID verifications for this app."}
         </Typography>
-        {props.legacyActionsHref ? (
-          <Link
-            href={props.legacyActionsHref}
-            className="mt-2 inline-block font-world text-13 text-portal-muted underline transition-colors hover:text-portal-ink"
-          >
-            Looking for your World ID 3.0 legacy actions?
-          </Link>
-        ) : null}
       </div>
 
       {canEnable ? (

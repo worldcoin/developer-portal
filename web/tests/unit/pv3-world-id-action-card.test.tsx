@@ -1,17 +1,10 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { ActionCard } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionCard";
 import { ActionsGrid } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsGrid";
 import { WorldIdTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/Tabs";
-import { WorldIdSubTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/SubTabs";
-
-let mockPathname = "/teams/team_1/apps/app_1/world-id";
-jest.mock("next/navigation", () => ({
-  useParams: () => ({ teamId: "team_1", appId: "app_1" }),
-  usePathname: () => mockPathname,
-  useSelectedLayoutSegment: () => "actions",
-}));
 
 global.ResizeObserver = class {
   observe() {}
@@ -34,10 +27,6 @@ jest.mock(
     ),
   }),
 );
-
-beforeEach(() => {
-  mockPathname = "/teams/team_1/apps/app_1/world-id";
-});
 
 it("links to the canonical action route", () => {
   render(
@@ -132,25 +121,31 @@ it("opens a deferred create intent when it becomes actionable", async () => {
   expect(props.onCreateActionConsumed).toHaveBeenCalledTimes(1);
 });
 
-it("renders route-backed Actions and optional Legacy Actions tabs", () => {
+it("renders the shared World ID tabs and hides search on Configuration", () => {
   const props = {
     teamId: "team_1",
     appId: "app_1",
     hasLegacyActions: false,
+    activeTab: WORLD_ID_TABS.Actions,
     search: "",
     onSearchChange: jest.fn(),
   };
-  const { rerender } = render(<WorldIdTabs {...props} />);
+  const { container, rerender } = render(<WorldIdTabs {...props} />);
+
+  expect(container.firstElementChild).toHaveClass("sm:min-h-[52px]");
 
   expect(screen.getByRole("link", { name: "Actions" })).toHaveAttribute(
     "href",
-    "/teams/team_1/apps/app_1/world-id",
+    "/teams/team_1/apps/app_1/world-id?tab=actions",
   );
   expect(screen.getByRole("link", { name: "Actions" })).toHaveAttribute(
     "aria-current",
     "page",
   );
-  expect(screen.queryByRole("link", { name: "World ID" })).toBeNull();
+  expect(screen.getByRole("link", { name: "World ID" })).toHaveAttribute(
+    "href",
+    "/teams/team_1/apps/app_1/world-id?tab=configuration",
+  );
   expect(screen.queryByRole("link", { name: "Legacy Actions" })).toBeNull();
   expect(
     screen.getByRole("textbox", { name: "Search actions" }),
@@ -159,11 +154,33 @@ it("renders route-backed Actions and optional Legacy Actions tabs", () => {
   rerender(<WorldIdTabs {...props} hasLegacyActions />);
   expect(screen.getByRole("link", { name: "Legacy Actions" })).toHaveAttribute(
     "href",
-    "/teams/team_1/apps/app_1/world-id/legacy-actions",
+    "/teams/team_1/apps/app_1/world-id?tab=legacy-actions",
   );
 
-  mockPathname = "/teams/team_1/apps/app_1/world-id/legacy-actions";
-  rerender(<WorldIdTabs {...props} hasLegacyActions />);
+  rerender(
+    <WorldIdTabs
+      {...props}
+      activeTab={WORLD_ID_TABS.Configuration}
+      hasLegacyActions
+    />,
+  );
+  expect(screen.getByRole("link", { name: "World ID" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  expect(screen.getByRole("link", { name: "Actions" })).not.toHaveAttribute(
+    "aria-current",
+  );
+  expect(screen.queryByRole("textbox", { name: "Search actions" })).toBeNull();
+  expect(container.firstElementChild).toHaveClass("sm:min-h-[52px]");
+
+  rerender(
+    <WorldIdTabs
+      {...props}
+      activeTab={WORLD_ID_TABS.LegacyActions}
+      hasLegacyActions
+    />,
+  );
   expect(screen.getByRole("link", { name: "Legacy Actions" })).toHaveAttribute(
     "aria-current",
     "page",
@@ -171,29 +188,19 @@ it("renders route-backed Actions and optional Legacy Actions tabs", () => {
   expect(screen.getByRole("link", { name: "Actions" })).not.toHaveAttribute(
     "aria-current",
   );
+  expect(
+    screen.getByRole("textbox", { name: "Search actions" }),
+  ).toBeInTheDocument();
 
-  rerender(<WorldIdTabs {...props} hasLegacyActions showActions={false} />);
+  rerender(
+    <WorldIdTabs
+      {...props}
+      activeTab={WORLD_ID_TABS.LegacyActions}
+      hasLegacyActions
+      showActions={false}
+    />,
+  );
   expect(screen.queryByRole("link", { name: "Actions" })).toBeNull();
+  expect(screen.getByRole("link", { name: "World ID" })).toBeVisible();
   expect(screen.getByRole("link", { name: "Legacy Actions" })).toBeVisible();
-});
-
-it("keeps the previous tab set on routes awaiting migration", () => {
-  mockPathname = "/teams/team_1/apps/app_1/actions";
-  render(<WorldIdSubTabs hasLegacyActions />);
-
-  const links = screen.getAllByRole("link");
-  expect(links.map((link) => link.textContent)).toEqual([
-    "Actions",
-    "World ID",
-    "Legacy Actions",
-  ]);
-  expect(links[0]).toHaveAttribute("href", "/teams/team_1/apps/app_1/world-id");
-  expect(links[1]).toHaveAttribute(
-    "href",
-    "/teams/team_1/apps/app_1/world-id?tab=world-id-4-0",
-  );
-  expect(links[2]).toHaveAttribute(
-    "href",
-    "/teams/team_1/apps/app_1/world-id/legacy-actions",
-  );
 });
