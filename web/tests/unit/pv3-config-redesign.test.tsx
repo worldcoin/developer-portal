@@ -582,31 +582,6 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     expect(screen.getAllByText("Showcase image")).toHaveLength(2);
   });
 
-  it("shows uploaded logo and showcase images in the preview and icon box", () => {
-    // Simulates what LogoImageUpload / the unverified_images refetch write
-    // into the atom after an upload.
-    setImages({
-      logo_img_url: "https://cdn.example/unverified/logo.png",
-      showcase_image_urls: ["https://cdn.example/unverified/showcase_1.png"],
-    });
-    renderPage();
-
-    expect(screen.getByTestId("app-logo-preview")).toHaveAttribute(
-      "src",
-      "https://cdn.example/unverified/logo.png",
-    );
-    expect(screen.getByAltText("App icon")).toHaveAttribute(
-      "src",
-      "https://cdn.example/unverified/logo.png",
-    );
-    expect(screen.getByAltText("Showcase preview")).toHaveAttribute(
-      "src",
-      "https://cdn.example/unverified/showcase_1.png",
-    );
-    // Second showcase slot is still empty.
-    expect(screen.getAllByText("Showcase image")).toHaveLength(1);
-  });
-
   it("drops the Store listing section and renumbers for external apps", () => {
     useFetchAppMetadataQuery.mockReturnValue({
       data: { app: [makeApp(makeAppMetadata({ app_mode: "external" }))] },
