@@ -2,14 +2,17 @@
 
 import {
   bucketAllTimeSeries,
+  formatAnalyticsDate,
   formatAnalyticsDateRange,
   type AnalyticsPoint,
 } from "@/lib/world-id-analytics";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PeriodSelector, type AnalyticsPeriod } from "./PeriodSelector";
+import { Sparkline } from "./Sparkline";
 
 type Metric = { count: string; series: AnalyticsPoint[] };
 type Response = {
-  period: "last_7_days" | "all_time";
+  period: AnalyticsPeriod;
   app: Metric;
   legacy_actions: Array<Metric & { id: string }>;
   actions: Array<Metric & { id: string }>;
@@ -22,21 +25,18 @@ export function WorldIdAnalyticsGraph(props: {
   appId: string;
   environment: "staging" | "production";
   scope: Scope;
-  compact?: boolean;
 }) {
-  const [period, setPeriod] = useState<"last_7_days" | "all_time">(
-    "last_7_days",
-  );
-  const [cache, setCache] = useState<Partial<Record<typeof period, Response>>>(
-    {},
-  );
+  const [period, setPeriod] = useState<AnalyticsPeriod>("last_7_days");
+  const [cache, setCache] = useState<
+    Partial<Record<AnalyticsPeriod, Response>>
+  >({});
   const [error, setError] = useState(false);
   const mounted = useRef(true);
   const periodRef = useRef(period);
   periodRef.current = period;
 
   const load = useCallback(
-    async (requestedPeriod: typeof period) => {
+    async (requestedPeriod: AnalyticsPeriod) => {
       try {
         const params = new URLSearchParams({
           environment: props.environment,
@@ -78,7 +78,7 @@ export function WorldIdAnalyticsGraph(props: {
     };
   }, [load]);
 
-  const selectPeriod = (next: typeof period) => {
+  const selectPeriod = (next: AnalyticsPeriod) => {
     setPeriod(next);
     if (!cache[next]) void load(next);
   };
@@ -106,87 +106,40 @@ export function WorldIdAnalyticsGraph(props: {
       />
     );
   }
-  const buckets =
-    period === "all_time"
-      ? bucketAllTimeSeries(metric.series)
-      : metric.series.map((point) => ({
-          start_date: point.date,
-          end_date: point.date,
-          count: point.count,
-        }));
-  const max = Math.max(1, ...buckets.map((point) => Number(point.count)));
-  const points = buckets
-    .map((point, index) => {
-      const x =
-        buckets.length === 1 ? 50 : (index / (buckets.length - 1)) * 100;
-      return `${x},${40 - (Number(point.count) / max) * 36}`;
-    })
-    .join(" ");
+
+  const grouped = period === "all_time";
+  const buckets = grouped
+    ? bucketAllTimeSeries(metric.series)
+    : metric.series.map((point) => ({
+        start_date: point.date,
+        end_date: point.date,
+        count: point.count,
+      }));
+  const sparkPoints = buckets.map((bucket) => ({
+    count: bucket.count,
+    label: grouped
+      ? formatAnalyticsDateRange(bucket.start_date, bucket.end_date)
+      : formatAnalyticsDate(bucket.start_date),
+  }));
 
   return (
-    <section className={props.compact ? "space-y-1" : "space-y-4"}>
-      <h2 className={props.compact ? "text-13" : "text-18 font-semibold"}>
-        Unique Verifications
-      </h2>
-      <div
-        className={
-          props.compact ? "text-20 font-semibold" : "text-32 font-semibold"
-        }
-      >
-        {metric.count}
-      </div>
-      {!props.compact && (
-        <div className="flex gap-2">
-          {(["last_7_days", "all_time"] as const).map((item) => (
-            <button
-              key={item}
-              type="button"
-              aria-pressed={period === item}
-              onClick={() => selectPeriod(item)}
-            >
-              {item === "last_7_days" ? "Last 7 Days" : "All Time"}
-            </button>
-          ))}
+    <section className="flex flex-col gap-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1.5">
+          <h2 className="font-world text-13 font-normal text-portal-muted">
+            Unique Verifications
+          </h2>
+          <div className="font-twk text-[32px] leading-none font-medium tracking-[-0.01em] text-portal-heading">
+            {BigInt(metric.count).toLocaleString()}
+          </div>
         </div>
-      )}
-      <svg
-        role="img"
-        aria-label="Unique Verifications"
-        viewBox="0 0 100 40"
-        className={props.compact ? "h-10 w-full" : "h-40 w-full"}
-        onMouseMove={(event) => {
-          const rect = event.currentTarget.getBoundingClientRect();
-          const index = Math.min(
-            buckets.length - 1,
-            Math.max(
-              0,
-              Math.floor(
-                ((event.clientX - rect.left) / rect.width) * buckets.length,
-              ),
-            ),
-          );
-          event.currentTarget.setAttribute(
-            "aria-description",
-            `${formatAnalyticsDateRange(buckets[index].start_date, buckets[index].end_date)}: ${buckets[index].count}`,
-          );
-        }}
-      >
-        <polyline
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          points={points}
-          data-flat-zero={
-            buckets.every((point) => point.count === "0") ? "true" : undefined
-          }
-        />
-        {buckets.map((bucket) => (
-          <title key={bucket.start_date}>
-            {formatAnalyticsDateRange(bucket.start_date, bucket.end_date)}:{" "}
-            {bucket.count}
-          </title>
-        ))}
-      </svg>
+        <PeriodSelector period={period} onPeriodChange={selectPeriod} />
+      </div>
+      <Sparkline
+        points={sparkPoints}
+        ariaLabel="Unique Verifications"
+        className="h-40 w-full text-portal-heading"
+      />
     </section>
   );
 }

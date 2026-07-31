@@ -1,6 +1,8 @@
 "use client";
 
 import { urls } from "@/lib/urls";
+import type { AnalyticsPoint } from "@/lib/world-id-analytics";
+import { Sparkline } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/common/Sparkline";
 import Link from "next/link";
 
 export type ActionCardItem = {
@@ -22,6 +24,7 @@ export const ActionCard = (props: {
   appId: string;
   action: ActionCardItem;
   previewCount?: string;
+  previewSeries?: AnalyticsPoint[];
 }) => {
   const { action } = props;
 
@@ -45,21 +48,20 @@ export const ActionCard = (props: {
           </span>
         ) : null}
       </div>
-      <div className="mt-auto">
+      <div className="mt-auto flex flex-col gap-0.5">
         <span className="font-world text-13 text-portal-muted">
           Unique Verifications
         </span>
-        <div className="font-world text-20 font-semibold">
+        <div className="font-twk text-20 leading-none font-medium text-portal-heading">
           {props.previewCount ?? "0"}
         </div>
-        <svg
-          role="img"
-          aria-label="Unique Verifications"
-          viewBox="0 0 100 12"
-          className="h-4 w-full"
-        >
-          <polyline points="0,10 100,2" fill="none" stroke="currentColor" />
-        </svg>
+        <Sparkline
+          points={
+            props.previewSeries?.map((point) => ({ count: point.count })) ?? []
+          }
+          ariaLabel="Unique Verifications"
+          className="mt-1.5 h-9 w-full text-portal-heading"
+        />
       </div>
     </Link>
   );
