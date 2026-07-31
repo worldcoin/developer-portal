@@ -128,7 +128,7 @@ export const SandboxButton = (props: {
       });
 
       if (!response.ok) {
-        toast.error("Couldn't send your request — please try again.");
+        toast.error("Couldn't send your request. Please try again.");
         return;
       }
 
@@ -141,7 +141,7 @@ export const SandboxButton = (props: {
       setExistingRequest(data.request);
       setRequestEmail(data.request.email);
     } catch {
-      toast.error("Couldn't send your request — please try again.");
+      toast.error("Couldn't send your request. Please try again.");
     } finally {
       setRequestSending(false);
     }

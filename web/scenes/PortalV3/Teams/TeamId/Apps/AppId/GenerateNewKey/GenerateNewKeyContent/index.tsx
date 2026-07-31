@@ -98,7 +98,7 @@ export const GenerateNewKeyContent = ({
       )}
       <p className="font-world text-14 leading-[1.5] text-portal-muted">
         We&apos;ve generated a secure signing key for your application. Save
-        this key securely — you&apos;ll need it to sign operations in your app.
+        this key securely. You&apos;ll need it to sign operations in your app.
       </p>
 
       <div>
@@ -158,7 +158,7 @@ export const GenerateNewKeyContent = ({
         </p>
         <ul className="mt-1 grid gap-y-1 font-world text-13 leading-[1.4] font-[350] text-system-warning-650">
           <li className="pl-4 -indent-4">
-            • Save this private key securely — it cannot be recovered if lost
+            • Save this private key securely. It cannot be recovered if lost
           </li>
           <li className="pl-4 -indent-4">
             • Never share your private key or commit it to version control

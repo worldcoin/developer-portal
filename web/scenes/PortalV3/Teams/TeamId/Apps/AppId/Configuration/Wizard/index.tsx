@@ -336,7 +336,7 @@ export const ConfigurationWizard = (props: {
             <div className="hidden min-w-0 items-center sm:flex">
               {isAwaiting ? (
                 <p className="min-w-0 truncate text-13 leading-[1.3] font-[350] text-portal-subtle">
-                  In review — editing is locked until review completes.
+                  In review. Editing is locked until review completes.
                 </p>
               ) : isEditable ? (
                 <SaveStatusIndicator />

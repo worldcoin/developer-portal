@@ -33,7 +33,7 @@ export const WorldId40Pane = (props: {
     initialStagingStatus: props.initialStagingStatus,
     onStatusReconciled: props.onRpChanged,
     onRetryError: () =>
-      toast.error("Failed to retry registration — please try again"),
+      toast.error("Failed to retry registration. Please try again"),
   });
 
   const formattedDate = new Date(props.createdAt).toLocaleDateString("en-US", {
