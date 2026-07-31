@@ -25,6 +25,7 @@ export const ActionIdPage = (props: ActionIdPageProps) => {
   });
 
   const action = data?.action[0];
+  const environment = action?.app.is_staging ? "staging" : "production";
 
   if (!loading && !action) {
     return (
@@ -44,7 +45,7 @@ export const ActionIdPage = (props: ActionIdPageProps) => {
         <div className="grid w-full grid-cols-1 items-start justify-between gap-y-10 lg:grid-cols-2 lg:gap-x-32">
           <WorldIdAnalyticsGraph
             appId={appId ?? ""}
-            environment="production"
+            environment={environment}
             scope={{
               type: "action",
               source: "legacy",

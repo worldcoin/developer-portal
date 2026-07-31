@@ -23,6 +23,7 @@ export type GetSingleActionAndNullifiersQuery = {
       __typename?: "app";
       id: string;
       engine: string;
+      is_staging: boolean;
       rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
     };
   }>;
@@ -140,6 +141,10 @@ export const GetSingleActionAndNullifiersDocument = {
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "engine" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "is_staging" },
                       },
                       {
                         kind: "Field",
