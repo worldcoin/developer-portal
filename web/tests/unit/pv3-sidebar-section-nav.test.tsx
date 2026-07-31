@@ -9,10 +9,12 @@ import React from "react";
 const usePathname = jest.fn();
 const useParams = jest.fn();
 const useSearchParams = jest.fn();
+const routerPush = jest.fn();
 jest.mock("next/navigation", () => ({
   usePathname: () => usePathname(),
   useParams: () => useParams(),
   useSearchParams: () => useSearchParams(),
+  useRouter: () => ({ push: routerPush, prefetch: jest.fn() }),
 }));
 
 // jsdom has no ResizeObserver; NavActivePill uses it to track the active item.
@@ -33,7 +35,6 @@ jest.mock("@/lib/utils", () => ({
 jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
   SandboxButton: () => <button type="button">World ID Sandbox</button>,
 }));
-
 // #endregion
 
 import {
@@ -131,8 +132,26 @@ describe("v3 SidebarNav", () => {
       unmount();
     }
   });
+
+  it("hides team-scoped links entirely without a teamId", () => {
+    useParams.mockReturnValue({});
+    usePathname.mockReturnValue("/profile");
+    renderSidebar();
+    noLink("Overview");
+    noLink("Team settings");
+    expect(
+      screen.getByRole("button", { name: /World ID Sandbox/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("navigates optimistically via the router, leaving modifier clicks to the Link", () => {
+    renderSidebar();
+    fireEvent.click(link("Configuration"), { metaKey: true });
+    expect(routerPush).not.toHaveBeenCalled();
+    fireEvent.click(link("Configuration"));
+    expect(routerPush).toHaveBeenCalledWith(`${base}/configuration`);
+  });
 });
-// #endregion
 
 // #region World ID href
 describe("v3 SidebarNav [World ID href]", () => {
@@ -154,16 +173,14 @@ describe("v3 SidebarNav [no app selected]", () => {
     renderSidebar();
     expect(link("Overview")).toHaveAttribute("href", `/teams/${teamId}`);
     expect(isCurrent("Overview")).toBe(true);
-    expect(
-      screen.queryByRole("link", { name: "World ID" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Configuration" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Mini App" }),
-    ).not.toBeInTheDocument();
+    noLink("World ID");
+    noLink("Configuration");
+    noLink("Mini App");
+    // The back caret belongs to the team-settings scope only.
+    noLink("Back to previous page");
   });
+});
+// #endregion
 
 // #region team settings
 describe("v3 SidebarNav [team settings]", () => {
@@ -177,49 +194,46 @@ describe("v3 SidebarNav [team settings]", () => {
     useSearchParams.mockReturnValue(new URLSearchParams("tab=store"));
     renderSidebar();
 
-    expect(link("Team settings")).toHaveAttribute(
-      "href",
-      `/teams/${teamId}/settings?returnTo=%2Fteams%2F${teamId}%2Fapps%2F${appId}%2Fconfiguration%3Ftab%3Dstore`,
-    );
+    const settingsHref = `/teams/${teamId}/settings?returnTo=%2Fteams%2F${teamId}%2Fapps%2F${appId}%2Fconfiguration%3Ftab%3Dstore`;
+    expect(link("Team settings")).toHaveAttribute("href", settingsHref);
+    // The optimistic click must push the same href, not drop the returnTo.
+    fireEvent.click(link("Team settings"));
+    expect(routerPush).toHaveBeenCalledWith(settingsHref);
   });
 
   it("hides navigation outside the team-settings scope", () => {
     renderSidebar();
 
-    expect(
-      screen.queryByRole("link", { name: "World ID" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Configuration" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Mini App" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Overview" }),
-    ).not.toBeInTheDocument();
+    noLink("World ID");
+    noLink("Configuration");
+    noLink("Mini App");
+    noLink("Overview");
     expect(link("Team settings")).toHaveAttribute("aria-current", "page");
   });
 
-  it("hides team-scoped links entirely without a teamId", () => {
-    useParams.mockReturnValue({});
-    usePathname.mockReturnValue("/profile");
+  it("shows a back caret beside the active item leading to the prior route", () => {
+    const returnTo = `${base}/configuration?tab=store`;
+    useSearchParams.mockReturnValue(new URLSearchParams({ returnTo }));
     renderSidebar();
-    noLink("Overview");
-    noLink("Team settings");
-    expect(
-      screen.getByRole("button", { name: /World ID Sandbox/i }),
-    ).toBeInTheDocument();
+
+    expect(link("Back to previous page")).toHaveAttribute("href", returnTo);
+    fireEvent.click(link("Back to previous page"));
+    expect(routerPush).toHaveBeenCalledWith(returnTo);
   });
 
-  it("navigates optimistically via the router, leaving modifier clicks to the Link", () => {
+  it("falls back to the team overview for unsafe returnTo targets", () => {
+    useSearchParams.mockReturnValue(
+      new URLSearchParams({ returnTo: "https://evil.example/phish" }),
+    );
     renderSidebar();
-    fireEvent.click(link("Configuration"), { metaKey: true });
-    expect(routerPush).not.toHaveBeenCalled();
-    fireEvent.click(link("Configuration"));
-    expect(routerPush).toHaveBeenCalledWith(`${base}/configuration`);
+
+    expect(link("Back to previous page")).toHaveAttribute(
+      "href",
+      `/teams/${teamId}`,
+    );
   });
 });
+// #endregion
 
 // On mobile the nav mounts INSIDE the sheet when it opens, so the
 // close-on-navigation effect must not fire for the mount itself — that would

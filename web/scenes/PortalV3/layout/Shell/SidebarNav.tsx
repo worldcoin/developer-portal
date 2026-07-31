@@ -11,12 +11,26 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  getTeamSettingsHref,
+  getTeamSettingsReturnTo,
+} from "@/lib/team-settings-return-to";
 import { urls } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
-import { BellIcon, LockKeyholeIcon, WalletCardsIcon } from "lucide-react";
+import {
+  BellIcon,
+  ChevronLeftIcon,
+  LockKeyholeIcon,
+  WalletCardsIcon,
+} from "lucide-react";
 import Link from "next/link";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import {
   createContext,
   MouseEventHandler,
@@ -184,17 +198,27 @@ export const SidebarNav = (props: {
     withinApp("/mini-app") ||
     withinApp("/transactions") ||
     withinApp("/notifications");
-  const currentSearch = searchParams.toString();
-  const currentPath = `${pathname}${currentSearch ? `?${currentSearch}` : ""}`;
-  const settingsActive = teamId ? pathname.startsWith(teamSettingsHref) : false;
-  const teamSettingsNavigationHref = teamId
-    ? settingsActive
-      ? teamSettingsHref
-      : getTeamSettingsHref({ teamId, returnTo: currentPath })
-    : teamsLandingHref;
   const settingsActive = teamId
     ? currentPath.startsWith(teamSettingsHref)
     : false;
+  // Team settings is an isolated scope: entering it hides the app tabs, so
+  // the settings link carries the full committed route (path + query) as a
+  // returnTo param, and the caret beside the active item leads back out.
+  // Both sides go through the sanitizers in team-settings-return-to, which
+  // collapse malformed, external, or cross-team targets to the team overview.
+  const currentSearch = searchParams.toString();
+  const committedPath = `${pathname}${currentSearch ? `?${currentSearch}` : ""}`;
+  const teamSettingsNavigationHref = teamId
+    ? settingsActive
+      ? teamSettingsHref
+      : getTeamSettingsHref({ teamId, returnTo: committedPath })
+    : teamsLandingHref;
+  const settingsBackHref = teamId
+    ? getTeamSettingsReturnTo({
+        teamId,
+        returnTo: searchParams.get("returnTo"),
+      })
+    : teamsLandingHref;
   const miniAppPermissionsActive =
     currentPath === (appBase ? `${appBase}/mini-app` : "") ||
     withinApp("/mini-app/permissions");
@@ -351,15 +375,27 @@ export const SidebarNav = (props: {
       {teamId ? (
         <SidebarGroup className="px-4 pt-3 pb-2 group-data-[collapsible=icon]:px-3">
           <SidebarGroupContent>
-            <SidebarMenu className="gap-2">
-              <NavItem
-                label="Team settings"
-                href={teamSettingsNavigationHref}
-                active={settingsActive}
-                onNavigate={beginNavigation(teamSettingsHref)}
-                icon={<NavIcon name="nav-settings" active={settingsActive} />}
-              />
-            </SidebarMenu>
+            <div className="flex items-center gap-1">
+              {settingsActive ? (
+                <Link
+                  href={settingsBackHref}
+                  aria-label="Back to previous page"
+                  onClick={beginNavigation(settingsBackHref)}
+                  className="grid size-10 shrink-0 place-items-center rounded-[10px] text-portal-muted transition-colors duration-200 ease-out group-data-[collapsible=icon]:hidden hover:bg-portal-border hover:text-portal-text"
+                >
+                  <ChevronLeftIcon strokeWidth={1.5} className="size-4" />
+                </Link>
+              ) : null}
+              <SidebarMenu className="min-w-0 flex-1 gap-2">
+                <NavItem
+                  label="Team settings"
+                  href={teamSettingsNavigationHref}
+                  active={settingsActive}
+                  onNavigate={beginNavigation(teamSettingsNavigationHref)}
+                  icon={<NavIcon name="nav-settings" active={settingsActive} />}
+                />
+              </SidebarMenu>
+            </div>
           </SidebarGroupContent>
         </SidebarGroup>
       ) : null}

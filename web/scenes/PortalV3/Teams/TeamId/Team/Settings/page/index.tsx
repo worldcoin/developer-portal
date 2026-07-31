@@ -1,15 +1,12 @@
 "use client";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Role_Enum } from "@/graphql/graphql";
-import { getTeamSettingsReturnTo } from "@/lib/team-settings-return-to";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { FetchTeamDocument } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useQuery } from "@apollo/client/react";
-import { ArrowLeftIcon } from "lucide-react";
-import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ApiKeys } from "../../sections/ApiKeys";
 import { McpSetup } from "../../sections/ApiKeys/McpSetup";
 import { TeamDangerZone } from "../../sections/DangerZone";
@@ -18,11 +15,6 @@ import { TeamSettingsForm } from "../../sections/SettingsForm";
 
 export const TeamSettingsPage = () => {
   const { teamId } = useParams() as { teamId: string };
-  const searchParams = useSearchParams();
-  const returnTo = getTeamSettingsReturnTo({
-    teamId,
-    returnTo: searchParams.get("returnTo"),
-  });
   const { user } = useUser() as Auth0SessionUser;
 
   // Owner-only write access for the display name and destructive controls.
@@ -49,15 +41,6 @@ export const TeamSettingsPage = () => {
       className="mx-auto w-full max-w-[1120px]"
     >
       <div className="flex flex-col gap-5 py-8 pb-28 md:py-10 md:pb-28">
-        <Link
-          href={returnTo}
-          aria-label="Back to previous page"
-          className="focus-visible:rounded-6 -mb-1 inline-flex w-fit items-center gap-2 font-world text-13 text-portal-muted transition-colors hover:text-portal-text focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
-        >
-          <ArrowLeftIcon className="size-4" />
-          Back
-        </Link>
-
         <TeamSettingsForm
           teamId={teamId}
           teamName={team?.name ?? ""}

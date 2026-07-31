@@ -51,6 +51,7 @@ const useParams = jest.fn();
 jest.mock("next/navigation", () => ({
   usePathname: () => usePathname(),
   useParams: () => useParams(),
+  useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: jest.fn(), prefetch: jest.fn() }),
 }));
 
