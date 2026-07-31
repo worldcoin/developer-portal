@@ -131,14 +131,7 @@ export async function updateAppStoreMetadata(
         world_app_description: l.world_app_description,
         world_app_button_text: "", // backwards compat
         description: encodeDescription(l.description_overview ?? ""),
-        meta_tag_image_url: extractImagePathWithExtensionFromActualUrl(
-          l.meta_tag_image_url,
-        ),
         hero_image_url: "", // backwards compat
-        showcase_img_urls:
-          (l.showcase_img_urls
-            ?.map(extractImagePathWithExtensionFromActualUrl)
-            .filter(Boolean) as string[]) || [],
       }));
 
     const client = await getAPIServiceGraphqlClient();

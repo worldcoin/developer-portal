@@ -1,10 +1,12 @@
 /** @jest-environment jsdom */
 
 import "@testing-library/jest-dom";
-import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { ApolloClient, ApolloLink, InMemoryCache } from "@apollo/client";
 import { ApolloProvider } from "@apollo/client/react";
 import { MockLink, type MockedResponse } from "@apollo/client/testing";
 import { Provider as JotaiProvider, createStore } from "jotai";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import {
   act,
   fireEvent,
@@ -161,6 +163,16 @@ import { LivePreview } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configura
 const appId = "app_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6";
 const teamId = "team_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6";
 const appMetadataId = "meta_1";
+const actualImageFixture = () =>
+  new File(
+    [
+      Uint8Array.from(
+        readFileSync(path.resolve(process.cwd(), "public/logo.png")),
+      ),
+    ],
+    "logo.png",
+    { type: "image/png" },
+  );
 
 const transportMocks = (signedUrl: string): MockedResponse[] => [
   {
@@ -227,10 +239,11 @@ const seedImagesCache = (
     meta_tag_image_url: string | null;
     showcase_img_urls: string[] | null;
   }>,
+  variables = imagesVariables,
 ) => {
   client.writeQuery({
     query: FetchImagesDocument,
-    variables: imagesVariables,
+    variables,
     data: {
       unverified_images: {
         __typename: "ImageGetAllUnverifiedImagesOutput",
@@ -245,10 +258,10 @@ const seedImagesCache = (
   });
 };
 
-const readImagesCache = (client: ApolloClient) =>
+const readImagesCache = (client: ApolloClient, variables = imagesVariables) =>
   client.readQuery({
     query: FetchImagesDocument,
-    variables: imagesVariables,
+    variables,
   })?.unverified_images;
 
 /**
@@ -259,11 +272,14 @@ const readImagesCache = (client: ApolloClient) =>
 const ShowcaseHarness = (props: {
   initialValue?: string[];
   onCommitted: jest.Mock;
+  locale?: string;
+  supportedLanguages?: string[];
 }) => {
+  const locale = props.locale ?? "en";
   const { unverifiedImages, isImagesLoading } = useUnverifiedImages({
     appId,
     teamId,
-    locale: "en",
+    locale,
   });
   const [value, setValue] = useState<string[]>(props.initialValue ?? []);
 
@@ -276,10 +292,10 @@ const ShowcaseHarness = (props: {
       }}
       appId={appId}
       teamId={teamId}
-      locale="en"
+      locale={locale}
       isAppVerified={false}
       appMetadataId={appMetadataId}
-      supportedLanguages={["en"]}
+      supportedLanguages={props.supportedLanguages ?? ["en"]}
       unverifiedImages={unverifiedImages}
       isImagesLoading={isImagesLoading}
     />
@@ -295,14 +311,22 @@ const renderWithClient = (
   mocks: MockedResponse[],
   seededImages: Parameters<typeof seedImagesCache>[1],
   ui: React.ReactElement,
+  variables = imagesVariables,
 ) => {
+  const operations: string[] = [];
   const client = new ApolloClient({
-    link: new MockLink(mocks),
+    link: ApolloLink.from([
+      new ApolloLink((operation, forward) => {
+        operations.push(operation.operationName ?? "anonymous");
+        return forward(operation);
+      }),
+      new MockLink(mocks),
+    ]),
     cache: new InMemoryCache(),
   });
-  seedImagesCache(client, seededImages);
+  seedImagesCache(client, seededImages, variables);
   const view = render(<ApolloProvider client={client}>{ui}</ApolloProvider>);
-  return { client, view };
+  return { client, operations, view };
 };
 
 type Deferred = { resolve: () => void; promise: Promise<void> };
@@ -349,13 +373,13 @@ describe("image upload [success path]", () => {
     stubS3(s3Gate);
     const onCommitted = jest.fn();
 
-    const { client, view } = renderWithClient(
+    const { client, operations, view } = renderWithClient(
       [...transportMocks(signedUrl), showcaseMutationMock(captured)],
       { showcase_img_urls: [] },
       <ShowcaseHarness onCommitted={onCommitted} />,
     );
 
-    const file = new File(["image"], "showcase.png", { type: "image/png" });
+    const file = actualImageFixture();
     let uploadPromise!: Promise<boolean>;
     act(() => {
       uploadPromise = mockAcceptedUpload!(file);
@@ -393,6 +417,7 @@ describe("image upload [success path]", () => {
     );
     expect(view.container.querySelector('img[src="blob:mock-1"]')).toBeNull();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock-1");
+    expect(operations).not.toContain("FetchImages");
   });
 
   it("appends a second showcase image without refetching the first preview", async () => {
@@ -406,7 +431,7 @@ describe("image upload [success path]", () => {
     stubS3(s3Gate);
     const onCommitted = jest.fn();
 
-    const { client } = renderWithClient(
+    const { client, operations } = renderWithClient(
       [...transportMocks(secondUrl), showcaseMutationMock(captured)],
       { showcase_img_urls: [firstUrl] },
       <ShowcaseHarness
@@ -416,9 +441,7 @@ describe("image upload [success path]", () => {
     );
 
     await act(async () => {
-      await mockAcceptedUpload!(
-        new File(["second"], "second.png", { type: "image/png" }),
-      );
+      await mockAcceptedUpload!(actualImageFixture());
     });
 
     expect(captured).toEqual([
@@ -434,6 +457,40 @@ describe("image upload [success path]", () => {
       firstUrl,
       secondUrl,
     ]);
+    expect(operations).not.toContain("FetchImages");
+  });
+
+  it("updates the selected localized cache entry without refetching it", async () => {
+    const signedUrl =
+      "https://assets.test/unverified/app/es/showcase_img_1.png?signature=fresh";
+    const captured: unknown[] = [];
+    const s3Gate = deferred();
+    s3Gate.resolve();
+    stubS3(s3Gate);
+    const localeVariables = { ...imagesVariables, locale: "es" };
+
+    const { client, operations } = renderWithClient(
+      [...transportMocks(signedUrl), showcaseMutationMock(captured)],
+      { showcase_img_urls: [] },
+      <ShowcaseHarness
+        locale="es"
+        supportedLanguages={["en", "es"]}
+        onCommitted={jest.fn()}
+      />,
+      localeVariables,
+    );
+
+    await act(async () => {
+      await mockAcceptedUpload!(actualImageFixture());
+    });
+
+    expect(captured).toEqual([
+      expect.objectContaining({ locale: "es", is_localized: true }),
+    ]);
+    expect(readImagesCache(client, localeVariables)?.showcase_img_urls).toEqual(
+      [signedUrl],
+    );
+    expect(operations).not.toContain("FetchImages");
   });
 });
 // #endregion
@@ -449,7 +506,7 @@ describe("image upload [metadata mutation failure]", () => {
     stubS3(s3Gate);
     const onCommitted = jest.fn();
 
-    const { client } = renderWithClient(
+    const { client, operations, view } = renderWithClient(
       [
         ...transportMocks(signedUrl),
         showcaseMutationMock(captured, { error: new Error("boom") }),
@@ -458,9 +515,17 @@ describe("image upload [metadata mutation failure]", () => {
       <ShowcaseHarness onCommitted={onCommitted} />,
     );
 
-    const file = new File(["image"], "showcase.png", { type: "image/png" });
+    const file = actualImageFixture();
+    let uploadPromise!: Promise<boolean>;
+    act(() => {
+      uploadPromise = mockAcceptedUpload!(file);
+    });
+
+    // A failed persistence path still presents the local file while its S3
+    // upload and dedicated mutation are in flight.
+    expect(view.container.querySelector('img[src="blob:mock-1"]')).toBeTruthy();
     await act(async () => {
-      await mockAcceptedUpload!(file);
+      await uploadPromise;
     });
 
     // The mutation was attempted but nothing was committed.
@@ -473,6 +538,7 @@ describe("image upload [metadata mutation failure]", () => {
     expect(toastMocks.error).toHaveBeenCalledWith(
       "Failed to auto-save showcase images",
     );
+    expect(operations).not.toContain("FetchImages");
   });
 });
 // #endregion

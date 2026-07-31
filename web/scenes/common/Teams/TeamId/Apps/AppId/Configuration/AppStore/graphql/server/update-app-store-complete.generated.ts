@@ -51,8 +51,6 @@ export const UpdateAppStoreCompleteDocument = gql`
           world_app_description
           description
           world_app_button_text
-          meta_tag_image_url
-          showcase_img_urls
           hero_image_url
         ]
       }
