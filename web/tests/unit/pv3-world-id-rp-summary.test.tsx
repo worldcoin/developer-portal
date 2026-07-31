@@ -72,7 +72,7 @@ beforeEach(() => {
   mockStagingStatus = null;
 });
 
-it("shows the vertical RP identity fields and management controls", () => {
+it("shows the vertical RP identity fields and separated management controls", () => {
   renderSummary();
 
   const summary = screen.getByRole("region", {
@@ -108,8 +108,22 @@ it("shows the vertical RP identity fields and management controls", () => {
   });
   expect(rotateButton).toBeEnabled();
   expect(switchButton).toBeEnabled();
-  expect(rotateButton.parentElement).toBe(switchButton.parentElement);
-  expect(rotateButton.parentElement).toHaveClass("flex", "flex-wrap");
+  expect(screen.getByRole("heading", { name: "Key" })).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { name: "Danger zone" }),
+  ).toBeInTheDocument();
+  expect(rotateButton.parentElement).not.toBe(switchButton.parentElement);
+  expect(rotateButton).toHaveClass(
+    "border-grey-200",
+    "bg-grey-0",
+    "text-grey-700",
+  );
+  expect(rotateButton).not.toHaveClass("text-system-error-600");
+  expect(switchButton).toHaveClass(
+    "border-system-error-300",
+    "bg-white",
+    "text-system-error-600",
+  );
 });
 
 it.each([
