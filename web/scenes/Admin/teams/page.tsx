@@ -97,7 +97,7 @@ export const AdminTeamsPage = async ({
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-auto/1fr gap-y-4">
+    <div className="grid min-h-0 max-lg:h-auto grid-rows-auto/1fr gap-y-4 lg:h-full">
       <UIModule className="p-5">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
           <div className="min-w-0">
@@ -120,7 +120,7 @@ export const AdminTeamsPage = async ({
         </div>
       </UIModule>
 
-      <UIModule className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-y-3 overflow-hidden p-4">
+      <UIModule className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-y-3 max-lg:overflow-visible p-4 lg:overflow-hidden">
         <TeamsTableControls
           columnVisibility={columnVisibility}
           currentPage={currentPage}
@@ -129,7 +129,7 @@ export const AdminTeamsPage = async ({
           teamsAmount={teamsAmount}
           totalPages={totalPages}
         />
-        <div className="min-h-0 min-w-0 overflow-hidden">
+        <div className="min-h-0 min-w-0 max-lg:overflow-visible lg:overflow-hidden">
           <TeamsTable
             columnVisibility={columnVisibility}
             data={teams}
