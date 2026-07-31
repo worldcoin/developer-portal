@@ -1704,6 +1704,20 @@ const CELLS: readonly Cell[] = [
   [446, 682, 0.7],
 ];
 
+// Cells sit on a 12px pitch (8px cell + 4px gap - see the CELLS
+// rasterization comment above).
+const CELL_PITCH = 12;
+
+// Maps a cell's "x,y" key to its CELLS index, so a pop's ring effect can
+// look up its handful of immediate neighbors directly instead of scanning
+// all 1,645 cells every frame it's active (see findRingNeighbors below).
+// The halftone mask means not every CELL_PITCH lattice position has a real
+// cell, hence the lookup rather than assuming one.
+const CELL_INDEX_BY_KEY = new Map<string, number>();
+CELLS.forEach(([x, y], i) => {
+  CELL_INDEX_BY_KEY.set(`${x},${y}`, i);
+});
+
 // Radius and peak boost for the pointer lens, in the SVG's own 756x700
 // coordinate space (8px cells, 12px pitch) so they scale with the artwork
 // regardless of the rendered size.
@@ -1723,13 +1737,76 @@ const DOT_LIGHT_RGB = [232, 230, 226] as const; // soft warm light gray
 // (never one the lens/reveal/ripple system is already driving) pops up -
 // scaling up and spinning a random direction, a couple of full turns - then
 // settles back down. A passive invitation to interact, not a response to
-// anything the visitor did.
-const POP_MIN_INTERVAL_MS = 800;
-const POP_MAX_INTERVAL_MS = 2000;
+// anything the visitor did. The interval and concurrency cap move together
+// (both bound how many tiles are ever spinning at once relative to how long
+// a pop lasts - POP_DURATION_MS) - kept modest here so the ring effect
+// below has room to be the calmer, more prominent motion instead of
+// competing with a lot of simultaneous rotation.
+const POP_MIN_INTERVAL_MS = 400;
+const POP_MAX_INTERVAL_MS = 900;
 const POP_DURATION_MS = 1100;
 const POP_MAX_SCALE = 1.4;
 const POP_MAX_ROTATION_DEG = 720;
-const POP_MAX_CONCURRENT = 3;
+const POP_MAX_CONCURRENT = 4;
+// A pop also sends a gentle ring out to its neighbors - gliding outward
+// slowly rather than snapping through them, a soft scale pulse plus a
+// lightening toward DOT_LIGHT_RGB (the same "soft warm light gray" the
+// lens/click-ripple already lighten toward), so it reads as a slow, quiet
+// ripple radiating from the spinning tile rather than a second, competing
+// animation. Kept cheap despite the longer travel given pops are frequent
+// and often concurrent (see above): each pop's neighbor list is computed
+// ONCE, right when it starts (via findRingNeighbors/CELL_INDEX_BY_KEY, not
+// a scan of all 1,645 cells every frame), and at any instant only the thin
+// band of neighbors the wavefront is currently passing through is actually
+// being written to - not the whole neighbor list at once.
+const POP_RING_RADIUS = 70;
+// How fast the ring's leading edge travels outward, in px/ms - together
+// with POP_RING_RADIUS this bounds how long the ring takes to fully play
+// out (radius / speed + the per-cell fade below). Slow on purpose - this
+// should read as gliding outward, not snapping.
+const POP_RING_SPEED = 0.025;
+// How long a cell stays boosted once the ring's leading edge reaches it -
+// scaled up alongside the slower speed above so the ring's visible band
+// stays roughly the same width in pixels (speed * fade) instead of
+// thinning out as it slows down.
+const POP_RING_FADE_MS = 700;
+const POP_RING_MAX_SCALE_BOOST = 0.25;
+const POP_RING_MAX_COLOR_MIX = 0.5;
+
+// Enumerates the real cells within POP_RING_RADIUS of (originX, originY),
+// each tagged with its distance from the origin - computed once per pop
+// (see above) rather than scanned for every frame the ring is active.
+const findRingNeighbors = (
+  originX: number,
+  originY: number,
+): Array<{ key: string; dist: number }> => {
+  const neighbors: Array<{ key: string; dist: number }> = [];
+  const reach = Math.ceil(POP_RING_RADIUS / CELL_PITCH);
+
+  for (let dx = -reach; dx <= reach; dx++) {
+    for (let dy = -reach; dy <= reach; dy++) {
+      if (dx === 0 && dy === 0) {
+        continue;
+      }
+
+      const nx = originX + dx * CELL_PITCH;
+      const ny = originY + dy * CELL_PITCH;
+      const key = `${nx},${ny}`;
+
+      if (!CELL_INDEX_BY_KEY.has(key)) {
+        continue;
+      }
+
+      const dist = Math.sqrt((dx * CELL_PITCH) ** 2 + (dy * CELL_PITCH) ** 2);
+
+      if (dist <= POP_RING_RADIUS) {
+        neighbors.push({ key, dist });
+      }
+    }
+  }
+
+  return neighbors;
+};
 
 // A click sends a ring expanding outward from the click point across the
 // dot grid over RIPPLE_DURATION_MS, reaching RIPPLE_MAX_RADIUS at the end.
@@ -1956,10 +2033,21 @@ export const BasePixelStrip = () => {
   const lastIconZOrderRef = useRef<string[]>([]);
   // Ambient, randomly-timed "pop and spin" pulses on dots the cursor isn't
   // near - an idle invitation to come hover/click, not a response to
-  // anything the visitor did.
-  const popsRef = useRef<Array<{ key: string; start: number; spin: 1 | -1 }>>(
-    [],
-  );
+  // anything the visitor did. ringNeighbors is computed once when the pop
+  // starts (see findRingNeighbors) and driven off pop.start every frame -
+  // no separate per-ring state needed.
+  const popsRef = useRef<
+    Array<{
+      key: string;
+      start: number;
+      spin: 1 | -1;
+      ringNeighbors: Array<{ key: string; dist: number }>;
+    }>
+  >([]);
+  // Cells currently showing a pop's ring boost, so it can be cleared the
+  // moment a cell stops being boosted (ring passed/faded, or something
+  // else claimed the cell) - same pattern as rippleActiveRef.
+  const popRingActiveRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -2598,6 +2686,10 @@ export const BasePixelStrip = () => {
       // system just applied this frame.
       if (popsRef.current.length > 0) {
         const stillPopping: typeof popsRef.current = [];
+        // So the ring pass below never overwrites a pop's own rotate+scale
+        // transform on its own cell (both would otherwise write the same
+        // rect.style.transform, and whichever ran later would win).
+        const activePopKeys = new Set(popsRef.current.map((pop) => pop.key));
 
         for (const pop of popsRef.current) {
           const claimed =
@@ -2634,6 +2726,71 @@ export const BasePixelStrip = () => {
         }
 
         popsRef.current = stillPopping;
+
+        // Ring pass: a gentle scale pulse traveling outward to each pop's
+        // precomputed neighbors (see findRingNeighbors above) as the ring's
+        // leading edge reaches them, fading out shortly after. Only ever
+        // touches the handful of cells in a pop's own neighbor list, never
+        // a full grid scan - see POP_RING_* above for why that matters.
+        const nextPopRingActive = new Set<string>();
+
+        for (const pop of stillPopping) {
+          for (const neighbor of pop.ringNeighbors) {
+            const hitTime = pop.start + neighbor.dist / POP_RING_SPEED;
+            const timeSinceHit = now - hitTime;
+
+            if (timeSinceHit < 0 || timeSinceHit > POP_RING_FADE_MS) {
+              continue;
+            }
+
+            if (
+              activeRef.current.has(neighbor.key) ||
+              revealedRef.current.has(neighbor.key) ||
+              rippleActiveRef.current.has(neighbor.key) ||
+              activePopKeys.has(neighbor.key)
+            ) {
+              continue;
+            }
+
+            const ringRect = rectsRef.current.get(neighbor.key);
+
+            if (ringRect) {
+              const envelope = 1 - timeSinceHit / POP_RING_FADE_MS;
+              const ringScale = 1 + POP_RING_MAX_SCALE_BOOST * envelope;
+              ringRect.style.transform = `scale(${ringScale.toFixed(3)})`;
+
+              const colorMix = POP_RING_MAX_COLOR_MIX * envelope;
+              const ringR = Math.round(
+                DOT_BASE_RGB[0] +
+                  (DOT_LIGHT_RGB[0] - DOT_BASE_RGB[0]) * colorMix,
+              );
+              const ringG = Math.round(
+                DOT_BASE_RGB[1] +
+                  (DOT_LIGHT_RGB[1] - DOT_BASE_RGB[1]) * colorMix,
+              );
+              const ringB = Math.round(
+                DOT_BASE_RGB[2] +
+                  (DOT_LIGHT_RGB[2] - DOT_BASE_RGB[2]) * colorMix,
+              );
+              ringRect.style.fill = `rgb(${ringR}, ${ringG}, ${ringB})`;
+
+              nextPopRingActive.add(neighbor.key);
+            }
+          }
+        }
+
+        for (const key of popRingActiveRef.current) {
+          if (!nextPopRingActive.has(key)) {
+            const rect = rectsRef.current.get(key);
+
+            if (rect) {
+              rect.style.transform = "";
+              rect.style.fill = "";
+            }
+          }
+        }
+
+        popRingActiveRef.current = nextPopRingActive;
       }
 
       if (
@@ -2824,6 +2981,7 @@ export const BasePixelStrip = () => {
           key,
           start: performance.now(),
           spin: Math.random() < 0.5 ? 1 : -1,
+          ringNeighbors: findRingNeighbors(x, y),
         });
         scheduleFrame();
         return;
