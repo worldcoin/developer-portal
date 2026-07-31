@@ -32,8 +32,14 @@ test.describe("App", () => {
       new RegExp(`/teams/${constants.teamId}/apps/app_[a-f0-9]+/world-id$`),
     );
     await expect(
-      page.getByRole("button", { name: "Create action" }),
+      page.getByRole("heading", { name: "Set up World ID" }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Enable World ID" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Create action" }),
+    ).toHaveCount(0);
     // The arrival toast ("New app <name> was created") also renders the app
     // name, so the bare text query is ambiguous while it is on screen.
     await expect(page.getByText(appName).first()).toBeVisible();
