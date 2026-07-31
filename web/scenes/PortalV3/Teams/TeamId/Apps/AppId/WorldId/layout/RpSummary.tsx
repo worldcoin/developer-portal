@@ -145,7 +145,7 @@ export const RpSummary = (props: {
             />
           </div>
 
-          <div className="flex flex-col items-start gap-3">
+          <div className="flex flex-col gap-6">
             {controlsDisabledReason ? (
               <Typography
                 id="world-id-configuration-disabled-reason"
@@ -156,31 +156,72 @@ export const RpSummary = (props: {
                 {controlsDisabledReason}
               </Typography>
             ) : null}
-            <div className="flex flex-wrap items-center gap-3">
-              <DestructiveTriggerButton
-                disabled={!props.canManageWorldId || !isActive || isSelfManaged}
-                className="shrink-0"
-                aria-describedby={
-                  controlsDisabledReason
-                    ? "world-id-configuration-disabled-reason"
-                    : undefined
-                }
-                onClick={() => setIsRotateOpen(true)}
-              >
-                Rotate signer key
-              </DestructiveTriggerButton>
-              <DestructiveTriggerButton
-                disabled={!props.canManageWorldId || !isActive || isSelfManaged}
-                className="shrink-0"
-                aria-describedby={
-                  controlsDisabledReason
-                    ? "world-id-configuration-disabled-reason"
-                    : undefined
-                }
-                onClick={() => setIsSwitchOpen(true)}
-              >
-                Switch to self-managed
-              </DestructiveTriggerButton>
+
+            <div className="flex flex-col gap-4">
+              <Typography as="h3" variant={TYPOGRAPHY.S2}>
+                Key
+              </Typography>
+
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-grey-100 p-6">
+                <div className="flex flex-col gap-1">
+                  <Typography variant={TYPOGRAPHY.S2}>
+                    Rotate signer key
+                  </Typography>
+                  <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
+                    This will create a new signer key and disable the existing
+                    key
+                  </Typography>
+                </div>
+
+                <DecoratedButton
+                  type="button"
+                  variant="secondary"
+                  disabled={
+                    !props.canManageWorldId || !isActive || isSelfManaged
+                  }
+                  className="h-8 shrink-0 rounded-full px-4 py-0 text-xs"
+                  aria-describedby={
+                    controlsDisabledReason
+                      ? "world-id-configuration-disabled-reason"
+                      : undefined
+                  }
+                  onClick={() => setIsRotateOpen(true)}
+                >
+                  Rotate signer key
+                </DecoratedButton>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <Typography as="h3" variant={TYPOGRAPHY.S2}>
+                Danger zone
+              </Typography>
+
+              <div className="flex items-center justify-between gap-4 rounded-[10px] border border-grey-100 px-6 py-4">
+                <div className="flex flex-col gap-1">
+                  <Typography variant={TYPOGRAPHY.S2}>
+                    Switch to self-managed
+                  </Typography>
+                  <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
+                    Move this RP to a self-managed configuration
+                  </Typography>
+                </div>
+
+                <DestructiveTriggerButton
+                  disabled={
+                    !props.canManageWorldId || !isActive || isSelfManaged
+                  }
+                  className="shrink-0"
+                  aria-describedby={
+                    controlsDisabledReason
+                      ? "world-id-configuration-disabled-reason"
+                      : undefined
+                  }
+                  onClick={() => setIsSwitchOpen(true)}
+                >
+                  Switch to self-managed
+                </DestructiveTriggerButton>
+              </div>
             </div>
           </div>
         </div>

@@ -285,13 +285,15 @@ export const WorldId40Content = ({
                   This will create a new signer key and disable the existing key
                 </Typography>
               </div>
-              <DestructiveTriggerButton
+              <DecoratedButton
                 type="button"
+                variant="secondary"
                 disabled={!isActive || mode === "self_managed"}
+                className="h-8 rounded-full px-4 py-0 text-xs"
                 onClick={() => setIsRotateDialogOpen(true)}
               >
                 Reset
-              </DestructiveTriggerButton>
+              </DecoratedButton>
             </div>
           </div>
         </div>
