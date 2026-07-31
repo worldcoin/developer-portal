@@ -210,6 +210,30 @@ describe("WorldIdAnalyticsGraph [initial period]", () => {
     );
   });
 
+  it("still draws a line when a new entity has a single point", async () => {
+    fetchMock.mockImplementation(() =>
+      ok(
+        responseBody({
+          appCount: "0",
+          appPoints: [{ date: "2026-07-30", count: "0" }],
+        }),
+      ),
+    );
+
+    renderAppGraph();
+
+    expect(await screen.findByText("0")).toBeInTheDocument();
+    const polyline = screen
+      .getByRole("img", { name: "Unique Verifications" })
+      .querySelector("polyline");
+    // An entity created today is truncated to one point, and a one-vertex
+    // polyline paints nothing — the flat graph must still be drawable.
+    expect(
+      polyline?.getAttribute("points")?.trim().split(/\s+/).length,
+    ).toBeGreaterThanOrEqual(2);
+    expect(polyline).toHaveAttribute("data-flat-zero", "true");
+  });
+
   it("does not persist period selection in the page URL", async () => {
     window.history.replaceState({}, "", "/world-id-4-0?tab=actions");
     fetchMock
