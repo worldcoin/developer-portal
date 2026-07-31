@@ -92,6 +92,13 @@ const renderActionGraph = () =>
     />,
   );
 
+const choosePeriod = async (label: "All Time" | "Last 7 Days") => {
+  fireEvent.click(
+    screen.getByRole("button", { name: "Unique Verifications period" }),
+  );
+  fireEvent.click(await screen.findByRole("option", { name: label }));
+};
+
 const requested = (callIndex = 0) => {
   const input = fetchMock.mock.calls[callIndex][0] as string | URL | Request;
   const raw =
@@ -141,14 +148,9 @@ describe("WorldIdAnalyticsGraph [initial period]", () => {
     renderAppGraph();
 
     expect(await screen.findByText("3")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Last 7 Days" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    expect(screen.getByRole("button", { name: "All Time" })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
+    expect(
+      screen.getByRole("button", { name: "Unique Verifications period" }),
+    ).toHaveTextContent("Last 7 Days");
     expect(requested().pathname).toBe(
       `/api/portal/apps/${appId}/world-id-analytics`,
     );
@@ -218,7 +220,7 @@ describe("WorldIdAnalyticsGraph [initial period]", () => {
     renderAppGraph();
     await screen.findByText("3");
 
-    fireEvent.click(screen.getByRole("button", { name: "All Time" }));
+    await choosePeriod("All Time");
     expect(await screen.findByText("8")).toBeInTheDocument();
 
     expect(window.location.search).toBe("?tab=actions");
@@ -274,14 +276,14 @@ describe("WorldIdAnalyticsGraph [All Time loading]", () => {
     await screen.findByText("3");
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByRole("button", { name: "All Time" }));
+    await choosePeriod("All Time");
     expect(await screen.findByText("10")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(requested(1).searchParams.get("period")).toBe("all_time");
 
-    fireEvent.click(screen.getByRole("button", { name: "Last 7 Days" }));
+    await choosePeriod("Last 7 Days");
     expect(screen.getByText("3")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "All Time" }));
+    await choosePeriod("All Time");
     expect(screen.getByText("10")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
@@ -294,7 +296,7 @@ describe("WorldIdAnalyticsGraph [All Time loading]", () => {
     renderAppGraph();
     await screen.findByText("3");
 
-    fireEvent.click(screen.getByRole("button", { name: "All Time" }));
+    await choosePeriod("All Time");
 
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(
@@ -319,7 +321,7 @@ describe("WorldIdAnalyticsGraph [All Time loading]", () => {
     renderAppGraph();
     await screen.findByText("3");
 
-    fireEvent.click(screen.getByRole("button", { name: "All Time" }));
+    await choosePeriod("All Time");
     await screen.findByText("10");
 
     await act(async () => {
@@ -455,7 +457,7 @@ describe("WorldIdAnalyticsGraph [grouped UTC tooltip]", () => {
       );
     renderAppGraph();
     await screen.findByText("3");
-    fireEvent.click(screen.getByRole("button", { name: "All Time" }));
+    await choosePeriod("All Time");
     await screen.findByText("36");
 
     const graph = screen.getByRole("img", { name: "Unique Verifications" });
