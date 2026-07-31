@@ -36,7 +36,7 @@ export const NavBarItem = ({
       title={isCollapsed ? label : undefined}
       className={clsx(
         // Base (mobile): icon stacked above label, centered tab
-        "grid min-w-16 cursor-pointer items-center justify-items-center gap-y-1 rounded-12 px-3 py-2 outline-hidden",
+        "grid min-w-16 items-center justify-items-center gap-y-1 rounded-12 px-3 py-2 outline-hidden",
         "transition-[grid-template-columns,gap,background-color,color] motion-reduce:transition-none",
         "focus-visible:ring-2 focus-visible:ring-blue-500",
         isActive

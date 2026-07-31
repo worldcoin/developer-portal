@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type GetWorldIdActionDetailQueryVariables = Types.Exact<{
   action_id: Types.Scalars["String"]["input"];
   app_id: Types.Scalars["String"]["input"];
@@ -36,110 +34,202 @@ export type GetWorldIdActionDetailQuery = {
   }>;
 };
 
-export const GetWorldIdActionDetailDocument = gql`
-  query GetWorldIdActionDetail($action_id: String!, $app_id: String!) {
-    action_v4(
-      limit: 1
-      where: {
-        id: { _eq: $action_id }
-        rp_registration: { app_id: { _eq: $app_id } }
-      }
-    ) {
-      id
-      action
-      description
-      rp_id
-      created_at
-      rp_registration {
-        app_id
-      }
-      nullifiers_aggregate {
-        aggregate {
-          count
-        }
-      }
-      nullifiers(limit: 100, order_by: { created_at: desc }) {
-        id
-        created_at
-        nullifier
-        action_v4_id
-      }
-    }
-  }
-`;
-
-/**
- * __useGetWorldIdActionDetailQuery__
- *
- * To run a query within a React component, call `useGetWorldIdActionDetailQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorldIdActionDetailQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWorldIdActionDetailQuery({
- *   variables: {
- *      action_id: // value for 'action_id'
- *      app_id: // value for 'app_id'
- *   },
- * });
- */
-export function useGetWorldIdActionDetailQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetWorldIdActionDetailQuery,
-    GetWorldIdActionDetailQueryVariables
-  > &
-    (
-      | { variables: GetWorldIdActionDetailQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    GetWorldIdActionDetailQuery,
-    GetWorldIdActionDetailQueryVariables
-  >(GetWorldIdActionDetailDocument, options);
-}
-export function useGetWorldIdActionDetailLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetWorldIdActionDetailQuery,
-    GetWorldIdActionDetailQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetWorldIdActionDetailQuery,
-    GetWorldIdActionDetailQueryVariables
-  >(GetWorldIdActionDetailDocument, options);
-}
-export function useGetWorldIdActionDetailSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetWorldIdActionDetailQuery,
-        GetWorldIdActionDetailQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    GetWorldIdActionDetailQuery,
-    GetWorldIdActionDetailQueryVariables
-  >(GetWorldIdActionDetailDocument, options);
-}
-export type GetWorldIdActionDetailQueryHookResult = ReturnType<
-  typeof useGetWorldIdActionDetailQuery
->;
-export type GetWorldIdActionDetailLazyQueryHookResult = ReturnType<
-  typeof useGetWorldIdActionDetailLazyQuery
->;
-export type GetWorldIdActionDetailSuspenseQueryHookResult = ReturnType<
-  typeof useGetWorldIdActionDetailSuspenseQuery
->;
-export type GetWorldIdActionDetailQueryResult = Apollo.QueryResult<
+export const GetWorldIdActionDetailDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetWorldIdActionDetail" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "action_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "app_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "action_v4" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "limit" },
+                value: { kind: "IntValue", value: "1" },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "action_id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "rp_registration" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "app_id" },
+                            value: {
+                              kind: "ObjectValue",
+                              fields: [
+                                {
+                                  kind: "ObjectField",
+                                  name: { kind: "Name", value: "_eq" },
+                                  value: {
+                                    kind: "Variable",
+                                    name: { kind: "Name", value: "app_id" },
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "action" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "rp_id" } },
+                { kind: "Field", name: { kind: "Name", value: "created_at" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rp_registration" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "app_id" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "nullifiers_aggregate" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "aggregate" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "count" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "nullifiers" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "limit" },
+                      value: { kind: "IntValue", value: "100" },
+                    },
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "order_by" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "created_at" },
+                            value: { kind: "EnumValue", value: "desc" },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "created_at" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "nullifier" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "action_v4_id" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   GetWorldIdActionDetailQuery,
   GetWorldIdActionDetailQueryVariables
 >;

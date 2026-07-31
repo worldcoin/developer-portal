@@ -12,10 +12,11 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { useMutation } from "@apollo/client/react";
 import { ApiKeySecretFields } from "../ApiKeySecretFields";
-import { useResetApiKeyMutation } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
+import { ResetApiKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
 import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
-import { useInsertKeyMutation } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/CreateKeyModal/graphql/client/create-key.generated";
+import { InsertKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/CreateKeyModal/graphql/client/create-key.generated";
 
 const schema = yup
   .object()
@@ -31,14 +32,20 @@ type CreateKeyModal = {
 };
 
 export type CreateKeyFormValues = yup.Asserts<typeof schema>;
+
+const ignoreDismiss = () => {};
+
 export const CreateKeyModal = (props: CreateKeyModal) => {
   const { teamId, isOpen, setIsOpen } = props;
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const isOpenRef = useRef(isOpen);
   const requestIdRef = useRef(0);
-  const [insertKeyMutation, { loading: creatingKey }] = useInsertKeyMutation();
-  const [resetApiKeyMutation, { loading: revealingKey }] =
-    useResetApiKeyMutation();
+  // One flag for the whole insert-then-reset sequence: the two Apollo loading
+  // flags both read false in the render between the mutations, which would
+  // briefly let the user dismiss and discard the key's only secret.
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [insertKeyMutation] = useMutation(InsertKeyDocument);
+  const [resetApiKeyMutation] = useMutation(ResetApiKeyDocument);
 
   const {
     register,
@@ -61,9 +68,10 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
   };
 
   const submit = async (values: CreateKeyFormValues) => {
-    if (creatingKey || revealingKey) return;
+    if (isSubmitting) return;
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
+    setIsSubmitting(true);
 
     try {
       const result = await insertKeyMutation({
@@ -73,7 +81,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
         },
         refetchQueries: [FetchKeysDocument],
       });
-      if (result instanceof Error || Boolean(result?.errors)) {
+      if (result instanceof Error || Boolean(result?.error)) {
         throw result;
       }
 
@@ -89,7 +97,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
         },
         refetchQueries: [FetchKeysDocument],
       });
-      if (resetResult instanceof Error || Boolean(resetResult?.errors)) {
+      if (resetResult instanceof Error || Boolean(resetResult?.error)) {
         throw resetResult;
       }
 
@@ -117,11 +125,20 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
       }
 
       toast.error("Error occurred while creating API key.");
+    } finally {
+      // Only the newest attempt owns the flag, so a superseded one cannot
+      // unlock the dialog while its replacement is still running.
+      if (requestIdRef.current === requestId) {
+        setIsSubmitting(false);
+      }
     }
   };
 
   return (
-    <Dialog open={isOpen} onClose={close}>
+    // The key exists server-side once the insert lands and only the reset returns
+    // its secret, so dismissing in between leaves an unusable key: Escape and
+    // backdrop clicks are ignored until the sequence finishes either way.
+    <Dialog open={isOpen} onClose={isSubmitting ? ignoreDismiss : close}>
       <DialogOverlay />
 
       <DialogPanel
@@ -201,6 +218,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
                   className="order-2 md:order-1"
                   type="button"
                   variant="secondary"
+                  disabled={isSubmitting}
                   onClick={close}
                 >
                   Cancel
@@ -208,8 +226,8 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
 
                 <DecoratedButton
                   type="submit"
-                  disabled={!teamId || creatingKey || revealingKey}
-                  loading={creatingKey || revealingKey}
+                  disabled={!teamId || isSubmitting}
+                  loading={isSubmitting}
                   className="order-1 whitespace-nowrap"
                 >
                   Create new key

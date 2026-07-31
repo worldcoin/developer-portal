@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
-import { useFetchImagesQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
-import { useUpsertLocalisedMetaTagImageMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/upsert-localised-meta-tag-image.generated";
+import { FetchImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
+import { UpsertLocalisedMetaTagImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/upsert-localised-meta-tag-image.generated";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageUploadField } from "./ImageUploadField";
+import { useMutation, useQuery } from "@apollo/client/react";
 
 interface MetaTagImageFieldProps {
   value?: string | null;
@@ -18,6 +19,8 @@ interface MetaTagImageFieldProps {
   error?: string | null;
   onAutosaveSuccess?: () => void;
   onAutosaveError?: (error: any) => void;
+  dropZoneClassName?: string;
+  dropZoneContent?: React.ReactNode;
 }
 
 const TOAST_ID = "upload_meta_tag_toast";
@@ -36,6 +39,8 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     onAutosaveSuccess,
     onAutosaveError,
     error,
+    dropZoneClassName,
+    dropZoneContent,
   } = props;
 
   // en is not considered a localization, since we set english properties on app metadata
@@ -45,7 +50,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     data: unverifiedImagesData,
     loading: isImagesLoading,
     refetch: refetchUnverifiedImages,
-  } = useFetchImagesQuery({
+  } = useQuery(FetchImagesDocument, {
     variables: {
       id: appId,
       team_id: teamId,
@@ -53,17 +58,20 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     },
   });
 
-  const [upsertLocalisedMetaTagImage] = useUpsertLocalisedMetaTagImageMutation({
-    onCompleted: () => {
-      toast.success("Meta tag image saved successfully");
-      onAutosaveSuccess?.();
+  const [upsertLocalisedMetaTagImage] = useMutation(
+    UpsertLocalisedMetaTagImageDocument,
+    {
+      onCompleted: () => {
+        toast.success("Meta tag image saved successfully");
+        onAutosaveSuccess?.();
+      },
+      onError: (error) => {
+        console.error("autosave failed:", error);
+        toast.error("Failed to auto-save meta tag image");
+        onAutosaveError?.(error);
+      },
     },
-    onError: (error) => {
-      console.error("autosave failed:", error);
-      toast.error("Failed to auto-save meta tag image");
-      onAutosaveError?.(error);
-    },
-  });
+  );
 
   const handleAutosave = useCallback(
     async (urls: string[]) => {
@@ -171,6 +179,8 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
       onUploadSuccess={handleUploadSuccess}
       onUploadError={handleUploadError}
       error={error}
+      dropZoneClassName={dropZoneClassName}
+      dropZoneContent={dropZoneContent}
     />
   );
 };

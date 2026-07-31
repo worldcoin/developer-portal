@@ -7,8 +7,7 @@ import { LockIcon } from "@/components/Icons/LockIcon";
 import { InitialSteps } from "@/components/InitialSteps";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
-import { useAtom } from "jotai";
+import { useCreateAppDialog } from "@/scenes/common/layout/CreateAppDialog/useCreateAppDialog";
 import { Fragment } from "react";
 
 const pathButtonClassName =
@@ -59,7 +58,7 @@ const PathStep = (props: {
 };
 
 export const ClientPage = (props: { teamId: string }) => {
-  const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
+  const { open: openCreateAppDialog } = useCreateAppDialog();
 
   return (
     <Fragment>
@@ -116,7 +115,7 @@ export const ClientPage = (props: { teamId: string }) => {
 
               <Button
                 type="button"
-                onClick={() => setCreateAppDialogOpen(true)}
+                onClick={openCreateAppDialog}
                 className={`${pathButtonClassName} border-grey-900 bg-grey-900 bg-linear-to-b from-white/15 to-transparent text-grey-0 hover:bg-grey-700 hover:from-white/20`}
                 data-testid="button-create-an-app"
               >

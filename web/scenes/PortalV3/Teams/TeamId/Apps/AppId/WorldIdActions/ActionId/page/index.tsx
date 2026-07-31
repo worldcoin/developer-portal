@@ -2,10 +2,13 @@
 
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { SkeletonTable } from "@/components/Skeletons";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
+import { useQuery } from "@apollo/client/react";
 import {
+  GetWorldIdActionDetailDocument,
   GetWorldIdActionDetailQuery,
-  useGetWorldIdActionDetailQuery,
 } from "./graphql/client/get-world-id-action-detail.generated";
 import { VerifiedTable } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
 import { adaptNullifierV4 } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/utils/adapt-nullifier-v4";
@@ -26,10 +29,13 @@ export const WorldIdActionDetailPage = (props: {
   const actionId = params.actionId;
 
   const [deleted, setDeleted] = useState(false);
-  const { data, loading, error, refetch } = useGetWorldIdActionDetailQuery({
-    variables: { action_id: actionId, app_id: appId },
-    skip: !actionId || !appId,
-  });
+  const { data, loading, error, refetch } = useQuery(
+    GetWorldIdActionDetailDocument,
+    {
+      variables: { action_id: actionId, app_id: appId },
+      skip: !actionId || !appId,
+    },
+  );
   const action: Action | undefined = data?.action_v4[0];
 
   if (error && !action) {
@@ -104,7 +110,25 @@ export const WorldIdActionDetailPage = (props: {
               showCount={false}
             />
           </div>
-        ) : null}
+        ) : (
+          <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
+            <div className="flex flex-col gap-1">
+              <span className="font-world text-sm text-portal-muted">
+                Verifications
+              </span>
+              <Skeleton width={80} height={28} />
+            </div>
+
+            <div className="mt-6">
+              <Typography variant={TYPOGRAPHY.H7}>Verified humans</Typography>
+              <SkeletonTable
+                columns={["Human", "Time"]}
+                rows={4}
+                className="mt-6"
+              />
+            </div>
+          </div>
+        )}
 
         {action && canModify ? (
           <SettingsCard

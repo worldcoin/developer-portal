@@ -6,7 +6,8 @@ import { useMemo, use } from "react";
 import Skeleton from "react-loading-skeleton";
 import { AppTopBar } from "../../Configuration/AppTopBar";
 import { FormSkeleton } from "../../Configuration/AppTopBar/FormSkeleton";
-import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../Configuration/layout/ImagesProvider";
 import { SaveStatusProvider } from "../../Configuration/SaveStatus";
 import { SetupForm } from "../../MiniApp/PermissionsForm";
@@ -22,7 +23,7 @@ export const AppPermissionsPage = (props: AppPermissionsPageProps) => {
   const teamId = params?.teamId as `team_${string}`;
   const [viewMode] = useAtom(viewModeAtom);
 
-  const { data, loading, error } = useFetchAppMetadataQuery({
+  const { data, loading, error } = useQuery(FetchAppMetadataDocument, {
     variables: {
       id: appId,
     },

@@ -34,7 +34,7 @@ describe("user role", () => {
         }
       }`);
 
-      const response = await client.query({ query });
+      const response = await client.query<any>({ query });
       expect(response.data.app.length).toEqual(teamApps.length);
 
       response.data.app.forEach((app: { id: string; team_id: string }) => {
@@ -65,7 +65,7 @@ describe("user role", () => {
         }
       }`);
 
-    const response = await client.query({ query });
+    const response = await client.query<any>({ query });
     expect(response.data.app.length).toEqual(0);
   });
 
@@ -101,7 +101,7 @@ describe("user role", () => {
       }
       `);
 
-      const response = await client.mutate({
+      const response = await client.mutate<any>({
         mutation: query,
 
         variables: {
@@ -145,7 +145,7 @@ describe("user role", () => {
         }
         `);
       try {
-        const response = await client.mutate({
+        const response = await client.mutate<any>({
           mutation: query,
           variables: {
             team_id: teams.find((t) => t.id !== teamId)?.id,
@@ -307,7 +307,7 @@ describe("api_key role", () => {
         }
       `;
       const client = await getAPIClient({ team_id: team.id });
-      const response = await client.query({ query });
+      const response = await client.query<any>({ query });
       expect(response.data.app.length).toEqual(teamApps.length);
       response.data.app.forEach((app: { id: string; team_id: string }) => {
         expect(app.team_id).toEqual(team.id);
@@ -338,7 +338,7 @@ describe("api_key role", () => {
         }
       }
     `;
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
       variables: { team_id: teams.find((t) => t.id !== tokenTeamId)?.id },
     });
@@ -368,7 +368,7 @@ describe("api_key role", () => {
       }
     `;
     try {
-      const response = await client.mutate({
+      const response = await client.mutate<any>({
         mutation,
         variables: { team_id: teams.find((t) => t.id !== tokenTeamId)?.id },
       });

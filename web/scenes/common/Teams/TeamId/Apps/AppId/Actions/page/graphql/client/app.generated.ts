@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type GetAppQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
 }>;
@@ -18,73 +16,66 @@ export type GetAppQuery = {
   } | null;
 };
 
-export const GetAppDocument = gql`
-  query GetApp($app_id: String!) {
-    app: app_by_pk(id: $app_id) {
-      id
-      engine
-      app_metadata {
-        name
-      }
-    }
-  }
-`;
-
-/**
- * __useGetAppQuery__
- *
- * To run a query within a React component, call `useGetAppQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAppQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAppQuery({
- *   variables: {
- *      app_id: // value for 'app_id'
- *   },
- * });
- */
-export function useGetAppQuery(
-  baseOptions: Apollo.QueryHookOptions<GetAppQuery, GetAppQueryVariables> &
-    ({ variables: GetAppQueryVariables; skip?: boolean } | { skip: boolean }),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetAppQuery, GetAppQueryVariables>(
-    GetAppDocument,
-    options,
-  );
-}
-export function useGetAppLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<GetAppQuery, GetAppQueryVariables>,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetAppQuery, GetAppQueryVariables>(
-    GetAppDocument,
-    options,
-  );
-}
-export function useGetAppSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<GetAppQuery, GetAppQueryVariables>,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<GetAppQuery, GetAppQueryVariables>(
-    GetAppDocument,
-    options,
-  );
-}
-export type GetAppQueryHookResult = ReturnType<typeof useGetAppQuery>;
-export type GetAppLazyQueryHookResult = ReturnType<typeof useGetAppLazyQuery>;
-export type GetAppSuspenseQueryHookResult = ReturnType<
-  typeof useGetAppSuspenseQuery
->;
-export type GetAppQueryResult = Apollo.QueryResult<
-  GetAppQuery,
-  GetAppQueryVariables
->;
+export const GetAppDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetApp" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "app_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            alias: { kind: "Name", value: "app" },
+            name: { kind: "Name", value: "app_by_pk" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "app_id" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "engine" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "app_metadata" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetAppQuery, GetAppQueryVariables>;

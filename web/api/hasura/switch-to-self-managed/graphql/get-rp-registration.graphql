@@ -9,6 +9,9 @@ query GetRpRegistration($app_id: String!) {
     operation_hash
     app {
       team_id
+      deleted_at
+      status
+      is_archived
     }
   }
 }

@@ -1,10 +1,27 @@
 "use client";
 
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+
+// Show a fallback while an initially open dialog loads. Mimics the dialog
+// overlay so the modal doesn't pop in from an undimmed page.
+const EnableWorldIdDialog = dynamic(
+  () =>
+    import(
+      "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/EnableWorldId40/Dialog"
+    ).then((module) => module.EnableWorldIdDialog),
+  {
+    loading: () => (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[15px]">
+        <SpinnerIcon className="size-6 animate-spin text-white" />
+      </div>
+    ),
+  },
+);
 
 export const RegisterRpEmptyState = (props: {
   appId: string;
@@ -17,10 +34,16 @@ export const RegisterRpEmptyState = (props: {
 }) => {
   const canEnable = !props.isStaging && props.canManageWorldId;
   const [open, setOpen] = useState(Boolean(props.initialOpen) && canEnable);
+  // Latches true on first open and never unsets: the dialog must stay mounted
+  // through close so its leave transition plays and afterLeave can reset it.
+  const [hasOpened, setHasOpened] = useState(open);
   const completedRef = useRef(false);
 
   useEffect(() => {
-    if (props.initialOpen && canEnable) setOpen(true);
+    if (props.initialOpen && canEnable) {
+      setOpen(true);
+      setHasOpened(true);
+    }
   }, [props.initialOpen, canEnable]);
 
   const closeDialog = () => {
@@ -48,7 +71,10 @@ export const RegisterRpEmptyState = (props: {
         <DecoratedButton
           type="button"
           variant="primary"
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setOpen(true);
+            setHasOpened(true);
+          }}
         >
           Enable World ID
         </DecoratedButton>
@@ -63,10 +89,9 @@ export const RegisterRpEmptyState = (props: {
         </Link>
       ) : null}
 
-      {open ? (
-        <CreateAppDialogV4
+      {hasOpened ? (
+        <EnableWorldIdDialog
           open={open}
-          initialStep="enable-world-id-4-0"
           appId={props.appId}
           onComplete={() => {
             completedRef.current = true;

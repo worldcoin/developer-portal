@@ -1,4 +1,5 @@
-import { DocumentNode, useApolloClient } from "@apollo/client";
+import { DocumentNode } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import { useCallback, useMemo } from "react";
 
 export const useRefetchQueries = <Variables extends Record<string, unknown>>(

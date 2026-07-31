@@ -1670,6 +1670,20 @@ export const POST = async (req: NextRequest) => {
     );
   }
 
+  // Must sit ahead of the notification check: null/arrays/primitives parse
+  // cleanly, then either throw reading `.id` or get mistaken for notifications.
+  if (
+    typeof message !== "object" ||
+    message === null ||
+    Array.isArray(message)
+  ) {
+    return jsonRpcError(
+      null,
+      new McpError("Invalid JSON-RPC request.", -32600),
+      400,
+    );
+  }
+
   if (message.id === undefined) {
     return new NextResponse(null, { status: 202 });
   }
@@ -1693,17 +1707,20 @@ export const POST = async (req: NextRequest) => {
   }
 };
 
+// A 200 here reads as an SSE stream to the MCP SDK, which then reconnects
+// ~1/sec forever against an attempt counter it never increments.
 export const GET = async () =>
-  NextResponse.json({
-    name: "world-developer-portal",
-    transport: "streamable-http",
-    endpoint: "/api/mcp",
+  new NextResponse(null, {
+    status: 405,
+    headers: {
+      Allow: "POST, OPTIONS",
+    },
   });
 
 export const OPTIONS = async () =>
   new NextResponse(null, {
     status: 204,
     headers: {
-      Allow: "GET, POST, OPTIONS",
+      Allow: "POST, OPTIONS",
     },
   });

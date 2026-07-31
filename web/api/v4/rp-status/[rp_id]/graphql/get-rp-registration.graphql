@@ -10,5 +10,8 @@ query GetRpRegistration($rp_id: String!) {
     operation_hash
     staging_status
     staging_operation_hash
+    app {
+      deleted_at
+    }
   }
 }

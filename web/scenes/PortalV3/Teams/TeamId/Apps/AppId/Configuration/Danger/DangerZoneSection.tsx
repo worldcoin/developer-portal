@@ -15,6 +15,41 @@ type DangerZoneSectionProps = {
   appName?: string;
 };
 
+/** Card chrome with value slots, shared with the loading skeleton. */
+export const DangerZoneCard = ({
+  name,
+  footerText,
+  footerAction,
+}: {
+  name: React.ReactNode;
+  footerText: React.ReactNode;
+  footerAction?: React.ReactNode;
+}) => (
+  <div className="overflow-hidden rounded-2xl border border-system-error-200 bg-grey-0">
+    <div className="grid gap-y-2 p-6">
+      <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
+        Delete this app
+      </Typography>
+
+      <Typography variant={TYPOGRAPHY.R3} className="max-w-2xl text-grey-500">
+        Permanently delete{" "}
+        <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
+          {name}
+        </Typography>{" "}
+        and all of its data for everyone. This action cannot be undone.
+      </Typography>
+    </div>
+
+    <div className="flex items-center justify-between gap-4 border-t border-system-error-100 bg-system-error-50 px-6 py-4">
+      <Typography variant={TYPOGRAPHY.R4} className="text-system-error-700">
+        {footerText}
+      </Typography>
+
+      {footerAction}
+    </div>
+  </div>
+);
+
 /**
  * Destructive app action. Kept on its own route so it cannot be mistaken for
  * another step in the configuration form.
@@ -33,39 +68,27 @@ export const DangerZoneSection = ({
   );
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-system-error-200 bg-grey-0">
-      <div className="grid gap-y-2 p-6">
-        <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
-          Delete this app
-        </Typography>
-
-        <Typography variant={TYPOGRAPHY.R3} className="max-w-2xl text-grey-500">
-          Permanently delete{" "}
-          <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
-            {truncateString(appName, 30)}
-          </Typography>{" "}
-          and all of its data for everyone. This action cannot be undone.
-        </Typography>
-      </div>
-
-      <div className="flex items-center justify-between gap-4 border-t border-system-error-100 bg-system-error-50 px-6 py-4">
-        <Typography variant={TYPOGRAPHY.R4} className="text-system-error-700">
-          {isEnoughPermissions
+    <>
+      <DangerZoneCard
+        name={truncateString(appName, 30)}
+        footerText={
+          isEnoughPermissions
             ? "You’ll be asked to confirm before anything is deleted."
-            : "Only a team owner can delete this app."}
-        </Typography>
-
-        {isEnoughPermissions && (
-          <DecoratedButton
-            type="button"
-            variant="destructive"
-            onClick={() => setOpenDeleteModal(true)}
-            className="shrink-0"
-          >
-            <Typography variant={TYPOGRAPHY.R3}>Delete app</Typography>
-          </DecoratedButton>
-        )}
-      </div>
+            : "Only a team owner can delete this app."
+        }
+        footerAction={
+          isEnoughPermissions && (
+            <DecoratedButton
+              type="button"
+              variant="destructive"
+              onClick={() => setOpenDeleteModal(true)}
+              className="shrink-0"
+            >
+              <Typography variant={TYPOGRAPHY.R3}>Delete app</Typography>
+            </DecoratedButton>
+          )
+        }
+      />
 
       <DeleteModal
         appName={appName ?? ""}
@@ -74,6 +97,6 @@ export const DangerZoneSection = ({
         openDeleteModal={openDeleteModal}
         setOpenDeleteModal={setOpenDeleteModal}
       />
-    </div>
+    </>
   );
 };

@@ -120,6 +120,35 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  // A deleted app's RP is torn down by the reconciliation cron; it must never be
+  // toggled from the dashboard (which could re-activate the signer).
+  const app = registration.app;
+  if (app.deleted_at) {
+    return errorHasuraQuery({
+      req,
+      detail: "App is deleted.",
+      code: "app_not_active",
+      app_id,
+      logLevel: "warn",
+    });
+  }
+
+  // Archived / inactive apps have no reconciliation cron, so their owners must
+  // still be able to *deactivate* a live RP — but never *re-activate* one. A
+  // `deactivated` current status means this toggle would activate.
+  if (
+    (app.status !== "active" || app.is_archived) &&
+    currentStatus === "deactivated"
+  ) {
+    return errorHasuraQuery({
+      req,
+      detail: "Cannot activate the RP of an archived or inactive app.",
+      code: "app_not_active",
+      app_id,
+      logLevel: "warn",
+    });
+  }
+
   // STEP 3: Verify mode is managed
   if (registration.mode !== "managed" || !registration.manager_kms_key_id) {
     return errorHasuraQuery({

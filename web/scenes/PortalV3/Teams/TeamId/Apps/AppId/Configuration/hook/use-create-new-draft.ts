@@ -1,8 +1,9 @@
 "use client";
 
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { useFetchImagesLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
-import { useCreateEditableRowMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/client/create-editable-row.generated";
+import { FetchImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
+import { CreateEditableRowDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/client/create-editable-row.generated";
+import { useLazyQuery, useMutation } from "@apollo/client/react";
 import { useSetAtom } from "jotai";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -21,8 +22,8 @@ export const useCreateNewDraft = ({
   hasDraft,
   hasVerifiedVersion,
 }: UseCreateNewDraftOptions) => {
-  const [createEditableRow] = useCreateEditableRowMutation();
-  const [fetchImages] = useFetchImagesLazyQuery();
+  const [createEditableRow] = useMutation(CreateEditableRowDocument);
+  const [fetchImages] = useLazyQuery(FetchImagesDocument);
   const setUnverifiedImages = useSetAtom(unverifiedImageAtom);
   const setViewMode = useSetAtom(viewModeAtom);
   const [isCreating, setIsCreating] = useState(false);

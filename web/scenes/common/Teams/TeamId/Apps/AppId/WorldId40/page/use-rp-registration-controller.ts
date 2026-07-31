@@ -1,8 +1,9 @@
 "use client";
 
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
+import { useMutation } from "@apollo/client/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRetryRpMutation } from "./graphql/client/retry-rp.generated";
+import { RetryRpDocument } from "./graphql/client/retry-rp.generated";
 
 export type RpEnvironment = "production" | "staging";
 
@@ -26,7 +27,7 @@ export const useRpRegistrationController = ({
   onStatusReconciled,
   onRetryError,
 }: Options) => {
-  const [retryRpMutation] = useRetryRpMutation();
+  const [retryRpMutation] = useMutation(RetryRpDocument);
   const [productionStatus, setProductionStatus] = useState(
     initialProductionStatus,
   );

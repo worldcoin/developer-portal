@@ -8,8 +8,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { use, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { ActionsList } from "./ActionsList";
-import { useGetActionsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/actions.generated";
-import { useGetAppQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/app.generated";
+import { GetActionsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/actions.generated";
+import { GetAppDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/app.generated";
+import { useQuery } from "@apollo/client/react";
 
 type ActionsPageProps = {
   params: Promise<Record<string, string>>;
@@ -33,14 +34,14 @@ export const ActionsPage = (props: ActionsPageProps) => {
     name: "keyword",
   });
 
-  const appRes = useGetAppQuery({
+  const appRes = useQuery(GetAppDocument, {
     variables: {
       app_id: appId ?? "",
     },
     skip: !appId,
   });
 
-  const actionsRes = useGetActionsQuery({
+  const actionsRes = useQuery(GetActionsDocument, {
     variables: {
       app_id: appId ?? "",
       condition: !keyword

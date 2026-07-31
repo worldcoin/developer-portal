@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type FetchAppsQueryVariables = Types.Exact<{
   teamId: Types.Scalars["String"]["input"];
 }>;
@@ -27,91 +25,131 @@ export type FetchAppsQuery = {
   }>;
 };
 
-export const FetchAppsDocument = gql`
-  query FetchApps($teamId: String!) {
-    app(where: { team_id: { _eq: $teamId } }) {
-      id
-      created_at
-      app_metadata {
-        id
-        name
-      }
-      verified_app_metadata: app_metadata(
-        where: { verification_status: { _eq: "verified" } }
-      ) {
-        id
-        logo_img_url
-      }
-    }
-  }
-`;
-
-/**
- * __useFetchAppsQuery__
- *
- * To run a query within a React component, call `useFetchAppsQuery` and pass it any options that fit your needs.
- * When your component renders, `useFetchAppsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useFetchAppsQuery({
- *   variables: {
- *      teamId: // value for 'teamId'
- *   },
- * });
- */
-export function useFetchAppsQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    FetchAppsQuery,
-    FetchAppsQueryVariables
-  > &
-    (
-      | { variables: FetchAppsQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<FetchAppsQuery, FetchAppsQueryVariables>(
-    FetchAppsDocument,
-    options,
-  );
-}
-export function useFetchAppsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    FetchAppsQuery,
-    FetchAppsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<FetchAppsQuery, FetchAppsQueryVariables>(
-    FetchAppsDocument,
-    options,
-  );
-}
-export function useFetchAppsSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<FetchAppsQuery, FetchAppsQueryVariables>,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<FetchAppsQuery, FetchAppsQueryVariables>(
-    FetchAppsDocument,
-    options,
-  );
-}
-export type FetchAppsQueryHookResult = ReturnType<typeof useFetchAppsQuery>;
-export type FetchAppsLazyQueryHookResult = ReturnType<
-  typeof useFetchAppsLazyQuery
->;
-export type FetchAppsSuspenseQueryHookResult = ReturnType<
-  typeof useFetchAppsSuspenseQuery
->;
-export type FetchAppsQueryResult = Apollo.QueryResult<
-  FetchAppsQuery,
-  FetchAppsQueryVariables
->;
+export const FetchAppsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "FetchApps" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "teamId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "app" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "team_id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "teamId" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "created_at" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "app_metadata" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  alias: { kind: "Name", value: "verified_app_metadata" },
+                  name: { kind: "Name", value: "app_metadata" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "where" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: {
+                              kind: "Name",
+                              value: "verification_status",
+                            },
+                            value: {
+                              kind: "ObjectValue",
+                              fields: [
+                                {
+                                  kind: "ObjectField",
+                                  name: { kind: "Name", value: "_eq" },
+                                  value: {
+                                    kind: "StringValue",
+                                    value: "verified",
+                                    block: false,
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "logo_img_url" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<FetchAppsQuery, FetchAppsQueryVariables>;

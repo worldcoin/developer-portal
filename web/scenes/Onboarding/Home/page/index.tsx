@@ -128,7 +128,7 @@ const DEVELOPER_TOOL_CARDS: Array<{
     href: "https://docs.world.org/world-id/overview",
     icon: HumanBadgeIcon,
     label: "World ID",
-    poster: "/posters/World-ID-thumbnail.png",
+    poster: "/posters/World-ID-thumbnail-800.webp",
     video:
       "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
   },
@@ -178,7 +178,10 @@ const FOOTER_LINK_COLUMNS: FooterLink[][] = [
   ],
   [
     { href: "https://world.org/ecosystem", label: "Ecosystem" },
-    { href: "https://world.org/community", label: "Community" },
+    {
+      href: "https://world.org/community-operator",
+      label: "Community Operators",
+    },
   ],
   [
     { href: "https://docs.world.org", label: "Documentation" },
@@ -192,7 +195,6 @@ const FOOTER_LINK_COLUMNS: FooterLink[][] = [
   ],
   [
     { href: "https://whitepaper.world.org", label: "Whitepaper" },
-    { href: "https://world.org/events", label: "Events" },
     { href: "https://world.org/brand", label: "Brand Guidelines" },
     { href: "https://status.world.org", label: "Status" },
   ],

@@ -1,7 +1,6 @@
 "use client";
 import { Dropdown } from "@/components/Dropdown";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { formatDistanceToNowStrict } from "date-fns";
 import { FetchKeysQuery } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 
@@ -10,15 +9,9 @@ import { KeyIcon } from "@/components/Icons/KeyIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { ApolloError } from "@apollo/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import clsx from "clsx";
-import { useCallback, useMemo, useState } from "react";
-import { toast } from "react-toastify";
-import { ApiKeySecretModal } from "../../ApiKeySecretModal";
-import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
+import { useMemo } from "react";
 import { Status } from "./Status";
-import { useResetApiKeyMutation } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
 
 export const ApiKeyRow = (props: {
   apiKey: FetchKeysQuery["api_key"][0];
@@ -26,9 +19,16 @@ export const ApiKeyRow = (props: {
   teamId: string;
   openViewDetails: (key: FetchKeysQuery["api_key"][0]) => void;
   openDeleteKeyModal: (key: FetchKeysQuery["api_key"][0]) => void;
+  openRotateKeyModal: (key: FetchKeysQuery["api_key"][0]) => void;
 }) => {
-  const { apiKey, index, teamId, openViewDetails, openDeleteKeyModal } = props;
-  const [resetKey, setResetKey] = useState<string | null>(null);
+  const {
+    apiKey,
+    index,
+    teamId,
+    openViewDetails,
+    openDeleteKeyModal,
+    openRotateKeyModal,
+  } = props;
   const timeAgo = formatDistanceToNowStrict(new Date(apiKey.created_at), {
     addSuffix: true,
   });
@@ -41,130 +41,43 @@ export const ApiKeyRow = (props: {
     return membership?.role === Role_Enum.Owner;
   }, [teamId, user?.hasura.memberships]);
 
-  const [resetApiKeyMutation, { loading }] = useResetApiKeyMutation();
-
-  const resetAPIKey = useCallback(
-    async (apiKeyId: string) => {
-      if (loading) {
-        return;
-      }
-
-      try {
-        const result = await resetApiKeyMutation({
-          variables: {
-            id: apiKeyId,
-            team_id: teamId,
-          },
-          refetchQueries: [FetchKeysDocument],
-        });
-
-        if (result instanceof Error || Boolean(result?.errors)) {
-          throw result;
-        }
-
-        toast.success("API key was reset");
-
-        if (!result.data?.reset_api_key?.api_key) {
-          throw new Error("No API key returned");
-        }
-
-        setResetKey(result.data.reset_api_key.api_key);
-      } catch (error) {
-        let errorText = "Error occurred while resetting API key.";
-
-        if (error instanceof ApolloError) {
-          for (let graphQLError of error.graphQLErrors) {
-            if (
-              graphQLError.message ===
-              "User does not have sufficient permissions."
-            ) {
-              errorText = "API key must be active to reset.";
-            }
-          }
-        }
-
-        toast.error(errorText);
-      }
-    },
-    [loading, resetApiKeyMutation, teamId],
-  );
-
   return (
-    <>
-      <ApiKeySecretModal
-        apiKey={resetKey}
-        isOpen={Boolean(resetKey)}
-        onClose={() => setResetKey(null)}
-        title="API Key"
-        description="Your new API key is ready. Save it now because you won't be able to see it again."
-      />
-
-      <div
-        className={clsx(
-          "max-md:grid max-md:grid-cols-[max-content_auto_auto_max-content] max-md:items-center max-md:gap-x-3 max-md:gap-y-1 max-md:rounded-2xl max-md:border max-md:border-grey-100 max-md:px-5 max-md:py-4 md:table-row",
-        )}
-      >
-        <div
-          key={`api_key_${index}_1`}
-          className="group max-md:col-start-2 max-md:col-end-3 max-md:row-start-1 max-md:row-end-2 md:table-cell md:border-b md:border-grey-200 md:py-4 md:pr-4 md:pl-2"
-        >
-          <div className="grid">
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              as="div"
-              className="truncate md:leading-6!"
-            >
-              {apiKey.name}
-            </Typography>
-          </div>
+    <div
+      data-row-index={index}
+      className="grid min-h-16 grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-b border-grey-100 px-5 py-3 last:border-b-0"
+    >
+      <div className="min-w-0">
+        <div className="truncate font-world text-13 leading-5 font-medium text-grey-900">
+          {apiKey.name}
         </div>
 
-        <div
-          className="group max-md:col-start-3 max-md:col-end-4 max-md:row-start-1 max-md:row-end-3 max-md:text-end md:table-cell md:border-b md:border-grey-200 md:pr-4"
-          key={`api_key${index}_2`}
-        >
-          <div className="inline-grid max-md:pl-8">
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              as="div"
-              className="truncate md:leading-6!"
+        <div className="flex min-w-0 items-center font-gta text-12 leading-4 text-grey-400">
+          <span className="truncate">Created {timeAgo}</span>
+          <span className="shrink-0">&nbsp;·&nbsp;</span>
+          {isEnoughPermissions ? (
+            <button
+              type="button"
+              onClick={() => openRotateKeyModal(apiKey)}
+              className="shrink-0 underline underline-offset-2 transition-colors hover:text-grey-700 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
             >
               Reset to view
-            </Typography>
-          </div>
+            </button>
+          ) : (
+            <span className="shrink-0 underline underline-offset-2">
+              Reset to view
+            </span>
+          )}
         </div>
+      </div>
 
-        <div
-          key={`api_key_${index}_3`}
-          className="text-grey-500 max-md:col-start-2 max-md:col-end-3 max-md:row-start-2 max-md:row-end-3 max-md:table-cell md:table-cell md:border-b md:border-grey-200 md:pr-4"
-        >
-          <div className="grid">
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              as="div"
-              className="max-md:truncate md:leading-6! md:whitespace-nowrap"
-            >
-              {timeAgo}
-            </Typography>
-          </div>
-        </div>
+      <div className="flex">
+        <Status isActive={apiKey.is_active} />
+      </div>
 
-        <div
-          key={`api_key_${index}_4`}
-          className="text-grey-500 max-md:col-start-1 max-md:col-end-2 max-md:row-start-1 max-md:row-end-3 max-md:table-cell md:table-cell md:border-b md:border-grey-200 md:pr-4 md:align-middle"
-        >
-          <Typography variant={TYPOGRAPHY.R4}>
-            <Status isActive={apiKey.is_active} />
-          </Typography>
-        </div>
-
-        <div className="max-md:col-start-4 max-md:col-end-5 max-md:row-start-1 max-md:row-end-3 max-md:pl-2 md:table-cell md:border-b md:border-grey-200 md:pr-2 md:pl-4 md:align-middle">
-          <div
-            key={`api_key_${index}_5`}
-            className={clsx("flex w-full justify-end", {
-              hidden: !isEnoughPermissions,
-            })}
-          >
+      <div className="flex justify-end">
+        {/* Every item here is OWNER-only in Hasura; don't ship dead DOM. */}
+        {isEnoughPermissions ? (
+          <div className="flex w-full justify-end">
             <Dropdown>
               <Dropdown.Button>
                 <MoreVerticalIcon />
@@ -182,12 +95,12 @@ export const ApiKeyRow = (props: {
                 </Dropdown.ListItem>
 
                 <Dropdown.ListItem asChild>
-                  <button onClick={() => resetAPIKey(apiKey.id)}>
+                  <button onClick={() => openRotateKeyModal(apiKey)}>
                     <Dropdown.ListItemIcon asChild>
                       <KeyIcon />
                     </Dropdown.ListItemIcon>
 
-                    <Dropdown.ListItemText>Reset key</Dropdown.ListItemText>
+                    <Dropdown.ListItemText>Rotate key</Dropdown.ListItemText>
                   </button>
                 </Dropdown.ListItem>
 
@@ -208,8 +121,8 @@ export const ApiKeyRow = (props: {
               </Dropdown.List>
             </Dropdown>
           </div>
-        </div>
+        ) : null}
       </div>
-    </>
+    </div>
   );
 };

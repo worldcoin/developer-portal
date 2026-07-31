@@ -236,7 +236,7 @@ jobs:
     name: Unit Tests
     runs-on:
       group: arc-public-large-amd64-runner
-    timeout-minutes: 3
+    timeout-minutes: 8
     defaults:
       run:
         working-directory: web

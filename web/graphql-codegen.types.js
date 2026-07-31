@@ -95,11 +95,8 @@ module.exports = {
           },
         },
         "typescript-operations",
-        "typescript-react-apollo",
+        "typed-document-node",
       ],
-      config: {
-        withMutationFn: true,
-      },
     },
 
     "components/client": {
@@ -120,11 +117,8 @@ module.exports = {
           },
         },
         "typescript-operations",
-        "typescript-react-apollo",
+        "typed-document-node",
       ],
-      config: {
-        withMutationFn: true,
-      },
     },
 
     app: {
@@ -142,11 +136,8 @@ module.exports = {
           },
         },
         "typescript-operations",
-        "typescript-react-apollo",
+        "typed-document-node",
       ],
-      config: {
-        withMutationFn: true,
-      },
     },
 
     "lib/permissions": {

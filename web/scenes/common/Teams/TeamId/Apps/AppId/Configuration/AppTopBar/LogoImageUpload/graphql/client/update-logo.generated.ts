@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type UpdateLogoMutationVariables = Types.Exact<{
   id: Types.Scalars["String"]["input"];
   fileName: Types.Scalars["String"]["input"];
@@ -17,57 +15,91 @@ export type UpdateLogoMutation = {
   } | null;
 };
 
-export const UpdateLogoDocument = gql`
-  mutation UpdateLogo($id: String!, $fileName: String!) {
-    update_app_metadata_by_pk(
-      pk_columns: { id: $id }
-      _set: { logo_img_url: $fileName }
-    ) {
-      id
-    }
-  }
-`;
-export type UpdateLogoMutationFn = Apollo.MutationFunction<
-  UpdateLogoMutation,
-  UpdateLogoMutationVariables
->;
-
-/**
- * __useUpdateLogoMutation__
- *
- * To run a mutation, you first call `useUpdateLogoMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateLogoMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateLogoMutation, { data, loading, error }] = useUpdateLogoMutation({
- *   variables: {
- *      id: // value for 'id'
- *      fileName: // value for 'fileName'
- *   },
- * });
- */
-export function useUpdateLogoMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    UpdateLogoMutation,
-    UpdateLogoMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<UpdateLogoMutation, UpdateLogoMutationVariables>(
-    UpdateLogoDocument,
-    options,
-  );
-}
-export type UpdateLogoMutationHookResult = ReturnType<
-  typeof useUpdateLogoMutation
->;
-export type UpdateLogoMutationResult =
-  Apollo.MutationResult<UpdateLogoMutation>;
-export type UpdateLogoMutationOptions = Apollo.BaseMutationOptions<
-  UpdateLogoMutation,
-  UpdateLogoMutationVariables
->;
+export const UpdateLogoDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateLogo" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "fileName" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "update_app_metadata_by_pk" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "pk_columns" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "id" },
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "_set" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "logo_img_url" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "fileName" },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateLogoMutation, UpdateLogoMutationVariables>;

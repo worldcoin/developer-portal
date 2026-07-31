@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 type HoverVideoProps = {
   className?: string;
@@ -15,9 +15,45 @@ type HoverVideoProps = {
 export const HoverVideo = ({ className, poster, src }: HoverVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const attachSource = useCallback(() => {
+    const video = videoRef.current;
+
+    if (video && video.getAttribute("src") !== src) {
+      video.setAttribute("src", src);
+    }
+
+    return video;
+  }, [src]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+
+    if (!video || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) {
+          return;
+        }
+
+        attachSource();
+        observer.disconnect();
+      },
+      { rootMargin: "400px" },
+    );
+
+    observer.observe(video);
+
+    return () => observer.disconnect();
+  }, [attachSource]);
+
   const play = () => {
     // play() returns a promise that rejects if interrupted; ignore it.
-    void videoRef.current?.play().catch(() => {});
+    void attachSource()
+      ?.play()
+      .catch(() => {});
   };
 
   const reset = () => {
@@ -48,9 +84,8 @@ export const HoverVideo = ({ className, poster, src }: HoverVideoProps) => {
       onMouseLeave={reset}
       playsInline
       poster={poster}
-      preload="metadata"
+      preload="none"
       ref={videoRef}
-      src={src}
     />
   );
 };

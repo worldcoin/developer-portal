@@ -14,6 +14,7 @@ import { createManagerKey } from "@/api/helpers/kms-eth";
 import {
   submitRegisterRpTransaction,
   submitRotateSignerTransaction,
+  submitToggleRpActiveTransaction,
 } from "@/api/helpers/rp-transactions";
 import {
   generateRpIdString,
@@ -22,6 +23,8 @@ import {
   parseRpId,
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
+import { getRpFromContract } from "@/api/helpers/temporal-rpc";
+import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
 import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
 import { getSdk as getDeleteRpSdk } from "@/api/hasura/register-rp/graphql/delete-rp-registration.generated";
 import { getSdk as getUpdateRpSdk } from "@/api/hasura/register-rp/graphql/update-rp-registration.generated";
@@ -30,6 +33,12 @@ import { getSdk as getRpRegistrationSdk } from "@/api/hasura/rotate-signer-key/g
 import { getSdk as getRevertStatusSdk } from "@/api/hasura/rotate-signer-key/graphql/revert-rotation-status.generated";
 import { getSdk as getUpdateResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-rotation-result.generated";
 import { getSdk as getUpdateStagingResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-staging-rotation-result.generated";
+import { getSdk as getClaimToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/claim-toggle-slot.generated";
+import { getSdk as getResetStalePendingSdk } from "@/api/hasura/toggle-rp-active/graphql/reset-stale-pending-rp.generated";
+import { getSdk as getRevertToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/revert-toggle-status.generated";
+import { getSdk as getUpdateToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated";
+import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
+import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
 import { logger } from "@/lib/logger";
 import { GraphQLClient } from "graphql-request";
 
@@ -326,6 +335,9 @@ export async function submitManagedSignerRotation({
   const oldSignerAddress = registration.signer_address || "";
   const app = registration.app;
 
+  // A deleted / archived / inactive app must not be able to rotate its signer.
+  // Mirrors the app-state guard in the v4 verify endpoint so a soft-deleted
+  // app's managed signer can't be rotated or kept alive from the dashboard.
   if (app.status !== "active" || app.is_archived || app.deleted_at) {
     return {
       ok: false,
@@ -530,5 +542,459 @@ export async function submitManagedSignerRotation({
     oldSignerAddress,
     status: "pending",
     operationHash,
+  };
+}
+
+export type ManagedDeactivationResult =
+  | {
+      ok: true;
+      // "submitted" → we sent an on-chain deactivation tx;
+      // "skipped"   → nothing to do (no RP, self-managed, already inactive, raced).
+      outcome: "submitted" | "skipped";
+      reason?:
+        | "no_rp"
+        | "self_managed"
+        | "in_flight"
+        | "already_inactive"
+        | "concurrent";
+      rpIdString?: string;
+      operationHash?: string;
+    }
+  | {
+      ok: false;
+      code: "config_error" | "rpc_error" | "submission_error";
+      detail: string;
+      rpIdString?: string;
+    };
+
+// A `pending` managed RP has an in-flight UserOp (a register / rotate / toggle
+// that has not settled). We must not act on it until that op is *provably dead*
+// — i.e. its on-chain validity window (validUntil = submit + USER_OP_MAX_VALIDITY_MS)
+// has fully elapsed. Acting sooner risks the original op landing *after* we read
+// chain state, which would either (a) re-activate an RP we just marked
+// `deactivated` because it read as not-yet-initialized, or (b) cancel out a
+// fresh toggle we submitted (toggleActive *flips* rather than sets `active`).
+// The extra margin covers server/chain clock skew and the beat between op
+// submission and the `updated_at` write.
+const PENDING_SETTLE_MARGIN_MS = 5 * 60 * 1000;
+const PENDING_IN_FLIGHT_GRACE_MS =
+  USER_OP_MAX_VALIDITY_MS + PENDING_SETTLE_MARGIN_MS;
+
+/**
+ * Deactivate a managed RP on-chain when its app is deleted. Shared by the
+ * delete flow (inline) and the reconciliation cron that sweeps soft-deleted
+ * apps whose RP is still live (and backfills apps deleted before this existed).
+ *
+ * Idempotency: the decision to submit a `toggleActive` transaction is gated on
+ * a *fresh on-chain read*, never on the DB status. `toggleActive` flips state,
+ * so a blind re-run would re-activate an already-deactivated RP — instead we
+ * only submit when the chain still reports the RP active, and we converge the
+ * DB to `deactivated` (no transaction) when it is already inactive. This makes
+ * retries and repeated cron passes safe.
+ *
+ * Deliberately NOT gated on the World ID 4.0 feature flag: if a managed RP is
+ * live on-chain we tear it down regardless of the team's current flag state.
+ * The caller owns auth (app-owner check for the delete flow; internal secret
+ * for the cron).
+ */
+export async function submitManagedRpDeactivation({
+  client,
+  appId,
+}: {
+  client: GraphQLClient;
+  appId: string;
+}): Promise<ManagedDeactivationResult> {
+  const primaryConfig = getRpRegistryConfig();
+  if (!primaryConfig) {
+    return {
+      ok: false,
+      code: "config_error",
+      detail: "Missing required environment variables for RP Registry.",
+    };
+  }
+
+  const { rp_registration } = await getRpRegistrationSdk(
+    client,
+  ).GetRpRegistration({ app_id: appId });
+
+  if (!rp_registration || rp_registration.length === 0) {
+    return { ok: true, outcome: "skipped", reason: "no_rp" };
+  }
+
+  const registration = rp_registration[0];
+  const rpIdString = registration.rp_id;
+
+  // Only managed RPs with a manager key can be torn down by the portal;
+  // self-managed developers own their own on-chain lifecycle.
+  if (registration.mode !== "managed" || !registration.manager_kms_key_id) {
+    return { ok: true, outcome: "skipped", reason: "self_managed", rpIdString };
+  }
+  const managerKmsKeyId = registration.manager_kms_key_id;
+  const currentStatus = registration.status as RpRegistrationStatus;
+  const currentStagingStatus =
+    registration.staging_status as RpRegistrationStatus | null;
+  const rpId = parseRpId(rpIdString);
+
+  // A `pending` row has an in-flight UserOp (register / rotate / toggle). A
+  // `failed` row can too: rp-status flips a managed registration
+  // `pending → failed` after 5 minutes, but its register op stays valid for 30.
+  // Don't act until any in-flight op is provably dead, or we could (a) finalize
+  // a not-yet-initialized row to `deactivated` only for the register op to land
+  // afterwards and strand the RP active, or (b) stack a second toggle that
+  // flips an already-active RP back on. `updated_at` is bumped on op submission
+  // and on the failed transition, so it never precedes the op — waiting out the
+  // grace measured from it guarantees the op has expired.
+  if (
+    currentStatus === RpRegistrationStatus.Pending ||
+    currentStatus === RpRegistrationStatus.Failed
+  ) {
+    const ageMs = Date.now() - new Date(registration.updated_at).getTime();
+    if (ageMs < PENDING_IN_FLIGHT_GRACE_MS) {
+      return { ok: true, outcome: "skipped", reason: "in_flight", rpIdString };
+    }
+  }
+
+  // Authoritative on-chain state drives the decision — see the idempotency
+  // note above. A failed read is retryable, so don't touch anything.
+  let onChainInitialized: boolean;
+  let onChainActive: boolean;
+  try {
+    const onChainRp = await getRpFromContract(
+      rpId,
+      primaryConfig.contractAddress,
+    );
+    onChainInitialized = onChainRp.initialized;
+    onChainActive = onChainRp.active;
+  } catch (error) {
+    logger.error("Failed to read on-chain RP state for deactivation", {
+      error,
+      app_id: appId,
+      rpIdString,
+    });
+    return {
+      ok: false,
+      code: "rpc_error",
+      detail: "Failed to read on-chain RP state.",
+      rpIdString,
+    };
+  }
+
+  const primaryActive = onChainInitialized && onChainActive;
+
+  // A managed RP is mirrored on the staging contract in production, and the
+  // happy path deactivates both. Read staging up front so the terminal decision
+  // considers *both* contracts: marking the row `deactivated` on the primary
+  // read alone would let the cron (which skips `deactivated` rows) strand a
+  // still-active staging signer for a deleted app indefinitely. Anything that
+  // leaves staging state unproven (a failed read, or — in production — a missing
+  // staging config while the row still has staging state) must not finalize.
+  let stagingActive = false;
+  let stagingReadOk = true;
+  const isProduction = process.env.NEXT_PUBLIC_APP_ENV === "production";
+  const stagingConfig = isProduction ? getStagingRpRegistryConfig() : null;
+  if (stagingConfig) {
+    try {
+      const stagingRp = await getRpFromContract(
+        rpId,
+        stagingConfig.contractAddress,
+      );
+      stagingActive = stagingRp.initialized && stagingRp.active;
+    } catch (error) {
+      stagingReadOk = false;
+      logger.error("Failed to read staging RP state for deactivation", {
+        error,
+        app_id: appId,
+        rpIdString,
+        contractAddress: stagingConfig.contractAddress,
+      });
+    }
+  } else if (
+    isProduction &&
+    currentStagingStatus !== null &&
+    currentStagingStatus !== RpRegistrationStatus.Deactivated
+  ) {
+    // Production, but the staging registry config is missing (a
+    // misconfiguration) while the row still has staging state to reconcile. We
+    // cannot prove the staging RP is inactive, so treat it like an unreadable
+    // contract and refuse to finalize — otherwise we'd mark staging
+    // `deactivated` and strand a possibly-active signer until manual repair.
+    stagingReadOk = false;
+    logger.error(
+      "Staging registry config missing while staging state needs reconciliation",
+      { app_id: appId, rpIdString, currentStagingStatus },
+    );
+  }
+
+  // Nothing active on either contract: no transaction needed. Converge the DB
+  // so the reconciliation cron stops re-selecting this row.
+  // Reaching here with `!onChainInitialized` for a `pending` row is only
+  // possible once its register op has expired (guaranteed by the in-flight
+  // grace window above), so marking it terminal can't strand a registration
+  // that is still able to land and flip the RP back to active.
+  if (!primaryActive && !stagingActive) {
+    // If staging couldn't be read we can't prove it inactive; leave the row
+    // eligible so a later pass finalizes once the read succeeds, rather than
+    // terminally marking it dead on the primary contract alone.
+    if (!stagingReadOk) {
+      return {
+        ok: false,
+        code: "rpc_error",
+        detail: "Failed to read staging RP state.",
+        rpIdString,
+      };
+    }
+    if (currentStatus !== RpRegistrationStatus.Deactivated) {
+      try {
+        await getUpdateRpStatusSdk(client).UpdateRpStatus({
+          rp_id: rpIdString,
+          status: RpRegistrationStatus.Deactivated,
+        });
+      } catch (error) {
+        logger.warn("Failed to mark already-inactive RP as deactivated", {
+          error,
+          app_id: appId,
+          rpIdString,
+        });
+      }
+    }
+    // Staging reads inactive here, so converge a non-terminal staging status to
+    // `deactivated` — the cron selects rows whose staging status is set but not
+    // yet `deactivated`, so leaving a stale `registered` here would re-select
+    // this row forever. But a fresh `pending`/`failed` staging status may have
+    // its own register/rotation UserOp still in flight (valid 30 min); staging
+    // reads inactive only because it hasn't landed yet. Finalizing then would
+    // strand staging active if the op lands afterwards (mirrors the production
+    // grace above), so defer those — the row stays cron-eligible for a later
+    // pass. A null staging status means there is no staging mirror to reconcile.
+    const stagingAgeMs =
+      Date.now() - new Date(registration.updated_at).getTime();
+    const stagingOpMaybeInFlight =
+      (currentStagingStatus === RpRegistrationStatus.Pending ||
+        currentStagingStatus === RpRegistrationStatus.Failed) &&
+      stagingAgeMs < PENDING_IN_FLIGHT_GRACE_MS;
+    if (
+      currentStagingStatus !== null &&
+      currentStagingStatus !== RpRegistrationStatus.Deactivated &&
+      !stagingOpMaybeInFlight
+    ) {
+      try {
+        await getUpdateStagingStatusSdk(client).UpdateStagingStatus({
+          rp_id: rpIdString,
+          staging_status: RpRegistrationStatus.Deactivated,
+        });
+      } catch (error) {
+        logger.warn(
+          "Failed to mark already-inactive staging RP as deactivated",
+          {
+            error,
+            app_id: appId,
+            rpIdString,
+          },
+        );
+      }
+    }
+    return {
+      ok: true,
+      outcome: "skipped",
+      reason: "already_inactive",
+      rpIdString,
+    };
+  }
+
+  // At least one contract is still ACTIVE. A stale `pending` row (the only way
+  // we reach here with pending — fresh ones returned above) means the prior
+  // toggle never settled; reset it to `registered` with a compare-and-swap so
+  // the claim below is always gated by a real status transition. A bare
+  // `pending → pending` claim would not serialize concurrent attempts, and two
+  // submitted toggles would flip the RP back to active. The single claim below
+  // covers both the primary and the staging toggle: the row goes `pending`
+  // (updated_at bumped), so the in-flight grace skips it until the op(s) settle.
+  let claimStatus = currentStatus;
+  if (currentStatus === RpRegistrationStatus.Pending) {
+    // Scope the reset to the exact row version we observed (updated_at), so a
+    // racing pass that already reset + re-claimed this row to a *fresh*
+    // pending can't have it reset out from under it and re-submitted.
+    const { update_rp_registration: resetResult } =
+      await getResetStalePendingSdk(client).ResetStalePendingRp({
+        rp_id: rpIdString,
+        updated_at: registration.updated_at,
+      });
+    if (!resetResult || resetResult.affected_rows === 0) {
+      // Another pass already reset/claimed it (or it is no longer the stale
+      // row we read).
+      return { ok: true, outcome: "skipped", reason: "concurrent", rpIdString };
+    }
+    claimStatus = RpRegistrationStatus.Registered;
+  }
+
+  // Claim the slot (claimStatus → pending) — a real status transition, so it
+  // serializes against a concurrent toggle/rotate or another cron pass. If the
+  // row already moved, bail rather than risk a double toggle.
+  const { update_rp_registration: claimResult } = await getClaimToggleSdk(
+    client,
+  ).ClaimToggleSlot({ rp_id: rpIdString, current_status: claimStatus });
+  if (!claimResult || claimResult.affected_rows === 0) {
+    return { ok: true, outcome: "skipped", reason: "concurrent", rpIdString };
+  }
+
+  // The slot is `pending`. A pre-submission failure must revert it so a later
+  // pass can retry; reverting is safe because every pass re-reads on-chain
+  // state first and skips an RP that is already inactive.
+  const revertStatus = async () => {
+    try {
+      await getRevertToggleSdk(client).RevertToggleStatus({
+        rp_id: rpIdString,
+        previous_status: claimStatus,
+      });
+    } catch (revertError) {
+      logger.error("Failed to revert deactivation status", {
+        error: revertError,
+        app_id: appId,
+        rpIdString,
+      });
+    }
+  };
+
+  let kmsClient;
+  try {
+    kmsClient = await getKMSClient(primaryConfig.kmsRegion);
+  } catch (error) {
+    logger.error("Failed to initialize KMS client for deactivation", {
+      error,
+      app_id: appId,
+      rpIdString,
+    });
+    await revertStatus();
+    return {
+      ok: false,
+      code: "submission_error",
+      detail: "Failed to initialize KMS client.",
+      rpIdString,
+    };
+  }
+
+  // Toggle each contract that is still active. `toggleActive` flips state, so we
+  // must never toggle one that already reads inactive (that would re-enable it).
+  // The primary toggle is the main event; staging is best-effort — unless it is
+  // the only active contract, in which case its failure is handled by the
+  // "nothing submitted" revert below.
+  let operationHash: string | null = null;
+  if (primaryActive) {
+    try {
+      operationHash = await submitToggleRpActiveTransaction(primaryConfig, {
+        rpId,
+        managerKmsKeyId,
+        kmsClient,
+      });
+    } catch (error) {
+      logger.error("Failed to submit RP deactivation transaction", {
+        error,
+        app_id: appId,
+        rpIdString,
+      });
+      await revertStatus();
+      return {
+        ok: false,
+        code: "submission_error",
+        detail: "Failed to submit RP deactivation transaction.",
+        rpIdString,
+      };
+    }
+  }
+
+  let stagingOperationHash: string | null = null;
+  if (stagingActive && stagingConfig) {
+    try {
+      stagingOperationHash = await submitToggleRpActiveTransaction(
+        stagingConfig,
+        { rpId, managerKmsKeyId, kmsClient },
+      );
+      logger.info("Staging RP deactivation submitted", {
+        rpIdString,
+        operationHash: stagingOperationHash,
+        contractAddress: stagingConfig.contractAddress,
+      });
+    } catch (error) {
+      logger.error("Staging RP deactivation failed", {
+        error,
+        rpIdString,
+        contractAddress: stagingConfig.contractAddress,
+      });
+    }
+  }
+
+  // Nothing was submitted (e.g. the staging-only path failed to submit its
+  // toggle). Release the slot so a later pass retries — leaving it `pending`
+  // with no in-flight op would wedge it for the whole grace window.
+  if (!operationHash && !stagingOperationHash) {
+    await revertStatus();
+    return {
+      ok: false,
+      code: "submission_error",
+      detail: "Failed to submit RP deactivation transaction.",
+      rpIdString,
+    };
+  }
+
+  // Record the primary operation hash when we submitted one. The row stays
+  // `pending` until the on-chain state settles — reconciled by the rp-status
+  // endpoint, or by a later cron pass for deleted apps that are no longer
+  // polled. We do NOT flip to `deactivated` here because the transaction may
+  // still revert on-chain; leaving it `pending` (rather than reverting) also
+  // stops the cron from submitting a second toggle on top of the in-flight one
+  // within the grace window. When only staging was toggled there is no new
+  // primary op hash to persist (the mutation requires one); the claim already
+  // left the row `pending` with a fresh updated_at, which is what protects the
+  // staging toggle from a double-submit — the hash is logged above.
+  if (operationHash) {
+    try {
+      const { update_rp_registration_by_pk: updated } =
+        await getUpdateToggleSdk(client).UpdateToggleResult({
+          rp_id: rpIdString,
+          operation_hash: operationHash,
+          staging_operation_hash: stagingOperationHash,
+        });
+      if (!updated) {
+        logger.error("Failed to persist deactivation operation hash", {
+          app_id: appId,
+          rpIdString,
+          operationHash,
+        });
+      }
+    } catch (error) {
+      logger.error("DB write failed after deactivation submission", {
+        error,
+        app_id: appId,
+        rpIdString,
+        operationHash,
+      });
+    }
+  }
+
+  // Bust the rp_status cache so the next read re-fetches on-chain state.
+  const redis = global.RedisClient;
+  if (redis) {
+    try {
+      await redis.del(`rp_status:v2:${rpIdString}`);
+    } catch (cacheError) {
+      logger.warn("Failed to invalidate rp_status cache", {
+        error: cacheError,
+        rpIdString,
+      });
+    }
+  }
+
+  logger.info("RP deactivation submitted", {
+    app_id: appId,
+    rpIdString,
+    operationHash,
+    stagingOperationHash,
+  });
+
+  return {
+    ok: true,
+    outcome: "submitted",
+    rpIdString,
+    operationHash: operationHash ?? undefined,
   };
 }

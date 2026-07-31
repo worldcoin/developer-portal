@@ -1,22 +1,8 @@
-import { Link } from "@/components/Link";
+import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
+import Link from "next/link";
 import { ReactNode } from "react";
-import { twMerge } from "tailwind-merge";
-
-export const sidebarNavItemClassName = (props?: {
-  active?: boolean;
-  dimmed?: boolean;
-  className?: string;
-}) =>
-  twMerge(
-    "flex h-10 min-w-0 items-center gap-2 rounded-[10px] pl-3 pr-4 font-world text-13 font-normal leading-none outline-hidden transition-colors",
-    "focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
-    props?.active
-      ? "border border-portal-border bg-white text-portal-text shadow-portal-card"
-      : "text-portal-muted hover:bg-portal-border hover:text-portal-text",
-    props?.dimmed && "opacity-40",
-    props?.className,
-  );
 
 export const NavItem = (props: {
   href: string;
@@ -27,27 +13,53 @@ export const NavItem = (props: {
   current?: boolean;
   dimmed?: boolean;
   className?: string;
+  children?: ReactNode;
 }) => {
-  const { href, label, icon, trailing, active, current, dimmed, className } =
-    props;
-
-  const content = (
-    <>
-      {icon ? (
-        <span className={`${opticalIconClassName} text-current`}>{icon}</span>
-      ) : null}
-      <span className="min-w-0 flex-1 truncate">{label}</span>
-      {trailing ? <span className="shrink-0">{trailing}</span> : null}
-    </>
-  );
+  const {
+    href,
+    label,
+    icon,
+    trailing,
+    active,
+    current,
+    dimmed,
+    className,
+    children,
+  } = props;
 
   return (
-    <Link
-      href={href}
-      className={sidebarNavItemClassName({ active, dimmed, className })}
-      aria-current={current === false ? undefined : active ? "page" : undefined}
-    >
-      {content}
-    </Link>
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        isActive={active}
+        tooltip={label}
+        className={cn(
+          "h-10 cursor-pointer rounded-[10px] px-3 font-world text-13 leading-none font-normal text-portal-muted hover:bg-portal-border hover:text-portal-text data-[active=true]:border data-[active=true]:border-portal-border data-[active=true]:bg-white data-[active=true]:text-portal-text data-[active=true]:shadow-portal-card",
+          className,
+        )}
+      >
+        <Link
+          href={href}
+          prefetch={false}
+          aria-current={
+            current === false ? undefined : active ? "page" : undefined
+          }
+          className={dimmed ? "opacity-40" : undefined}
+        >
+          {icon ? (
+            <span className={`${opticalIconClassName} text-current`}>
+              {icon}
+            </span>
+          ) : null}
+          <span>{label}</span>
+          {trailing ? (
+            <span className="ml-auto shrink-0 group-data-[collapsible=icon]:hidden">
+              {trailing}
+            </span>
+          ) : null}
+        </Link>
+      </SidebarMenuButton>
+      {children}
+    </SidebarMenuItem>
   );
 };

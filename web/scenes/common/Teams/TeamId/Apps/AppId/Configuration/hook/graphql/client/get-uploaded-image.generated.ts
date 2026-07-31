@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type GetUploadedImageQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
   image_type: Types.Scalars["String"]["input"];
@@ -20,101 +18,139 @@ export type GetUploadedImageQuery = {
   } | null;
 };
 
-export const GetUploadedImageDocument = gql`
-  query GetUploadedImage(
-    $app_id: String!
-    $image_type: String!
-    $content_type_ending: String!
-    $team_id: String!
-    $locale: String
-  ) {
-    get_uploaded_image(
-      app_id: $app_id
-      image_type: $image_type
-      content_type_ending: $content_type_ending
-      team_id: $team_id
-      locale: $locale
-    ) {
-      url
-    }
-  }
-`;
-
-/**
- * __useGetUploadedImageQuery__
- *
- * To run a query within a React component, call `useGetUploadedImageQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetUploadedImageQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetUploadedImageQuery({
- *   variables: {
- *      app_id: // value for 'app_id'
- *      image_type: // value for 'image_type'
- *      content_type_ending: // value for 'content_type_ending'
- *      team_id: // value for 'team_id'
- *      locale: // value for 'locale'
- *   },
- * });
- */
-export function useGetUploadedImageQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetUploadedImageQuery,
-    GetUploadedImageQueryVariables
-  > &
-    (
-      | { variables: GetUploadedImageQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetUploadedImageQuery, GetUploadedImageQueryVariables>(
-    GetUploadedImageDocument,
-    options,
-  );
-}
-export function useGetUploadedImageLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetUploadedImageQuery,
-    GetUploadedImageQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetUploadedImageQuery,
-    GetUploadedImageQueryVariables
-  >(GetUploadedImageDocument, options);
-}
-export function useGetUploadedImageSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetUploadedImageQuery,
-        GetUploadedImageQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    GetUploadedImageQuery,
-    GetUploadedImageQueryVariables
-  >(GetUploadedImageDocument, options);
-}
-export type GetUploadedImageQueryHookResult = ReturnType<
-  typeof useGetUploadedImageQuery
->;
-export type GetUploadedImageLazyQueryHookResult = ReturnType<
-  typeof useGetUploadedImageLazyQuery
->;
-export type GetUploadedImageSuspenseQueryHookResult = ReturnType<
-  typeof useGetUploadedImageSuspenseQuery
->;
-export type GetUploadedImageQueryResult = Apollo.QueryResult<
+export const GetUploadedImageDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetUploadedImage" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "app_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "image_type" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "content_type_ending" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "team_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "locale" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "String" } },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "get_uploaded_image" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "app_id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "app_id" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "image_type" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "image_type" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "content_type_ending" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "content_type_ending" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "team_id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "team_id" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "locale" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "locale" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "url" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   GetUploadedImageQuery,
   GetUploadedImageQueryVariables
 >;

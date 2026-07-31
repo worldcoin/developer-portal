@@ -4,7 +4,7 @@ import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { urls } from "@/lib/urls";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { UpdateActionV4Form } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Settings/UpdateActionV4Form";
-import { useApolloClient } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";

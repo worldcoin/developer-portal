@@ -6,7 +6,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { inferHttps } from "@/lib/schema";
 import { checkUserPermissions } from "@/lib/utils";
-import { useApolloClient } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { atom, useAtom, useSetAtom } from "jotai";
@@ -38,21 +38,28 @@ export type BasicInformationHandle = {
   }) => Promise<boolean>;
 };
 
-// Live snapshot of this form's values, published as the user types. The
-// review-readiness rail and live-preview phone consume it — this form is a
-// local useForm (not part of the AppStore form context), so without this atom
-// the rail would only see values after autosave lands in the Apollo cache.
+// Live snapshot of this form's values, published as the user types. The preview
+// consumes it because this local useForm is separate from the App Store form
+// context; without the atom, the preview would update only after autosave lands
+// in the Apollo cache.
 export const basicInfoDraftAtom = atom<Partial<BasicInformationFormValues>>({});
 
-export const BasicInformation = forwardRef<
-  BasicInformationHandle,
-  {
-    appId: string;
-    teamId: string;
-    app: FetchAppMetadataQuery["app"][0];
-    teamName: string;
-  }
->(({ appId, teamId, app, teamName }, ref) => {
+/**
+ * Owns the basic-information form: seeding from the active metadata row,
+ * autosave (id "basic-information"), the imperative submit used by the
+ * review flow, and the live-draft atom. Shared between the section component
+ * below and the configuration wizard's designed step, so both surfaces
+ * persist through the exact same path.
+ */
+export const useBasicInformationForm = ({
+  appId,
+  teamId,
+  app,
+}: {
+  appId: string;
+  teamId: string;
+  app: FetchAppMetadataQuery["app"][0];
+}) => {
   const apolloClient = useApolloClient();
 
   const [viewMode] = useAtom(viewModeAtom);
@@ -116,7 +123,7 @@ export const BasicInformation = forwardRef<
     }
   }, [appMetaData?.id, editableAppMetadata, reset]);
 
-  // Publish live values for the review-readiness rail and live preview.
+  // Publish live values for the live preview.
   useEffect(() => {
     setBasicInfoDraft(form.getValues());
     const subscription = watch((values) => {
@@ -179,8 +186,8 @@ export const BasicInformation = forwardRef<
     },
   });
 
-  useImperativeHandle(ref, () => ({
-    submit: (opts) =>
+  const submit = useCallback(
+    (opts?: { silent?: boolean; forReview?: boolean }) =>
       new Promise<boolean>((resolve) => {
         handleSubmit(
           async (data) => {
@@ -214,7 +221,8 @@ export const BasicInformation = forwardRef<
           () => resolve(false),
         )();
       }),
-  }));
+    [autosave, handleSubmit, setError],
+  );
 
   const makeUrlRegister = useCallback(
     (
@@ -235,6 +243,37 @@ export const BasicInformation = forwardRef<
     },
     [register, setValue],
   );
+
+  return {
+    form,
+    errors,
+    isEditable,
+    isEnoughPermissions,
+    makeUrlRegister,
+    submit,
+  };
+};
+
+export const BasicInformation = forwardRef<
+  BasicInformationHandle,
+  {
+    appId: string;
+    teamId: string;
+    app: FetchAppMetadataQuery["app"][0];
+    teamName: string;
+  }
+>(({ appId, teamId, app, teamName }, ref) => {
+  const {
+    form,
+    errors,
+    isEditable,
+    isEnoughPermissions,
+    makeUrlRegister,
+    submit,
+  } = useBasicInformationForm({ appId, teamId, app });
+  const { register } = form;
+
+  useImperativeHandle(ref, () => ({ submit }), [submit]);
 
   return (
     <div className="grid gap-y-6">

@@ -5,36 +5,15 @@ import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { ExternalLinkIcon } from "@/components/Icons/ExternalLinkIcon";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import {
+  getMcpEndpoint,
+  getProviderSnippets,
+  PROVIDERS,
+  type ProviderId,
+} from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/mcp-snippets";
 import clsx from "clsx";
 import { useMemo, useState } from "react";
 import { toast } from "react-toastify";
-
-const MCP_SERVER_NAME = "worldcoin-developer-portal";
-const MCP_ENDPOINT = "https://developer.world.org/api/mcp";
-const MCP_API_KEY_ENV_VAR = "WORLD_DEVELOPER_API_KEY";
-
-type ProviderId =
-  | "codex"
-  | "claude"
-  | "cursor"
-  | "windsurf"
-  | "chatgpt"
-  | "zed";
-
-type Provider = {
-  id: ProviderId;
-  name: string;
-  setupLabel: string;
-};
-
-type ProviderSnippet = {
-  command: string;
-  rawConfig: string;
-};
-
-const shellQuote = (value: string) => `'${value.replace(/'/g, "'\\''")}'`;
-const envReference = (name: string) => `\${${name}}`;
-const tomlString = (value: string) => JSON.stringify(value);
 
 const getApiKeyPreview = (apiKey: string) => {
   if (apiKey.length <= 34) {
@@ -43,161 +22,6 @@ const getApiKeyPreview = (apiKey: string) => {
 
   return `${apiKey.slice(0, 18)}...${apiKey.slice(-12)}`;
 };
-
-export const getClaudeMcpCommand = (apiKey: string) =>
-  `claude mcp add ${MCP_SERVER_NAME} ${MCP_ENDPOINT} --transport http --scope project --header "Authorization: Bearer ${apiKey}"`;
-
-export const getCodexMcpCommand = (apiKey: string) =>
-  `codex mcp add ${MCP_SERVER_NAME} --env ${MCP_API_KEY_ENV_VAR}=${shellQuote(apiKey)} -- npx -y mcp-remote ${MCP_ENDPOINT} --transport http-only --header 'Authorization:Bearer ${envReference(MCP_API_KEY_ENV_VAR)}'`;
-
-const getClaudeJsonConfig = (apiKey: string) =>
-  JSON.stringify(
-    {
-      mcpServers: {
-        [MCP_SERVER_NAME]: {
-          type: "http",
-          url: MCP_ENDPOINT,
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
-        },
-      },
-    },
-    null,
-    2,
-  );
-
-const getCursorJsonConfig = (apiKey: string) =>
-  JSON.stringify(
-    {
-      mcpServers: {
-        [MCP_SERVER_NAME]: {
-          url: MCP_ENDPOINT,
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
-        },
-      },
-    },
-    null,
-    2,
-  );
-
-const getWindsurfJsonConfig = (apiKey: string) =>
-  JSON.stringify(
-    {
-      mcpServers: {
-        [MCP_SERVER_NAME]: {
-          serverUrl: MCP_ENDPOINT,
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
-        },
-      },
-    },
-    null,
-    2,
-  );
-
-const getChatGptConnectorConfig = (apiKey: string) =>
-  [
-    `Name: World Developer Portal`,
-    `URL: ${MCP_ENDPOINT}`,
-    `Authorization: Bearer ${apiKey}`,
-  ].join("\n");
-
-const getZedJsonConfig = (apiKey: string) =>
-  JSON.stringify(
-    {
-      context_servers: {
-        [MCP_SERVER_NAME]: {
-          url: MCP_ENDPOINT,
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
-        },
-      },
-    },
-    null,
-    2,
-  );
-
-const getProviderSnippets = (
-  apiKey: string,
-): Record<ProviderId, ProviderSnippet> => {
-  const claudeJsonConfig = getClaudeJsonConfig(apiKey);
-  const cursorJsonConfig = getCursorJsonConfig(apiKey);
-  const windsurfJsonConfig = getWindsurfJsonConfig(apiKey);
-  const chatGptConnectorConfig = getChatGptConnectorConfig(apiKey);
-  const zedJsonConfig = getZedJsonConfig(apiKey);
-
-  return {
-    codex: {
-      command: getCodexMcpCommand(apiKey),
-      rawConfig: [
-        `[mcp_servers.${MCP_SERVER_NAME}]`,
-        `command = "npx"`,
-        `args = ["-y", "mcp-remote", ${tomlString(MCP_ENDPOINT)}, "--transport", "http-only", "--header", ${tomlString(`Authorization:Bearer ${envReference(MCP_API_KEY_ENV_VAR)}`)}]`,
-        "",
-        `[mcp_servers.${MCP_SERVER_NAME}.env]`,
-        `${MCP_API_KEY_ENV_VAR} = ${tomlString(apiKey)}`,
-      ].join("\n"),
-    },
-    claude: {
-      command: getClaudeMcpCommand(apiKey),
-      rawConfig: claudeJsonConfig,
-    },
-    cursor: {
-      command: cursorJsonConfig,
-      rawConfig: cursorJsonConfig,
-    },
-    windsurf: {
-      command: windsurfJsonConfig,
-      rawConfig: windsurfJsonConfig,
-    },
-    chatgpt: {
-      command: chatGptConnectorConfig,
-      rawConfig: chatGptConnectorConfig,
-    },
-    zed: {
-      command: zedJsonConfig,
-      rawConfig: zedJsonConfig,
-    },
-  };
-};
-
-const PROVIDERS: Provider[] = [
-  {
-    id: "codex",
-    name: "Codex",
-    setupLabel: "Run in your terminal",
-  },
-  {
-    id: "claude",
-    name: "Claude",
-    setupLabel: "Run in your terminal",
-  },
-  {
-    id: "cursor",
-    name: "Cursor",
-    setupLabel: "Paste into .cursor/mcp.json",
-  },
-  {
-    id: "windsurf",
-    name: "Windsurf",
-    setupLabel: "Paste into MCP config",
-  },
-  {
-    id: "chatgpt",
-    name: "ChatGPT",
-    setupLabel: "Use as connector config",
-  },
-  {
-    id: "zed",
-    name: "Zed",
-    setupLabel: "Paste into settings.json",
-  },
-];
 
 const CopyControl = (props: {
   fieldName: string;
@@ -230,6 +54,7 @@ const CopyControl = (props: {
           "size-8 rounded-12": variant === "icon",
         },
       )}
+      aria-label={variant === "icon" ? `Copy ${fieldName}` : undefined}
       onClick={copyToClipboard}
     >
       <Icon className="size-4" />
@@ -250,15 +75,8 @@ const SnippetText = (props: { value: string; isRawConfig: boolean }) => {
   }
 
   const firstSpace = value.indexOf(" ");
-  const firstEquals = value.indexOf("=");
-  const splitAt =
-    firstSpace === -1
-      ? firstEquals
-      : firstEquals === -1
-        ? firstSpace
-        : Math.min(firstSpace, firstEquals);
-  const firstToken = splitAt === -1 ? value : value.slice(0, splitAt);
-  const rest = splitAt === -1 ? "" : value.slice(splitAt);
+  const firstToken = firstSpace === -1 ? value : value.slice(0, firstSpace);
+  const rest = firstSpace === -1 ? "" : value.slice(firstSpace);
 
   return (
     <pre className="min-w-0 overflow-x-auto font-ibm text-xs leading-5 whitespace-pre text-grey-900 md:text-sm">
@@ -275,7 +93,11 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
   const apiKeyPreview = getApiKeyPreview(apiKey);
   const [selectedProvider, setSelectedProvider] = useState<ProviderId>("codex");
   const [showRawConfig, setShowRawConfig] = useState(false);
-  const snippets = useMemo(() => getProviderSnippets(apiKey), [apiKey]);
+  // Only ever rendered post-mutation inside CreateKeyModal, so `window` exists.
+  const snippets = useMemo(
+    () => getProviderSnippets(apiKey, getMcpEndpoint(window.location.origin)),
+    [apiKey],
+  );
   const provider = PROVIDERS.find((item) => item.id === selectedProvider)!;
   const snippet = snippets[selectedProvider];
   const snippetValue = showRawConfig ? snippet.rawConfig : snippet.command;

@@ -109,6 +109,15 @@ const checkRouteRolesRestrictions = (
   const urlSegments = pathname.split("/");
   const teamId = urlSegments[2];
 
+  // No membership in the URL's team (deleted/foreign) → send home; a member with the wrong role still gets the 401.
+  const isTeamMember = Boolean(
+    user?.hasura?.memberships?.some((m) => m.team?.id === teamId),
+  );
+  const restrictedRouteResponse = () =>
+    isTeamMember
+      ? NextResponse.rewrite(new URL("/unauthorized", request.url))
+      : NextResponse.redirect(new URL("/", request.url));
+
   // Route Subset Restriction
   const ownerOnlyRoutes = [
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/configuration/danger$",
@@ -123,7 +132,7 @@ const checkRouteRolesRestrictions = (
 
   if (ownerOnlyRoutes.some((route) => pathname.match(route))) {
     if (!checkUserPermissions(user, teamId, [Role_Enum.Owner])) {
-      return NextResponse.rewrite(new URL("/unauthorized", request.url));
+      return restrictedRouteResponse();
     }
   }
 
@@ -134,7 +143,7 @@ const checkRouteRolesRestrictions = (
       : [Role_Enum.Owner];
 
     if (!checkUserPermissions(user, teamId, validRoles)) {
-      return NextResponse.rewrite(new URL("/unauthorized", request.url));
+      return restrictedRouteResponse();
     }
   }
 
@@ -142,13 +151,14 @@ const checkRouteRolesRestrictions = (
     if (
       !checkUserPermissions(user, teamId, [Role_Enum.Owner, Role_Enum.Admin])
     ) {
-      return NextResponse.rewrite(new URL("/unauthorized", request.url));
+      return restrictedRouteResponse();
     }
   }
   return false;
 };
 
 const protectedMatchers = [
+  /^\/dashboard$/,
   /^\/teams(\/|$)/,
   /^\/create-team$/,
   /^\/profile(\/|$)/,
@@ -215,6 +225,7 @@ const createSecurityHeadersResponse = (
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("content-security-policy", csp);
+  requestHeaders.set("x-current-path", pathname);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
 
@@ -232,6 +243,7 @@ const createDashboardRewriteResponse = (request: NextRequest) => {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("content-security-policy", csp);
+  requestHeaders.set("x-current-path", "/admin");
 
   const response = NextResponse.rewrite(url, {
     request: { headers: requestHeaders },
@@ -389,8 +401,9 @@ export async function proxy(request: NextRequest) {
   }
 
   // 4. Attach the per-request CSP nonce. It is forwarded on the request headers
-  //    so the root layout (`web/scenes/Root/layout`) can read `x-nonce` during
-  //    SSR, and set on the response so the browser enforces the policy.
+  //    so the Apollo-scoped portal layout (`app/(portal)/layout.tsx`) can read
+  //    `x-nonce` during SSR, and set on the response so the browser enforces
+  //    the policy.
   const response = createSecurityHeadersResponse(request, pathname);
 
   // Preserve any session-refresh cookies set by `auth0.middleware()`.
@@ -405,6 +418,7 @@ export const config = {
   matcher: [
     "/",
     "/api/auth/:path*",
+    "/dashboard",
     "/teams/:path*",
     "/create-team",
     "/profile/:path*",

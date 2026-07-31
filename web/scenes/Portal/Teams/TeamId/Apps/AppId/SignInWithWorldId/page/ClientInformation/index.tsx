@@ -15,10 +15,11 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { useCallback, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { LinksForm } from "./Links";
 import { Redirects } from "./Redirects";
-import { useFetchSignInActionQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/graphql/client/fetch-sign-in-action.generated";
-import { useResetClientSecretMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/graphql/client/reset-secret.generated";
+import { FetchSignInActionDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/graphql/client/fetch-sign-in-action.generated";
+import { ResetClientSecretDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/graphql/client/reset-secret.generated";
 
 export const ClientInformationPage = (props: {
   appID: string;
@@ -35,9 +36,12 @@ export const ClientInformationPage = (props: {
     ]);
   }, [user, teamID]);
 
-  const { data, loading: fetchingAction } = useFetchSignInActionQuery({
-    variables: { app_id: appID },
-  });
+  const { data, loading: fetchingAction } = useQuery(
+    FetchSignInActionDocument,
+    {
+      variables: { app_id: appID },
+    },
+  );
 
   const signInAction = data?.action[0];
   const isStaging = data?.app[0]?.is_staging;
@@ -52,7 +56,7 @@ export const ClientInformationPage = (props: {
     return appCreatedDate > cutoffDate;
   }, [createdAt, teamID]);
 
-  const [resetClientSecretMutation] = useResetClientSecretMutation({
+  const [resetClientSecretMutation] = useMutation(ResetClientSecretDocument, {
     variables: { app_id: appID, team_id: teamID },
   });
 

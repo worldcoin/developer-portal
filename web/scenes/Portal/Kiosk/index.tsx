@@ -4,7 +4,8 @@ import { LegacyVerificationLevel } from "@/lib/idkit";
 import { useSearchParams } from "next/navigation";
 import { use } from "react";
 import { ActiveKioskPage } from "../Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/ActiveKiosk";
-import { useGetKioskActionQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/get-kiosk-action.generated";
+import { GetKioskActionDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/get-kiosk-action.generated";
+import { useQuery } from "@apollo/client/react";
 
 type ActionIdKioskPageProps = {
   params: Promise<Record<string, string>>;
@@ -20,7 +21,7 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const actionId = params?.actionId as `action_${string}`;
 
-  const { data } = useGetKioskActionQuery({
+  const { data } = useQuery(GetKioskActionDocument, {
     variables: {
       action_id: actionId,
       app_id: appId,

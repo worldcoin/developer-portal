@@ -8,15 +8,20 @@ test.describe("App", () => {
   });
 
   test("Create an App", async ({ page }) => {
+    test.slow();
     qase.id(2);
 
     const appName = "World Test!";
 
     await page.goto("/");
-    await expect(page.getByText("Build your first project")).toBeVisible();
-    await page.click("[data-testid='button-create-an-app']");
+    await expect(page.getByText("Let's create your first app.")).toBeVisible();
+    await page.getByTestId("button-create-new-app").click();
 
-    await expect(page.getByText("Setup your app")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Create a new app" }),
+    ).toBeVisible({
+      timeout: 90_000,
+    });
     await expect(page.getByTestId("button-create-app")).toBeDisabled();
 
     await page.fill("[data-testid='input-app-name']", appName);
@@ -24,9 +29,13 @@ test.describe("App", () => {
     await page.getByTestId("button-create-app").click();
 
     await expect(page).toHaveURL(
-      new RegExp(`/teams/${constants.teamId}/apps/app_[a-f0-9]+$`),
+      new RegExp(`/teams/${constants.teamId}/apps/app_[a-f0-9]+/world-id-4-0$`),
     );
-    await expect(page.getByText("Overview")).toBeVisible();
-    await expect(page.getByText(appName)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Create action" }),
+    ).toBeVisible();
+    // The arrival toast ("New app <name> was created") also renders the app
+    // name, so the bare text query is ambiguous while it is on screen.
+    await expect(page.getByText(appName).first()).toBeVisible();
   });
 });

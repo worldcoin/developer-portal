@@ -8,8 +8,8 @@ import {
 } from "@/components/Select";
 
 import {
+  FetchAppsDocument,
   FetchAppsQuery,
-  useFetchAppsQuery,
 } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 
 import { CaretIcon } from "@/components/Icons/CaretIcon";
@@ -21,17 +21,17 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkUserPermissions, getCDNImageUrl } from "@/lib/utils";
+import { useQuery } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
-import { useAtom } from "jotai";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
-import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
+import { useCreateAppDialog } from "@/scenes/common/layout/CreateAppDialog/useCreateAppDialog";
 
 export const AppSelector = () => {
   const router = useRouter();
   const { teamId, appId } = useParams() as { teamId?: string; appId?: string };
-  const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
+  const { open: openCreateAppDialog } = useCreateAppDialog();
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
@@ -41,7 +41,7 @@ export const AppSelector = () => {
     ]);
   }, [user, teamId]);
 
-  const { data, loading, error } = useFetchAppsQuery({
+  const { data, loading, error } = useQuery(FetchAppsDocument, {
     variables: { teamId: teamId! },
     skip: !teamId,
   });
@@ -59,7 +59,7 @@ export const AppSelector = () => {
     (app: FetchAppsQuery["app"][number] | null) => {
       // NOTE: null is value for "Create new app" option
       if (app === null) {
-        return setCreateAppDialogOpen(true);
+        return openCreateAppDialog();
       }
 
       if (!teamId) {
@@ -68,7 +68,7 @@ export const AppSelector = () => {
 
       router.push(urls.app({ team_id: teamId, app_id: app?.id }));
     },
-    [router, setCreateAppDialogOpen, teamId],
+    [openCreateAppDialog, router, teamId],
   );
 
   if (!data || loading || error || sortedApps.length === 0 || !teamId) {

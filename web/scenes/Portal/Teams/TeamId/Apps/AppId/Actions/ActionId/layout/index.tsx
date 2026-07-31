@@ -10,8 +10,9 @@ import { Auth0SessionUser, EngineType } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { useQuery } from "@apollo/client/react";
 import { ReactNode, use } from "react";
-import { useGetSingleActionAndNullifiersQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/page/graphql/client/get-single-action.generated";
+import { GetSingleActionAndNullifiersDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/page/graphql/client/get-single-action.generated";
 
 type Params = {
   teamId?: string;
@@ -29,7 +30,7 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
   const { user } = useUser() as Auth0SessionUser;
 
   // Fetch action data for header using user permissions
-  const { data, loading } = useGetSingleActionAndNullifiersQuery({
+  const { data, loading } = useQuery(GetSingleActionAndNullifiersDocument, {
     variables: {
       action_id: params.actionId ?? "",
     },

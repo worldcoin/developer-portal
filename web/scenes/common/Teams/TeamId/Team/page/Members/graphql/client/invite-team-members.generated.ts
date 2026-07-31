@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type InviteTeamMembersMutationVariables = Types.Exact<{
   emails?: Types.InputMaybe<
     Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
@@ -19,54 +17,82 @@ export type InviteTeamMembersMutation = {
   } | null;
 };
 
-export const InviteTeamMembersDocument = gql`
-  mutation InviteTeamMembers($emails: [String!], $team_id: String!) {
-    invite_team_members(emails: $emails, team_id: $team_id) {
-      emails
-    }
-  }
-`;
-export type InviteTeamMembersMutationFn = Apollo.MutationFunction<
-  InviteTeamMembersMutation,
-  InviteTeamMembersMutationVariables
->;
-
-/**
- * __useInviteTeamMembersMutation__
- *
- * To run a mutation, you first call `useInviteTeamMembersMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInviteTeamMembersMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [inviteTeamMembersMutation, { data, loading, error }] = useInviteTeamMembersMutation({
- *   variables: {
- *      emails: // value for 'emails'
- *      team_id: // value for 'team_id'
- *   },
- * });
- */
-export function useInviteTeamMembersMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    InviteTeamMembersMutation,
-    InviteTeamMembersMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    InviteTeamMembersMutation,
-    InviteTeamMembersMutationVariables
-  >(InviteTeamMembersDocument, options);
-}
-export type InviteTeamMembersMutationHookResult = ReturnType<
-  typeof useInviteTeamMembersMutation
->;
-export type InviteTeamMembersMutationResult =
-  Apollo.MutationResult<InviteTeamMembersMutation>;
-export type InviteTeamMembersMutationOptions = Apollo.BaseMutationOptions<
+export const InviteTeamMembersDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "InviteTeamMembers" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "emails" },
+          },
+          type: {
+            kind: "ListType",
+            type: {
+              kind: "NonNullType",
+              type: {
+                kind: "NamedType",
+                name: { kind: "Name", value: "String" },
+              },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "team_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "invite_team_members" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "emails" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "emails" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "team_id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "team_id" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "emails" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   InviteTeamMembersMutation,
   InviteTeamMembersMutationVariables
 >;

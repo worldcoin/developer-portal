@@ -50,7 +50,7 @@ describe("user role", () => {
       user_id: ownerUserFromTeam0?.user_id,
     });
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
       variables: {
         id: userFromTeam1?.user_id,
@@ -66,7 +66,7 @@ describe("user role", () => {
 
     expect(userFromTeam2AfterUpdate[0].name).not.toBe("new name");
 
-    const response2 = await client.mutate({
+    const response2 = await client.mutate<any>({
       mutation,
       variables: {
         id: anotherUserFromTeam0?.user_id,
@@ -130,7 +130,7 @@ describe("user role", () => {
       user_id: userFromTeam0?.user_id,
     });
 
-    const response = await client.query({
+    const response = await client.query<any>({
       query,
       variables: {
         id: userFromTeam1?.user_id,

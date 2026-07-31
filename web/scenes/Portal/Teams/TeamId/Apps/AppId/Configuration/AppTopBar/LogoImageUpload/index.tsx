@@ -18,7 +18,8 @@ import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppI
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import ImageLoader from "../../AppStore/ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
-import { useUpdateLogoMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload/graphql/client/update-logo.generated";
+import { useMutation } from "@apollo/client/react";
+import { UpdateLogoDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload/graphql/client/update-logo.generated";
 
 type LogoImageUploadProps = {
   appId: string;
@@ -54,7 +55,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const [disabled] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
-  const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
+  const [updateLogoMutation, { loading }] = useMutation(UpdateLogoDocument);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
     useImage();

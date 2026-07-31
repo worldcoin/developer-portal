@@ -1,8 +1,11 @@
 import clsx from "clsx";
 import { ComponentProps, memo, useCallback } from "react";
-import SyntaxHighlighter from "react-syntax-highlighter";
+import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
+import javascript from "react-syntax-highlighter/dist/esm/languages/hljs/javascript";
 import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import { PreTag } from "./PreTag";
+
+SyntaxHighlighter.registerLanguage("javascript", javascript);
 
 export const CodeBlock = memo(function CodeBlock(
   props: {

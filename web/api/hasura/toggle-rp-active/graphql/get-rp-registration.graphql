@@ -7,6 +7,9 @@ query GetRpRegistration($app_id: String!) {
     manager_kms_key_id
     app {
       team_id
+      deleted_at
+      status
+      is_archived
     }
   }
 }

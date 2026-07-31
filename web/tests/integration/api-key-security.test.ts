@@ -54,7 +54,7 @@ describe("API key security", () => {
       }
     `;
 
-    const createResponse = await attackerClient.mutate({
+    const createResponse = await attackerClient.mutate<any>({
       mutation: createKeyMutation,
       variables: {
         name: "Attacker's API Key",
@@ -93,7 +93,7 @@ describe("API key security", () => {
     // Try to exploit the vulnerability
     let updateError;
     try {
-      await attackerClient.mutate({
+      await attackerClient.mutate<any>({
         mutation: updateKeyMutation,
         variables: {
           id: apiKeyId,
@@ -108,8 +108,8 @@ describe("API key security", () => {
 
     // After fix: The update should fail with a GraphQL error
     expect(updateError).toBeDefined();
-    expect(updateError.graphQLErrors).toBeDefined();
-    expect(updateError.graphQLErrors[0]?.message).toContain(
+    expect(updateError.errors).toBeDefined();
+    expect(updateError.errors[0]?.message).toContain(
       "field 'team_id' not found in type: 'api_key_set_input'",
     );
 
@@ -151,7 +151,7 @@ describe("API key security", () => {
       }
     `;
 
-    const createResponse = await client.mutate({
+    const createResponse = await client.mutate<any>({
       mutation: createKeyMutation,
       variables: {
         name: "Test API Key",
@@ -177,7 +177,7 @@ describe("API key security", () => {
       }
     `;
 
-    const updateResponse = await client.mutate({
+    const updateResponse = await client.mutate<any>({
       mutation: updateKeyMutation,
       variables: {
         id: apiKeyId,
@@ -235,7 +235,7 @@ describe("API key security", () => {
       }
     `;
 
-    const createResponse = await ownerClient.mutate({
+    const createResponse = await ownerClient.mutate<any>({
       mutation: createKeyMutation,
       variables: {
         name: "Owner's API Key",
@@ -260,7 +260,7 @@ describe("API key security", () => {
       }
     `;
 
-    const updateResponse = await adminClient.mutate({
+    const updateResponse = await adminClient.mutate<any>({
       mutation: updateKeyMutation,
       variables: {
         id: apiKeyId,
@@ -321,7 +321,7 @@ describe("API key action insert permissions", () => {
       }
     `;
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
       variables: {
         object: {
@@ -363,13 +363,13 @@ describe("API key action insert permissions", () => {
 
       let error: any;
       try {
-        await client.mutate({ mutation, variables: { app_id } });
+        await client.mutate<any>({ mutation, variables: { app_id } });
       } catch (e) {
         error = e;
       }
 
       expect(error).toBeDefined();
-      expect(error.graphQLErrors?.[0]?.message).toContain(
+      expect(error.errors?.[0]?.message).toContain(
         `field '${column}' not found in type: 'action_insert_input'`,
       );
 
@@ -378,6 +378,70 @@ describe("API key action insert permissions", () => {
         `SELECT COUNT(*)::int AS count FROM "public"."action" WHERE action = 'regression_${column}'`,
       )) as { rows: Array<{ count: number }> };
       expect(rows[0].count).toBe(0);
+    },
+  );
+});
+
+/**
+ * Regression for the api_key role's action UPDATE permission.
+ *
+ * H1 Report Reference: #3846290 / VULN-6369 (CE25-C014)
+ *
+ * The partner webhook SSRF PoC upserts webhook_uri/webhook_pem through
+ * `on_conflict: { update_columns: [...] }`, which is governed by the same
+ * update-column permission as a direct `_set`. The partner-only columns are
+ * excluded from the api_key update permission, so Hasura rejects them in
+ * 'action_set_input' regardless of the caller — partners set them through the
+ * service-role UI path, which additionally validates the webhook URL.
+ */
+describe("API key action update permissions", () => {
+  const PARTNER_ONLY_COLUMNS: Array<[string, string]> = [
+    ["webhook_uri", '"https://attacker.example.com/webhook"'],
+    ["webhook_pem", '"attacker-pem"'],
+    ["app_flow_on_complete", "VERIFY"],
+    ["post_action_deep_link_ios", '"worldapp://attacker-ios"'],
+    ["post_action_deep_link_android", '"worldapp://attacker-android"'],
+  ];
+
+  const getSeededApp = async () => {
+    const { rows } = (await integrationDBExecuteQuery(
+      `SELECT id AS app_id, team_id FROM "public"."app" WHERE team_id IS NOT NULL LIMIT 1`,
+    )) as { rows: Array<{ app_id: string; team_id: string }> };
+
+    expect(rows.length).toBe(1);
+    return rows[0];
+  };
+
+  test.each(PARTNER_ONLY_COLUMNS)(
+    "api_key role cannot set partner-only column '%s' on update",
+    async (column, literal) => {
+      const { app_id, team_id } = await getSeededApp();
+      const client = await getAPIClient({ team_id });
+
+      // The forbidden field is placed inline in _set so it is validated against
+      // the api_key role's action_set_input type.
+      const mutation = gql`
+        mutation UpdateActionWithPartnerColumn($app_id: String!) {
+          update_action(
+            where: { app_id: { _eq: $app_id } }
+            _set: { ${column}: ${literal} }
+          ) {
+            affected_rows
+          }
+        }
+      `;
+
+      let error: any;
+      try {
+        await client.mutate({ mutation, variables: { app_id } });
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).toBeDefined();
+      expect(error.errors?.[0]?.message).toContain(
+        `field '${column}' not found in type: 'action_set_input'`,
+      );
     },
   );
 });

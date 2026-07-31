@@ -35,9 +35,35 @@ jest.mock(
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload/graphql/client/update-logo.generated",
   () => ({
-    useUpdateLogoMutation: () => [jest.fn(), { loading: false }],
+    UpdateLogoDocument: { __mockDoc: "updateLogo" },
   }),
 );
+
+// Apollo Client 4: the react hooks live in "@apollo/client/react". The rendered
+// tree only calls useMutation (LogoImageUpload's update-logo mutation); the
+// other hooks are stubbed defensively so any nested Apollo call is inert.
+jest.mock("@apollo/client/react", () => ({
+  useQuery: () => ({
+    data: undefined,
+    loading: false,
+    error: undefined,
+    refetch: jest.fn(),
+  }),
+  useLazyQuery: () => [
+    jest.fn(),
+    { data: undefined, loading: false, called: false },
+  ],
+  useMutation: () => [
+    jest.fn().mockResolvedValue({ data: {} }),
+    { loading: false },
+  ],
+  useApolloClient: () => ({
+    cache: { modify: jest.fn(), identify: jest.fn() },
+    readQuery: () => null,
+    writeQuery: jest.fn(),
+  }),
+  skipToken: Symbol.for("apollo.skipToken"),
+}));
 
 import { LogoImageUpload } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload";
 

@@ -1,7 +1,8 @@
 import { tryParseJSON } from "@/lib/utils";
 import { toast } from "react-toastify";
-import { useGetUploadedImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/get-uploaded-image.generated";
-import { useUploadImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/upload-image.generated";
+import { useLazyQuery } from "@apollo/client/react";
+import { GetUploadedImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/get-uploaded-image.generated";
+import { UploadImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/upload-image.generated";
 
 export class ImageValidationError extends Error {
   public readonly toastId: string;
@@ -13,7 +14,10 @@ export class ImageValidationError extends Error {
 }
 
 export const useImage = () => {
-  const [getUploadedImage, { refetch }] = useGetUploadedImageLazyQuery();
+  // network-only: presigned URLs expire, so a cached result is never useful.
+  const [getUploadedImage] = useLazyQuery(GetUploadedImageDocument, {
+    fetchPolicy: "network-only",
+  });
 
   const getImage = async (
     fileType: string, // png, jpeg
@@ -94,7 +98,7 @@ export const useImage = () => {
       img.src = parsedUrl.href;
     });
   };
-  const [uploadImage] = useUploadImageLazyQuery({
+  const [uploadImage] = useLazyQuery(UploadImageDocument, {
     fetchPolicy: "network-only",
   });
 
@@ -150,13 +154,8 @@ export const useImage = () => {
       );
     }
 
-    await refetch({
-      app_id: appId,
-      image_type: imageType,
-      content_type_ending: file.type.split("/")[1],
-      team_id: teamId,
-      locale: locale,
-    });
+    // No post-upload request needed: S3's 2xx above is the upload
+    // confirmation, and callers fetch the display URL via getImage themselves.
   };
 
   return {

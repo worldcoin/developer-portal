@@ -35,7 +35,7 @@ RUN npm install -g corepack@0.31.0 && corepack --version
 # error on every middleware-matched request, generating tens of thousands of
 # noisy "untyped Error" events in Datadog Error Tracking despite HTTP 200
 # responses. Keep this in sync with the `dd-trace` version in package.json.
-RUN corepack enable pnpm && corepack prepare pnpm@9.15.4 --activate && pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.84.0
+RUN corepack enable pnpm && corepack prepare pnpm@9.15.4 --activate && pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.115.0
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -57,11 +57,19 @@ ARG NEXT_PUBLIC_POSTHOG_API_KEY=""
 ARG NEXT_PUBLIC_PROFILE_ROUTE="/api/auth/profile"
 ARG CLOUDFRONT_DISTRIBUTION_ID=""
 ARG NEXT_PUBLIC_APP_ENV=""
+# Sandbox distribution links are read by client components and must be
+# available while Next.js builds the browser bundle.
+ARG NEXT_PUBLIC_IOS_TESTFLIGHT_URL=""
+ARG NEXT_PUBLIC_ANDROID_INTERNAL_TEST_URL=""
+ARG NEXT_PUBLIC_TESTFLIGHT_APP_STORE_URL=""
 # Feature flag for the World ID legacy account restoration flow. Read at
 # build time by the client bundle and at runtime by the API endpoint.
 ARG NEXT_PUBLIC_ENABLE_WORLD_ID_RESTORATION=""
 ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=""
 ENV NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
+ENV NEXT_PUBLIC_IOS_TESTFLIGHT_URL=${NEXT_PUBLIC_IOS_TESTFLIGHT_URL}
+ENV NEXT_PUBLIC_ANDROID_INTERNAL_TEST_URL=${NEXT_PUBLIC_ANDROID_INTERNAL_TEST_URL}
+ENV NEXT_PUBLIC_TESTFLIGHT_APP_STORE_URL=${NEXT_PUBLIC_TESTFLIGHT_APP_STORE_URL}
 ENV NEXT_PUBLIC_ENABLE_WORLD_ID_RESTORATION=${NEXT_PUBLIC_ENABLE_WORLD_ID_RESTORATION}
 ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
 ENV ASSETS_S3_BUCKET_NAME=${ASSETS_S3_BUCKET_NAME}

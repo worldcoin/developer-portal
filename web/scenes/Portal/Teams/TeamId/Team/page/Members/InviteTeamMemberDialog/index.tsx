@@ -11,8 +11,9 @@ import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
+import { useMutation } from "@apollo/client/react";
 import { FetchTeamMembersDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/fetch-team-members.generated";
-import { useInviteTeamMembersMutation } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/invite-team-members.generated";
+import { InviteTeamMembersDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/invite-team-members.generated";
 import { EmailsInput } from "./EmailsInput";
 
 export const inviteTeamMemberDialogAtom = atom(false);
@@ -28,7 +29,9 @@ export const InviteTeamMemberDialog = () => {
     setEmails([]);
   }, [setEmails, setIsOpened]);
 
-  const [inviteTeamMembers, { loading }] = useInviteTeamMembersMutation();
+  const [inviteTeamMembers, { loading }] = useMutation(
+    InviteTeamMembersDocument,
+  );
 
   const handleInvite = useCallback(async () => {
     try {

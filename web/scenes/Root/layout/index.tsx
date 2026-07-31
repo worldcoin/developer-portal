@@ -1,4 +1,3 @@
-import { ApolloWrapper } from "@/lib/apollo-wrapper";
 import PostHogPageView from "@/scenes/Root/providers/PostHogPageView";
 import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
 import "@/styles/globals.css";
@@ -8,9 +7,9 @@ import { IBM_Plex_Mono, Rubik } from "next/font/google";
 import localFont from "next/font/local";
 import { headers } from "next/headers";
 import { Suspense } from "react";
+import "react-image-crop/dist/ReactCrop.css";
 import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import "react-image-crop/dist/ReactCrop.css";
 import { Slide, ToastContainer } from "react-toastify";
 
 const rubik = Rubik({
@@ -81,11 +80,12 @@ export const RootLayout = async ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  // Read the per-request CSP nonce set by the proxy (`web/proxy.ts`)
-  // so client-only providers that inject inline <script> tags during SSR
-  // (Apollo's data-transport rehydration script) can attach the nonce and
-  // pass our strict script-src.
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  // Force request-time rendering so Next can apply the per-request CSP nonce
+  // from `web/proxy.ts` to framework and page scripts.
+  const requestHeaders = await headers();
+  const currentPath = requestHeaders.get("x-current-path");
+  const disableUserIdentification =
+    currentPath === "/admin" || currentPath?.startsWith("/admin/");
 
   return (
     <html lang="en" className={fontVariables}>
@@ -98,17 +98,17 @@ export const RootLayout = async ({
         />
 
         <Auth0Provider>
-          <WithPostHogIdentifier>
-            <ApolloWrapper nonce={nonce}>
-              <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
-                <Provider>
-                  <Suspense fallback={null}>
-                    <PostHogPageView />
-                  </Suspense>
-                  {children}
-                </Provider>
-              </SkeletonTheme>
-            </ApolloWrapper>
+          <WithPostHogIdentifier
+            disableUserIdentification={disableUserIdentification}
+          >
+            <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
+              <Provider>
+                <Suspense fallback={null}>
+                  <PostHogPageView />
+                </Suspense>
+                {children}
+              </Provider>
+            </SkeletonTheme>
           </WithPostHogIdentifier>
         </Auth0Provider>
       </body>

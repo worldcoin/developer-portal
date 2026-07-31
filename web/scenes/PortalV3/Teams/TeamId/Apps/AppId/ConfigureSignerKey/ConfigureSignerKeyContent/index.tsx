@@ -1,9 +1,12 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import {
+  formDialogPrimaryActionClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import clsx from "clsx";
-import { useMemo } from "react";
+import { useMemo, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { WorldId40OptionCard } from "../../EnableWorldId40/WorldId40OptionCard";
 
@@ -31,6 +34,7 @@ export const ConfigureSignerKeyContent = ({
   initialSetup = "generate",
   className,
 }: ConfigureSignerKeyContentProps) => {
+  const [loading, startTransition] = useTransition();
   const defaultValues: FormValues = useMemo(
     () => ({ signer_key_setup: initialSetup }),
     [initialSetup],
@@ -41,25 +45,20 @@ export const ConfigureSignerKeyContent = ({
   });
 
   const onSubmit = (values: FormValues) => {
-    onContinue(values.signer_key_setup);
+    startTransition(() => onContinue(values.signer_key_setup));
   };
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={clsx("grid w-full max-w-[580px] gap-y-6", className)}
+      className={clsx("grid w-full gap-y-6", className)}
     >
-      <div className="grid gap-y-3">
-        <Typography as="h1" variant={TYPOGRAPHY.H6}>
-          Configure Signer Key
-        </Typography>
-        <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
-          Your signer key is used to sign proof requests. Choose how you want to
-          set up your key:
-        </Typography>
-      </div>
+      <p className="font-world text-14 leading-[1.5] text-portal-muted">
+        Your signer key is used to sign proof requests. Choose how you want to
+        set up your key.
+      </p>
 
-      <div className="mt-[0.84rem] grid gap-y-4">
+      <div className="grid gap-y-3">
         <WorldId40OptionCard
           register={register("signer_key_setup")}
           option={{ value: "generate", label: "Generate new key" }}
@@ -77,24 +76,29 @@ export const ConfigureSignerKeyContent = ({
         />
       </div>
 
-      <div className="flex justify-between gap-x-4">
-        <DecoratedButton
+      <div className="grid w-full gap-3 md:grid-cols-2">
+        <button
           type="button"
-          variant="secondary"
-          className="py-3"
           onClick={onBack}
-          testId="configure-signer-key-back"
+          disabled={loading}
+          data-testid="button-configure-signer-key-back"
+          className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
         >
           Back
-        </DecoratedButton>
-        <DecoratedButton
+        </button>
+        <button
           type="submit"
-          variant="primary"
-          className="py-3"
-          testId="configure-signer-key-continue"
+          disabled={loading}
+          aria-label={loading ? "Loading signer key step" : undefined}
+          data-testid="button-configure-signer-key-continue"
+          className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
         >
-          Continue
-        </DecoratedButton>
+          {loading ? (
+            <SpinnerIcon className="size-5 animate-spin" />
+          ) : (
+            "Continue"
+          )}
+        </button>
       </div>
     </form>
   );

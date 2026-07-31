@@ -4,7 +4,7 @@ import { CodeFolderIcon } from "@/components/Icons/CodeFolderIcon";
 import { HelpSquareIcon } from "@/components/Icons/HelpSquareIcon";
 import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
 import { TeamLogo } from "@/components/LoggedUserNav/Teams/TeamLogo";
-import { useFetchTeamQuery } from "@/components/LoggedUserNav/graphql/client/fetch-team.generated";
+import { FetchTeamDocument } from "@/components/LoggedUserNav/graphql/client/fetch-team.generated";
 import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
@@ -12,6 +12,7 @@ import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { useMeQuery } from "@/scenes/common/me-query/client";
+import { skipToken, useQuery } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
 import Link from "next/link";
@@ -58,14 +59,10 @@ export const LoggedUserNav = () => {
     });
   }, [actionId, appId, teamId]);
 
-  const teamRes = useFetchTeamQuery({
-    variables: !teamId
-      ? undefined
-      : {
-          id: teamId,
-        },
-    skip: !teamId,
-  });
+  const teamRes = useQuery(
+    FetchTeamDocument,
+    teamId ? { variables: { id: teamId } } : skipToken,
+  );
 
   return (
     <div

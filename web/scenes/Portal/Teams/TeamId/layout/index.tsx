@@ -1,3 +1,5 @@
+import { AppCreatedToast } from "@/scenes/common/Apps/AppCreatedToast";
+import { TeamCreatedToast } from "@/scenes/common/Teams/TeamCreatedToast";
 import { ReactNode } from "react";
 
 type Params = {
@@ -14,5 +16,11 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
   // hydrate. This layout no longer needs a provider — it just renders children.
   await props.params;
 
-  return <>{props.children}</>;
+  return (
+    <>
+      <AppCreatedToast />
+      <TeamCreatedToast />
+      {props.children}
+    </>
+  );
 };

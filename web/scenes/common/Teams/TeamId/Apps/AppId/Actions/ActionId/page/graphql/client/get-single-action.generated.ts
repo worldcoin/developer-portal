@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type GetSingleActionAndNullifiersQueryVariables = Types.Exact<{
   action_id: Types.Scalars["String"]["input"];
 }>;
@@ -30,102 +28,143 @@ export type GetSingleActionAndNullifiersQuery = {
   }>;
 };
 
-export const GetSingleActionAndNullifiersDocument = gql`
-  query GetSingleActionAndNullifiers($action_id: String!) {
-    action(order_by: { created_at: asc }, where: { id: { _eq: $action_id } }) {
-      id
-      name
-      nullifiers(limit: 100) {
-        id
-        updated_at
-        nullifier_hash
-        uses
-      }
-      app {
-        id
-        engine
-        rp_registration {
-          rp_id
-        }
-      }
-    }
-  }
-`;
-
-/**
- * __useGetSingleActionAndNullifiersQuery__
- *
- * To run a query within a React component, call `useGetSingleActionAndNullifiersQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSingleActionAndNullifiersQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSingleActionAndNullifiersQuery({
- *   variables: {
- *      action_id: // value for 'action_id'
- *   },
- * });
- */
-export function useGetSingleActionAndNullifiersQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetSingleActionAndNullifiersQuery,
-    GetSingleActionAndNullifiersQueryVariables
-  > &
-    (
-      | {
-          variables: GetSingleActionAndNullifiersQueryVariables;
-          skip?: boolean;
-        }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    GetSingleActionAndNullifiersQuery,
-    GetSingleActionAndNullifiersQueryVariables
-  >(GetSingleActionAndNullifiersDocument, options);
-}
-export function useGetSingleActionAndNullifiersLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetSingleActionAndNullifiersQuery,
-    GetSingleActionAndNullifiersQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetSingleActionAndNullifiersQuery,
-    GetSingleActionAndNullifiersQueryVariables
-  >(GetSingleActionAndNullifiersDocument, options);
-}
-export function useGetSingleActionAndNullifiersSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetSingleActionAndNullifiersQuery,
-        GetSingleActionAndNullifiersQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    GetSingleActionAndNullifiersQuery,
-    GetSingleActionAndNullifiersQueryVariables
-  >(GetSingleActionAndNullifiersDocument, options);
-}
-export type GetSingleActionAndNullifiersQueryHookResult = ReturnType<
-  typeof useGetSingleActionAndNullifiersQuery
->;
-export type GetSingleActionAndNullifiersLazyQueryHookResult = ReturnType<
-  typeof useGetSingleActionAndNullifiersLazyQuery
->;
-export type GetSingleActionAndNullifiersSuspenseQueryHookResult = ReturnType<
-  typeof useGetSingleActionAndNullifiersSuspenseQuery
->;
-export type GetSingleActionAndNullifiersQueryResult = Apollo.QueryResult<
+export const GetSingleActionAndNullifiersDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetSingleActionAndNullifiers" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "action_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "action" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "order_by" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "created_at" },
+                      value: { kind: "EnumValue", value: "asc" },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "action_id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "nullifiers" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "limit" },
+                      value: { kind: "IntValue", value: "100" },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "updated_at" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "nullifier_hash" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "uses" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "app" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "engine" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "rp_registration" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "rp_id" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   GetSingleActionAndNullifiersQuery,
   GetSingleActionAndNullifiersQueryVariables
 >;

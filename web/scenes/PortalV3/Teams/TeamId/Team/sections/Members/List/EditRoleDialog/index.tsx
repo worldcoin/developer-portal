@@ -19,6 +19,7 @@ import {
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "@apollo/client/react";
 import clsx from "clsx";
 import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
@@ -31,7 +32,7 @@ import {
   FetchTeamMembersQuery,
 } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/fetch-team-members.generated";
 import { permissionsDialogAtom } from "../PermissionsDialog";
-import { useEditRoleMutation } from "@/scenes/common/Teams/TeamId/Team/page/Members/List/EditRoleDialog/graphql/client/edit-role.generated";
+import { EditRoleDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/List/EditRoleDialog/graphql/client/edit-role.generated";
 
 const roles = [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member];
 
@@ -101,7 +102,7 @@ export const EditRoleDialog = (props: {
     }
   }, [defaultValues, reset]);
 
-  const [editRole] = useEditRoleMutation();
+  const [editRole] = useMutation(EditRoleDocument);
 
   const onClose = useCallback(() => {
     if (permissionsOpened) {

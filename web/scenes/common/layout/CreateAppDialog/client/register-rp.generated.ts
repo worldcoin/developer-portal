@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type RegisterRpMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
   mode?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
@@ -22,63 +20,96 @@ export type RegisterRpMutation = {
   } | null;
 };
 
-export const RegisterRpDocument = gql`
-  mutation RegisterRp(
-    $app_id: String!
-    $mode: String
-    $signer_address: String
-  ) {
-    register_rp(app_id: $app_id, mode: $mode, signer_address: $signer_address) {
-      rp_id
-      manager_address
-      signer_address
-      status
-      operation_hash
-    }
-  }
-`;
-export type RegisterRpMutationFn = Apollo.MutationFunction<
-  RegisterRpMutation,
-  RegisterRpMutationVariables
->;
-
-/**
- * __useRegisterRpMutation__
- *
- * To run a mutation, you first call `useRegisterRpMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useRegisterRpMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [registerRpMutation, { data, loading, error }] = useRegisterRpMutation({
- *   variables: {
- *      app_id: // value for 'app_id'
- *      mode: // value for 'mode'
- *      signer_address: // value for 'signer_address'
- *   },
- * });
- */
-export function useRegisterRpMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    RegisterRpMutation,
-    RegisterRpMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<RegisterRpMutation, RegisterRpMutationVariables>(
-    RegisterRpDocument,
-    options,
-  );
-}
-export type RegisterRpMutationHookResult = ReturnType<
-  typeof useRegisterRpMutation
->;
-export type RegisterRpMutationResult =
-  Apollo.MutationResult<RegisterRpMutation>;
-export type RegisterRpMutationOptions = Apollo.BaseMutationOptions<
-  RegisterRpMutation,
-  RegisterRpMutationVariables
->;
+export const RegisterRpDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "RegisterRp" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "app_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "mode" } },
+          type: { kind: "NamedType", name: { kind: "Name", value: "String" } },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "signer_address" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "String" } },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "register_rp" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "app_id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "app_id" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "mode" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "mode" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "signer_address" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "signer_address" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "rp_id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "manager_address" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "signer_address" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "status" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "operation_hash" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RegisterRpMutation, RegisterRpMutationVariables>;

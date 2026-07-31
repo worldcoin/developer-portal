@@ -1,6 +1,5 @@
 "use client";
 
-import { mergeDeep } from "@apollo/client/utilities";
 import {
   CategoryScale,
   ChartData,
@@ -35,6 +34,28 @@ ChartJS.register(
   Legend,
   Filler,
 );
+
+type UnknownRecord = Record<string, unknown>;
+
+const isMergeableObject = (value: unknown): value is UnknownRecord =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+// Deep-merge plain objects (later values win; arrays and primitives are replaced).
+const deepMerge = (
+  target: UnknownRecord,
+  source: UnknownRecord,
+): UnknownRecord => {
+  const output: UnknownRecord = { ...target };
+  for (const key of Object.keys(source)) {
+    const sourceValue = source[key];
+    const targetValue = output[key];
+    output[key] =
+      isMergeableObject(targetValue) && isMergeableObject(sourceValue)
+        ? deepMerge(targetValue, sourceValue)
+        : sourceValue;
+  }
+  return output;
+};
 
 const LEGACY_CHART_FONT_FAMILY = "GT America";
 const GTA_FONT_VARIABLE = "--font-gta-source";
@@ -177,7 +198,10 @@ export const Chart = (props: ChartProps) => {
 
   const options = useMemo(() => {
     const mergedOptions = props.options
-      ? mergeDeep(defaultOptions, props.options)
+      ? (deepMerge(
+          defaultOptions as UnknownRecord,
+          props.options as UnknownRecord,
+        ) as ChartOptions<"line">)
       : defaultOptions;
 
     return applyChartFontFamily(mergedOptions, chartFontFamily);

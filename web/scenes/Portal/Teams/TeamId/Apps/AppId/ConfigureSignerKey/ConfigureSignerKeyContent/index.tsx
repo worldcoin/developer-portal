@@ -1,9 +1,10 @@
 "use client";
 
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
-import { useMemo } from "react";
+import { useMemo, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { WorldId40OptionCard } from "../../EnableWorldId40/WorldId40OptionCard";
 
@@ -31,6 +32,7 @@ export const ConfigureSignerKeyContent = ({
   initialSetup = "generate",
   className,
 }: ConfigureSignerKeyContentProps) => {
+  const [loading, startTransition] = useTransition();
   const defaultValues: FormValues = useMemo(
     () => ({ signer_key_setup: initialSetup }),
     [initialSetup],
@@ -41,7 +43,7 @@ export const ConfigureSignerKeyContent = ({
   });
 
   const onSubmit = (values: FormValues) => {
-    onContinue(values.signer_key_setup);
+    startTransition(() => onContinue(values.signer_key_setup));
   };
 
   return (
@@ -91,9 +93,16 @@ export const ConfigureSignerKeyContent = ({
           type="submit"
           variant="primary"
           className="py-3"
+          disabled={loading}
+          loading={loading}
+          aria-label={loading ? "Loading signer key step" : undefined}
           testId="configure-signer-key-continue"
         >
-          Continue
+          {loading ? (
+            <SpinnerIcon className="size-6 animate-spin" />
+          ) : (
+            "Continue"
+          )}
         </DecoratedButton>
       </div>
     </form>

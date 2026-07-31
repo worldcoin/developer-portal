@@ -1,6 +1,5 @@
 "use client";
 import { Button } from "@/components/Button";
-import { CodeBlock } from "@/components/CodeBlock";
 import { DisclosureButton } from "@/components/DisclosureButton";
 import { DisclosurePanel } from "@/components/DisclosurePanel";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
@@ -8,10 +7,16 @@ import { MinusIcon } from "@/components/Icons/MinusIcon";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Disclosure } from "@headlessui/react";
+import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
+
+const CodeBlock = dynamic(
+  () => import("@/components/CodeBlock").then((module) => module.CodeBlock),
+  { ssr: false },
+);
 
 type CodeDisplayComponentProps = {
   buttonText: string;
@@ -55,12 +60,14 @@ export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
               isOpen={open}
             >
               <div className="grid w-full justify-items-end">
-                <CodeBlock
-                  code={panelText}
-                  language="javascript"
-                  theme={"neutral"}
-                  className="w-full text-xs text-grey-700"
-                />
+                {open && (
+                  <CodeBlock
+                    code={panelText}
+                    language="javascript"
+                    theme={"neutral"}
+                    className="w-full text-xs text-grey-700"
+                  />
+                )}
                 <Button
                   type="button"
                   onClick={copyAction}

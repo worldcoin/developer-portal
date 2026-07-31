@@ -23,6 +23,8 @@ const customJestConfig: Config = {
     // Lets component tests resolve/mock shared UI primitives (e.g. ErrorPage,
     // SizingWrapper) that scene components import via @/components.
     "^@/components/(.*)$": "<rootDir>/components/$1",
+    // shadcn components use shared hooks through the same app alias.
+    "^@/hooks/(.*)$": "<rootDir>/hooks/$1",
   },
 };
 

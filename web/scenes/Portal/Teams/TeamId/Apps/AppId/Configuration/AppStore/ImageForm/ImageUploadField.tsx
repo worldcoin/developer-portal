@@ -109,6 +109,10 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       abortControllerRef.current = abortController;
 
       const fileTypeEnding = file.type.split("/")[1];
+      // Flips once S3 accepts the file: aborts after this point are unmount
+      // bookkeeping (e.g. the keyed provider remounting and killing an
+      // in-flight refetch), NOT a cancelled upload — don't toast for them.
+      let s3UploadCompleted = false;
 
       try {
         // validate first, before showing any progress
@@ -130,6 +134,10 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           isLocalized ? locale : undefined,
           abortController.signal,
         );
+        s3UploadCompleted = true;
+        // File is on S3 — don't let unmount abort() invent a cancel toast
+        // while getImage / autosave bookkeeping finishes.
+        abortControllerRef.current = null;
 
         const imageUrl = await getImage(
           fileTypeEnding,
@@ -139,29 +147,37 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           isLocalized ? locale : undefined,
         );
 
-        // check if component is still mounted/valid before updating
-        if (!isMountedRef.current) {
-          return;
-        }
-
+        // S3 has the file from here on — the remaining steps are bookkeeping
+        // and must run even if this instance unmounts mid-flight (the form
+        // provider is keyed on metadata id + view mode and can remount during
+        // autosave). Persistence is ownerless; only UI updates are gated.
         const extractedPath =
           extractImagePathWithExtensionFromActualUrl(imageUrl);
         const newUrls =
           maxImages === 1 ? [extractedPath] : [...value, extractedPath];
 
         await onAutosave(newUrls);
+        // Writes into the shared Apollo cache, so a remounted successor
+        // instance watching the same query re-renders with the new image.
         await onRefetchImages();
-        onChange(newUrls);
 
+        if (isMountedRef.current) {
+          onChange(newUrls);
+        }
+        // Parent toast / bookkeeping — must not be skipped on remount mid-upload.
         onUploadSuccess?.();
       } catch (error) {
-        console.error("error uploading image:", error);
-
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Upload was cancelled", { autoClose: 5000 });
+        const isAbort = error instanceof Error && error.name === "AbortError";
+        if (isAbort) {
+          // Unmount can abort either the active S3 upload or post-upload
+          // bookkeeping. Only the former is a real cancellation.
+          if (!s3UploadCompleted) {
+            toast.error("Upload was cancelled", { autoClose: 5000 });
+          }
           return;
         }
 
+        console.error("error uploading image:", error);
         if (!(error instanceof ImageValidationError)) {
           onUploadError?.(error);
         }

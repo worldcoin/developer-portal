@@ -9,7 +9,8 @@ import Skeleton from "react-loading-skeleton";
 import { TeamProfile } from "../../common/TeamProfile";
 import { ApiKeysTable } from "./ApiKeyTable";
 import { CreateKeyModal } from "./CreateKeyModal";
-import { useFetchKeysQuery } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 
 type TeamApiKeysPageProps = {
   params: Promise<Record<string, string>>;
@@ -19,7 +20,7 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
   const params = use(props.params);
   const teamId = params?.teamId;
   const [showCreateKeyModal, setShowCreateKeyModal] = useState(false);
-  const { data, loading } = useFetchKeysQuery({
+  const { data, loading } = useQuery(FetchKeysDocument, {
     variables: { teamId: teamId ?? "" },
   });
 
