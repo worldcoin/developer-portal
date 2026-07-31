@@ -364,7 +364,6 @@ const ConfigurationContent = ({
                 />
 
                 <MiniAppConfiguration
-                  appId={appId}
                   teamId={teamId}
                   appMetadata={appMetadata as AppMetadata}
                 />
