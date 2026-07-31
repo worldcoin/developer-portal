@@ -26,6 +26,7 @@ jest.mock("@/lib/logger", () => ({
 }));
 
 import { DEFAULT_TEAM_COLUMN_VISIBILITY } from "@/components/AdminDashboard/Teams/column-visibility";
+import { getTeamsSearchVisualSegments } from "@/components/AdminDashboard/Teams/search";
 import {
   createTeamsWhere,
   fetchAdminTeamsPage,
@@ -70,6 +71,42 @@ describe("admin teams metric queries", () => {
     expect(createTeamsWhere("status:archived")).toEqual({ id: { _in: [] } });
     expect(createTeamsWhere("status!=archived")).toEqual({ id: { _in: [] } });
     expect(createTeamsWhere("created>=invalid")).toEqual({ id: { _in: [] } });
+  });
+
+  it("filters teams by owner membership count", () => {
+    expect(createTeamsWhere("owners:0")).toEqual({
+      memberships_aggregate: {
+        count: {
+          filter: { role: { _eq: "OWNER" } },
+          predicate: { _eq: 0 },
+        },
+      },
+    });
+    expect(createTeamsWhere("owners:1 status:active")).toEqual({
+      _and: [
+        {
+          memberships_aggregate: {
+            count: {
+              filter: { role: { _eq: "OWNER" } },
+              predicate: { _eq: 1 },
+            },
+          },
+        },
+        { deleted_at: { _is_null: true } },
+      ],
+    });
+  });
+
+  it("keeps incomplete field snippets in draft text instead of chips", () => {
+    expect(getTeamsSearchVisualSegments("status:")).toEqual([
+      { type: "text", value: "status:" },
+    ]);
+    expect(getTeamsSearchVisualSegments("members>=")).toEqual([
+      { type: "text", value: "members>=" },
+    ]);
+    expect(getTeamsSearchVisualSegments("status:active")).toEqual([
+      { type: "chip", value: "status:active", start: 0, end: 13 },
+    ]);
   });
 
   it("uses relationship aggregates and scopes invites to the current page", async () => {

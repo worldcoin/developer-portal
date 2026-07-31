@@ -235,7 +235,7 @@ const ActionsFooter = ({
               variant={TYPOGRAPHY.R5}
               className="min-w-0 truncate text-grey-500"
             >
-              In review — editing is locked until review completes.
+              In review. Editing is locked until review completes.
             </Typography>
           ) : isEditable ? (
             <SaveStatusIndicator />

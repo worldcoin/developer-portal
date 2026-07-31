@@ -641,7 +641,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     renderPage();
 
     expect(
-      screen.getByText(/In review — editing is locked/),
+      screen.getByText(/In review\. Editing is locked/),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Un-submit" }),
