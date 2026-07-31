@@ -2,7 +2,6 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { PaymentMetadata } from "@/lib/types";
 import { getTransactionData } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/server/getTransactionData";
-import { noticeIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { WalletCardsIcon } from "lucide-react";
 import { ComponentProps } from "react";
 import { Suspense } from "react";
@@ -118,7 +117,7 @@ const ExternalAppNotice = () => {
     <div className="grid max-w-[1180px] grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
       <WalletCardsIcon
         strokeWidth={1.5}
-        className={`${noticeIconClassName} size-8 text-grey-900`}
+        className="size-8 shrink-0 -translate-y-[2px] text-grey-900"
         aria-hidden="true"
       />
 
