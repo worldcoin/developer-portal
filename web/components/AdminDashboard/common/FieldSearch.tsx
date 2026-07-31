@@ -1,10 +1,11 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import type { CSSProperties, KeyboardEvent } from "react";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { useAdminSearchParamsPatch } from "./SearchParamsController";
+import { tokenizeSearchQuery } from "./search-tokens";
 import type { SearchField, SearchVisualSegment } from "./types";
 
 type AnchorStyle = CSSProperties & {
@@ -21,6 +22,111 @@ type FieldSearchProps = {
   value: string;
 };
 
+const FIELD_VALUE_PATTERN =
+  /^([A-Za-z_][A-Za-z0-9_]*)(>=|<=|!=|:|=|>|<)(.*)$/;
+
+const hasBalancedFieldQuotes = (token: string) => {
+  const match = token.match(FIELD_VALUE_PATTERN);
+  if (!match) {
+    return true;
+  }
+
+  const value = match[3];
+  if (!value.startsWith('"') && !value.startsWith("'")) {
+    return true;
+  }
+
+  const quote = value[0];
+  return value.length >= 2 && value.endsWith(quote) && value !== quote;
+};
+
+const isCommitableChipToken = (
+  token: string,
+  getVisualSegments: (query: string) => SearchVisualSegment[],
+) => {
+  if (!hasBalancedFieldQuotes(token)) {
+    return false;
+  }
+
+  const segments = getVisualSegments(token);
+  return (
+    segments.length === 1 &&
+    segments[0]?.type === "chip" &&
+    segments[0].value === token
+  );
+};
+
+const serializeQuery = (chips: readonly string[], draft: string) =>
+  [...chips, draft.trim()].filter(Boolean).join(" ");
+
+const parseExternalValue = (
+  query: string,
+  getVisualSegments: (query: string) => SearchVisualSegment[],
+) => {
+  const segments = getVisualSegments(query);
+  const chips = segments
+    .filter(
+      (segment): segment is Extract<SearchVisualSegment, { type: "chip" }> =>
+        segment.type === "chip",
+    )
+    .map((segment) => segment.value);
+  const draft = segments
+    .filter((segment) => segment.type === "text")
+    .map((segment) => segment.value)
+    .join("")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return { chips, draft };
+};
+
+const extractChipsFromDraft = (
+  draft: string,
+  getVisualSegments: (query: string) => SearchVisualSegment[],
+  onlyWhenTrailingSpace: boolean,
+) => {
+  if (onlyWhenTrailingSpace && !/\s$/.test(draft)) {
+    return { committed: [] as string[], remaining: draft };
+  }
+
+  const tokens = tokenizeSearchQuery(draft);
+  const committed: string[] = [];
+  const remaining: string[] = [];
+
+  for (const token of tokens) {
+    if (isCommitableChipToken(token, getVisualSegments)) {
+      committed.push(token);
+    } else {
+      remaining.push(token);
+    }
+  }
+
+  return {
+    committed,
+    remaining: remaining.join(" "),
+  };
+};
+
+const ChipLabel = ({ value }: { value: string }) => {
+  const separator = value.match(/>=|<=|!=|:|=|>|</)?.[0];
+
+  if (!separator) {
+    return <span>{value}</span>;
+  }
+
+  const separatorIndex = value.indexOf(separator);
+  const field = value.slice(0, separatorIndex);
+  const rest = value.slice(separatorIndex + separator.length);
+
+  return (
+    <span>
+      <span>{field}</span>
+      <span className="text-blue-500">{separator}</span>
+      <span>{rest}</span>
+    </span>
+  );
+};
+
 export const FieldSearch = ({
   fields,
   getVisualSegments,
@@ -30,31 +136,31 @@ export const FieldSearch = ({
   value,
 }: FieldSearchProps) => {
   const patchSearchParams = useAdminSearchParamsPatch();
-  const [searchValue, setSearchValue] = useState(value);
-  const [searchScrollLeft, setSearchScrollLeft] = useState(0);
+  const [chips, setChips] = useState(
+    () => parseExternalValue(value, getVisualSegments).chips,
+  );
+  const [draft, setDraft] = useState(
+    () => parseExternalValue(value, getVisualSegments).draft,
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const committedSearchValueRef = useRef(value);
   const id = useId().replaceAll(":", "");
   const popoverId = `${id}-search-popover`;
   const anchorName = `--${id}-search-anchor`;
-  const visualSegments = getVisualSegments(searchValue);
-
-  const syncSearchScrollLeft = useCallback(() => {
-    setSearchScrollLeft(inputRef.current?.scrollLeft ?? 0);
-  }, []);
-
-  useEffect(() => {
-    const frameId = window.requestAnimationFrame(syncSearchScrollLeft);
-    return () => window.cancelAnimationFrame(frameId);
-  }, [searchValue, syncSearchScrollLeft]);
+  const searchValue = useMemo(
+    () => serializeQuery(chips, draft),
+    [chips, draft],
+  );
 
   useEffect(() => {
     if (document.activeElement !== inputRef.current) {
       committedSearchValueRef.current = value;
-      setSearchValue(value);
+      const parsed = parseExternalValue(value, getVisualSegments);
+      setChips(parsed.chips);
+      setDraft(parsed.draft);
     }
-  }, [value]);
+  }, [getVisualSegments, value]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -80,30 +186,47 @@ export const FieldSearch = ({
     }
   }, [searchValue]);
 
+  const focusDraftAtEnd = (nextDraft: string = draft) => {
+    window.requestAnimationFrame(() => {
+      const input = inputRef.current;
+      if (!input) {
+        return;
+      }
+
+      input.focus();
+      const cursor = nextDraft.length;
+      input.setSelectionRange(cursor, cursor);
+    });
+  };
+
   const insertSnippet = (snippet: string) => {
-    const input = inputRef.current;
-    if (!input) {
+    const nextDraft = draft
+      ? `${draft}${draft.endsWith(" ") ? "" : " "}${snippet}`
+      : snippet;
+
+    setDraft(nextDraft);
+    focusDraftAtEnd(nextDraft);
+  };
+
+  const removeChip = (chipIndex: number) => {
+    setChips((current) => current.filter((_, index) => index !== chipIndex));
+    inputRef.current?.focus();
+  };
+
+  const handleDraftChange = (nextDraft: string) => {
+    const { committed, remaining } = extractChipsFromDraft(
+      nextDraft,
+      getVisualSegments,
+      true,
+    );
+
+    if (committed.length > 0) {
+      setChips((current) => [...current, ...committed]);
+      setDraft(remaining);
       return;
     }
 
-    const selectionStart = input.selectionStart ?? searchValue.length;
-    const selectionEnd = input.selectionEnd ?? searchValue.length;
-    const prefix = searchValue.slice(0, selectionStart);
-    const suffix = searchValue.slice(selectionEnd);
-    const needsLeadingSpace = prefix.length > 0 && !prefix.endsWith(" ");
-    const needsTrailingSpace = suffix.length > 0 && !suffix.startsWith(" ");
-    const nextValue = `${prefix}${needsLeadingSpace ? " " : ""}${snippet}${
-      needsTrailingSpace ? " " : ""
-    }${suffix}`;
-    const nextCursorPosition =
-      prefix.length + (needsLeadingSpace ? 1 : 0) + snippet.length;
-
-    setSearchValue(nextValue);
-    input.focus();
-    window.requestAnimationFrame(() => {
-      input.setSelectionRange(nextCursorPosition, nextCursorPosition);
-      syncSearchScrollLeft();
-    });
+    setDraft(nextDraft);
   };
 
   const hideSuggestions = () => {
@@ -114,72 +237,97 @@ export const FieldSearch = ({
     }, 100);
   };
 
+  const handleBlur = () => {
+    hideSuggestions();
+
+    const { committed, remaining } = extractChipsFromDraft(
+      draft,
+      getVisualSegments,
+      false,
+    );
+
+    if (committed.length > 0) {
+      setChips((current) => [...current, ...committed]);
+      setDraft(remaining);
+    }
+  };
+
   const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Escape") {
       event.currentTarget.blur();
       popoverRef.current?.hidePopover();
+      return;
+    }
+
+    if (
+      event.key === "Backspace" &&
+      draft.length === 0 &&
+      chips.length > 0 &&
+      (event.currentTarget.selectionStart ?? 0) === 0
+    ) {
+      event.preventDefault();
+      removeChip(chips.length - 1);
     }
   };
 
+  const showPlaceholder = chips.length === 0 && draft.length === 0;
+
   return (
     <div
-      className="relative h-9 w-full min-w-0"
+      className="relative w-full min-w-0"
       style={{ anchorName } as AnchorStyle}
     >
-      <Search className="pointer-events-none absolute top-1/2 left-3 z-20 size-4 -translate-y-1/2 text-grey-400" />
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-10 flex min-w-0 items-center overflow-hidden rounded-12 border border-grey-200 bg-grey-0 py-0 pr-3 pl-9 text-14 font-medium"
+        className="flex min-h-9 min-w-0 cursor-text flex-wrap items-center gap-1.5 rounded-12 border border-grey-200 bg-grey-0 py-1 pr-2 pl-9 focus-within:ring-2 focus-within:ring-blue-500"
+        onClick={() => inputRef.current?.focus()}
       >
-        {searchValue ? (
-          <div
-            className="flex min-w-max items-center whitespace-pre"
-            style={{ transform: `translateX(-${searchScrollLeft}px)` }}
+        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-grey-400" />
+
+        {chips.map((chip, chipIndex) => (
+          <span
+            className="inline-flex max-w-full items-center gap-1 rounded-8 bg-blue-50 py-0.5 pr-1 pl-1.5 font-mono text-12 text-grey-900 ring-1 ring-blue-150/80"
+            key={`${chip}-${chipIndex}`}
           >
-            {visualSegments.map((segment, index) =>
-              segment.type === "chip" ? (
-                <span
-                  className="relative inline-block text-blue-500"
-                  key={`chip-${index}`}
-                >
-                  <span className="absolute -inset-x-0.5 top-1/2 h-5 -translate-y-1/2 rounded bg-blue-50 ring-2 ring-blue-150/60 transition-[background-color,box-shadow] duration-150 ease-out" />
-                  <span className="relative z-10">{segment.value}</span>
-                </span>
-              ) : (
-                <span className="text-grey-700" key={`text-${index}`}>
-                  {segment.value}
-                </span>
-              ),
-            )}
-          </div>
-        ) : (
-          <span className="text-grey-400">{placeholder}</span>
-        )}
+            <span className="min-w-0 truncate">
+              <ChipLabel value={chip} />
+            </span>
+            <button
+              aria-label={`Remove ${chip}`}
+              className="inline-flex size-4 shrink-0 items-center justify-center rounded text-grey-500 transition-colors hover:bg-blue-150 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-500"
+              onClick={(event) => {
+                event.stopPropagation();
+                removeChip(chipIndex);
+              }}
+              onMouseDown={(event) => event.preventDefault()}
+              type="button"
+            >
+              <X className="size-3" strokeWidth={2.5} />
+            </button>
+          </span>
+        ))}
+
+        <input
+          aria-controls={popoverId}
+          aria-haspopup="listbox"
+          aria-label={placeholder}
+          className="min-w-32 flex-1 bg-transparent py-0.5 text-14 text-grey-900 caret-grey-900 outline-none placeholder:text-grey-400"
+          enterKeyHint="search"
+          onBlur={handleBlur}
+          onChange={(event) => handleDraftChange(event.target.value)}
+          onFocus={() => {
+            if (!searchValue) {
+              popoverRef.current?.showPopover();
+            }
+          }}
+          onKeyDown={handleSearchKeyDown}
+          placeholder={showPlaceholder ? placeholder : undefined}
+          ref={inputRef}
+          role="searchbox"
+          type="text"
+          value={draft}
+        />
       </div>
-      <input
-        aria-controls={popoverId}
-        aria-haspopup="listbox"
-        aria-label={placeholder}
-        className="relative z-20 size-full rounded-12 border border-transparent bg-transparent py-0 pr-3 pl-9 text-14 font-medium text-transparent caret-grey-900 transition-colors outline-none selection:bg-blue-150/60 placeholder:text-transparent focus-visible:ring-2 focus-visible:ring-blue-500"
-        enterKeyHint="search"
-        onBlur={hideSuggestions}
-        onChange={(event) => setSearchValue(event.target.value)}
-        onClick={syncSearchScrollLeft}
-        onFocus={() => {
-          if (!searchValue) {
-            popoverRef.current?.showPopover();
-          }
-        }}
-        onKeyDown={handleSearchKeyDown}
-        onKeyUp={syncSearchScrollLeft}
-        onScroll={syncSearchScrollLeft}
-        onSelect={syncSearchScrollLeft}
-        placeholder={placeholder}
-        ref={inputRef}
-        role="searchbox"
-        type="text"
-        value={searchValue}
-      />
+
       <div
         className="fixed inset-auto top-[anchor(bottom)] left-[anchor(left)] m-0 mt-1 max-h-[min(24rem,calc(100dvh-anchor(bottom)-0.75rem))] w-80 max-w-[calc(100vw-1.5rem)] overflow-x-hidden overflow-y-auto rounded-12 border border-grey-200 bg-grey-0 p-1 shadow-lg backdrop:bg-transparent"
         id={popoverId}
