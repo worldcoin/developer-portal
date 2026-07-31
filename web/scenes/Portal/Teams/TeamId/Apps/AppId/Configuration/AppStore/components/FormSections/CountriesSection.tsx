@@ -2,6 +2,7 @@ import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SelectMultiple } from "@/components/SelectMultiple";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { formCountriesList } from "@/lib/languages";
+import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { Control, Controller, FieldErrors } from "react-hook-form";
@@ -31,7 +32,7 @@ export const CountriesSection = ({
     >
       <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
-          <AlertIcon className="size-4 text-white" />
+          <AlertIcon className={`${opticalIconClassName} size-4 text-white`} />
         </div>
         <Typography
           variant={TYPOGRAPHY.B3}
