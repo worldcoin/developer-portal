@@ -345,9 +345,6 @@ export const WorldIdLayout = (props: {
               environment={app.is_staging ? "staging" : "production"}
               scope={{ type: "app" }}
             />
-            <p className="mt-2 font-world text-13 text-portal-muted">
-              Includes legacy World ID actions
-            </p>
           </div>
         ) : null}
 
