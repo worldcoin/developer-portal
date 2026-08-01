@@ -1,6 +1,6 @@
 import { Button } from "@/components/Button";
-import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { WarningBadgeIcon } from "@/scenes/PortalV3/common/Icon";
 import clsx from "clsx";
 
 type RejectionBannerProps = {
@@ -25,9 +25,7 @@ export const RejectionBanner = ({
       )}
     >
       {/* Icon */}
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
-        <AlertIcon className="size-4 text-white" />
-      </div>
+      <WarningBadgeIcon />
 
       {/* Label */}
       <Typography

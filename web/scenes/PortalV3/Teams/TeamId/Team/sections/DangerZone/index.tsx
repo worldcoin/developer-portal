@@ -1,5 +1,5 @@
 "use client";
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
 import { useState } from "react";
 
@@ -18,14 +18,12 @@ export const TeamDangerZone = (props: {
 
   return (
     <>
-      <DecoratedButton
-        type="button"
-        variant="destructive"
-        className="h-8 shrink-0 rounded-8 px-4 py-0 font-world text-13 focus-visible:ring-2 focus-visible:ring-system-error-300 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+      <DestructiveTriggerButton
+        className="shrink-0"
         onClick={() => setIsOpenDeleteDialog(true)}
       >
         Delete team
-      </DecoratedButton>
+      </DestructiveTriggerButton>
 
       <DeleteTeamDialog
         open={isOpenDeleteDialog}

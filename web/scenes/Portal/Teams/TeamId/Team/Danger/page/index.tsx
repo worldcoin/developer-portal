@@ -1,5 +1,5 @@
 "use client";
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -46,13 +46,12 @@ export const TeamDangerPage = () => {
               cannot be undone.
             </p>
 
-            <DecoratedButton
+            <DestructiveTriggerButton
               type="submit"
-              variant="danger"
               onClick={() => setIsOpenDeleteDialog(true)}
             >
               Delete team
-            </DecoratedButton>
+            </DestructiveTriggerButton>
           </div>
         </Section>
       </SizingWrapper>

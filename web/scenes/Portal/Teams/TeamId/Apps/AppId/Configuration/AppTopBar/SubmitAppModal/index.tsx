@@ -2,7 +2,6 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
-import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SendIcon } from "@/components/Icons/SendIcon";
 import { ModalIcon } from "@/components/ModalIcon";
 import { TextArea } from "@/components/TextArea";
@@ -10,6 +9,7 @@ import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { appChangelogSchema } from "@/lib/schema";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { WarningBadgeIcon } from "@/scenes/PortalV3/common/Icon";
 import { removeAppFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/server";
 import { yupResolver } from "@hookform/resolvers/yup";
 import posthog from "posthog-js";
@@ -210,9 +210,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
 
             {isDeveloperAllowListing && !isAllowListing && (
               <div className="flex items-center gap-3 rounded-xl bg-system-warning-100 p-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
-                  <AlertIcon className="size-4 text-white" />
-                </div>
+                <WarningBadgeIcon />
                 <Typography
                   variant={TYPOGRAPHY.R4}
                   className="text-system-warning-600"

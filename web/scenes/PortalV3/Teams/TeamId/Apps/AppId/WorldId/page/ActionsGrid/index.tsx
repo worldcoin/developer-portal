@@ -20,18 +20,19 @@ export const ActionsGrid = (props: {
   search: string;
   canCreate: boolean;
   initialDialogOpen?: boolean;
-  onCreateActionRequested?: () => void;
   onCreateActionConsumed: () => void;
   onActionsChanged: () => void;
 }) => {
   const [dialogOpen, setDialogOpen] = useState(
     Boolean(props.initialDialogOpen) && props.canCreate,
   );
+  const [hasOpenedDialog, setHasOpenedDialog] = useState(dialogOpen);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (props.initialDialogOpen && props.canCreate) {
       setDialogOpen(true);
+      setHasOpenedDialog(true);
     }
   }, [props.initialDialogOpen, props.canCreate]);
 
@@ -59,12 +60,8 @@ export const ActionsGrid = (props: {
   };
 
   const handleCreateAction = () => {
-    if (props.onCreateActionRequested) {
-      props.onCreateActionRequested();
-      return;
-    }
-
     setDialogOpen(true);
+    setHasOpenedDialog(true);
   };
 
   return (
@@ -111,7 +108,7 @@ export const ActionsGrid = (props: {
         </nav>
       ) : null}
 
-      {props.canCreate && dialogOpen ? (
+      {props.canCreate && hasOpenedDialog ? (
         <CreateActionDialogV4 open={dialogOpen} onClose={handleDialogClose} />
       ) : null}
     </>

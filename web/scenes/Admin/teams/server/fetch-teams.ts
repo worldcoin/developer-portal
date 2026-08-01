@@ -191,6 +191,16 @@ const createFieldWhere = (
     return predicate ? { memberships_aggregate: predicate } : null;
   }
 
+  if (token.field === "owners") {
+    const predicate = getCountAggregatePredicate(token.operator, token.value, {
+      role: {
+        _eq: "OWNER",
+      },
+    });
+
+    return predicate ? { memberships_aggregate: predicate } : null;
+  }
+
   if (token.field === "apps") {
     const predicate = getCountAggregatePredicate(token.operator, token.value, {
       deleted_at: {

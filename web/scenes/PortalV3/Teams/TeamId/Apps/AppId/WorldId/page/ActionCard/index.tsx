@@ -12,7 +12,8 @@ export type ActionCardItem = {
 /** Card chrome, shared with the loading skeleton. */
 export const actionCardFrameClassName =
   "flex min-h-[144px] flex-col gap-1 rounded-[10px] border border-portal-border bg-white p-5";
-export const actionCardTitleClassName = "font-ibm text-13 text-portal-heading";
+export const actionCardTitleClassName =
+  "font-ibm text-13 leading-[1.2] text-portal-heading";
 export const actionCardDescriptionClassName =
   "font-world text-13 text-portal-muted";
 

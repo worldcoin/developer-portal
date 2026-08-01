@@ -1,5 +1,6 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { LegacyVerificationLevel } from "@/lib/idkit";
@@ -115,13 +116,12 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
                 )}
 
                 {kioskAction?.kiosk_enabled && (
-                  <DecoratedButton
+                  <DestructiveTriggerButton
                     type="button"
-                    variant="danger"
                     onClick={() => handleToggleKiosk(false)}
                   >
                     Deactivate Kiosk
-                  </DecoratedButton>
+                  </DestructiveTriggerButton>
                 )}
               </div>
             )}
