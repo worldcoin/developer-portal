@@ -2,6 +2,7 @@
 
 import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { urls } from "@/lib/urls";
+import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { UpdateActionV4Form } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Settings/UpdateActionV4Form";
 import { useApolloClient } from "@apollo/client/react";
@@ -43,7 +44,13 @@ export const SettingsCard = (props: {
       }
       apolloClient.cache.gc();
       toast.success("Action deleted successfully");
-      router.push(urls.worldId40({ team_id: teamId, app_id: appId }));
+      router.push(
+        urls.worldIdTab({
+          team_id: teamId,
+          app_id: appId,
+          tab: WORLD_ID_TABS.Actions,
+        }),
+      );
     } finally {
       setIsDeleting(false);
     }

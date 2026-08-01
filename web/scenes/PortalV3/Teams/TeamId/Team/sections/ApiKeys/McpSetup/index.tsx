@@ -52,7 +52,7 @@ export const McpSetup = () => {
         copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2_000);
       })
       .catch(() =>
-        toast.error("Couldn't copy — select the command and copy it manually"),
+        toast.error("Couldn't copy. Select the command and copy it manually"),
       );
   };
 

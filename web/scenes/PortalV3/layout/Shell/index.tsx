@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CSSProperties, ReactNode } from "react";
 import { AppsDropdown } from "./AppsDropdown";
 import { PortalSidebar } from "./PortalSidebar";
+import { SidebarAnimationShell } from "./SidebarNav";
 
 /** Portal shell, mounted at the (portal) root for allow-listed users. */
 export const PortalShell = (props: {
@@ -35,11 +36,12 @@ export const PortalShell = (props: {
           } as CSSProperties
         }
       >
-        <PortalSidebar
-          user={user}
-          teams={teams}
-          sandboxRequest={sandboxRequest}
-        />
+        <SidebarAnimationShell>
+          <PortalSidebar
+            user={user}
+            teams={teams}
+            sandboxRequest={sandboxRequest}
+          />
 
         <SidebarInset className="min-h-[100dvh] min-w-0 bg-grey-0">
           <header className="flex h-(--portal-header-height) shrink-0 items-center gap-3 border-b border-portal-border bg-portal-canvas px-4 md:px-5">

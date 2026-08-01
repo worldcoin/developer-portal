@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { Checkbox } from "@/components/Checkbox";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { Input } from "@/components/Input";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Auth0SessionUser } from "@/lib/types";
@@ -194,13 +194,11 @@ export const ProfilePage = () => {
             />
 
             <div className="flex justify-end">
-              <Button
-                type="button"
+              <DestructiveTriggerButton
                 onClick={() => setIsDeleteAccountOpen(true)}
-                className="inline-flex h-8 items-center justify-center rounded-8 border border-system-error-300 bg-grey-0 px-4 font-world text-13 leading-none font-medium text-system-error-600 outline-hidden transition-colors hover:border-system-error-400 hover:bg-system-error-50 focus-visible:ring-2 focus-visible:ring-system-error-300 focus-visible:ring-offset-2"
               >
                 Delete account
-              </Button>
+              </DestructiveTriggerButton>
             </div>
           </div>
         </div>

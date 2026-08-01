@@ -1,6 +1,7 @@
 "use client";
 
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
@@ -144,17 +145,13 @@ export const ActionDangerZone = (props: ActionDangerZoneProps) => {
           </Typography>
         </div>
 
-        <DecoratedButton
-          type="button"
-          variant="danger"
+        <DestructiveTriggerButton
           onClick={() => setOpenDeleteModal(true)}
           disabled={isDeleting || !canDelete}
-          className="h-14 w-fit rounded-full bg-danger px-6 hover:bg-system-error-700"
+          className="w-fit"
         >
-          <Typography variant={TYPOGRAPHY.R3} className="text-white">
-            Delete action
-          </Typography>
-        </DecoratedButton>
+          Delete action
+        </DestructiveTriggerButton>
       </div>
     </div>
   );

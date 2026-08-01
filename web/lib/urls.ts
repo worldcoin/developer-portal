@@ -1,3 +1,5 @@
+import type { WorldIdTab } from "./world-id-tabs";
+
 type SignupParams = {
   invite_id?: string;
 };
@@ -35,6 +37,21 @@ export const urls = {
 
   enableWorldId4: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}?enableWorldId4=true`,
+
+  worldId: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/world-id`,
+
+  worldIdTab: (params: {
+    team_id: string;
+    app_id: string;
+    tab: WorldIdTab;
+    query?: string | URLSearchParams | Record<string, string>;
+  }): string => {
+    const query = new URLSearchParams(params.query);
+    query.set("tab", params.tab);
+
+    return `/teams/${params.team_id}/apps/${params.app_id}/world-id?${query.toString()}`;
+  },
 
   worldId40: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/world-id-4-0`,

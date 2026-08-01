@@ -1,6 +1,6 @@
 "use client";
 import { CopyButton } from "@/components/CopyButton";
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -151,14 +151,9 @@ export const ClientInformationPage = (props: {
                   { hidden: !isEnoughPermissions },
                 )}
               >
-                <DecoratedButton
-                  type="button"
-                  variant="secondary"
-                  className="h-9"
-                  onClick={handleReset}
-                >
+                <DestructiveTriggerButton type="button" onClick={handleReset}>
                   Reset
-                </DecoratedButton>
+                </DestructiveTriggerButton>
 
                 {clientSecret !== "" && (
                   <CopyButton

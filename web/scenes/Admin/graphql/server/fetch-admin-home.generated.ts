@@ -23,6 +23,20 @@ export type FetchAdminHomeQuery = {
     pending_invites: number;
     total_users: number;
   }>;
+  sandbox_total: {
+    __typename?: "sandbox_access_request_aggregate";
+    aggregate?: {
+      __typename?: "sandbox_access_request_aggregate_fields";
+      count: number;
+    } | null;
+  };
+  sandbox_pending: {
+    __typename?: "sandbox_access_request_aggregate";
+    aggregate?: {
+      __typename?: "sandbox_access_request_aggregate_fields";
+      count: number;
+    } | null;
+  };
   queues: Array<{
     __typename?: "admin_dashboard_queue";
     email?: string | null;
@@ -87,6 +101,18 @@ export const FetchAdminHomeDocument = gql`
       new_users
       pending_invites
       total_users
+    }
+    sandbox_total: sandbox_access_request_aggregate {
+      aggregate {
+        count
+      }
+    }
+    sandbox_pending: sandbox_access_request_aggregate(
+      where: { accepted: { _eq: false } }
+    ) {
+      aggregate {
+        count
+      }
     }
     queues: admin_dashboard_queues {
       email

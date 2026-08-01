@@ -35,6 +35,7 @@ export const Form = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { isValid, errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: yupResolver(schema),
@@ -44,6 +45,8 @@ export const Form = () => {
       termsAndConditions: false,
     },
   });
+
+  const termsAccepted = watch("termsAndConditions");
 
   const handleCreateTeam = async (values: FormValues) => {
     const requestBody: CreateTeamBody = {
@@ -150,21 +153,29 @@ export const Form = () => {
             .
           </span>
         </label>
-
-        {errors.termsAndConditions ? (
-          <p className="mt-2 pl-7 text-12 leading-[1.4] text-system-error-600">
-            {errors.termsAndConditions.message}
-          </p>
-        ) : null}
       </div>
 
-      <button
-        type="submit"
-        disabled={!isValid || isPending}
-        className="mt-10 inline-flex h-12 w-full max-w-[220px] cursor-pointer items-center justify-center rounded-8 bg-[#1f1f1f] px-6 text-14 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-[#333333] disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {isPending ? "Creating team…" : "Create team"}
-      </button>
+      {/* The disabled state already signals the missing consent; the reminder
+          only surfaces as a hover hint so the form never shouts in red. */}
+      <div className="group relative mt-10 w-full max-w-[220px]">
+        <button
+          type="submit"
+          disabled={!isValid || isPending}
+          className="mt-10 inline-flex h-12 w-full max-w-[220px] cursor-pointer items-center justify-center rounded-8 bg-[#1f1f1f] px-6 text-14 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-[#333333] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {isPending ? "Creating team…" : "Create team"}
+        </button>
+
+        {!termsAccepted ? (
+          <span
+            id="terms-consent-hint"
+            role="tooltip"
+            className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full rounded-8 bg-portal-ink px-3 py-2 text-12 leading-none whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
+          >
+            Please accept the terms and conditions
+          </span>
+        ) : null}
+      </div>
     </form>
   );
 };

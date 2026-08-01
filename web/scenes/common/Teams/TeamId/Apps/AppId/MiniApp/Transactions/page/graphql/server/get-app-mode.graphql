@@ -1,0 +1,15 @@
+query GetAppMode($id: String!) {
+  app(where: { id: { _eq: $id } }) {
+    id
+    app_metadata(where: { verification_status: { _neq: "verified" } }) {
+      id
+      app_mode
+    }
+    verified_app_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+    ) {
+      id
+      app_mode
+    }
+  }
+}

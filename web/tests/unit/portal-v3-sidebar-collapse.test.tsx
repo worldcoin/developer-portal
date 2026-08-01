@@ -18,6 +18,10 @@ jest.mock("@/scenes/PortalV3/layout/Shell/AppsDropdown", () => ({
 
 jest.mock("@/scenes/PortalV3/layout/Shell/SidebarNav", () => ({
   SidebarNav: () => <nav>sidebar-navigation</nav>,
+  // PortalShell also mounts the navigation provider and the content overlay
+  // from this module; pass children through and render nothing, respectively.
+  SidebarAnimationShell: (props: { children?: React.ReactNode }) =>
+    props.children,
 }));
 
 jest.mock("@/scenes/PortalV3/layout/Shell/SidebarContextHeader", () => ({

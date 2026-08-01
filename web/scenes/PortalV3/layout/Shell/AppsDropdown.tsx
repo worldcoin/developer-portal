@@ -113,7 +113,7 @@ export const AppsDropdown = () => {
       getItemHref={(app) =>
         app.isOverview
           ? urls.teams({ team_id: teamId })
-          : urls.worldId40({
+          : urls.worldId({
               team_id: teamId,
               app_id: app.id,
             })

@@ -1,6 +1,7 @@
 "use client";
 
 import { getCDNImageUrl } from "@/lib/utils";
+import { useImageFallback } from "@/scenes/PortalV3/common/useImageFallback";
 import { useAtomValue } from "jotai";
 import { useWatch } from "react-hook-form";
 import { selectedLanguageAtom } from "../AppStore/components/FormSections/LocalisationsSection/hooks/useLanguageSelection";
@@ -95,15 +96,18 @@ export const LivePreview = ({
     ? metadataShowcaseUrls
     : images.showcase_image_urls ?? metadataShowcaseUrls;
   const hasWebsite = Boolean(basicInfo.app_website_url?.trim());
+  const logo = useImageFallback(logoImgUrl);
 
   return (
     <div className="grid w-full content-start gap-y-8">
       {/* Logo */}
-      {logoImgUrl ? (
+      {logoImgUrl && !logo.isBroken ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={logoImgUrl}
-          alt="App logo preview"
+          alt=""
+          data-testid="app-logo-preview"
+          onError={logo.onError}
           className="size-16 rounded-2xl object-cover"
         />
       ) : (

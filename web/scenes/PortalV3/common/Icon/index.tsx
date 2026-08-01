@@ -1,3 +1,4 @@
+import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { twMerge } from "tailwind-merge";
 
 const ICON_PATH = "/images/portal-v3/icons";
@@ -11,6 +12,15 @@ const ICON_PATH = "/images/portal-v3/icons";
  * the nudge per call site.
  */
 export const opticalIconClassName = "shrink-0 -translate-y-px";
+
+/**
+ * Optical alignment for the size-8 icon in a two-line notice card (the Mini App
+ * "unavailable" banners). `items-start` aligns the icon box with the first
+ * line's line box, but the text reads as the band from its cap top to the last
+ * baseline — measured in the browser at text-13/120%, that band's center sits
+ * 2px above the icon's ink center, so the icon reads low. Nudge it up to match.
+ */
+export const noticeIconClassName = "shrink-0 -translate-y-[2px]";
 
 /**
  * Optical alignment for a digit (or other cap-height glyph) inside a fixed
@@ -78,4 +88,21 @@ export const Icon = (props: {
       props.className,
     )}
   />
+);
+
+/**
+ * Canonical warning glyph for the 32px circular badges used throughout app
+ * configuration. The triangle's visual mass sits below its geometric center,
+ * so the shared optical lift belongs here rather than at each call site.
+ */
+export const WarningBadgeIcon = (props: { className?: string }) => (
+  <span
+    aria-hidden="true"
+    className={twMerge(
+      "flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600",
+      props.className,
+    )}
+  >
+    <AlertIcon className={twMerge("size-4 text-white", opticalIconClassName)} />
+  </span>
 );
