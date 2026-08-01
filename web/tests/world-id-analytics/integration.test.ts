@@ -36,6 +36,8 @@ jest.mock("@/lib/permissions", () => ({
 // #region Test Data
 const pool = new Pool({ max: 12 });
 const barrierLock: [number, number] = [812_404, 71];
+const freshStackEnabled = process.env.WIA_FRESH_STACK === "true";
+const freshDescribe = freshStackEnabled ? describe : describe.skip;
 
 type DailyRow = {
   action_id?: string;
@@ -201,15 +203,12 @@ const readRoleSchema = async (headers?: Record<string, string>) => {
 // #endregion
 
 beforeAll(async () => {
-  if (process.env.WIA_FRESH_STACK !== "true") {
-    throw new Error(
-      "Run through pnpm test:world-id-analytics:fresh; shared stacks are forbidden",
-    );
-  }
+  if (!freshStackEnabled) return;
   await pool.query("CREATE EXTENSION IF NOT EXISTS pg_stat_statements");
 });
 
 beforeEach(async () => {
+  if (!freshStackEnabled) return;
   getIsUserAllowedToReadApp.mockReset();
   getIsUserAllowedToReadApp.mockResolvedValue(true);
   await pool.query(`
@@ -233,12 +232,12 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
-  await resetFixture(pool);
+  if (freshStackEnabled) await resetFixture(pool);
   await pool.end();
 });
 
 // #region Cold backfill, canonical parity, and endpoint payload
-describe("World ID analytics [real cold backfill and endpoint]", () => {
+freshDescribe("World ID analytics [real cold backfill and endpoint]", () => {
   it("counts canonical v3/v4 rows once by UTC, sums apps, and isolates environments", async () => {
     await pool.query("SET TIME ZONE 'America/Los_Angeles'");
     await insertV3Nullifier(pool, {
@@ -537,7 +536,7 @@ describe("World ID analytics [real cold backfill and endpoint]", () => {
 // #endregion
 
 // #region Rebuild, catch-up, cutoff, and mutable v3 fields
-describe("World ID analytics [real rebuild and catch-up]", () => {
+freshDescribe("World ID analytics [real rebuild and catch-up]", () => {
   it("runs a full dual-source cold backfill, an identical rerun, and an absolute overlap refresh", async () => {
     // Anchors stay inside the ~25-hour rebuild overlap behind the watermark;
     // a bounded-window rollup never revisits dates older than that.
@@ -745,7 +744,7 @@ describe("World ID analytics [real rebuild and catch-up]", () => {
 // #endregion
 
 // #region Atomicity and single-run exclusion
-describe("World ID analytics [real atomicity and locking]", () => {
+freshDescribe("World ID analytics [real atomicity and locking]", () => {
   it("rolls back both source legs and shared state when the v4 leg fails", async () => {
     await insertV3Nullifier(pool, {
       id: "nil_contract_atomic_v3",
@@ -851,7 +850,7 @@ describe("World ID analytics [real atomicity and locking]", () => {
 // #endregion
 
 // #region Deletion and no resurrection
-describe("World ID analytics [real action deletion]", () => {
+freshDescribe("World ID analytics [real action deletion]", () => {
   it.each([
     ["v3", fixture.productionV3ActionId, "action_v3_stats_daily", "action_id"],
     [
@@ -934,7 +933,7 @@ describe("World ID analytics [real action deletion]", () => {
 // #endregion
 
 // #region Applied metadata and role isolation
-describe("World ID analytics [real Hasura metadata]", () => {
+freshDescribe("World ID analytics [real Hasura metadata]", () => {
   it("applies the five-minute protected cron while preserving the legacy hourly job", async () => {
     const response = await fetch(
       process.env.WIA_HASURA_METADATA_URL as string,

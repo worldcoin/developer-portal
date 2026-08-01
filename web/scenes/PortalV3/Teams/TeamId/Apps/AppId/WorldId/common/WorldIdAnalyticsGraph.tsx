@@ -32,33 +32,74 @@ export function WorldIdAnalyticsGraph(props: {
   >({});
   const [error, setError] = useState(false);
   const mounted = useRef(true);
+  const cacheRef = useRef(cache);
+  cacheRef.current = cache;
   const periodRef = useRef(period);
   periodRef.current = period;
+  const lifecycleGeneration = useRef(0);
+  const inFlight = useRef<Partial<Record<AnalyticsPeriod, Promise<void>>>>({});
+  const requestedActionId =
+    props.scope.type === "action" ? props.scope.actionId : undefined;
 
-  const load = useCallback(
+  const runLoad = useCallback(
     async (requestedPeriod: AnalyticsPeriod) => {
+      const generation = lifecycleGeneration.current;
       try {
         const params = new URLSearchParams({
           environment: props.environment,
           period: requestedPeriod,
         });
-        if (props.scope.type === "action") {
-          params.set("action_ids", props.scope.actionId);
+        if (requestedActionId) {
+          params.set("action_ids", requestedActionId);
         }
         const response = await fetch(
           `/api/portal/apps/${props.appId}/world-id-analytics?${params}`,
         );
         if (!response.ok) throw new Error("analytics request failed");
         const body = (await response.json()) as Response;
-        if (mounted.current) {
-          setCache((current) => ({ ...current, [requestedPeriod]: body }));
-          setError(false);
+        if (!mounted.current || generation !== lifecycleGeneration.current) {
+          return;
         }
+
+        const nextCache = { ...cacheRef.current, [requestedPeriod]: body };
+        cacheRef.current = nextCache;
+        setCache(nextCache);
+        setError(false);
       } catch {
-        if (mounted.current) setError(true);
+        if (!mounted.current || generation !== lifecycleGeneration.current) {
+          return;
+        }
+
+        setError(true);
+        if (
+          requestedPeriod === "all_time" &&
+          periodRef.current === "all_time" &&
+          !cacheRef.current.all_time
+        ) {
+          periodRef.current = "last_7_days";
+          setPeriod("last_7_days");
+        }
       }
     },
-    [props.appId, props.environment, props.scope],
+    [props.appId, props.environment, requestedActionId],
+  );
+
+  const load = useCallback(
+    (requestedPeriod: AnalyticsPeriod) => {
+      const pending = inFlight.current[requestedPeriod];
+      if (pending) return pending;
+
+      const request = runLoad(requestedPeriod);
+      inFlight.current[requestedPeriod] = request;
+      const clear = () => {
+        if (inFlight.current[requestedPeriod] === request) {
+          delete inFlight.current[requestedPeriod];
+        }
+      };
+      void request.then(clear, clear);
+      return request;
+    },
+    [runLoad],
   );
 
   useEffect(() => {
@@ -72,6 +113,8 @@ export function WorldIdAnalyticsGraph(props: {
     document.addEventListener("visibilitychange", refresh);
     return () => {
       mounted.current = false;
+      lifecycleGeneration.current += 1;
+      inFlight.current = {};
       clearInterval(timer);
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", refresh);
@@ -79,6 +122,7 @@ export function WorldIdAnalyticsGraph(props: {
   }, [load]);
 
   const selectPeriod = (next: AnalyticsPeriod) => {
+    periodRef.current = next;
     setPeriod(next);
     if (!cache[next]) void load(next);
   };

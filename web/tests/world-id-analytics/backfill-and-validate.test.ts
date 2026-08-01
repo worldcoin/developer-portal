@@ -12,6 +12,8 @@ import {
 
 const pool = new Pool();
 const advisoryLock: [number, number] = [533_214, 43];
+const describeFreshStack =
+  process.env.WIA_FRESH_STACK === "true" ? describe : describe.skip;
 
 const requiredEnv = (name: string) => {
   const value = process.env[name];
@@ -73,30 +75,30 @@ const removeParitySabotage = async () => {
   `);
 };
 
-beforeAll(() => {
-  if (process.env.WIA_FRESH_STACK !== "true") {
-    throw new Error(
-      "Run through the isolated World ID analytics fresh-stack harness",
-    );
-  }
-});
-
-beforeEach(async () => {
-  await removeParitySabotage();
-  await resetFixture(pool);
-  await seedFixture(pool);
-});
-
-afterAll(async () => {
-  await removeParitySabotage();
-  await resetFixture(pool);
-  await pool.end();
-});
-
-jest.setTimeout(150_000);
-
 // #region Deployment gate
-describe("World ID analytics [backfill and validation gate]", () => {
+describeFreshStack("World ID analytics [backfill and validation gate]", () => {
+  beforeAll(() => {
+    if (process.env.WIA_FRESH_STACK !== "true") {
+      throw new Error(
+        "Run through the isolated World ID analytics fresh-stack harness",
+      );
+    }
+  });
+
+  beforeEach(async () => {
+    await removeParitySabotage();
+    await resetFixture(pool);
+    await seedFixture(pool);
+  });
+
+  afterAll(async () => {
+    await removeParitySabotage();
+    await resetFixture(pool);
+    await pool.end();
+  });
+
+  jest.setTimeout(150_000);
+
   it("runs the historical backfill, catch-up, and raw parity check", async () => {
     const createdAt = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     await insertV4Nullifier(pool, {

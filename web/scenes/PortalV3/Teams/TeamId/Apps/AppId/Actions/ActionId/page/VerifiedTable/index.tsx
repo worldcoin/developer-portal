@@ -161,16 +161,14 @@ export const VerifiedTable = (props: {
             </div>
           </div>
 
-          {showCount ? (
-            <Pagination
-              totalResults={totalResultsCount}
-              currentPage={currentPage}
-              rowsPerPage={rowsPerPage}
-              rowsPerPageOptions={rowsPerPageOptions}
-              handlePageChange={handlePageChange}
-              handleRowsPerPageChange={handleRowsPerPageChange}
-            />
-          ) : null}
+          <Pagination
+            totalResults={totalResultsCount}
+            currentPage={currentPage}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={rowsPerPageOptions}
+            handlePageChange={handlePageChange}
+            handleRowsPerPageChange={handleRowsPerPageChange}
+          />
         </div>
       </div>
     </div>

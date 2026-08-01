@@ -312,12 +312,12 @@ describe("WorldIdAnalyticsGraph [All Time loading]", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("keeps Last 7 Days visible while the first All Time request is pending", async () => {
+  it("keeps a pending first All Time request through a parent rerender", async () => {
     const pending = deferredResponse();
     fetchMock
       .mockImplementationOnce(() => ok())
       .mockImplementationOnce(() => pending.promise);
-    renderAppGraph();
+    const view = renderAppGraph();
     await screen.findByText("3");
 
     await choosePeriod("All Time");
@@ -327,12 +327,71 @@ describe("WorldIdAnalyticsGraph [All Time loading]", () => {
       screen.getByRole("img", { name: "Unique Verifications" }),
     ).toBeVisible();
 
+    view.rerender(
+      <WorldIdAnalyticsGraph
+        appId={appId}
+        environment="production"
+        scope={{ type: "app" }}
+      />,
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
     await act(async () => {
       pending.resolve(
         await ok(responseBody({ period: "all_time", appCount: "10" })),
       );
     });
     expect(await screen.findByText("10")).toBeInTheDocument();
+  });
+
+  it("reverts to Last 7 Days when the first All Time request fails", async () => {
+    fetchMock
+      .mockImplementationOnce(() => ok())
+      .mockRejectedValueOnce(new Error("offline"));
+    renderAppGraph();
+    await screen.findByText("3");
+
+    await choosePeriod("All Time");
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", {
+          name: "Unique Verifications period",
+        }),
+      ).toHaveTextContent("Last 7 Days"),
+    );
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(requested(1).searchParams.get("period")).toBe("all_time");
+  });
+
+  it("deduplicates a focus refresh while the first All Time request is pending", async () => {
+    const pending = deferredResponse();
+    fetchMock
+      .mockImplementationOnce(() => ok())
+      .mockImplementationOnce(() => pending.promise);
+    renderAppGraph();
+    await screen.findByText("3");
+
+    await choosePeriod("All Time");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      pending.resolve(
+        await ok(responseBody({ period: "all_time", appCount: "12" })),
+      );
+    });
+
+    expect(
+      screen.getByRole("button", {
+        name: "Unique Verifications period",
+      }),
+    ).toHaveTextContent("All Time");
+    expect(await screen.findByText("12")).toBeInTheDocument();
   });
 
   it("keeps cached All Time points after an All Time refresh error", async () => {

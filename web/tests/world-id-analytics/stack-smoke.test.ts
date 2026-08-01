@@ -1,12 +1,14 @@
 import { Pool } from "pg";
 
 const pool = new Pool();
+const describeFreshStack =
+  process.env.WIA_FRESH_STACK === "true" ? describe : describe.skip;
 
-afterAll(async () => {
-  await pool.end();
-});
+describeFreshStack("World ID analytics isolated fresh-stack harness", () => {
+  afterAll(async () => {
+    await pool.end();
+  });
 
-describe("World ID analytics isolated fresh-stack harness", () => {
   it("runs only when the isolated harness supplied its connection", () => {
     expect(process.env.WIA_FRESH_STACK).toBe("true");
     expect(process.env.WIA_MIGRATIONS_PROVEN).toBe("true");

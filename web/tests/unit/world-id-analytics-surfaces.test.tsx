@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { print } from "graphql";
 import React, { Suspense } from "react";
@@ -167,6 +168,19 @@ const v4DetailData = {
           nullifier: "0x1234567890abcdef1234567890abcdef",
         },
       ],
+    },
+  ],
+};
+
+const v4DetailDataWithSixNullifiers = {
+  action_v4: [
+    {
+      ...v4DetailData.action_v4[0],
+      nullifiers: Array.from({ length: 6 }, (_, index) => ({
+        ...v4DetailData.action_v4[0].nullifiers[0],
+        id: `nullifier_v4_${index + 1}`,
+        nullifier: `0x${(index + 1).toString().repeat(32)}`,
+      })),
     },
   ],
 };
@@ -374,10 +388,10 @@ describe("World ID v4 action detail [single aggregate and feed]", () => {
       />,
     );
 
-    expect(
-      await screen.findByRole("heading", { name: "Unique Verifications" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("5")).toBeInTheDocument();
+    const analyticsSummary = (
+      await screen.findByRole("heading", { name: "Unique Verifications" })
+    ).parentElement!;
+    expect(within(analyticsSummary).getByText("5")).toBeInTheDocument();
     expect(screen.queryByText("999")).not.toBeInTheDocument();
     expect(screen.getByText("Recent verifications")).toBeInTheDocument();
     expect(screen.getByText("Nullifier")).toBeInTheDocument();
@@ -392,6 +406,31 @@ describe("World ID v4 action detail [single aggregate and feed]", () => {
     expect(feedDocument.replace(/\s+/g, " ")).toMatch(
       /nullifiers\s*\(\s*limit:\s*100/i,
     );
+  });
+
+  it("keeps later verification pages accessible when the count badge is hidden", async () => {
+    useQueryMock.mockReturnValue({
+      data: v4DetailDataWithSixNullifiers,
+      loading: false,
+      error: undefined,
+      refetch,
+    });
+
+    render(
+      <WorldIdActionDetailPage
+        params={{ teamId: "team_1", appId, actionId: v4ActionId }}
+        canModify={false}
+      />,
+    );
+
+    expect(screen.getByText(/0x1111111111/)).toBeInTheDocument();
+    expect(screen.queryByText(/0x6666666666/)).not.toBeInTheDocument();
+
+    const pagination = screen.getByText("6 results").parentElement;
+    const [, nextPageButton] = within(pagination!).getAllByRole("button");
+    fireEvent.click(nextPageButton);
+
+    expect(screen.getByText(/0x6666666666/)).toBeInTheDocument();
   });
 });
 // #endregion
