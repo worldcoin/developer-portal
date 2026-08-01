@@ -1,6 +1,6 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
@@ -30,14 +30,12 @@ export const DangerZone = () => {
               undone.
             </Typography>
 
-            <DecoratedButton
+            <DestructiveTriggerButton
               type="button"
               onClick={() => setOpen(true)}
-              variant="danger"
-              className="max-w-44 py-3"
             >
               Delete account
-            </DecoratedButton>
+            </DestructiveTriggerButton>
           </div>
         </Section>
       </SizingWrapper>
