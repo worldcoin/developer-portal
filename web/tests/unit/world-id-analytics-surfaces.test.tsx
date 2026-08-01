@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { print } from "graphql";
 import React, { Suspense } from "react";
@@ -174,14 +175,12 @@ const v4DetailData = {
       description: "Vote once",
       created_at: "2026-07-20T00:00:00.000Z",
       nullifiers_aggregate: { aggregate: { count: 999 } },
-      nullifiers: [
-        {
-          id: "nullifier_v4_1",
-          action_v4_id: v4ActionId,
-          created_at: "2026-07-30T11:00:00.000Z",
-          nullifier: "0x1234567890abcdef1234567890abcdef",
-        },
-      ],
+      nullifiers: Array.from({ length: 6 }, (_, index) => ({
+        id: `nullifier_v4_${index + 1}`,
+        action_v4_id: v4ActionId,
+        created_at: "2026-07-30T11:00:00.000Z",
+        nullifier: `0x1234567890abcdef1234567890abc${String(index + 1).padStart(3, "0")}`,
+      })),
     },
   ],
 };
@@ -374,11 +373,22 @@ describe("World ID v4 action detail [single aggregate and feed]", () => {
     expect(
       await screen.findByRole("heading", { name: "Unique Verifications" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("5")).toBeInTheDocument();
+    expect(screen.getByText("5", { selector: "div" })).toBeInTheDocument();
     expect(screen.queryByText("999")).not.toBeInTheDocument();
     expect(screen.getByText("Recent verifications")).toBeInTheDocument();
     expect(screen.getByText("Nullifier")).toBeInTheDocument();
-    expect(screen.getByText(/0x1234567890/)).toBeInTheDocument();
+    expect(screen.getByText("0x1234567890...90abc001")).toBeInTheDocument();
+    expect(
+      screen.queryByText("0x1234567890...90abc006"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("6", { selector: "span" }),
+    ).not.toBeInTheDocument();
+
+    const pagination = screen.getByText("6 results").parentElement;
+    expect(pagination).not.toBeNull();
+    fireEvent.click(within(pagination!).getAllByRole("button")[1]);
+    expect(screen.getByText("0x1234567890...90abc006")).toBeInTheDocument();
     expect(screen.queryByText(/Verified humans/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^Human$/i)).not.toBeInTheDocument();
 

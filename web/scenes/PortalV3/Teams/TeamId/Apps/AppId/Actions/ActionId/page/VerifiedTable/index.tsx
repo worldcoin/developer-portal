@@ -30,8 +30,15 @@ export const VerifiedTable = (props: {
   columns: VerifiedTableColumn[];
   showIcons?: boolean;
   showCount?: boolean;
+  showPagination?: boolean;
 }) => {
-  const { nullifiers, columns, showIcons = true, showCount = true } = props;
+  const {
+    nullifiers,
+    columns,
+    showIcons = true,
+    showCount = true,
+    showPagination = true,
+  } = props;
   const rowsPerPageOptions = [5, 10, 20]; // Rows per page options
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -161,7 +168,7 @@ export const VerifiedTable = (props: {
             </div>
           </div>
 
-          {showCount ? (
+          {showPagination ? (
             <Pagination
               totalResults={totalResultsCount}
               currentPage={currentPage}
