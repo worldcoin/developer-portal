@@ -3,13 +3,13 @@
 import Skeleton from "react-loading-skeleton";
 import {
   actionCardDescriptionClassName,
+  actionCardFrameClassName,
   actionCardTitleClassName,
-  worldIdActionCardFrameClassName,
 } from "./index";
 
 /** Card chrome renders for real; only the action name/description shimmer. */
 export const ActionCardSkeleton = () => (
-  <div aria-hidden className={worldIdActionCardFrameClassName}>
+  <div aria-hidden className={actionCardFrameClassName}>
     <div className="flex flex-col gap-1">
       <span className={actionCardTitleClassName}>
         <Skeleton width="60%" />
