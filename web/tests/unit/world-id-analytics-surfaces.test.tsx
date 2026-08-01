@@ -9,6 +9,7 @@ import {
 } from "@testing-library/react";
 import { print } from "graphql";
 import React, { Suspense } from "react";
+import { WorldIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout";
 import { ActionsGrid } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsGrid";
 import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
 import { WorldIdActionDetailPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page";
@@ -45,14 +46,21 @@ jest.mock(
 );
 
 jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/WorldId40Pane",
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Danger/DangerZoneSection",
   () => ({
-    WorldId40Pane: () => <div data-testid="world-id-settings" />,
+    DangerZoneSection: () => <div data-testid="danger-zone" />,
   }),
 );
 
 jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/RegisterRpEmptyState",
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/RpSummary",
+  () => ({
+    RpSummary: () => <div data-testid="rp-summary" />,
+  }),
+);
+
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/RegisterRpEmptyState",
   () => ({
     RegisterRpEmptyState: () => <div data-testid="register-rp" />,
   }),
@@ -151,6 +159,13 @@ const overviewData = (actions = 2) => ({
   })),
 });
 
+const renderWorldIdApp = () =>
+  render(
+    <WorldIdLayout teamId="team_1" appId={appId} canManageWorldId={false}>
+      <WorldIdPage />
+    </WorldIdLayout>,
+  );
+
 const v4DetailData = {
   action_v4: [
     {
@@ -220,13 +235,7 @@ describe("World ID app page [combined analytics hero]", () => {
       refetch,
     });
 
-    render(
-      <WorldIdPage
-        params={{ teamId: "team_1", appId }}
-        searchParams={{}}
-        canManageWorldId={false}
-      />,
-    );
+    renderWorldIdApp();
 
     expect(
       await screen.findByRole("heading", { name: "Unique Verifications" }),
@@ -252,13 +261,7 @@ describe("World ID app page [combined analytics hero]", () => {
       refetch,
     });
 
-    render(
-      <WorldIdPage
-        params={{ teamId: "team_1", appId }}
-        searchParams={{}}
-        canManageWorldId={false}
-      />,
-    );
+    renderWorldIdApp();
 
     await screen.findByRole("heading", { name: "Unique Verifications" });
     const appRequest = fetchMock.mock.calls
@@ -274,13 +277,7 @@ describe("World ID app page [combined analytics hero]", () => {
       error: undefined,
       refetch,
     });
-    render(
-      <WorldIdPage
-        params={{ teamId: "team_1", appId }}
-        searchParams={{}}
-        canManageWorldId={false}
-      />,
-    );
+    renderWorldIdApp();
     expect(await screen.findByText("7")).toBeInTheDocument();
 
     fireEvent.change(screen.getByPlaceholderText(/search/i), {
