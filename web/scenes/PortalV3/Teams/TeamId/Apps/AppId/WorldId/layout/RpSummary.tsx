@@ -210,8 +210,8 @@ export const RpSummary = (props: {
                 variant={TYPOGRAPHY.S4}
                 className="mt-1 text-grey-500"
               >
-                Your relying party configuration is being processed on-chain.
-                This usually takes a few minutes.
+                Your changes are being processed on-chain. This could take up to
+                a minute.
               </Typography>
             </div>
           </Notification>
