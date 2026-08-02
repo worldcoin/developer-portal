@@ -203,15 +203,15 @@ export const RpSummary = (props: {
           <Notification variant="info">
             <div>
               <Typography as="p" variant={TYPOGRAPHY.S3}>
-                Registration in progress
+                Configuration in progress
               </Typography>
               <Typography
                 as="p"
                 variant={TYPOGRAPHY.S4}
                 className="mt-1 text-grey-500"
               >
-                Your relying party is being registered on-chain. This usually
-                takes a few minutes.
+                Your relying party configuration is being processed on-chain.
+                This usually takes a few minutes.
               </Typography>
             </div>
           </Notification>

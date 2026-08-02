@@ -127,7 +127,7 @@ it("shows the vertical RP identity fields and separated management controls", ()
 });
 
 it.each([
-  [RpRegistrationStatus.Pending, "Registration in progress"],
+  [RpRegistrationStatus.Pending, "Configuration in progress"],
   [RpRegistrationStatus.Failed, "Production registration failed"],
   [RpRegistrationStatus.Deactivated, "Registration deactivated"],
 ])("keeps the RP identity visible in the %s state", (status, message) => {
