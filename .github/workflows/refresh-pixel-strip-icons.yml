@@ -11,6 +11,10 @@ name: Refresh pixel strip icons
 #
 # Opens a PR instead of pushing directly so a broken/empty upstream response
 # can't silently reach production - a human reviews the diff (and CI) first.
+# Refreshed bytes are uploaded under content-addressed keys that nothing
+# references until that PR merges, so the review gate is real rather than
+# cosmetic, and reverting the PR is a complete rollback (see iconKeyFor in
+# scripts/normalize-app-icons.ts).
 
 on:
   schedule:
@@ -85,9 +89,15 @@ jobs:
             reordered, so the pixel-grid placement (`CELL_APP_INDICES`)
             stays valid.
 
+            The new bytes are already in the asset bucket, under
+            content-addressed keys that nothing references yet - merging this
+            is what puts them in front of visitors, and reverting it puts the
+            previous icons back.
+
             Please review before merging: check the diff is reasonably small
             (a mass change usually means the upstream rankings API had a
-            problem) and that CI passes.
+            problem, though a `sharp` upgrade can also legitimately rotate
+            every key at once) and that CI passes.
           branch: automated/refresh-pixel-strip-icons
           delete-branch: true
           labels: automated

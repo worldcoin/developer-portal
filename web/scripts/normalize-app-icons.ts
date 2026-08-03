@@ -28,17 +28,22 @@
  *                                                             # grid rotation is a separate, harder problem - it needs
  *                                                             # re-running the cell placement algorithm that keeps
  *                                                             # duplicate icons >= 2*ICON_REVEAL_RADIUS apart - and
- *                                                             # isn't handled by this flag.
+ *                                                             # isn't handled by this flag. Uploads are
+ *                                                             # content-addressed and never overwrite a live object,
+ *                                                             # so nothing serves the new bytes until the manifest
+ *                                                             # change is reviewed and merged - see iconKeyFor below.
  *
  * Output (dry run): scripts/output/icons/<appId>.webp + scripts/output/icons/summary.json
  */
 
 import {
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
   type S3ClientConfig,
 } from "@aws-sdk/client-s3";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -63,6 +68,30 @@ const OUTPUT_DIR = path.join(__dirname, "output", "icons");
 // touches a path, rather than trusting the rankings API's shape blindly.
 const SAFE_APP_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
 
+// Object keys are content-addressed - the app id plus a hash of the exact
+// bytes being stored - so an object is only ever created, never rewritten
+// with different content. That's what makes the unattended weekly refresh
+// (see .github/workflows/refresh-pixel-strip-icons.yml) safe:
+//   - New bytes land under a key nothing references yet, so a corrupt or
+//     hijacked upstream icon cannot reach the live grid until the manifest
+//     PR that points at that key is reviewed and merged.
+//   - The manifest URL changes whenever the bytes change, so that PR always
+//     carries a visible diff. Overwriting a stable key produced no diff at
+//     all, which made the "a human reviews it first" gate vacuous.
+//   - Reverting that PR is a complete rollback: the previous key is still
+//     there, untouched, serving the previous bytes.
+//   - The one-year `immutable` Cache-Control below becomes truthful. On a
+//     stable key it was actively harmful: caches would keep serving the old
+//     bytes anyway, so the overwrite carried all the risk and none of the
+//     effect.
+// Note that this hashes the NORMALIZED output, so a sharp/libvips upgrade
+// that re-encodes the same source differently will legitimately rotate every
+// key at once. That's the one expected cause of a mass manifest diff other
+// than a broken upstream response.
+const ICON_DIGEST_LENGTH = 16;
+const iconKeyFor = (appId: string, digest: string) =>
+  `${S3_PREFIX}/${appId}-${digest}.webp`;
+
 type RankedApp = {
   app_id: string;
   name: string;
@@ -81,6 +110,8 @@ type NormalizedIcon = {
   name: string;
   sourceUrl: string;
   outputPath: string;
+  digest: string;
+  s3Key: string;
   bytes: number;
 };
 
@@ -136,6 +167,44 @@ async function normalizeIcon(sourceBytes: Buffer): Promise<Buffer> {
     .flatten({ background: { r: 255, g: 255, b: 255 } })
     .webp({ quality: WEBP_QUALITY })
     .toBuffer();
+}
+
+let headCheckWarned = false;
+
+// The key IS a hash of the bytes we are about to store (see iconKeyFor), so a
+// key that already exists already holds exactly this content and there is
+// nothing to upload - the common case week to week, since most app owners
+// don't change their icon. Skipping it keeps the guarantee structural rather
+// than incidental: the refresh only ever creates objects.
+//
+// A HEAD failure that isn't "missing" (credentials scoped to PutObject only,
+// say) falls through to uploading rather than failing the refresh - worst case
+// is rewriting an object with byte-identical content, which is exactly what
+// content addressing makes harmless. Warned once, not per icon.
+async function iconAlreadyUploaded(
+  s3: { client: S3Client; bucket: string },
+  key: string,
+): Promise<boolean> {
+  try {
+    await s3.client.send(
+      new HeadObjectCommand({ Bucket: s3.bucket, Key: key }),
+    );
+    return true;
+  } catch (error) {
+    const name = (error as { name?: string }).name;
+    const status = (error as { $metadata?: { httpStatusCode?: number } })
+      .$metadata?.httpStatusCode;
+
+    if (name !== "NotFound" && status !== 404 && !headCheckWarned) {
+      headCheckWarned = true;
+      console.warn(
+        `\nHEAD ${key} failed (${name ?? "unknown error"}${status ? `, HTTP ${status}` : ""}); ` +
+          `uploading without the exists check for the rest of this run.`,
+      );
+    }
+
+    return false;
+  }
 }
 
 async function getS3Client(): Promise<{ client: S3Client; bucket: string }> {
@@ -227,6 +296,8 @@ async function main() {
 
   const results: NormalizedIcon[] = [];
   const failures: Array<{ appId: string; error: string }> = [];
+  let uploaded = 0;
+  let alreadyPresent = 0;
 
   for (const app of targets) {
     try {
@@ -238,21 +309,33 @@ async function main() {
 
       const sourceBytes = await fetchWithCap(app.logo_img_url);
       const normalized = await normalizeIcon(sourceBytes);
-      const fileName = `${app.app_id}.webp`;
-      const outputPath = path.join(OUTPUT_DIR, fileName);
+      const digest = createHash("sha256")
+        .update(normalized)
+        .digest("hex")
+        .slice(0, ICON_DIGEST_LENGTH);
+      const s3Key = iconKeyFor(app.app_id, digest);
+      // Local dry-run artifacts stay named by app id (not by digest) so
+      // eyeballing "app X's icon" doesn't mean globbing for a hash. summary
+      // .json below records the key each one would be uploaded under.
+      const outputPath = path.join(OUTPUT_DIR, `${app.app_id}.webp`);
 
       await writeFile(outputPath, normalized);
 
       if (s3) {
-        await s3.client.send(
-          new PutObjectCommand({
-            Bucket: s3.bucket,
-            Key: `${S3_PREFIX}/${fileName}`,
-            Body: normalized,
-            ContentType: "image/webp",
-            CacheControl: "public, max-age=31536000, immutable",
-          }),
-        );
+        if (await iconAlreadyUploaded(s3, s3Key)) {
+          alreadyPresent++;
+        } else {
+          await s3.client.send(
+            new PutObjectCommand({
+              Bucket: s3.bucket,
+              Key: s3Key,
+              Body: normalized,
+              ContentType: "image/webp",
+              CacheControl: "public, max-age=31536000, immutable",
+            }),
+          );
+          uploaded++;
+        }
       }
 
       results.push({
@@ -260,6 +343,8 @@ async function main() {
         name: app.name,
         sourceUrl: app.logo_img_url,
         outputPath,
+        digest,
+        s3Key,
         bytes: normalized.byteLength,
       });
       process.stdout.write(".");
@@ -274,6 +359,12 @@ async function main() {
 
   console.log("\n");
   console.log(`Processed: ${results.length}, failed: ${failures.length}`);
+
+  if (s3) {
+    console.log(
+      `Uploaded ${uploaded} new object(s); ${alreadyPresent} already present with identical bytes.`,
+    );
+  }
 
   if (failures.length > 0) {
     console.log("\nFailures:");
@@ -302,7 +393,7 @@ async function main() {
     const base =
       cdnBaseUrl ??
       `https://${process.env.NEXT_PUBLIC_IMAGES_CDN_URL ?? "world-id-assets.com"}`;
-    const urlFor = (appId: string) => `${base}/${S3_PREFIX}/${appId}.webp`;
+    const urlFor = (icon: NormalizedIcon) => `${base}/${icon.s3Key}`;
 
     const manifestDir = path.join(
       __dirname,
@@ -320,12 +411,15 @@ async function main() {
       // Anything skipped (missing from live rankings, or failed above)
       // keeps its previous entry untouched. This is what keeps
       // CELL_APP_INDICES (which references APPS by numeric index) valid
-      // across runs.
+      // across runs. Since the URL carries the content hash (see
+      // iconKeyFor), an app whose icon is byte-identical to last week
+      // patches to the same URL it already had - so the diff, and the PR
+      // that carries it, only ever shows icons that genuinely changed.
       const refreshedById = new Map(results.map((r) => [r.appId, r]));
       const patchedApps = EXISTING_APPS.map((existing) => {
         const refreshed = refreshedById.get(existing.appId);
         return refreshed
-          ? { ...existing, logoUrl: urlFor(existing.appId) }
+          ? { ...existing, logoUrl: urlFor(refreshed) }
           : existing;
       });
 
@@ -373,7 +467,7 @@ async function main() {
       const appsLiteral = results
         .map(
           (r) =>
-            `  {\n    appId: ${JSON.stringify(r.appId)},\n    name: ${JSON.stringify(r.name)},\n    logoUrl: ${JSON.stringify(urlFor(r.appId))},\n  },`,
+            `  {\n    appId: ${JSON.stringify(r.appId)},\n    name: ${JSON.stringify(r.name)},\n    logoUrl: ${JSON.stringify(urlFor(r))},\n  },`,
         )
         .join("\n");
 
