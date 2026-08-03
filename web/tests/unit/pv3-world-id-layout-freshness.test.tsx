@@ -1,6 +1,12 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import React from "react";
 import { WorldIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout";
 import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
@@ -10,6 +16,7 @@ import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/p
 // BanMessageDialog is a static import. Revisit if that import graph grows.
 const useQueryMock = jest.fn();
 const refetch = jest.fn();
+const fetchMock = jest.fn();
 jest.mock("@apollo/client/react", () => ({
   useQuery: (...args: unknown[]) => useQueryMock(...args),
 }));
@@ -192,6 +199,14 @@ beforeEach(() => {
   useQueryMock.mockReset();
   // refetchOverview calls .catch() on the result.
   refetch.mockResolvedValue({});
+  // The layout reconciles a pending RP through /api/v4/rp-status.
+  fetchMock.mockReset();
+  fetchMock.mockResolvedValue({ ok: false });
+  global.fetch = fetchMock as unknown as typeof fetch;
+  Object.defineProperty(AbortSignal, "timeout", {
+    configurable: true,
+    value: () => new AbortController().signal,
+  });
   Object.defineProperty(document, "visibilityState", {
     value: "visible",
     configurable: true,
@@ -298,6 +313,42 @@ describe("WorldIdLayout [optimistic status]", () => {
       "data-can-create",
       "false",
     );
+  });
+
+  it("reconciles a pending registration while the user is on Actions", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ production_status: "registered" }),
+    });
+    setQuery({ data: makeData({ status: "pending" }), loading: false });
+    render(el());
+
+    await waitFor(() => expect(refetch).toHaveBeenCalledTimes(1));
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v4/rp-status/rp_0123456789abcdef",
+      expect.anything(),
+    );
+  });
+
+  it("does not refetch when reconciliation still reports pending", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ production_status: "pending" }),
+    });
+    setQuery({ data: makeData({ status: "pending" }), loading: false });
+    render(el());
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(refetch).not.toHaveBeenCalled();
+  });
+
+  it("leaves pending reconciliation to RpSummary on Configuration", () => {
+    searchParams = new URLSearchParams("tab=configuration");
+    setQuery({ data: makeData({ status: "pending" }), loading: false });
+    render(el());
+
+    expect(screen.getByTestId("rp-summary")).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("lets a background refetch override an optimistic status for the same RP", () => {
