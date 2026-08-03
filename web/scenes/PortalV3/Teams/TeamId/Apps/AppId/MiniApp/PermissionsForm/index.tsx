@@ -5,14 +5,13 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { FlaskIcon } from "@/components/Icons/FlaskIcon";
 import { HelpIcon } from "@/components/Icons/HelpIcon";
-import { LockIcon } from "@/components/Icons/LockIcon";
 import { Link } from "@/components/Link";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
+import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { noticeIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
@@ -22,10 +21,10 @@ import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
 import {
-  updateSetupInitialSchema,
-  UpdateSetupInitialSchema,
+  updatePermissionsSchema,
+  UpdatePermissionsSchema,
 } from "../../Configuration/Advanced/page/form-schema";
-import { validateAndUpdateSetupServerSide } from "../../Configuration/Advanced/page/server/submit";
+import { validateAndUpdatePermissionsServerSide } from "../../Configuration/Advanced/page/server/submit";
 import {
   SaveStatusIndicator,
   useSaveStatus,
@@ -153,7 +152,7 @@ const NotificationLimitCard = ({
   control,
   disabled,
 }: {
-  control: Control<UpdateSetupInitialSchema>;
+  control: Control<UpdatePermissionsSchema>;
   disabled: boolean;
 }) => (
   <section className="grid gap-y-5 rounded-2xl border border-grey-200 bg-grey-0 p-5 shadow-button">
@@ -278,9 +277,11 @@ const NotificationLimitCard = ({
 
 const MiniAppPreviewCard = ({
   appId,
+  teamId,
   appMetadata,
 }: {
   appId: string;
+  teamId: string;
   appMetadata: PermissionsFormProps["appMetadata"];
 }) => {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
@@ -292,7 +293,8 @@ const MiniAppPreviewCard = ({
     miniAppUrl += `&draft_id=${appMetadata.id}`;
   }
 
-  const hasPreview = Boolean(appMetadata?.integration_url);
+  const isExternalApp = appMetadata?.app_mode === "external";
+  const hasPreview = Boolean(appMetadata?.integration_url) && !isExternalApp;
 
   useEffect(() => {
     if (!hasPreview) return;
@@ -304,6 +306,29 @@ const MiniAppPreviewCard = ({
         setQrCodeDataUrl(null);
       });
   }, [hasPreview, miniAppUrl]);
+
+  if (isExternalApp) {
+    return (
+      <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
+          <AlertIcon className="size-4 text-white" />
+        </div>
+        <Typography
+          variant={TYPOGRAPHY.B3}
+          className="flex-1 text-system-warning-600"
+        >
+          Mini App preview becomes available when this app is set to Mini App in{" "}
+          <Link
+            href={urls.configuration({ team_id: teamId, app_id: appId })}
+            className="underline"
+          >
+            Get Verified
+          </Link>
+          .
+        </Typography>
+      </div>
+    );
+  }
 
   if (!hasPreview) {
     return (
@@ -376,9 +401,8 @@ const MiniAppPreviewCard = ({
 
 const getFormValuesFromMetadata = (
   appMetadata: PermissionsFormProps["appMetadata"],
-): UpdateSetupInitialSchema => ({
+): UpdatePermissionsSchema => ({
   whitelisted_addresses: appMetadata?.whitelisted_addresses?.join(",") ?? null,
-  app_mode: appMetadata?.app_mode as UpdateSetupInitialSchema["app_mode"],
   is_whitelist_disabled:
     (appMetadata?.whitelisted_addresses?.length ?? 0) === 0,
   associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
@@ -409,8 +433,8 @@ export const SetupForm = ({
     ]);
   }, [teamId, user]);
 
-  const form = useForm<UpdateSetupInitialSchema>({
-    resolver: yupResolver(updateSetupInitialSchema),
+  const form = useForm<UpdatePermissionsSchema>({
+    resolver: yupResolver(updatePermissionsSchema),
     mode: "onChange",
     defaultValues: getFormValuesFromMetadata(appMetadata),
   });
@@ -438,13 +462,13 @@ export const SetupForm = ({
 
   const canEdit = isEditable && isEnoughPermissions;
 
-  useAutosaveWithStatus<UpdateSetupInitialSchema>({
+  useAutosaveWithStatus<UpdatePermissionsSchema>({
     id: "mini-app-permissions",
     form,
     enabled: canEdit,
     save: async (values, signal) => {
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
-      const result = await validateAndUpdateSetupServerSide(
+      const result = await validateAndUpdatePermissionsServerSide(
         values,
         appMetadata?.id ?? "",
       );
@@ -485,28 +509,6 @@ export const SetupForm = ({
     },
     [setValue],
   );
-
-  // The mode toggle lives on the Configuration page now, so this page only
-  // serves Mini Apps.
-  if (appMetadata?.app_mode === "external") {
-    return (
-      <div className="grid max-w-[1180px] grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
-        <LockIcon
-          className={`${noticeIconClassName} size-8 text-grey-900`}
-          aria-hidden="true"
-        />
-
-        <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
-          <Typography as="p" className="font-world text-[13px] font-semibold">
-            Permissions unavailable
-          </Typography>
-          <Typography as="p" className="font-world text-[13px] font-medium">
-            Mini App permissions aren&apos;t available for external apps.
-          </Typography>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <form
@@ -652,7 +654,11 @@ export const SetupForm = ({
         </div>
 
         <aside className="grid w-full shrink-0 gap-y-4 lg:sticky lg:top-8 lg:w-[340px] xl:w-[380px]">
-          <MiniAppPreviewCard appId={appId} appMetadata={appMetadata} />
+          <MiniAppPreviewCard
+            appId={appId}
+            teamId={teamId}
+            appMetadata={appMetadata}
+          />
           <NotificationLimitCard control={control} disabled={!canEdit} />
         </aside>
       </div>

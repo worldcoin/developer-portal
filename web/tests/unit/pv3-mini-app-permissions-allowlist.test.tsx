@@ -37,7 +37,7 @@ jest.mock(
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Advanced/page/server/submit",
   () => ({
-    validateAndUpdateSetupServerSide: jest
+    validateAndUpdatePermissionsServerSide: jest
       .fn()
       .mockResolvedValue({ success: true }),
   }),
@@ -100,6 +100,27 @@ describe("Mini App payment allowlist", () => {
 
     expect(form.getValues("whitelisted_addresses")).toBeNull();
     expect(form.getValues("is_whitelist_disabled")).toBe(true);
+  });
+
+  it("keeps permissions editable for external integrations without owning app mode", () => {
+    render(
+      <SetupForm
+        appId="app_1234567890abcdef1234567890abcdef"
+        teamId="team_1234567890abcdef1234567890abcdef"
+        appMetadata={{ ...appMetadata, app_mode: "external" } as never}
+      />,
+    );
+
+    const form = mockUseAutosaveWithStatus.mock.calls[0][0].form;
+
+    expect(screen.getByPlaceholderText("Paste wallet address")).toBeEnabled();
+    expect(form.getValues("app_mode")).toBeUndefined();
+    expect(
+      screen.getByText(/Mini App preview becomes available/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Permissions unavailable"),
+    ).not.toBeInTheDocument();
   });
 });
 // #endregion
