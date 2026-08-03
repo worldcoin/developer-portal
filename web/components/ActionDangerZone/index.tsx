@@ -17,11 +17,18 @@ type ActionDangerZoneProps = {
   isDeleting: boolean;
   canDelete: boolean;
   className?: string;
+  compact?: boolean;
 };
 
 export const ActionDangerZone = (props: ActionDangerZoneProps) => {
-  const { actionIdentifier, onDelete, isDeleting, canDelete, className } =
-    props;
+  const {
+    actionIdentifier,
+    onDelete,
+    isDeleting,
+    canDelete,
+    className,
+    compact = false,
+  } = props;
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
   const handleDelete = async () => {
@@ -130,20 +137,22 @@ export const ActionDangerZone = (props: ActionDangerZoneProps) => {
         </DialogPanel>
       </Dialog>
 
-      <div className="grid w-full max-w-[480px] gap-y-10">
-        <div className="grid gap-y-2">
-          <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-            Danger zone
-          </Typography>
+      <div className={compact ? "flex" : "grid w-full max-w-[480px] gap-y-10"}>
+        {!compact ? (
+          <div className="grid gap-y-2">
+            <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
+              Danger zone
+            </Typography>
 
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-            This will immediately and permanently delete the{" "}
-            <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
-              {truncateString(actionIdentifier, 30)}
-            </Typography>{" "}
-            action and its data for everyone. This cannot be undone.
-          </Typography>
-        </div>
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+              This will immediately and permanently delete the{" "}
+              <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
+                {truncateString(actionIdentifier, 30)}
+              </Typography>{" "}
+              action and its data for everyone. This cannot be undone.
+            </Typography>
+          </div>
+        ) : null}
 
         <DestructiveTriggerButton
           onClick={() => setOpenDeleteModal(true)}

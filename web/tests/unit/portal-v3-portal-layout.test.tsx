@@ -25,12 +25,14 @@ jest.mock("@/scenes/PortalV3/layout/Shell", () => ({
   PortalShell: (props: {
     user: { name?: string | null };
     teams: { id: string }[];
+    apiKeyTeamIds: string[];
     sandboxRequest: { email: string } | null;
     children: React.ReactNode;
   }) => (
     <div
       data-testid="shell"
       data-team-count={props.teams.length}
+      data-api-key-team-ids={props.apiKeyTeamIds.join(",")}
       data-sandbox-email={props.sandboxRequest?.email}
       data-user-name={props.user.name}
     >
@@ -52,11 +54,20 @@ it("mounts the shell with teams from the session", async () => {
       sub: "auth0|ada",
       name: "Ada",
       email: "ada@example.com",
-      hasura: { memberships: [{ team: { id: "team_1", name: "Acme" } }] },
+      hasura: {
+        memberships: [
+          { role: "OWNER", team: { id: "team_1", name: "Acme" } },
+          { role: "MEMBER", team: { id: "team_2", name: "Other" } },
+        ],
+      },
     },
   });
   render(await PortalLayout({ children: <div data-testid="body" /> }));
-  expect(screen.getByTestId("shell")).toHaveAttribute("data-team-count", "1");
+  expect(screen.getByTestId("shell")).toHaveAttribute("data-team-count", "2");
+  expect(screen.getByTestId("shell")).toHaveAttribute(
+    "data-api-key-team-ids",
+    "team_1",
+  );
   expect(screen.getByTestId("body")).toBeInTheDocument();
 });
 

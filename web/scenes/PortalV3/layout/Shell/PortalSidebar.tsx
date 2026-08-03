@@ -15,9 +15,10 @@ import { UserPopup } from "./UserPopup";
 export const PortalSidebar = (props: {
   user: { name?: string | null; email?: string | null };
   teams: { id: string; name: string }[];
+  apiKeyTeamIds?: string[];
   sandboxRequest?: SandboxAccessRequestState | null;
 }) => {
-  const { user, teams, sandboxRequest } = props;
+  const { user, teams, apiKeyTeamIds = [], sandboxRequest } = props;
   const name = user.name ?? user.email ?? "Account";
 
   return (
@@ -27,7 +28,10 @@ export const PortalSidebar = (props: {
       </SidebarHeader>
 
       <SidebarContent className="gap-0 pt-3">
-        <SidebarNav initialSandboxRequest={sandboxRequest} />
+        <SidebarNav
+          initialSandboxRequest={sandboxRequest}
+          apiKeyTeamIds={apiKeyTeamIds}
+        />
       </SidebarContent>
 
       <SidebarFooter className="px-4 pb-4">

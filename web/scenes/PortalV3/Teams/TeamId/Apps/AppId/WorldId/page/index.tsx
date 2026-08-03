@@ -25,6 +25,11 @@ export const WorldIdActionsPage = () => {
       appId={appId}
       search={actionsSearch}
       canCreate={canManageWorldId && hasActiveRp}
+      emptyReason={
+        canManageWorldId
+          ? "Finish registering your relying party to create actions."
+          : "Ask a team owner or admin to create actions."
+      }
       initialDialogOpen={shouldOpenCreateAction}
       onCreateActionConsumed={consumeCreateAction}
       onActionsChanged={refreshOverview}

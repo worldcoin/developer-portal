@@ -144,6 +144,7 @@ export const Item = (props: ItemsProps) => {
                     <Link
                       href={urls.teamSettings({
                         team_id: item.team.id,
+                        return_to: urls.profile(),
                       })}
                     >
                       <Dropdown.ListItemIcon asChild>
