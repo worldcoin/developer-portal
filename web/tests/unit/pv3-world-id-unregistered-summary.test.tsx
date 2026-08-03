@@ -1,14 +1,36 @@
 /** @jest-environment jsdom */
 
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { generateRpIdString } from "@/lib/rp";
 import { RegisterRpEmptyState } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/RegisterRpEmptyState";
 
 jest.mock("next/dynamic", () => ({
   __esModule: true,
-  default: () => (props: { open: boolean }) =>
-    props.open ? <div role="dialog">Configure signer key</div> : null,
+  default:
+    () =>
+    (props: {
+      open: boolean;
+      onClose?: (value: boolean) => void;
+      onComplete?: () => Promise<void> | void;
+    }) =>
+      props.open ? (
+        <div role="dialog">
+          Configure signer key
+          <button
+            type="button"
+            onClick={async () => {
+              await props.onComplete?.();
+              props.onClose?.(false);
+            }}
+          >
+            Complete registration
+          </button>
+          <button type="button" onClick={() => props.onClose?.(false)}>
+            Cancel registration
+          </button>
+        </div>
+      ) : null,
 }));
 
 const defaultProps = {
@@ -55,6 +77,34 @@ it("opens managed signer setup directly from the signer-address slot", () => {
   );
 
   expect(screen.getByRole("dialog")).toHaveTextContent("Configure signer key");
+});
+
+it("refreshes the overview before closing a completed registration", async () => {
+  render(<RegisterRpEmptyState {...defaultProps} />);
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Register relying party" }),
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Complete registration" }),
+  );
+
+  expect(defaultProps.onRegistered).toHaveBeenCalledTimes(1);
+  await waitFor(() =>
+    expect(defaultProps.onSetupClosed).toHaveBeenCalledWith(true),
+  );
+});
+
+it("does not report a registration when the dialog is cancelled", () => {
+  render(<RegisterRpEmptyState {...defaultProps} />);
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Register relying party" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Cancel registration" }));
+
+  expect(defaultProps.onSetupClosed).toHaveBeenCalledWith(false);
+  expect(defaultProps.onRegistered).not.toHaveBeenCalled();
 });
 
 it.each([

@@ -345,6 +345,29 @@ describe("WorldIdLayout [setup to create handoff]", () => {
     expect(screen.queryByTestId("danger-zone-section")).not.toBeInTheDocument();
   });
 
+  it("keeps a direct registration on Configuration after Apollo refetches", () => {
+    setQuery({ data: makeData({ rp: false }), loading: false });
+    const view = render(el());
+
+    fireEvent.click(screen.getByText("complete-setup"));
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+    expect(replace).toHaveBeenLastCalledWith(
+      "/teams/team_1/apps/app_1/world-id?tab=configuration",
+      { scroll: false },
+    );
+
+    setQuery({ data: makeData({ status: "pending" }), loading: false });
+    view.rerender(el());
+
+    expect(screen.getByTestId("rp-summary")).toHaveAttribute(
+      "data-status",
+      "pending",
+    );
+    expect(screen.queryByTestId("actions-grid")).not.toBeInTheDocument();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
   it("still defaults to Configuration when legacy actions exist without an RP", () => {
     setQuery({
       data: makeData({ rp: false, legacy: true }),

@@ -29,7 +29,7 @@ export const RegisterRpEmptyState = (props: {
   initialOpen?: boolean;
   isStaging: boolean;
   canManageWorldId: boolean;
-  onRegistered: () => void;
+  onRegistered: () => Promise<void>;
   onSetupClosed: (completed: boolean) => void;
 }) => {
   const canRegister = !props.isStaging && props.canManageWorldId;
@@ -50,7 +50,6 @@ export const RegisterRpEmptyState = (props: {
     const completed = completedRef.current;
     completedRef.current = false;
     setOpen(false);
-    props.onRegistered();
     props.onSetupClosed(completed);
   };
 
@@ -116,8 +115,9 @@ export const RegisterRpEmptyState = (props: {
         <RegisterRpDialog
           open={open}
           appId={props.appId}
-          onComplete={() => {
+          onComplete={async () => {
             completedRef.current = true;
+            await props.onRegistered();
           }}
           onClose={closeDialog}
         />
