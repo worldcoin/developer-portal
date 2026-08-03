@@ -1,8 +1,8 @@
-import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import { WarningBadgeIcon } from "@/scenes/PortalV3/common/Icon";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { createContext, PropsWithChildren, useContext, useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -21,9 +21,7 @@ import { AppStoreFormProps } from "./types/AppStoreFormTypes";
 
 export const LawsAndRegulationsBanner = () => (
   <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
-    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
-      <AlertIcon className="size-4 text-white" />
-    </div>
+    <WarningBadgeIcon />
     <Typography
       variant={TYPOGRAPHY.B3}
       className="flex-1 text-system-warning-600"
@@ -35,6 +33,17 @@ export const LawsAndRegulationsBanner = () => (
   </div>
 );
 
+/**
+ * ShowcaseImagesField and MetaTagImageField upsert through their own mutation
+ * and write the URL back into the form only so the UI can render it. See
+ * `UseAutosaveOptions.isSelfPersisting`.
+ */
+const SELF_PERSISTING_FIELDS =
+  /^localisations\.\d+\.(showcase_img_urls|meta_tag_image_url)$/;
+
+const isSelfPersistingField = (name: string) =>
+  SELF_PERSISTING_FIELDS.test(name);
+
 type AppStoreFormContextValue = ReturnType<typeof useAppStoreForm> &
   AppStoreFormProps & {
     isEnoughPermissions: boolean;
@@ -45,7 +54,7 @@ const AppStoreFormContext = createContext<AppStoreFormContextValue | null>(
   null,
 );
 
-const useAppStoreFormContext = () => {
+export const useAppStoreFormContext = () => {
   const value = useContext(AppStoreFormContext);
 
   if (!value) {
@@ -86,6 +95,7 @@ export const AppStoreForm = ({
     save: async (data, signal) => {
       await submitSilent(data, signal);
     },
+    isSelfPersisting: isSelfPersistingField,
   });
 
   return (

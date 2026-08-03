@@ -1,72 +1,99 @@
-import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
-import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import {
+  FormDialog,
+  formDialogDangerActionClassName,
+  formDialogPrimaryActionClassName,
+} from "@/components/FormDialog";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
+import { ApiKeySecretFields } from "../../ApiKeySecretFields";
 
 type RotateKeyModalProps = {
   isOpen: boolean;
   name?: string;
   loading: boolean;
+  rotatedKey: string | null;
   onConfirm: () => void;
-  setIsOpen: (isOpen: boolean) => void;
+  onClose: () => void;
+  afterLeave?: () => void;
 };
 
 export const RotateKeyModal = (props: RotateKeyModalProps) => {
-  const { isOpen, name, loading, onConfirm, setIsOpen } = props;
+  const { isOpen, name, loading, rotatedKey, onConfirm, onClose, afterLeave } =
+    props;
 
   return (
-    <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
-      <DialogOverlay />
+    <FormDialog
+      open={isOpen}
+      onClose={onClose}
+      afterLeave={afterLeave}
+      // Confirming rotation invalidates the old key server-side and the response
+      // carries the only copy of the new one, so there is no safe exit between
+      // the two: hold the user here until the reveal renders. A failed rotation
+      // clears `loading` with no secret, which unlocks the dialog again rather
+      // than trapping them on a dead confirm view.
+      dismissable={!loading}
+      title={rotatedKey ? "API key rotated" : "Are you sure?"}
+      closeLabel="Close rotate key dialog"
+      panelClassName={
+        rotatedKey
+          ? "max-h-[calc(100dvh-2rem)] md:w-[544px] md:max-w-[calc(100vw-2rem)]"
+          : undefined
+      }
+      bodyClassName={rotatedKey ? "min-h-0 overflow-y-auto" : undefined}
+    >
+      {rotatedKey ? (
+        <div className="grid w-full gap-y-5">
+          <p className="font-world text-14 leading-[1.5] text-portal-muted">
+            Your new API key is ready. Save it now because you {"won't"} be able
+            to see it again.
+          </p>
 
-      <DialogPanel>
-        <div className="grid grid-cols-1 justify-items-center gap-y-8 px-2 md:w-full md:max-w-100">
-          <CircleIconContainer variant={"error"}>
-            <WarningErrorIcon className="w-6" />
-          </CircleIconContainer>
+          <ApiKeySecretFields apiKey={rotatedKey} />
 
-          <div className="grid w-full grid-cols-1 items-center justify-items-center gap-y-4 text-center">
-            <Typography variant={TYPOGRAPHY.H6}>Are you sure?</Typography>
+          <button
+            type="button"
+            className={formDialogPrimaryActionClassName}
+            onClick={onClose}
+          >
+            Done
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-5">
+          {/* Consequence stays in one trailing text node so getByText can match it. */}
+          <p className="font-world text-13 leading-[1.5] text-portal-muted">
+            Rotating{" "}
+            <span className="font-medium text-portal-text">{name}</span> will
+            stop working immediately anywhere it is already deployed, and the
+            new key is shown only once.
+          </p>
 
-            {/* Consequence stays in one trailing text node so getByText can match it. */}
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-              Rotating{" "}
-              <div className="inline-flex">
-                <Typography
-                  variant={TYPOGRAPHY.M3}
-                  className="max-w-52 truncate text-grey-900"
-                >
-                  {name}
-                </Typography>
-              </div>{" "}
-              will stop working immediately anywhere it is already deployed, and
-              the new key is shown only once.
-            </Typography>
-          </div>
-
-          <div className="grid w-full gap-x-4 gap-y-2 md:grid-cols-2">
-            <DecoratedButton
-              className="order-2 md:order-1"
+          <div className="grid w-full gap-3 md:grid-cols-2">
+            <button
               type="button"
-              variant="danger"
               disabled={loading}
               onClick={onConfirm}
+              // Keeps an accessible name while the label is a spinner.
+              aria-label="Rotate key"
+              className={`${formDialogDangerActionClassName} order-2 md:order-none`}
             >
-              Rotate key
-            </DecoratedButton>
+              {loading ? (
+                <SpinnerIcon className="size-5 animate-spin" />
+              ) : (
+                "Rotate key"
+              )}
+            </button>
 
-            <DecoratedButton
-              className="order-1 whitespace-nowrap"
+            <button
               type="button"
-              onClick={() => setIsOpen(false)}
+              disabled={loading}
+              onClick={onClose}
+              className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
             >
               Keep current key
-            </DecoratedButton>
+            </button>
           </div>
         </div>
-      </DialogPanel>
-    </Dialog>
+      )}
+    </FormDialog>
   );
 };

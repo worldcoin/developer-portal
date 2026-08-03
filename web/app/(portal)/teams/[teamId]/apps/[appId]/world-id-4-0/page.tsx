@@ -1,9 +1,10 @@
 import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
-import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
+import { urls } from "@/lib/urls";
+import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { WorldId40Page } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldId40/page";
-import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: generateMetaTitle({ left: "World ID" }),
@@ -15,16 +16,24 @@ type Props = {
 };
 
 export default async function Page(props: Props) {
-  const params = await props.params;
-  const searchParams = await props.searchParams;
+  const [params, searchParams] = await Promise.all([
+    props.params,
+    props.searchParams,
+  ]);
+
+  // Portal V3 uses `/world-id` as its canonical route. Portal V2 still owns
+  // this route, so only the V3 branch redirects and V2 keeps its existing guard.
   return pickPortalVersion(
-    async () => (
-      <WorldIdPage
-        params={params}
-        searchParams={searchParams}
-        canManageWorldId={await getIsUserAllowedToUpdateApp(params.appId)}
-      />
-    ),
+    () => {
+      return redirect(
+        urls.worldIdTab({
+          team_id: params.teamId,
+          app_id: params.appId,
+          tab: WORLD_ID_TABS.Configuration,
+          query: searchParams,
+        }),
+      );
+    },
     () => <WorldId40Page params={params} />,
   );
 }

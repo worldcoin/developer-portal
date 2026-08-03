@@ -14,12 +14,11 @@ import { FetchAppsDocument } from "@/scenes/common/Teams/TeamId/Team/page/Apps/g
 import { Section } from "@/components/Section";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { useAtom } from "jotai";
-import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
+import { useCreateAppDialog } from "@/scenes/common/layout/CreateAppDialog/useCreateAppDialog";
 
 export const Apps = () => {
   const { teamId } = useParams() as { teamId: string };
-  const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
+  const { open: openCreateAppDialog } = useCreateAppDialog();
 
   const { data, refetch, loading } = useQuery(FetchAppsDocument, {
     variables: { teamId },
@@ -68,7 +67,7 @@ export const Apps = () => {
             type="button"
             variant="primary"
             className="min-w-[200px] py-2.5"
-            onClick={() => setCreateAppDialogOpen(true)}
+            onClick={openCreateAppDialog}
           >
             <PlusIcon className="size-5" />
             New app
@@ -99,7 +98,7 @@ export const Apps = () => {
           <Button
             className="group relative flex flex-col items-center justify-center gap-y-4 rounded-20 border border-dashed border-grey-200 px-8 pt-10 pb-6 transition-colors hover:border-blue-500 max-md:hidden"
             type="button"
-            onClick={() => setCreateAppDialogOpen(true)}
+            onClick={openCreateAppDialog}
           >
             <AddCircleIcon className="size-8 text-grey-500 transition-colors group-hover:text-blue-500" />
             <Typography

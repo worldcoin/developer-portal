@@ -24,16 +24,19 @@ type DeleteModalProps = {
   teamId: string;
 };
 
-const createSchema = (appName: string) =>
-  yup
-    .object()
-    .shape({
-      app_name: yup
-        .string()
-        .oneOf([appName], "Please check if the input is correct")
-        .required("This field is required"),
-    })
-    .noUnknown();
+// Typing the word beats typing the app name: same deliberate pause, no
+// copy-pasting a long name. Case-insensitive so DELETE works too.
+const schema = yup
+  .object()
+  .shape({
+    app_name: yup
+      .string()
+      .matches(/^delete$/i, "Please check if the input is correct")
+      .required("This field is required"),
+  })
+  .noUnknown();
+
+type DeleteFormValues = yup.Asserts<typeof schema>;
 
 export const DeleteModal = (props: DeleteModalProps) => {
   const { openDeleteModal, setOpenDeleteModal, appName, appId, teamId } = props;
@@ -42,7 +45,6 @@ export const DeleteModal = (props: DeleteModalProps) => {
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
     teamId,
   });
-  const schema = createSchema(appName);
 
   const handleDeleteApp = async () => {
     if (deletingApp) {
@@ -88,8 +90,6 @@ export const DeleteModal = (props: DeleteModalProps) => {
       setDeletingApp(false);
     }
   };
-
-  type DeleteFormValues = yup.Asserts<typeof schema>;
 
   const {
     register,
@@ -139,8 +139,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
             label={
               <>
                 To verify, type{" "}
-                <span className="font-medium text-grey-900">{appName}</span>{" "}
-                below
+                <span className="font-medium text-grey-900">Delete</span> below
               </>
             }
             errors={errors.app_name}

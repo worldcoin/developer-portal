@@ -34,13 +34,18 @@ export const CopyButton = (props: {
       onClick={copyToClipboard}
       className={clsx("pr-4", className)}
       disabled={disabled}
+      aria-label={isCopied ? `${fieldName} copied` : `Copy ${fieldName}`}
     >
       {isCopied ? (
         <CopyCheckIcon
           className={clsx("size-5 text-grey-900", iconClassName)}
+          aria-hidden="true"
         />
       ) : (
-        <CopyIcon className={clsx("size-5 text-grey-900", iconClassName)} />
+        <CopyIcon
+          className={clsx("size-5 text-grey-900", iconClassName)}
+          aria-hidden="true"
+        />
       )}
     </Button>
   );

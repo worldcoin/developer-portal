@@ -1,16 +1,10 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
+import { ActionsSearchToolbar } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/ActionsSearchToolbar";
 import { ActionCard } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionCard";
 import { ActionsGrid } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsGrid";
-import { WorldIdTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/WorldIdTabs";
-import { WorldIdSubTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/SubTabs";
-
-jest.mock("next/navigation", () => ({
-  useParams: () => ({ teamId: "team_1", appId: "app_1" }),
-  usePathname: () => "/teams/team_1/apps/app_1/actions",
-  useSelectedLayoutSegment: () => "actions",
-}));
 
 global.ResizeObserver = class {
   observe() {}
@@ -21,7 +15,16 @@ global.ResizeObserver = class {
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/page/CreateActionDialogV4",
   () => ({
-    CreateActionDialogV4: () => <div data-testid="create-action-dialog" />,
+    CreateActionDialogV4: (props: {
+      open: boolean;
+      onClose: (success?: boolean) => void;
+    }) => (
+      <div data-testid="create-action-dialog" data-open={String(props.open)}>
+        <button type="button" onClick={() => props.onClose()}>
+          Close create dialog
+        </button>
+      </div>
+    ),
   }),
 );
 
@@ -54,6 +57,7 @@ it("renders the create action card before existing actions", () => {
       appId="app_1"
       search=""
       canCreate
+      emptyReason="Ask a team owner or admin to create actions."
       onCreateActionConsumed={jest.fn()}
       onActionsChanged={jest.fn()}
     />,
@@ -78,6 +82,7 @@ it("paginates action cards", () => {
       appId="app_1"
       search=""
       canCreate={false}
+      emptyReason="Ask a team owner or admin to create actions."
       onCreateActionConsumed={jest.fn()}
       onActionsChanged={jest.fn()}
     />,
@@ -89,6 +94,54 @@ it("paginates action cards", () => {
   expect(screen.getByRole("link", { name: "action-13" })).toBeInTheDocument();
 });
 
+const emptyGrid = (over: Partial<ComponentProps<typeof ActionsGrid>> = {}) => (
+  <ActionsGrid
+    actions={[]}
+    teamId="team_1"
+    appId="app_1"
+    search=""
+    canCreate={false}
+    emptyReason="Ask a team owner or admin to create actions."
+    onCreateActionConsumed={jest.fn()}
+    onActionsChanged={jest.fn()}
+    {...over}
+  />
+);
+
+it("explains an empty grid that offers no way to create", () => {
+  render(emptyGrid());
+
+  expect(
+    screen.getByText("Ask a team owner or admin to create actions."),
+  ).toBeInTheDocument();
+});
+
+it("explains a search that filters every action out", () => {
+  render(
+    emptyGrid({
+      actions: [{ id: "action_1", action: "verify", description: "" }],
+      search: "nothing-matches",
+      canCreate: true,
+    }),
+  );
+
+  expect(screen.getByText("No actions match your search.")).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Create action" }),
+  ).toBeInTheDocument();
+});
+
+it("leaves the create tile as the only empty state when creation is allowed", () => {
+  render(emptyGrid({ canCreate: true }));
+
+  expect(
+    screen.getByRole("button", { name: "Create action" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByText("Ask a team owner or admin to create actions."),
+  ).not.toBeInTheDocument();
+});
+
 it("opens a deferred create intent when it becomes actionable", async () => {
   const props = {
     actions: [],
@@ -96,6 +149,7 @@ it("opens a deferred create intent when it becomes actionable", async () => {
     appId: "app_1",
     search: "",
     canCreate: true,
+    emptyReason: "Ask a team owner or admin to create actions.",
     onCreateActionConsumed: jest.fn(),
     onActionsChanged: jest.fn(),
   };
@@ -105,42 +159,28 @@ it("opens a deferred create intent when it becomes actionable", async () => {
 
   expect(screen.queryByTestId("create-action-dialog")).not.toBeInTheDocument();
   rerender(<ActionsGrid {...props} initialDialogOpen />);
-  expect(await screen.findByTestId("create-action-dialog")).toBeInTheDocument();
+  expect(await screen.findByTestId("create-action-dialog")).toHaveAttribute(
+    "data-open",
+    "true",
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: "Close create dialog" }));
+  expect(screen.getByTestId("create-action-dialog")).toHaveAttribute(
+    "data-open",
+    "false",
+  );
+  expect(props.onCreateActionConsumed).toHaveBeenCalledTimes(1);
 });
 
-it("only shows Legacy Actions when the app has legacy actions", () => {
-  const props = {
-    tab: "actions" as const,
-    onTabChange: jest.fn(),
-    search: "",
-    onSearchChange: jest.fn(),
-  };
-  const { rerender } = render(<WorldIdTabs {...props} />);
-
-  expect(screen.queryByRole("link", { name: "Legacy Actions" })).toBeNull();
-
-  rerender(<WorldIdTabs {...props} legacyActionsHref="/legacy-actions" />);
-  expect(screen.getByRole("link", { name: "Legacy Actions" })).toHaveAttribute(
-    "href",
-    "/legacy-actions",
+it("renders the shared actions search toolbar above a stable divider", () => {
+  const onSearchChange = jest.fn();
+  const { container } = render(
+    <ActionsSearchToolbar search="" onSearchChange={onSearchChange} />,
   );
-});
 
-it("keeps the route-level tabs in the same order as the overview", () => {
-  render(<WorldIdSubTabs hasLegacyActions />);
-
-  const links = screen.getAllByRole("link");
-  expect(links.map((link) => link.textContent)).toEqual([
-    "Actions",
-    "World ID",
-    "Legacy Actions",
-  ]);
-  expect(links[0]).toHaveAttribute(
-    "href",
-    "/teams/team_1/apps/app_1/world-id-4-0",
-  );
-  expect(links[1]).toHaveAttribute(
-    "href",
-    "/teams/team_1/apps/app_1/world-id-4-0?tab=world-id-4-0",
-  );
+  expect(container.firstElementChild).toHaveClass("min-h-[52px]", "border-b");
+  const search = screen.getByRole("textbox", { name: "Search actions" });
+  fireEvent.change(search, { target: { value: "vote" } });
+  expect(onSearchChange).toHaveBeenCalledWith("vote");
+  expect(screen.queryByRole("link")).toBeNull();
 });

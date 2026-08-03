@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeftIcon } from "@/components/Icons/ChevronLeftIcon";
+import { DangerZoneCard } from "@/components/DangerZoneCard";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -11,7 +12,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
-import { DangerZoneCard, DangerZoneSection } from "./DangerZoneSection";
+import { DangerZoneSection } from "./DangerZoneSection";
 
 type AppDangerZonePageProps = {
   params: Record<string, string> | null | undefined;

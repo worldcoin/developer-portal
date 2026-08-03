@@ -9,11 +9,22 @@ jest.mock("@/scenes/Portal/Teams/TeamId/Team/Settings/page", () => ({
   TeamSettingsPage: () => <div data-testid="v2-team-settings" />,
 }));
 jest.mock("@/scenes/PortalV3/Teams/TeamId/Team/Settings/page", () => ({
-  TeamSettingsPage: () => <div data-testid="v3-team-settings" />,
+  TeamSettingsPage: (props: { requestedTab?: string | string[] }) => (
+    <div data-testid="v3-team-settings" data-tab={props.requestedTab} />
+  ),
 }));
 import RoutePage from "../../app/(portal)/teams/[teamId]/(team)/settings/page";
 it("renders v3 team-settings", async () => {
-  render(await RoutePage());
-  expect(screen.getByTestId("v3-team-settings")).toBeInTheDocument();
+  render(
+    await RoutePage({
+      searchParams: Promise.resolve({
+        tab: "members",
+      }),
+    }),
+  );
+  expect(screen.getByTestId("v3-team-settings")).toHaveAttribute(
+    "data-tab",
+    "members",
+  );
   expect(screen.queryByTestId("v2-team-settings")).not.toBeInTheDocument();
 });

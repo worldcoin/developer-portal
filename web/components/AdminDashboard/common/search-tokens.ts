@@ -217,7 +217,12 @@ export const getSearchVisualSegments = <TField extends string>(
       });
     }
 
-    segments.push({ type: "chip", value: fieldSegment.value });
+    segments.push({
+      end: fieldSegment.end,
+      start: fieldSegment.start,
+      type: "chip",
+      value: fieldSegment.value,
+    });
     lastIndex = fieldSegment.end;
   }
 

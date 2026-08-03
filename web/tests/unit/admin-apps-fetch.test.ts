@@ -48,6 +48,40 @@ describe("admin apps query mapping", () => {
     });
   });
 
+  it("filters active apps by review status", () => {
+    expect(createAppsWhere("review:awaiting_review")).toEqual({
+      _and: [
+        { deleted_at: { _is_null: true } },
+        {
+          app_metadata: {
+            verification_status: { _eq: "awaiting_review" },
+          },
+        },
+      ],
+    });
+    expect(createAppsWhere("review:changes_requested")).toEqual({
+      _and: [
+        { deleted_at: { _is_null: true } },
+        {
+          app_metadata: {
+            verification_status: { _eq: "changes_requested" },
+          },
+        },
+      ],
+    });
+    expect(createAppsWhere("review:unknown")).toEqual({ id: { _in: [] } });
+  });
+
+  it("filters active apps without metadata", () => {
+    expect(createAppsWhere("metadata:none")).toEqual({
+      _and: [
+        { deleted_at: { _is_null: true } },
+        { _not: { app_metadata: {} } },
+      ],
+    });
+    expect(createAppsWhere("metadata:all")).toEqual({ id: { _in: [] } });
+  });
+
   it("uses a unique final sort key for creation date", () => {
     expect(
       createAppsOrderBy({ field: "createdAt", direction: "desc" }),
@@ -67,9 +101,9 @@ describe("admin apps query mapping", () => {
       getAppsSearchVisualSegments("test name:wallet team:world trailing"),
     ).toEqual([
       { type: "text", value: "test " },
-      { type: "chip", value: "name:wallet" },
+      { type: "chip", value: "name:wallet", start: 5, end: 16 },
       { type: "text", value: " " },
-      { type: "chip", value: "team:world" },
+      { type: "chip", value: "team:world", start: 17, end: 27 },
       { type: "text", value: " trailing" },
     ]);
   });

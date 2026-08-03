@@ -9,6 +9,7 @@ import { getCDNImageUrl } from "@/lib/utils";
 import { Dialog as HeadlessDialog, Transition } from "@headlessui/react";
 import {
   Fragment,
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -17,6 +18,7 @@ import {
 } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
+import { twMerge } from "tailwind-merge";
 import { useCroppedImageUpload, useImage } from "../../hook/use-image";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
@@ -40,8 +42,16 @@ interface ImageUploadFieldConfig {
   description: string;
   required?: boolean;
   onUploadStart?: () => void;
-  onUploadSuccess?: () => void;
-  onUploadError?: (error: any) => void;
+  /** The file never reached S3. Failures of the save that follows a successful
+   * upload are reported by `onAutosave` itself. */
+  onUploadError?: (error: unknown) => void;
+  /** Upload ended without succeeding or failing, so the caller can retract a
+   * "saving" signal it already showed. */
+  onUploadCancelled?: () => void;
+  /** Overrides the empty drop zone's box styling (e.g. wizard theming). */
+  dropZoneClassName?: string;
+  /** Overrides the drop zone's inner icon/copy (e.g. wizard theming). */
+  dropZoneContent?: ReactNode;
 }
 
 interface ImageUploadFieldProps extends ImageUploadFieldConfig {
@@ -79,9 +89,11 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
     description,
     required = false,
     onUploadStart,
-    onUploadSuccess,
     onUploadError,
+    onUploadCancelled,
     error,
+    dropZoneClassName,
+    dropZoneContent,
   } = props;
 
   const [isUploading, setIsUploading] = useState(false);
@@ -102,6 +114,10 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       // bookkeeping (e.g. the keyed provider remounting and killing an
       // in-flight refetch), NOT a cancelled upload — don't toast for them.
       let s3UploadCompleted = false;
+      // Flips once onAutosave owns the outcome: past this point the save
+      // reports its own success/failure, so this function must not report one
+      // too or every error gets announced twice.
+      let saveStarted = false;
 
       try {
         setIsUploading(true);
@@ -140,6 +156,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         const newUrls =
           maxImages === 1 ? [extractedPath] : [...value, extractedPath];
 
+        saveStarted = true;
         await onAutosave(newUrls);
         // Writes into the shared Apollo cache, so a remounted successor
         // instance watching the same query re-renders with the new image.
@@ -148,8 +165,6 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         if (isMountedRef.current) {
           onChange(newUrls);
         }
-        // Parent toast / bookkeeping — must not be skipped on remount mid-upload.
-        onUploadSuccess?.();
         return true;
       } catch (error) {
         const isAbort = error instanceof Error && error.name === "AbortError";
@@ -159,6 +174,20 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           if (!s3UploadCompleted) {
             toast.error("Upload was cancelled", { autoClose: 5000 });
           }
+          if (!saveStarted) {
+            onUploadCancelled?.();
+          }
+          return false;
+        }
+
+        if (saveStarted) {
+          // Anything failing after the save is cache bookkeeping (refetch), so
+          // it must not be dressed up as an upload failure.
+          console.error(
+            "image saved but post-save refresh failed:",
+            error,
+            "— image is persisted; UI will catch up on next fetch",
+          );
           return false;
         }
 
@@ -186,8 +215,8 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       onAutosave,
       onRefetchImages,
       onChange,
-      onUploadSuccess,
       onUploadError,
+      onUploadCancelled,
     ],
   );
 
@@ -299,9 +328,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           uploadImage={uploadImage}
           imageType={imageTypeNamer(0)}
           error={error}
-          className="h-[168px] rounded-xl!"
+          className={dropZoneClassName ?? "h-[168px] rounded-xl!"}
         >
-          {dropZoneChildren}
+          {dropZoneContent ?? dropZoneChildren}
         </ImageDropZone>
       )}
 
@@ -433,9 +462,13 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                 uploadImage={uploadImage}
                 imageType={imageTypeNamer(value.length)}
                 error={error}
-                className="h-full rounded-xl!"
+                className={
+                  dropZoneClassName
+                    ? twMerge(dropZoneClassName, "h-full")
+                    : "h-full rounded-xl!"
+                }
               >
-                {dropZoneChildren}
+                {dropZoneContent ?? dropZoneChildren}
               </ImageDropZone>
             </div>
           )}

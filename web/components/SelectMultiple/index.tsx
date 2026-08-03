@@ -309,7 +309,7 @@ export const SelectMultiple = <T extends FieldValues>(
                     {(props.canDelete?.(item) ?? true) && (
                       <button
                         type="button"
-                        className="cursor-pointer transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={(e) => {
                           e.stopPropagation();
                           onRemove(item.value);

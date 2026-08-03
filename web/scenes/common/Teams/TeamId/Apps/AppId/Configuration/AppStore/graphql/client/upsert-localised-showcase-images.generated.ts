@@ -28,7 +28,19 @@ export type UpsertLocalisedShowcaseImagesMutation = {
   } | null;
   insert_localisations?: {
     __typename?: "localisations_mutation_response";
-    affected_rows: number;
+    returning: Array<{
+      __typename?: "localisations";
+      id: string;
+      locale: string;
+      name: string;
+      description: string;
+      world_app_button_text: string;
+      world_app_description: string;
+      short_name: string;
+      hero_image_url: string;
+      meta_tag_image_url: string;
+      showcase_img_urls?: Array<string> | null;
+    }>;
   } | null;
 };
 
@@ -325,7 +337,46 @@ export const UpsertLocalisedShowcaseImagesDocument = {
               selections: [
                 {
                   kind: "Field",
-                  name: { kind: "Name", value: "affected_rows" },
+                  name: { kind: "Name", value: "returning" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "locale" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "world_app_button_text" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "world_app_description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "short_name" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "hero_image_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "meta_tag_image_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "showcase_img_urls" },
+                      },
+                    ],
+                  },
                 },
               ],
             },

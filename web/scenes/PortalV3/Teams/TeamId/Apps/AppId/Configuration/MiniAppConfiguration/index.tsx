@@ -4,12 +4,8 @@ import { Radio } from "@/components/Radio";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
-import {
-  FetchAppMetadataDocument,
-  FetchAppMetadataQueryVariables,
-} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useApolloClient } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
@@ -21,16 +17,21 @@ import { useSaveStatusActions } from "../SaveStatus";
 import { updateAppMode } from "./server/submit";
 
 type MiniAppConfigurationProps = {
-  appId: string;
   teamId: string;
   appMetadata: AppMetadata;
 };
 
-export const MiniAppConfiguration = ({
-  appId,
+/**
+ * Owns the app-mode toggle: optimistic `isMiniAppAtom` flip, the
+ * `updateAppMode` server action with revert-on-failure, and save-status
+ * reporting under id "mini-app-toggle". Shared between the card below and the
+ * configuration wizard's designed mode selector.
+ */
+export const useAppModeToggle = ({
   teamId,
   appMetadata,
 }: MiniAppConfigurationProps) => {
+  const apolloClient = useApolloClient();
   const { user } = useUser() as Auth0SessionUser;
   const [isUpdatingMode, setIsUpdatingMode] = useState(false);
   const modeUpdateInFlightRef = useRef(false);
@@ -52,12 +53,6 @@ export const MiniAppConfiguration = ({
   useEffect(() => {
     setIsMiniApp(appMetadata.app_mode === "mini-app");
   }, [appMetadata.app_mode, setIsMiniApp]);
-
-  const { refetch: refetchAppMetadata } =
-    useRefetchQueries<FetchAppMetadataQueryVariables>(
-      FetchAppMetadataDocument,
-      { id: appId },
-    );
 
   const handleAppModeToggle = useCallback(
     async (checked: boolean) => {
@@ -88,7 +83,28 @@ export const MiniAppConfiguration = ({
             },
           });
         } else {
-          await refetchAppMetadata();
+          // The server action has already persisted the row. Updating the
+          // normalized cache keeps every metadata consumer current without
+          // refetching the page query, which would replace the wizard with its
+          // loading skeleton and look like a full-page refresh.
+          const cacheId = apolloClient.cache.identify({
+            __typename: "app_metadata",
+            id: appMetadata.id,
+          });
+          if (cacheId) {
+            apolloClient.cache.modify({
+              id: cacheId,
+              fields: {
+                app_mode: () => newMode,
+                ...(newMode === "mini-app" && {
+                  category: (existingCategory: string) =>
+                    existingCategory === "External"
+                      ? "Other"
+                      : existingCategory,
+                }),
+              },
+            });
+          }
           saveStatus?.pushStatus("mini-app-toggle", {
             state: "saved",
             at: Date.now(),
@@ -115,7 +131,7 @@ export const MiniAppConfiguration = ({
         setIsUpdatingMode(false);
       }
     },
-    [appMetadata.id, refetchAppMetadata, setIsMiniApp, saveStatus],
+    [apolloClient.cache, appMetadata.id, setIsMiniApp, saveStatus],
   );
 
   const handleAppModeToggleRef = useRef<typeof handleAppModeToggle | null>(
@@ -124,6 +140,13 @@ export const MiniAppConfiguration = ({
   handleAppModeToggleRef.current = handleAppModeToggle;
 
   const isDisabled = !isEditable || !isEnoughPermissions || isUpdatingMode;
+
+  return { isMiniApp, isDisabled, handleAppModeToggle };
+};
+
+export const MiniAppConfiguration = (props: MiniAppConfigurationProps) => {
+  const { isMiniApp, isDisabled, handleAppModeToggle } =
+    useAppModeToggle(props);
 
   const modeOptions = [
     {

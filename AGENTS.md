@@ -18,6 +18,7 @@
 - `cd web && pnpm format:check` — Check code formatting
 
 ## Making Changes
+
 Always run formatting and type checks before committing. Make sure tests pass as well.
 
 ## Pull request follow-up
