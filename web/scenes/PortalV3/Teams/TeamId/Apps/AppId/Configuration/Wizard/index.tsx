@@ -19,6 +19,7 @@ import { BasicInformationHandle } from "../BasicInformation";
 import { useCreateNewDraft } from "../hook/use-create-new-draft";
 import { isMiniAppAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { SaveStatusIndicator, useSaveStatusActions } from "../SaveStatus";
+import { SetupForm as MiniAppPermissionsForm } from "../../MiniApp/PermissionsForm";
 import { AvailabilityStep } from "./AvailabilityStep";
 import {
   BasicInformationStep,
@@ -124,7 +125,7 @@ export const ConfigurationWizard = (props: {
     [setActiveStep],
   );
 
-  // Switching to external drops the store-listing step; land somewhere valid.
+  // Switching to external drops the Mini App-only steps; land somewhere valid.
   useEffect(() => {
     if (!steps.some((step) => step.id === activeStep)) {
       handleStepChange(WizardStep.AVAILABILITY);
@@ -285,15 +286,31 @@ export const ConfigurationWizard = (props: {
           </div>
 
           {isMiniApp && (
-            <div
-              className={stepWrapperClassName(
-                WizardStep.STORE_LISTING,
-                "mx-auto mt-[76px] max-w-[626px]",
-              )}
-              aria-hidden={activeStep !== WizardStep.STORE_LISTING}
-            >
-              <StoreListingStep />
-            </div>
+            <>
+              <div
+                className={stepWrapperClassName(
+                  WizardStep.STORE_LISTING,
+                  "mx-auto mt-[76px] max-w-[626px]",
+                )}
+                aria-hidden={activeStep !== WizardStep.STORE_LISTING}
+              >
+                <StoreListingStep />
+              </div>
+
+              <div
+                className={stepWrapperClassName(
+                  WizardStep.MINI_APP_PERMISSIONS,
+                  "mx-auto mt-[76px] max-w-[626px]",
+                )}
+                aria-hidden={activeStep !== WizardStep.MINI_APP_PERMISSIONS}
+              >
+                <MiniAppPermissionsForm
+                  appId={appId}
+                  teamId={teamId}
+                  appMetadata={appMetadata}
+                />
+              </div>
+            </>
           )}
 
           <div

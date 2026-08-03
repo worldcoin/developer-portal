@@ -11,6 +11,12 @@ jest.mock("@auth0/nextjs-auth0/client", () => ({
   useUser: () => ({ user: {} }),
 }));
 
+jest.mock("@apollo/client/react", () => ({
+  useApolloClient: () => ({
+    cache: { identify: jest.fn(), modify: jest.fn() },
+  }),
+}));
+
 jest.mock("@/lib/utils", () => ({
   checkUserPermissions: () => true,
 }));
@@ -20,17 +26,6 @@ jest.mock(
   () => ({
     useAutosaveWithStatus: (...args: unknown[]) =>
       mockUseAutosaveWithStatus(...args),
-  }),
-);
-
-jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/SaveStatus",
-  () => ({
-    SaveStatusIndicator: () => null,
-    useSaveStatus: () => ({
-      flushAll: jest.fn().mockResolvedValue(true),
-      displayStatus: { state: "idle" },
-    }),
   }),
 );
 
@@ -102,7 +97,7 @@ describe("Mini App payment allowlist", () => {
     expect(form.getValues("is_whitelist_disabled")).toBe(true);
   });
 
-  it("keeps permissions editable for external integrations without owning app mode", () => {
+  it("does not make the permissions form own app mode", () => {
     render(
       <SetupForm
         appId="app_1234567890abcdef1234567890abcdef"
@@ -115,12 +110,7 @@ describe("Mini App payment allowlist", () => {
 
     expect(screen.getByPlaceholderText("Paste wallet address")).toBeEnabled();
     expect(form.getValues("app_mode")).toBeUndefined();
-    expect(
-      screen.getByText(/Mini App preview becomes available/),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText("Permissions unavailable"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Mini App preview")).not.toBeInTheDocument();
   });
 });
 // #endregion
@@ -137,10 +127,24 @@ describe("Mini App notification limit", () => {
     );
 
     const form = mockUseAutosaveWithStatus.mock.calls[0][0].form;
+    const section = screen
+      .getByRole("heading", { name: "Notifications" })
+      .closest("section");
     const slider = screen.getByRole("slider", {
       name: "Maximum notifications per user each day",
     });
 
+    expect(section).not.toHaveClass("border");
+    expect(section).toHaveTextContent(
+      "Maximum notifications per user each day. See docs for guidelines.",
+    );
+    expect(screen.getByRole("link", { name: "docs" })).toHaveAttribute(
+      "href",
+      "https://docs.world.org/mini-apps/commands/how-to-send-notifications",
+    );
+    expect(section).not.toHaveTextContent(
+      "Unlimited notifications are rarely granted",
+    );
     expect(slider).toHaveValue("0");
     expect(slider).toHaveAttribute("aria-valuetext", "0");
 

@@ -1,3 +1,5 @@
+import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
+import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
 
 type Props = {
@@ -9,5 +11,10 @@ type Props = {
 
 export default async function MiniAppPage(props: Props) {
   const params = await props.params;
-  redirect(`/teams/${params.teamId}/apps/${params.appId}/mini-app/permissions`);
+  const ids = { team_id: params.teamId, app_id: params.appId };
+
+  return pickPortalVersion(
+    () => redirect(urls.miniAppDevelop(ids)),
+    () => redirect(urls.miniAppPermissions(ids)),
+  );
 }
