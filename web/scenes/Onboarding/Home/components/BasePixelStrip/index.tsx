@@ -2035,13 +2035,17 @@ export const BasePixelStrip = () => {
   // near - an idle invitation to come hover/click, not a response to
   // anything the visitor did. ringNeighbors is computed once when the pop
   // starts (see findRingNeighbors) and driven off pop.start every frame -
-  // no separate per-ring state needed.
+  // no separate per-ring state needed. An entry outlives its own spin for
+  // as long as its ring is still traveling (ringEndsAt), so spinSettled
+  // records that the spinning cell has already been handed back.
   const popsRef = useRef<
     Array<{
       key: string;
       start: number;
       spin: 1 | -1;
       ringNeighbors: Array<{ key: string; dist: number }>;
+      ringEndsAt: number;
+      spinSettled: boolean;
     }>
   >([]);
   // Cells currently showing a pop's ring boost, so it can be cleared the
@@ -2685,26 +2689,57 @@ export const BasePixelStrip = () => {
       // reaches a cell mid-pop, without touching whatever transform that
       // system just applied this frame.
       if (popsRef.current.length > 0) {
-        const stillPopping: typeof popsRef.current = [];
+        const stillActive: typeof popsRef.current = [];
         // So the ring pass below never overwrites a pop's own rotate+scale
         // transform on its own cell (both would otherwise write the same
-        // rect.style.transform, and whichever ran later would win).
-        const activePopKeys = new Set(popsRef.current.map((pop) => pop.key));
+        // rect.style.transform, and whichever ran later would win). Only
+        // pops still driving their own cell belong here: a pop outlives its
+        // spin by however far its ring still has to travel (see ringEndsAt),
+        // and once it has settled back down its cell is fair game for
+        // another pop's ring to cross.
+        const spinningKeys = new Set<string>();
 
         for (const pop of popsRef.current) {
-          const claimed =
-            activeRef.current.has(pop.key) ||
-            revealedRef.current.has(pop.key) ||
-            rippleActiveRef.current.has(pop.key);
+          const progress = (now - pop.start) / POP_DURATION_MS;
+          const spinning = progress < 1;
 
-          if (claimed) {
+          // A pop is only finished once BOTH its spin and its ring have
+          // played out, and the ring is much the longer of the two (see
+          // ringEndsAt) - retiring the pop as soon as the spin ended used to
+          // cut the ring off barely a third of the way to POP_RING_RADIUS.
+          if (!spinning && now >= pop.ringEndsAt) {
             continue;
           }
 
-          const progress = (now - pop.start) / POP_DURATION_MS;
+          stillActive.push(pop);
 
-          if (progress >= 1) {
-            const rect = rectsRef.current.get(pop.key);
+          if (pop.spinSettled) {
+            continue;
+          }
+
+          if (
+            activeRef.current.has(pop.key) ||
+            revealedRef.current.has(pop.key) ||
+            rippleActiveRef.current.has(pop.key)
+          ) {
+            // Something else owns this cell's transform now, and clears it
+            // through its own cleanup pass - so hand it over untouched.
+            // Writing anything here, even a reset, would clobber what that
+            // pass already wrote earlier in this same frame. Give the spin up
+            // for good rather than resuming it mid-curve once the cursor
+            // moves on, which would read as the tile jumping. The ring is
+            // unaffected: it only ever writes to this pop's NEIGHBORS.
+            pop.spinSettled = true;
+            continue;
+          }
+
+          const rect = rectsRef.current.get(pop.key);
+
+          if (!spinning) {
+            // The spin finished while the ring is still traveling, so this
+            // pop sticks around - hand the cell back once here instead of
+            // rewriting the same empty transform on every remaining frame.
+            pop.spinSettled = true;
 
             if (rect) {
               rect.style.transform = "";
@@ -2713,9 +2748,7 @@ export const BasePixelStrip = () => {
             continue;
           }
 
-          stillPopping.push(pop);
-
-          const rect = rectsRef.current.get(pop.key);
+          spinningKeys.add(pop.key);
 
           if (rect) {
             const bump = Math.sin(progress * Math.PI);
@@ -2725,7 +2758,7 @@ export const BasePixelStrip = () => {
           }
         }
 
-        popsRef.current = stillPopping;
+        popsRef.current = stillActive;
 
         // Ring pass: a gentle scale pulse traveling outward to each pop's
         // precomputed neighbors (see findRingNeighbors above) as the ring's
@@ -2734,7 +2767,7 @@ export const BasePixelStrip = () => {
         // a full grid scan - see POP_RING_* above for why that matters.
         const nextPopRingActive = new Set<string>();
 
-        for (const pop of stillPopping) {
+        for (const pop of stillActive) {
           for (const neighbor of pop.ringNeighbors) {
             const hitTime = pop.start + neighbor.dist / POP_RING_SPEED;
             const timeSinceHit = now - hitTime;
@@ -2747,7 +2780,7 @@ export const BasePixelStrip = () => {
               activeRef.current.has(neighbor.key) ||
               revealedRef.current.has(neighbor.key) ||
               rippleActiveRef.current.has(neighbor.key) ||
-              activePopKeys.has(neighbor.key)
+              spinningKeys.has(neighbor.key)
             ) {
               continue;
             }
@@ -2780,14 +2813,41 @@ export const BasePixelStrip = () => {
         }
 
         for (const key of popRingActiveRef.current) {
-          if (!nextPopRingActive.has(key)) {
-            const rect = rectsRef.current.get(key);
-
-            if (rect) {
-              rect.style.transform = "";
-              rect.style.fill = "";
-            }
+          if (nextPopRingActive.has(key)) {
+            continue;
           }
+
+          const rect = rectsRef.current.get(key);
+
+          if (!rect) {
+            continue;
+          }
+
+          // A cell drops out of the ring for one of two reasons: the
+          // wavefront has finished passing through it (reset it, below), or
+          // one of the pointer-driven effects claimed it this frame. In that
+          // second case the claiming effect has ALREADY written this cell's
+          // transform/fill earlier in this same frame and owns clearing them
+          // on its own way out, so resetting them here wipes what it just
+          // wrote - and with the pointer sitting still the lens won't rewrite
+          // them next frame either (see pointerMoved above), leaving the cell
+          // stuck unscaled until the cursor moves again.
+          if (
+            activeRef.current.has(key) ||
+            revealedRef.current.has(key) ||
+            rippleActiveRef.current.has(key)
+          ) {
+            continue;
+          }
+
+          // A pop spinning this cell owns only its transform (and settles it
+          // itself when the spin ends), so leave that one alone - the ring's
+          // fill is still ours to clear.
+          if (!spinningKeys.has(key)) {
+            rect.style.transform = "";
+          }
+
+          rect.style.fill = "";
         }
 
         popRingActiveRef.current = nextPopRingActive;
@@ -2957,11 +3017,21 @@ export const BasePixelStrip = () => {
     // pointer activity - this is the one part of the effect that needs to
     // do something while the visitor hasn't touched the grid at all.
     const tryStartPop = () => {
-      if (popsRef.current.length >= POP_MAX_CONCURRENT) {
+      const start = performance.now();
+      // POP_MAX_CONCURRENT caps how many tiles are SPINNING at once (that's
+      // the motion it exists to keep calm), and a pop's entry lives on past
+      // its spin while its ring travels - so count the spinning ones rather
+      // than every live entry, which would otherwise starve pops down to a
+      // third of the intended cadence.
+      const spinning = popsRef.current.filter(
+        (pop) => !pop.spinSettled && start - pop.start < POP_DURATION_MS,
+      );
+
+      if (spinning.length >= POP_MAX_CONCURRENT) {
         return;
       }
 
-      const poppingKeys = new Set(popsRef.current.map((pop) => pop.key));
+      const poppingKeys = new Set(spinning.map((pop) => pop.key));
 
       for (let attempt = 0; attempt < 12; attempt++) {
         const index = Math.floor(Math.random() * CELLS.length);
@@ -2977,11 +3047,27 @@ export const BasePixelStrip = () => {
           continue;
         }
 
+        const ringNeighbors = findRingNeighbors(x, y);
+        // The ring outlives the spin by a wide margin: its leading edge only
+        // reaches the outermost neighbor after dist / POP_RING_SPEED (2.8s at
+        // the full POP_RING_RADIUS, against POP_DURATION_MS's 1.1s spin), and
+        // that neighbor then fades for another POP_RING_FADE_MS. Measured off
+        // the farthest REAL neighbor rather than POP_RING_RADIUS so a pop near
+        // the edge of the logomark isn't kept alive waiting on a wavefront
+        // with nothing left to reach.
+        const ringTravelMs =
+          ringNeighbors.reduce(
+            (farthest, neighbor) => Math.max(farthest, neighbor.dist),
+            0,
+          ) / POP_RING_SPEED;
+
         popsRef.current.push({
           key,
-          start: performance.now(),
+          start,
           spin: Math.random() < 0.5 ? 1 : -1,
-          ringNeighbors: findRingNeighbors(x, y),
+          ringNeighbors,
+          ringEndsAt: start + ringTravelMs + POP_RING_FADE_MS,
+          spinSettled: false,
         });
         scheduleFrame();
         return;
