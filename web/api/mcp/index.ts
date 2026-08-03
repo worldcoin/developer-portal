@@ -1,8 +1,10 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
+import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import {
-  canTrustOnChainSigner,
+  evaluateOnChainTrust,
   mapOnChainToDbStatus,
+  type OnChainTrust,
   parseRpId,
 } from "@/api/helpers/rp-utils";
 import {
@@ -750,13 +752,18 @@ const syncWorldIdRegistrationStatus = async (
 
   let productionStatus = currentProductionStatus;
   let productionInitialized = false;
-  // Whether the on-chain production reading is authoritative for this row — see
-  // canTrustOnChainSigner. Mirrors both the staging branch below and the
+  // How far the on-chain production reading can be trusted — see
+  // evaluateOnChainTrust. Mirrors both the staging branch below and the
   // /api/v4/rp-status endpoint: promoting a managed RP off `initialized &&
   // active` alone would let whoever won the permissionless on-chain register()
   // for this rp_id flip the row to `registered`, binding the app's verified
   // proof-context branding to a foreign OPRF signer.
-  let canTrustOnChainProduction = false;
+  let productionTrust: OnChainTrust = "unknown";
+
+  // Same manager key backs both contracts, so resolve it once.
+  const expectedManager = registration.manager_kms_key_id
+    ? await resolveManagerAddress(registration.manager_kms_key_id)
+    : null;
 
   try {
     const productionRp = await getRpFromContract(
@@ -766,24 +773,29 @@ const syncWorldIdRegistrationStatus = async (
     productionInitialized = productionRp.initialized;
 
     if (productionRp.initialized) {
-      canTrustOnChainProduction = canTrustOnChainSigner(
-        productionRp.signer,
-        registration.signer_address,
-      );
+      productionTrust = evaluateOnChainTrust({
+        onChainManager: productionRp.manager,
+        onChainSigner: productionRp.signer,
+        expectedSigner: registration.signer_address,
+        expectedManager,
+      });
 
-      if (canTrustOnChainProduction) {
+      if (productionTrust === "trusted") {
         productionStatus = mapOnChainToDbStatus(
           productionRp.initialized,
           productionRp.active,
         );
       } else {
         logger.warn(
-          "On-chain RP signer does not match expected signer; preserving DB status",
+          "On-chain RP is not provably Portal-owned; preserving DB status",
           {
             app_id,
             rp_id: rpId,
+            trust: productionTrust,
             mode: registration.mode,
             dbStatus: currentProductionStatus,
+            expectedManager,
+            onChainManager: productionRp.manager,
             expectedSigner: registration.signer_address,
             onChainSigner: productionRp.signer,
           },
@@ -801,7 +813,7 @@ const syncWorldIdRegistrationStatus = async (
 
   const productionSynced =
     productionInitialized &&
-    canTrustOnChainProduction &&
+    productionTrust === "trusted" &&
     productionStatus !== currentProductionStatus;
 
   if (productionSynced) {
@@ -826,20 +838,23 @@ const syncWorldIdRegistrationStatus = async (
       stagingInitialized = stagingRp.initialized;
 
       if (stagingRp.initialized) {
-        const canTrustOnChainStaging = canTrustOnChainSigner(
-          stagingRp.signer,
-          registration.signer_address,
-        );
+        const stagingTrusted =
+          evaluateOnChainTrust({
+            onChainManager: stagingRp.manager,
+            onChainSigner: stagingRp.signer,
+            expectedSigner: registration.signer_address,
+            expectedManager,
+          }) === "trusted";
 
         const mappedStagingStatus = mapOnChainToDbStatus(
           stagingRp.initialized,
           stagingRp.active,
         );
-        stagingStatus = canTrustOnChainStaging
+        stagingStatus = stagingTrusted
           ? mappedStagingStatus
           : currentStagingStatus ?? mappedStagingStatus;
 
-        if (canTrustOnChainStaging && stagingStatus !== currentStagingStatus) {
+        if (stagingTrusted && stagingStatus !== currentStagingStatus) {
           await getUpdateStagingStatusSdk(ctx.client).UpdateStagingStatus({
             rp_id: rpId,
             staging_status: stagingStatus,

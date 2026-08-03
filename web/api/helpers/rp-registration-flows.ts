@@ -117,8 +117,8 @@ export async function submitManagedRpRegistration({
   //
   // A failed read is deliberately non-fatal: this check prevents a wasted
   // submission and a confusing error, it is not the security boundary. That
-  // lives in the status reconciliation (canTrustOnChainSigner), which refuses
-  // to promote a row whose on-chain signer isn't ours no matter how the
+  // lives in the status reconciliation (evaluateOnChainTrust), which refuses to
+  // promote a row whose on-chain manager/signer aren't ours no matter how the
   // registration was submitted. Hard-failing here would add a new RPC
   // dependency to a flow that works fine without it.
   try {

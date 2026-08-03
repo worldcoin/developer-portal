@@ -3,6 +3,7 @@ import { GET, OPTIONS, POST } from "@/api/mcp";
 import { logger } from "@/lib/logger";
 import { generateRpIdString } from "@/lib/rp";
 import { NextRequest } from "next/server";
+import { resolveManagerAddress } from "../../api/helpers/rp-manager";
 import { getRpFromContract } from "../../api/helpers/temporal-rpc";
 
 const requestMock = jest.fn();
@@ -23,6 +24,10 @@ jest.mock("../../lib/logger", () => ({
 
 jest.mock("../../api/helpers/temporal-rpc", () => ({
   getRpFromContract: jest.fn(),
+}));
+
+jest.mock("../../api/helpers/rp-manager", () => ({
+  resolveManagerAddress: jest.fn(),
 }));
 
 jest.mock("@aws-sdk/client-s3", () => ({
@@ -110,6 +115,7 @@ const mockHttpsResponse = (response: HttpsResponseShape) => {
 
 const mockLoggerInfo = logger.info as jest.Mock;
 const mockGetRpFromContract = getRpFromContract as jest.Mock;
+const mockResolveManagerAddress = resolveManagerAddress as jest.Mock;
 
 const teamId = "team_dd2ecd36c6c45f645e8e5d9a31abdee1";
 const apiKeyId = "key_667f5fbd4ad943622b4b2d3eb258f89c";
@@ -147,6 +153,7 @@ const appContextResponse = {
           mode: "self_managed",
           status: "registered",
           signer_address: "0x0000000000000000000000000000000000000001",
+          manager_kms_key_id: "kms-key-123",
           staging_status: null,
           actions_v4: [],
         },
@@ -285,6 +292,9 @@ beforeEach(async () => {
     }),
   );
   currentAppContextResponse = appContextResponse;
+  mockResolveManagerAddress.mockResolvedValue(
+    "0x0000000000000000000000000000000000000002",
+  );
   mockGetRpFromContract.mockResolvedValue({
     initialized: true,
     active: true,
@@ -754,46 +764,64 @@ describe("/api/mcp", () => {
     );
   });
 
-  it("does not sync production status when the on-chain signer is foreign", async () => {
-    currentAppContextResponse = {
-      app: [
-        {
-          ...appContextResponse.app[0],
-          rp_registration: [
-            {
-              ...appContextResponse.app[0].rp_registration[0],
-              status: "pending",
-            },
-          ],
-        },
-      ],
-    };
-    // Someone else won the permissionless on-chain register() for this rp_id.
-    mockGetRpFromContract.mockResolvedValue({
-      initialized: true,
-      active: true,
-      manager: "0x00000000000000000000000000000000000000ff",
-      signer: "0x00000000000000000000000000000000000000ee",
-      oprfKeyId: 0n,
-      unverifiedWellKnownDomain: "Attacker App",
-    });
+  it.each([
+    [
+      "manager and signer are both foreign",
+      "0x00000000000000000000000000000000000000ff",
+      "0x00000000000000000000000000000000000000ee",
+    ],
+    [
+      // The signer alone is not proof of ownership: it is published in the
+      // register calldata, so an attacker can reuse it with their own manager.
+      "the signer matches but the manager is foreign",
+      "0x00000000000000000000000000000000000000ff",
+      "0x0000000000000000000000000000000000000001",
+    ],
+  ])(
+    "does not sync production status when %s",
+    async (_label, onChainManager, onChainSigner) => {
+      currentAppContextResponse = {
+        app: [
+          {
+            ...appContextResponse.app[0],
+            rp_registration: [
+              {
+                ...appContextResponse.app[0].rp_registration[0],
+                // Managed: a stored signer is what makes ownership checkable.
+                mode: "managed",
+                status: "pending",
+              },
+            ],
+          },
+        ],
+      };
+      // Someone else won the permissionless on-chain register() for this rp_id.
+      mockGetRpFromContract.mockResolvedValue({
+        initialized: true,
+        active: true,
+        manager: onChainManager,
+        signer: onChainSigner,
+        oprfKeyId: 0n,
+        unverifiedWellKnownDomain: "Attacker App",
+      });
 
-    const res = await POST(
-      callTool("get_world_id_registration_status", { app_id: appId }),
-    );
+      const res = await POST(
+        callTool("get_world_id_registration_status", { app_id: appId }),
+      );
 
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    const payload = JSON.parse(body.result.content[0].text);
-    expect(payload.production_status).toBe("pending");
-    expect(payload.synced.production).toBe(false);
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      const payload = JSON.parse(body.result.content[0].text);
+      expect(payload.production_status).toBe("pending");
+      expect(payload.synced.production).toBe(false);
 
-    expect(
-      requestMock.mock.calls.some(
-        ([query]) => getOperationName(query) === "UpdateRpStatus",
-      ),
-    ).toBe(false);
-  });
+      expect(
+        requestMock.mock.calls.some(
+          ([query]) => getOperationName(query) === "UpdateRpStatus",
+        ),
+      ).toBe(false);
+    },
+  );
 
   it("returns -32602 for malformed signer_private_key", async () => {
     const res = await POST(

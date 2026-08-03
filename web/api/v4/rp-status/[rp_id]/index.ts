@@ -1,9 +1,11 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import {
-  canTrustOnChainSigner,
+  evaluateOnChainTrust,
   isValidRpId,
   mapOnChainToDbStatus,
+  type OnChainTrust,
   parseRpId,
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
@@ -137,16 +139,23 @@ export async function GET(
 
   const numericRpId = parseRpId(rpId);
 
+  // Address of the Portal's manager key for this row, resolved once and shared
+  // by the production and staging checks (the same manager key is used on both
+  // contracts). `null` here means "couldn't resolve", which evaluateOnChainTrust
+  // maps to `unknown` rather than `untrusted`.
+  const expectedManager = dbRecord.manager_kms_key_id
+    ? await resolveManagerAddress(dbRecord.manager_kms_key_id)
+    : null;
+
   // Fetch production on-chain state
   let productionStatus: string;
   let productionInitialized = false;
-  // Whether the on-chain production reading is authoritative for this row — see
-  // canTrustOnChainSigner. Mirrors the staging check below: a managed RP is only
-  // promoted to the on-chain status when the on-chain signer matches the
-  // Portal's expected signer, so a foreign on-chain register()/rotation can't
-  // flip the row to `registered` and bind the app's branding to a foreign
-  // OPRF signer.
-  let canTrustOnChainProduction = false;
+  // How far the on-chain production reading can be trusted for this row — see
+  // evaluateOnChainTrust. Mirrors the staging check below: a managed RP is only
+  // promoted to its on-chain status when the on-chain manager AND signer are
+  // ours, so a foreign on-chain register() can't flip the row to `registered`
+  // and bind the app's branding to a foreign OPRF signer.
+  let productionTrust: OnChainTrust = "unknown";
   try {
     const onChainRp = await getRpFromContract(
       numericRpId,
@@ -155,20 +164,22 @@ export async function GET(
     productionInitialized = onChainRp.initialized;
 
     if (onChainRp.initialized) {
-      canTrustOnChainProduction = canTrustOnChainSigner(
-        onChainRp.signer,
-        dbRecord.signer_address,
-      );
+      productionTrust = evaluateOnChainTrust({
+        onChainManager: onChainRp.manager,
+        onChainSigner: onChainRp.signer,
+        expectedSigner: dbRecord.signer_address,
+        expectedManager,
+      });
 
-      if (canTrustOnChainProduction) {
+      if (productionTrust === "trusted") {
         productionStatus = mapOnChainToDbStatus(
           onChainRp.initialized,
           onChainRp.active,
         );
       } else {
-        // On-chain signer differs from the Portal's expected signer. Preserve
-        // the DB status instead of promoting — for a managed RP this is either
-        // an in-flight signer rotation or a foreign takeover of the rp_id.
+        // Not provably ours. Preserve the DB status instead of promoting — for a
+        // managed RP this is an in-flight signer rotation, a foreign takeover of
+        // the rp_id, or (when `unknown`) an unresolvable manager key.
         productionStatus = currentDbStatus;
         // Throttled: this is a hot polling endpoint (pending statuses cache for
         // 1s), so an unresolved mismatch would emit thousands of identical
@@ -176,11 +187,14 @@ export async function GET(
         // of log spam.
         if (await shouldLogSignerMismatch(rpId)) {
           logger.warn(
-            "On-chain RP signer does not match expected signer; preserving DB status",
+            "On-chain RP is not provably Portal-owned; preserving DB status",
             {
               rpId,
+              trust: productionTrust,
               mode: dbRecord.mode,
               dbStatus: currentDbStatus,
+              expectedManager,
+              onChainManager: onChainRp.manager,
               expectedSigner: dbRecord.signer_address,
               onChainSigner: onChainRp.signer,
             },
@@ -209,10 +223,10 @@ export async function GET(
   let stagingStatus: string | null = null;
   let stagingInitialized = false;
   let stagingRpcSucceeded = false;
-  // Whether to treat the on-chain staging reading as authoritative — see
-  // canTrustOnChainSigner. Preserves the DB staging_status during/after a
-  // signer rotation or a foreign takeover.
-  let canTrustOnChainStaging = false;
+  // How far to trust the on-chain staging reading — see evaluateOnChainTrust.
+  // Preserves the DB staging_status during/after a signer rotation or a foreign
+  // takeover.
+  let stagingTrust: OnChainTrust = "unknown";
   if (stagingContractAddress) {
     try {
       const stagingOnChainRp = await getRpFromContract(
@@ -223,18 +237,21 @@ export async function GET(
       stagingInitialized = stagingOnChainRp.initialized;
 
       if (stagingOnChainRp.initialized) {
-        canTrustOnChainStaging = canTrustOnChainSigner(
-          stagingOnChainRp.signer,
-          dbRecord.signer_address,
-        );
+        stagingTrust = evaluateOnChainTrust({
+          onChainManager: stagingOnChainRp.manager,
+          onChainSigner: stagingOnChainRp.signer,
+          expectedSigner: dbRecord.signer_address,
+          expectedManager,
+        });
 
         const onChainMappedStatus = mapOnChainToDbStatus(
           stagingOnChainRp.initialized,
           stagingOnChainRp.active,
         );
-        stagingStatus = canTrustOnChainStaging
-          ? onChainMappedStatus
-          : currentDbStagingStatus ?? onChainMappedStatus;
+        stagingStatus =
+          stagingTrust === "trusted"
+            ? onChainMappedStatus
+            : currentDbStagingStatus ?? onChainMappedStatus;
       } else {
         stagingStatus = RpRegistrationStatus.Pending;
       }
@@ -264,13 +281,13 @@ export async function GET(
     updatedAgeMs > USER_OP_MAX_VALIDITY_MS + PENDING_TIMEOUT_MS;
 
   // Sync DB status based on production contract only (never for deleted apps —
-  // see isAppDeleted above). Only when the on-chain reading is trusted (signer
-  // matches, or self-managed with no expected signer) — otherwise a foreign
-  // on-chain register()/rotation would clobber the row into `registered`.
+  // see isAppDeleted above). Only when the on-chain reading is trusted (manager
+  // and signer are ours, or self-managed with no expected signer) — otherwise a
+  // foreign on-chain register() would clobber the row into `registered`.
   if (
     !isAppDeleted &&
     productionInitialized &&
-    canTrustOnChainProduction &&
+    productionTrust === "trusted" &&
     productionStatus !== currentDbStatus
   ) {
     try {
@@ -289,15 +306,15 @@ export async function GET(
   }
 
   // Sync staging status to DB when on-chain state differs. Only when we
-  // can trust on-chain (signer matches, or self-managed with no DB signer
-  // to compare against) — otherwise the on-chain "registered" reading
+  // can trust on-chain (manager and signer are ours, or self-managed with no DB
+  // signer to compare against) — otherwise the on-chain "registered" reading
   // would clobber a legit "pending"/"failed" that rotate-signer-key or
   // rp-retry persisted while a rotation is in flight or after a failure.
   if (
     !isAppDeleted &&
     stagingRpcSucceeded &&
     stagingInitialized &&
-    canTrustOnChainStaging &&
+    stagingTrust === "trusted" &&
     stagingStatus &&
     stagingStatus !== currentDbStagingStatus
   ) {
@@ -349,8 +366,8 @@ export async function GET(
     }
   }
 
-  // Timeout: a managed RP that is initialized on-chain but by a signer the
-  // Portal doesn't recognize can never become a trusted `registered` — either a
+  // Timeout: a managed RP that is initialized on-chain by a manager/signer pair
+  // the Portal doesn't own can never become a trusted `registered` — either a
   // foreign party won the permissionless on-chain register() for this rp_id, or
   // a signer rotation never settled. The `!productionInitialized` guard above
   // can't catch this (it IS initialized), so without this the row is wedged in
@@ -358,10 +375,15 @@ export async function GET(
   // fail it once the UserOp validity window has elapsed: before that an in-flight
   // signer rotation could still land, and failing early would cache `failed` for
   // an hour over what then becomes a trusted `registered`.
+  //
+  // Strictly `untrusted`, never `unknown`: `unknown` means we could not resolve
+  // our own manager address (a KMS outage), which is not evidence of a takeover.
+  // Failing healthy registrations on our own dependency being down would turn a
+  // KMS blip into a self-inflicted incident.
   if (
     !isAppDeleted &&
     productionInitialized &&
-    !canTrustOnChainProduction &&
+    productionTrust === "untrusted" &&
     currentDbStatus === RpRegistrationStatus.Pending &&
     isPastUserOpValidityWindow &&
     dbRecord.mode === "managed"

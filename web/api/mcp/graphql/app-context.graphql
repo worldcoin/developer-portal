@@ -82,6 +82,7 @@ query McpAppContext($team_id: String!, $app_id: String!) {
       mode
       status
       signer_address
+      manager_kms_key_id
       staging_status
       actions_v4(order_by: { created_at: desc }) {
         id

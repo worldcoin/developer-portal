@@ -50,10 +50,19 @@ jest.mock("../../../api/helpers/graphql", () => ({
 jest.mock("../../../api/helpers/temporal-rpc", () => ({
   getRpFromContract: (...args: unknown[]) => getRpFromContractMock(...args),
 }));
+
+const resolveManagerAddressMock = jest.fn();
+jest.mock("../../../api/helpers/rp-manager", () => ({
+  resolveManagerAddress: (...args: unknown[]) =>
+    resolveManagerAddressMock(...args),
+}));
 // #endregion
 
 // #region Test Data
 const rpId = "rp_abc123def4560000";
+/** Address of the Portal's KMS manager key for the RP under test. */
+const portalManager = "0xPortalManager";
+const portalSigner = "0x1234";
 
 const createRequest = () =>
   new NextRequest(
@@ -71,6 +80,7 @@ const makeDbRecord = (
     operation_hash: string | null;
     mode: string;
     signer_address: string | null;
+    manager_kms_key_id: string | null;
     staging_status: string | null;
     staging_operation_hash: string | null;
     app: { deleted_at: string | null };
@@ -80,7 +90,8 @@ const makeDbRecord = (
   app_id: "app_test123",
   status: "pending",
   mode: "managed",
-  signer_address: "0x1234",
+  signer_address: portalSigner,
+  manager_kms_key_id: "kms-key-123",
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   operation_hash: null,
@@ -99,6 +110,7 @@ beforeEach(() => {
   process.env.RP_REGISTRY_CONTRACT_ADDRESS = productionContract;
   process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS = stagingContract;
   global.RedisClient?.flushall();
+  resolveManagerAddressMock.mockResolvedValue(portalManager);
   UpdateStagingStatus.mockResolvedValue({
     update_rp_registration_by_pk: { rp_id: rpId },
   });
@@ -181,6 +193,7 @@ describe("/api/v4/rp-status [pending timeout]", () => {
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
+      manager: portalManager,
       signer: "0x1234",
     });
 
@@ -227,16 +240,15 @@ describe("/api/v4/rp-status [pending timeout]", () => {
 });
 // #endregion
 
-// #region Production signer verification (rp_id takeover protection)
-describe("/api/v4/rp-status [production signer verification]", () => {
+// #region Production ownership verification (rp_id takeover protection)
+describe("/api/v4/rp-status [production ownership verification]", () => {
   it("does not promote a managed RP to registered when the on-chain signer is foreign", async () => {
     // The security case: a managed registration failed, leaving the rp_id row
     // in `failed` while the RP is unregistered on-chain. An attacker then wins
     // the permissionless on-chain register() for the same rp_id with their OWN
-    // signer. rp-status must NOT adopt that on-chain "registered" reading — that
-    // would flip the row to `registered` and let proof-context serve the app's
-    // verified branding bound to the attacker's OPRF signer. (Same guard also
-    // keeps an in-flight signer rotation from prematurely reading as registered.)
+    // manager and signer. rp-status must NOT adopt that on-chain "registered"
+    // reading — that would flip the row to `registered` and let proof-context
+    // serve the app's verified branding bound to the attacker's OPRF signer.
     GetRpRegistration.mockResolvedValue({
       rp_registration_by_pk: makeDbRecord({
         status: "failed",
@@ -249,10 +261,11 @@ describe("/api/v4/rp-status [production signer verification]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          // Attacker registered on-chain with a different signer.
+          // Attacker registered on-chain with their own manager and signer.
           return {
             initialized: true,
             active: true,
+            manager: "0xAttackerManager",
             signer: "0xAttackerSigner",
           };
         }
@@ -270,15 +283,16 @@ describe("/api/v4/rp-status [production signer verification]", () => {
     expect(UpdateRpStatus).not.toHaveBeenCalled();
   });
 
-  it("promotes a self-managed RP to registered for any on-chain signer (no expected signer to check)", async () => {
+  it("promotes a self-managed RP to registered for any on-chain owner (no expected signer to check)", async () => {
     // Self-managed RPs have no Portal-stored signer to compare against — the
-    // developer owns the on-chain signer — so the on-chain reading stays
+    // developer owns both on-chain roles — so the on-chain reading stays
     // authoritative and a completed on-chain registration flips it to registered.
     GetRpRegistration.mockResolvedValue({
       rp_registration_by_pk: makeDbRecord({
         status: "pending",
         mode: "self_managed",
         signer_address: null,
+        manager_kms_key_id: null,
         created_at: new Date().toISOString(),
       }),
     });
@@ -286,6 +300,7 @@ describe("/api/v4/rp-status [production signer verification]", () => {
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
+      manager: "0xDeveloperOwnedManager",
       signer: "0xDeveloperOwnedSigner",
     });
 
@@ -304,13 +319,13 @@ describe("/api/v4/rp-status [production signer verification]", () => {
     });
   });
 
-  it("times out a managed RP wedged pending by a foreign on-chain signer once the UserOp window elapses", async () => {
+  it("times out a managed RP wedged pending by a foreign on-chain owner once the UserOp window elapses", async () => {
     // Foreign takeover of the rp_id: the row is still `pending` (the Portal's
     // registration never completed) but on-chain it's initialized+active under a
-    // signer we don't recognize. It can never become a trusted `registered`, and
-    // enough time has passed since the last write (> UserOp validity + margin)
-    // that any in-flight op is provably dead, so it must flip to `failed` —
-    // otherwise the dashboard polls forever with no retry path.
+    // manager/signer we don't own. It can never become a trusted `registered`,
+    // and enough time has passed since the last write (> UserOp validity +
+    // margin) that any in-flight op is provably dead, so it must flip to
+    // `failed` — otherwise the dashboard polls forever with no retry path.
     const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
     GetRpRegistration.mockResolvedValue({
       rp_registration_by_pk: makeDbRecord({
@@ -328,6 +343,7 @@ describe("/api/v4/rp-status [production signer verification]", () => {
           return {
             initialized: true,
             active: true,
+            manager: "0xAttackerManager",
             signer: "0xAttackerSigner",
           };
         }
@@ -371,7 +387,92 @@ describe("/api/v4/rp-status [production signer verification]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true, signer: "0xOldSigner" };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0xOldSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("pending");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
+  it("does not promote when the on-chain signer matches but the manager is foreign", async () => {
+    // A signer-only check is not enough. The Portal publishes its intended
+    // signer in the `register` calldata (readable on-chain even when the op
+    // failed), so an attacker can re-register the same rp_id with that SAME
+    // signer but their own manager. Promoting here would mark the row
+    // `registered`, after which the attacker's manager calls `updateRp` to swap
+    // the signer in — and the later mismatch only preserves the already
+    // `registered` status, leaving proof-context serving the app's verified
+    // branding over the attacker's OPRF signer.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "failed",
+        mode: "managed",
+        signer_address: portalSigner,
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: "0xAttackerManager",
+            signer: portalSigner,
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("failed");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
+  it("preserves status without failing the row when the manager address cannot be resolved", async () => {
+    // KMS is down, so we cannot prove ownership either way. That is `unknown`,
+    // not a takeover: preserve the status, but do NOT run the untrusted timeout
+    // and mark a healthy pending registration `failed` over our own dependency
+    // being unavailable.
+    resolveManagerAddressMock.mockResolvedValue(null);
+
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "managed",
+        signer_address: portalSigner,
+        created_at: fortyMinutesAgo,
+        updated_at: fortyMinutesAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: portalSigner,
+          };
         }
         return { initialized: false, active: false };
       },
@@ -401,7 +502,12 @@ describe("/api/v4/rp-status [staging timeout]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true, signer: "0x1234" };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
         return { initialized: false, active: false };
       },
@@ -429,7 +535,12 @@ describe("/api/v4/rp-status [staging timeout]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true, signer: "0x1234" };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
         return { initialized: false, active: false };
       },
@@ -465,9 +576,19 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true, signer: "0x1234" };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
-        return { initialized: true, active: true, signer: "0x1234" };
+        return {
+          initialized: true,
+          active: true,
+          manager: portalManager,
+          signer: "0x1234",
+        };
       },
     );
 
@@ -500,6 +621,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
+      manager: portalManager,
       signer: "0x1234",
     });
 
@@ -526,9 +648,19 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true, signer: "0x1234" };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
-        return { initialized: true, active: true, signer: "0xoldSigner" };
+        return {
+          initialized: true,
+          active: true,
+          manager: portalManager,
+          signer: "0xoldSigner",
+        };
       },
     );
 
@@ -558,6 +690,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
+      manager: portalManager,
       signer: "0xanySigner",
     });
 
@@ -585,9 +718,19 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true, signer: "0x1234" };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
-        return { initialized: true, active: true, signer: "0xoldSigner" };
+        return {
+          initialized: true,
+          active: true,
+          manager: portalManager,
+          signer: "0xoldSigner",
+        };
       },
     );
 
@@ -613,7 +756,12 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true, signer: "0x1234" };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
         return { initialized: false, active: false };
       },
@@ -642,7 +790,12 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true, signer: "0x1234" };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
         // Staging RPC throws — transient error
         throw new Error("RPC timeout");
@@ -674,7 +827,12 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true, signer: "0x1234" };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
         // Staging not yet initialized (retry tx still in flight)
         return { initialized: false, active: false };
@@ -710,6 +868,7 @@ describe("/api/v4/rp-status [deleted app]", () => {
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
+      manager: portalManager,
       signer: "0x1234",
     });
 

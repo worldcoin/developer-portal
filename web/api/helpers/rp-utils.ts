@@ -77,36 +77,73 @@ export function isZeroAddress(address: string): boolean {
   return normalizeAddress(address).toLowerCase() === ZERO_ADDRESS;
 }
 
-/**
- * Whether an on-chain RP reading may be trusted as authoritative for the
- * Portal's stored registration, judged by the signer.
- *
- * Returns true when there is no expected signer to compare against
- * (self-managed mode — the developer owns the on-chain signer, so on-chain is
- * authoritative by definition), or when the on-chain signer matches the
- * Portal's expected `signer_address`.
- *
- * Returns false when a managed RP's on-chain signer does NOT match the expected
- * signer. That happens (a) mid-signer-rotation, before the on-chain update
- * settles, or (b) when a party other than the Portal won the permissionless
- * on-chain `register()` for this rp_id — e.g. after a failed managed
- * registration someone else registered the same rp_id with their own signer.
- * In case (b), trusting the on-chain "registered"/"active" reading would
- * promote the Portal row to `registered` and bind the app's verified branding
- * to a foreign OPRF signer (impersonation), so callers must preserve the stored
- * status instead of writing the on-chain state back.
- */
-export function canTrustOnChainSigner(
-  onChainSigner: string,
-  expectedSigner: string | null | undefined,
-): boolean {
-  if (!expectedSigner) {
-    return true;
-  }
+function addressesEqual(a: string, b: string): boolean {
   return (
-    normalizeAddress(onChainSigner).toLowerCase() ===
-    normalizeAddress(expectedSigner).toLowerCase()
+    normalizeAddress(a).toLowerCase() === normalizeAddress(b).toLowerCase()
   );
+}
+
+/**
+ * How far an on-chain RP reading may be trusted as authoritative for the
+ * Portal's stored registration.
+ *
+ * - `trusted`   — safe to adopt the on-chain status.
+ * - `untrusted` — provably not ours; preserve the stored status.
+ * - `unknown`   — cannot prove either way (we could not resolve our own manager
+ *                 address). Preserve the stored status, but callers must NOT
+ *                 treat this as a takeover: a KMS outage lands here, and
+ *                 failing registrations on it would be a self-inflicted outage.
+ */
+export type OnChainTrust = "trusted" | "untrusted" | "unknown";
+
+/**
+ * Decides whether an on-chain RP reading describes *our* registration.
+ *
+ * `rp_id` is `uint64(keccak256(app_id))` over a public `app_id` and on-chain
+ * `register()` is permissionless and first-come, so anyone can claim an app's
+ * rp_id. Ownership therefore has to be proven, not assumed.
+ *
+ * The **manager** is the root of that proof: it is the only role the contract
+ * lets update an RP, and only the Portal can sign for its KMS manager key. The
+ * signer alone is NOT sufficient — a Portal registration publishes its intended
+ * signer in the (possibly failed) `register` calldata, so an attacker can
+ * re-register the same rp_id with that same signer but their own manager. A
+ * signer-only check would call that "ours" and promote the row to `registered`,
+ * after which the attacker's manager calls `updateRp` to swap the signer in;
+ * the later mismatch only *preserves* the already-`registered` status, so
+ * proof-context would keep serving the app's verified branding over the
+ * attacker's OPRF signer. Both roles must match.
+ *
+ * A self-managed RP has no expected signer (the developer owns both roles
+ * on-chain), so on-chain is authoritative by definition.
+ */
+export function evaluateOnChainTrust({
+  onChainManager,
+  onChainSigner,
+  expectedSigner,
+  expectedManager,
+}: {
+  onChainManager: string;
+  onChainSigner: string;
+  expectedSigner: string | null | undefined;
+  /** Portal's manager address; `null` when it could not be resolved. */
+  expectedManager: string | null | undefined;
+}): OnChainTrust {
+  if (!expectedSigner) {
+    return "trusted";
+  }
+
+  if (!expectedManager) {
+    return "unknown";
+  }
+
+  if (!addressesEqual(onChainManager, expectedManager)) {
+    return "untrusted";
+  }
+
+  return addressesEqual(onChainSigner, expectedSigner)
+    ? "trusted"
+    : "untrusted";
 }
 
 // =============================================================================
