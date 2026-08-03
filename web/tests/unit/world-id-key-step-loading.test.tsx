@@ -19,6 +19,8 @@ const refresh = jest.fn();
 
 function mockGenerateKeyStep(props: {
   onContinue: (publicKey: string) => void;
+  loading?: boolean;
+  loadingLabel?: string;
 }) {
   if (!mockKeyStepReady) {
     throw mockPendingKeyStep;
@@ -28,11 +30,12 @@ function mockGenerateKeyStep(props: {
     <button
       type="button"
       data-testid="generate-key-step"
+      disabled={props.loading}
       onClick={() =>
         props.onContinue("0x1234567890abcdef1234567890abcdef12345678")
       }
     >
-      Generate key step loaded
+      {props.loading ? props.loadingLabel : "Generate key step loaded"}
     </button>
   );
 }
@@ -193,7 +196,13 @@ it("PortalV3 registers the relying party in managed mode", async () => {
   registerRp.mockResolvedValue({
     data: { register_rp: { rp_id: "rp_1234567890abcdef" } },
   });
-  const onComplete = jest.fn();
+  let resolveOverviewRefresh: () => void = () => {};
+  const onComplete = jest.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        resolveOverviewRefresh = resolve;
+      }),
+  );
   const onClose = jest.fn();
 
   render(
@@ -220,6 +229,11 @@ it("PortalV3 registers the relying party in managed mode", async () => {
     }),
   );
   expect(onComplete).toHaveBeenCalledTimes(1);
-  expect(refresh).toHaveBeenCalledTimes(1);
-  expect(onClose).toHaveBeenCalledWith(false);
+  expect(await screen.findByText("Finishing setup…")).toBeInTheDocument();
+  expect(refresh).not.toHaveBeenCalled();
+  expect(onClose).not.toHaveBeenCalled();
+
+  await act(async () => resolveOverviewRefresh());
+
+  await waitFor(() => expect(onClose).toHaveBeenCalledWith(false));
 });

@@ -172,11 +172,12 @@ export const WorldIdLayout = (props: {
   });
   const normalizedRequestedTab = normalizeWorldIdTab(requestedTab);
   const shouldNormalizeTab =
-    requestedTab !== null &&
-    (requestedTab !== normalizedRequestedTab ||
-      (!createActionRequested &&
-        !enableWorldId4Requested &&
-        requestedTab !== availableTab));
+    (requestedTab === null && !hasRpRegistration && !createActionRequested) ||
+    (requestedTab !== null &&
+      (requestedTab !== normalizedRequestedTab ||
+        (!createActionRequested &&
+          !enableWorldId4Requested &&
+          requestedTab !== availableTab)));
   const { openSetup, openAction, consumeEnable, consumeCreate } =
     getSetupIntent({
       enableRequested: enableWorldId4Requested,
@@ -236,6 +237,9 @@ export const WorldIdLayout = (props: {
     () => void refetch().catch(() => {}),
     [refetch],
   );
+  const waitForOverviewRefresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   const handleRpChanged = useCallback(
     (status?: RpRegistrationStatus) => {
@@ -384,7 +388,7 @@ export const WorldIdLayout = (props: {
                     initialOpen={openSetup || setupRequested}
                     isStaging={app.is_staging}
                     canManageWorldId={props.canManageWorldId}
-                    onRegistered={refetchOverview}
+                    onRegistered={waitForOverviewRefresh}
                     onSetupClosed={(completed) => {
                       setSetupRequested(false);
                       if (completed) {
