@@ -378,7 +378,15 @@ export const WorldIdLayout = (props: {
 
         {initialLoading ? (
           <WorldIdLayoutSkeleton
-            tab={normalizedRequestedTab}
+            // Deep-link intents pin the destination before data arrives,
+            // mirroring resolveActiveWorldIdTab's intent-first branches:
+            // enable always lands on Configuration; create does too until an
+            // active RP is known (the dialog then opens over Actions).
+            tab={
+              createActionRequested || enableWorldId4Requested
+                ? WORLD_ID_TABS.Configuration
+                : normalizedRequestedTab
+            }
             appId={props.appId}
             canManageWorldId={props.canManageWorldId}
           />

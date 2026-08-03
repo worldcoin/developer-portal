@@ -257,6 +257,17 @@ describe("WorldIdLayout [loading boundary]", () => {
     expect(screen.queryByTestId("rp-summary")).not.toBeInTheDocument();
   });
 
+  it("shows the configuration shape for setup/create deep links", () => {
+    searchParams = new URLSearchParams("createAction=true");
+    setQuery({ data: undefined, loading: true });
+    render(el());
+
+    expect(
+      screen.getByRole("heading", { name: "World ID Configuration" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
+  });
+
   it("shows the legacy-shaped skeleton with the deprecation banner", () => {
     searchParams = new URLSearchParams("tab=legacy-actions");
     setQuery({ data: undefined, loading: true });
