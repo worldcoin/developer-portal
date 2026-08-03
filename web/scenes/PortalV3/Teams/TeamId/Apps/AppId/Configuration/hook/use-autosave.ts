@@ -16,6 +16,18 @@ export type UseAutosaveOptions<T extends FieldValues> = {
   debounceMs?: number;
   onStatus: (status: AutosaveStatus) => void;
   onPendingChange?: (isPending: boolean) => void;
+  /**
+   * Returns true for fields persisted by someone other than this autosave —
+   * currently the image fields, which upsert through their own mutation and
+   * then write the resulting URL back into the form so the UI can show it.
+   * That write-back must not trigger a full-form save of data already stored.
+   *
+   * RHF's dirty flags cannot express this: `setValue` notifies watch
+   * subscribers regardless of `shouldDirty`, and keying off dirtyFields would
+   * silently stop saving a genuine edit that returns a field to its original
+   * value.
+   */
+  isSelfPersisting?: (name: string) => boolean;
 };
 
 export type UseAutosaveResult = {
@@ -187,6 +199,10 @@ export function useAutosave<T extends FieldValues>(
     const subscription = form.watch((_values, info) => {
       if (!info.name) return;
       if (!optionsRef.current.enabled) return;
+      // Must stay a plain early return: touching the unsaved-changes flag or
+      // the debounce timer would let a write-back landing just before a
+      // keystroke cancel that keystroke's save.
+      if (optionsRef.current.isSelfPersisting?.(info.name)) return;
       hasUnsavedChangesRef.current = true;
       clearDebounce();
       optionsRef.current.onPendingChange?.(true);
