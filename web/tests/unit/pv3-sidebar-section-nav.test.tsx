@@ -134,7 +134,7 @@ describe("v3 SidebarNav [navigation hierarchy]", () => {
       "lucide-badge-check",
     );
     expect(link("Mini App")).toBeInTheDocument();
-    noLink("Permissions");
+    noLink("Develop");
     expect(link("Team settings")).toHaveAttribute(
       "href",
       `/teams/${teamId}/settings?return_to=${encodeURIComponent(base)}`,
@@ -189,11 +189,12 @@ describe("v3 SidebarNav [active section]", () => {
 
   it("expands Mini App children only on its routes and marks each child", () => {
     const collapsed = renderSidebar();
-    noLink("Permissions");
+    noLink("Develop");
     collapsed.unmount();
 
     for (const { path, child } of [
-      { path: `${base}/mini-app/permissions`, child: "Permissions" },
+      { path: `${base}/mini-app/develop`, child: "Develop" },
+      { path: `${base}/mini-app/permissions`, child: "Develop" },
       { path: `${base}/mini-app/transactions`, child: "Transactions" },
       { path: `${base}/transactions`, child: "Transactions" },
       { path: `${base}/mini-app/notifications`, child: "Notifications" },
@@ -206,8 +207,8 @@ describe("v3 SidebarNav [active section]", () => {
       expect(
         screen.getByRole("list", { name: "Mini App navigation" }),
       ).toHaveClass("mt-2");
-      expect(link("Permissions").querySelector("svg")).toHaveClass(
-        "lucide-lock-keyhole",
+      expect(link("Develop").querySelector("svg")).toHaveClass(
+        "lucide-code-xml",
       );
       expect(link("Transactions").querySelector("svg")).toHaveClass(
         "lucide-wallet-cards",

@@ -23,8 +23,8 @@ import {
   BadgeCheckIcon,
   BellIcon,
   ChevronRightIcon,
+  Code2Icon,
   KeyRoundIcon,
-  LockKeyholeIcon,
   Settings2Icon,
   UsersIcon,
   WalletCardsIcon,
@@ -188,7 +188,7 @@ export const SidebarNav = (props: {
   const ids = teamId && appId ? { team_id: teamId, app_id: appId } : undefined;
 
   const configurationHref = ids ? urls.configuration(ids) : teamOverviewHref;
-  const miniAppHref = ids ? urls.miniAppPermissions(ids) : teamOverviewHref;
+  const miniAppHref = ids ? urls.miniAppDevelop(ids) : teamOverviewHref;
   const teamSettingsBase = teamId
     ? urls.teamSettings({ team_id: teamId })
     : teamsLandingHref;
@@ -269,8 +269,9 @@ export const SidebarNav = (props: {
           : []),
       ]
     : [];
-  const miniAppPermissionsActive =
+  const miniAppDevelopActive =
     currentPathname === (appBase ? `${appBase}/mini-app` : "") ||
+    withinApp("/mini-app/develop") ||
     withinApp("/mini-app/permissions");
   const miniAppTransactionsActive =
     withinApp("/mini-app/transactions") || withinApp("/transactions");
@@ -279,10 +280,10 @@ export const SidebarNav = (props: {
   const miniAppItems = ids
     ? [
         {
-          label: "Permissions",
-          href: urls.miniAppPermissions(ids),
-          active: miniAppPermissionsActive,
-          icon: <LockKeyholeIcon strokeWidth={1.5} className="size-4" />,
+          label: "Develop",
+          href: urls.miniAppDevelop(ids),
+          active: miniAppDevelopActive,
+          icon: <Code2Icon strokeWidth={1.5} className="size-4" />,
         },
         {
           label: "Transactions",

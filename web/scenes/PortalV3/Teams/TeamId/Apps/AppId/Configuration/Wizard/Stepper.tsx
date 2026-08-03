@@ -10,6 +10,7 @@ import Skeleton from "react-loading-skeleton";
 export enum WizardStep {
   BASIC = "basic-information",
   STORE_LISTING = "store-listing",
+  MINI_APP_PERMISSIONS = "mini-app-permissions",
   AVAILABILITY = "availability",
   LOCALISED_CONTENT = "localised-content",
   REVIEW = "review-and-confirm",
@@ -22,13 +23,19 @@ export type WizardStepConfig = {
 
 /**
  * Step list for the configuration wizard. Store listing only applies to mini
- * apps (external apps have no store presence to configure), mirroring the
- * previous page's 3-vs-4 step split.
+ * apps (external apps have no store presence or Mini App permissions to
+ * configure).
  */
 export const getWizardSteps = (isMiniApp: boolean): WizardStepConfig[] => [
   { id: WizardStep.BASIC, label: "Basic information" },
   ...(isMiniApp
-    ? [{ id: WizardStep.STORE_LISTING, label: "Store listing" }]
+    ? [
+        { id: WizardStep.STORE_LISTING, label: "Store listing" },
+        {
+          id: WizardStep.MINI_APP_PERMISSIONS,
+          label: "Mini App Permissions",
+        },
+      ]
     : []),
   { id: WizardStep.AVAILABILITY, label: "Availability" },
   { id: WizardStep.LOCALISED_CONTENT, label: "Localised content" },
