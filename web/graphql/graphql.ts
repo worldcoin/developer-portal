@@ -596,6 +596,220 @@ export type Action_Insert_Input = {
   webhook_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** columns and relationships of "action_legacy_stats_daily" */
+export type Action_Legacy_Stats_Daily = {
+  __typename?: "action_legacy_stats_daily";
+  /** An object relationship */
+  action: Action;
+  action_id: Scalars["String"]["output"];
+  date_utc: Scalars["date"]["output"];
+  unique_count: Scalars["bigint"]["output"];
+};
+
+/** aggregated selection of "action_legacy_stats_daily" */
+export type Action_Legacy_Stats_Daily_Aggregate = {
+  __typename?: "action_legacy_stats_daily_aggregate";
+  aggregate?: Maybe<Action_Legacy_Stats_Daily_Aggregate_Fields>;
+  nodes: Array<Action_Legacy_Stats_Daily>;
+};
+
+/** aggregate fields of "action_legacy_stats_daily" */
+export type Action_Legacy_Stats_Daily_Aggregate_Fields = {
+  __typename?: "action_legacy_stats_daily_aggregate_fields";
+  avg?: Maybe<Action_Legacy_Stats_Daily_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Action_Legacy_Stats_Daily_Max_Fields>;
+  min?: Maybe<Action_Legacy_Stats_Daily_Min_Fields>;
+  stddev?: Maybe<Action_Legacy_Stats_Daily_Stddev_Fields>;
+  stddev_pop?: Maybe<Action_Legacy_Stats_Daily_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Action_Legacy_Stats_Daily_Stddev_Samp_Fields>;
+  sum?: Maybe<Action_Legacy_Stats_Daily_Sum_Fields>;
+  var_pop?: Maybe<Action_Legacy_Stats_Daily_Var_Pop_Fields>;
+  var_samp?: Maybe<Action_Legacy_Stats_Daily_Var_Samp_Fields>;
+  variance?: Maybe<Action_Legacy_Stats_Daily_Variance_Fields>;
+};
+
+/** aggregate fields of "action_legacy_stats_daily" */
+export type Action_Legacy_Stats_Daily_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Action_Legacy_Stats_Daily_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type Action_Legacy_Stats_Daily_Avg_Fields = {
+  __typename?: "action_legacy_stats_daily_avg_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "action_legacy_stats_daily". All fields are combined with a logical 'AND'. */
+export type Action_Legacy_Stats_Daily_Bool_Exp = {
+  _and?: InputMaybe<Array<Action_Legacy_Stats_Daily_Bool_Exp>>;
+  _not?: InputMaybe<Action_Legacy_Stats_Daily_Bool_Exp>;
+  _or?: InputMaybe<Array<Action_Legacy_Stats_Daily_Bool_Exp>>;
+  action?: InputMaybe<Action_Bool_Exp>;
+  action_id?: InputMaybe<String_Comparison_Exp>;
+  date_utc?: InputMaybe<Date_Comparison_Exp>;
+  unique_count?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "action_legacy_stats_daily" */
+export enum Action_Legacy_Stats_Daily_Constraint {
+  /** unique or primary key constraint on columns "action_id", "date_utc" */
+  ActionLegacyStatsDailyPkey = "action_legacy_stats_daily_pkey",
+}
+
+/** input type for incrementing numeric columns in table "action_legacy_stats_daily" */
+export type Action_Legacy_Stats_Daily_Inc_Input = {
+  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** input type for inserting data into table "action_legacy_stats_daily" */
+export type Action_Legacy_Stats_Daily_Insert_Input = {
+  action?: InputMaybe<Action_Obj_Rel_Insert_Input>;
+  action_id?: InputMaybe<Scalars["String"]["input"]>;
+  date_utc?: InputMaybe<Scalars["date"]["input"]>;
+  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Action_Legacy_Stats_Daily_Max_Fields = {
+  __typename?: "action_legacy_stats_daily_max_fields";
+  action_id?: Maybe<Scalars["String"]["output"]>;
+  date_utc?: Maybe<Scalars["date"]["output"]>;
+  unique_count?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Action_Legacy_Stats_Daily_Min_Fields = {
+  __typename?: "action_legacy_stats_daily_min_fields";
+  action_id?: Maybe<Scalars["String"]["output"]>;
+  date_utc?: Maybe<Scalars["date"]["output"]>;
+  unique_count?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** response of any mutation on the table "action_legacy_stats_daily" */
+export type Action_Legacy_Stats_Daily_Mutation_Response = {
+  __typename?: "action_legacy_stats_daily_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Action_Legacy_Stats_Daily>;
+};
+
+/** on_conflict condition type for table "action_legacy_stats_daily" */
+export type Action_Legacy_Stats_Daily_On_Conflict = {
+  constraint: Action_Legacy_Stats_Daily_Constraint;
+  update_columns?: Array<Action_Legacy_Stats_Daily_Update_Column>;
+  where?: InputMaybe<Action_Legacy_Stats_Daily_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "action_legacy_stats_daily". */
+export type Action_Legacy_Stats_Daily_Order_By = {
+  action?: InputMaybe<Action_Order_By>;
+  action_id?: InputMaybe<Order_By>;
+  date_utc?: InputMaybe<Order_By>;
+  unique_count?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: action_legacy_stats_daily */
+export type Action_Legacy_Stats_Daily_Pk_Columns_Input = {
+  action_id: Scalars["String"]["input"];
+  date_utc: Scalars["date"]["input"];
+};
+
+/** select columns of table "action_legacy_stats_daily" */
+export enum Action_Legacy_Stats_Daily_Select_Column {
+  /** column name */
+  ActionId = "action_id",
+  /** column name */
+  DateUtc = "date_utc",
+  /** column name */
+  UniqueCount = "unique_count",
+}
+
+/** input type for updating data in table "action_legacy_stats_daily" */
+export type Action_Legacy_Stats_Daily_Set_Input = {
+  action_id?: InputMaybe<Scalars["String"]["input"]>;
+  date_utc?: InputMaybe<Scalars["date"]["input"]>;
+  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Action_Legacy_Stats_Daily_Stddev_Fields = {
+  __typename?: "action_legacy_stats_daily_stddev_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Action_Legacy_Stats_Daily_Stddev_Pop_Fields = {
+  __typename?: "action_legacy_stats_daily_stddev_pop_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Action_Legacy_Stats_Daily_Stddev_Samp_Fields = {
+  __typename?: "action_legacy_stats_daily_stddev_samp_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "action_legacy_stats_daily" */
+export type Action_Legacy_Stats_Daily_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Action_Legacy_Stats_Daily_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Action_Legacy_Stats_Daily_Stream_Cursor_Value_Input = {
+  action_id?: InputMaybe<Scalars["String"]["input"]>;
+  date_utc?: InputMaybe<Scalars["date"]["input"]>;
+  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Action_Legacy_Stats_Daily_Sum_Fields = {
+  __typename?: "action_legacy_stats_daily_sum_fields";
+  unique_count?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** update columns of table "action_legacy_stats_daily" */
+export enum Action_Legacy_Stats_Daily_Update_Column {
+  /** column name */
+  ActionId = "action_id",
+  /** column name */
+  DateUtc = "date_utc",
+  /** column name */
+  UniqueCount = "unique_count",
+}
+
+export type Action_Legacy_Stats_Daily_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Action_Legacy_Stats_Daily_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Action_Legacy_Stats_Daily_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Action_Legacy_Stats_Daily_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Action_Legacy_Stats_Daily_Var_Pop_Fields = {
+  __typename?: "action_legacy_stats_daily_var_pop_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Action_Legacy_Stats_Daily_Var_Samp_Fields = {
+  __typename?: "action_legacy_stats_daily_var_samp_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Action_Legacy_Stats_Daily_Variance_Fields = {
+  __typename?: "action_legacy_stats_daily_variance_fields";
+  unique_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
 /** aggregate max on columns */
 export type Action_Max_Fields = {
   __typename?: "action_max_fields";
@@ -1297,220 +1511,6 @@ export type Action_Updates = {
   _set?: InputMaybe<Action_Set_Input>;
   /** filter the rows which have to be updated */
   where: Action_Bool_Exp;
-};
-
-/** columns and relationships of "action_v3_stats_daily" */
-export type Action_V3_Stats_Daily = {
-  __typename?: "action_v3_stats_daily";
-  /** An object relationship */
-  action: Action;
-  action_id: Scalars["String"]["output"];
-  date_utc: Scalars["date"]["output"];
-  unique_count: Scalars["bigint"]["output"];
-};
-
-/** aggregated selection of "action_v3_stats_daily" */
-export type Action_V3_Stats_Daily_Aggregate = {
-  __typename?: "action_v3_stats_daily_aggregate";
-  aggregate?: Maybe<Action_V3_Stats_Daily_Aggregate_Fields>;
-  nodes: Array<Action_V3_Stats_Daily>;
-};
-
-/** aggregate fields of "action_v3_stats_daily" */
-export type Action_V3_Stats_Daily_Aggregate_Fields = {
-  __typename?: "action_v3_stats_daily_aggregate_fields";
-  avg?: Maybe<Action_V3_Stats_Daily_Avg_Fields>;
-  count: Scalars["Int"]["output"];
-  max?: Maybe<Action_V3_Stats_Daily_Max_Fields>;
-  min?: Maybe<Action_V3_Stats_Daily_Min_Fields>;
-  stddev?: Maybe<Action_V3_Stats_Daily_Stddev_Fields>;
-  stddev_pop?: Maybe<Action_V3_Stats_Daily_Stddev_Pop_Fields>;
-  stddev_samp?: Maybe<Action_V3_Stats_Daily_Stddev_Samp_Fields>;
-  sum?: Maybe<Action_V3_Stats_Daily_Sum_Fields>;
-  var_pop?: Maybe<Action_V3_Stats_Daily_Var_Pop_Fields>;
-  var_samp?: Maybe<Action_V3_Stats_Daily_Var_Samp_Fields>;
-  variance?: Maybe<Action_V3_Stats_Daily_Variance_Fields>;
-};
-
-/** aggregate fields of "action_v3_stats_daily" */
-export type Action_V3_Stats_Daily_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Action_V3_Stats_Daily_Select_Column>>;
-  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
-};
-
-/** aggregate avg on columns */
-export type Action_V3_Stats_Daily_Avg_Fields = {
-  __typename?: "action_v3_stats_daily_avg_fields";
-  unique_count?: Maybe<Scalars["Float"]["output"]>;
-};
-
-/** Boolean expression to filter rows from the table "action_v3_stats_daily". All fields are combined with a logical 'AND'. */
-export type Action_V3_Stats_Daily_Bool_Exp = {
-  _and?: InputMaybe<Array<Action_V3_Stats_Daily_Bool_Exp>>;
-  _not?: InputMaybe<Action_V3_Stats_Daily_Bool_Exp>;
-  _or?: InputMaybe<Array<Action_V3_Stats_Daily_Bool_Exp>>;
-  action?: InputMaybe<Action_Bool_Exp>;
-  action_id?: InputMaybe<String_Comparison_Exp>;
-  date_utc?: InputMaybe<Date_Comparison_Exp>;
-  unique_count?: InputMaybe<Bigint_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "action_v3_stats_daily" */
-export enum Action_V3_Stats_Daily_Constraint {
-  /** unique or primary key constraint on columns "action_id", "date_utc" */
-  ActionV3StatsDailyPkey = "action_v3_stats_daily_pkey",
-}
-
-/** input type for incrementing numeric columns in table "action_v3_stats_daily" */
-export type Action_V3_Stats_Daily_Inc_Input = {
-  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
-};
-
-/** input type for inserting data into table "action_v3_stats_daily" */
-export type Action_V3_Stats_Daily_Insert_Input = {
-  action?: InputMaybe<Action_Obj_Rel_Insert_Input>;
-  action_id?: InputMaybe<Scalars["String"]["input"]>;
-  date_utc?: InputMaybe<Scalars["date"]["input"]>;
-  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
-};
-
-/** aggregate max on columns */
-export type Action_V3_Stats_Daily_Max_Fields = {
-  __typename?: "action_v3_stats_daily_max_fields";
-  action_id?: Maybe<Scalars["String"]["output"]>;
-  date_utc?: Maybe<Scalars["date"]["output"]>;
-  unique_count?: Maybe<Scalars["bigint"]["output"]>;
-};
-
-/** aggregate min on columns */
-export type Action_V3_Stats_Daily_Min_Fields = {
-  __typename?: "action_v3_stats_daily_min_fields";
-  action_id?: Maybe<Scalars["String"]["output"]>;
-  date_utc?: Maybe<Scalars["date"]["output"]>;
-  unique_count?: Maybe<Scalars["bigint"]["output"]>;
-};
-
-/** response of any mutation on the table "action_v3_stats_daily" */
-export type Action_V3_Stats_Daily_Mutation_Response = {
-  __typename?: "action_v3_stats_daily_mutation_response";
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars["Int"]["output"];
-  /** data from the rows affected by the mutation */
-  returning: Array<Action_V3_Stats_Daily>;
-};
-
-/** on_conflict condition type for table "action_v3_stats_daily" */
-export type Action_V3_Stats_Daily_On_Conflict = {
-  constraint: Action_V3_Stats_Daily_Constraint;
-  update_columns?: Array<Action_V3_Stats_Daily_Update_Column>;
-  where?: InputMaybe<Action_V3_Stats_Daily_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "action_v3_stats_daily". */
-export type Action_V3_Stats_Daily_Order_By = {
-  action?: InputMaybe<Action_Order_By>;
-  action_id?: InputMaybe<Order_By>;
-  date_utc?: InputMaybe<Order_By>;
-  unique_count?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: action_v3_stats_daily */
-export type Action_V3_Stats_Daily_Pk_Columns_Input = {
-  action_id: Scalars["String"]["input"];
-  date_utc: Scalars["date"]["input"];
-};
-
-/** select columns of table "action_v3_stats_daily" */
-export enum Action_V3_Stats_Daily_Select_Column {
-  /** column name */
-  ActionId = "action_id",
-  /** column name */
-  DateUtc = "date_utc",
-  /** column name */
-  UniqueCount = "unique_count",
-}
-
-/** input type for updating data in table "action_v3_stats_daily" */
-export type Action_V3_Stats_Daily_Set_Input = {
-  action_id?: InputMaybe<Scalars["String"]["input"]>;
-  date_utc?: InputMaybe<Scalars["date"]["input"]>;
-  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
-};
-
-/** aggregate stddev on columns */
-export type Action_V3_Stats_Daily_Stddev_Fields = {
-  __typename?: "action_v3_stats_daily_stddev_fields";
-  unique_count?: Maybe<Scalars["Float"]["output"]>;
-};
-
-/** aggregate stddev_pop on columns */
-export type Action_V3_Stats_Daily_Stddev_Pop_Fields = {
-  __typename?: "action_v3_stats_daily_stddev_pop_fields";
-  unique_count?: Maybe<Scalars["Float"]["output"]>;
-};
-
-/** aggregate stddev_samp on columns */
-export type Action_V3_Stats_Daily_Stddev_Samp_Fields = {
-  __typename?: "action_v3_stats_daily_stddev_samp_fields";
-  unique_count?: Maybe<Scalars["Float"]["output"]>;
-};
-
-/** Streaming cursor of the table "action_v3_stats_daily" */
-export type Action_V3_Stats_Daily_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Action_V3_Stats_Daily_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Action_V3_Stats_Daily_Stream_Cursor_Value_Input = {
-  action_id?: InputMaybe<Scalars["String"]["input"]>;
-  date_utc?: InputMaybe<Scalars["date"]["input"]>;
-  unique_count?: InputMaybe<Scalars["bigint"]["input"]>;
-};
-
-/** aggregate sum on columns */
-export type Action_V3_Stats_Daily_Sum_Fields = {
-  __typename?: "action_v3_stats_daily_sum_fields";
-  unique_count?: Maybe<Scalars["bigint"]["output"]>;
-};
-
-/** update columns of table "action_v3_stats_daily" */
-export enum Action_V3_Stats_Daily_Update_Column {
-  /** column name */
-  ActionId = "action_id",
-  /** column name */
-  DateUtc = "date_utc",
-  /** column name */
-  UniqueCount = "unique_count",
-}
-
-export type Action_V3_Stats_Daily_Updates = {
-  /** increments the numeric columns with given value of the filtered values */
-  _inc?: InputMaybe<Action_V3_Stats_Daily_Inc_Input>;
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Action_V3_Stats_Daily_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Action_V3_Stats_Daily_Bool_Exp;
-};
-
-/** aggregate var_pop on columns */
-export type Action_V3_Stats_Daily_Var_Pop_Fields = {
-  __typename?: "action_v3_stats_daily_var_pop_fields";
-  unique_count?: Maybe<Scalars["Float"]["output"]>;
-};
-
-/** aggregate var_samp on columns */
-export type Action_V3_Stats_Daily_Var_Samp_Fields = {
-  __typename?: "action_v3_stats_daily_var_samp_fields";
-  unique_count?: Maybe<Scalars["Float"]["output"]>;
-};
-
-/** aggregate variance on columns */
-export type Action_V3_Stats_Daily_Variance_Fields = {
-  __typename?: "action_v3_stats_daily_variance_fields";
-  unique_count?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Actions for World ID 4.0 verification, tied to RP registration */
@@ -7042,14 +7042,14 @@ export type Mutation_Root = {
   delete_action?: Maybe<Action_Mutation_Response>;
   /** delete single row from the table: "action" */
   delete_action_by_pk?: Maybe<Action>;
+  /** delete data from the table: "action_legacy_stats_daily" */
+  delete_action_legacy_stats_daily?: Maybe<Action_Legacy_Stats_Daily_Mutation_Response>;
+  /** delete single row from the table: "action_legacy_stats_daily" */
+  delete_action_legacy_stats_daily_by_pk?: Maybe<Action_Legacy_Stats_Daily>;
   /** delete data from the table: "action_stats_returning" */
   delete_action_stats_returning?: Maybe<Action_Stats_Returning_Mutation_Response>;
   /** delete single row from the table: "action_stats_returning" */
   delete_action_stats_returning_by_pk?: Maybe<Action_Stats_Returning>;
-  /** delete data from the table: "action_v3_stats_daily" */
-  delete_action_v3_stats_daily?: Maybe<Action_V3_Stats_Daily_Mutation_Response>;
-  /** delete single row from the table: "action_v3_stats_daily" */
-  delete_action_v3_stats_daily_by_pk?: Maybe<Action_V3_Stats_Daily>;
   /** delete data from the table: "action_v4" */
   delete_action_v4?: Maybe<Action_V4_Mutation_Response>;
   /** delete single row from the table: "action_v4" */
@@ -7173,16 +7173,16 @@ export type Mutation_Root = {
   delete_world_id_app_stats_daily_by_pk?: Maybe<World_Id_App_Stats_Daily>;
   /** insert data into the table: "action" */
   insert_action?: Maybe<Action_Mutation_Response>;
+  /** insert data into the table: "action_legacy_stats_daily" */
+  insert_action_legacy_stats_daily?: Maybe<Action_Legacy_Stats_Daily_Mutation_Response>;
+  /** insert a single row into the table: "action_legacy_stats_daily" */
+  insert_action_legacy_stats_daily_one?: Maybe<Action_Legacy_Stats_Daily>;
   /** insert a single row into the table: "action" */
   insert_action_one?: Maybe<Action>;
   /** insert data into the table: "action_stats_returning" */
   insert_action_stats_returning?: Maybe<Action_Stats_Returning_Mutation_Response>;
   /** insert a single row into the table: "action_stats_returning" */
   insert_action_stats_returning_one?: Maybe<Action_Stats_Returning>;
-  /** insert data into the table: "action_v3_stats_daily" */
-  insert_action_v3_stats_daily?: Maybe<Action_V3_Stats_Daily_Mutation_Response>;
-  /** insert a single row into the table: "action_v3_stats_daily" */
-  insert_action_v3_stats_daily_one?: Maybe<Action_V3_Stats_Daily>;
   /** insert data into the table: "action_v4" */
   insert_action_v4?: Maybe<Action_V4_Mutation_Response>;
   /** insert a single row into the table: "action_v4" */
@@ -7332,6 +7332,14 @@ export type Mutation_Root = {
   update_action?: Maybe<Action_Mutation_Response>;
   /** update single row of the table: "action" */
   update_action_by_pk?: Maybe<Action>;
+  /** update data of the table: "action_legacy_stats_daily" */
+  update_action_legacy_stats_daily?: Maybe<Action_Legacy_Stats_Daily_Mutation_Response>;
+  /** update single row of the table: "action_legacy_stats_daily" */
+  update_action_legacy_stats_daily_by_pk?: Maybe<Action_Legacy_Stats_Daily>;
+  /** update multiples rows of table: "action_legacy_stats_daily" */
+  update_action_legacy_stats_daily_many?: Maybe<
+    Array<Maybe<Action_Legacy_Stats_Daily_Mutation_Response>>
+  >;
   /** update multiples rows of table: "action" */
   update_action_many?: Maybe<Array<Maybe<Action_Mutation_Response>>>;
   /** update data of the table: "action_stats_returning" */
@@ -7341,14 +7349,6 @@ export type Mutation_Root = {
   /** update multiples rows of table: "action_stats_returning" */
   update_action_stats_returning_many?: Maybe<
     Array<Maybe<Action_Stats_Returning_Mutation_Response>>
-  >;
-  /** update data of the table: "action_v3_stats_daily" */
-  update_action_v3_stats_daily?: Maybe<Action_V3_Stats_Daily_Mutation_Response>;
-  /** update single row of the table: "action_v3_stats_daily" */
-  update_action_v3_stats_daily_by_pk?: Maybe<Action_V3_Stats_Daily>;
-  /** update multiples rows of table: "action_v3_stats_daily" */
-  update_action_v3_stats_daily_many?: Maybe<
-    Array<Maybe<Action_V3_Stats_Daily_Mutation_Response>>
   >;
   /** update data of the table: "action_v4" */
   update_action_v4?: Maybe<Action_V4_Mutation_Response>;
@@ -7605,6 +7605,17 @@ export type Mutation_RootDelete_Action_By_PkArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootDelete_Action_Legacy_Stats_DailyArgs = {
+  where: Action_Legacy_Stats_Daily_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Action_Legacy_Stats_Daily_By_PkArgs = {
+  action_id: Scalars["String"]["input"];
+  date_utc: Scalars["date"]["input"];
+};
+
+/** mutation root */
 export type Mutation_RootDelete_Action_Stats_ReturningArgs = {
   where: Action_Stats_Returning_Bool_Exp;
 };
@@ -7612,17 +7623,6 @@ export type Mutation_RootDelete_Action_Stats_ReturningArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Action_Stats_Returning_By_PkArgs = {
   action_id: Scalars["String"]["input"];
-};
-
-/** mutation root */
-export type Mutation_RootDelete_Action_V3_Stats_DailyArgs = {
-  where: Action_V3_Stats_Daily_Bool_Exp;
-};
-
-/** mutation root */
-export type Mutation_RootDelete_Action_V3_Stats_Daily_By_PkArgs = {
-  action_id: Scalars["String"]["input"];
-  date_utc: Scalars["date"]["input"];
 };
 
 /** mutation root */
@@ -7941,6 +7941,18 @@ export type Mutation_RootInsert_ActionArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootInsert_Action_Legacy_Stats_DailyArgs = {
+  objects: Array<Action_Legacy_Stats_Daily_Insert_Input>;
+  on_conflict?: InputMaybe<Action_Legacy_Stats_Daily_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Action_Legacy_Stats_Daily_OneArgs = {
+  object: Action_Legacy_Stats_Daily_Insert_Input;
+  on_conflict?: InputMaybe<Action_Legacy_Stats_Daily_On_Conflict>;
+};
+
+/** mutation root */
 export type Mutation_RootInsert_Action_OneArgs = {
   object: Action_Insert_Input;
   on_conflict?: InputMaybe<Action_On_Conflict>;
@@ -7956,18 +7968,6 @@ export type Mutation_RootInsert_Action_Stats_ReturningArgs = {
 export type Mutation_RootInsert_Action_Stats_Returning_OneArgs = {
   object: Action_Stats_Returning_Insert_Input;
   on_conflict?: InputMaybe<Action_Stats_Returning_On_Conflict>;
-};
-
-/** mutation root */
-export type Mutation_RootInsert_Action_V3_Stats_DailyArgs = {
-  objects: Array<Action_V3_Stats_Daily_Insert_Input>;
-  on_conflict?: InputMaybe<Action_V3_Stats_Daily_On_Conflict>;
-};
-
-/** mutation root */
-export type Mutation_RootInsert_Action_V3_Stats_Daily_OneArgs = {
-  object: Action_V3_Stats_Daily_Insert_Input;
-  on_conflict?: InputMaybe<Action_V3_Stats_Daily_On_Conflict>;
 };
 
 /** mutation root */
@@ -8427,6 +8427,25 @@ export type Mutation_RootUpdate_Action_By_PkArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootUpdate_Action_Legacy_Stats_DailyArgs = {
+  _inc?: InputMaybe<Action_Legacy_Stats_Daily_Inc_Input>;
+  _set?: InputMaybe<Action_Legacy_Stats_Daily_Set_Input>;
+  where: Action_Legacy_Stats_Daily_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_Legacy_Stats_Daily_By_PkArgs = {
+  _inc?: InputMaybe<Action_Legacy_Stats_Daily_Inc_Input>;
+  _set?: InputMaybe<Action_Legacy_Stats_Daily_Set_Input>;
+  pk_columns: Action_Legacy_Stats_Daily_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_Legacy_Stats_Daily_ManyArgs = {
+  updates: Array<Action_Legacy_Stats_Daily_Updates>;
+};
+
+/** mutation root */
 export type Mutation_RootUpdate_Action_ManyArgs = {
   updates: Array<Action_Updates>;
 };
@@ -8448,25 +8467,6 @@ export type Mutation_RootUpdate_Action_Stats_Returning_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Action_Stats_Returning_ManyArgs = {
   updates: Array<Action_Stats_Returning_Updates>;
-};
-
-/** mutation root */
-export type Mutation_RootUpdate_Action_V3_Stats_DailyArgs = {
-  _inc?: InputMaybe<Action_V3_Stats_Daily_Inc_Input>;
-  _set?: InputMaybe<Action_V3_Stats_Daily_Set_Input>;
-  where: Action_V3_Stats_Daily_Bool_Exp;
-};
-
-/** mutation root */
-export type Mutation_RootUpdate_Action_V3_Stats_Daily_By_PkArgs = {
-  _inc?: InputMaybe<Action_V3_Stats_Daily_Inc_Input>;
-  _set?: InputMaybe<Action_V3_Stats_Daily_Set_Input>;
-  pk_columns: Action_V3_Stats_Daily_Pk_Columns_Input;
-};
-
-/** mutation root */
-export type Mutation_RootUpdate_Action_V3_Stats_Daily_ManyArgs = {
-  updates: Array<Action_V3_Stats_Daily_Updates>;
 };
 
 /** mutation root */
@@ -10314,6 +10314,12 @@ export type Query_Root = {
   action_aggregate: Action_Aggregate;
   /** fetch data from the table: "action" using primary key columns */
   action_by_pk?: Maybe<Action>;
+  /** fetch data from the table: "action_legacy_stats_daily" */
+  action_legacy_stats_daily: Array<Action_Legacy_Stats_Daily>;
+  /** fetch aggregated fields from the table: "action_legacy_stats_daily" */
+  action_legacy_stats_daily_aggregate: Action_Legacy_Stats_Daily_Aggregate;
+  /** fetch data from the table: "action_legacy_stats_daily" using primary key columns */
+  action_legacy_stats_daily_by_pk?: Maybe<Action_Legacy_Stats_Daily>;
   /** execute function "action_stats" which returns "action_stats_returning" */
   action_stats: Array<Action_Stats_Returning>;
   /** execute function "action_stats" and query aggregates on result of table type "action_stats_returning" */
@@ -10324,12 +10330,6 @@ export type Query_Root = {
   action_stats_returning_aggregate: Action_Stats_Returning_Aggregate;
   /** fetch data from the table: "action_stats_returning" using primary key columns */
   action_stats_returning_by_pk?: Maybe<Action_Stats_Returning>;
-  /** fetch data from the table: "action_v3_stats_daily" */
-  action_v3_stats_daily: Array<Action_V3_Stats_Daily>;
-  /** fetch aggregated fields from the table: "action_v3_stats_daily" */
-  action_v3_stats_daily_aggregate: Action_V3_Stats_Daily_Aggregate;
-  /** fetch data from the table: "action_v3_stats_daily" using primary key columns */
-  action_v3_stats_daily_by_pk?: Maybe<Action_V3_Stats_Daily>;
   /** fetch data from the table: "action_v4" */
   action_v4: Array<Action_V4>;
   /** fetch aggregated fields from the table: "action_v4" */
@@ -10546,6 +10546,27 @@ export type Query_RootAction_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
+export type Query_RootAction_Legacy_Stats_DailyArgs = {
+  distinct_on?: InputMaybe<Array<Action_Legacy_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Legacy_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_Legacy_Stats_Daily_Bool_Exp>;
+};
+
+export type Query_RootAction_Legacy_Stats_Daily_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Action_Legacy_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Legacy_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_Legacy_Stats_Daily_Bool_Exp>;
+};
+
+export type Query_RootAction_Legacy_Stats_Daily_By_PkArgs = {
+  action_id: Scalars["String"]["input"];
+  date_utc: Scalars["date"]["input"];
+};
+
 export type Query_RootAction_StatsArgs = {
   args: Action_Stats_Args;
   distinct_on?: InputMaybe<Array<Action_Stats_Returning_Select_Column>>;
@@ -10582,27 +10603,6 @@ export type Query_RootAction_Stats_Returning_AggregateArgs = {
 
 export type Query_RootAction_Stats_Returning_By_PkArgs = {
   action_id: Scalars["String"]["input"];
-};
-
-export type Query_RootAction_V3_Stats_DailyArgs = {
-  distinct_on?: InputMaybe<Array<Action_V3_Stats_Daily_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Action_V3_Stats_Daily_Order_By>>;
-  where?: InputMaybe<Action_V3_Stats_Daily_Bool_Exp>;
-};
-
-export type Query_RootAction_V3_Stats_Daily_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Action_V3_Stats_Daily_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Action_V3_Stats_Daily_Order_By>>;
-  where?: InputMaybe<Action_V3_Stats_Daily_Bool_Exp>;
-};
-
-export type Query_RootAction_V3_Stats_Daily_By_PkArgs = {
-  action_id: Scalars["String"]["input"];
-  date_utc: Scalars["date"]["input"];
 };
 
 export type Query_RootAction_V4Args = {
@@ -12296,6 +12296,14 @@ export type Subscription_Root = {
   action_aggregate: Action_Aggregate;
   /** fetch data from the table: "action" using primary key columns */
   action_by_pk?: Maybe<Action>;
+  /** fetch data from the table: "action_legacy_stats_daily" */
+  action_legacy_stats_daily: Array<Action_Legacy_Stats_Daily>;
+  /** fetch aggregated fields from the table: "action_legacy_stats_daily" */
+  action_legacy_stats_daily_aggregate: Action_Legacy_Stats_Daily_Aggregate;
+  /** fetch data from the table: "action_legacy_stats_daily" using primary key columns */
+  action_legacy_stats_daily_by_pk?: Maybe<Action_Legacy_Stats_Daily>;
+  /** fetch data from the table in a streaming manner: "action_legacy_stats_daily" */
+  action_legacy_stats_daily_stream: Array<Action_Legacy_Stats_Daily>;
   /** execute function "action_stats" which returns "action_stats_returning" */
   action_stats: Array<Action_Stats_Returning>;
   /** execute function "action_stats" and query aggregates on result of table type "action_stats_returning" */
@@ -12310,14 +12318,6 @@ export type Subscription_Root = {
   action_stats_returning_stream: Array<Action_Stats_Returning>;
   /** fetch data from the table in a streaming manner: "action" */
   action_stream: Array<Action>;
-  /** fetch data from the table: "action_v3_stats_daily" */
-  action_v3_stats_daily: Array<Action_V3_Stats_Daily>;
-  /** fetch aggregated fields from the table: "action_v3_stats_daily" */
-  action_v3_stats_daily_aggregate: Action_V3_Stats_Daily_Aggregate;
-  /** fetch data from the table: "action_v3_stats_daily" using primary key columns */
-  action_v3_stats_daily_by_pk?: Maybe<Action_V3_Stats_Daily>;
-  /** fetch data from the table in a streaming manner: "action_v3_stats_daily" */
-  action_v3_stats_daily_stream: Array<Action_V3_Stats_Daily>;
   /** fetch data from the table: "action_v4" */
   action_v4: Array<Action_V4>;
   /** fetch aggregated fields from the table: "action_v4" */
@@ -12587,6 +12587,33 @@ export type Subscription_RootAction_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
+export type Subscription_RootAction_Legacy_Stats_DailyArgs = {
+  distinct_on?: InputMaybe<Array<Action_Legacy_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Legacy_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_Legacy_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Legacy_Stats_Daily_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Action_Legacy_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Legacy_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_Legacy_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Legacy_Stats_Daily_By_PkArgs = {
+  action_id: Scalars["String"]["input"];
+  date_utc: Scalars["date"]["input"];
+};
+
+export type Subscription_RootAction_Legacy_Stats_Daily_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Action_Legacy_Stats_Daily_Stream_Cursor_Input>>;
+  where?: InputMaybe<Action_Legacy_Stats_Daily_Bool_Exp>;
+};
+
 export type Subscription_RootAction_StatsArgs = {
   args: Action_Stats_Args;
   distinct_on?: InputMaybe<Array<Action_Stats_Returning_Select_Column>>;
@@ -12635,33 +12662,6 @@ export type Subscription_RootAction_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Action_Stream_Cursor_Input>>;
   where?: InputMaybe<Action_Bool_Exp>;
-};
-
-export type Subscription_RootAction_V3_Stats_DailyArgs = {
-  distinct_on?: InputMaybe<Array<Action_V3_Stats_Daily_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Action_V3_Stats_Daily_Order_By>>;
-  where?: InputMaybe<Action_V3_Stats_Daily_Bool_Exp>;
-};
-
-export type Subscription_RootAction_V3_Stats_Daily_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Action_V3_Stats_Daily_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Action_V3_Stats_Daily_Order_By>>;
-  where?: InputMaybe<Action_V3_Stats_Daily_Bool_Exp>;
-};
-
-export type Subscription_RootAction_V3_Stats_Daily_By_PkArgs = {
-  action_id: Scalars["String"]["input"];
-  date_utc: Scalars["date"]["input"];
-};
-
-export type Subscription_RootAction_V3_Stats_Daily_StreamArgs = {
-  batch_size: Scalars["Int"]["input"];
-  cursor: Array<InputMaybe<Action_V3_Stats_Daily_Stream_Cursor_Input>>;
-  where?: InputMaybe<Action_V3_Stats_Daily_Bool_Exp>;
 };
 
 export type Subscription_RootAction_V4Args = {

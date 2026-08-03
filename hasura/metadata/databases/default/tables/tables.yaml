@@ -1,5 +1,5 @@
 - "!include public_action.yaml"
-- "!include public_action_v3_stats_daily.yaml"
+- "!include public_action_legacy_stats_daily.yaml"
 - "!include public_action_stats_returning.yaml"
 - "!include public_action_v4.yaml"
 - "!include public_action_v4_stats_daily.yaml"

@@ -121,7 +121,7 @@ WITH watermark AS (
 ),
 canonical AS (
   SELECT
-    'v3'::text AS source,
+    'legacy'::text AS source,
     raw.action_id,
     (raw.created_at AT TIME ZONE 'UTC')::date AS date_utc,
     count(*)::bigint AS unique_count
@@ -148,11 +148,11 @@ canonical AS (
 ),
 rolled AS (
   SELECT
-    'v3'::text AS source,
+    'legacy'::text AS source,
     action_id,
     date_utc,
     unique_count
-  FROM public.action_v3_stats_daily
+  FROM public.action_legacy_stats_daily
 
   UNION ALL
 

@@ -68,7 +68,7 @@ const commandOutput = (result: ReturnType<typeof runSqlOperation>) =>
 const removeParitySabotage = async () => {
   await pool.query(`
     DROP TRIGGER IF EXISTS contract_corrupt_v3_analytics_rollup
-      ON public.action_v3_stats_daily;
+      ON public.action_legacy_stats_daily;
     DROP TRIGGER IF EXISTS contract_corrupt_v4_analytics_rollup
       ON public.action_v4_stats_daily;
     DROP FUNCTION IF EXISTS public.contract_corrupt_v3_analytics_rollup();
@@ -291,7 +291,7 @@ describe("World ID analytics [backfill and validation gate]", () => {
       $$;
 
       CREATE TRIGGER contract_corrupt_v3_analytics_rollup
-      BEFORE INSERT ON public.action_v3_stats_daily
+      BEFORE INSERT ON public.action_legacy_stats_daily
       FOR EACH ROW
       EXECUTE FUNCTION public.contract_corrupt_v3_analytics_rollup();
     `);
