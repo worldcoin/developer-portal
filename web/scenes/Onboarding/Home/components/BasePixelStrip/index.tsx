@@ -1772,6 +1772,18 @@ const POP_RING_SPEED = 0.025;
 const POP_RING_FADE_MS = 700;
 const POP_RING_MAX_SCALE_BOOST = 0.25;
 const POP_RING_MAX_COLOR_MIX = 0.5;
+// Hard bound on how many pops can be alive at once. POP_MAX_CONCURRENT is
+// what actually shapes the effect (it bounds simultaneous spinning), and a
+// pop stays alive past its spin while its ring travels, so this only exists
+// to keep the list from growing without limit: pops are started by a timer
+// chain, but retired by the rAF loop, and rAF is paused the whole time the
+// page sits in a background tab while that timer keeps firing (throttled).
+// Sized off the ring's full lifetime and the fastest start interval so it
+// can never bind during normal playback.
+const POP_MAX_LIVE =
+  Math.ceil(
+    (POP_RING_RADIUS / POP_RING_SPEED + POP_RING_FADE_MS) / POP_MIN_INTERVAL_MS,
+  ) + 1;
 
 // Enumerates the real cells within POP_RING_RADIUS of (originX, originY),
 // each tagged with its distance from the origin - computed once per pop
@@ -2931,6 +2943,14 @@ export const BasePixelStrip = () => {
       // animation below, which only kicks in when there's actually an icon
       // nearby to press (that's also what drives the radial push that
       // clears space around it - see PRESS_PUSH_MAX_DISTANCE above).
+      // Capture the pointer so the matching pointerup lands here even if the
+      // cursor has been dragged off the logo (or off the window) by then.
+      // Without it that release goes to whatever element is under the cursor,
+      // so the reverse wave below never plays and pressRippleRef stays
+      // pointing at a finished ripple - which the next in-SVG release would
+      // then reverse, sending a wave out from wherever the OLD press was.
+      svg.setPointerCapture(event.pointerId);
+
       const forwardRipple: Ripple = {
         ...point,
         start: performance.now(),
@@ -3012,12 +3032,22 @@ export const BasePixelStrip = () => {
     svg.addEventListener("pointerleave", handlePointerLeave);
     svg.addEventListener("pointerdown", handlePointerDown);
     svg.addEventListener("pointerup", handlePointerUp);
+    // A capture that ends without a release (the browser taking the pointer
+    // back - window losing focus mid-press, say) has to settle the press the
+    // same way an ordinary release does, or the forward wave is left with no
+    // reverse and pressRippleRef holds a stale ripple.
+    svg.addEventListener("pointercancel", handlePointerUp);
 
     // Ambient pops are scheduled on their own setTimeout chain, not tied to
     // pointer activity - this is the one part of the effect that needs to
     // do something while the visitor hasn't touched the grid at all.
     const tryStartPop = () => {
       const start = performance.now();
+
+      if (popsRef.current.length >= POP_MAX_LIVE) {
+        return;
+      }
+
       // POP_MAX_CONCURRENT caps how many tiles are SPINNING at once (that's
       // the motion it exists to keep calm), and a pop's entry lives on past
       // its spin while its ring travels - so count the spinning ones rather
@@ -3094,6 +3124,7 @@ export const BasePixelStrip = () => {
       svg.removeEventListener("pointerleave", handlePointerLeave);
       svg.removeEventListener("pointerdown", handlePointerDown);
       svg.removeEventListener("pointerup", handlePointerUp);
+      svg.removeEventListener("pointercancel", handlePointerUp);
       clearTimeout(popTimeoutId);
 
       if (frameRef.current !== null) {
