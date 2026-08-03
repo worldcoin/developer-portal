@@ -50,8 +50,6 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
     appId,
     teamId,
     supportedLanguages,
-    refetchAppMetadata,
-    refetchLocalisations,
   } = useAppStoreFormContext();
   const disabled = !isEditable || !isEnoughPermissions;
   const isAppVerified = appMetadata.verification_status === "verified";
@@ -67,11 +65,6 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
   );
   const fieldErrors = errors.localisations?.[selectedIndex];
   const selectedLocale = localisations[selectedIndex]?.language ?? "en";
-
-  const onImageAutosaveSuccess = () => {
-    refetchAppMetadata();
-    refetchLocalisations();
-  };
 
   return (
     <div className="flex w-full flex-col gap-14">
@@ -213,7 +206,6 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               appMetadataId={appMetadata.id}
               supportedLanguages={supportedLanguages}
               error={fieldErrors?.showcase_img_urls?.message}
-              onAutosaveSuccess={onImageAutosaveSuccess}
               dropZoneClassName="h-42"
               dropZoneContent={dropZoneContent}
             />
@@ -241,7 +233,6 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               appMetadataId={appMetadata.id}
               supportedLanguages={supportedLanguages}
               error={fieldErrors?.meta_tag_image_url?.message}
-              onAutosaveSuccess={onImageAutosaveSuccess}
               dropZoneClassName="h-42"
               dropZoneContent={dropZoneContent}
             />
