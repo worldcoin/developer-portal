@@ -81,11 +81,12 @@ export const TextField = (props: {
               {requiredMark}
             </span>
           )}
-          {props.loading ? (
+          {props.loading && (
             <span className="w-full text-15 leading-[1.3] font-[350]">
               <Skeleton width="40%" />
             </span>
-          ) : (
+          )}
+          {!props.loading && (
             <input
               name={props.name}
               type={props.type ?? "text"}
