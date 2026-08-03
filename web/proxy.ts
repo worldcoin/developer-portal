@@ -367,6 +367,8 @@ export async function proxy(request: NextRequest) {
 
   // Auth SDK routes pass straight through: login/logout/callback/profile under
   // `/api/auth/*`, plus our custom login-callback / delete-account handlers.
+  // These carry their own request-origin checks — `delete-account` is POST-only
+  // and same-origin gated (`api/helpers/csrf.ts`) because nothing here does it.
   if (pathname.startsWith("/api/auth/")) {
     return authRes;
   }

@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { useMutation } from "@apollo/client/react";
+import { deleteAuth0Identity } from "@/scenes/common/Profile/DangerZone/DeleteAccountDialog/delete-auth0-identity";
 import { DeleteAccountDocument } from "@/scenes/common/Profile/DangerZone/DeleteAccountDialog/graphql/client/delete-account.generated";
 
 const DELETE_WORD = "DELETE";
@@ -60,8 +61,9 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           user_id: user.hasura.id,
         },
       });
+      await deleteAuth0Identity();
       toast.success("Account Deleted!");
-      window.location.href = urls.api.authDeleteAccount();
+      window.location.href = urls.logout(window.location.origin);
     } catch (e) {
       console.error("Delete Account Dialog: ", e);
       toast.error("Error deleting account");
