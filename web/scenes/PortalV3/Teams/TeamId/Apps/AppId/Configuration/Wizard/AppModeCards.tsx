@@ -20,16 +20,19 @@ const APP_MODES: { value: AppMode; title: string; description: string }[] = [
 ];
 
 /**
- * "Advanced settings" radio cards choosing between Mini App and External.
- * `loading` keeps the static card chrome but shimmers the selection marker —
- * which mode is chosen is data we don't have yet.
+ * Loading takes no selection: which mode is chosen is exactly the data the
+ * skeleton is waiting on, so `value`/`onChange` are unavailable in that case.
  */
-export const AppModeCards = (
-  props: { disabled?: boolean } & (
-    | { loading: true; value?: never; onChange?: never }
-    | { loading?: false; value: AppMode; onChange: (value: AppMode) => void }
-  ),
-) => (
+type AppModeCardsProps = { disabled?: boolean } & (
+  | { loading: true; value?: never; onChange?: never }
+  | { loading?: false; value: AppMode; onChange: (value: AppMode) => void }
+);
+
+/**
+ * "Advanced settings" radio cards choosing between Mini App and External.
+ * `loading` keeps the static card chrome but shimmers the selection marker.
+ */
+export const AppModeCards = (props: AppModeCardsProps) => (
   <div className="flex w-full items-start gap-4">
     {APP_MODES.map((mode) => {
       const isSelected = !props.loading && props.value === mode.value;
@@ -38,17 +41,18 @@ export const AppModeCards = (
           key={mode.value}
           className={clsx(
             "flex min-w-0 flex-1 flex-col gap-3 rounded-[10px] border border-portal-border px-6 py-5",
-            props.disabled && "opacity-60",
-            props.disabled || props.loading
-              ? "cursor-default"
-              : "cursor-pointer",
+            {
+              "opacity-60": props.disabled,
+              "cursor-default": props.disabled || props.loading,
+              "cursor-pointer": !props.disabled && !props.loading,
+            },
           )}
         >
           <span className="flex w-full items-center justify-between">
             <span className="text-15 leading-[1.2] font-medium whitespace-nowrap text-portal-ink">
               {mode.title}
             </span>
-            {props.loading ? (
+            {props.loading && (
               <Skeleton
                 circle
                 width={20}
@@ -58,7 +62,8 @@ export const AppModeCards = (
                   opticalIconClassName,
                 )}
               />
-            ) : (
+            )}
+            {!props.loading && (
               <>
                 <input
                   type="radio"
