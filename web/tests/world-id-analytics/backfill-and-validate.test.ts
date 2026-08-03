@@ -19,13 +19,10 @@ const requiredEnv = (name: string) => {
   return value;
 };
 
-const runBackfillAndValidate = () => {
+const runSqlOperation = (filename: string) => {
   const repositoryRoot = requiredEnv("WIA_REPOSITORY_ROOT");
   const sql = readFileSync(
-    path.join(
-      repositoryRoot,
-      "hasura/operations/world-id-analytics/backfill-and-validate.sql",
-    ),
+    path.join(repositoryRoot, "hasura/operations/world-id-analytics", filename),
     "utf8",
   );
 
@@ -59,7 +56,13 @@ const runBackfillAndValidate = () => {
   );
 };
 
-const commandOutput = (result: ReturnType<typeof runBackfillAndValidate>) =>
+const runBackfillAndValidate = () =>
+  runSqlOperation("backfill-and-validate.sql");
+
+const runCreateNullifierIndex = () =>
+  runSqlOperation("create-nullifier-created-at-index.sql");
+
+const commandOutput = (result: ReturnType<typeof runSqlOperation>) =>
   `${result.stdout}\n${result.stderr}`;
 
 const removeParitySabotage = async () => {
@@ -97,6 +100,48 @@ jest.setTimeout(150_000);
 
 // #region Deployment gate
 describe("World ID analytics [backfill and validation gate]", () => {
+  it("rejects an invalid same-named concurrent index", async () => {
+    const duplicateCreatedAt = new Date(
+      Date.now() - 7 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    await insertV3Nullifier(pool, {
+      id: "nullifier_v3_invalid_index_one",
+      createdAt: duplicateCreatedAt,
+    });
+    await insertV3Nullifier(pool, {
+      id: "nullifier_v3_invalid_index_two",
+      createdAt: duplicateCreatedAt,
+    });
+    await pool.query("DROP INDEX CONCURRENTLY public.nullifier_created_at_idx");
+
+    try {
+      await expect(
+        pool.query(`
+          CREATE UNIQUE INDEX CONCURRENTLY nullifier_created_at_idx
+            ON public.nullifier (created_at)
+        `),
+      ).rejects.toThrow();
+
+      for (const result of [
+        runCreateNullifierIndex(),
+        runBackfillAndValidate(),
+      ]) {
+        expect(result.status).not.toBe(0);
+        expect(commandOutput(result)).toContain(
+          "nullifier_created_at_idx is missing or invalid",
+        );
+      }
+    } finally {
+      await pool.query(
+        "DROP INDEX CONCURRENTLY IF EXISTS public.nullifier_created_at_idx",
+      );
+      await pool.query(`
+        CREATE INDEX CONCURRENTLY nullifier_created_at_idx
+          ON public.nullifier (created_at)
+      `);
+    }
+  });
+
   it("runs the historical backfill, catch-up, and raw parity check", async () => {
     const createdAt = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     await insertV4Nullifier(pool, {

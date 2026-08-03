@@ -122,6 +122,15 @@ export WIA_FRESH_STACK=true
 export WIA_COMPOSE_FILE="${compose_file}"
 export WIA_COMPOSE_PROJECT="${compose_project}"
 
+docker compose --project-name "${compose_project}" --file "${compose_file}" \
+  exec --no-TTY postgres \
+    psql \
+      --username postgres \
+      --dbname postgres \
+      --no-psqlrc \
+      --file - \
+  < "${repository_root}/hasura/operations/world-id-analytics/create-nullifier-created-at-index.sql"
+
 cd "${web_root}"
 if [[ "${1:-}" == "--smoke" ]]; then
   npx jest tests/world-id-analytics/stack-smoke.test.ts --runInBand

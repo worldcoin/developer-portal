@@ -4,6 +4,23 @@
 -- 1. Execute only after nullifier_created_at_idx is valid.
 -- 2. Set a statement_timeout long enough for the complete production history.
 -- 3. Keep WORLD_ID_ANALYTICS_ROLLUP_ENABLED disabled until this script passes.
+DO $index_gate$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_index
+    WHERE indexrelid = to_regclass('public.nullifier_created_at_idx')
+      AND indrelid = 'public.nullifier'::regclass
+      AND indisready
+      AND indisvalid
+  ) THEN
+    RAISE EXCEPTION USING
+      MESSAGE = 'nullifier_created_at_idx is missing or invalid',
+      HINT = 'Run DROP INDEX CONCURRENTLY IF EXISTS public.nullifier_created_at_idx; then rerun create-nullifier-created-at-index.sql';
+  END IF;
+END
+$index_gate$;
+
 CREATE TEMP TABLE analytics_gate_evidence (
   phase text PRIMARY KEY,
   processed_through timestamptz NOT NULL
@@ -180,9 +197,14 @@ SELECT count(*) AS uses_zero_count, min(created_at), max(created_at)
 FROM public.nullifier
 WHERE uses = 0;
 
-SELECT schemaname, indexname, indexdef
-FROM pg_indexes
-WHERE indexname IN (
+SELECT view.schemaname, view.indexname,
+       catalog.indisready, catalog.indisvalid, view.indexdef
+FROM pg_indexes AS view
+JOIN pg_index AS catalog
+  ON catalog.indexrelid =
+    to_regclass(format('%I.%I', view.schemaname, view.indexname))
+WHERE view.schemaname = 'public'
+  AND view.indexname IN (
   'nullifier_created_at_idx',
   'nullifier_v4_created_at_idx'
 );
