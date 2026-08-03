@@ -379,6 +379,7 @@ export const WorldIdLayout = (props: {
         {initialLoading ? (
           <WorldIdLayoutSkeleton
             tab={normalizedRequestedTab}
+            appId={props.appId}
             canManageWorldId={props.canManageWorldId}
           />
         ) : (

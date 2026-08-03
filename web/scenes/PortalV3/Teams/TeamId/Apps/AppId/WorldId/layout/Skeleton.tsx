@@ -1,12 +1,13 @@
 "use client";
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { generateRpIdString } from "@/lib/rp";
 import { WORLD_ID_TABS, type WorldIdTab } from "@/lib/world-id-tabs";
 import { LegacyActionsDeprecationBanner } from "../LegacyActions/page";
 import { ActionCardSkeleton } from "../page/ActionCard/Skeleton";
 import { CreateActionTile } from "../page/ActionsGrid/CreateActionTile";
 import { ActionsSearchToolbar } from "./ActionsSearchToolbar";
-import { SummaryFieldSkeleton } from "./SummaryField";
+import { SummaryField, SummaryFieldSkeleton } from "./SummaryField";
 
 const ActionCardsGridSkeleton = (props: { withCreateTile?: boolean }) => (
   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -22,33 +23,40 @@ const ActionCardsGridSkeleton = (props: { withCreateTile?: boolean }) => (
  * Loading mirror of the World ID section, shaped by the tab the URL already
  * names — the loaded tab then fills in place. A bare /world-id entry has no
  * tab yet, so it gets the Actions shape, the default for registered apps.
- * Data-dependent chrome is not asserted — no summary-field labels (an
- * unregistered app shows the register empty state instead), no Key/Danger
- * zone sections — with one deliberate exception: managers get the create
+ * Data-dependent chrome is not asserted — no Key/Danger zone sections, and
+ * the signer value shimmers (registered shows an address, unregistered the
+ * register button) — with one deliberate exception: managers get the create
  * tile, because an active RP is by far the common case on the Actions tab;
  * an inactive one drops the tile when data lands.
  */
 export const WorldIdLayoutSkeleton = (props: {
   tab: WorldIdTab | null;
+  appId: string;
   canManageWorldId: boolean;
 }) => {
   const tab = props.tab ?? WORLD_ID_TABS.Actions;
 
   if (tab === WORLD_ID_TABS.Configuration) {
     return (
-      <div aria-hidden className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         <Typography as="h2" variant={TYPOGRAPHY.H7} className="text-portal-ink">
           World ID Configuration
         </Typography>
 
         {/* RpSummary's section wrappers, so the field stack lands where the
-            loaded fields (or the register empty state) will. */}
+            loaded fields (or the register empty state) will. App ID and RP ID
+            render for real in BOTH variants — the RP ID is derived from the
+            app id (uint64(keccak256)), not stored data. */}
         <section className="flex w-full max-w-[580px] flex-col gap-4">
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-5">
-              <SummaryFieldSkeleton />
-              <SummaryFieldSkeleton />
-              <SummaryFieldSkeleton />
+              <SummaryField label="App ID" value={props.appId} copy />
+              <SummaryField
+                label="RP ID"
+                value={generateRpIdString(props.appId)}
+                copy
+              />
+              <SummaryFieldSkeleton label="Signer address" />
             </div>
           </div>
         </section>

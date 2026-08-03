@@ -5,18 +5,19 @@ import clsx from "clsx";
 import Skeleton from "react-loading-skeleton";
 
 /**
- * Skeleton twin of SummaryField: same wrappers and type ramp, shimmer in both
- * slots. The label shimmers too — while the overview loads we don't know
- * whether summary fields render at all (an unregistered app shows the
- * register empty state instead), so no label text is asserted.
+ * Skeleton twin of SummaryField: same wrappers and type ramp, real label,
+ * shimmer in the value slot. Used for fields whose label is identical across
+ * the registered and unregistered configuration variants but whose value
+ * needs data.
  */
-export const SummaryFieldSkeleton = () => (
-  <div aria-hidden className="w-full min-w-0">
+export const SummaryFieldSkeleton = (props: { label: string }) => (
+  <div className="w-full min-w-0">
     <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
-      <Skeleton width={80} />
+      {props.label}
     </Typography>
     <div className="mt-1 flex min-w-0 items-center justify-between gap-2">
       <Typography
+        aria-hidden
         variant={TYPOGRAPHY.B3}
         className="min-w-0 grow text-grey-900"
       >
