@@ -14,10 +14,17 @@ import { SidebarAnimationShell } from "./SidebarNav";
 export const PortalShell = (props: {
   user: { name?: string | null; email?: string | null };
   teams?: { id: string; name: string }[];
+  apiKeyTeamIds?: string[];
   sandboxRequest?: SandboxAccessRequestState | null;
   children?: ReactNode;
 }) => {
-  const { user, teams = [], sandboxRequest = null, children } = props;
+  const {
+    user,
+    teams = [],
+    apiKeyTeamIds = [],
+    sandboxRequest = null,
+    children,
+  } = props;
 
   return (
     <TooltipProvider>
@@ -40,6 +47,7 @@ export const PortalShell = (props: {
           <PortalSidebar
             user={user}
             teams={teams}
+            apiKeyTeamIds={apiKeyTeamIds}
             sandboxRequest={sandboxRequest}
           />
 

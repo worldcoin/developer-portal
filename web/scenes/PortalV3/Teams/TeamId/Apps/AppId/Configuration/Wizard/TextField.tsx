@@ -30,9 +30,12 @@ export const TextField = (props: {
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   trailing?: ReactNode;
   className?: string;
+  /** Keep the field accessible while omitting a label already shown nearby. */
+  hideLabel?: boolean;
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const isFloating = props.readOnly || isFocused || props.value.length > 0;
+  const isFloating =
+    !props.hideLabel && (props.readOnly || isFocused || props.value.length > 0);
   const isInert = props.readOnly || props.disabled;
 
   const requiredMark = props.required && (
@@ -59,20 +62,23 @@ export const TextField = (props: {
         )}
       >
         <span className="flex min-w-0 flex-1 flex-col overflow-clip">
-          <span
-            className={clsx(
-              "w-full text-13 leading-[1.3] font-[350]",
-              props.error ? "text-[#ea392a]" : "text-portal-subtle",
-              !isFloating && "hidden",
-            )}
-          >
-            {props.label}
-            {requiredMark}
-          </span>
+          {!props.hideLabel && (
+            <span
+              className={clsx(
+                "w-full text-13 leading-[1.3] font-[350]",
+                props.error ? "text-[#ea392a]" : "text-portal-subtle",
+                !isFloating && "hidden",
+              )}
+            >
+              {props.label}
+              {requiredMark}
+            </span>
+          )}
           <input
             name={props.name}
             type={props.type ?? "text"}
             value={props.value}
+            aria-label={props.hideLabel ? props.label : undefined}
             readOnly={props.readOnly}
             disabled={props.disabled}
             maxLength={props.maxLength}
@@ -85,10 +91,10 @@ export const TextField = (props: {
             }}
             className={clsx(
               "w-full min-w-0 bg-transparent p-0 text-15 leading-[1.3] font-[350] text-portal-ink outline-none",
-              !isFloating && "sr-only",
+              !props.hideLabel && !isFloating && "sr-only",
             )}
           />
-          {!isFloating && (
+          {!props.hideLabel && !isFloating && (
             <span className="w-full text-15 leading-[1.3] font-[350] text-portal-subtle">
               {props.label}
               {requiredMark}

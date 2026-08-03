@@ -3,6 +3,7 @@
 import { Placeholder } from "@/components/PlaceholderImage";
 import { Button } from "@/components/ui/button";
 import { Role_Enum } from "@/graphql/graphql";
+import { isTeamSettingsPath } from "@/lib/team-settings";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkUserPermissions, cn } from "@/lib/utils";
@@ -15,7 +16,7 @@ import { useCreateAppDialog } from "@/scenes/common/layout/CreateAppDialog/useCr
 import { useQuery } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { ChevronsUpDownIcon, LayoutGridIcon } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useMemo } from "react";
 import {
   SearchableSwitcher,
@@ -43,6 +44,8 @@ const AppAvatar = (props: DropdownApp) => (
 
 export const AppsDropdown = () => {
   const { teamId } = useParams<{ teamId?: string; appId?: string }>();
+  const pathname = usePathname() ?? "";
+  const isTeamSettings = isTeamSettingsPath(pathname);
   const { user } = useUser() as Auth0SessionUser;
   const canCreateApp = checkUserPermissions(user, teamId ?? "", [
     Role_Enum.Owner,
@@ -53,7 +56,7 @@ export const AppsDropdown = () => {
 
   const { data, loading, error } = useQuery(FetchAppsDocument, {
     variables: { teamId: teamId! },
-    skip: !teamId,
+    skip: !teamId || isTeamSettings,
   });
 
   const apps = useMemo<DropdownApp[]>(() => {
@@ -77,7 +80,7 @@ export const AppsDropdown = () => {
   const isUnavailable = loading || Boolean(error);
   const showEmptyAppRow = !loading && Boolean(data) && apps.length === 0;
 
-  if (!teamId) return null;
+  if (!teamId || isTeamSettings) return null;
 
   return (
     <SearchableSwitcher
