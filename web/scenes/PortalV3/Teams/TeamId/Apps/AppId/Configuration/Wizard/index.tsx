@@ -75,6 +75,7 @@ export const ConfigurationWizard = (props: {
    * outside would push the docked action bar below the fold.
    */
   banner?: React.ReactNode;
+  onVersionSwitchingChange?: (isSwitching: boolean) => void;
 }) => {
   const {
     appId,
@@ -169,6 +170,7 @@ export const ConfigurationWizard = (props: {
 
   const handleVersionAction = useCallback(async () => {
     setIsSwitchingVersion(true);
+    props.onVersionSwitchingChange?.(true);
 
     try {
       const didFlush = (await saveStatusActions?.flushAll()) ?? true;
@@ -186,11 +188,13 @@ export const ConfigurationWizard = (props: {
       await createNewDraft();
     } finally {
       setIsSwitchingVersion(false);
+      props.onVersionSwitchingChange?.(false);
     }
   }, [
     createNewDraft,
     hasDraft,
     isVerifiedView,
+    props.onVersionSwitchingChange,
     saveStatusActions,
     setViewMode,
   ]);
@@ -207,7 +211,12 @@ export const ConfigurationWizard = (props: {
     // previous page's docked layout. overflow-x-clip keeps stray wide content
     // from ever handing the shell a horizontal scrollbar (which focus would
     // then jump along).
-    <div className={wizardFrameClassName}>
+    <div
+      data-testid="configuration-wizard"
+      className={wizardFrameClassName}
+      aria-busy={isSwitchingVersion}
+      inert={isSwitchingVersion ? true : undefined}
+    >
       {props.banner && (
         <div className="mx-auto mb-6 w-full max-w-[626px] shrink-0">
           {props.banner}

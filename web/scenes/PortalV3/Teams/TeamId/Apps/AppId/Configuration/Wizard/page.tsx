@@ -38,6 +38,7 @@ export const ConfigurationWizardPage = ({
   const appId = (params?.appId || routeParams?.appId) as `app_${string}`;
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
+  const [isVersionSwitching, setIsVersionSwitching] = useState(false);
 
   // Lives here — ABOVE the keyed AppStoreFormProvider — so a provider remount
   // (metadata row change / view switch mid-autosave) can't yank the user back
@@ -102,41 +103,58 @@ export const ConfigurationWizardPage = ({
   }
 
   return (
-    <AppStoreFormProvider
-      key={`${appMetadata.id}-${viewMode}`}
-      appMetadata={appMetadata as AppMetadata}
-      localisationsData={
-        (localisationsData?.localisations || []) as LocalisationData
-      }
-    >
-      <SaveStatusProvider>
-        <ResolveModal
-          open={showResolveModal}
-          setOpen={setShowResolveModal}
-          reviewMessage={appMetadata?.review_message}
-          onResolve={removeFromReview}
-        />
-
-        <ConfigurationWizard
-          appId={appId}
-          teamId={teamId}
-          app={app}
-          appMetadata={appMetadata}
-          teamName={app.team?.name ?? ""}
-          activeStep={activeStep}
-          setActiveStep={setActiveStep}
-          // Inside the wizard's fixed frame: rendered out here it would push
-          // the docked action bar below the fold.
-          banner={
-            isRejected ? (
-              <RejectionBanner
-                message={appMetadata?.review_message}
-                onResolve={() => setShowResolveModal(true)}
-              />
-            ) : undefined
+    <div className="relative w-full" aria-busy={isVersionSwitching}>
+      <div
+        className={isVersionSwitching ? "invisible" : undefined}
+        aria-hidden={isVersionSwitching || undefined}
+      >
+        <AppStoreFormProvider
+          key={`${appMetadata.id}-${viewMode}`}
+          appMetadata={appMetadata as AppMetadata}
+          localisationsData={
+            (localisationsData?.localisations || []) as LocalisationData
           }
-        />
-      </SaveStatusProvider>
-    </AppStoreFormProvider>
+        >
+          <SaveStatusProvider>
+            <ResolveModal
+              open={showResolveModal}
+              setOpen={setShowResolveModal}
+              reviewMessage={appMetadata?.review_message}
+              onResolve={removeFromReview}
+            />
+
+            <ConfigurationWizard
+              appId={appId}
+              teamId={teamId}
+              app={app}
+              appMetadata={appMetadata}
+              teamName={app.team?.name ?? ""}
+              activeStep={activeStep}
+              setActiveStep={setActiveStep}
+              onVersionSwitchingChange={setIsVersionSwitching}
+              // Inside the wizard's fixed frame: rendered out here it would push
+              // the docked action bar below the fold.
+              banner={
+                isRejected ? (
+                  <RejectionBanner
+                    message={appMetadata?.review_message}
+                    onResolve={() => setShowResolveModal(true)}
+                  />
+                ) : undefined
+              }
+            />
+          </SaveStatusProvider>
+        </AppStoreFormProvider>
+      </div>
+
+      {isVersionSwitching && (
+        <div
+          data-testid="configuration-version-switch-skeleton"
+          className="absolute inset-0 z-10 bg-white"
+        >
+          <ConfigurationWizardSkeleton />
+        </div>
+      )}
+    </div>
   );
 };

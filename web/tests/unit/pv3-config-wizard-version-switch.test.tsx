@@ -116,7 +116,7 @@ const app = {
   verified_app_metadata: [verifiedMetadata],
 };
 
-const renderWizard = () =>
+const renderWizard = (onVersionSwitchingChange = jest.fn()) =>
   render(
     <ConfigurationWizard
       appId={appId}
@@ -126,6 +126,7 @@ const renderWizard = () =>
       teamName="Test team"
       activeStep={WizardStep.BASIC}
       setActiveStep={jest.fn()}
+      onVersionSwitchingChange={onVersionSwitchingChange}
     />,
   );
 // #endregion
@@ -139,17 +140,24 @@ beforeEach(() => {
 describe("configuration wizard [version switching]", () => {
   it("waits for pending autosaves before switching to the verified version", async () => {
     let finishFlush!: (result: boolean) => void;
+    const onVersionSwitchingChange = jest.fn();
     flushAllMock.mockReturnValue(
       new Promise<boolean>((resolve) => {
         finishFlush = resolve;
       }),
     );
-    renderWizard();
+    renderWizard(onVersionSwitchingChange);
 
     fireEvent.click(screen.getByRole("button", { name: "Go to Verified" }));
 
     expect(flushAllMock).toHaveBeenCalledTimes(1);
+    expect(onVersionSwitchingChange).toHaveBeenCalledWith(true);
     expect(getDefaultStore().get(viewModeAtom)).toBe("unverified");
+    expect(screen.getByTestId("configuration-wizard")).toHaveAttribute("inert");
+    expect(screen.getByTestId("configuration-wizard")).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
     expect(
       screen.getByTestId("configuration-version-indicator"),
     ).toHaveAccessibleName("Draft version");
@@ -159,11 +167,16 @@ describe("configuration wizard [version switching]", () => {
     await waitFor(() =>
       expect(getDefaultStore().get(viewModeAtom)).toBe("verified"),
     );
+    expect(onVersionSwitchingChange).toHaveBeenLastCalledWith(false);
+    expect(screen.getByTestId("configuration-wizard")).not.toHaveAttribute(
+      "inert",
+    );
   });
 
   it("does not switch versions when a pending autosave cannot be flushed", async () => {
+    const onVersionSwitchingChange = jest.fn();
     flushAllMock.mockResolvedValue(false);
-    renderWizard();
+    renderWizard(onVersionSwitchingChange);
 
     fireEvent.click(screen.getByRole("button", { name: "Go to Verified" }));
 
@@ -172,5 +185,10 @@ describe("configuration wizard [version switching]", () => {
     expect(
       screen.getByTestId("configuration-version-indicator"),
     ).toHaveAccessibleName("Draft version");
+    expect(onVersionSwitchingChange).toHaveBeenNthCalledWith(1, true);
+    expect(onVersionSwitchingChange).toHaveBeenLastCalledWith(false);
+    expect(screen.getByTestId("configuration-wizard")).not.toHaveAttribute(
+      "inert",
+    );
   });
 });
