@@ -8,7 +8,6 @@ import { useQuery } from "@apollo/client/react";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import Skeleton from "react-loading-skeleton";
 import { AppStoreFormProvider } from "../AppStore/app-store-form-provider";
 import {
   AppMetadata,
@@ -19,6 +18,7 @@ import { RejectionBanner } from "../RejectionBanner";
 import { ResolveModal } from "../ResolveModal";
 import { SaveStatusProvider } from "../SaveStatus";
 import { ConfigurationWizard } from "./index";
+import { ConfigurationWizardSkeleton } from "./Skeleton";
 import { WizardStep } from "./Stepper";
 
 type ConfigurationWizardPageProps = {
@@ -98,17 +98,7 @@ export const ConfigurationWizardPage = ({
   }
 
   if (loading || isLocalisationsLoading || !app || !appMetadata) {
-    return (
-      <div className="mx-auto grid w-full max-w-[626px] gap-y-6 pt-24">
-        <Skeleton
-          height={144}
-          width={144}
-          circle
-          className="justify-self-center"
-        />
-        <Skeleton count={4} height={56} />
-      </div>
-    );
+    return <ConfigurationWizardSkeleton />;
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import clsx from "clsx";
 import { KeyboardEventHandler, ReactNode, useState } from "react";
+import Skeleton from "react-loading-skeleton";
 
 /**
  * Wizard text field with the label floating inside the box. The box chrome is
@@ -32,11 +33,17 @@ export const TextField = (props: {
   className?: string;
   /** Keep the field accessible while omitting a label already shown nearby. */
   hideLabel?: boolean;
+  /**
+   * Skeleton mode: same box chrome, floating label, shimmer in the value
+   * slot, no input. `value` is ignored.
+   */
+  loading?: boolean;
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const isFloating =
-    !props.hideLabel && (props.readOnly || isFocused || props.value.length > 0);
-  const isInert = props.readOnly || props.disabled;
+    !props.hideLabel &&
+    (props.loading || props.readOnly || isFocused || props.value.length > 0);
+  const isInert = props.loading || props.readOnly || props.disabled;
 
   const requiredMark = props.required && (
     // Figma nucleus/status-negative (#ea392a) — no portal token for it yet.
@@ -74,26 +81,32 @@ export const TextField = (props: {
               {requiredMark}
             </span>
           )}
-          <input
-            name={props.name}
-            type={props.type ?? "text"}
-            value={props.value}
-            aria-label={props.hideLabel ? props.label : undefined}
-            readOnly={props.readOnly}
-            disabled={props.disabled}
-            maxLength={props.maxLength}
-            onChange={(event) => props.onChange?.(event.target.value)}
-            onKeyDown={props.onKeyDown}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => {
-              setIsFocused(false);
-              props.onBlur?.();
-            }}
-            className={clsx(
-              "w-full min-w-0 bg-transparent p-0 text-15 leading-[1.3] font-[350] text-portal-ink outline-none",
-              !props.hideLabel && !isFloating && "sr-only",
-            )}
-          />
+          {props.loading ? (
+            <span className="w-full text-15 leading-[1.3] font-[350]">
+              <Skeleton width="40%" />
+            </span>
+          ) : (
+            <input
+              name={props.name}
+              type={props.type ?? "text"}
+              value={props.value}
+              aria-label={props.hideLabel ? props.label : undefined}
+              readOnly={props.readOnly}
+              disabled={props.disabled}
+              maxLength={props.maxLength}
+              onChange={(event) => props.onChange?.(event.target.value)}
+              onKeyDown={props.onKeyDown}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => {
+                setIsFocused(false);
+                props.onBlur?.();
+              }}
+              className={clsx(
+                "w-full min-w-0 bg-transparent p-0 text-15 leading-[1.3] font-[350] text-portal-ink outline-none",
+                !props.hideLabel && !isFloating && "sr-only",
+              )}
+            />
+          )}
           {!props.hideLabel && !isFloating && (
             <span className="w-full text-15 leading-[1.3] font-[350] text-portal-subtle">
               {props.label}
