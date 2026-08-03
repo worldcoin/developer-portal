@@ -12,7 +12,7 @@ import { SummaryField, SummaryFieldSkeleton } from "./SummaryField";
 const ActionCardsGridSkeleton = (props: { withCreateTile?: boolean }) => (
   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {/* No onClick — the tile renders disabled until the real grid mounts. */}
-    {props.withCreateTile ? <CreateActionTile /> : null}
+    {props.withCreateTile && <CreateActionTile />}
     <ActionCardSkeleton />
     <ActionCardSkeleton />
     <ActionCardSkeleton />
@@ -64,19 +64,22 @@ export const WorldIdLayoutSkeleton = (props: {
     );
   }
 
+  const isLegacyActions = tab === WORLD_ID_TABS.LegacyActions;
+
   return (
     // inert: the toolbar is the real search box; it must not accept input
     // before the grid exists to filter.
     <div aria-hidden inert className="flex flex-col gap-6">
       <ActionsSearchToolbar search="" onSearchChange={() => {}} />
 
-      {tab === WORLD_ID_TABS.LegacyActions ? (
+      {isLegacyActions && (
         // LegacyActionsPage's own wrapper: banner + grid share a gap-6 column.
         <div className="flex flex-col gap-6">
           <LegacyActionsDeprecationBanner />
           <ActionCardsGridSkeleton />
         </div>
-      ) : (
+      )}
+      {!isLegacyActions && (
         <ActionCardsGridSkeleton withCreateTile={props.canManageWorldId} />
       )}
     </div>

@@ -70,20 +70,21 @@ export const WorldIdActionDetailPage = (props: {
             Actions
           </Link>
           <span className="font-world text-13 text-portal-subtle">/</span>
-          {!action ? (
+          {!action && (
             // Same type ramp as the loaded name — a bare Skeleton inherits
             // the 16px base and makes this row 3px taller than loaded.
             <span className="font-ibm text-13 font-medium">
               <Skeleton width={120} />
             </span>
-          ) : (
+          )}
+          {action && (
             <span className="font-ibm text-13 font-medium text-portal-heading">
               {action.action}
             </span>
           )}
         </div>
 
-        {action ? (
+        {action && (
           <UpdateActionV4Form
             key={action.id}
             action={action}
@@ -91,7 +92,8 @@ export const WorldIdActionDetailPage = (props: {
             canModify={canModify}
             onUpdated={() => void refetch().catch(() => {})}
           />
-        ) : (
+        )}
+        {!action && (
           // UpdateActionV4Form's chrome with shimmer values, so the loaded
           // form fills in place.
           <div aria-hidden className="flex w-full flex-col gap-4">

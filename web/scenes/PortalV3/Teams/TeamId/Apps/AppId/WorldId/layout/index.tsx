@@ -376,7 +376,7 @@ export const WorldIdLayout = (props: {
       <SizingWrapper className="flex flex-col gap-8 py-8">
         {app?.is_banned ? <BanBanner /> : null}
 
-        {initialLoading ? (
+        {initialLoading && (
           <WorldIdLayoutSkeleton
             // Deep-link intents pin the destination before data arrives,
             // mirroring resolveActiveWorldIdTab's intent-first branches:
@@ -390,7 +390,8 @@ export const WorldIdLayout = (props: {
             appId={props.appId}
             canManageWorldId={props.canManageWorldId}
           />
-        ) : (
+        )}
+        {!initialLoading && (
           <div className="flex flex-col gap-6">
             {activeTab !== WORLD_ID_TABS.Configuration ? (
               <ActionsSearchToolbar
