@@ -490,7 +490,7 @@ export const SetupForm = ({
   // serves Mini Apps.
   if (appMetadata?.app_mode === "external") {
     return (
-      <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
+      <div className="grid max-w-[1180px] grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
         <LockIcon
           className={`${noticeIconClassName} size-8 text-grey-900`}
           aria-hidden="true"
