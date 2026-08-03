@@ -35,10 +35,25 @@ import {
   WizardStep,
 } from "./Stepper";
 
-const secondaryButtonClassName =
+export const secondaryButtonClassName =
   "flex h-10 items-center justify-center rounded-[10px] bg-portal-canvas px-6 text-15 leading-[1.2] font-semibold text-portal-ink transition-colors hover:bg-portal-border disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-portal-canvas";
-const primaryButtonClassName =
+export const primaryButtonClassName =
   "flex h-10 items-center justify-center rounded-[10px] bg-portal-ink px-6 text-15 leading-[1.2] font-semibold text-white transition-colors hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:opacity-60";
+
+// Frame chrome shared with Skeleton.tsx so the loading state can never drift
+// from the loaded layout.
+export const wizardFrameClassName =
+  "flex h-[calc(100dvh-var(--portal-header-height))] w-full flex-col overflow-x-clip px-6 pt-[43px] font-world";
+export const wizardStepperRowClassName =
+  "relative flex w-full shrink-0 justify-center";
+export const wizardScrollRegionClassName =
+  "-mx-6 min-h-0 w-auto flex-1 overflow-x-hidden overflow-y-auto px-6 pb-8";
+export const wizardLogoRowClassName = "mt-[76px] flex justify-center";
+export const wizardBasicBodyClassName = "mx-auto mt-10 w-full max-w-[626px]";
+export const wizardActionBarClassName =
+  "-mx-6 shrink-0 border-t border-portal-border bg-white px-6 py-3";
+export const wizardActionBarInnerClassName =
+  "mx-auto flex w-full max-w-[626px] items-center gap-3";
 
 /**
  * Q3 2026 configuration wizard (Figma: Dev Portal Q3 2026). The designed
@@ -162,13 +177,13 @@ export const ConfigurationWizard = (props: {
     // previous page's docked layout. overflow-x-clip keeps stray wide content
     // from ever handing the shell a horizontal scrollbar (which focus would
     // then jump along).
-    <div className="flex h-[calc(100dvh-var(--portal-header-height))] w-full flex-col overflow-x-clip px-6 pt-[43px] font-world">
+    <div className={wizardFrameClassName}>
       {props.banner && (
         <div className="mx-auto mb-6 w-full max-w-[626px] shrink-0">
           {props.banner}
         </div>
       )}
-      <div className="relative flex w-full shrink-0 justify-center">
+      <div className={wizardStepperRowClassName}>
         <Stepper
           steps={steps}
           activeIndex={activeIndex}
@@ -200,10 +215,7 @@ export const ConfigurationWizard = (props: {
           overflow-x-hidden means wide content clips rather than ever growing
           a horizontal scrollbar. Full-bleed (-mx-6) so the scrollbar hugs the
           frame edge instead of floating beside the content column. */}
-      <div
-        ref={scrollContainerRef}
-        className="-mx-6 min-h-0 w-auto flex-1 overflow-x-hidden overflow-y-auto px-6 pb-8"
-      >
+      <div ref={scrollContainerRef} className={wizardScrollRegionClassName}>
         <AppStoreForm
           appId={appId}
           teamId={teamId}
@@ -213,7 +225,7 @@ export const ConfigurationWizard = (props: {
             className={stepWrapperClassName(WizardStep.BASIC, "")}
             aria-hidden={activeStep !== WizardStep.BASIC}
           >
-            <div className="mt-[76px] flex justify-center">
+            <div className={wizardLogoRowClassName}>
               <WizardLogoUpload
                 appId={appId}
                 teamId={teamId}
@@ -221,7 +233,7 @@ export const ConfigurationWizard = (props: {
                 canEdit={isEditable && canManageDraft}
               />
             </div>
-            <div className="mx-auto mt-10 w-full max-w-[626px]">
+            <div className={wizardBasicBodyClassName}>
               <BasicInformationStep
                 ref={basicInfoRef}
                 appId={appId}
@@ -283,8 +295,8 @@ export const ConfigurationWizard = (props: {
 
       {/* Docked action bar: pinned below the scroll region, matching the
           previous page's fixed footer. */}
-      <div className="-mx-6 shrink-0 border-t border-portal-border bg-white px-6 py-3">
-        <div className="mx-auto flex w-full max-w-[626px] items-center gap-3">
+      <div className={wizardActionBarClassName}>
+        <div className={wizardActionBarInnerClassName}>
           <div className="flex flex-1 justify-start">
             {/* Always rendered: a disabled Back on the first step reads as
                 "you're at the start", where a missing button reads as broken. */}

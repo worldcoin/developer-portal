@@ -117,6 +117,39 @@ export const WizardLogoUpload = (props: {
 };
 
 /**
+ * Skeleton twin of BasicInformationStep below — same containers and labels,
+ * shimmer in every value slot (via the fields' `loading` mode). Keep the two
+ * in sync when fields change.
+ */
+export const BasicInformationStepSkeleton = () => (
+  <div className="flex w-full flex-col gap-14">
+    <div className="flex w-full flex-col gap-4">
+      <div className="flex w-full items-start gap-4">
+        <TextField label="App name" required value="" loading />
+        <TextField label="Publisher" readOnly value="" loading />
+      </div>
+      <TextField label="App URL" required value="" loading />
+      <TextField label="App Official Website" required value="" loading />
+      <TextField
+        label="App ID"
+        readOnly
+        muted
+        value=""
+        loading
+        trailing={<CopyIcon aria-hidden className="size-5 shrink-0" />}
+      />
+    </div>
+
+    <div className="flex w-full flex-col gap-5">
+      <h2 className="text-15 leading-[1.2] font-medium text-portal-ink">
+        Advanced settings
+      </h2>
+      <AppModeCards loading />
+    </div>
+  </div>
+);
+
+/**
  * Step 1 of the configuration wizard: identity fields plus the Mini App /
  * External mode choice. Persists through the same paths as the previous
  * page: the basic-information autosave form (name/URLs) and the app-mode
