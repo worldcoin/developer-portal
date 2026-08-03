@@ -273,6 +273,41 @@ export const WorldIdLayout = (props: {
     };
   }, [props.appId, refetchOverview]);
 
+  const rpId = rp?.rp_id;
+  const rpServerStatus = rp?.status;
+  // The rp-status endpoint is what reconciles a pending registration (it reads
+  // on-chain state and syncs the DB row), but its usual host — RpSummary —
+  // only mounts on the Configuration section. Keep pending converging while
+  // the user sits on Actions so the grid unlocks without a manual refresh.
+  useEffect(() => {
+    if (!rpId || activeTab === WORLD_ID_TABS.Configuration) return;
+    if (effectiveRpStatus !== RpRegistrationStatus.Pending) return;
+
+    let cancelled = false;
+    const reconcile = async () => {
+      try {
+        const response = await fetch(`/api/v4/rp-status/${rpId}`, {
+          signal: AbortSignal.timeout(4000),
+        });
+        if (cancelled || !response.ok) return;
+        const result = (await response.json()) as { production_status: string };
+        if (result.production_status !== rpServerStatus) refetchOverview();
+      } catch {
+        // Retain the last known status when reconciliation is unavailable.
+      }
+    };
+
+    void reconcile();
+    const interval = setInterval(() => {
+      if (!document.hidden) void reconcile();
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [activeTab, effectiveRpStatus, refetchOverview, rpId, rpServerStatus]);
+
   const consumeCreateAction = useCallback(() => {
     setCreateAfterSetup(false);
     consumeSearchParams("createAction");
