@@ -1,14 +1,14 @@
 "use client";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import {
   getMcpEndpoint,
   getProviderSnippets,
   PROVIDERS,
   type ProviderId,
 } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/mcp-snippets";
+import { SettingsPanel } from "@/scenes/PortalV3/Teams/TeamId/Team/common/SettingsPanel";
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 const KEY_PLACEHOLDER = "YOUR_API_KEY";
@@ -26,64 +26,99 @@ export const McpSetup = () => {
     [endpoint],
   );
   const command = snippets[providerId].command;
+  const setupLabel =
+    PROVIDERS.find((provider) => provider.id === providerId)?.setupLabel ?? "";
+  const [copied, setCopied] = useState(false);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const copyCommand = () => {
+    navigator.clipboard
+      .writeText(command)
+      .then(() => {
+        toast.success("Setup command copied to clipboard");
+        setCopied(true);
+
+        if (copiedTimeoutRef.current) {
+          clearTimeout(copiedTimeoutRef.current);
+        }
+        copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2_000);
+      })
+      .catch(() =>
+        toast.error("Couldn't copy. Select the command and copy it manually"),
+      );
+  };
 
   return (
-    <section className="order-2 grid gap-y-3 md:pb-8">
-      <Typography variant={TYPOGRAPHY.M4} className="text-grey-400 uppercase">
-        MCP endpoint
-      </Typography>
+    <SettingsPanel>
+      <SettingsPanel.Header className="flex flex-col gap-3 border-b border-grey-100 sm:flex-row sm:items-center sm:justify-between">
+        <SettingsPanel.Title>MCP endpoint</SettingsPanel.Title>
 
-      <code className="font-ibm text-sm break-all text-grey-900">
-        {endpoint}
-      </code>
+        <code className="max-w-full [scrollbar-width:thin] self-start overflow-x-auto rounded-8 border border-grey-100 bg-grey-50 px-2.5 py-1 font-ibm text-12 leading-5 whitespace-nowrap text-grey-700 sm:self-auto">
+          {endpoint}
+        </code>
+      </SettingsPanel.Header>
 
-      <div className="flex flex-wrap gap-1.5">
-        {PROVIDERS.map((item) => {
-          const isSelected = item.id === providerId;
+      <SettingsPanel.Body className="grid gap-4 px-5 py-5">
+        <div className="flex flex-wrap gap-1.5">
+          {PROVIDERS.map((item) => {
+            const isSelected = item.id === providerId;
 
-          return (
+            return (
+              <button
+                key={item.id}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => setProviderId(item.id)}
+                className={clsx(
+                  "flex h-8 items-center rounded-full border px-3 font-world text-12 font-medium text-grey-500 transition-colors hover:border-blue-150 hover:bg-blue-50 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden",
+                  {
+                    "border-blue-150 bg-blue-50 text-grey-900": isSelected,
+                    "border-grey-100 bg-grey-0": !isSelected,
+                  },
+                )}
+              >
+                {item.name}
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="font-gta text-12 leading-4 text-grey-400">{setupLabel}</p>
+
+        <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-12 border border-grey-200 bg-grey-50 px-3 pt-2 pb-1.5">
+          <pre className="min-h-8 min-w-0 [scrollbar-width:thin] overflow-x-auto pb-2 font-ibm text-12 leading-5 whitespace-pre text-grey-900">
+            <code>{command}</code>
+          </pre>
+
+          <div className="flex shrink-0 items-center gap-2 pb-0.5">
+            {copied ? (
+              <span
+                className="font-gta text-12 whitespace-nowrap text-grey-400"
+                role="status"
+              >
+                Copied to clipboard
+              </span>
+            ) : null}
+
             <button
-              key={item.id}
               type="button"
-              aria-pressed={isSelected}
-              onClick={() => setProviderId(item.id)}
-              className={clsx(
-                "flex h-9 items-center rounded-full border px-3 text-grey-500 transition-colors hover:border-blue-150 hover:bg-blue-50 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden",
-                {
-                  "border-blue-150 bg-blue-50 text-grey-900": isSelected,
-                  "border-transparent bg-grey-0": !isSelected,
-                },
-              )}
+              aria-label="Copy MCP setup command"
+              className="flex size-8 shrink-0 items-center justify-center rounded-8 text-blue-500 transition-colors hover:bg-grey-100 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
+              onClick={copyCommand}
             >
-              <Typography variant={TYPOGRAPHY.M5}>{item.name}</Typography>
+              <CopyIcon className="size-4" />
             </button>
-          );
-        })}
-      </div>
-
-      <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-12 bg-grey-0 px-3 py-2 shadow-button">
-        <pre className="min-w-0 overflow-x-auto font-ibm text-xs leading-5 whitespace-pre text-grey-900">
-          <code>{command}</code>
-        </pre>
-
-        <button
-          type="button"
-          aria-label="Copy MCP setup command"
-          className="flex size-8 shrink-0 items-center justify-center rounded-12 text-blue-500 transition-colors hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
-          onClick={() =>
-            navigator.clipboard
-              .writeText(command)
-              .then(() => toast.success("Setup command copied to clipboard"))
-              .catch(() =>
-                toast.error(
-                  "Couldn't copy — select the command and copy it manually",
-                ),
-              )
-          }
-        >
-          <CopyIcon className="size-4" />
-        </button>
-      </div>
-    </section>
+          </div>
+        </div>
+      </SettingsPanel.Body>
+    </SettingsPanel>
   );
 };

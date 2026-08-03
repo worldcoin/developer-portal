@@ -1,5 +1,10 @@
 import { canVerifyForAction } from "@/api/helpers/verify";
-import { isValidHostName, validateUri, validateUrl } from "@/lib/utils";
+import {
+  isValidHostName,
+  validateUri,
+  validateUrl,
+  validateWebhookUrl,
+} from "@/lib/utils";
 
 describe("canVerifyForAction()", () => {
   test("can verify if it has not verified before", () => {
@@ -235,6 +240,176 @@ describe("isValidHostName()", () => {
       process.env.NEXT_PUBLIC_APP_ENV = "production";
       process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "https://cdn.example.com";
       expect(isValidHostName(makeRequest("localhost:3000"))).toBe(true);
+    });
+  });
+});
+
+describe("validateWebhookUrl()", () => {
+  describe("accepts public HTTPS targets", () => {
+    test.each([
+      "https://collector.example.com/ce25-c014",
+      "https://sub.domain.example.com:8443/path?x=1",
+      "https://8.8.8.8/hook",
+      "https://11.0.0.1/hook", // just outside 10.0.0.0/8
+      "https://172.15.0.1/hook", // just below 172.16.0.0/12
+      "https://172.32.0.1/hook", // just above 172.16.0.0/12
+      "https://192.169.0.1/hook", // just outside 192.168.0.0/16
+      "https://100.63.255.255/hook", // just below CGNAT 100.64.0.0/10
+      "https://100.128.0.1/hook", // just above CGNAT 100.64.0.0/10
+      "https://169.253.255.255/hook", // just below link-local 169.254.0.0/16
+      "https://[2606:4700:4700::1111]/hook", // public IPv6
+      "https://collector.example.com./hook", // trailing root dot, public FQDN
+      "https://223.255.255.255/hook", // just below multicast 224.0.0.0/4
+      "https://198.17.255.255/hook", // just below benchmarking 198.18.0.0/15
+      "https://198.20.0.1/hook", // just above benchmarking 198.18.0.0/15
+    ])("accepts %s", (url) => {
+      expect(validateWebhookUrl(url)).toBe(true);
+    });
+  });
+
+  describe("rejects non-HTTPS and malformed URLs", () => {
+    test.each([
+      "",
+      "   ",
+      "http://collector.example.com/hook",
+      "http://localhost:8000/hook",
+      "ftp://example.com/hook",
+      "worldapp://callback",
+      "example.com/path",
+      "https://",
+      "not a url",
+    ])("rejects %j", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
+    });
+  });
+
+  describe("rejects localhost by name", () => {
+    test.each([
+      "https://localhost/hook",
+      "https://localhost:8443/hook",
+      "https://foo.localhost/hook",
+      "https://api.internal.localhost/hook",
+      "https://localhost./hook", // root-qualified (trailing dot)
+      "https://foo.localhost./hook", // root-qualified subdomain
+    ])("rejects %s", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
+    });
+  });
+
+  describe("rejects loopback, private, link-local, and metadata IPv4", () => {
+    test.each([
+      "https://127.0.0.1/hook", // loopback
+      "https://127.1.2.3:8443/hook", // loopback range
+      "https://0.0.0.0/hook", // this-host
+      "https://10.0.0.1/hook", // private
+      "https://10.255.255.255/hook",
+      "https://172.16.0.1/hook", // private
+      "https://172.31.255.255/hook",
+      "https://192.168.1.1/hook", // private
+      "https://169.254.169.254/latest/meta-data/", // cloud metadata
+      "https://169.254.0.1/hook", // link-local
+      "https://100.64.0.1/hook", // CGNAT
+      "https://100.127.255.255/hook",
+    ])("rejects %s", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
+    });
+  });
+
+  describe("rejects multicast, reserved, and special-purpose IPv4", () => {
+    test.each([
+      "https://192.0.0.1/hook", // 192.0.0.0/24 protocol assignments
+      "https://192.0.2.1/hook", // TEST-NET-1
+      "https://192.88.99.1/hook", // 6to4 relay anycast
+      "https://198.18.0.1/hook", // benchmarking
+      "https://198.19.255.255/hook", // benchmarking (top of /15)
+      "https://198.51.100.1/hook", // TEST-NET-2
+      "https://203.0.113.1/hook", // TEST-NET-3
+      "https://224.0.0.1/hook", // multicast
+      "https://239.255.255.250/hook", // SSDP multicast
+      "https://240.0.0.1/hook", // reserved
+      "https://255.255.255.255/hook", // limited broadcast
+    ])("rejects %s", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
+    });
+  });
+
+  describe("rejects alternate IPv4 encodings resolving to blocked ranges", () => {
+    test.each([
+      "https://0x7f000001/hook", // 127.0.0.1 (hex)
+      "https://2130706433/hook", // 127.0.0.1 (decimal)
+      "https://017700000001/hook", // 127.0.0.1 (octal)
+      "https://127.1/hook", // 127.0.0.1 (shorthand)
+      "https://0/hook", // 0.0.0.0 (bare integer)
+      "https://0300.0250.0.1/hook", // 192.168.0.1 (octal)
+    ])("rejects %s", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
+    });
+  });
+
+  describe("rejects credentials-obscured internal hosts", () => {
+    test.each([
+      "https://user:pass@127.0.0.1/hook",
+      "https://example.com@169.254.169.254/hook",
+    ])("rejects %s", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
+    });
+  });
+
+  describe("rejects loopback, unspecified, ULA, and link-local IPv6", () => {
+    test.each([
+      "https://[::1]/hook", // loopback
+      "https://[::]/hook", // unspecified
+      "https://[0::0]/hook", // unspecified
+      "https://[fd00::1]/hook", // unique-local
+      "https://[fc00::1]/hook",
+      "https://[fe80::1]/hook", // link-local
+      "https://[febf::1]/hook",
+      "https://[fec0::1]/hook", // deprecated site-local
+    ])("rejects %s", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
+    });
+  });
+
+  describe("rejects IPv4-mapped IPv6 pointing at blocked ranges", () => {
+    test.each([
+      "https://[::ffff:127.0.0.1]/hook",
+      "https://[::ffff:169.254.169.254]/hook",
+      "https://[::ffff:10.0.0.1]/hook",
+      "https://[::ffff:7f00:1]/hook", // hex form of 127.0.0.1
+      "https://[::ffff:a9fe:a9fe]/hook", // hex form of 169.254.169.254
+    ])("rejects %s", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
+    });
+  });
+
+  describe("rejects IPv4-compatible and other ::/96 IPv6 literals", () => {
+    test.each([
+      "https://[::127.0.0.1]/hook", // canonicalizes to ::7f00:1
+      "https://[::7f00:1]/hook", // hex form of ::127.0.0.1
+      "https://[::a9fe:a9fe]/hook", // ::169.254.169.254
+      "https://[::8.8.8.8]/hook", // deprecated IPv4-compatible, not publicly routable
+    ])("rejects %s", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
+    });
+  });
+
+  describe("rejects URLs containing control characters", () => {
+    const LF = String.fromCharCode(0x0a);
+    const CR = String.fromCharCode(0x0d);
+    const TAB = String.fromCharCode(0x09);
+    const NUL = String.fromCharCode(0x00);
+
+    test.each([
+      "https://example.com/" + LF + "Host: evil",
+      "https://example.com/" + CR + LF + "x",
+      "https://example.com/" + TAB + "x",
+      "https://example.com/" + NUL,
+      "https://collector.example.com/hook" + LF, // trailing (trim() would strip)
+      LF + "https://collector.example.com/hook", // leading (trim() would strip)
+      "https://collector.example.com/hook" + TAB, // trailing tab
+      CR + "https://collector.example.com/hook", // leading CR
+    ])("rejects url with an embedded control character", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
     });
   });
 });

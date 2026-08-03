@@ -8,9 +8,17 @@ export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Team settings" }),
 };
 
-export default async function Page() {
+type TeamSettingsSearchParams = {
+  tab?: string | string[];
+};
+
+export default async function Page(
+  props: { searchParams?: Promise<TeamSettingsSearchParams> } = {},
+) {
+  const searchParams = (await props.searchParams) ?? {};
+
   return pickPortalVersion(
-    () => <TeamSettingsPageV3 />,
+    () => <TeamSettingsPageV3 requestedTab={searchParams.tab} />,
     () => <TeamSettingsPage />,
   );
 }

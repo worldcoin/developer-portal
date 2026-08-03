@@ -9,8 +9,10 @@ jest.mock("@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/page", () => ({
   AppProfilePage: () => <div data-testid="v2-configuration" />,
 }));
 jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/page",
-  () => ({ AppProfilePage: () => <div data-testid="v3-configuration" /> }),
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/page",
+  () => ({
+    ConfigurationWizardPage: () => <div data-testid="v3-configuration" />,
+  }),
 );
 import RoutePage from "../../app/(portal)/teams/[teamId]/apps/[appId]/configuration/page";
 it("renders v3 configuration", async () => {

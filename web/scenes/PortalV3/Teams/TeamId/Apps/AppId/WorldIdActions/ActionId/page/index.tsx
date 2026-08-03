@@ -2,20 +2,19 @@
 
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { SkeletonTable } from "@/components/Skeletons";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
+import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { useQuery } from "@apollo/client/react";
 import {
   GetWorldIdActionDetailDocument,
   GetWorldIdActionDetailQuery,
 } from "./graphql/client/get-world-id-action-detail.generated";
-import { VerifiedTable } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
-import { adaptNullifierV4 } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/utils/adapt-nullifier-v4";
 import Link from "next/link";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
-import { SettingsCard } from "./SettingsCard";
+import { DeleteAction } from "./DeleteAction";
+import { VerificationHistory } from "./VerificationHistory";
+import { UpdateActionV4Form } from "../Settings/UpdateActionV4Form";
 
 type Action = GetWorldIdActionDetailQuery["action_v4"][number];
 
@@ -59,7 +58,11 @@ export const WorldIdActionDetailPage = (props: {
       <div className="mx-auto flex w-full max-w-[900px] flex-col gap-4">
         <div className="flex items-baseline gap-2.5">
           <Link
-            href={urls.worldId40({ team_id: teamId, app_id: appId })}
+            href={urls.worldIdTab({
+              team_id: teamId,
+              app_id: appId,
+              tab: WORLD_ID_TABS.Actions,
+            })}
             className="font-world text-13 text-portal-muted transition-colors hover:text-portal-text"
           >
             Actions
@@ -74,70 +77,30 @@ export const WorldIdActionDetailPage = (props: {
           )}
         </div>
 
-        <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
-          {!action ? (
-            <Skeleton height={48} />
-          ) : (
-            <div className="flex flex-col gap-2">
-              <span className="font-ibm text-[20px] leading-none font-medium text-portal-heading">
-                {action.action}
-              </span>
-              {action.description ? (
-                <span className="font-world text-sm text-portal-muted">
-                  {action.description}
-                </span>
-              ) : null}
-            </div>
-          )}
-        </div>
-
         {action ? (
-          <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
-            <div className="flex flex-col gap-1">
-              <span className="font-world text-sm text-portal-muted">
-                Verifications
-              </span>
-              <span className="font-ibm text-[28px] leading-none font-medium text-portal-heading">
-                {Number(
-                  action.nullifiers_aggregate?.aggregate?.count ?? 0,
-                ).toLocaleString()}
-              </span>
-            </div>
-            <VerifiedTable
-              columns={["human", "time"]}
-              nullifiers={adaptNullifierV4(action.nullifiers)}
-              showIcons={false}
-              showCount={false}
-            />
-          </div>
+          <UpdateActionV4Form
+            key={action.id}
+            action={action}
+            appId={appId}
+            canModify={canModify}
+            onUpdated={() => void refetch().catch(() => {})}
+          />
         ) : (
-          <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
-            <div className="flex flex-col gap-1">
-              <span className="font-world text-sm text-portal-muted">
-                Verifications
-              </span>
-              <Skeleton width={80} height={28} />
-            </div>
-
-            <div className="mt-6">
-              <Typography variant={TYPOGRAPHY.H7}>Verified humans</Typography>
-              <SkeletonTable
-                columns={["Human", "Time"]}
-                rows={4}
-                className="mt-6"
-              />
-            </div>
+          <div className="grid gap-4 rounded-16 border border-portal-border bg-white p-5 shadow-portal-card md:grid-cols-2">
+            <Skeleton height={48} />
+            <Skeleton height={48} />
           </div>
         )}
 
+        <VerificationHistory actionId={actionId} appId={appId} />
+
         {action && canModify ? (
-          <SettingsCard
+          <DeleteAction
             action={action}
             teamId={teamId}
             appId={appId}
             canModify={canModify}
             onDeleted={() => setDeleted(true)}
-            onUpdated={() => void refetch().catch(() => {})}
           />
         ) : null}
       </div>

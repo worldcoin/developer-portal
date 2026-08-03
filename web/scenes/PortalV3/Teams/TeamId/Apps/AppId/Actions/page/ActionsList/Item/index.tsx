@@ -50,7 +50,7 @@ export const Item = (props: ItemProps) => {
               <CopyButton
                 fieldValue={item.action}
                 fieldName="Action identifier"
-                className="cursor-pointer opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                className="opacity-0 transition-opacity duration-300 group-hover:opacity-100"
               />
             )}
           </div>
