@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { ReactNode, useState } from "react";
+import { KeyboardEventHandler, ReactNode, useState } from "react";
 
 /**
  * Wizard text field with the label floating inside the box. The box chrome is
@@ -27,6 +27,7 @@ export const TextField = (props: {
   name?: string;
   type?: string;
   maxLength?: number;
+  onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   trailing?: ReactNode;
   className?: string;
 }) => {
@@ -76,6 +77,7 @@ export const TextField = (props: {
             disabled={props.disabled}
             maxLength={props.maxLength}
             onChange={(event) => props.onChange?.(event.target.value)}
+            onKeyDown={props.onKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => {
               setIsFocused(false);

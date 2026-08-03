@@ -1,10 +1,9 @@
 "use client";
 
 import { ActionDangerZone } from "@/components/ActionDangerZone";
+import { DangerZoneCard } from "@/components/DangerZoneCard";
 import { urls } from "@/lib/urls";
 import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
-import { UpdateActionV4Form } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Settings/UpdateActionV4Form";
 import { useApolloClient } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -12,17 +11,19 @@ import { toast } from "react-toastify";
 import { GetWorldIdActionDetailQuery } from "../graphql/client/get-world-id-action-detail.generated";
 import { deleteActionV4ServerSide } from "./server";
 
-type Action = GetWorldIdActionDetailQuery["action_v4"][number];
+type Action = Pick<
+  GetWorldIdActionDetailQuery["action_v4"][number],
+  "id" | "action"
+>;
 
-export const SettingsCard = (props: {
+export const DeleteAction = (props: {
   action: Action;
   teamId: string;
   appId: string;
   canModify: boolean;
   onDeleted?: () => void;
-  onUpdated?: () => void;
 }) => {
-  const { action, teamId, appId, canModify, onDeleted, onUpdated } = props;
+  const { action, teamId, appId, canModify, onDeleted } = props;
   const router = useRouter();
   const apolloClient = useApolloClient();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -57,33 +58,19 @@ export const SettingsCard = (props: {
   }, [action.id, appId, teamId, router, apolloClient, onDeleted]);
 
   return (
-    <details className="group flex flex-col overflow-hidden rounded-16 border border-portal-border bg-white shadow-portal-card">
-      <summary className="flex cursor-pointer items-center gap-2.5 px-4 py-3.5 select-none">
-        <Icon
-          name="chevron-down"
-          className="size-3 -rotate-90 text-portal-muted transition-transform group-open:rotate-0"
+    <DangerZoneCard
+      title="Delete this action"
+      name={action.action}
+      variant="compact"
+      footerAction={
+        <ActionDangerZone
+          actionIdentifier={action.action}
+          onDelete={handleDelete}
+          isDeleting={isDeleting}
+          canDelete={canModify}
+          compact
         />
-        <span className="font-world text-sm font-medium text-portal-heading">
-          Settings
-        </span>
-      </summary>
-      <div className="flex flex-col gap-8 border-t border-portal-border p-4 pt-6">
-        <UpdateActionV4Form
-          action={action}
-          appId={appId}
-          onUpdated={onUpdated}
-        />
-        {canModify ? (
-          <div className="border-t border-portal-border pt-6">
-            <ActionDangerZone
-              actionIdentifier={action.action}
-              onDelete={handleDelete}
-              isDeleting={isDeleting}
-              canDelete
-            />
-          </div>
-        ) : null}
-      </div>
-    </details>
+      }
+    />
   );
 };
