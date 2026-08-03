@@ -2,8 +2,8 @@
 
 import { inferHttps } from "@/lib/schema";
 import { getCDNImageUrl } from "@/lib/utils";
+import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { useAtomValue } from "jotai";
 import { forwardRef, useEffect, useImperativeHandle } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -32,7 +32,7 @@ const CopyAppIdButton = (props: { appId: string }) => (
       toast.success("App ID copied to clipboard");
     }}
   >
-    <Icon name="copy" className="size-5" />
+    <CopyIcon className="size-5" />
   </button>
 );
 
@@ -226,7 +226,7 @@ export const BasicInformationStep = forwardRef<
         />
 
         <TextField
-          label="ID"
+          label="App ID"
           value={appId}
           readOnly
           muted
