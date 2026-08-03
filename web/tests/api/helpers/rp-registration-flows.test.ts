@@ -4,7 +4,7 @@ import {
   submitManagedSignerRotation,
 } from "@/api/helpers/rp-registration-flows";
 import { scheduleKeyDeletion } from "@/api/helpers/kms";
-import { resolveManagerKey } from "@/api/helpers/kms-eth";
+import { createManagerKey, getEthAddressFromKMS } from "@/api/helpers/kms-eth";
 
 // #region Mocks
 const GetRpRegistration = jest.fn();
@@ -107,7 +107,7 @@ jest.mock("@/api/helpers/kms", () => ({
 
 jest.mock("@/api/helpers/kms-eth", () => ({
   createManagerKey: jest.fn(),
-  resolveManagerKey: jest.fn(),
+  getEthAddressFromKMS: jest.fn(),
 }));
 
 const mockGetRpRegistryConfig = jest.fn();
@@ -165,6 +165,7 @@ beforeEach(() => {
   // staging suite opts in explicitly.
   process.env.NEXT_PUBLIC_APP_ENV = "test";
   delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
+  delete process.env.ENABLE_SHARED_KEY_RP_REGISTRATION;
   mockGetRpRegistryConfig.mockReturnValue({
     contractAddress: "0xcontract",
     kmsRegion: "us-east-1",
@@ -207,11 +208,12 @@ beforeEach(() => {
     rp_registration_by_pk: { rp_id: rpId, manager_key_dedicated: false },
   });
   submitRegisterRpTransactionMock.mockResolvedValue("0xregophash");
-  (resolveManagerKey as jest.Mock).mockResolvedValue({
+  (createManagerKey as jest.Mock).mockResolvedValue({
     keyId: dedicatedManagerKeyId,
     address: managerAddress,
-    dedicated: true,
+    createdAt: new Date(),
   });
+  (getEthAddressFromKMS as jest.Mock).mockResolvedValue(managerAddress);
 });
 
 // #region submitManagedRpRegistration
@@ -225,11 +227,8 @@ describe("submitManagedRpRegistration", () => {
   };
 
   it("persists the shared manager key without creating a dedicated key", async () => {
-    (resolveManagerKey as jest.Mock).mockResolvedValue({
-      keyId: sharedManagerKeyArn,
-      address: managerAddress,
-      dedicated: false,
-    });
+    process.env.ENABLE_SHARED_KEY_RP_REGISTRATION = "true";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
 
     const res = await submitManagedRpRegistration(registrationArgs);
 
@@ -239,7 +238,11 @@ describe("submitManagedRpRegistration", () => {
       operationHash: "0xregophash",
       status: "pending",
     });
-    expect(resolveManagerKey).toHaveBeenCalledTimes(1);
+    expect(getEthAddressFromKMS).toHaveBeenCalledWith(
+      expect.anything(),
+      sharedManagerKeyArn,
+    );
+    expect(createManagerKey).not.toHaveBeenCalled();
     expect(UpdateRpRegistration).toHaveBeenCalledWith({
       rp_id: expect.stringMatching(/^rp_/),
       manager_kms_key_id: sharedManagerKeyArn,
@@ -252,11 +255,8 @@ describe("submitManagedRpRegistration", () => {
   });
 
   it("does not schedule shared key deletion when registration submission fails", async () => {
-    (resolveManagerKey as jest.Mock).mockResolvedValue({
-      keyId: sharedManagerKeyArn,
-      address: managerAddress,
-      dedicated: false,
-    });
+    process.env.ENABLE_SHARED_KEY_RP_REGISTRATION = "true";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
     submitRegisterRpTransactionMock.mockRejectedValue(new Error("boom"));
 
     const res = await submitManagedRpRegistration(registrationArgs);
@@ -287,19 +287,38 @@ describe("submitManagedRpRegistration", () => {
     expect(DeleteRpRegistration).toHaveBeenCalledWith({
       rp_id: expect.stringMatching(/^rp_/),
     });
-    expect(resolveManagerKey).not.toHaveBeenCalled();
+    expect(createManagerKey).not.toHaveBeenCalled();
+    expect(getEthAddressFromKMS).not.toHaveBeenCalled();
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
-  it("returns kms_error and releases the slot when manager key resolution fails", async () => {
-    (resolveManagerKey as jest.Mock).mockResolvedValue(undefined);
+  it("returns kms_error when shared mode is enabled but the shared key ARN is missing", async () => {
+    process.env.ENABLE_SHARED_KEY_RP_REGISTRATION = "true";
+    delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
 
     const res = await submitManagedRpRegistration(registrationArgs);
 
     expect(res).toEqual({
       ok: false,
       code: "kms_error",
-      detail: "Failed to resolve manager key.",
+      detail: "Shared manager key is not configured.",
+    });
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
+    expect(createManagerKey).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("returns kms_error and releases the slot when dedicated key creation fails", async () => {
+    (createManagerKey as jest.Mock).mockResolvedValue(undefined);
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toEqual({
+      ok: false,
+      code: "kms_error",
+      detail: "Failed to create manager key.",
     });
     expect(DeleteRpRegistration).toHaveBeenCalledWith({
       rp_id: expect.stringMatching(/^rp_/),
@@ -309,11 +328,6 @@ describe("submitManagedRpRegistration", () => {
   });
 
   it("creates a dedicated key and deletes it when registration submission fails", async () => {
-    (resolveManagerKey as jest.Mock).mockResolvedValue({
-      keyId: dedicatedManagerKeyId,
-      address: managerAddress,
-      dedicated: true,
-    });
     submitRegisterRpTransactionMock.mockRejectedValue(new Error("boom"));
 
     const res = await submitManagedRpRegistration(registrationArgs);
@@ -336,6 +350,23 @@ describe("submitManagedRpRegistration", () => {
     const res = await submitManagedRpRegistration(registrationArgs);
 
     expect(res).toMatchObject({ ok: true });
+    expect(createManagerKey).toHaveBeenCalledTimes(1);
+    expect(UpdateRpRegistration).toHaveBeenCalledWith(
+      expect.objectContaining({
+        manager_kms_key_id: dedicatedManagerKeyId,
+        manager_key_dedicated: true,
+      }),
+    );
+  });
+
+  it("keeps creating dedicated keys when ENABLE is unset even if ARN is present", async () => {
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toMatchObject({ ok: true });
+    expect(createManagerKey).toHaveBeenCalledTimes(1);
+    expect(getEthAddressFromKMS).not.toHaveBeenCalled();
     expect(UpdateRpRegistration).toHaveBeenCalledWith(
       expect.objectContaining({
         manager_kms_key_id: dedicatedManagerKeyId,

@@ -1,8 +1,4 @@
-import {
-  createManagerKey,
-  resolveManagerKey,
-  signEthDigestWithKms,
-} from "@/api/helpers/kms-eth";
+import { createManagerKey, signEthDigestWithKms } from "@/api/helpers/kms-eth";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { getBytes, keccak256, recoverAddress, Signature, Wallet } from "ethers";
 
@@ -104,7 +100,6 @@ describe("kms-eth", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
     mockClient = new KMSClient({});
     mockSend = (mockClient as unknown as { send: jest.Mock }).send;
   });
@@ -122,63 +117,6 @@ describe("kms-eth", () => {
       expect(result?.address.toLowerCase()).toBe(
         EXPECTED_ADDRESS_FOR_GENERATOR.toLowerCase(),
       );
-    });
-  });
-
-  describe("resolveManagerKey", () => {
-    it("uses the shared key from env without creating a dedicated key", async () => {
-      process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID =
-        "arn:aws:kms:eu-west-1:123:key/shared";
-      mockSend.mockResolvedValueOnce({ PublicKey: SPKI_PUBLIC_KEY });
-
-      const result = await resolveManagerKey(mockClient, "rp_123");
-
-      expect(result).toEqual({
-        keyId: "arn:aws:kms:eu-west-1:123:key/shared",
-        address: EXPECTED_ADDRESS_FOR_GENERATOR,
-        dedicated: false,
-      });
-      expect(mockSend).toHaveBeenCalledTimes(1);
-    });
-
-    it("returns undefined when shared key address derivation fails", async () => {
-      process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID =
-        "arn:aws:kms:eu-west-1:123:key/shared";
-      mockSend.mockRejectedValueOnce(new Error("kms unavailable"));
-
-      const result = await resolveManagerKey(mockClient, "rp_123");
-
-      expect(result).toBeUndefined();
-    });
-
-    it("creates a dedicated key when shared key env is unset", async () => {
-      mockSend
-        .mockResolvedValueOnce({
-          KeyMetadata: { KeyId: "key-123", CreationDate: new Date() },
-        })
-        .mockResolvedValueOnce({ PublicKey: SPKI_PUBLIC_KEY });
-
-      const result = await resolveManagerKey(mockClient, "rp_123");
-
-      expect(result).toEqual({
-        keyId: "key-123",
-        address: EXPECTED_ADDRESS_FOR_GENERATOR,
-        dedicated: true,
-      });
-    });
-
-    it("treats a blank shared key env as unset", async () => {
-      process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = "   ";
-      mockSend
-        .mockResolvedValueOnce({
-          KeyMetadata: { KeyId: "key-123", CreationDate: new Date() },
-        })
-        .mockResolvedValueOnce({ PublicKey: SPKI_PUBLIC_KEY });
-
-      const result = await resolveManagerKey(mockClient, "rp_123");
-
-      expect(result?.dedicated).toBe(true);
-      expect(result?.keyId).toBe("key-123");
     });
   });
 
