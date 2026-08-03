@@ -32,10 +32,10 @@ test.describe("App", () => {
       new RegExp(`/teams/${constants.teamId}/apps/app_[a-f0-9]+/world-id$`),
     );
     await expect(
-      page.getByRole("heading", { name: "Set up World ID" }),
+      page.getByRole("heading", { name: "World ID Configuration" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Enable World ID" }),
+      page.getByRole("button", { name: "Register relying party" }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Create action" }),

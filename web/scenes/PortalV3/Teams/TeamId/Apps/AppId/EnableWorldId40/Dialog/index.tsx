@@ -1,7 +1,6 @@
 "use client";
 
 import { FormDialog } from "@/components/FormDialog";
-import { getGraphQLErrorCode } from "@/lib/errors";
 import { RegisterRpDocument } from "@/scenes/common/layout/CreateAppDialog/client/register-rp.generated";
 import { useMutation } from "@apollo/client/react";
 import dynamic from "next/dynamic";
@@ -12,8 +11,6 @@ import {
   ConfigureSignerKeyContent,
   SignerKeySetup,
 } from "../../ConfigureSignerKey/ConfigureSignerKeyContent";
-import { EnableWorldId40Content } from "../EnableWorldId40Content";
-import { SelfManagedTransactionInfoContent } from "../SelfManagedTransactionInfo/SelfManagedTransactionInfoContent";
 
 const GenerateNewKeyContent = dynamic(() =>
   import("../../GenerateNewKey/GenerateNewKeyContent").then(
@@ -27,64 +24,51 @@ const UseExistingKeyContent = dynamic(() =>
   ),
 );
 
-type EnableWorldIdDialogStep =
-  | "enable-world-id-4-0"
+type RegisterRpDialogStep =
   | "configure-signer-key"
   | "use-existing-key"
-  | "generate-new-key"
-  | "self-managed-transaction";
+  | "generate-new-key";
 
-const STEP_TITLES: Record<EnableWorldIdDialogStep, string> = {
-  "enable-world-id-4-0": "Enable World ID",
+const STEP_TITLES: Record<RegisterRpDialogStep, string> = {
   "configure-signer-key": "Configure signer key",
   "use-existing-key": "Use existing key",
   "generate-new-key": "Generate new key",
-  "self-managed-transaction": "Self-managed registration",
 };
 
-type EnableWorldIdDialogProps = {
+type RegisterRpDialogProps = {
   open: boolean;
   onClose: (value: boolean) => void;
   appId: string;
   onComplete?: () => void;
 };
 
-export const EnableWorldIdDialog = ({
+export const RegisterRpDialog = ({
   appId,
   onComplete,
-  ...props
-}: EnableWorldIdDialogProps) => {
+  open,
+  onClose: onCloseDialog,
+}: RegisterRpDialogProps) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
-  // Self-Managed availability previously read the World ID 4.0 rollout flag,
-  // but that gate was already true wherever this dialog could actually render
-  // (the dialog itself was flag-gated). With the flag removed (v4 is the
-  // default), hardcoding true preserves the existing behavior — it is not a new
-  // self-managed product change.
-  const isSelfManagedEnabled = true;
 
   const [registerRp, { loading: registeringRp }] =
     useMutation(RegisterRpDocument);
 
-  const [step, setStep] = useState<EnableWorldIdDialogStep>(
-    "enable-world-id-4-0",
-  );
-  const [worldIdMode, setWorldIdMode] = useState<"managed" | "self-managed">(
-    "managed",
+  const [step, setStep] = useState<RegisterRpDialogStep>(
+    "configure-signer-key",
   );
   const [signerKeySetup, setSignerKeySetup] =
     useState<SignerKeySetup>("generate");
 
   const onClose = useCallback(() => {
-    props.onClose(false);
-  }, [props]);
+    onCloseDialog(false);
+  }, [onCloseDialog]);
 
   // Reset only after the leave transition: the dialog keeps rendering while it
   // fades out, so resetting in onClose would snap the content back to step one
   // mid-fade.
   const afterLeave = useCallback(() => {
-    setStep("enable-world-id-4-0");
-    setWorldIdMode("managed");
+    setStep("configure-signer-key");
     setSignerKeySetup("generate");
   }, []);
 
@@ -94,64 +78,9 @@ export const EnableWorldIdDialog = ({
     onClose();
   }, [onClose, onComplete, router]);
 
-  const onEnableContinue = useCallback(
-    (mode: "managed" | "self-managed") => {
-      setWorldIdMode(mode);
-
-      if (mode === "self-managed") {
-        setStep("self-managed-transaction");
-        return;
-      }
-
-      setStep("configure-signer-key");
-    },
-    [setWorldIdMode, setStep],
-  );
-
-  const onSelfManagedComplete = useCallback(async () => {
-    if (!teamId) {
-      toast.error("Unable to complete setup. Please close and try again.");
-      return;
-    }
-
-    try {
-      const { data } = await registerRp({
-        variables: {
-          app_id: appId,
-          mode: "self_managed",
-          signer_address: null,
-        },
-        context: {
-          fetchOptions: {
-            timeout: 30000,
-          },
-        },
-      });
-
-      if (!data?.register_rp?.rp_id) {
-        toast.error("Failed to create registration record");
-        return;
-      }
-
-      toast.success("App configured successfully");
-      completeRpSetup();
-    } catch (error) {
-      const code = getGraphQLErrorCode(error);
-
-      if (code === "already_registered") {
-        // Idempotent — treat as success
-        toast.success("App configured successfully");
-        completeRpSetup();
-        return;
-      }
-
-      toast.error("Failed to create registration record");
-    }
-  }, [teamId, registerRp, appId, completeRpSetup]);
-
   const onConfigureBack = useCallback(() => {
-    setStep("enable-world-id-4-0");
-  }, [setStep]);
+    onClose();
+  }, [onClose]);
 
   const onConfigureContinue = useCallback((setup: SignerKeySetup) => {
     setSignerKeySetup(setup);
@@ -176,12 +105,10 @@ export const EnableWorldIdDialog = ({
       }
 
       try {
-        const hasuraMode =
-          worldIdMode === "self-managed" ? "self_managed" : "managed";
         const { data } = await registerRp({
           variables: {
             app_id: appId,
-            mode: hasuraMode,
+            mode: "managed",
             signer_address: publicKey,
           },
         });
@@ -193,16 +120,16 @@ export const EnableWorldIdDialog = ({
 
         toast.success("App configured successfully");
         completeRpSetup();
-      } catch (error) {
+      } catch {
         toast.error("Failed to register Relying Party");
       }
     },
-    [teamId, worldIdMode, registerRp, appId, completeRpSetup],
+    [teamId, registerRp, appId, completeRpSetup],
   );
 
   return (
     <FormDialog
-      open={props.open}
+      open={open}
       onClose={onClose}
       afterLeave={afterLeave}
       dismissable={!registeringRp}
@@ -211,37 +138,8 @@ export const EnableWorldIdDialog = ({
       // between the overlay unmounting and the fade-in.
       appear={false}
       title={STEP_TITLES[step]}
-      closeLabel="Close World ID setup dialog"
-      // The self-managed step lists full contract addresses and a function
-      // signature — widen the panel so they fit, and let the body scroll on
-      // short viewports instead of clipping.
-      panelClassName={
-        step === "self-managed-transaction"
-          ? "max-h-[calc(100dvh-2rem)] md:w-[544px] md:max-w-[calc(100vw-2rem)]"
-          : undefined
-      }
-      bodyClassName={
-        step === "self-managed-transaction"
-          ? "min-h-0 overflow-y-auto"
-          : undefined
-      }
+      closeLabel="Close RP registration dialog"
     >
-      {step === "enable-world-id-4-0" && (
-        <EnableWorldId40Content
-          onContinue={onEnableContinue}
-          onCancel={onClose}
-          isSelfManagedEnabled={isSelfManagedEnabled}
-          initialMode={worldIdMode}
-        />
-      )}
-      {step === "self-managed-transaction" && (
-        <SelfManagedTransactionInfoContent
-          appId={appId}
-          onBack={() => setStep("enable-world-id-4-0")}
-          onComplete={onSelfManagedComplete}
-          completionLoading={registeringRp}
-        />
-      )}
       {step === "configure-signer-key" && (
         <ConfigureSignerKeyContent
           onBack={onConfigureBack}

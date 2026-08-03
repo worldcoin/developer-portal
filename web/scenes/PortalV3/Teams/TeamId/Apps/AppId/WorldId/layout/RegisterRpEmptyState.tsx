@@ -3,16 +3,18 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { generateRpIdString } from "@/lib/rp";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { SummaryField } from "./SummaryField";
 
 // Show a fallback while an initially open dialog loads. Mimics the dialog
 // overlay so the modal doesn't pop in from an undimmed page.
-const EnableWorldIdDialog = dynamic(
+const RegisterRpDialog = dynamic(
   () =>
     import(
       "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/EnableWorldId40/Dialog"
-    ).then((module) => module.EnableWorldIdDialog),
+    ).then((module) => module.RegisterRpDialog),
   {
     loading: () => (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[15px]">
@@ -30,19 +32,19 @@ export const RegisterRpEmptyState = (props: {
   onRegistered: () => void;
   onSetupClosed: (completed: boolean) => void;
 }) => {
-  const canEnable = !props.isStaging && props.canManageWorldId;
-  const [open, setOpen] = useState(Boolean(props.initialOpen) && canEnable);
+  const canRegister = !props.isStaging && props.canManageWorldId;
+  const [open, setOpen] = useState(Boolean(props.initialOpen) && canRegister);
   // Keep the dialog mounted after its first open so FormDialog can play its
   // leave transition and reset its wizard state in afterLeave.
   const [hasOpened, setHasOpened] = useState(open);
   const completedRef = useRef(false);
 
   useEffect(() => {
-    if (props.initialOpen && canEnable) {
+    if (props.initialOpen && canRegister) {
       setOpen(true);
       setHasOpened(true);
     }
-  }, [props.initialOpen, canEnable]);
+  }, [props.initialOpen, canRegister]);
 
   const closeDialog = () => {
     const completed = completedRef.current;
@@ -52,41 +54,66 @@ export const RegisterRpEmptyState = (props: {
     props.onSetupClosed(completed);
   };
 
-  return (
-    <section className="flex flex-col items-start justify-between gap-5 rounded-xl border border-grey-100 bg-white p-5 sm:flex-row sm:items-center">
-      <div>
-        <Typography as="h2" variant={TYPOGRAPHY.S2}>
-          Set up World ID
-        </Typography>
-        <Typography
-          as="p"
-          variant={TYPOGRAPHY.R4}
-          className="mt-1 max-w-2xl text-grey-500"
-        >
-          {props.isStaging
-            ? "World ID isn't available for staging apps."
-            : !props.canManageWorldId
-              ? "Ask a team owner or admin to enable World ID."
-              : "Register a Relying Party to start requesting World ID verifications for this app."}
-        </Typography>
-      </div>
+  const unavailableReason = props.isStaging
+    ? "RP registration is not available for staging apps."
+    : !props.canManageWorldId
+      ? "Ask a team owner or admin to register this relying party."
+      : null;
 
-      {canEnable ? (
-        <DecoratedButton
-          type="button"
-          variant="primary"
-          className="shrink-0"
-          onClick={() => {
-            setOpen(true);
-            setHasOpened(true);
-          }}
-        >
-          Enable World ID
-        </DecoratedButton>
-      ) : null}
+  return (
+    <>
+      <section
+        aria-label="World ID configuration"
+        className="flex w-full max-w-[580px] flex-col gap-4"
+      >
+        <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-5">
+            <SummaryField label="App ID" value={props.appId} copy />
+            <SummaryField
+              label="RP ID"
+              value={generateRpIdString(props.appId)}
+              copy
+            />
+            <div className="w-full min-w-0">
+              <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+                Signer address
+              </Typography>
+              <div className="mt-1 flex flex-col items-start gap-2">
+                <DecoratedButton
+                  type="button"
+                  variant="primary"
+                  disabled={!canRegister}
+                  className="h-9 shrink-0 rounded-full px-4 py-0 text-xs"
+                  aria-describedby={
+                    unavailableReason
+                      ? "world-id-registration-unavailable-reason"
+                      : undefined
+                  }
+                  onClick={() => {
+                    setOpen(true);
+                    setHasOpened(true);
+                  }}
+                >
+                  Register relying party
+                </DecoratedButton>
+                {unavailableReason ? (
+                  <Typography
+                    id="world-id-registration-unavailable-reason"
+                    as="p"
+                    variant={TYPOGRAPHY.B4}
+                    className="text-grey-500"
+                  >
+                    {unavailableReason}
+                  </Typography>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {hasOpened ? (
-        <EnableWorldIdDialog
+        <RegisterRpDialog
           open={open}
           appId={props.appId}
           onComplete={() => {
@@ -95,6 +122,6 @@ export const RegisterRpEmptyState = (props: {
           onClose={closeDialog}
         />
       ) : null}
-    </section>
+    </>
   );
 };
