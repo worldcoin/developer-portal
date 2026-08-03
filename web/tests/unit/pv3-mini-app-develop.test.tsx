@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 
 import "@testing-library/jest-dom";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
@@ -15,6 +16,8 @@ jest.mock("@auth0/nextjs-auth0/client", () => ({
 
 jest.mock("@/lib/utils", () => ({
   checkUserPermissions: () => true,
+  cn: (...inputs: Array<string | undefined | false>) =>
+    inputs.filter(Boolean).join(" "),
 }));
 
 jest.mock("@apollo/client/react", () => ({
@@ -101,6 +104,9 @@ const app = ({
     verified_app_metadata: verified ? [verified] : [],
   }) as never;
 
+const renderWithTooltip = (ui: React.ReactElement) =>
+  render(<TooltipProvider>{ui}</TooltipProvider>);
+
 beforeEach(() => {
   jest.clearAllMocks();
   validateAndSubmitServerSide.mockResolvedValue({ success: true });
@@ -108,7 +114,7 @@ beforeEach(() => {
 
 describe("Mini App Develop", () => {
   it("edits the draft App URL through the shared basic-information action", async () => {
-    render(
+    renderWithTooltip(
       <DevelopContent
         appId={appId}
         teamId={teamId}
@@ -119,8 +125,16 @@ describe("Mini App Develop", () => {
     const appUrl = screen.getByRole("textbox", { name: "App URL *" });
     expect(appUrl).toBeEnabled();
     expect(appUrl).toHaveValue("https://draft.example.com");
-    expect(screen.getByTestId("preview-link")).toHaveTextContent(
-      `draft_id=meta_draft`,
+    expect(
+      screen.getByRole("button", { name: "About the App URL" }),
+    ).toHaveClass("-translate-y-px");
+    const previewLink = screen.getByTestId("preview-link");
+    expect(previewLink).toHaveTextContent(`draft_id=meta_draft`);
+    expect(previewLink.closest("section")).toHaveClass("w-full");
+    expect(previewLink.closest("section")).not.toHaveClass("max-w-[300px]");
+    expect(previewLink.parentElement?.parentElement).toHaveClass(
+      "w-full",
+      "max-w-[300px]",
     );
     await screen.findByAltText("Mini App preview QR code");
 
@@ -138,7 +152,7 @@ describe("Mini App Develop", () => {
   });
 
   it("shows a verified-only App URL as locked and creates a draft explicitly", async () => {
-    render(
+    renderWithTooltip(
       <DevelopContent
         appId={appId}
         teamId={teamId}
@@ -163,7 +177,7 @@ describe("Mini App Develop", () => {
   });
 
   it("keeps the URL editable for external integrations without showing a QR", () => {
-    render(
+    renderWithTooltip(
       <DevelopContent
         appId={appId}
         teamId={teamId}

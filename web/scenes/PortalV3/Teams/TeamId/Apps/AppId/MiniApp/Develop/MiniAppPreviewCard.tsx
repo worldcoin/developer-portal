@@ -64,12 +64,12 @@ export const MiniAppPreviewCard = ({
           variant={TYPOGRAPHY.B3}
           className="flex-1 text-system-warning-600"
         >
-          Mini App preview becomes available when this app is set to Mini App in{" "}
+          Mini App preview becomes available when this app is set to a{" "}
           <Link
             href={urls.configuration({ team_id: teamId, app_id: appId })}
             className="underline"
           >
-            Get Verified
+            Mini App
           </Link>
           .
         </Typography>
@@ -94,7 +94,7 @@ export const MiniAppPreviewCard = ({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-grey-200 bg-grey-0 shadow-button">
+    <div className="w-full max-w-[300px] overflow-hidden rounded-2xl border border-grey-200 bg-grey-0 shadow-button">
       <div className="flex items-start justify-between gap-x-3 p-5">
         <div className="flex items-center gap-x-3">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-500">

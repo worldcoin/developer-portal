@@ -132,7 +132,7 @@ const NotificationLimitCard = ({
   control: Control<UpdatePermissionsSchema>;
   disabled: boolean;
 }) => (
-  <section className="grid gap-y-5 rounded-2xl bg-grey-0 ">
+  <section className="grid gap-y-5 rounded-2xl bg-grey-0">
     <div className="grid gap-y-1">
       <Typography
         as="h2"

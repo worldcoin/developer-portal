@@ -2,33 +2,38 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { ErrorPage } from "@/components/ErrorPage";
-import { Link } from "@/components/Link";
+import { InformationCircleIcon } from "@/components/Icons/InformationCircleIcon";
 import { Typography } from "@/components/Typography";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Role_Enum } from "@/graphql/graphql";
 import { inferHttps } from "@/lib/schema";
 import type { Auth0SessionUser } from "@/lib/types";
-import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
+import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import {
   FetchAppMetadataDocument,
   type FetchAppMetadataQuery,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { useApolloClient, useQuery } from "@apollo/client/react";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { use } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { FormSkeleton } from "../../Configuration/PageComponents/FormSkeleton";
-import { TextField } from "../../Configuration/Wizard/TextField";
 import {
   schema as basicInformationSchema,
   type BasicInformationFormValues,
 } from "../../Configuration/BasicInformation/form-schema";
 import { validateAndSubmitServerSide } from "../../Configuration/BasicInformation/server/submit";
+import { FormSkeleton } from "../../Configuration/PageComponents/FormSkeleton";
 import {
   SaveStatusIndicator,
   SaveStatusProvider,
 } from "../../Configuration/SaveStatus";
+import { TextField } from "../../Configuration/Wizard/TextField";
 import { useAutosaveWithStatus } from "../../Configuration/hook/use-autosave-with-status";
 import { useCreateNewDraft } from "../../Configuration/hook/use-create-new-draft";
 import { MiniAppPreviewCard } from "./MiniAppPreviewCard";
@@ -146,19 +151,37 @@ export const DevelopContent = ({
         <div className="grid w-full gap-y-8 lg:max-w-[620px]">
           <section className="grid gap-y-4">
             <div className="flex items-center justify-between gap-4">
-              <div className="grid gap-y-1">
+              <div className="flex items-center gap-1.5">
                 <Typography
                   as="h2"
                   className="font-world text-[17px] leading-[120%] font-medium text-grey-900"
                 >
                   App URL
                 </Typography>
-                <Typography
-                  as="p"
-                  className="font-world text-[13px] leading-[130%] font-medium text-grey-500"
-                >
-                  This is the same App URL shown in Get Verified.
-                </Typography>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="About the App URL"
+                      className={`mb-1 rounded-full text-grey-300 outline-hidden transition-colors hover:text-grey-500 focus-visible:text-grey-500 focus-visible:ring-2 focus-visible:ring-grey-300 ${opticalIconClassName}`}
+                    >
+                      <InformationCircleIcon className="size-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    sideOffset={8}
+                    className="max-w-xs text-left leading-5"
+                  >
+                    <span className="block max-w-[280px] whitespace-normal">
+                      While developing, use ngrok or a similar tunneling service
+                      to expose your local app over HTTPS and preview it in
+                      World App. Replace it with your production URL before
+                      submitting for review.
+                    </span>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               {canEdit && <SaveStatusIndicator />}
             </div>
@@ -224,37 +247,14 @@ export const DevelopContent = ({
             )}
           </section>
 
-          <section className="grid gap-y-2 rounded-2xl border border-grey-200 bg-grey-0 p-5 shadow-button">
-            <Typography
-              as="h2"
-              className="font-world text-[17px] leading-[120%] font-medium text-grey-900"
-            >
-              Mini App Permissions
-            </Typography>
-            <Typography
-              as="p"
-              className="font-world text-[13px] leading-[130%] font-medium text-grey-500"
-            >
-              Domains, payment allowlists, tokens, contracts, and notification
-              limits are managed in{" "}
-              <Link
-                href={urls.configuration({ team_id: teamId, app_id: appId })}
-                className="underline"
-              >
-                Get Verified
-              </Link>
-              .
-            </Typography>
+          <section className="grid w-full gap-y-2">
+            <MiniAppPreviewCard
+              appId={appId}
+              teamId={teamId}
+              appMetadata={appMetadata}
+            />
           </section>
         </div>
-
-        <aside className="grid w-full shrink-0 gap-y-4 lg:sticky lg:top-8 lg:w-[340px] xl:w-[380px]">
-          <MiniAppPreviewCard
-            appId={appId}
-            teamId={teamId}
-            appMetadata={appMetadata}
-          />
-        </aside>
       </div>
     </div>
   );
