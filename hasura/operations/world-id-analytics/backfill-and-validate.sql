@@ -1,7 +1,8 @@
 \set ON_ERROR_STOP on
 
 -- Operator runbook:
--- 1. Execute only after nullifier_created_at_idx is valid.
+-- 1. Execute only after both created_at indexes are valid
+--    (create-nullifier-created-at-index.sql).
 -- 2. Set a statement_timeout long enough for the complete production history.
 -- 3. Keep WORLD_ID_ANALYTICS_ROLLUP_ENABLED disabled until this script passes.
 DO $index_gate$
@@ -17,6 +18,23 @@ BEGIN
     RAISE EXCEPTION USING
       MESSAGE = 'nullifier_created_at_idx is missing or invalid',
       HINT = 'Run DROP INDEX CONCURRENTLY IF EXISTS public.nullifier_created_at_idx; then rerun create-nullifier-created-at-index.sql';
+  END IF;
+END
+$index_gate$;
+
+DO $index_gate$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_index
+    WHERE indexrelid = to_regclass('public.nullifier_v4_created_at_idx')
+      AND indrelid = 'public.nullifier_v4'::regclass
+      AND indisready
+      AND indisvalid
+  ) THEN
+    RAISE EXCEPTION USING
+      MESSAGE = 'nullifier_v4_created_at_idx is missing or invalid',
+      HINT = 'Run DROP INDEX CONCURRENTLY IF EXISTS public.nullifier_v4_created_at_idx; then rerun create-nullifier-created-at-index.sql';
   END IF;
 END
 $index_gate$;

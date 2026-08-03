@@ -16,8 +16,6 @@ CREATE INDEX action_v3_stats_daily_date_idx
   ON public.action_v3_stats_daily (date_utc);
 CREATE INDEX action_v4_stats_daily_date_idx
   ON public.action_v4_stats_daily (date_utc);
-CREATE INDEX nullifier_v4_created_at_idx
-  ON public.nullifier_v4 (created_at);
 
 CREATE TABLE public.world_id_analytics_state (
   singleton boolean PRIMARY KEY DEFAULT true CHECK (singleton),

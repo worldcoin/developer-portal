@@ -142,6 +142,30 @@ describe("World ID analytics [backfill and validation gate]", () => {
     }
   });
 
+  it("fails before any backfill work when the v4 source index is missing", async () => {
+    await pool.query(
+      "DROP INDEX CONCURRENTLY public.nullifier_v4_created_at_idx",
+    );
+
+    try {
+      const result = runBackfillAndValidate();
+
+      expect(result.status).not.toBe(0);
+      expect(commandOutput(result)).toContain(
+        "nullifier_v4_created_at_idx is missing or invalid",
+      );
+      expect(
+        (await pool.query("SELECT 1 FROM public.world_id_analytics_state"))
+          .rows,
+      ).toEqual([]);
+    } finally {
+      await pool.query(`
+        CREATE INDEX CONCURRENTLY nullifier_v4_created_at_idx
+          ON public.nullifier_v4 (created_at)
+      `);
+    }
+  });
+
   it("runs the historical backfill, catch-up, and raw parity check", async () => {
     const createdAt = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     await insertV4Nullifier(pool, {
