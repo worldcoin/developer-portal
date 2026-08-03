@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { Role_Enum } from "@/graphql/graphql";
+import { TEAM_SETTINGS_TABS } from "@/lib/team-settings";
 import { TeamSettingsPage } from "@/scenes/PortalV3/Teams/TeamId/Team/Settings/page";
 
 // #region Mocks
@@ -34,18 +35,21 @@ jest.mock("next/navigation", () => ({
   useParams: () => ({ teamId }),
 }));
 
+const useQuery = jest.fn();
 jest.mock("@apollo/client/react", () => ({
-  useQuery: () => ({
-    data: {
-      team_by_pk: {
-        id: teamId,
-        name: "Test team",
-        memberships: [],
-      },
-    },
-    refetch: jest.fn(),
-  }),
+  useQuery: (...args: unknown[]) => useQuery(...args),
 }));
+
+const queryResult = {
+  data: {
+    team_by_pk: {
+      id: teamId,
+      name: "Test team",
+      memberships: [{ user_id: "user_1" }],
+    },
+  },
+  refetch: jest.fn(),
+};
 
 jest.mock("@/components/SizingWrapper", () => ({
   SizingWrapper: ({ children }: React.PropsWithChildren) => (
@@ -70,6 +74,9 @@ jest.mock(
 jest.mock("@/scenes/PortalV3/Teams/TeamId/Team/sections/DangerZone", () => ({
   TeamDangerZone: () => <button type="button">Delete team</button>,
 }));
+jest.mock("@/scenes/PortalV3/Teams/TeamId/Team/sections/LeaveTeam", () => ({
+  LeaveTeam: () => <button type="button">Leave team</button>,
+}));
 // #endregion
 
 const sessionWithRole = (role: Role_Enum) => ({
@@ -77,37 +84,36 @@ const sessionWithRole = (role: Role_Enum) => ({
 });
 
 describe("Team settings permissions", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useQuery.mockReturnValue(queryResult);
+  });
+
   it.each([
     {
       role: Role_Enum.Owner,
-      canViewCredentials: true,
       canDeleteTeam: true,
+      canLeaveTeam: false,
     },
     {
       role: Role_Enum.Admin,
-      canViewCredentials: true,
       canDeleteTeam: false,
+      canLeaveTeam: true,
     },
     {
       role: Role_Enum.Member,
-      canViewCredentials: false,
       canDeleteTeam: false,
+      canLeaveTeam: true,
     },
   ])(
-    "renders the allowed controls for $role",
-    ({ role, canViewCredentials, canDeleteTeam }) => {
+    "renders the allowed General controls for $role",
+    ({ role, canDeleteTeam, canLeaveTeam }) => {
       mockSession = sessionWithRole(role);
       render(<TeamSettingsPage />);
 
-      expect(screen.getByLabelText("Members")).toBeInTheDocument();
-
-      if (canViewCredentials) {
-        expect(screen.getByLabelText("API keys")).toBeInTheDocument();
-        expect(screen.getByLabelText("MCP setup")).toBeInTheDocument();
-      } else {
-        expect(screen.queryByLabelText("API keys")).not.toBeInTheDocument();
-        expect(screen.queryByLabelText("MCP setup")).not.toBeInTheDocument();
-      }
+      expect(screen.getByLabelText("Team profile")).toBeInTheDocument();
+      expect(screen.getByLabelText("MCP setup")).toBeInTheDocument();
+      expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
 
       if (canDeleteTeam) {
         expect(
@@ -118,6 +124,51 @@ describe("Team settings permissions", () => {
           screen.queryByRole("button", { name: "Delete team" }),
         ).not.toBeInTheDocument();
       }
+
+      if (canLeaveTeam) {
+        expect(
+          screen.getByRole("button", { name: "Leave team" }),
+        ).toBeInTheDocument();
+      } else {
+        expect(
+          screen.queryByRole("button", { name: "Leave team" }),
+        ).not.toBeInTheDocument();
+      }
     },
   );
+
+  it("renders the Members tab without mounting General or credentials", () => {
+    mockSession = sessionWithRole(Role_Enum.Member);
+    render(<TeamSettingsPage requestedTab={TEAM_SETTINGS_TABS.Members} />);
+
+    expect(screen.getByLabelText("Members")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Team profile")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("API keys")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("MCP setup")).not.toBeInTheDocument();
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ skip: true }),
+    );
+  });
+
+  it.each([Role_Enum.Owner, Role_Enum.Admin])(
+    "renders API Keys for %s",
+    (role) => {
+      mockSession = sessionWithRole(role);
+      render(<TeamSettingsPage requestedTab={TEAM_SETTINGS_TABS.ApiKeys} />);
+
+      expect(screen.getByLabelText("API keys")).toBeInTheDocument();
+      expect(screen.queryByLabelText("MCP setup")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("Team profile")).not.toBeInTheDocument();
+    },
+  );
+
+  it("falls back to General when a member requests credentials directly", () => {
+    mockSession = sessionWithRole(Role_Enum.Member);
+    render(<TeamSettingsPage requestedTab={TEAM_SETTINGS_TABS.ApiKeys} />);
+
+    expect(screen.getByLabelText("Team profile")).toBeInTheDocument();
+    expect(screen.getByLabelText("MCP setup")).toBeInTheDocument();
+    expect(screen.queryByLabelText("API keys")).not.toBeInTheDocument();
+  });
 });

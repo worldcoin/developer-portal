@@ -25,6 +25,7 @@ export type GenerateNewKeyContentProps = {
   onContinue: (publicKey: string) => void;
   className?: string;
   loading?: boolean;
+  loadingLabel?: string;
   /** Skip the internal heading when a dialog header already carries it. */
   hideTitle?: boolean;
 };
@@ -34,6 +35,7 @@ export const GenerateNewKeyContent = ({
   onContinue,
   className,
   loading,
+  loadingLabel,
   hideTitle,
 }: GenerateNewKeyContentProps) => {
   const [privateKey, setPrivateKey] = useState<string>("");
@@ -190,10 +192,13 @@ export const GenerateNewKeyContent = ({
           type="submit"
           disabled={!isValid || loading}
           data-testid="button-generate-new-key-create"
-          className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
+          className={`${formDialogPrimaryActionClassName} order-1 gap-x-2 md:order-none`}
         >
           {loading ? (
-            <SpinnerIcon className="size-5 animate-spin" />
+            <>
+              <SpinnerIcon className="size-5 animate-spin" />
+              {loadingLabel}
+            </>
           ) : (
             "Continue"
           )}

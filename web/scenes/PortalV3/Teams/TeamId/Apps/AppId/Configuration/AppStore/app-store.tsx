@@ -33,6 +33,17 @@ export const LawsAndRegulationsBanner = () => (
   </div>
 );
 
+/**
+ * ShowcaseImagesField and MetaTagImageField upsert through their own mutation
+ * and write the URL back into the form only so the UI can render it. See
+ * `UseAutosaveOptions.isSelfPersisting`.
+ */
+const SELF_PERSISTING_FIELDS =
+  /^localisations\.\d+\.(showcase_img_urls|meta_tag_image_url)$/;
+
+const isSelfPersistingField = (name: string) =>
+  SELF_PERSISTING_FIELDS.test(name);
+
 type AppStoreFormContextValue = ReturnType<typeof useAppStoreForm> &
   AppStoreFormProps & {
     isEnoughPermissions: boolean;
@@ -84,6 +95,7 @@ export const AppStoreForm = ({
     save: async (data, signal) => {
       await submitSilent(data, signal);
     },
+    isSelfPersisting: isSelfPersistingField,
   });
 
   return (

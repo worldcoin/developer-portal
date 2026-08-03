@@ -8,16 +8,33 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  getPortalReturnTo,
+  isTeamSettingsPath,
+  resolvePortalReturnTo,
+  resolveTeamSettingsTab,
+  TEAM_SETTINGS_TABS,
+} from "@/lib/team-settings";
 import { urls } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import {
+  ArrowLeftIcon,
   BadgeCheckIcon,
   BellIcon,
+  ChevronRightIcon,
+  KeyRoundIcon,
   LockKeyholeIcon,
+  Settings2Icon,
+  UsersIcon,
   WalletCardsIcon,
 } from "lucide-react";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import {
   createContext,
   type MouseEventHandler,
@@ -109,9 +126,11 @@ const NavIcon = (props: { name: string; active?: boolean }) => (
 
 export const SidebarNav = (props: {
   initialSandboxRequest?: SandboxAccessRequestState | null;
+  apiKeyTeamIds?: string[];
 }) => {
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
+  const committedSearchParams = useSearchParams();
   const teamId = params?.teamId;
   const appId = params?.appId;
   const { setOpenMobile } = useSidebar();
@@ -128,6 +147,9 @@ export const SidebarNav = (props: {
   // Sidebar destinations may use query-backed sections. Route ownership and
   // active parent checks must compare only the pathname portion.
   const currentPathname = currentHref.split(/[?#]/, 1)[0];
+  const currentSearchParams = optimisticHref
+    ? new URLSearchParams(optimisticHref.split("?", 2)[1] ?? "")
+    : committedSearchParams;
 
   const beginNavigation =
     (href: string): MouseEventHandler<HTMLAnchorElement> =>
@@ -167,8 +189,13 @@ export const SidebarNav = (props: {
 
   const configurationHref = ids ? urls.configuration(ids) : teamOverviewHref;
   const miniAppHref = ids ? urls.miniAppPermissions(ids) : teamOverviewHref;
-  const teamSettingsHref = teamId
+  const teamSettingsBase = teamId
     ? urls.teamSettings({ team_id: teamId })
+    : teamsLandingHref;
+  const committedQuery = committedSearchParams.toString();
+  const returnTo = `${pathname}${committedQuery ? `?${committedQuery}` : ""}`;
+  const teamSettingsHref = teamId
+    ? urls.teamSettings({ team_id: teamId, return_to: returnTo })
     : teamsLandingHref;
 
   const withinApp = (prefix: string) => {
@@ -190,9 +217,58 @@ export const SidebarNav = (props: {
     withinApp("/mini-app") ||
     withinApp("/transactions") ||
     withinApp("/notifications");
-  const settingsActive = teamId
-    ? currentPathname.startsWith(teamSettingsHref)
-    : false;
+  const settingsActive = teamId ? currentPathname === teamSettingsBase : false;
+  const teamSettingsContext = isTeamSettingsPath(currentPathname);
+  const canViewApiKeys = Boolean(
+    teamId && props.apiKeyTeamIds?.includes(teamId),
+  );
+  const activeTeamSettingsTab = resolveTeamSettingsTab(
+    currentSearchParams.get("tab") ?? undefined,
+    canViewApiKeys,
+  );
+  const settingsReturnTo =
+    getPortalReturnTo(currentSearchParams.get("return_to") ?? undefined) ??
+    undefined;
+  const goBackHref = resolvePortalReturnTo(
+    currentSearchParams.get("return_to") ?? undefined,
+  );
+  const teamSettingsItems = teamId
+    ? [
+        {
+          label: "General",
+          value: TEAM_SETTINGS_TABS.General,
+          href: urls.teamSettings({
+            team_id: teamId,
+            return_to: settingsReturnTo,
+          }),
+          icon: <Settings2Icon strokeWidth={1.5} className="size-4" />,
+        },
+        {
+          label: "Members",
+          value: TEAM_SETTINGS_TABS.Members,
+          href: urls.teamSettings({
+            team_id: teamId,
+            return_to: settingsReturnTo,
+            tab: TEAM_SETTINGS_TABS.Members,
+          }),
+          icon: <UsersIcon strokeWidth={1.5} className="size-4" />,
+        },
+        ...(canViewApiKeys
+          ? [
+              {
+                label: "API Keys",
+                value: TEAM_SETTINGS_TABS.ApiKeys,
+                href: urls.teamSettings({
+                  team_id: teamId,
+                  return_to: settingsReturnTo,
+                  tab: TEAM_SETTINGS_TABS.ApiKeys,
+                }),
+                icon: <KeyRoundIcon strokeWidth={1.5} className="size-4" />,
+              },
+            ]
+          : []),
+      ]
+    : [];
   const miniAppPermissionsActive =
     currentPathname === (appBase ? `${appBase}/mini-app` : "") ||
     withinApp("/mini-app/permissions");
@@ -234,6 +310,53 @@ export const SidebarNav = (props: {
   const pathContext = /\/apps\/[^/]+/.test(currentPathname) ? "app" : "team";
   const paramsContext = appId ? "app" : "team";
   const pillContextKey = `${teamId ?? "none"}:${paramsContext}:${pathContext}`;
+
+  if (teamSettingsContext) {
+    return (
+      <nav
+        aria-label="Team settings navigation"
+        className="relative flex min-h-0 flex-1 flex-col"
+      >
+        <NavActivePill key={`${pillContextKey}:settings`} />
+        <SidebarGroup className="px-4 py-2 group-data-[collapsible=icon]:px-3">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <NavItem
+                label="Settings"
+                href={goBackHref}
+                onNavigate={beginNavigation(goBackHref)}
+                icon={<ArrowLeftIcon strokeWidth={1.5} className="size-4" />}
+                className="relative justify-center font-medium text-portal-text [&>span:first-child]:absolute [&>span:first-child]:left-3"
+              />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup className="px-4 pt-2 pb-2 group-data-[collapsible=icon]:px-3">
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-2">
+              {teamSettingsItems.map((item) => (
+                <NavItem
+                  key={item.value}
+                  label={item.label}
+                  href={item.href}
+                  active={activeTeamSettingsTab === item.value}
+                  onNavigate={beginNavigation(item.href)}
+                  icon={item.icon}
+                />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <div className="mt-auto px-4 pt-3 pb-3 group-data-[collapsible=icon]:hidden">
+          <SandboxButton
+            className="-ml-1 w-[calc(100%_+_8px)]"
+            initialRequest={props.initialSandboxRequest}
+          />
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav
@@ -319,6 +442,12 @@ export const SidebarNav = (props: {
                 active={settingsActive}
                 onNavigate={beginNavigation(teamSettingsHref)}
                 icon={<NavIcon name="nav-settings" active={settingsActive} />}
+                trailing={
+                  <ChevronRightIcon
+                    aria-hidden="true"
+                    className="size-4 text-portal-muted"
+                  />
+                }
               />
             </SidebarMenu>
           </SidebarGroupContent>
