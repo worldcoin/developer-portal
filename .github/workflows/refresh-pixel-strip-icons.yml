@@ -63,12 +63,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.PIXEL_STRIP_ICONS_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.ASSETS_S3_REGION }}
 
+      # `pnpm exec`, not `npx`: npx falls back to fetching from the registry
+      # when a command isn't installed locally, and this step runs with the AWS
+      # credentials configured above in its environment. Everything it runs has
+      # to come from the frozen lockfile.
       - name: Refresh icons and patch the manifest
         env:
           ASSETS_S3_REGION: ${{ secrets.ASSETS_S3_REGION }}
           ASSETS_S3_BUCKET_NAME: ${{ secrets.ASSETS_S3_BUCKET_NAME }}
         run: |
-          npx tsx scripts/normalize-app-icons.ts \
+          pnpm exec tsx scripts/normalize-app-icons.ts \
             --refresh-existing \
             --upload \
             --write-manifest \

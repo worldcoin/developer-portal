@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env -S pnpm exec tsx
 
 /**
  * Fetch, normalize, and re-host the app icons used by BasePixelStrip's icon
@@ -11,13 +11,13 @@
  * broken. This script produces a consistent, pre-sized asset per app instead.
  *
  * Usage:
- *   npx tsx scripts/normalize-app-icons.ts                  # dry run: fetch + normalize + write locally only
- *   npx tsx scripts/normalize-app-icons.ts --upload          # also upload to S3 (needs ASSETS_S3_REGION / ASSETS_S3_BUCKET_NAME)
- *   npx tsx scripts/normalize-app-icons.ts --upload --write-manifest --cdn-base-url https://cdn.example.com
+ *   pnpm exec tsx scripts/normalize-app-icons.ts                  # dry run: fetch + normalize + write locally only
+ *   pnpm exec tsx scripts/normalize-app-icons.ts --upload          # also upload to S3 (needs ASSETS_S3_REGION / ASSETS_S3_BUCKET_NAME)
+ *   pnpm exec tsx scripts/normalize-app-icons.ts --upload --write-manifest --cdn-base-url https://cdn.example.com
  *                                                             # upload, then rewrite icon-manifest.ts's APPS to point at the CDN
- *   npx tsx scripts/normalize-app-icons.ts --limit 10        # process only the first N apps (fast local iteration)
+ *   pnpm exec tsx scripts/normalize-app-icons.ts --limit 10        # process only the first N apps (fast local iteration)
  *
- *   npx tsx scripts/normalize-app-icons.ts --refresh-existing --upload --write-manifest
+ *   pnpm exec tsx scripts/normalize-app-icons.ts --refresh-existing --upload --write-manifest
  *                                                             # ONGOING MAINTENANCE MODE. Re-fetches fresh bytes for the
  *                                                             # apps already in icon-manifest.ts's APPS (by appId, from
  *                                                             # their live world-id-assets.com URL, in case the app
@@ -458,7 +458,17 @@ async function main() {
       // otherwise turn a 5-line real change into a several-thousand-line
       // diff. Reformatting brings unchanged entries back to byte-identical
       // with what was already there, so the diff shows only what changed.
-      await execFileAsync("npx", ["prettier", "--write", manifestPath]);
+      //
+      // `pnpm exec`, not `npx`: npx will fetch a command from the registry
+      // when it isn't installed locally, and the scheduled workflow runs this
+      // with live AWS credentials in its environment - everything it shells
+      // out to has to come from the frozen lockfile.
+      await execFileAsync("pnpm", [
+        "exec",
+        "prettier",
+        "--write",
+        manifestPath,
+      ]);
 
       console.log(
         `\nPatched ${refreshedById.size}/${EXISTING_APPS.length} logoUrl entries in ${manifestPath}`,
