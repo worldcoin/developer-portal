@@ -164,7 +164,7 @@ const expectActualRecurringPlans = (plan: string) => {
 const expectActualAppReadPlans = (plan: string) => {
   expect(plan).toMatch(/duration:.*plan:/i);
   expect(plan).toMatch(/Buffers:/i);
-  expect(plan).toMatch(/action_v3_stats_daily|action_v4_stats_daily/i);
+  expect(plan).toMatch(/action_legacy_stats_daily|action_v4_stats_daily/i);
   expect(plan).not.toMatch(
     /(?:Seq Scan|Index Scan|Index Only Scan|Bitmap Heap Scan)\s+on\s+(?:public\.)?nullifier(?:_v4)?\b/i,
   );
@@ -174,8 +174,8 @@ const assertCanonicalParity = async () => {
   const canonical = await readCanonicalSourceDaily(pool, fixture.teamId);
   const rolled = await readRolledSourceDaily(pool, fixture.teamId);
 
-  expect(rolled.filter((row) => row.source === "v3")).toEqual(
-    canonical.filter((row) => row.source === "v3"),
+  expect(rolled.filter((row) => row.source === "legacy")).toEqual(
+    canonical.filter((row) => row.source === "legacy"),
   );
   expect(rolled.filter((row) => row.source === "v4")).toEqual(
     canonical.filter((row) => row.source === "v4"),
@@ -240,7 +240,7 @@ const assertEveryAppEnvironmentEndpoint = async (
       const actualActionMetrics = [
         ...body.legacyActions.map((metric) => ({
           ...metric,
-          source: "v3" as const,
+          source: "legacy" as const,
         })),
         ...body.actions.map((metric) => ({
           ...metric,
@@ -421,7 +421,7 @@ afterAll(async () => {
         initialCanonical.reduce((total, row) => total + BigInt(row.count), 0n),
       ).toBe(1_000_000n);
       expect(new Set(initialCanonical.map((row) => row.source))).toEqual(
-        new Set(["v3", "v4"]),
+        new Set(["legacy", "v4"]),
       );
       expect(new Set(initialCanonical.map((row) => row.environment))).toEqual(
         new Set(["production", "staging"]),
@@ -579,7 +579,7 @@ afterAll(async () => {
            )::date::text AS next_rebuild_start_date,
            (
              SELECT coalesce(sum(unique_count), 0)::text
-             FROM public.action_v3_stats_daily
+             FROM public.action_legacy_stats_daily
              WHERE date_utc = $1::date
            ) AS v3_before,
            (
@@ -639,7 +639,7 @@ afterAll(async () => {
         `SELECT
            (
              SELECT coalesce(sum(unique_count), 0)::text
-             FROM public.action_v3_stats_daily
+             FROM public.action_legacy_stats_daily
              WHERE date_utc = $1::date
            ) AS v3_after,
            (
