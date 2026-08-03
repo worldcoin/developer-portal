@@ -14,6 +14,7 @@ import {
   encodeDescription,
   extractImagePathWithExtensionFromActualUrl,
 } from "../utils";
+import type { LocalisationCacheRow } from "../types/AppStoreFormTypes";
 
 const schema = mainAppStoreFormSchema
   .concat(
@@ -24,13 +25,17 @@ const schema = mainAppStoreFormSchema
   .noUnknown();
 type Schema = yup.Asserts<typeof schema>;
 
+type UpdateAppStoreMetadataResult = FormActionResult & {
+  localisations?: LocalisationCacheRow[];
+};
+
 const formatEmailLink = (email: string): string => {
   return `mailto:${email}`;
 };
 
 export async function updateAppStoreMetadata(
   formData: Schema,
-): Promise<FormActionResult> {
+): Promise<UpdateAppStoreMetadataResult> {
   const path = (await getPathFromHeaders()) || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -121,25 +126,33 @@ export async function updateAppStoreMetadata(
           .filter(Boolean) as string[]) || [];
     }
 
-    const localisationsToUpsert = parsedParams.localisations
-      .filter((l) => l.language !== "en")
-      .map((l) => ({
-        app_metadata_id: formData.app_metadata_id,
-        locale: l.language,
-        name: l.name,
-        short_name: l.short_name,
-        world_app_description: l.world_app_description,
-        world_app_button_text: "", // backwards compat
-        description: encodeDescription(l.description_overview ?? ""),
-        meta_tag_image_url: extractImagePathWithExtensionFromActualUrl(
-          l.meta_tag_image_url,
-        ),
-        hero_image_url: "", // backwards compat
-        showcase_img_urls:
-          (l.showcase_img_urls
-            ?.map(extractImagePathWithExtensionFromActualUrl)
-            .filter(Boolean) as string[]) || [],
-      }));
+    const savedLocalisations: LocalisationCacheRow[] =
+      parsedParams.localisations
+        .filter(
+          (l) =>
+            l.language !== "en" &&
+            parsedParams.supported_languages.includes(l.language),
+        )
+        .map((l) => ({
+          locale: l.language,
+          name: l.name ?? "",
+          short_name: l.short_name ?? "",
+          world_app_description: l.world_app_description ?? "",
+          world_app_button_text: "", // backwards compat
+          description: encodeDescription(l.description_overview ?? ""),
+          meta_tag_image_url: extractImagePathWithExtensionFromActualUrl(
+            l.meta_tag_image_url,
+          ),
+          hero_image_url: "", // backwards compat
+          showcase_img_urls:
+            (l.showcase_img_urls
+              ?.map(extractImagePathWithExtensionFromActualUrl)
+              .filter(Boolean) as string[]) || [],
+        }));
+    const localisationsToUpsert = savedLocalisations.map((localisation) => ({
+      ...localisation,
+      app_metadata_id: formData.app_metadata_id,
+    }));
 
     const client = await getAPIServiceGraphqlClient();
     const updateAppStoreSdk = getUpdateAppStoreSdk(client);
@@ -161,6 +174,7 @@ export async function updateAppStoreMetadata(
     return {
       success: true,
       message: "app store information updated successfully",
+      localisations: savedLocalisations,
     };
   } catch (error) {
     return errorFormAction({

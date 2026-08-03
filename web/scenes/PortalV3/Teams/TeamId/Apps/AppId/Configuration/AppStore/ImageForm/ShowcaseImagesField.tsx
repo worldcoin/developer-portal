@@ -5,7 +5,7 @@ import { UpsertLocalisedShowcaseImagesDocument } from "@/scenes/common/Teams/Tea
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageUploadField } from "./ImageUploadField";
 import { useMutation, useQuery } from "@apollo/client/react";
-import { updateLocalisationImageCache } from "./update-localisation-image-cache";
+import { updateLocalisationImageCache } from "../utils/update-localisations-cache";
 
 interface ShowcaseImagesFieldProps {
   value?: string[];

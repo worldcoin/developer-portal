@@ -3,7 +3,10 @@ import {
   FetchLocalisationsDocument,
   FetchLocalisationsQuery,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
-import { updateLocalisationImageCache } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/ImageForm/update-localisation-image-cache";
+import {
+  synchronizeLocalisationsCache,
+  updateLocalisationImageCache,
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils/update-localisations-cache";
 
 const APP_METADATA_ID = "app_metadata_123";
 const VARIABLES = { app_metadata_id: APP_METADATA_ID };
@@ -72,23 +75,33 @@ describe("updateLocalisationImageCache", () => {
     ]);
   });
 
-  it("adds a complete localization row when the locale is not cached", () => {
+  it("does not manufacture a localization row when the locale is not cached", () => {
     updateLocalisationImageCache(cache, APP_METADATA_ID, "de", {
       showcase_img_urls: ["showcase_img_1.png"],
     });
 
-    expect(readLocalisations(cache)?.localisations[2]).toEqual({
-      __typename: "localisations",
-      locale: "de",
-      name: "",
-      description: "",
-      world_app_button_text: "",
-      world_app_description: "",
-      short_name: "",
-      hero_image_url: "",
-      meta_tag_image_url: "",
+    expect(readLocalisations(cache)?.localisations).toEqual([
+      makeLocalisation("fr"),
+      makeLocalisation("es"),
+    ]);
+  });
+
+  it("replaces stale rows with complete localizations from autosave", () => {
+    const french = {
+      ...makeLocalisation("fr"),
+      name: "Application française",
+      description: '{"overview":"Texte enregistré"}',
       showcase_img_urls: ["showcase_img_1.png"],
-    });
+    };
+    const german = {
+      ...makeLocalisation("de"),
+      name: "Deutsche Anwendung",
+      meta_tag_image_url: "meta_tag_image.png",
+    };
+
+    synchronizeLocalisationsCache(cache, APP_METADATA_ID, [french, german]);
+
+    expect(readLocalisations(cache)?.localisations).toEqual([french, german]);
   });
 
   it("does not create a partial query result when the query is not cached", () => {

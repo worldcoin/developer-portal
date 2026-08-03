@@ -18,7 +18,7 @@ import { AppStoreActions } from "../AppStoreActions";
 import { BasicInformationHandle } from "../BasicInformation";
 import { useCreateNewDraft } from "../hook/use-create-new-draft";
 import { isMiniAppAtom, viewModeAtom } from "../layout/ImagesProvider";
-import { SaveStatusIndicator } from "../SaveStatus";
+import { SaveStatusIndicator, useSaveStatusActions } from "../SaveStatus";
 import { AvailabilityStep } from "./AvailabilityStep";
 import {
   BasicInformationStep,
@@ -89,6 +89,8 @@ export const ConfigurationWizard = (props: {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { user } = useUser() as Auth0SessionUser;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
+  const saveStatusActions = useSaveStatusActions();
+  const [isSwitchingVersion, setIsSwitchingVersion] = useState(false);
 
   // Seed the optimistic mode atom from the row before using it for later
   // in-place mode changes. Until this row is synced, derive the first render
@@ -164,6 +166,34 @@ export const ConfigurationWizard = (props: {
   // Verified view without a draft: only Owner/Admin may create one.
   const showVersionAction =
     hasVerified && (!isVerifiedView || hasDraft || canManageDraft);
+
+  const handleVersionAction = useCallback(async () => {
+    setIsSwitchingVersion(true);
+
+    try {
+      const didFlush = (await saveStatusActions?.flushAll()) ?? true;
+      if (!didFlush) return;
+
+      if (!isVerifiedView) {
+        setViewMode("verified");
+        return;
+      }
+      if (hasDraft) {
+        setViewMode("unverified");
+        return;
+      }
+
+      await createNewDraft();
+    } finally {
+      setIsSwitchingVersion(false);
+    }
+  }, [
+    createNewDraft,
+    hasDraft,
+    isVerifiedView,
+    saveStatusActions,
+    setViewMode,
+  ]);
 
   const logoUrl = useResolvedLogoUrl(appId, appMetadata as AppMetadata);
 
@@ -314,20 +344,9 @@ export const ConfigurationWizard = (props: {
             {showVersionAction && (
               <button
                 type="button"
-                disabled={isCreating}
+                disabled={isCreating || isSwitchingVersion}
                 className={clsx(secondaryButtonClassName, "gap-2")}
-                onClick={() => {
-                  if (!isVerifiedView) {
-                    setViewMode("verified");
-                    return;
-                  }
-                  if (hasDraft) {
-                    setViewMode("unverified");
-                  } else {
-                    // The draft hook flips the view after the new row lands.
-                    void createNewDraft();
-                  }
-                }}
+                onClick={() => void handleVersionAction()}
               >
                 {/* Named for the destination, not the current view — with the
                     destination's icon so the pair reads as a toggle. */}

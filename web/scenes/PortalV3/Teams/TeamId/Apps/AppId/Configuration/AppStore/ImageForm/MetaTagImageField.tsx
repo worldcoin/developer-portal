@@ -5,7 +5,7 @@ import { UpsertLocalisedMetaTagImageDocument } from "@/scenes/common/Teams/TeamI
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageUploadField } from "./ImageUploadField";
 import { useMutation, useQuery } from "@apollo/client/react";
-import { updateLocalisationImageCache } from "./update-localisation-image-cache";
+import { updateLocalisationImageCache } from "../utils/update-localisations-cache";
 
 interface MetaTagImageFieldProps {
   value?: string | null;
