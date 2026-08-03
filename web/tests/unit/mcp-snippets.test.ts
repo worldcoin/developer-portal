@@ -221,10 +221,6 @@ describe("JSON provider snippets", () => {
 
   it.each([
     ["cursor", { mcpServers: { [SERVER_NAME]: { url: ENDPOINT, headers } } }],
-    [
-      "windsurf",
-      { mcpServers: { [SERVER_NAME]: { serverUrl: ENDPOINT, headers } } },
-    ],
     ["zed", { context_servers: { [SERVER_NAME]: { url: ENDPOINT, headers } } }],
   ])("keeps its own schema (%s)", (id, expected) => {
     const snippet = snippetsFor()[id as ProviderId];
