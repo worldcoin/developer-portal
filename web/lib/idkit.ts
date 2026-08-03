@@ -18,6 +18,7 @@ export enum LegacyVerificationLevel {
   Document = "document",
   Device = "device",
   Face = "face",
+  Selfie = "selfie",
 }
 
 // Dropped support in IDKit 4.x

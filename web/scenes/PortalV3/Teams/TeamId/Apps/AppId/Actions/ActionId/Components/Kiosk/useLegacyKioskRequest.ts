@@ -76,6 +76,7 @@ function getLegacyPreset(verificationLevel: LegacyVerificationLevel): Preset {
     case LegacyVerificationLevel.SecureDocument:
       return secureDocumentLegacy();
     case LegacyVerificationLevel.Face:
+    case LegacyVerificationLevel.Selfie:
       return selfieCheckLegacy();
     case LegacyVerificationLevel.Device:
     default:

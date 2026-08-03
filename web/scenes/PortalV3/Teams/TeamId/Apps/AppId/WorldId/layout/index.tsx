@@ -4,7 +4,6 @@ import { Button } from "@/components/Button";
 import { ErrorPage } from "@/components/ErrorPage";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { SkeletonForm } from "@/components/Skeletons";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import type { EngineType } from "@/lib/types";
@@ -36,6 +35,7 @@ import {
 import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
 import { RpSummary } from "./RpSummary";
 import { ActionsSearchToolbar } from "./ActionsSearchToolbar";
+import { WorldIdLayoutSkeleton } from "./Skeleton";
 import { getSetupIntent } from "./setup-intent";
 import {
   WorldIdLayoutContext,
@@ -376,11 +376,22 @@ export const WorldIdLayout = (props: {
       <SizingWrapper className="flex flex-col gap-8 py-8">
         {app?.is_banned ? <BanBanner /> : null}
 
-        {initialLoading ? (
-          <div className="rounded-xl border border-grey-100 bg-white p-5">
-            <SkeletonForm count={3} className="max-w-[760px] py-2" />
-          </div>
-        ) : (
+        {initialLoading && (
+          <WorldIdLayoutSkeleton
+            // Deep-link intents pin the destination before data arrives,
+            // mirroring resolveActiveWorldIdTab's intent-first branches:
+            // enable always lands on Configuration; create does too until an
+            // active RP is known (the dialog then opens over Actions).
+            tab={
+              createActionRequested || enableWorldId4Requested
+                ? WORLD_ID_TABS.Configuration
+                : normalizedRequestedTab
+            }
+            appId={props.appId}
+            canManageWorldId={props.canManageWorldId}
+          />
+        )}
+        {!initialLoading && (
           <div className="flex flex-col gap-6">
             {activeTab !== WORLD_ID_TABS.Configuration ? (
               <ActionsSearchToolbar
