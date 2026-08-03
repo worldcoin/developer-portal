@@ -59,6 +59,7 @@ export type ManagedRegistrationResult =
         | "staging_not_supported"
         | "config_error"
         | "already_registered"
+        | "rp_id_taken"
         | "kms_error"
         | "submission_error"
         | "db_error";
@@ -103,6 +104,49 @@ export async function submitManagedRpRegistration({
   }
 
   const rpIdString = generateRpIdString(appId);
+  const rpId = parseRpId(rpIdString);
+
+  // rp_id is a pure function of the public app_id (uint64(keccak256(app_id))),
+  // and on-chain `register()` is permissionless and first-come — so anyone can
+  // compute an app's rp_id and claim it before the app migrates. Read the
+  // registry before spending a KMS manager key on a UserOp that the contract
+  // would reject with IdAlreadyInUse, and give the caller an actionable
+  // conflict instead of a row wedged behind a doomed operation. Reaching here
+  // means the Portal holds no row for this app, so ANY existing on-chain entry
+  // is foreign.
+  //
+  // A failed read is deliberately non-fatal: this check prevents a wasted
+  // submission and a confusing error, it is not the security boundary. That
+  // lives in the status reconciliation (canTrustOnChainSigner), which refuses
+  // to promote a row whose on-chain signer isn't ours no matter how the
+  // registration was submitted. Hard-failing here would add a new RPC
+  // dependency to a flow that works fine without it.
+  try {
+    const existingOnChainRp = await getRpFromContract(
+      rpId,
+      primaryConfig.contractAddress,
+    );
+    if (existingOnChainRp.initialized) {
+      logger.warn("rp_id already registered on-chain by a foreign manager", {
+        app_id: appId,
+        rpIdString,
+        onChainManager: existingOnChainRp.manager,
+        onChainSigner: existingOnChainRp.signer,
+      });
+      return {
+        ok: false,
+        code: "rp_id_taken",
+        detail:
+          "This app's RP ID is already registered on-chain by another party. Portal cannot manage it — contact support.",
+      };
+    }
+  } catch (error) {
+    logger.warn("Could not pre-check on-chain RP ownership; continuing", {
+      error,
+      app_id: appId,
+      rpIdString,
+    });
+  }
 
   // Claim the registration slot. on_conflict with empty update_columns
   // means: if a row already exists, return null and we bail.
@@ -121,8 +165,6 @@ export async function submitManagedRpRegistration({
       detail: "Registration already in progress or completed for this app.",
     };
   }
-
-  const rpId = parseRpId(rpIdString);
 
   // Slot is now claimed; any failure between here and the final DB write
   // must release it so retries don't bounce off `already_registered`.

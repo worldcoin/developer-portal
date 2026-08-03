@@ -1,5 +1,6 @@
 import {
   submitManagedRpDeactivation,
+  submitManagedRpRegistration,
   submitManagedSignerRotation,
 } from "@/api/helpers/rp-registration-flows";
 
@@ -58,16 +59,38 @@ jest.mock(
   () => ({ getSdk: () => ({ ClaimRotationSlot }) }),
 );
 
+// Registration-path mutations — the collision suite asserts they are NOT
+// reached when the rp_id is already taken on-chain.
+const ClaimRpRegistration = jest.fn();
+jest.mock(
+  "@/api/hasura/register-rp/graphql/claim-rp-registration.generated",
+  () => ({ getSdk: () => ({ ClaimRpRegistration }) }),
+);
+
+const DeleteRpRegistration = jest.fn();
+jest.mock(
+  "@/api/hasura/register-rp/graphql/delete-rp-registration.generated",
+  () => ({ getSdk: () => ({ DeleteRpRegistration }) }),
+);
+
+const UpdateRpRegistration = jest.fn();
+jest.mock(
+  "@/api/hasura/register-rp/graphql/update-rp-registration.generated",
+  () => ({ getSdk: () => ({ UpdateRpRegistration }) }),
+);
+
 const getRpFromContractMock = jest.fn();
 jest.mock("@/api/helpers/temporal-rpc", () => ({
   getRpFromContract: (...args: unknown[]) => getRpFromContractMock(...args),
 }));
 
 const submitToggleRpActiveTransactionMock = jest.fn();
+const submitRegisterRpTransactionMock = jest.fn();
 jest.mock("@/api/helpers/rp-transactions", () => ({
   submitToggleRpActiveTransaction: (...args: unknown[]) =>
     submitToggleRpActiveTransactionMock(...args),
-  submitRegisterRpTransaction: jest.fn(),
+  submitRegisterRpTransaction: (...args: unknown[]) =>
+    submitRegisterRpTransactionMock(...args),
   submitRotateSignerTransaction: jest.fn(),
 }));
 
@@ -76,7 +99,10 @@ jest.mock("@/api/helpers/kms", () => ({
   scheduleKeyDeletion: jest.fn(),
 }));
 
-jest.mock("@/api/helpers/kms-eth", () => ({ createManagerKey: jest.fn() }));
+const createManagerKeyMock = jest.fn();
+jest.mock("@/api/helpers/kms-eth", () => ({
+  createManagerKey: (...args: unknown[]) => createManagerKeyMock(...args),
+}));
 
 const mockGetRpRegistryConfig = jest.fn();
 const mockGetStagingRpRegistryConfig = jest.fn();
@@ -154,6 +180,17 @@ beforeEach(() => {
   UpdateStagingStatus.mockResolvedValue({
     update_rp_registration_by_pk: { rp_id: rpId },
   });
+  ClaimRpRegistration.mockResolvedValue({
+    insert_rp_registration_one: { rp_id: rpId },
+  });
+  UpdateRpRegistration.mockResolvedValue({
+    update_rp_registration_by_pk: { rp_id: rpId },
+  });
+  createManagerKeyMock.mockResolvedValue({
+    keyId: "kms-key-123",
+    address: "0x2222222222222222222222222222222222222222",
+  });
+  submitRegisterRpTransactionMock.mockResolvedValue("0xregisterop");
 });
 
 // #region submitManagedRpDeactivation
@@ -833,5 +870,63 @@ describe("submitManagedSignerRotation [app-state guard]", () => {
       expect(ClaimRotationSlot).not.toHaveBeenCalled();
     },
   );
+});
+// #endregion
+
+// #region submitManagedRpRegistration rp_id collision guard
+describe("submitManagedRpRegistration [rp_id collision guard]", () => {
+  const signerAddress = "0x1111111111111111111111111111111111111111";
+
+  const register = () =>
+    submitManagedRpRegistration({
+      client,
+      appId,
+      signerAddress,
+      appName: "Test App",
+      isStaging: false,
+    });
+
+  it("registers when the rp_id is free on-chain", async () => {
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+      manager: `0x${"0".repeat(40)}`,
+      signer: `0x${"0".repeat(40)}`,
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true, operationHash: "0xregisterop" });
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses to register an rp_id already claimed on-chain by a foreign party", async () => {
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0x00000000000000000000000000000000000000ff",
+      signer: "0x00000000000000000000000000000000000000ee",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "rp_id_taken" });
+    // The guard runs before we spend a KMS manager key, claim the DB slot, or
+    // submit a UserOp the contract would reject with IdAlreadyInUse.
+    expect(ClaimRpRegistration).not.toHaveBeenCalled();
+    expect(createManagerKeyMock).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("registers anyway when the on-chain pre-check read fails", async () => {
+    // The pre-check is a UX guard, not the security boundary (status
+    // reconciliation is), so a transient RPC failure must not block onboarding.
+    getRpFromContractMock.mockRejectedValue(new Error("rpc timeout"));
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true });
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+  });
 });
 // #endregion

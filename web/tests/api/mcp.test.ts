@@ -754,6 +754,47 @@ describe("/api/mcp", () => {
     );
   });
 
+  it("does not sync production status when the on-chain signer is foreign", async () => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          rp_registration: [
+            {
+              ...appContextResponse.app[0].rp_registration[0],
+              status: "pending",
+            },
+          ],
+        },
+      ],
+    };
+    // Someone else won the permissionless on-chain register() for this rp_id.
+    mockGetRpFromContract.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0x00000000000000000000000000000000000000ff",
+      signer: "0x00000000000000000000000000000000000000ee",
+      oprfKeyId: 0n,
+      unverifiedWellKnownDomain: "Attacker App",
+    });
+
+    const res = await POST(
+      callTool("get_world_id_registration_status", { app_id: appId }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const payload = JSON.parse(body.result.content[0].text);
+    expect(payload.production_status).toBe("pending");
+    expect(payload.synced.production).toBe(false);
+
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "UpdateRpStatus",
+      ),
+    ).toBe(false);
+  });
+
   it("returns -32602 for malformed signer_private_key", async () => {
     const res = await POST(
       callTool("rotate_world_id_signing_key", {

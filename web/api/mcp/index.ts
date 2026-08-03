@@ -1,8 +1,8 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
 import {
+  canTrustOnChainSigner,
   mapOnChainToDbStatus,
-  normalizeAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
 import {
@@ -750,6 +750,13 @@ const syncWorldIdRegistrationStatus = async (
 
   let productionStatus = currentProductionStatus;
   let productionInitialized = false;
+  // Whether the on-chain production reading is authoritative for this row — see
+  // canTrustOnChainSigner. Mirrors both the staging branch below and the
+  // /api/v4/rp-status endpoint: promoting a managed RP off `initialized &&
+  // active` alone would let whoever won the permissionless on-chain register()
+  // for this rp_id flip the row to `registered`, binding the app's verified
+  // proof-context branding to a foreign OPRF signer.
+  let canTrustOnChainProduction = false;
 
   try {
     const productionRp = await getRpFromContract(
@@ -759,10 +766,29 @@ const syncWorldIdRegistrationStatus = async (
     productionInitialized = productionRp.initialized;
 
     if (productionRp.initialized) {
-      productionStatus = mapOnChainToDbStatus(
-        productionRp.initialized,
-        productionRp.active,
+      canTrustOnChainProduction = canTrustOnChainSigner(
+        productionRp.signer,
+        registration.signer_address,
       );
+
+      if (canTrustOnChainProduction) {
+        productionStatus = mapOnChainToDbStatus(
+          productionRp.initialized,
+          productionRp.active,
+        );
+      } else {
+        logger.warn(
+          "On-chain RP signer does not match expected signer; preserving DB status",
+          {
+            app_id,
+            rp_id: rpId,
+            mode: registration.mode,
+            dbStatus: currentProductionStatus,
+            expectedSigner: registration.signer_address,
+            onChainSigner: productionRp.signer,
+          },
+        );
+      }
     }
   } catch (error) {
     logger.error("Failed to fetch MCP RP status from production contract", {
@@ -773,7 +799,12 @@ const syncWorldIdRegistrationStatus = async (
     throw new McpError("Failed to fetch production RP status.", -32603);
   }
 
-  if (productionInitialized && productionStatus !== currentProductionStatus) {
+  const productionSynced =
+    productionInitialized &&
+    canTrustOnChainProduction &&
+    productionStatus !== currentProductionStatus;
+
+  if (productionSynced) {
     await getUpdateRpStatusSdk(ctx.client).UpdateRpStatus({
       rp_id: rpId,
       status: productionStatus,
@@ -795,11 +826,10 @@ const syncWorldIdRegistrationStatus = async (
       stagingInitialized = stagingRp.initialized;
 
       if (stagingRp.initialized) {
-        const expectedSigner = registration.signer_address;
-        const canTrustOnChainStaging =
-          !expectedSigner ||
-          normalizeAddress(stagingRp.signer).toLowerCase() ===
-            normalizeAddress(expectedSigner).toLowerCase();
+        const canTrustOnChainStaging = canTrustOnChainSigner(
+          stagingRp.signer,
+          registration.signer_address,
+        );
 
         const mappedStagingStatus = mapOnChainToDbStatus(
           stagingRp.initialized,
@@ -836,8 +866,7 @@ const syncWorldIdRegistrationStatus = async (
     production_status: productionStatus,
     staging_status: stagingStatus,
     synced: {
-      production:
-        productionInitialized && productionStatus !== currentProductionStatus,
+      production: productionSynced,
       staging: stagingSynced,
     },
     on_chain: {
@@ -876,6 +905,7 @@ const REGISTRATION_FLOW_RPC_CODE: Record<
 > = {
   staging_not_supported: -32004,
   already_registered: -32004,
+  rp_id_taken: -32004,
   config_error: -32603,
   kms_error: -32603,
   submission_error: -32603,

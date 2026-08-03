@@ -65,6 +65,18 @@ export function normalizeAddress(address: string): string {
   return `0x${address}`;
 }
 
+/** The zero address. `isAddress` accepts it, but it is never a usable role. */
+export const ZERO_ADDRESS = `0x${"0".repeat(40)}`;
+
+/**
+ * Whether an address is the zero address. A zero signer or manager is always a
+ * mistake: the contract would accept it, but no one could then sign proof
+ * requests (signer) or ever update the RP again (manager).
+ */
+export function isZeroAddress(address: string): boolean {
+  return normalizeAddress(address).toLowerCase() === ZERO_ADDRESS;
+}
+
 /**
  * Whether an on-chain RP reading may be trusted as authoritative for the
  * Portal's stored registration, judged by the signer.

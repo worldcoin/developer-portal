@@ -18,10 +18,36 @@ import { getSdk as getUpdateStagingStatusSdk } from "./graphql/update-staging-st
 const CACHE_TTL_SECONDS = 3600;
 const CACHE_KEY_PREFIX = "rp_status:v2:";
 const PENDING_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const SIGNER_MISMATCH_LOG_KEY_PREFIX = "rp_signer_mismatch_logged:";
+const SIGNER_MISMATCH_LOG_TTL_SECONDS = 600; // 10 minutes
 
 interface DualStatus {
   production_status: string;
   staging_status: string | null;
+}
+
+/**
+ * Whether to emit the signer-mismatch warning for this rp_id now, at most once
+ * per SIGNER_MISMATCH_LOG_TTL_SECONDS. Fails open: with no Redis, or if Redis
+ * errors, we log — being noisy beats losing a takeover signal.
+ */
+async function shouldLogSignerMismatch(rpId: string): Promise<boolean> {
+  const redis = global.RedisClient;
+  if (!redis) {
+    return true;
+  }
+  try {
+    const claimed = await redis.set(
+      `${SIGNER_MISMATCH_LOG_KEY_PREFIX}${rpId}`,
+      "1",
+      "EX",
+      SIGNER_MISMATCH_LOG_TTL_SECONDS,
+      "NX",
+    );
+    return claimed === "OK";
+  } catch {
+    return true;
+  }
 }
 
 /**
@@ -144,16 +170,22 @@ export async function GET(
         // the DB status instead of promoting — for a managed RP this is either
         // an in-flight signer rotation or a foreign takeover of the rp_id.
         productionStatus = currentDbStatus;
-        logger.warn(
-          "On-chain RP signer does not match expected signer; preserving DB status",
-          {
-            rpId,
-            mode: dbRecord.mode,
-            dbStatus: currentDbStatus,
-            expectedSigner: dbRecord.signer_address,
-            onChainSigner: onChainRp.signer,
-          },
-        );
+        // Throttled: this is a hot polling endpoint (pending statuses cache for
+        // 1s), so an unresolved mismatch would emit thousands of identical
+        // warnings. One per rp_id per window keeps it a triage signal instead
+        // of log spam.
+        if (await shouldLogSignerMismatch(rpId)) {
+          logger.warn(
+            "On-chain RP signer does not match expected signer; preserving DB status",
+            {
+              rpId,
+              mode: dbRecord.mode,
+              dbStatus: currentDbStatus,
+              expectedSigner: dbRecord.signer_address,
+              onChainSigner: onChainRp.signer,
+            },
+          );
+        }
       }
     } else {
       // Not initialized on-chain — use DB status (tracks production)
