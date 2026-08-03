@@ -17,6 +17,18 @@ import { LegacyActionsGrid } from "./LegacyActionsGrid";
 
 const EMPTY_ACTIONS: GetActionsQuery["actions"] = [];
 
+/** Shared with the World ID layout skeleton so both assert the same banner. */
+export const LegacyActionsDeprecationBanner = () => (
+  <Notification variant="warning">
+    <div className="text-system-warning-800">
+      <Typography as="p" variant={TYPOGRAPHY.S3}>
+        This functionality is deprecated in 4.0. It&apos;s still viewable for
+        your convenience. Please make all new actions in the 4.0 view.
+      </Typography>
+    </div>
+  </Notification>
+);
+
 export const LegacyActionsPage = () => {
   const { teamId, appId, appEngine, actionsSearch, refreshOverview } =
     useWorldIdLayout();
@@ -60,14 +72,7 @@ export const LegacyActionsPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <Notification variant="warning">
-        <div className="text-system-warning-800">
-          <Typography as="p" variant={TYPOGRAPHY.S3}>
-            This functionality is deprecated in 4.0. It's still viewable for
-            your convenience. Please make all new actions in the 4.0 view.
-          </Typography>
-        </div>
-      </Notification>
+      <LegacyActionsDeprecationBanner />
 
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
