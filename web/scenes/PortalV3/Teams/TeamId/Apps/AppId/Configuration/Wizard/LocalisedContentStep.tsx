@@ -50,8 +50,7 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
     appId,
     teamId,
     supportedLanguages,
-    refetchAppMetadata,
-    refetchLocalisations,
+    setValue,
   } = useAppStoreFormContext();
   const disabled = !isEditable || !isEnoughPermissions;
   const isAppVerified = appMetadata.verification_status === "verified";
@@ -67,11 +66,6 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
   );
   const fieldErrors = errors.localisations?.[selectedIndex];
   const selectedLocale = localisations[selectedIndex]?.language ?? "en";
-
-  const onImageAutosaveSuccess = () => {
-    refetchAppMetadata();
-    refetchLocalisations();
-  };
 
   return (
     <div className="flex w-full flex-col gap-14">
@@ -204,7 +198,17 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               value={(field.value ?? []).filter((url): url is string =>
                 Boolean(url),
               )}
-              onChange={field.onChange}
+              // Not field.onChange: the image field already persisted this
+              // through its own mutation, so it must not dirty the form (see
+              // `isSelfPersisting` in use-autosave). shouldValidate keeps the
+              // required-images error clearing as it did when RHF owned this.
+              onChange={(urls) =>
+                setValue(
+                  `localisations.${selectedIndex}.showcase_img_urls`,
+                  urls,
+                  { shouldDirty: false, shouldValidate: true },
+                )
+              }
               disabled={disabled}
               appId={appId}
               teamId={teamId ?? ""}
@@ -213,7 +217,6 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               appMetadataId={appMetadata.id}
               supportedLanguages={supportedLanguages}
               error={fieldErrors?.showcase_img_urls?.message}
-              onAutosaveSuccess={onImageAutosaveSuccess}
               dropZoneClassName="h-42"
               dropZoneContent={dropZoneContent}
             />
@@ -232,7 +235,14 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
           render={({ field }) => (
             <MetaTagImageField
               value={field.value || null}
-              onChange={(url) => field.onChange(url ?? "")}
+              // See the showcase field above.
+              onChange={(url) =>
+                setValue(
+                  `localisations.${selectedIndex}.meta_tag_image_url`,
+                  url ?? "",
+                  { shouldDirty: false, shouldValidate: true },
+                )
+              }
               disabled={disabled}
               appId={appId}
               teamId={teamId ?? ""}
@@ -241,7 +251,6 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               appMetadataId={appMetadata.id}
               supportedLanguages={supportedLanguages}
               error={fieldErrors?.meta_tag_image_url?.message}
-              onAutosaveSuccess={onImageAutosaveSuccess}
               dropZoneClassName="h-42"
               dropZoneContent={dropZoneContent}
             />
