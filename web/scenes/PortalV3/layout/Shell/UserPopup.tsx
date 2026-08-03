@@ -16,12 +16,16 @@ import {
 import { urls } from "@/lib/urls";
 import { Color } from "@/scenes/common/Profile/types";
 import { colorAtom } from "@/scenes/common/layout/color-atom";
-import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
+import {
+  Icon,
+  opticalIconClassName,
+  preloadIcons,
+} from "@/scenes/PortalV3/common/Icon";
 import { useAtomValue } from "jotai";
 import { ChevronsUpDownIcon } from "lucide-react";
 import Link from "next/link";
-import { CSSProperties } from "react";
-import { HelpCenterMenu } from "./HelpCenterMenu";
+import { CSSProperties, useEffect } from "react";
+import { HelpCenterMenu, preloadHelpCenterIcons } from "./HelpCenterMenu";
 
 export type PortalUser = { name: string; email?: string };
 
@@ -33,6 +37,12 @@ const accountLinks = [
     label: "Profile",
     icon: "profile-menu-profile",
   },
+];
+
+const accountMenuIconNames = [
+  ...accountLinks.map((item) => item.icon),
+  "nav-help",
+  "profile-menu-log-out",
 ];
 
 const getInitials = (name: string) => {
@@ -71,6 +81,23 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
   const selectedColor = useAtomValue(colorAtom);
   const color = selectedColor ?? props.color;
 
+  // These assets live inside Radix's lazily mounted portal. Emit preload hints
+  // while rendering the always-visible sidebar so the first click is instant.
+  preloadIcons(accountMenuIconNames);
+
+  useEffect(() => {
+    if (typeof window.requestIdleCallback === "function") {
+      const idleId = window.requestIdleCallback(preloadHelpCenterIcons, {
+        timeout: 2_000,
+      });
+
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = window.setTimeout(preloadHelpCenterIcons, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -80,6 +107,8 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               size="lg"
               aria-label="Account menu"
               title={user.name}
+              onFocus={preloadHelpCenterIcons}
+              onPointerEnter={preloadHelpCenterIcons}
               className="cursor-pointer text-portal-text hover:bg-portal-border focus-visible:bg-portal-border focus-visible:ring-0 data-open:bg-portal-border"
             >
               <UserAvatar name={user.name} color={color} />
