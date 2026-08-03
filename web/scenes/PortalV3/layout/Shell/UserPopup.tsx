@@ -24,8 +24,8 @@ import {
 import { useAtomValue } from "jotai";
 import { ChevronsUpDownIcon } from "lucide-react";
 import Link from "next/link";
-import { CSSProperties, useEffect } from "react";
-import { HelpCenterMenu, preloadHelpCenterIcons } from "./HelpCenterMenu";
+import { CSSProperties } from "react";
+import { HelpCenterMenu } from "./HelpCenterMenu";
 
 export type PortalUser = { name: string; email?: string };
 
@@ -39,10 +39,20 @@ const accountLinks = [
   },
 ];
 
+// Icons inside the lazily mounted account menu (including Help Center submenu).
 const accountMenuIconNames = [
-  ...accountLinks.map((item) => item.icon),
+  "profile-menu-profile",
   "nav-help",
   "profile-menu-log-out",
+  "profile-menu-docs",
+  "profile-menu-help",
+  "profile-menu-privacy",
+  "profile-menu-status",
+  "profile-menu-telegram",
+  "profile-menu-message",
+  "profile-menu-discord",
+  "profile-menu-policy",
+  "profile-menu-terms",
 ];
 
 const getInitials = (name: string) => {
@@ -81,22 +91,9 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
   const selectedColor = useAtomValue(colorAtom);
   const color = selectedColor ?? props.color;
 
-  // These assets live inside Radix's lazily mounted portal. Emit preload hints
-  // while rendering the always-visible sidebar so the first click is instant.
+  // Menu icons live in Radix's lazily mounted portal — warm them while the
+  // always-visible trigger renders so the first open is instant.
   preloadIcons(accountMenuIconNames);
-
-  useEffect(() => {
-    if (typeof window.requestIdleCallback === "function") {
-      const idleId = window.requestIdleCallback(preloadHelpCenterIcons, {
-        timeout: 2_000,
-      });
-
-      return () => window.cancelIdleCallback(idleId);
-    }
-
-    const timeoutId = window.setTimeout(preloadHelpCenterIcons, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, []);
 
   return (
     <SidebarMenu>
@@ -107,8 +104,6 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               size="lg"
               aria-label="Account menu"
               title={user.name}
-              onFocus={preloadHelpCenterIcons}
-              onPointerEnter={preloadHelpCenterIcons}
               className="cursor-pointer text-portal-text hover:bg-portal-border focus-visible:bg-portal-border focus-visible:ring-0 data-open:bg-portal-border"
             >
               <UserAvatar name={user.name} color={color} />

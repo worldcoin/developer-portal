@@ -20,32 +20,13 @@ import {
   WORLD_STATUS_URL,
 } from "@/lib/constants";
 import { urls } from "@/lib/urls";
-import {
-  Icon,
-  opticalIconClassName,
-  preloadIcons,
-} from "@/scenes/PortalV3/common/Icon";
+import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useState } from "react";
 
 const itemClass = "h-10 cursor-pointer gap-3 text-portal-text focus:bg-grey-50";
 const labelClass = "px-2 py-1.5 text-portal-subtle";
-
-export const helpCenterIconNames = [
-  "profile-menu-docs",
-  "profile-menu-help",
-  "profile-menu-privacy",
-  "profile-menu-status",
-  "profile-menu-telegram",
-  "profile-menu-message",
-  "profile-menu-discord",
-  "profile-menu-policy",
-  "profile-menu-terms",
-] as const;
-
-export const preloadHelpCenterIcons = () =>
-  preloadIcons(helpCenterIconNames, "low");
 
 const HelpLink = (props: {
   href: string;
@@ -89,11 +70,7 @@ export const HelpCenterMenu = () => {
         aria-label="Help center"
         className={itemClass}
         chevronClassName={`${opticalIconClassName} size-4`}
-        onFocus={preloadHelpCenterIcons}
-        onPointerEnter={() => {
-          preloadHelpCenterIcons();
-          setOpen(true);
-        }}
+        onPointerEnter={() => setOpen(true)}
       >
         <Icon name="nav-help" className={`${opticalIconClassName} size-4`} />
         <span className="min-w-0 flex-1 truncate">Help center</span>

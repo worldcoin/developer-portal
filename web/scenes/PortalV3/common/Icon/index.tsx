@@ -8,17 +8,12 @@ export const getIconPath = (name: string) => `${ICON_PATH}/${name}.svg`;
 
 /**
  * Starts loading static icon assets before a lazily mounted menu needs them.
- * React de-duplicates equivalent preload hints, so callers can safely invoke
- * this during render, idle time, and pointer/focus intent.
+ * Safe to call during render — React de-duplicates equivalent preload hints.
  */
-export const preloadIcons = (
-  names: readonly string[],
-  fetchPriority: "high" | "low" | "auto" = "auto",
-) => {
+export const preloadIcons = (names: readonly string[]) => {
   for (const name of names) {
     preload(getIconPath(name), {
       as: "image",
-      fetchPriority,
       type: "image/svg+xml",
     });
   }
