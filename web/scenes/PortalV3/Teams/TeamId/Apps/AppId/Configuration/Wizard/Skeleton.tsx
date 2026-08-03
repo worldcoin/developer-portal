@@ -25,10 +25,12 @@ import {
 export const ConfigurationWizardSkeleton = () => (
   <div aria-hidden className={wizardFrameClassName}>
     <div className={wizardStepperRowClassName}>
+      {/* 695px = the rendered width of the 4-step stepper, the narrowest
+          real variant (mini apps get a 5th step). */}
       <Skeleton
         height={20}
         borderRadius={9999}
-        containerClassName="flex h-5 w-full max-w-[560px]"
+        containerClassName="flex h-5 w-full max-w-[695px]"
       />
     </div>
 
