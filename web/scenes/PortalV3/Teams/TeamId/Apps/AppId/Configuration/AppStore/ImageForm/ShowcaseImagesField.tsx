@@ -5,6 +5,7 @@ import { UpsertLocalisedShowcaseImagesDocument } from "@/scenes/common/Teams/Tea
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageUploadField } from "./ImageUploadField";
 import { useMutation, useQuery } from "@apollo/client/react";
+import { updateLocalisationImageCache } from "./update-localisation-image-cache";
 
 interface ShowcaseImagesFieldProps {
   value?: string[];
@@ -69,6 +70,22 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
         console.error("autosave failed:", error);
         toast.error("Failed to auto-save showcase images");
         onAutosaveError?.(error);
+      },
+      update: (cache, _result, { variables }) => {
+        if (
+          !variables?.is_localized ||
+          !variables.locale ||
+          !Array.isArray(variables.showcase_img_urls)
+        ) {
+          return;
+        }
+
+        updateLocalisationImageCache(
+          cache,
+          variables.app_metadata_id,
+          variables.locale,
+          { showcase_img_urls: variables.showcase_img_urls },
+        );
       },
     },
   );

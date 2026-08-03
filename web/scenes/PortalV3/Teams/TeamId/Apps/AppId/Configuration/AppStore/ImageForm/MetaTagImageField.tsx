@@ -5,6 +5,7 @@ import { UpsertLocalisedMetaTagImageDocument } from "@/scenes/common/Teams/TeamI
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageUploadField } from "./ImageUploadField";
 import { useMutation, useQuery } from "@apollo/client/react";
+import { updateLocalisationImageCache } from "./update-localisation-image-cache";
 
 interface MetaTagImageFieldProps {
   value?: string | null;
@@ -69,6 +70,16 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
         console.error("autosave failed:", error);
         toast.error("Failed to auto-save meta tag image");
         onAutosaveError?.(error);
+      },
+      update: (cache, _result, { variables }) => {
+        if (!variables?.is_localized || !variables.locale) return;
+
+        updateLocalisationImageCache(
+          cache,
+          variables.app_metadata_id,
+          variables.locale,
+          { meta_tag_image_url: variables.meta_tag_image_url },
+        );
       },
     },
   );
