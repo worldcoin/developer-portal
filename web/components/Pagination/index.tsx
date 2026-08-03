@@ -49,6 +49,7 @@ export const Pagination: React.FC<FooterProps> = ({
       >
         <Button
           type="button"
+          aria-label="Previous page"
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className={clsx(
@@ -72,6 +73,7 @@ export const Pagination: React.FC<FooterProps> = ({
         </div>
         <Button
           type="button"
+          aria-label="Next page"
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === pageCount}
           className={clsx(
