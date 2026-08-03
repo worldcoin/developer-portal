@@ -70,9 +70,7 @@ describe("Portal v3 shell dropdown focus treatment", () => {
       </TooltipProvider>,
     );
 
-    expect(
-      screen.queryByTestId("team-switcher-list"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("team-switcher-list")).not.toBeInTheDocument();
 
     const preloadedImages = Array.from(
       document.head.querySelectorAll<HTMLLinkElement>(
