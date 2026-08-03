@@ -130,8 +130,24 @@ export const urls = {
   teamApiKeys: (params: { team_id: string }): string =>
     `/teams/${params.team_id}/api-keys`,
 
-  teamSettings: (params: { team_id: string }): string =>
-    `/teams/${params.team_id}/settings`,
+  teamSettings: (params: {
+    team_id: string;
+    return_to?: string;
+    tab?: string;
+  }): string => {
+    const searchParams = new URLSearchParams();
+
+    if (params.return_to) {
+      searchParams.set("return_to", params.return_to);
+    }
+
+    if (params.tab) {
+      searchParams.set("tab", params.tab);
+    }
+
+    const query = searchParams.toString();
+    return `/teams/${params.team_id}/settings${query ? `?${query}` : ""}`;
+  },
 
   profile: (): "/profile" => "/profile",
   profileTeams: (): "/profile/teams" => "/profile/teams",

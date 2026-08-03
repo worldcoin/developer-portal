@@ -47,7 +47,7 @@ describe("SidebarContextHeader [route context]", () => {
   });
 
   it("keeps the team switcher on team-scoped routes", () => {
-    usePathname.mockReturnValue("/teams/team_1");
+    usePathname.mockReturnValue("/teams/team_1/settings");
 
     renderHeader();
 
