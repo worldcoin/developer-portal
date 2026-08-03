@@ -12,6 +12,7 @@ import {
 import { useQuery } from "@apollo/client/react";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useEffect, useState } from "react";
+import Skeleton from "react-loading-skeleton";
 import { GetActionVerificationHistoryDocument } from "./graphql/client/get-action-verification-history.generated";
 
 const rowsPerPageOptions = [5, 10, 20];
@@ -62,8 +63,36 @@ export const VerificationHistory = (props: {
     }
   }, [currentPage, pageCount]);
 
-  if (error || (!action && loading)) {
+  if (error) {
     return null;
+  }
+
+  if (!action && loading) {
+    return (
+      // The loaded card's chrome with its real heading; the content area
+      // reserves the empty state's height, the shortest real variant.
+      <section
+        aria-hidden
+        aria-busy
+        className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card"
+      >
+        <div className="flex items-center gap-1.5">
+          <Typography
+            as="h2"
+            variant={TYPOGRAPHY.H7}
+            className="text-portal-heading"
+          >
+            Verification history
+          </Typography>
+          <InformationCircleIcon className="size-4 text-grey-300" />
+        </div>
+
+        <div className="flex min-h-44 flex-col items-center justify-center gap-2">
+          <Skeleton width={176} />
+          <Skeleton width={320} />
+        </div>
+      </section>
+    );
   }
 
   const nullifiers = action?.nullifiers ?? [];
