@@ -4,7 +4,7 @@ import { FormDialog } from "@/components/FormDialog";
 import { RegisterRpDocument } from "@/scenes/common/layout/CreateAppDialog/client/register-rp.generated";
 import { useMutation } from "@apollo/client/react";
 import dynamic from "next/dynamic";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import {
@@ -39,7 +39,7 @@ type RegisterRpDialogProps = {
   open: boolean;
   onClose: (value: boolean) => void;
   appId: string;
-  onComplete?: () => void;
+  onComplete?: () => Promise<void> | void;
 };
 
 export const RegisterRpDialog = ({
@@ -49,7 +49,6 @@ export const RegisterRpDialog = ({
   onClose: onCloseDialog,
 }: RegisterRpDialogProps) => {
   const { teamId } = useParams() as { teamId: string | undefined };
-  const router = useRouter();
 
   const [registerRp, { loading: registeringRp }] =
     useMutation(RegisterRpDocument);
@@ -57,8 +56,10 @@ export const RegisterRpDialog = ({
   const [step, setStep] = useState<RegisterRpDialogStep>(
     "configure-signer-key",
   );
+  const [finishingSetup, setFinishingSetup] = useState(false);
   const [signerKeySetup, setSignerKeySetup] =
     useState<SignerKeySetup>("generate");
+  const loading = registeringRp || finishingSetup;
 
   const onClose = useCallback(() => {
     onCloseDialog(false);
@@ -72,11 +73,21 @@ export const RegisterRpDialog = ({
     setSignerKeySetup("generate");
   }, []);
 
-  const completeRpSetup = useCallback(() => {
-    onComplete?.();
-    router.refresh();
-    onClose();
-  }, [onClose, onComplete, router]);
+  const completeRpSetup = useCallback(async () => {
+    setFinishingSetup(true);
+
+    try {
+      await onComplete?.();
+      toast.success("App configured successfully");
+    } catch {
+      toast.error(
+        "Relying Party registered, but the configuration could not be refreshed. Reload the page to see the latest status.",
+      );
+    } finally {
+      setFinishingSetup(false);
+      onClose();
+    }
+  }, [onClose, onComplete]);
 
   const onConfigureBack = useCallback(() => {
     onClose();
@@ -118,8 +129,7 @@ export const RegisterRpDialog = ({
           return;
         }
 
-        toast.success("App configured successfully");
-        completeRpSetup();
+        await completeRpSetup();
       } catch {
         toast.error("Failed to register Relying Party");
       }
@@ -132,7 +142,7 @@ export const RegisterRpDialog = ({
       open={open}
       onClose={onClose}
       afterLeave={afterLeave}
-      dismissable={!registeringRp}
+      dismissable={!loading}
       // This dialog lazy-mounts already open behind a loading overlay that
       // mimics the backdrop; animating the first mount would un-dim the page
       // between the overlay unmounting and the fade-in.
@@ -151,7 +161,8 @@ export const RegisterRpDialog = ({
         <UseExistingKeyContent
           onBack={onSignerKeyBack}
           onContinue={onSignerKeyContinue}
-          loading={registeringRp}
+          loading={loading}
+          loadingLabel={finishingSetup ? "Finishing setup…" : undefined}
           hideTitle
         />
       )}
@@ -159,7 +170,8 @@ export const RegisterRpDialog = ({
         <GenerateNewKeyContent
           onBack={onSignerKeyBack}
           onContinue={onSignerKeyContinue}
-          loading={registeringRp}
+          loading={loading}
+          loadingLabel={finishingSetup ? "Finishing setup…" : undefined}
           hideTitle
         />
       )}
