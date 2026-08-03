@@ -3,6 +3,7 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import Skeleton from "react-loading-skeleton";
 import { BasicInformationStepSkeleton } from "./BasicInformationStep";
+import { StepperSkeleton } from "./Stepper";
 import {
   primaryButtonClassName,
   secondaryButtonClassName,
@@ -16,22 +17,16 @@ import {
 } from "./index";
 
 /**
- * Loading mirror of the wizard on its first step: the real frame, field
- * boxes, mode cards and action bar render for real; every data slot
- * shimmers. Data-dependent chrome is never asserted — the stepper is a plain
- * bar because mini apps have one more step, and the logo circle carries no
- * empty-state copy because a logo may exist.
+ * Loading mirror of the wizard on its first step: the real frame, stepper
+ * geometry, field boxes, mode cards and action bar render for real; every data
+ * slot shimmers. Data-dependent chrome is never asserted — the stepper shows
+ * no numbers or active step (mini apps have one more step), and the logo
+ * circle carries no empty-state copy because a logo may exist.
  */
 export const ConfigurationWizardSkeleton = () => (
   <div aria-hidden className={wizardFrameClassName}>
     <div className={wizardStepperRowClassName}>
-      {/* 695px = the rendered width of the 4-step stepper, the narrowest
-          real variant (mini apps get a 5th step). */}
-      <Skeleton
-        height={20}
-        borderRadius={9999}
-        containerClassName="flex h-5 w-full max-w-[695px]"
-      />
+      <StepperSkeleton />
     </div>
 
     <div className={wizardScrollRegionClassName}>
