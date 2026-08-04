@@ -31,11 +31,14 @@ export type SwitcherItem = { id: string; name: string };
 export const switcherTriggerClassName =
   "h-9 min-w-0 cursor-pointer px-3 font-world text-13 leading-none font-medium";
 
-// Icons inside the lazily mounted popover (shared + apps empty-state).
-const switcherIconNames = [
-  "dropdown-plus",
-  "dropdown-check",
-  "apps-empty-icon",
+/**
+ * Static icons inside the lazily mounted switcher popover.
+ * Shared by team + app switchers; apps-empty-icon is apps-only.
+ */
+const searchableSwitcherPreloadIcons = [
+  "dropdown-plus", // create-action footer
+  "dropdown-check", // selected row
+  "apps-empty-icon", // AppsDropdown empty state
 ] as const;
 
 const createActionClassName =
@@ -72,7 +75,7 @@ export const SearchableSwitcher = <T extends SwitcherItem>(
   const [showScrollHint, setShowScrollHint] = useState(false);
   const listRef = useRef<HTMLUListElement>(null);
 
-  preloadIcons(switcherIconNames);
+  preloadIcons(searchableSwitcherPreloadIcons);
 
   const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
   const filteredItems = useMemo(

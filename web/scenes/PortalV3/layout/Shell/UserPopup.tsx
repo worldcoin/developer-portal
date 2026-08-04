@@ -39,11 +39,16 @@ const accountLinks = [
   },
 ];
 
-// Icons inside the lazily mounted account menu (including Help Center submenu).
-const accountMenuIconNames = [
+/**
+ * Static icons inside the lazily mounted account menu.
+ * Keep in sync with UserPopup rows + HelpCenterMenu link icons.
+ */
+const userPopupPreloadIcons = [
+  // Account menu rows
   "profile-menu-profile",
   "nav-help",
   "profile-menu-log-out",
+  // Help Center submenu
   "profile-menu-docs",
   "profile-menu-help",
   "profile-menu-privacy",
@@ -93,7 +98,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
 
   // Menu icons live in Radix's lazily mounted portal — warm them while the
   // always-visible trigger renders so the first open is instant.
-  preloadIcons(accountMenuIconNames);
+  preloadIcons(userPopupPreloadIcons);
 
   return (
     <SidebarMenu>

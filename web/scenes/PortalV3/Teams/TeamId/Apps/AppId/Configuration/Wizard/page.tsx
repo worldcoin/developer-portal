@@ -2,6 +2,7 @@
 
 import { ErrorPage } from "@/components/ErrorPage";
 import { formCountriesList } from "@/lib/languages";
+import { preloadIcons } from "@/scenes/PortalV3/common/Icon";
 import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
@@ -27,9 +28,21 @@ type ConfigurationWizardPageProps = {
   params: Record<string, string> | null | undefined;
 };
 
+/**
+ * Portal-v3 icons used across Get verified wizard steps. Warm with the page
+ * layout so conditional / late-visible glyphs aren't blank on first paint.
+ */
+const configurationWizardPreloadIcons = [
+  "share-ios", // LogoDropZone + LocalisedContentStep empty drop zones
+  "radio-check", // Stepper completed steps + AppModeCards selection
+  "star", // ReviewStep rating placeholder
+  "xmark", // ChipSelect remove on selected chips
+  "dropdown-check", // ChipSelect selected option in country/language lists
+] as const;
+
 // Country flags only mount inside the Availability dropdown — warm them with
 // the Get verified layout so the list isn't blank on first open.
-const countryFlagHrefs = formCountriesList().map(
+const configurationWizardPreloadFlagHrefs = formCountriesList().map(
   (country) => `/icons/flags/${country.value}.svg`,
 );
 
@@ -42,7 +55,8 @@ const countryFlagHrefs = formCountriesList().map(
 export const ConfigurationWizardPage = ({
   params,
 }: ConfigurationWizardPageProps) => {
-  for (const href of countryFlagHrefs) {
+  preloadIcons(configurationWizardPreloadIcons);
+  for (const href of configurationWizardPreloadFlagHrefs) {
     preload(href, { as: "image", type: "image/svg+xml" });
   }
 
