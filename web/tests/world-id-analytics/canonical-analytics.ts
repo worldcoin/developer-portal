@@ -6,7 +6,7 @@ export type SourceDailyRow = {
   count: string;
   date_utc: string;
   environment: "production" | "staging";
-  source: "v3" | "v4";
+  source: "legacy" | "v4";
 };
 
 export type LifetimeRow = Omit<SourceDailyRow, "count" | "date_utc"> & {
@@ -35,7 +35,7 @@ const sourceOrder = (left: SourceDailyRow, right: SourceDailyRow) =>
 export const readCanonicalSourceDaily = async (pool: Pool, teamId: string) => {
   const result = await pool.query<SourceDailyRow>(
     `SELECT
-       'v3'::text AS source,
+       'legacy'::text AS source,
        app.id AS app_id,
        CASE WHEN app.is_staging THEN 'staging' ELSE 'production' END AS environment,
        action.id AS action_id,
@@ -70,13 +70,13 @@ export const readCanonicalSourceDaily = async (pool: Pool, teamId: string) => {
 export const readRolledSourceDaily = async (pool: Pool, teamId: string) => {
   const result = await pool.query<SourceDailyRow>(
     `SELECT
-       'v3'::text AS source,
+       'legacy'::text AS source,
        app.id AS app_id,
        CASE WHEN app.is_staging THEN 'staging' ELSE 'production' END AS environment,
        action.id AS action_id,
        daily.date_utc::text,
        daily.unique_count::text AS count
-     FROM public.action_v3_stats_daily AS daily
+     FROM public.action_legacy_stats_daily AS daily
      JOIN public.action ON action.id = daily.action_id
      JOIN public.app ON app.id = action.app_id
      WHERE app.team_id = $1

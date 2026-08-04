@@ -81,12 +81,12 @@ const makeWorldIdNavigationData = (options?: {
   action: options?.legacy ? [{ id: "legacy_1" }] : [],
 });
 
-const renderSidebar = () =>
+const renderSidebar = (apiKeyTeamIds = [teamId]) =>
   render(
     <TooltipProvider>
       <SidebarProvider>
         <SidebarAnimationShell>
-          <SidebarNav />
+          <SidebarNav apiKeyTeamIds={apiKeyTeamIds} />
         </SidebarAnimationShell>
       </SidebarProvider>
     </TooltipProvider>,
@@ -135,7 +135,15 @@ describe("v3 SidebarNav [navigation hierarchy]", () => {
     );
     expect(link("Mini App")).toBeInTheDocument();
     noLink("Permissions");
-    expect(link("Team settings")).toBeInTheDocument();
+    expect(link("Team settings")).toHaveAttribute(
+      "href",
+      `/teams/${teamId}/settings?return_to=${encodeURIComponent(base)}`,
+    );
+    const settingsChevron = link("Team settings").querySelector(
+      "svg.lucide-chevron-right",
+    );
+    expect(settingsChevron).toHaveClass("size-4");
+    expect(settingsChevron?.parentElement).toHaveClass("ml-auto");
   });
 });
 // #endregion
@@ -307,16 +315,66 @@ describe("v3 SidebarNav [World ID subnavigation]", () => {
 
 // #region route-owned app context
 describe("v3 SidebarNav [route-owned app context]", () => {
-  it("shows Overview instead of app-only entries on team routes", () => {
+  it("shows the Settings back header and section navigation", () => {
     useParams.mockReturnValue({ teamId });
     usePathname.mockReturnValue(`/teams/${teamId}/settings`);
+    useSearchParams.mockReturnValue(
+      new URLSearchParams({
+        return_to: `${base}/configuration?view=review`,
+        tab: "members",
+      }),
+    );
     renderSidebar();
 
-    expect(link("Overview")).toHaveAttribute("href", `/teams/${teamId}`);
-    expect(isCurrent("Team settings")).toBe(true);
+    expect(link("Settings")).toHaveAttribute(
+      "href",
+      `${base}/configuration?view=review`,
+    );
+    expect(link("Settings")).toHaveClass(
+      "justify-center",
+      "data-[active=false]:hover:bg-portal-border",
+    );
+    expect(link("General")).toHaveAttribute(
+      "href",
+      `/teams/${teamId}/settings?return_to=${encodeURIComponent(
+        `${base}/configuration?view=review`,
+      )}`,
+    );
+    expect(isCurrent("Members")).toBe(true);
+    expect(link("API Keys")).toHaveAttribute(
+      "href",
+      expect.stringContaining("tab=api-keys"),
+    );
+    noLink("Overview");
+    noLink("Team settings");
     noLink("World ID");
     noLink("Get verified");
     noLink("Mini App");
+  });
+
+  it("shows API Keys only to owners and admins", () => {
+    useParams.mockReturnValue({ teamId });
+    usePathname.mockReturnValue(`/teams/${teamId}/settings`);
+    useSearchParams.mockReturnValue(new URLSearchParams({ tab: "api-keys" }));
+
+    const permitted = renderSidebar([teamId]);
+    expect(isCurrent("API Keys")).toBe(true);
+    permitted.unmount();
+
+    renderSidebar([]);
+    noLink("API Keys");
+    expect(isCurrent("General")).toBe(true);
+  });
+
+  it("defaults the Settings back header to the dashboard for an unsafe return target", () => {
+    useParams.mockReturnValue({ teamId });
+    usePathname.mockReturnValue(`/teams/${teamId}/settings`);
+    useSearchParams.mockReturnValue(
+      new URLSearchParams({ return_to: "https://evil.example" }),
+    );
+    renderSidebar();
+
+    expect(link("Settings")).toHaveAttribute("href", "/dashboard");
   });
 
   it("hides team-scoped links entirely without a teamId", () => {

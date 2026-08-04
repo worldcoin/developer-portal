@@ -37,8 +37,8 @@ export type GetWorldIdAnalyticsScopeQuery = {
     environment: unknown;
     created_at: string;
   }>;
-  has_v3_history: Array<{
-    __typename?: "action_v3_stats_daily";
+  has_legacy_history: Array<{
+    __typename?: "action_legacy_stats_daily";
     date_utc: string;
   }>;
 };
@@ -72,8 +72,8 @@ export type GetWorldIdAnalyticsActionDailyQueryVariables = Types.Exact<{
 
 export type GetWorldIdAnalyticsActionDailyQuery = {
   __typename?: "query_root";
-  action_v3_stats_daily: Array<{
-    __typename?: "action_v3_stats_daily";
+  action_legacy_stats_daily: Array<{
+    __typename?: "action_legacy_stats_daily";
     action_id: string;
     date_utc: string;
     unique_count: number;
@@ -108,7 +108,7 @@ export const GetWorldIdAnalyticsScopeDocument = gql`
       environment
       created_at
     }
-    has_v3_history: action_v3_stats_daily(
+    has_legacy_history: action_legacy_stats_daily(
       limit: 1
       where: { action: { app_id: { _eq: $app_id } } }
     ) {
@@ -143,7 +143,7 @@ export const GetWorldIdAnalyticsActionDailyDocument = gql`
     $from: date!
     $through: date!
   ) {
-    action_v3_stats_daily(
+    action_legacy_stats_daily(
       where: {
         action_id: { _in: $legacy_ids }
         date_utc: { _gte: $from, _lte: $through }

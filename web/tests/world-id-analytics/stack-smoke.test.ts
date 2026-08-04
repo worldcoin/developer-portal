@@ -46,6 +46,51 @@ describe("World ID analytics isolated fresh-stack harness", () => {
     );
   });
 
+  it("provisions valid created_at indexes for both nullifier sources", async () => {
+    // The migration deliberately builds neither index; the runner's
+    // out-of-band create-nullifier-created-at-index.sql step must.
+    const result = await pool.query<{
+      index_name: string;
+      indisready: boolean;
+      indisvalid: boolean;
+      source_table: string;
+    }>(`
+      SELECT
+        index_relation.relname AS index_name,
+        source_relation.relname AS source_table,
+        definition.indisready,
+        definition.indisvalid
+      FROM pg_index AS definition
+      JOIN pg_class AS index_relation
+        ON index_relation.oid = definition.indexrelid
+      JOIN pg_namespace AS index_schema
+        ON index_schema.oid = index_relation.relnamespace
+      JOIN pg_class AS source_relation
+        ON source_relation.oid = definition.indrelid
+      WHERE index_schema.nspname = 'public'
+        AND index_relation.relname IN (
+          'nullifier_created_at_idx',
+          'nullifier_v4_created_at_idx'
+        )
+      ORDER BY index_relation.relname
+    `);
+
+    expect(result.rows).toEqual([
+      {
+        index_name: "nullifier_created_at_idx",
+        source_table: "nullifier",
+        indisready: true,
+        indisvalid: true,
+      },
+      {
+        index_name: "nullifier_v4_created_at_idx",
+        source_table: "nullifier_v4",
+        indisready: true,
+        indisvalid: true,
+      },
+    ]);
+  });
+
   it("applies consistent metadata that answers a real GraphQL query", async () => {
     const metadataResponse = await fetch(
       process.env.WIA_HASURA_METADATA_URL as string,

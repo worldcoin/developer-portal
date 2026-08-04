@@ -127,7 +127,7 @@ it("shows the vertical RP identity fields and separated management controls", ()
 });
 
 it.each([
-  [RpRegistrationStatus.Pending, "Configuration update pending"],
+  [RpRegistrationStatus.Pending, "Configuration in progress"],
   [RpRegistrationStatus.Failed, "Production registration failed"],
   [RpRegistrationStatus.Deactivated, "Registration deactivated"],
 ])("keeps the RP identity visible in the %s state", (status, message) => {
@@ -137,11 +137,11 @@ it.each([
   expect(screen.getByText(message)).toBeInTheDocument();
   expect(screen.getByText("rp_1234567890abcdef")).toBeInTheDocument();
   expect(
-    screen.getByRole("button", { name: "Rotate signer key" }),
-  ).toBeDisabled();
+    screen.queryByRole("button", { name: "Rotate signer key" }),
+  ).not.toBeInTheDocument();
   expect(
-    screen.getByRole("button", { name: "Switch to self-managed" }),
-  ).toBeDisabled();
+    screen.queryByRole("button", { name: "Switch to self-managed" }),
+  ).not.toBeInTheDocument();
 });
 
 it("explains self-managed signer ownership and disables Portal controls", () => {

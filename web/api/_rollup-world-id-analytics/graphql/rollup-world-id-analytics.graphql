@@ -1,5 +1,5 @@
-mutation RollupWorldIdAnalytics {
-  rollup_world_id_analytics {
+mutation RollupWorldIdAnalytics($max_advance_days: Int) {
+  rollup_world_id_analytics(args: { max_advance_days: $max_advance_days }) {
     processed_through
   }
 }

@@ -164,7 +164,14 @@ export const LoggedUserNav = () => {
 
               {hasOwnerPermission && (
                 <Dropdown.ListItem asChild>
-                  <Link href={`/teams/${teamId}/settings`}>
+                  <Link
+                    href={urls.teamSettings({
+                      team_id: teamRes.data.team.id,
+                      return_to: urls.teams({
+                        team_id: teamRes.data.team.id,
+                      }),
+                    })}
+                  >
                     <Dropdown.ListItemIcon asChild>
                       <SettingsIcon />
                     </Dropdown.ListItemIcon>

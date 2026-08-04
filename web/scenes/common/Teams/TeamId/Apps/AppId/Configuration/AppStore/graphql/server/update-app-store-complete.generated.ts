@@ -20,7 +20,19 @@ export type UpdateAppStoreCompleteMutation = {
   } | null;
   insert_localisations?: {
     __typename?: "localisations_mutation_response";
-    affected_rows: number;
+    returning: Array<{
+      __typename?: "localisations";
+      id: string;
+      locale: string;
+      name: string;
+      description: string;
+      world_app_button_text: string;
+      world_app_description: string;
+      short_name: string;
+      hero_image_url: string;
+      meta_tag_image_url: string;
+      showcase_img_urls?: Array<string> | null;
+    }>;
   } | null;
 };
 
@@ -57,7 +69,18 @@ export const UpdateAppStoreCompleteDocument = gql`
         ]
       }
     ) {
-      affected_rows
+      returning {
+        id
+        locale
+        name
+        description
+        world_app_button_text
+        world_app_description
+        short_name
+        hero_image_url
+        meta_tag_image_url
+        showcase_img_urls
+      }
     }
   }
 `;

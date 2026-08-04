@@ -17,13 +17,6 @@ export type GetWorldIdActionDetailQuery = {
     rp_id: string;
     created_at: string;
     rp_registration: { __typename?: "rp_registration"; app_id: string };
-    nullifiers: Array<{
-      __typename?: "nullifier_v4";
-      id: string;
-      created_at: string;
-      nullifier: string;
-      action_v4_id: string;
-    }>;
   }>;
 };
 
@@ -146,49 +139,6 @@ export const GetWorldIdActionDetailDocument = {
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "app_id" },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "nullifiers" },
-                  arguments: [
-                    {
-                      kind: "Argument",
-                      name: { kind: "Name", value: "limit" },
-                      value: { kind: "IntValue", value: "100" },
-                    },
-                    {
-                      kind: "Argument",
-                      name: { kind: "Name", value: "order_by" },
-                      value: {
-                        kind: "ObjectValue",
-                        fields: [
-                          {
-                            kind: "ObjectField",
-                            name: { kind: "Name", value: "created_at" },
-                            value: { kind: "EnumValue", value: "desc" },
-                          },
-                        ],
-                      },
-                    },
-                  ],
-                  selectionSet: {
-                    kind: "SelectionSet",
-                    selections: [
-                      { kind: "Field", name: { kind: "Name", value: "id" } },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "created_at" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "nullifier" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "action_v4_id" },
                       },
                     ],
                   },

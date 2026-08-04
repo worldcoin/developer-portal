@@ -1,38 +1,71 @@
 \set ON_ERROR_STOP on
 
 -- Operator runbook:
--- 1. Execute only after nullifier_created_at_idx is valid.
--- 2. Set a statement_timeout long enough for the complete production history.
+-- 1. Execute only after both created_at indexes are valid
+--    (create-nullifier-created-at-index.sql).
+-- 2. Set a statement_timeout long enough for the busiest single day of
+--    production history (the backfill commits one day-sized chunk at a time).
 -- 3. Keep WORLD_ID_ANALYTICS_ROLLUP_ENABLED disabled until this script passes.
+-- 4. An interrupted run is safe to rerun as-is: the backfill resumes from the
+--    committed watermark. Only after a *parity validation failure* below must
+--    the rollup state be rebuilt from scratch — run
+--      UPDATE public.world_id_analytics_state
+--         SET processed_through = '-infinity' WHERE singleton;
+--    and then rerun this script.
+DO $index_gate$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_index
+    WHERE indexrelid = to_regclass('public.nullifier_created_at_idx')
+      AND indrelid = 'public.nullifier'::regclass
+      AND indisready
+      AND indisvalid
+  ) THEN
+    RAISE EXCEPTION USING
+      MESSAGE = 'nullifier_created_at_idx is missing or invalid',
+      HINT = 'Run DROP INDEX CONCURRENTLY IF EXISTS public.nullifier_created_at_idx; then rerun create-nullifier-created-at-index.sql';
+  END IF;
+END
+$index_gate$;
+
+DO $index_gate$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_index
+    WHERE indexrelid = to_regclass('public.nullifier_v4_created_at_idx')
+      AND indrelid = 'public.nullifier_v4'::regclass
+      AND indisready
+      AND indisvalid
+  ) THEN
+    RAISE EXCEPTION USING
+      MESSAGE = 'nullifier_v4_created_at_idx is missing or invalid',
+      HINT = 'Run DROP INDEX CONCURRENTLY IF EXISTS public.nullifier_v4_created_at_idx; then rerun create-nullifier-created-at-index.sql';
+  END IF;
+END
+$index_gate$;
+
 CREATE TEMP TABLE analytics_gate_evidence (
   phase text PRIMARY KEY,
   processed_through timestamptz NOT NULL
 ) ON COMMIT PRESERVE ROWS;
 
--- Phase one: acquire the rollup lock and force a complete historical rebuild.
--- Resetting the watermark on every attempt makes the gate restartable even if
--- an earlier validation failure left a finite watermark and an old bad row.
+-- Phase one: rebuild history in bounded one-day chunks. Each chunk commits
+-- and advances the watermark, so progress is observable while it runs
+-- (SELECT processed_through FROM world_id_analytics_state) and an
+-- interrupted run resumes instead of restarting. The watermark is
+-- deliberately not reset here — see runbook step 4 for the one case that
+-- needs it. The procedure aborts loudly if any chunk cannot acquire the
+-- rollup advisory lock.
+CALL public.backfill_world_id_analytics(1);
+
 BEGIN;
-
-DO $gate$
-BEGIN
-  IF NOT pg_try_advisory_xact_lock(533214, 43) THEN
-    RAISE EXCEPTION USING
-      ERRCODE = '55P03',
-      MESSAGE =
-        'Historical analytics backfill did not acquire the advisory lock';
-  END IF;
-END
-$gate$;
-
-INSERT INTO public.world_id_analytics_state (singleton, processed_through)
-VALUES (true, '-infinity'::timestamptz)
-ON CONFLICT (singleton) DO UPDATE
-SET processed_through = EXCLUDED.processed_through;
 
 INSERT INTO analytics_gate_evidence (phase, processed_through)
 SELECT 'historical_backfill', processed_through
-FROM public.rollup_world_id_analytics();
+FROM public.world_id_analytics_state
+WHERE singleton AND isfinite(processed_through);
 
 DO $gate$
 BEGIN
@@ -44,7 +77,7 @@ BEGIN
     RAISE EXCEPTION USING
       ERRCODE = '55P03',
       MESSAGE =
-        'Historical analytics backfill returned no state row';
+        'Historical analytics backfill left no finite watermark';
   END IF;
 END
 $gate$;
@@ -58,7 +91,7 @@ BEGIN ISOLATION LEVEL REPEATABLE READ;
 
 INSERT INTO analytics_gate_evidence (phase, processed_through)
 SELECT 'catch_up', processed_through
-FROM public.rollup_world_id_analytics();
+FROM public.rollup_world_id_analytics(NULL::integer);
 
 DO $gate$
 BEGIN
@@ -86,7 +119,7 @@ WITH watermark AS (
 ),
 canonical AS (
   SELECT
-    'v3'::text AS source,
+    'legacy'::text AS source,
     raw.action_id,
     (raw.created_at AT TIME ZONE 'UTC')::date AS date_utc,
     count(*)::bigint AS unique_count
@@ -113,11 +146,11 @@ canonical AS (
 ),
 rolled AS (
   SELECT
-    'v3'::text AS source,
+    'legacy'::text AS source,
     action_id,
     date_utc,
     unique_count
-  FROM public.action_v3_stats_daily
+  FROM public.action_legacy_stats_daily
 
   UNION ALL
 
@@ -180,9 +213,14 @@ SELECT count(*) AS uses_zero_count, min(created_at), max(created_at)
 FROM public.nullifier
 WHERE uses = 0;
 
-SELECT schemaname, indexname, indexdef
-FROM pg_indexes
-WHERE indexname IN (
+SELECT view.schemaname, view.indexname,
+       catalog.indisready, catalog.indisvalid, view.indexdef
+FROM pg_indexes AS view
+JOIN pg_index AS catalog
+  ON catalog.indexrelid =
+    to_regclass(format('%I.%I', view.schemaname, view.indexname))
+WHERE view.schemaname = 'public'
+  AND view.indexname IN (
   'nullifier_created_at_idx',
   'nullifier_v4_created_at_idx'
 );

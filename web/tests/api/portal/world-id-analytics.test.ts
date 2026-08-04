@@ -420,13 +420,13 @@ describe("GET world-id-analytics [Last 7 Days]", () => {
 
 // #region All Time behavior
 describe("GET world-id-analytics [All Time]", () => {
-  it("starts at app creation when the environment has v3 history", async () => {
+  it("starts at app creation when the environment has legacy history", async () => {
     setSuccessfulReads({
       app: {
         created_at: "2026-07-20T23:59:59.000Z",
         rp_registration: [{ created_at: "2026-07-25T00:00:00.000Z" }],
       },
-      hasV3History: true,
+      hasLegacyHistory: true,
     });
 
     const body = await bodyOf(
@@ -442,7 +442,7 @@ describe("GET world-id-analytics [All Time]", () => {
         created_at: "2026-07-20T00:00:00.000Z",
         rp_registration: [{ created_at: "2026-07-25T23:59:59.000Z" }],
       },
-      hasV3History: false,
+      hasLegacyHistory: false,
     });
 
     const body = await bodyOf(

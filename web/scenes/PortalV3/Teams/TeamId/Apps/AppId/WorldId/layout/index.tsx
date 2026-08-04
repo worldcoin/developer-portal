@@ -4,7 +4,6 @@ import { Button } from "@/components/Button";
 import { ErrorPage } from "@/components/ErrorPage";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { SkeletonForm } from "@/components/Skeletons";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import type { EngineType } from "@/lib/types";
@@ -36,6 +35,7 @@ import {
 import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
 import { RpSummary } from "./RpSummary";
 import { ActionsSearchToolbar } from "./ActionsSearchToolbar";
+import { WorldIdLayoutSkeleton } from "./Skeleton";
 import { getSetupIntent } from "./setup-intent";
 import {
   WorldIdLayoutContext,
@@ -173,11 +173,12 @@ export const WorldIdLayout = (props: {
   });
   const normalizedRequestedTab = normalizeWorldIdTab(requestedTab);
   const shouldNormalizeTab =
-    requestedTab !== null &&
-    (requestedTab !== normalizedRequestedTab ||
-      (!createActionRequested &&
-        !enableWorldId4Requested &&
-        requestedTab !== availableTab));
+    (requestedTab === null && !hasRpRegistration && !createActionRequested) ||
+    (requestedTab !== null &&
+      (requestedTab !== normalizedRequestedTab ||
+        (!createActionRequested &&
+          !enableWorldId4Requested &&
+          requestedTab !== availableTab)));
   const { openSetup, openAction, consumeEnable, consumeCreate } =
     getSetupIntent({
       enableRequested: enableWorldId4Requested,
@@ -237,6 +238,9 @@ export const WorldIdLayout = (props: {
     () => void refetch().catch(() => {}),
     [refetch],
   );
+  const waitForOverviewRefresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   const handleRpChanged = useCallback(
     (status?: RpRegistrationStatus) => {
@@ -269,6 +273,41 @@ export const WorldIdLayout = (props: {
       window.removeEventListener("focus", handleFocus);
     };
   }, [props.appId, refetchOverview]);
+
+  const rpId = rp?.rp_id;
+  const rpServerStatus = rp?.status;
+  // The rp-status endpoint is what reconciles a pending registration (it reads
+  // on-chain state and syncs the DB row), but its usual host — RpSummary —
+  // only mounts on the Configuration section. Keep pending converging while
+  // the user sits on Actions so the grid unlocks without a manual refresh.
+  useEffect(() => {
+    if (!rpId || activeTab === WORLD_ID_TABS.Configuration) return;
+    if (effectiveRpStatus !== RpRegistrationStatus.Pending) return;
+
+    let cancelled = false;
+    const reconcile = async () => {
+      try {
+        const response = await fetch(`/api/v4/rp-status/${rpId}`, {
+          signal: AbortSignal.timeout(4000),
+        });
+        if (cancelled || !response.ok) return;
+        const result = (await response.json()) as { production_status: string };
+        if (result.production_status !== rpServerStatus) refetchOverview();
+      } catch {
+        // Retain the last known status when reconciliation is unavailable.
+      }
+    };
+
+    void reconcile();
+    const interval = setInterval(() => {
+      if (!document.hidden) void reconcile();
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [activeTab, effectiveRpStatus, refetchOverview, rpId, rpServerStatus]);
 
   const consumeCreateAction = useCallback(() => {
     setCreateAfterSetup(false);
@@ -348,11 +387,22 @@ export const WorldIdLayout = (props: {
           </div>
         ) : null}
 
-        {initialLoading ? (
-          <div className="rounded-xl border border-grey-100 bg-white p-5">
-            <SkeletonForm count={3} className="max-w-[760px] py-2" />
-          </div>
-        ) : (
+        {initialLoading && (
+          <WorldIdLayoutSkeleton
+            // Deep-link intents pin the destination before data arrives,
+            // mirroring resolveActiveWorldIdTab's intent-first branches:
+            // enable always lands on Configuration; create does too until an
+            // active RP is known (the dialog then opens over Actions).
+            tab={
+              createActionRequested || enableWorldId4Requested
+                ? WORLD_ID_TABS.Configuration
+                : normalizedRequestedTab
+            }
+            appId={props.appId}
+            canManageWorldId={props.canManageWorldId}
+          />
+        )}
+        {!initialLoading && (
           <div className="flex flex-col gap-6">
             {activeTab !== WORLD_ID_TABS.Configuration ? (
               <ActionsSearchToolbar
@@ -395,7 +445,7 @@ export const WorldIdLayout = (props: {
                     initialOpen={openSetup || setupRequested}
                     isStaging={app.is_staging}
                     canManageWorldId={props.canManageWorldId}
-                    onRegistered={refetchOverview}
+                    onRegistered={waitForOverviewRefresh}
                     onSetupClosed={(completed) => {
                       setSetupRequested(false);
                       if (completed) {

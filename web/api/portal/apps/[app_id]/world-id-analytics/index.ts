@@ -106,13 +106,13 @@ export async function GET(
     const today = utcDate(new Date());
     const weekStart = dateFromDay(dayNumber(today) - 6);
     const appCreated = utcDate(app.created_at);
-    const hasV3History =
-      scope.has_v3_history.length > 0 &&
+    const hasLegacyHistory =
+      scope.has_legacy_history.length > 0 &&
       (app.is_staging ? "staging" : "production") === environment;
     const earliestRp = app.rp_registration
       .map((rp: any) => utcDate(rp.created_at))
       .sort()[0];
-    const allTimeAppStart = hasV3History
+    const allTimeAppStart = hasLegacyHistory
       ? appCreated
       : earliestRp ?? appCreated;
     const appFrom =
@@ -151,7 +151,7 @@ export async function GET(
           from: readFrom,
           through: today,
         })
-      : { action_v3_stats_daily: [], action_v4_stats_daily: [] };
+      : { action_legacy_stats_daily: [], action_v4_stats_daily: [] };
 
     const metricFor = (action: any, rows: Row[]) => {
       const created = utcDate(action.created_at);
@@ -165,7 +165,7 @@ export async function GET(
         const action = legacyById.get(id);
         return metricFor(
           action,
-          actionResult.action_v3_stats_daily.filter(
+          actionResult.action_legacy_stats_daily.filter(
             (row: any) => row.action_id === id,
           ),
         );

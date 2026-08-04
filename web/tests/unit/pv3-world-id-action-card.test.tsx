@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { ActionsSearchToolbar } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/ActionsSearchToolbar";
 import { ActionCard } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionCard";
 import { ActionsGrid } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsGrid";
@@ -71,6 +72,7 @@ it("renders the create action card before existing actions", () => {
       appId="app_1"
       search=""
       canCreate
+      emptyReason="Ask a team owner or admin to create actions."
       onCreateActionConsumed={jest.fn()}
       onActionsChanged={jest.fn()}
     />,
@@ -95,6 +97,7 @@ it("paginates action cards", () => {
       appId="app_1"
       search=""
       canCreate={false}
+      emptyReason="Ask a team owner or admin to create actions."
       onCreateActionConsumed={jest.fn()}
       onActionsChanged={jest.fn()}
     />,
@@ -106,6 +109,54 @@ it("paginates action cards", () => {
   expect(screen.getByRole("link", { name: "action-13" })).toBeInTheDocument();
 });
 
+const emptyGrid = (over: Partial<ComponentProps<typeof ActionsGrid>> = {}) => (
+  <ActionsGrid
+    actions={[]}
+    teamId="team_1"
+    appId="app_1"
+    search=""
+    canCreate={false}
+    emptyReason="Ask a team owner or admin to create actions."
+    onCreateActionConsumed={jest.fn()}
+    onActionsChanged={jest.fn()}
+    {...over}
+  />
+);
+
+it("explains an empty grid that offers no way to create", () => {
+  render(emptyGrid());
+
+  expect(
+    screen.getByText("Ask a team owner or admin to create actions."),
+  ).toBeInTheDocument();
+});
+
+it("explains a search that filters every action out", () => {
+  render(
+    emptyGrid({
+      actions: [{ id: "action_1", action: "verify", description: "" }],
+      search: "nothing-matches",
+      canCreate: true,
+    }),
+  );
+
+  expect(screen.getByText("No actions match your search.")).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Create action" }),
+  ).toBeInTheDocument();
+});
+
+it("leaves the create tile as the only empty state when creation is allowed", () => {
+  render(emptyGrid({ canCreate: true }));
+
+  expect(
+    screen.getByRole("button", { name: "Create action" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByText("Ask a team owner or admin to create actions."),
+  ).not.toBeInTheDocument();
+});
+
 it("opens a deferred create intent when it becomes actionable", async () => {
   const props = {
     actions: [],
@@ -113,6 +164,7 @@ it("opens a deferred create intent when it becomes actionable", async () => {
     appId: "app_1",
     search: "",
     canCreate: true,
+    emptyReason: "Ask a team owner or admin to create actions.",
     onCreateActionConsumed: jest.fn(),
     onActionsChanged: jest.fn(),
   };

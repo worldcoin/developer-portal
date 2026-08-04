@@ -6,12 +6,13 @@ import { makeRollupOperationResult } from "../contracts/world-id-analytics-graph
 const databaseOperation = jest.fn();
 const getAPIServiceGraphqlClient = jest.fn().mockResolvedValue({});
 const loggerInfo = jest.fn();
+const loggerWarn = jest.fn();
 const loggerError = jest.fn();
 
 jest.mock("@/lib/logger", () => ({
   logger: {
     info: (...args: unknown[]) => loggerInfo(...args),
-    warn: jest.fn(),
+    warn: (...args: unknown[]) => loggerWarn(...args),
     error: (...args: unknown[]) => loggerError(...args),
   },
 }));
@@ -74,17 +75,25 @@ describe("POST _rollup-world-id-analytics [authentication]", () => {
 
 // #region Recurring rollup
 describe("POST _rollup-world-id-analytics [rollup]", () => {
-  it("invokes exactly one database-owned transaction", async () => {
+  it("invokes exactly one capped database-owned transaction", async () => {
     process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED = "true";
 
     const response = await POST(request(`Bearer ${secret}`));
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ success: true });
+    expect(await response.json()).toEqual({
+      success: true,
+      outcome: "advanced",
+      processed_through: "2026-07-30T11:55:00.000Z",
+    });
     expect(databaseOperation).toHaveBeenCalledTimes(1);
+    expect(databaseOperation).toHaveBeenCalledWith({ max_advance_days: 30 });
     expect(loggerInfo).toHaveBeenCalledWith(
       "Rolled up World ID analytics",
-      expect.any(Object),
+      expect.objectContaining({
+        outcome: "advanced",
+        processed_through: "2026-07-30T11:55:00.000Z",
+      }),
     );
   });
 
@@ -94,21 +103,29 @@ describe("POST _rollup-world-id-analytics [rollup]", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       success: true,
-      skipped: "disabled",
+      outcome: "disabled",
     });
     expect(getAPIServiceGraphqlClient).not.toHaveBeenCalled();
     expect(databaseOperation).not.toHaveBeenCalled();
   });
 
-  it("treats the database lock miss as a successful no-op", async () => {
+  it("reports the database lock miss distinctly from an advance", async () => {
     process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED = "true";
     databaseOperation.mockResolvedValue(makeRollupOperationResult(false));
 
     const response = await POST(request(secret));
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ success: true });
+    expect(await response.json()).toEqual({
+      success: true,
+      outcome: "lock_missed",
+    });
     expect(databaseOperation).toHaveBeenCalledTimes(1);
+    expect(loggerWarn).toHaveBeenCalledWith(
+      "World ID analytics rollup did not acquire its lock",
+      expect.objectContaining({ outcome: "lock_missed" }),
+    );
+    expect(loggerInfo).not.toHaveBeenCalled();
   });
 
   it("returns 500 when the atomic database operation fails", async () => {

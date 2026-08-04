@@ -7,13 +7,13 @@
  * Scope query result: { app: [{ id, created_at, is_staging,
  * rp_registration: [{ rp_id, created_at }] }], legacy_actions: [{ id, app_id,
  * created_at }], actions: [{ id, rp_id, environment, created_at }],
- * has_v3_history: [{ date_utc }] }.
+ * has_legacy_history: [{ date_utc }] }.
  */
 
 export type AnalyticsScopeInput = {
   actions?: ReadonlyArray<Record<string, unknown>>;
   app?: Record<string, unknown> | null;
-  hasV3History?: boolean;
+  hasLegacyHistory?: boolean;
   legacyActions?: ReadonlyArray<Record<string, unknown>>;
 };
 
@@ -46,8 +46,8 @@ export const makeAnalyticsScopeResult = (
       app_id === undefined || app_id === appId ? scopeRpId : otherScopeRpId,
     ...action,
   })),
-  has_v3_history:
-    input.hasV3History ?? true ? [{ date_utc: "2026-01-05" }] : [],
+  has_legacy_history:
+    input.hasLegacyHistory ?? true ? [{ date_utc: "2026-01-05" }] : [],
 });
 
 export const makeAppDailyResult = (
@@ -68,7 +68,7 @@ export const makeActionDailyResult = (input?: {
     unique_count: string;
   }>;
 }) => ({
-  action_v3_stats_daily: input?.legacy ?? [],
+  action_legacy_stats_daily: input?.legacy ?? [],
   action_v4_stats_daily: input?.v4 ?? [],
 });
 

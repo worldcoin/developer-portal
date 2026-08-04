@@ -1,9 +1,9 @@
 "use client";
 
 import { ErrorPage } from "@/components/ErrorPage";
+import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { SkeletonTable } from "@/components/Skeletons";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { TextField } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/TextField";
 import { urls } from "@/lib/urls";
 import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { useQuery } from "@apollo/client/react";
@@ -11,12 +11,12 @@ import {
   GetWorldIdActionDetailDocument,
   GetWorldIdActionDetailQuery,
 } from "./graphql/client/get-world-id-action-detail.generated";
-import { VerifiedTable } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
-import { adaptNullifierV4 } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/utils/adapt-nullifier-v4";
 import Link from "next/link";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
-import { SettingsCard } from "./SettingsCard";
+import { DeleteAction } from "./DeleteAction";
+import { VerificationHistory } from "./VerificationHistory";
+import { UpdateActionV4Form } from "../Settings/UpdateActionV4Form";
 import { WorldIdAnalyticsGraph } from "../../../WorldId/common/WorldIdAnalyticsGraph";
 
 type Action = GetWorldIdActionDetailQuery["action_v4"][number];
@@ -71,47 +71,60 @@ export const WorldIdActionDetailPage = (props: {
             Actions
           </Link>
           <span className="font-world text-13 text-portal-subtle">/</span>
-          {!action ? (
-            <Skeleton width={120} />
-          ) : (
+          {!action && (
+            // Same type ramp as the loaded name — a bare Skeleton inherits
+            // the 16px base and makes this row 3px taller than loaded.
+            <span className="font-ibm text-13 font-medium">
+              <Skeleton width={120} />
+            </span>
+          )}
+          {action && (
             <span className="font-ibm text-13 font-medium text-portal-heading">
               {action.action}
             </span>
           )}
         </div>
 
-        <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
-          {!action ? (
-            <Skeleton height={48} />
-          ) : (
-            <div className="flex flex-col gap-2">
-              <span className="font-ibm text-[20px] leading-none font-medium text-portal-heading">
-                {action.action}
-              </span>
-              {action.description ? (
-                <span className="font-world text-sm text-portal-muted">
-                  {action.description}
-                </span>
-              ) : null}
-            </div>
-          )}
-        </div>
+        {action && (
+          <UpdateActionV4Form
+            key={action.id}
+            action={action}
+            appId={appId}
+            canModify={canModify}
+            onUpdated={() => void refetch().catch(() => {})}
+          />
+        )}
+        {!action && (
+          // UpdateActionV4Form's chrome with shimmer values, so the loaded
+          // form fills in place.
+          <div aria-hidden className="flex w-full flex-col gap-4">
+            <TextField
+              label="Action identifier"
+              value=""
+              readOnly
+              muted
+              loading
+              trailing={
+                <CopyIcon
+                  aria-hidden
+                  className="size-5 shrink-0 text-portal-ink"
+                />
+              }
+            />
+            <TextField label="Short description" value="" loading />
+          </div>
+        )}
 
-        {action ? (
+        {action && (
           <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
             <WorldIdAnalyticsGraph
               appId={appId}
               environment="production"
               scope={{ type: "action", source: "v4", actionId }}
             />
-            <VerifiedTable
-              columns={["human", "time"]}
-              nullifiers={adaptNullifierV4(action.nullifiers)}
-              showIcons={false}
-              showCount={false}
-            />
           </div>
-        ) : (
+        )}
+        {!action && (
           <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
             <div className="flex flex-col gap-1">
               <span className="font-world text-sm text-portal-muted">
@@ -119,28 +132,18 @@ export const WorldIdActionDetailPage = (props: {
               </span>
               <Skeleton width={80} height={28} />
             </div>
-
-            <div className="mt-6">
-              <Typography variant={TYPOGRAPHY.H7}>
-                Recent verifications
-              </Typography>
-              <SkeletonTable
-                columns={["Nullifier", "Time"]}
-                rows={4}
-                className="mt-6"
-              />
-            </div>
           </div>
         )}
 
+        <VerificationHistory actionId={actionId} appId={appId} />
+
         {action && canModify ? (
-          <SettingsCard
+          <DeleteAction
             action={action}
             teamId={teamId}
             appId={appId}
             canModify={canModify}
             onDeleted={() => setDeleted(true)}
-            onUpdated={() => void refetch().catch(() => {})}
           />
         ) : null}
       </div>

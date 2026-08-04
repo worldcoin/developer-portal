@@ -91,11 +91,11 @@ const endpointBody = async (input?: Parameters<typeof callEndpoint>[0]) => {
 };
 
 const getDailyRows = async (
-  table: "action_v3_stats_daily" | "action_v4_stats_daily",
+  table: "action_legacy_stats_daily" | "action_v4_stats_daily",
   actionId: string,
 ) => {
   const column =
-    table === "action_v3_stats_daily" ? "action_id" : "action_v4_id";
+    table === "action_legacy_stats_daily" ? "action_id" : "action_v4_id";
   const result = await pool.query<DailyRow>(
     `SELECT ${column}, date_utc::text, unique_count::text
        FROM public.${table}
@@ -121,7 +121,7 @@ const installPauseTrigger = async () => {
   );
   await pool.query(
     `CREATE TRIGGER contract_pause_analytics_rollup
-     BEFORE INSERT ON public.action_v3_stats_daily
+     BEFORE INSERT ON public.action_legacy_stats_daily
      FOR EACH ROW EXECUTE FUNCTION public.contract_pause_analytics_rollup()`,
   );
 };
@@ -215,9 +215,9 @@ beforeEach(async () => {
   await pool.query(`
     DO $$
     BEGIN
-      IF to_regclass('public.action_v3_stats_daily') IS NOT NULL THEN
+      IF to_regclass('public.action_legacy_stats_daily') IS NOT NULL THEN
         DROP TRIGGER IF EXISTS contract_pause_analytics_rollup
-          ON public.action_v3_stats_daily;
+          ON public.action_legacy_stats_daily;
       END IF;
       IF to_regclass('public.action_v4_stats_daily') IS NOT NULL THEN
         DROP TRIGGER IF EXISTS contract_fail_v4_analytics_rollup
@@ -291,10 +291,17 @@ describe("World ID analytics [real cold backfill and endpoint]", () => {
       createdAt: "2026-01-10T03:00:00.000Z",
     });
 
-    await expect(callRollup()).resolves.toEqual({ success: true });
+    await expect(callRollup()).resolves.toEqual({
+      success: true,
+      outcome: "advanced",
+      processed_through: expect.any(String),
+    });
 
     expect(
-      await getDailyRows("action_v3_stats_daily", fixture.productionV3ActionId),
+      await getDailyRows(
+        "action_legacy_stats_daily",
+        fixture.productionV3ActionId,
+      ),
     ).toEqual([
       {
         action_id: fixture.productionV3ActionId,
@@ -598,7 +605,10 @@ describe("World ID analytics [real rebuild and catch-up]", () => {
     await callRollup();
 
     expect(
-      await getDailyRows("action_v3_stats_daily", fixture.productionV3ActionId),
+      await getDailyRows(
+        "action_legacy_stats_daily",
+        fixture.productionV3ActionId,
+      ),
     ).toEqual([
       {
         action_id: fixture.productionV3ActionId,
@@ -621,7 +631,7 @@ describe("World ID analytics [real rebuild and catch-up]", () => {
       (
         await pool.query<{ total: string }>(
           `SELECT coalesce(sum(unique_count), 0)::text AS total
-             FROM public.action_v3_stats_daily
+             FROM public.action_legacy_stats_daily
             WHERE action_id = $1`,
           [fixture.productionV3ActionId],
         )
@@ -706,7 +716,7 @@ describe("World ID analytics [real rebuild and catch-up]", () => {
     expect(
       (
         await getDailyRows(
-          "action_v3_stats_daily",
+          "action_legacy_stats_daily",
           fixture.productionV3ActionId,
         )
       ).map((row) => row.date_utc),
@@ -771,7 +781,10 @@ describe("World ID analytics [real atomicity and locking]", () => {
 
     await expect(callRollup()).rejects.toThrow("rollup failed (500)");
     expect(
-      await getDailyRows("action_v3_stats_daily", fixture.productionV3ActionId),
+      await getDailyRows(
+        "action_legacy_stats_daily",
+        fixture.productionV3ActionId,
+      ),
     ).toEqual([]);
     expect(
       await getDailyRows("action_v4_stats_daily", fixture.productionV4ActionId),
@@ -793,10 +806,13 @@ describe("World ID analytics [real atomicity and locking]", () => {
       const firstRun = callRollup();
       await waitForBarrierWaiter();
 
-      await expect(callRollup()).resolves.toEqual({ success: true });
+      await expect(callRollup()).resolves.toEqual({
+        success: true,
+        outcome: "lock_missed",
+      });
       expect(
         await getDailyRows(
-          "action_v3_stats_daily",
+          "action_legacy_stats_daily",
           fixture.productionV3ActionId,
         ),
       ).toEqual([]);
@@ -805,7 +821,7 @@ describe("World ID analytics [real atomicity and locking]", () => {
       await firstRun;
       expect(
         await getDailyRows(
-          "action_v3_stats_daily",
+          "action_legacy_stats_daily",
           fixture.productionV3ActionId,
         ),
       ).toHaveLength(1);
@@ -824,10 +840,13 @@ describe("World ID analytics [real atomicity and locking]", () => {
     try {
       await lockClient.query("BEGIN");
       await lockClient.query("SELECT pg_advisory_xact_lock(533214, 43)");
-      await expect(callRollup()).resolves.toEqual({ success: true });
+      await expect(callRollup()).resolves.toEqual({
+        success: true,
+        outcome: "lock_missed",
+      });
       expect(
         await getDailyRows(
-          "action_v3_stats_daily",
+          "action_legacy_stats_daily",
           fixture.productionV3ActionId,
         ),
       ).toEqual([]);
@@ -835,10 +854,14 @@ describe("World ID analytics [real atomicity and locking]", () => {
       await lockClient.query("ROLLBACK");
       await lockClient.query("BEGIN");
       await lockClient.query("SELECT pg_advisory_xact_lock(533214, 42)");
-      await expect(callRollup()).resolves.toEqual({ success: true });
+      await expect(callRollup()).resolves.toEqual({
+        success: true,
+        outcome: "advanced",
+        processed_through: expect.any(String),
+      });
       expect(
         await getDailyRows(
-          "action_v3_stats_daily",
+          "action_legacy_stats_daily",
           fixture.productionV3ActionId,
         ),
       ).toHaveLength(1);
@@ -853,7 +876,12 @@ describe("World ID analytics [real atomicity and locking]", () => {
 // #region Deletion and no resurrection
 describe("World ID analytics [real action deletion]", () => {
   it.each([
-    ["v3", fixture.productionV3ActionId, "action_v3_stats_daily", "action_id"],
+    [
+      "v3",
+      fixture.productionV3ActionId,
+      "action_legacy_stats_daily",
+      "action_id",
+    ],
     [
       "v4",
       fixture.productionV4ActionId,
@@ -920,7 +948,7 @@ describe("World ID analytics [real action deletion]", () => {
       await callRollup();
       expect(
         await getDailyRows(
-          "action_v3_stats_daily",
+          "action_legacy_stats_daily",
           fixture.productionV3ActionId,
         ),
       ).toEqual([]);
@@ -1011,7 +1039,7 @@ describe("World ID analytics [real Hasura metadata]", () => {
     expect(source).toBeDefined();
 
     const analyticsName =
-      /(?:world_id.*(?:analytics|stats_daily)|(?:analytics|stats_daily).*world_id|action_v[34]_stats_daily)/i;
+      /(?:world_id.*(?:analytics|stats_daily)|(?:analytics|stats_daily).*world_id|action_(?:legacy|v4)_stats_daily)/i;
     const trackedTables = (source?.tables ?? []).filter((item) =>
       analyticsName.test(item.table.name),
     );
@@ -1050,7 +1078,7 @@ describe("World ID analytics [real Hasura metadata]", () => {
 
     expect(trackedTables.map((item) => item.table.name)).toEqual(
       expect.arrayContaining([
-        "action_v3_stats_daily",
+        "action_legacy_stats_daily",
         "action_v4_stats_daily",
         "world_id_analytics_state",
       ]),

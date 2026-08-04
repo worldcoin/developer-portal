@@ -1,5 +1,5 @@
 table:
-  name: action_v3_stats_daily
+  name: action_legacy_stats_daily
   schema: public
 object_relationships:
   - name: action

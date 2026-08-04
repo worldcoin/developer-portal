@@ -19,13 +19,10 @@ const requiredEnv = (name: string) => {
   return value;
 };
 
-const runBackfillAndValidate = () => {
+const runSqlOperation = (filename: string) => {
   const repositoryRoot = requiredEnv("WIA_REPOSITORY_ROOT");
   const sql = readFileSync(
-    path.join(
-      repositoryRoot,
-      "hasura/operations/world-id-analytics/backfill-and-validate.sql",
-    ),
+    path.join(repositoryRoot, "hasura/operations/world-id-analytics", filename),
     "utf8",
   );
 
@@ -59,13 +56,19 @@ const runBackfillAndValidate = () => {
   );
 };
 
-const commandOutput = (result: ReturnType<typeof runBackfillAndValidate>) =>
+const runBackfillAndValidate = () =>
+  runSqlOperation("backfill-and-validate.sql");
+
+const runCreateNullifierIndex = () =>
+  runSqlOperation("create-nullifier-created-at-index.sql");
+
+const commandOutput = (result: ReturnType<typeof runSqlOperation>) =>
   `${result.stdout}\n${result.stderr}`;
 
 const removeParitySabotage = async () => {
   await pool.query(`
     DROP TRIGGER IF EXISTS contract_corrupt_v3_analytics_rollup
-      ON public.action_v3_stats_daily;
+      ON public.action_legacy_stats_daily;
     DROP TRIGGER IF EXISTS contract_corrupt_v4_analytics_rollup
       ON public.action_v4_stats_daily;
     DROP FUNCTION IF EXISTS public.contract_corrupt_v3_analytics_rollup();
@@ -97,6 +100,72 @@ jest.setTimeout(150_000);
 
 // #region Deployment gate
 describe("World ID analytics [backfill and validation gate]", () => {
+  it("rejects an invalid same-named concurrent index", async () => {
+    const duplicateCreatedAt = new Date(
+      Date.now() - 7 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    await insertV3Nullifier(pool, {
+      id: "nullifier_v3_invalid_index_one",
+      createdAt: duplicateCreatedAt,
+    });
+    await insertV3Nullifier(pool, {
+      id: "nullifier_v3_invalid_index_two",
+      createdAt: duplicateCreatedAt,
+    });
+    await pool.query("DROP INDEX CONCURRENTLY public.nullifier_created_at_idx");
+
+    try {
+      await expect(
+        pool.query(`
+          CREATE UNIQUE INDEX CONCURRENTLY nullifier_created_at_idx
+            ON public.nullifier (created_at)
+        `),
+      ).rejects.toThrow();
+
+      for (const result of [
+        runCreateNullifierIndex(),
+        runBackfillAndValidate(),
+      ]) {
+        expect(result.status).not.toBe(0);
+        expect(commandOutput(result)).toContain(
+          "nullifier_created_at_idx is missing or invalid",
+        );
+      }
+    } finally {
+      await pool.query(
+        "DROP INDEX CONCURRENTLY IF EXISTS public.nullifier_created_at_idx",
+      );
+      await pool.query(`
+        CREATE INDEX CONCURRENTLY nullifier_created_at_idx
+          ON public.nullifier (created_at)
+      `);
+    }
+  });
+
+  it("fails before any backfill work when the v4 source index is missing", async () => {
+    await pool.query(
+      "DROP INDEX CONCURRENTLY public.nullifier_v4_created_at_idx",
+    );
+
+    try {
+      const result = runBackfillAndValidate();
+
+      expect(result.status).not.toBe(0);
+      expect(commandOutput(result)).toContain(
+        "nullifier_v4_created_at_idx is missing or invalid",
+      );
+      expect(
+        (await pool.query("SELECT 1 FROM public.world_id_analytics_state"))
+          .rows,
+      ).toEqual([]);
+    } finally {
+      await pool.query(`
+        CREATE INDEX CONCURRENTLY nullifier_v4_created_at_idx
+          ON public.nullifier_v4 (created_at)
+      `);
+    }
+  });
+
   it("runs the historical backfill, catch-up, and raw parity check", async () => {
     const createdAt = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     await insertV4Nullifier(pool, {
@@ -143,7 +212,7 @@ describe("World ID analytics [backfill and validation gate]", () => {
 
       expect(result.status).not.toBe(0);
       expect(commandOutput(result)).toContain(
-        "Historical analytics backfill did not acquire the advisory lock",
+        "World ID analytics backfill did not acquire the advisory lock",
       );
     } finally {
       await lockClient.query("ROLLBACK");
@@ -191,6 +260,12 @@ describe("World ID analytics [backfill and validation gate]", () => {
     expect(stateAfterFailure.rows).toEqual([{ finite: true }]);
 
     await removeParitySabotage();
+    // The gate resumes from the committed watermark by design, so a parity
+    // failure requires the runbook's explicit reset before the retry.
+    await pool.query(`
+      UPDATE public.world_id_analytics_state
+         SET processed_through = '-infinity' WHERE singleton
+    `);
 
     const retry = runBackfillAndValidate();
     expect({
@@ -222,7 +297,7 @@ describe("World ID analytics [backfill and validation gate]", () => {
       $$;
 
       CREATE TRIGGER contract_corrupt_v3_analytics_rollup
-      BEFORE INSERT ON public.action_v3_stats_daily
+      BEFORE INSERT ON public.action_legacy_stats_daily
       FOR EACH ROW
       EXECUTE FUNCTION public.contract_corrupt_v3_analytics_rollup();
     `);

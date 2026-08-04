@@ -19,7 +19,7 @@ query GetWorldIdAnalyticsScope($app_id: String!, $action_ids: [String!]!) {
     environment
     created_at
   }
-  has_v3_history: action_v3_stats_daily(
+  has_legacy_history: action_legacy_stats_daily(
     limit: 1
     where: { action: { app_id: { _eq: $app_id } } }
   ) {
@@ -52,7 +52,7 @@ query GetWorldIdAnalyticsActionDaily(
   $from: date!
   $through: date!
 ) {
-  action_v3_stats_daily(
+  action_legacy_stats_daily(
     where: {
       action_id: { _in: $legacy_ids }
       date_utc: { _gte: $from, _lte: $through }

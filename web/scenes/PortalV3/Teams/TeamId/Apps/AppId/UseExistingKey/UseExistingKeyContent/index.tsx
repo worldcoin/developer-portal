@@ -40,6 +40,7 @@ export type UseExistingKeyContentProps = {
   onContinue: (publicKey: string) => void;
   className?: string;
   loading?: boolean;
+  loadingLabel?: string;
   /** Skip the internal heading when a dialog header already carries it. */
   hideTitle?: boolean;
 };
@@ -49,6 +50,7 @@ export const UseExistingKeyContent = ({
   onContinue,
   className,
   loading = false,
+  loadingLabel,
   hideTitle,
 }: UseExistingKeyContentProps) => {
   const defaultValues: FormValues = useMemo(() => ({ public_key: "" }), []);
@@ -124,9 +126,16 @@ export const UseExistingKeyContent = ({
           type="submit"
           disabled={!isValid || loading}
           data-testid="button-use-existing-key-create"
-          className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
+          className={`${formDialogPrimaryActionClassName} order-1 gap-x-2 md:order-none`}
         >
-          {loading ? <SpinnerIcon className="size-5 animate-spin" /> : "Create"}
+          {loading ? (
+            <>
+              <SpinnerIcon className="size-5 animate-spin" />
+              {loadingLabel}
+            </>
+          ) : (
+            "Create"
+          )}
         </button>
       </div>
     </form>
