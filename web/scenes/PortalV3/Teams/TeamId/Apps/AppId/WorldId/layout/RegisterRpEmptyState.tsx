@@ -81,7 +81,7 @@ export const RegisterRpEmptyState = (props: {
                 <InkButton
                   type="button"
                   disabled={!canRegister}
-                  className="h-9 shrink-0 px-4 text-12"
+                  className="h-9 shrink-0"
                   aria-describedby={
                     unavailableReason
                       ? "world-id-registration-unavailable-reason"
