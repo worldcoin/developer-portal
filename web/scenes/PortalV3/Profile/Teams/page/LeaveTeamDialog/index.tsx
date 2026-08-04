@@ -1,10 +1,5 @@
-import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog, DialogProps } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
-import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
+import { DialogProps } from "@/components/Dialog";
 import { Auth0SessionUser } from "@/lib/types";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback } from "react";
@@ -19,7 +14,7 @@ type LeaveTeamDialogProps = DialogProps & {
 };
 
 export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
-  const { team, ...otherProps } = props;
+  const { team } = props;
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const [leaveTeam, leaveTeamMutationRes] = useMutation(LeaveTeamDocument);
 
@@ -51,46 +46,21 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
   }
 
   return (
-    <Dialog {...otherProps}>
-      <DialogOverlay />
-
-      <DialogPanel className="grid gap-y-8 md:max-w-md">
-        <CircleIconContainer variant="error">
-          <AlertIcon />
-        </CircleIconContainer>
-
-        <div className="grid justify-items-center gap-y-4">
-          <Typography as="h3" variant={TYPOGRAPHY.H6}>
-            Are you sure?
-          </Typography>
-
-          <p className="text-center text-16 leading-6 font-medium text-grey-500">
-            If you choose to leave the{" "}
-            <span className="font-medium text-grey-900">{team?.name}</span>{" "}
-            team, you will need to be invited again in order to rejoin if you
-            change your mind.
-          </p>
-        </div>
-
-        <div className="mt-2 grid w-full grid-cols-2 gap-x-4">
-          <DecoratedButton
-            type="button"
-            variant="danger"
-            onClick={submit}
-            loading={leaveTeamMutationRes.loading}
-          >
-            Leave team
-          </DecoratedButton>
-
-          <DecoratedButton
-            type="button"
-            variant="primary"
-            onClick={() => props.onClose(false)}
-          >
-            Stay in team
-          </DecoratedButton>
-        </div>
-      </DialogPanel>
-    </Dialog>
+    // No typed verification: an invite can bring the user back, unlike the
+    // deletes that destroy data.
+    <DeleteConfirmationDialog
+      open={Boolean(props.open)}
+      onClose={() => props.onClose(false)}
+      onConfirm={submit}
+      loading={leaveTeamMutationRes.loading}
+      title="Leave team"
+      description={
+        <>
+          You will lose access to the{" "}
+          <span className="font-medium text-portal-text">{team?.name}</span>{" "}
+          team and will need to be invited again in order to rejoin.
+        </>
+      }
+    />
   );
 };

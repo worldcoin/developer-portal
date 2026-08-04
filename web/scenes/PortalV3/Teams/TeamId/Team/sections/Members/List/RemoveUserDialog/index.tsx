@@ -1,17 +1,10 @@
 "use client";
 
-import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
-import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 import { useMutation } from "@apollo/client/react";
 import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
-import { useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { FetchTeamMembersDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/fetch-team-members.generated";
 import { RemoveUserDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/List/RemoveUserDialog/graphql/client/remove-user.generated";
@@ -24,11 +17,7 @@ export const RemoveUserDialog = (props: {
 }) => {
   const [isOpened, setIsOpened] = useAtom(removeUserDialogAtom);
   const { teamId } = useParams() as { teamId: string };
-
-  const {
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [removeUser] = useMutation(RemoveUserDocument);
 
@@ -36,6 +25,8 @@ export const RemoveUserDialog = (props: {
     if (!props.id || !teamId) {
       return toast.error("Something went wrong. Please try again later.");
     }
+
+    setIsSubmitting(true);
 
     try {
       await removeUser({
@@ -51,53 +42,29 @@ export const RemoveUserDialog = (props: {
       toast.success(`User ${props.name} has been removed from the team.`);
     } catch (error) {
       return toast.error("Something went wrong. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
     }
 
     setIsOpened(false);
   }, [props.id, props.name, removeUser, setIsOpened, teamId]);
 
   return (
-    <Dialog open={isOpened} onClose={setIsOpened}>
-      <DialogOverlay />
-
-      <DialogPanel className="grid gap-y-8 md:max-w-100">
-        <CircleIconContainer variant="error">
-          <AlertIcon />
-        </CircleIconContainer>
-
-        <div className="grid justify-items-center gap-y-4">
-          <Typography variant={TYPOGRAPHY.H6}>Are you sure?</Typography>
-
-          <p className="text-center text-grey-500">
-            Are you sure you want to remove{" "}
-            <span className="font-medium text-grey-900">{props.name}</span> as a
-            member of your team? Please be aware that this action is permanent.
-          </p>
-        </div>
-
-        <form
-          onSubmit={handleSubmit(submit)}
-          className="grid w-full grid-cols-1 items-center gap-2 md:grid-cols-2 md:gap-4"
-        >
-          <DecoratedButton
-            className="order-2 md:order-1"
-            type="submit"
-            variant="danger"
-            disabled={isSubmitting}
-          >
-            Remove
-          </DecoratedButton>
-
-          <DecoratedButton
-            className="order-1 whitespace-nowrap"
-            variant="primary"
-            type="button"
-            onClick={() => setIsOpened(false)}
-          >
-            Keep member
-          </DecoratedButton>
-        </form>
-      </DialogPanel>
-    </Dialog>
+    // No typed verification: the member can be invited back, unlike the deletes
+    // that destroy data.
+    <DeleteConfirmationDialog
+      open={isOpened}
+      onClose={() => setIsOpened(false)}
+      onConfirm={submit}
+      loading={isSubmitting}
+      title="Remove member"
+      description={
+        <>
+          <span className="font-medium text-portal-text">{props.name}</span>{" "}
+          will lose access to this team and all of its apps. You can invite them
+          again later.
+        </>
+      }
+    />
   );
 };

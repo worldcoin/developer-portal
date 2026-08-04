@@ -28,9 +28,8 @@ beforeEach(() => {
 
 // #region Confirmation dialog
 describe("PortalV3 delete account dialog", () => {
-  it("uses the form dialog and requires the exact confirmation phrase", async () => {
-    const onClose = jest.fn();
-    render(<DeleteAccountDialog open onClose={onClose} />);
+  it("gates the confirm button behind the verification word", async () => {
+    render(<DeleteAccountDialog open onClose={jest.fn()} />);
 
     expect(
       screen.getByRole("heading", { name: "Delete account" }),
@@ -38,27 +37,31 @@ describe("PortalV3 delete account dialog", () => {
     expect(
       screen.getByText("This action cannot be undone."),
     ).toBeInTheDocument();
-    expect(document.querySelector("svg")).toBeInTheDocument();
 
-    const confirmationInput = screen.getByLabelText(
-      "To confirm, type DELETE below",
-    );
-    const deleteButton = screen.getByRole("button", {
-      name: "Delete account",
-    });
+    const confirmationInput = screen.getByLabelText(/To verify, type/);
+    const confirmButton = screen.getByRole("button", { name: "Yes" });
 
-    expect(deleteButton).toHaveClass("text-13");
-    expect(deleteButton).toBeDisabled();
+    expect(confirmButton).toBeDisabled();
 
-    fireEvent.change(confirmationInput, { target: { value: "delete" } });
-    await waitFor(() => expect(deleteButton).toBeDisabled());
+    fireEvent.change(confirmationInput, { target: { value: "delet" } });
+    await waitFor(() => expect(confirmButton).toBeDisabled());
 
+    // Case-insensitive, matching every other delete in the portal.
     fireEvent.change(confirmationInput, { target: { value: "DELETE" } });
-    await waitFor(() => expect(deleteButton).toBeEnabled());
+    await waitFor(() => expect(confirmButton).toBeEnabled());
 
-    fireEvent.click(screen.getByRole("button", { name: "Keep account" }));
+    fireEvent.click(confirmButton);
+    await waitFor(() => expect(mockDeleteAccount).toHaveBeenCalledTimes(1));
+  });
+
+  it("dismisses without deleting", () => {
+    const onClose = jest.fn();
+    render(<DeleteAccountDialog open onClose={onClose} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "No" }));
+
     expect(onClose).toHaveBeenCalledWith(false);
-    await waitFor(() => expect(confirmationInput).toHaveValue(""));
+    expect(mockDeleteAccount).not.toHaveBeenCalled();
   });
 });
 // #endregion

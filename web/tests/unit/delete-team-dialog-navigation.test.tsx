@@ -34,17 +34,8 @@ jest.mock("@/scenes/common/common/DeleteTeamDialog/server", () => ({
   deleteTeamServerSide: (...args: unknown[]) => deleteTeamServerSide(...args),
 }));
 
-// Render the dialog contents without Headless UI's portal/transition machinery.
-jest.mock("@/components/Dialog", () => ({
-  Dialog: ({ children, open }: React.PropsWithChildren<{ open: boolean }>) =>
-    open ? <div>{children}</div> : null,
-}));
-jest.mock("@/components/DialogOverlay", () => ({
-  DialogOverlay: () => null,
-}));
-jest.mock("@/components/DialogPanel", () => ({
-  DialogPanel: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-}));
+// Headless UI renders fine in jsdom, and FormDialog's DialogTitle needs its
+// real Dialog parent, so the dialog chrome is left unmocked here.
 // #endregion
 
 import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
@@ -69,11 +60,13 @@ const refetchResultWithMemberships = (count: number) => ({
 const renderDialog = () =>
   render(<DeleteTeamDialog open onClose={jest.fn()} team={team} />);
 
-const confirmAndSubmit = async () => {
+// v3 confirms through the shared DeleteConfirmationDialog ("Yes"); v2 keeps its
+// own dialog and its own button label.
+const confirmAndSubmit = async (submitLabel = "Yes") => {
   fireEvent.change(screen.getByRole("textbox"), {
     target: { value: "DELETE" },
   });
-  const submitButton = screen.getByRole("button", { name: "Delete team" });
+  const submitButton = screen.getByRole("button", { name: submitLabel });
   await waitFor(() => expect(submitButton).toBeEnabled());
   fireEvent.click(submitButton);
 };
@@ -229,7 +222,7 @@ describe("DeleteTeamDialog [v2]", () => {
     refetch.mockResolvedValue(refetchResultWithMemberships(2));
 
     render(<DeleteTeamDialogV2 open onClose={jest.fn()} team={team} />);
-    await confirmAndSubmit();
+    await confirmAndSubmit("Delete team");
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
     expect(global.fetch).not.toHaveBeenCalled();

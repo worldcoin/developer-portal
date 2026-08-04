@@ -1,6 +1,6 @@
 "use client";
 
-import { ActionDangerZone } from "@/components/ActionDangerZone";
+import { ActionDangerZone } from "@/scenes/PortalV3/common/ActionDangerZone";
 import { DangerZoneCard } from "@/components/DangerZoneCard";
 import { urls } from "@/lib/urls";
 import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
