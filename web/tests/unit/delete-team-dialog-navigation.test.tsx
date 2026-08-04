@@ -34,8 +34,7 @@ jest.mock("@/scenes/common/common/DeleteTeamDialog/server", () => ({
   deleteTeamServerSide: (...args: unknown[]) => deleteTeamServerSide(...args),
 }));
 
-// Headless UI renders fine in jsdom, and FormDialog's DialogTitle needs its
-// real Dialog parent, so the dialog chrome is left unmocked here.
+// Headless UI renders fine in jsdom, so the dialog chrome is left unmocked.
 // #endregion
 
 import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
