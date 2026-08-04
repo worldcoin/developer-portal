@@ -254,13 +254,24 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   const handleDelete = useCallback(
     async (imagePath: string) => {
       const newUrls = value.filter((url) => !url.includes(imagePath));
+
       try {
         await onAutosave(newUrls);
-        await onRefetchImages();
         onChange(newUrls);
       } catch (error) {
         console.error("error removing image:", error);
         toast.error("Couldn't remove that image. Please try again.");
+        return;
+      }
+
+      try {
+        await onRefetchImages();
+      } catch (error) {
+        console.error(
+          "image removed but post-delete refresh failed:",
+          error,
+          "— image is persisted; UI will catch up on next fetch",
+        );
       }
     },
     [value, onChange, onAutosave, onRefetchImages],
