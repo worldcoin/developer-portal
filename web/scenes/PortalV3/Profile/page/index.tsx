@@ -15,6 +15,7 @@ import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useMutation } from "@apollo/client/react";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "next/navigation";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -48,7 +49,8 @@ const CardFooter = (props: { children: ReactNode }) => (
 
 export const ProfilePage = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const { user, loading, refetch: refetchMe } = useMeQuery();
+  const { user, loading, refetch: refetchMe, updateSession } = useMeQuery();
+  const router = useRouter();
   const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
 
   const [updateUser] = useMutation(UpdateUserDocument, {
@@ -107,12 +109,17 @@ export const ProfilePage = () => {
 
         resetDisplayName(values);
         toast.success("Your profile was successfully updated");
+
+        // The sidebar name is server-rendered from the session, so reseal the
+        // session before refreshing — a bare refresh would re-read the old name.
+        await updateSession();
+        router.refresh();
       } catch (error) {
         console.error("Profile Page: ", error);
         toast.error("Error updating profile");
       }
     },
-    [auth0User?.hasura, resetDisplayName, updateUser],
+    [auth0User?.hasura, resetDisplayName, router, updateSession, updateUser],
   );
 
   return (

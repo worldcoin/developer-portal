@@ -7,7 +7,12 @@ import React from "react";
 // #region Mocks
 const mockUpdateUser = jest.fn();
 const mockRefetchMe = jest.fn();
+const mockUpdateSession = jest.fn();
+const mockRouterRefresh = jest.fn();
 
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: mockRouterRefresh }),
+}));
 jest.mock("@auth0/nextjs-auth0/client", () => ({
   useUser: () => ({
     user: { hasura: { id: "user_123" } },
@@ -34,6 +39,7 @@ jest.mock("@/scenes/common/me-query/client", () => ({
     },
     loading: false,
     refetch: mockRefetchMe,
+    updateSession: mockUpdateSession,
   }),
 }));
 jest.mock("@/scenes/PortalV3/Profile/Teams/page/List", () => ({
@@ -98,6 +104,13 @@ describe("PortalV3 profile settings", () => {
       }),
     );
     await waitFor(() => expect(saveButton).toBeDisabled());
+
+    // The sidebar is server-rendered, so the session must be resealed before
+    // the refresh that re-reads it.
+    await waitFor(() => expect(mockRouterRefresh).toHaveBeenCalled());
+    expect(mockUpdateSession.mock.invocationCallOrder[0]).toBeLessThan(
+      mockRouterRefresh.mock.invocationCallOrder[0],
+    );
   });
 
   it("opens the delete dialog from a standalone account action", () => {

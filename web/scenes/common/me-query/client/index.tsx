@@ -93,5 +93,5 @@ export const useMeQuery = () => {
     [fetchedUser],
   );
 
-  return { user, loading, ...rest };
+  return { user, loading, updateSession, ...rest };
 };

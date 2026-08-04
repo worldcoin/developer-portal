@@ -69,6 +69,26 @@ it("mounts the shell with teams from the session", async () => {
     "team_1",
   );
   expect(screen.getByTestId("body")).toBeInTheDocument();
+  // No Hasura display name on this session: fall back to the Auth0 claim.
+  expect(screen.getByTestId("shell")).toHaveAttribute("data-user-name", "Ada");
+});
+
+it("prefers the Hasura display name over the Auth0 claim", async () => {
+  getSession.mockResolvedValue({
+    user: {
+      sub: "auth0|ada",
+      name: "ada@example.com",
+      email: "ada@example.com",
+      hasura: { id: "usr_abc123", name: "Ada Byron", memberships: [] },
+    },
+  });
+
+  render(await PortalLayout({ children: null }));
+
+  expect(screen.getByTestId("shell")).toHaveAttribute(
+    "data-user-name",
+    "Ada Byron",
+  );
 });
 
 it("hydrates the user's sandbox request into the shell", async () => {

@@ -43,7 +43,12 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
   return (
     <PortalShell
       user={{
-        name: user && isWorldUser(user) ? "Anonymous user" : user?.name,
+        // Prefer the Hasura display name over the Auth0 claim: profile settings
+        // write the former, and the latter only changes at login.
+        name:
+          user && isWorldUser(user)
+            ? "Anonymous user"
+            : user?.hasura?.name || user?.name,
         email: user?.email,
       }}
       teams={teams}

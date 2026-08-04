@@ -288,7 +288,11 @@ export const loginCallback = async (req: NextRequest) => {
   }
 
   // ANCHOR: Sync relevant attributes from Auth0 (also sets the user's Auth0Id if not set before)
-  const shouldUpdateUserName = auth0User.name && user?.name !== auth0User.name;
+  // The portal owns `name` once it holds a value: profile settings let the user
+  // pick a display name, and Auth0's claim — the email address for email
+  // connections — must not clobber it on the next login. Seed it only when the
+  // row has none (Auth0 sent no name at signup).
+  const shouldUpdateUserName = Boolean(auth0User.name) && !user?.name;
 
   const shouldUpdateUserEmail =
     auth0User.email && user?.email !== auth0User.email;
