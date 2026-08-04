@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 /**
  * Section title + supporting copy used by the wizard's later steps
  * (e.g. "Supported Countries" / "Supported Languages" on Availability).
@@ -5,7 +7,7 @@
 export const SectionHeader = (props: {
   title: string;
   required?: boolean;
-  description?: string;
+  description?: ReactNode;
 }) => (
   <header className="flex w-full flex-col gap-3">
     <h2 className="text-15 leading-[1.2] font-medium text-portal-ink">

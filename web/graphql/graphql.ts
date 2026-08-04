@@ -10885,6 +10885,7 @@ export type Rp_Registration = {
   app: App;
   app_id: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
+  is_unique_manager_key: Scalars["Boolean"]["output"];
   manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
   mode: Scalars["rp_registration_mode"]["output"];
   operation_hash?: Maybe<Scalars["String"]["output"]>;
@@ -10922,7 +10923,23 @@ export type Rp_Registration_Aggregate = {
 };
 
 export type Rp_Registration_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Rp_Registration_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Rp_Registration_Aggregate_Bool_Exp_Bool_Or>;
   count?: InputMaybe<Rp_Registration_Aggregate_Bool_Exp_Count>;
+};
+
+export type Rp_Registration_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Rp_Registration_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Rp_Registration_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Rp_Registration_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
 };
 
 export type Rp_Registration_Aggregate_Bool_Exp_Count = {
@@ -10970,6 +10987,7 @@ export type Rp_Registration_Bool_Exp = {
   app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  is_unique_manager_key?: InputMaybe<Boolean_Comparison_Exp>;
   manager_kms_key_id?: InputMaybe<String_Comparison_Exp>;
   mode?: InputMaybe<Rp_Registration_Mode_Comparison_Exp>;
   operation_hash?: InputMaybe<String_Comparison_Exp>;
@@ -10995,6 +11013,7 @@ export type Rp_Registration_Insert_Input = {
   app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  is_unique_manager_key?: InputMaybe<Scalars["Boolean"]["input"]>;
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -11110,6 +11129,7 @@ export type Rp_Registration_Order_By = {
   app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
+  is_unique_manager_key?: InputMaybe<Order_By>;
   manager_kms_key_id?: InputMaybe<Order_By>;
   mode?: InputMaybe<Order_By>;
   operation_hash?: InputMaybe<Order_By>;
@@ -11133,6 +11153,8 @@ export enum Rp_Registration_Select_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
+  /** column name */
   ManagerKmsKeyId = "manager_kms_key_id",
   /** column name */
   Mode = "mode",
@@ -11152,10 +11174,23 @@ export enum Rp_Registration_Select_Column {
   UpdatedAt = "updated_at",
 }
 
+/** select "rp_registration_aggregate_bool_exp_bool_and_arguments_columns" columns of table "rp_registration" */
+export enum Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
+}
+
+/** select "rp_registration_aggregate_bool_exp_bool_or_arguments_columns" columns of table "rp_registration" */
+export enum Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
+}
+
 /** input type for updating data in table "rp_registration" */
 export type Rp_Registration_Set_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  is_unique_manager_key?: InputMaybe<Scalars["Boolean"]["input"]>;
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -11192,6 +11227,7 @@ export type Rp_Registration_Stream_Cursor_Input = {
 export type Rp_Registration_Stream_Cursor_Value_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  is_unique_manager_key?: InputMaybe<Scalars["Boolean"]["input"]>;
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -11209,6 +11245,8 @@ export enum Rp_Registration_Update_Column {
   AppId = "app_id",
   /** column name */
   CreatedAt = "created_at",
+  /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
   /** column name */
   ManagerKmsKeyId = "manager_kms_key_id",
   /** column name */

@@ -85,6 +85,10 @@ jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/StoreListingStep",
   () => ({ StoreListingStep: () => null }),
 );
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MiniApp/PermissionsForm",
+  () => ({ SetupForm: () => null }),
+);
 // #endregion
 
 import { getDefaultStore } from "jotai";
