@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import Link from "next/link";
 import {
+  useCallback,
   MouseEventHandler,
   ReactNode,
   useLayoutEffect,
@@ -108,6 +109,11 @@ const sameBox = (a: PillBox | null, b: PillBox) =>
 
 type PillPlacement = { box: PillBox; animate: boolean };
 
+type ActivePillOptions = {
+  containerSelector: string;
+  activeItemSelector: string;
+};
+
 /**
  * The single card surface backing the active sidebar item. Each item painting
  * its own active background can only pop in/out, so instead one absolutely
@@ -129,23 +135,31 @@ type PillPlacement = { box: PillBox; animate: boolean };
  * appearing) is render-driven, and one rect read per render is negligible.
  * The ResizeObserver covers non-render size changes of the active item.
  *
- * The pill finds the nav through its own rendered node instead of a ref
+ * The pill finds its container through its own rendered node instead of a ref
  * passed from the parent: a parent's element ref is not attached yet when a
  * child's layout effect runs on the very first commit, and a hard refresh
  * gives exactly one commit — bailing there left the sheath permanently
  * missing once the static SSR card handed off. The pill's own node is always
- * committed before its effect runs, so `closest("nav")` is reliable.
+ * committed before its effect runs, so `closest()` is reliable.
  */
-export const NavActivePill = () => {
-  const elementRef = useRef<HTMLSpanElement | null>(null);
+const useActivePillPlacement = (options: ActivePillOptions) => {
+  const elementRef = useRef<HTMLElement | null>(null);
   const [placement, setPlacement] = useState<PillPlacement | null>(null);
   const activeKeyRef = useRef<string | null>(null);
+  const setElementRef = useCallback((element: HTMLElement | null) => {
+    elementRef.current = element;
+  }, []);
 
+  // Active state changes through data attributes on descendants, so this must
+  // re-measure after every render rather than only when selector strings change.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {
-    const nav = elementRef.current?.closest("nav");
-    if (!nav) return;
-    const activeItem = nav.querySelector<HTMLElement>(
-      '[data-sidebar="menu-button"][data-active="true"]',
+    const container = elementRef.current?.closest<HTMLElement>(
+      options.containerSelector,
+    );
+    if (!container) return;
+    const activeItem = container.querySelector<HTMLElement>(
+      options.activeItemSelector,
     );
     if (!activeItem) {
       activeKeyRef.current = null;
@@ -157,8 +171,8 @@ export const NavActivePill = () => {
       const slide = key !== activeKeyRef.current;
       activeKeyRef.current = key;
       // Deltas of client rects stay valid while the sidebar scrolls or slides
-      // in from offcanvas, since nav and item move together.
-      const navRect = nav.getBoundingClientRect();
+      // in from offcanvas, since the container and item move together.
+      const containerRect = container.getBoundingClientRect();
       const rect = activeItem.getBoundingClientRect();
       // A hidden mid-state (display:none while the sidebar toggles between
       // its desktop and sheet forms) measures 0×0. Adopting it would leave an
@@ -167,8 +181,10 @@ export const NavActivePill = () => {
       // visible again.
       if (rect.width === 0 || rect.height === 0) return;
       const box = {
-        top: rect.top - navRect.top,
-        left: rect.left - navRect.left,
+        // Absolute offsets start at the container's padding edge, while its
+        // client rect starts at the border edge.
+        top: rect.top - containerRect.top - container.clientTop,
+        left: rect.left - containerRect.left - container.clientLeft,
         width: rect.width,
         height: rect.height,
       };
@@ -181,9 +197,9 @@ export const NavActivePill = () => {
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(activeItem);
-    // The nav itself resizes on sidebar collapse/expand and viewport changes
-    // that don't touch the active item's own box.
-    observer.observe(nav);
+    // The container itself resizes on sidebar collapse/expand and viewport
+    // changes that don't touch the active item's own box.
+    observer.observe(container);
     // World Pro swapping in after first paint can reflow labels without
     // resizing the h-10 items, so the observers stay silent — re-measure once
     // fonts settle to keep the initial placement honest.
@@ -197,12 +213,30 @@ export const NavActivePill = () => {
     };
   });
 
+  return { placement, setElementRef };
+};
+
+const activePillStyle = (placement: PillPlacement | null) =>
+  placement
+    ? {
+        transform: `translate(${placement.box.left}px, ${placement.box.top}px)`,
+        width: placement.box.width,
+        height: placement.box.height,
+      }
+    : undefined;
+
+export const NavActivePill = () => {
+  const { placement, setElementRef } = useActivePillPlacement({
+    containerSelector: "nav",
+    activeItemSelector: '[data-sidebar="menu-button"][data-active="true"]',
+  });
+
   // The span stays mounted even before placement (hidden): the effect above
   // needs it in the DOM to locate the nav on the first — possibly only —
   // commit after a hard refresh.
   return (
     <span
-      ref={elementRef}
+      ref={setElementRef}
       aria-hidden="true"
       className={cn(
         "pointer-events-none absolute top-0 left-0 rounded-[10px] border border-portal-border bg-white shadow-portal-card",
@@ -210,15 +244,29 @@ export const NavActivePill = () => {
         placement?.animate &&
           "transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none",
       )}
-      style={
-        placement
-          ? {
-              transform: `translate(${placement.box.left}px, ${placement.box.top}px)`,
-              width: placement.box.width,
-              height: placement.box.height,
-            }
-          : undefined
-      }
+      style={activePillStyle(placement)}
+    />
+  );
+};
+
+export const SidebarSubNavigationActivePill = () => {
+  const { placement, setElementRef } = useActivePillPlacement({
+    containerSelector: '[data-sidebar="menu-sub"]',
+    activeItemSelector: '[data-sidebar="menu-sub-button"][data-active="true"]',
+  });
+
+  return (
+    <li
+      ref={setElementRef}
+      aria-hidden="true"
+      data-sidebar="menu-sub-active-pill"
+      className={cn(
+        "pointer-events-none absolute top-0 left-0 rounded-md bg-white",
+        !placement && "hidden",
+        placement?.animate &&
+          "transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none",
+      )}
+      style={activePillStyle(placement)}
     />
   );
 };
