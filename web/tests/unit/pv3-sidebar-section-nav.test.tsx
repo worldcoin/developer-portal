@@ -53,6 +53,7 @@ import {
   SidebarAnimationShell,
   SidebarNav,
 } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
+import { SidebarSubNavigation } from "@/scenes/PortalV3/layout/Shell/SidebarSubNavigation";
 
 // #region Test Data
 const teamId = "team_1";
@@ -109,6 +110,91 @@ beforeEach(() => {
     loading: false,
   });
 });
+
+// #region subnavigation active pill
+it("slides the subnavigation pill when the active href changes", () => {
+  const rect = (top: number, left: number, width: number, height: number) =>
+    ({
+      top,
+      left,
+      width,
+      height,
+      right: left + width,
+      bottom: top + height,
+      x: left,
+      y: top,
+      toJSON: () => ({}),
+    }) as DOMRect;
+  const getBoundingClientRect = jest
+    .spyOn(Element.prototype, "getBoundingClientRect")
+    .mockImplementation(function (this: Element) {
+      if (this.matches('[data-sidebar="menu-sub"]')) {
+        Object.defineProperty(this, "clientLeft", {
+          configurable: true,
+          value: 1,
+        });
+        return rect(100, 20, 180, 76);
+      }
+      if (this.textContent === "Actions") {
+        return rect(104, 32, 156, 36);
+      }
+      if (this.textContent === "Configuration") {
+        return rect(144, 32, 156, 36);
+      }
+      return rect(0, 0, 0, 0);
+    });
+  const items = (active: "actions" | "configuration") => [
+    {
+      label: "Actions",
+      href: "/world-id?tab=actions",
+      active: active === "actions",
+    },
+    {
+      label: "Configuration",
+      href: "/world-id?tab=configuration",
+      active: active === "configuration",
+    },
+  ];
+  const getNavigationHandler = () => () => {};
+  const view = render(
+    <SidebarSubNavigation
+      label="World ID navigation"
+      items={items("actions")}
+      getNavigationHandler={getNavigationHandler}
+    />,
+  );
+  const pill = view.container.querySelector(
+    '[data-sidebar="menu-sub-active-pill"]',
+  );
+
+  expect(pill).toHaveStyle({
+    transform: "translate(11px, 4px)",
+    width: "156px",
+    height: "36px",
+  });
+  expect(pill).not.toHaveClass("transition-[transform,width,height]");
+
+  view.rerender(
+    <SidebarSubNavigation
+      label="World ID navigation"
+      items={items("configuration")}
+      getNavigationHandler={getNavigationHandler}
+    />,
+  );
+
+  expect(pill).toHaveStyle({ transform: "translate(11px, 44px)" });
+  expect(pill).toHaveClass(
+    "transition-[transform,width,height]",
+    "duration-200",
+    "ease-out",
+    "motion-reduce:transition-none",
+  );
+  expect(link("Configuration")).toHaveAttribute("aria-current", "page");
+  expect(link("Actions")).not.toHaveAttribute("aria-current");
+
+  getBoundingClientRect.mockRestore();
+});
+// #endregion
 
 // #region navigation hierarchy
 describe("v3 SidebarNav [navigation hierarchy]", () => {
