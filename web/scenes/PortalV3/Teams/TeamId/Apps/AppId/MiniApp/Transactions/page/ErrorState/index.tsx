@@ -12,7 +12,7 @@ export const ErrorState = () => {
 
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center">
-      {/* Same icon, copy and spacing recipe as DeleteConfirmationDialog. */}
+      {/* Same icon, copy and spacing recipe as the delete confirmation modals. */}
       <div className="grid max-w-md justify-items-center gap-y-6">
         <ModalIcon variant="error">
           <AlertIcon className="size-7 text-white" />
