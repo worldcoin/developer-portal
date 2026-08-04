@@ -42,8 +42,8 @@ interface ImageUploadFieldConfig {
   description: string;
   required?: boolean;
   onUploadStart?: () => void;
-  /** The file never reached S3. Failures of the save that follows a successful
-   * upload are reported by `onAutosave` itself. */
+  /** The upload or the save that follows it failed before persistence
+   * completed. Post-save refresh failures are logged separately. */
   onUploadError?: (error: unknown) => void;
   /** Upload ended without succeeding or failing, so the caller can retract a
    * "saving" signal it already showed. */
@@ -114,10 +114,12 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       // bookkeeping (e.g. the keyed provider remounting and killing an
       // in-flight refetch), NOT a cancelled upload — don't toast for them.
       let s3UploadCompleted = false;
-      // Flips once onAutosave owns the outcome: past this point the save
-      // reports its own success/failure, so this function must not report one
-      // too or every error gets announced twice.
+      // Tracks the handoff to persistence so an abort after the S3 upload is
+      // not reported as a cancelled file upload.
       let saveStarted = false;
+      // Distinguishes a failed persistence mutation from a later signed-URL
+      // refresh failure. Only the former should reach onUploadError.
+      let saveCompleted = false;
 
       try {
         setIsUploading(true);
@@ -158,6 +160,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
         saveStarted = true;
         await onAutosave(newUrls);
+        saveCompleted = true;
         // Writes into the shared Apollo cache, so a remounted successor
         // instance watching the same query re-renders with the new image.
         await onRefetchImages();
@@ -180,7 +183,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           return false;
         }
 
-        if (saveStarted) {
+        if (saveCompleted) {
           // Anything failing after the save is cache bookkeeping (refetch), so
           // it must not be dressed up as an upload failure.
           console.error(

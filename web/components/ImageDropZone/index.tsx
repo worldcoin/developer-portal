@@ -45,6 +45,7 @@ export const ImageDropZone = (props: ImageDropZoneProps) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     noClick: true,
+    disabled,
   });
 
   return (

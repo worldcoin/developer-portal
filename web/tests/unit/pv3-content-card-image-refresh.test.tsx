@@ -15,9 +15,10 @@ import { ReactNode } from "react";
 // #region Mocks
 const getImageMock = jest.fn();
 const uploadViaPresignedPostMock = jest.fn();
+const toastErrorMock = jest.fn();
 
 jest.mock("react-toastify", () => ({
-  toast: { error: jest.fn() },
+  toast: { error: (...args: unknown[]) => toastErrorMock(...args) },
 }));
 
 jest.mock("@/lib/utils", () => ({
@@ -70,7 +71,7 @@ const ImageAtomPreview = () => {
   );
 };
 
-const createApolloHarness = () => {
+const createApolloHarness = (options: { rejectUpdate?: boolean } = {}) => {
   const operationNames: string[] = [];
   let fetchImagesCalls = 0;
   const cache = new InMemoryCache();
@@ -103,6 +104,11 @@ const createApolloHarness = () => {
           }
 
           if (operation.operationName === "UpdateContentCardImage") {
+            if (options.rejectUpdate) {
+              observer.error(new Error("metadata update failed"));
+              return;
+            }
+
             observer.next({
               data: {
                 update_app_metadata_by_pk: {
@@ -132,8 +138,8 @@ const createApolloHarness = () => {
   };
 };
 
-const renderUploader = () => {
-  const apollo = createApolloHarness();
+const renderUploader = (options: { rejectUpdate?: boolean } = {}) => {
+  const apollo = createApolloHarness(options);
   const wrapper = ({ children }: { children: ReactNode }) => (
     <ApolloProvider client={apollo.client}>{children}</ApolloProvider>
   );
@@ -190,6 +196,10 @@ beforeEach(() => {
   });
 });
 
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
 afterAll(() => {
   Object.defineProperty(window, "location", {
     configurable: true,
@@ -229,6 +239,41 @@ describe("ContentCardImageUpload [signed URL refresh]", () => {
     expect(cache.extract()[`app_metadata:${APP_METADATA_ID}`]).toMatchObject({
       content_card_image_url: "content_card_image.png",
     });
+  });
+
+  it("surfaces a metadata save failure through the upload error callback", async () => {
+    const consoleError = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const { container, operationNames } = renderUploader({
+      rejectUpdate: true,
+    });
+
+    await waitFor(() =>
+      expect(screen.getByTestId("content-card-preview")).toHaveTextContent(
+        INITIAL_SIGNED_URL,
+      ),
+    );
+
+    fireEvent.change(container.querySelector('input[type="file"]')!, {
+      target: {
+        files: [new File(["image"], "content-card.png", { type: "image/png" })],
+      },
+    });
+
+    await waitFor(() =>
+      expect(toastErrorMock).toHaveBeenCalledWith(
+        "Couldn't upload that image. Please try again.",
+      ),
+    );
+    expect(consoleError).toHaveBeenCalledWith(
+      "content card image upload failed",
+      expect.objectContaining({
+        appMetadataId: APP_METADATA_ID,
+        error: expect.any(Error),
+      }),
+    );
+    expect(operationNames).toEqual(["FetchImages", "UpdateContentCardImage"]);
   });
 });
 // #endregion

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { useMutation, useQuery } from "@apollo/client/react";
+import { toast } from "react-toastify";
 import { UpdateContentCardImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/ContentCardImageUpload/graphql/client/update-content-card-image.generated";
 import { FetchImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
@@ -58,6 +59,17 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
     await refetchUnverifiedImages();
   }, [refetchUnverifiedImages]);
 
+  const handleUploadError = useCallback(
+    (error: unknown) => {
+      console.error("content card image upload failed", {
+        appMetadataId,
+        error,
+      });
+      toast.error("Couldn't upload that image. Please try again.");
+    },
+    [appMetadataId],
+  );
+
   const persistedValue = useMemo(
     () => (contentCardImageFile ? [contentCardImageFile] : []),
     [contentCardImageFile],
@@ -98,6 +110,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
       title="Content Card Image"
       description="This image will be used when featuring your app in the Mini App Store."
       required
+      onUploadError={handleUploadError}
       error={
         isError
           ? "Content card image is required. Required aspect ratio is 345:240."
