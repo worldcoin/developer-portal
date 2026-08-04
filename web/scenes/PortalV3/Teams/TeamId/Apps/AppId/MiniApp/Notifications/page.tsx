@@ -3,18 +3,31 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { NotificationBellIcon } from "@/components/Icons/NotificationBellIcon";
 import { Link } from "@/components/Link";
-import { Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useRef, useState } from "react";
 import type { ChangeEvent, ReactNode } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FormSkeleton } from "../../Configuration/PageComponents/FormSkeleton";
+import { TextField } from "../../Configuration/Wizard/TextField";
 import { useQuery } from "@apollo/client/react";
 import { FetchNotificationAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated";
 import { noticeIconClassName } from "@/scenes/PortalV3/common/Icon";
+import {
+  MiniAppPage,
+  MiniAppPageColumn,
+  MiniAppPageHeader,
+  MiniAppSectionHeading,
+} from "../common/MiniAppPage";
+import { NoticeCallout } from "../common/NoticeCallout";
+import { TextArea } from "../common/TextArea";
+import {
+  miniAppButtonClassName,
+  miniAppButtonLargeClassName,
+  miniAppFieldHintClassName,
+} from "../common/styles";
 
 type NotificationFormData = {
   walletAddresses: string;
@@ -31,23 +44,26 @@ const NotificationsNotice = ({
   title: string;
   body: ReactNode;
 }) => (
-  <div className="my-8 grid gap-y-10">
-    <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
-      <NotificationBellIcon
-        className={`${noticeIconClassName} size-8`}
-        aria-hidden="true"
-      />
+  <MiniAppPage>
+    <MiniAppPageHeader
+      title="Notifications"
+      description="Send notifications to specific wallet addresses."
+    />
 
-      <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
-        <Typography as="p" className="font-world text-[13px] font-semibold">
-          {title}
-        </Typography>
-        <Typography as="p" className="font-world text-[13px] font-medium">
-          {body}
-        </Typography>
-      </div>
-    </div>
-  </div>
+    <MiniAppPageColumn>
+      <NoticeCallout
+        title={title}
+        icon={
+          <NotificationBellIcon
+            className={`${noticeIconClassName} size-8 shrink-0`}
+            aria-hidden="true"
+          />
+        }
+      >
+        {body}
+      </NoticeCallout>
+    </MiniAppPageColumn>
+  </MiniAppPage>
 );
 
 export const NotificationsPage = () => {
@@ -79,6 +95,7 @@ export const NotificationsPage = () => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     watch,
     setValue,
@@ -237,9 +254,9 @@ export const NotificationsPage = () => {
 
   if (loading) {
     return (
-      <div className="my-8">
+      <MiniAppPage>
         <FormSkeleton count={5} />
-      </div>
+      </MiniAppPage>
     );
   }
 
@@ -284,83 +301,79 @@ export const NotificationsPage = () => {
   }
 
   return (
-    <section
-      aria-labelledby="notifications-heading"
-      className="my-8 grid w-full max-w-[580px] gap-y-10"
-    >
-      <Typography
+    <MiniAppPage>
+      <MiniAppPageHeader
         id="notifications-heading"
-        as="h1"
-        className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
-      >
-        Notifications
-      </Typography>
+        title="Notifications"
+        description="Send notifications to specific wallet addresses."
+      />
 
-      <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-[#E6F0FF] p-4 sm:p-5">
-        <NotificationBellIcon className="size-8" aria-hidden="true" />
+      <MiniAppPageColumn labelledBy="notifications-heading">
+        <NoticeCallout
+          variant="info"
+          title="Notifications"
+          icon={
+            <NotificationBellIcon
+              className="size-8 shrink-0"
+              aria-hidden="true"
+            />
+          }
+        >
+          Unverified apps are limited to 40 notifications per 4 hours.{" "}
+          <a
+            href="https://docs.world.org/api-reference/developer-portal/send-notification"
+            target="_blank"
+            className="inline-block whitespace-nowrap underline"
+            rel="noopener noreferrer"
+          >
+            Docs reference
+          </a>
+        </NoticeCallout>
 
-        <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
-          <Typography as="p" className="font-world text-[13px] font-semibold">
-            Notifications
-          </Typography>
-          <Typography as="p" className="font-world text-[13px] font-medium">
-            Send notifications to specific wallet addresses. Unverified apps are
-            limited to 40 notifications per 4 hours.{" "}
-            <a
-              href="https://docs.world.org/api-reference/developer-portal/send-notification"
-              target="_blank"
-              className="inline-block whitespace-nowrap underline"
-              rel="noopener noreferrer"
-            >
-              Docs reference
-            </a>
-          </Typography>
-        </div>
-      </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="grid w-full gap-y-5">
+          <div className="grid gap-y-4">
+            <div className="flex items-center justify-between gap-x-5">
+              <MiniAppSectionHeading>Wallet addresses</MiniAppSectionHeading>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="grid w-full gap-y-5">
-        <div className="grid gap-y-5">
-          <div className="flex items-center justify-between gap-x-5">
-            <Typography
-              as="h2"
-              className="font-world text-[17px] leading-[120%] font-medium text-grey-900"
-            >
-              Wallet addresses
-            </Typography>
+              <div className="flex gap-x-2">
+                <input
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  ref={fileInputRef}
+                />
 
-            <div className="flex gap-x-2">
-              <input
-                type="file"
-                accept=".csv"
-                className="hidden"
-                onChange={handleFileUpload}
-                ref={fileInputRef}
-              />
-
-              <DecoratedButton
-                type="button"
-                variant="secondary"
-                onClick={handleImportClick}
-                className="h-10 min-w-[109px] px-3.5 py-0 text-[15px] font-semibold"
-              >
-                Import CSV
-              </DecoratedButton>
-
-              {walletAddressesValue && (
                 <DecoratedButton
                   type="button"
                   variant="secondary"
-                  onClick={handleClearAddresses}
-                  className="h-10 min-w-[109px] px-3.5 py-0 text-[15px] font-semibold"
+                  onClick={handleImportClick}
+                  className={miniAppButtonClassName}
                 >
-                  Clear all
+                  Import CSV
                 </DecoratedButton>
-              )}
-            </div>
-          </div>
 
-          <div className="grid gap-y-1">
-            <textarea
+                {walletAddressesValue && (
+                  <DecoratedButton
+                    type="button"
+                    variant="secondary"
+                    onClick={handleClearAddresses}
+                    className={miniAppButtonClassName}
+                  >
+                    Clear all
+                  </DecoratedButton>
+                )}
+              </div>
+            </div>
+
+            <TextArea
+              label="Wallet addresses"
+              id="notification-wallet-addresses"
+              rows={4}
+              className="h-[88px]"
+              placeholder="0x… , 0x…"
+              hint={`${walletAddressCount}/1000 addresses, separated by commas`}
+              error={errors.walletAddresses?.message}
               {...register("walletAddresses", {
                 required: "Wallet addresses are required",
                 validate: (value) => {
@@ -375,49 +388,44 @@ export const NotificationsPage = () => {
                   return true;
                 },
               })}
-              rows={4}
-              placeholder="Enter wallet addresses separated by commas"
-              className="h-[120px] resize-none rounded-[10px] border-0 bg-grey-50 p-4 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
-              aria-invalid={errors.walletAddresses ? "true" : "false"}
             />
-
-            <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
-              {walletAddressCount}/1000 addresses. Enter one or more wallet
-              addresses, separated by commas
-            </p>
-            {errors.walletAddresses?.message && (
-              <p className="px-2 text-xs text-system-error-500">
-                {errors.walletAddresses.message}
-              </p>
-            )}
           </div>
-        </div>
 
-        <div className="grid gap-y-1">
-          <input
-            {...register("title", {
-              maxLength: {
-                value: 30,
-                message: "Title cannot exceed 30 characters",
-              },
-            })}
-            maxLength={30}
-            placeholder="Notification title"
-            className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
-            aria-invalid={errors.title ? "true" : "false"}
-          />
-          <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
-            {titleValue?.length || 0}/30 characters
-          </p>
-          {errors.title?.message && (
-            <p className="px-2 text-xs text-system-error-500">
-              {errors.title.message}
+          <div className="grid gap-y-1.5">
+            <Controller
+              control={control}
+              name="title"
+              rules={{
+                maxLength: {
+                  value: 30,
+                  message: "Title cannot exceed 30 characters",
+                },
+              }}
+              render={({ field }) => (
+                <TextField
+                  label="Notification title"
+                  name="title"
+                  maxLength={30}
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={errors.title?.message}
+                />
+              )}
+            />
+            <p className={miniAppFieldHintClassName}>
+              {titleValue?.length || 0}/30 characters
             </p>
-          )}
-        </div>
+          </div>
 
-        <div className="grid gap-y-1">
-          <textarea
+          <TextArea
+            label="Notification message"
+            id="notification-message"
+            rows={2}
+            className="h-[44px]"
+            maxLength={200}
+            hint={`${messageValue?.length || 0}/200 characters`}
+            error={errors.message?.message}
             {...register("message", {
               required: "Message is required",
               maxLength: {
@@ -425,71 +433,64 @@ export const NotificationsPage = () => {
                 message: "Message cannot exceed 200 characters",
               },
             })}
-            maxLength={200}
-            rows={1}
-            placeholder="Notification message"
-            className="h-14 resize-none rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
-            aria-invalid={errors.message ? "true" : "false"}
           />
-          <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
-            {messageValue?.length || 0}/200 characters
-          </p>
-          {errors.message?.message && (
-            <p className="px-2 text-xs text-system-error-500">
-              {errors.message.message}
-            </p>
-          )}
-        </div>
 
-        <div className="grid gap-y-1">
-          <input
-            {...register("miniAppPath", {
-              required: "Mini App Path is required",
-            })}
-            placeholder="Mini App Path"
-            className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
-            aria-invalid={errors.miniAppPath ? "true" : "false"}
-          />
-          <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
-            The path inside your mini app that will open when the notification
-            is tapped
-          </p>
-          {errors.miniAppPath?.message && (
-            <p className="px-2 text-xs text-system-error-500">
-              {errors.miniAppPath.message}
+          <div className="grid gap-y-1.5">
+            <Controller
+              control={control}
+              name="miniAppPath"
+              rules={{ required: "Mini App Path is required" }}
+              render={({ field }) => (
+                <TextField
+                  label="Mini App path"
+                  name="miniAppPath"
+                  required
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={errors.miniAppPath?.message}
+                />
+              )}
+            />
+            <p className={miniAppFieldHintClassName}>
+              The path inside your mini app that will open when the notification
+              is tapped
             </p>
-          )}
-        </div>
+          </div>
 
-        <div className="grid gap-y-1">
-          <input
-            {...register("apiKey", {
-              required: "API Key is required",
-            })}
-            placeholder="API Key"
-            className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
-            aria-invalid={errors.apiKey ? "true" : "false"}
-          />
-          <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
-            Your Developer Portal API key (format: api_...). Obtain it from the
-            API Keys tab.
-          </p>
-          {errors.apiKey?.message && (
-            <p className="px-2 text-xs text-system-error-500">
-              {errors.apiKey.message}
+          <div className="grid gap-y-1.5">
+            <Controller
+              control={control}
+              name="apiKey"
+              rules={{ required: "API Key is required" }}
+              render={({ field }) => (
+                <TextField
+                  label="API key"
+                  name="apiKey"
+                  required
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={errors.apiKey?.message}
+                />
+              )}
+            />
+            <p className={miniAppFieldHintClassName}>
+              Your Developer Portal API key (format: api_...). Obtain it from
+              the API Keys tab.
             </p>
-          )}
-        </div>
+          </div>
 
-        <DecoratedButton
-          type="submit"
-          disabled={isSubmitting}
-          loading={isSubmitting}
-          className="mt-5 h-14 w-fit px-6 py-0 text-[17px] font-semibold"
-        >
-          Send notification
-        </DecoratedButton>
-      </form>
-    </section>
+          <DecoratedButton
+            type="submit"
+            disabled={isSubmitting}
+            loading={isSubmitting}
+            className={`mt-5 w-fit ${miniAppButtonLargeClassName}`}
+          >
+            Send notification
+          </DecoratedButton>
+        </form>
+      </MiniAppPageColumn>
+    </MiniAppPage>
   );
 };

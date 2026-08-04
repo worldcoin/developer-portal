@@ -1,5 +1,4 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { PaymentMetadata } from "@/lib/types";
 import { getTransactionData } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/server/getTransactionData";
 import { ComponentProps } from "react";
@@ -7,29 +6,30 @@ import { Suspense } from "react";
 import { SkeletonTable } from "@/components/Skeletons";
 import { ErrorState } from "./ErrorState";
 import { TransactionsTable } from "./TransactionsTable";
+import { MiniAppMessageState } from "../../common/MiniAppMessageState";
+import { MiniAppPage, MiniAppPageHeader } from "../../common/MiniAppPage";
+import { miniAppButtonClassName } from "../../common/styles";
 
 type TransactionsPageProps = {
   params: Record<string, string> | null | undefined;
 };
 
+// The heading is unconditional: it used to be hidden on the empty state, so the
+// page lost its title exactly for developers who have taken no payments yet.
 const TransactionsPageLayout = ({
   children,
-  showHeading = true,
 }: {
   children: React.ReactNode;
-  showHeading?: boolean;
-}) => {
-  return (
-    <div className="my-8 min-h-dvh">
-      {showHeading && (
-        <div className="flex items-center justify-start text-gray-900">
-          <Typography variant={TYPOGRAPHY.H6}>Transactions</Typography>
-        </div>
-      )}
-      <div className={showHeading ? "pt-12" : ""}>{children}</div>
-    </div>
-  );
-};
+}) => (
+  <MiniAppPage>
+    <MiniAppPageHeader
+      title="Transactions"
+      description="Payments your Mini App has received."
+    />
+
+    {children}
+  </MiniAppPage>
+);
 
 const SparkleIcon = (props: ComponentProps<"svg">) => {
   return (
@@ -47,64 +47,22 @@ const SparkleIcon = (props: ComponentProps<"svg">) => {
   );
 };
 
-const EmptyState = () => {
-  return (
-    <div className="grid justify-items-center pt-8">
-      <div className="grid justify-items-center gap-y-6">
-        <div className="relative size-16 shrink-0 rounded-full bg-grey-400 text-grey-0">
-          <span
-            className="pointer-events-none absolute inset-0 rounded-full opacity-20"
-            style={{
-              background:
-                "radial-gradient(99.88% 100% at 22.73% 0%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%)",
-            }}
-          />
-          <span className="pointer-events-none absolute inset-0 rounded-full border border-white/10" />
-          <span
-            className="absolute"
-            style={{
-              left: "23.44%",
-              right: "23.44%",
-              top: "23.44%",
-              bottom: "23.44%",
-            }}
-          >
-            <span
-              className="absolute"
-              style={{
-                left: "6%",
-                right: "6%",
-                top: "6%",
-                bottom: "6%",
-              }}
-            >
-              <SparkleIcon className="size-full" />
-            </span>
-          </span>
-        </div>
-
-        <div className="grid justify-items-center gap-y-2">
-          <Typography variant={TYPOGRAPHY.H6}>No transactions yet</Typography>
-        </div>
-        <Typography
-          variant={TYPOGRAPHY.R3}
-          className="text-center text-grey-500"
-        >
-          Once you receive your first payment, you
-          <br />
-          will see the transaction here.
-        </Typography>
-
-        <DecoratedButton
-          href="https://docs.world.org/mini-apps/commands/pay"
-          className="min-w-[112px] py-4"
-        >
-          See docs
-        </DecoratedButton>
-      </div>
-    </div>
-  );
-};
+const EmptyState = () => (
+  <MiniAppMessageState
+    variant="neutral"
+    icon={<SparkleIcon className="size-7 text-white" />}
+    title="No transactions yet"
+    description="Once you receive your first payment, you will see the transaction here."
+    action={
+      <DecoratedButton
+        href="https://docs.world.org/mini-apps/commands/pay"
+        className={miniAppButtonClassName}
+      >
+        See docs
+      </DecoratedButton>
+    }
+  />
+);
 
 const TransactionsContent = ({
   transactionData,
@@ -154,7 +112,7 @@ export const TransactionsPage = async (props: TransactionsPageProps) => {
   // Early return for empty state
   if (transactionData.length === 0) {
     return (
-      <TransactionsPageLayout showHeading={false}>
+      <TransactionsPageLayout>
         <EmptyState />
       </TransactionsPageLayout>
     );
