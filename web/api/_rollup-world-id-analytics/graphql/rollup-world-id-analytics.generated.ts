@@ -5,7 +5,7 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type RollupWorldIdAnalyticsMutationVariables = Types.Exact<{
-  [key: string]: never;
+  max_advance_days?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
 }>;
 
 export type RollupWorldIdAnalyticsMutation = {
@@ -17,8 +17,8 @@ export type RollupWorldIdAnalyticsMutation = {
 };
 
 export const RollupWorldIdAnalyticsDocument = gql`
-  mutation RollupWorldIdAnalytics {
-    rollup_world_id_analytics {
+  mutation RollupWorldIdAnalytics($max_advance_days: Int) {
+    rollup_world_id_analytics(args: { max_advance_days: $max_advance_days }) {
       processed_through
     }
   }

@@ -212,7 +212,7 @@ describe("World ID analytics [backfill and validation gate]", () => {
 
       expect(result.status).not.toBe(0);
       expect(commandOutput(result)).toContain(
-        "Historical analytics backfill did not acquire the advisory lock",
+        "World ID analytics backfill did not acquire the advisory lock",
       );
     } finally {
       await lockClient.query("ROLLBACK");
@@ -260,6 +260,12 @@ describe("World ID analytics [backfill and validation gate]", () => {
     expect(stateAfterFailure.rows).toEqual([{ finite: true }]);
 
     await removeParitySabotage();
+    // The gate resumes from the committed watermark by design, so a parity
+    // failure requires the runbook's explicit reset before the retry.
+    await pool.query(`
+      UPDATE public.world_id_analytics_state
+         SET processed_through = '-infinity' WHERE singleton
+    `);
 
     const retry = runBackfillAndValidate();
     expect({

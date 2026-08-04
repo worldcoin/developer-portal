@@ -56150,6 +56150,22 @@
             "description": "execute VOLATILE function \"rollup_world_id_analytics\" which returns \"world_id_analytics_state\"",
             "args": [
               {
+                "name": "args",
+                "description": "input parameters for function \"rollup_world_id_analytics\"",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "rollup_world_id_analytics_args",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
                 "name": "distinct_on",
                 "description": "distinct select on columns",
                 "type": {
@@ -79958,6 +79974,29 @@
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "rollup_world_id_analytics_args",
+        "description": null,
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "max_advance_days",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Int",
               "ofType": null
             },
             "defaultValue": null,

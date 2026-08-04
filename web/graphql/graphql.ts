@@ -8383,6 +8383,7 @@ export type Mutation_RootRollup_App_StatsArgs = {
 
 /** mutation root */
 export type Mutation_RootRollup_World_Id_AnalyticsArgs = {
+  args: Rollup_World_Id_Analytics_Args;
   distinct_on?: InputMaybe<Array<World_Id_Analytics_State_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
@@ -11667,6 +11668,10 @@ export type Role_Updates = {
 export type Rollup_App_Stats_Args = {
   _since?: InputMaybe<Scalars["timestamptz"]["input"]>;
   _until?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+export type Rollup_World_Id_Analytics_Args = {
+  max_advance_days?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 /** columns and relationships of "rp_registration" */
