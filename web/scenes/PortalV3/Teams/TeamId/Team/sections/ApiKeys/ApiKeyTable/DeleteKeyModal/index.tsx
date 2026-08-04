@@ -46,11 +46,11 @@ export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
       onConfirm={handleDelete}
       confirmationWord="Delete"
       loading={loading}
-      title="Delete API key"
+      title="Do you want to delete this API key?"
       description={
         <>
           The{" "}
-          <span className="font-medium break-all text-portal-text">{name}</span>{" "}
+          <span className="font-medium break-all text-grey-900">{name}</span>{" "}
           key will stop working immediately anywhere it is already deployed, and
           it cannot be recovered.
         </>

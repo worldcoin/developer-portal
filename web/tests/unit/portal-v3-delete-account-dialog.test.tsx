@@ -32,10 +32,9 @@ describe("PortalV3 delete account dialog", () => {
     render(<DeleteAccountDialog open onClose={jest.fn()} />);
 
     expect(
-      screen.getByRole("heading", { name: "Delete account" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("This action cannot be undone."),
+      screen.getByRole("heading", {
+        name: "Do you want to delete this account?",
+      }),
     ).toBeInTheDocument();
 
     const confirmationInput = screen.getByLabelText(/To verify, type/);

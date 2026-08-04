@@ -15,7 +15,9 @@ export const ClearConfirmationModal = ({
 }: ClearConfirmationModalProps) => {
   const isCountries = type === "countries";
 
-  const title = isCountries ? "Remove all countries" : "Remove all languages";
+  const title = isCountries
+    ? "Do you want to remove all the countries?"
+    : "Do you want to remove all the languages?";
 
   const description = isCountries
     ? "This will remove all countries from the Supported Countries list. This action cannot be undone."

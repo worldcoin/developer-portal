@@ -93,11 +93,11 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       onConfirm={submit}
       confirmationWord="Delete"
       loading={isSubmitting}
-      title="Delete team"
+      title="Do you want to delete this team?"
       description={
         <>
           The{" "}
-          <span className="font-medium break-all text-portal-text">
+          <span className="font-medium break-all text-grey-900">
             {team?.name}
           </span>{" "}
           will be deleted, along with all of its apps, actions, configurations

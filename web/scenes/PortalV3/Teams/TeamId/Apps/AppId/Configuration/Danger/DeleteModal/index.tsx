@@ -73,11 +73,11 @@ export const DeleteModal = (props: DeleteModalProps) => {
       onClose={() => setOpenDeleteModal(false)}
       onConfirm={handleDeleteApp}
       confirmationWord="Delete"
-      title="Delete app"
+      title="Do you want to delete this app?"
       description={
         <>
           The{" "}
-          <span className="font-medium break-all text-portal-text">
+          <span className="font-medium break-all text-grey-900">
             {appName ?? ""}
           </span>{" "}
           will be deleted, along with all of its actions, configurations and

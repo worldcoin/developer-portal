@@ -47,7 +47,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
       onConfirm={submit}
       confirmationWord="Delete"
       loading={isSubmitting}
-      title="Delete account"
+      title="Do you want to delete this account?"
       description="Your account will be deleted, along with all apps and data. You will be removed from teams."
     />
   );

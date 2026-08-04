@@ -53,12 +53,12 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
       onClose={() => props.onClose(false)}
       onConfirm={submit}
       loading={leaveTeamMutationRes.loading}
-      title="Leave team"
+      title="Do you want to leave this team?"
       description={
         <>
           You will lose access to the{" "}
-          <span className="font-medium text-portal-text">{team?.name}</span>{" "}
-          team and will need to be invited again in order to rejoin.
+          <span className="font-medium text-grey-900">{team?.name}</span> team
+          and will need to be invited again in order to rejoin.
         </>
       }
     />

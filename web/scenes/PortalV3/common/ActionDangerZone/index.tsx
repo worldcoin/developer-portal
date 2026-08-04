@@ -50,11 +50,11 @@ export const ActionDangerZone = (props: ActionDangerZoneProps) => {
         onConfirm={handleDelete}
         confirmationWord="Delete"
         loading={isDeleting}
-        title="Delete action"
+        title="Do you want to delete this action?"
         description={
           <>
             The{" "}
-            <span className="font-medium break-all text-portal-text">
+            <span className="font-medium break-all text-grey-900">
               {actionIdentifier}
             </span>{" "}
             action and all of its data will be deleted for everyone.

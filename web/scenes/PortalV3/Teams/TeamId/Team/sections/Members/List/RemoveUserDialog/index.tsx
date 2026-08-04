@@ -57,11 +57,11 @@ export const RemoveUserDialog = (props: {
       onClose={() => setIsOpened(false)}
       onConfirm={submit}
       loading={isSubmitting}
-      title="Remove member"
+      title="Do you want to remove this member?"
       description={
         <>
-          <span className="font-medium text-portal-text">{props.name}</span>{" "}
-          will lose access to this team and all of its apps. You can invite them
+          <span className="font-medium text-grey-900">{props.name}</span> will
+          lose access to this team and all of its apps. You can invite them
           again later.
         </>
       }
