@@ -3,6 +3,26 @@
 const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_IMAGES_CDN_URL || "https://world-id-assets.com",
 );
+const assetsS3Endpoint = process.env.AWS_ENDPOINT_URL_S3?.trim();
+const assetsS3EndpointURL = assetsS3Endpoint ? new URL(assetsS3Endpoint) : null;
+const assetsS3BucketName = process.env.ASSETS_S3_BUCKET_NAME;
+const assetsS3Region = process.env.ASSETS_S3_REGION;
+/** @type {import('next/dist/shared/lib/image-config').RemotePattern | null} */
+const assetsS3RemotePattern =
+  assetsS3EndpointURL && assetsS3BucketName
+    ? {
+        protocol: assetsS3EndpointURL.protocol === "http:" ? "http" : "https",
+        hostname: `${assetsS3BucketName}.${assetsS3EndpointURL.hostname}`,
+        port: assetsS3EndpointURL.port,
+        pathname: "/**",
+      }
+    : assetsS3BucketName && assetsS3Region
+      ? {
+          protocol: "https",
+          hostname: `${assetsS3BucketName}.s3.${assetsS3Region}.amazonaws.com`,
+          pathname: "/unverified/**",
+        }
+      : null;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -21,11 +41,7 @@ const nextConfig = {
         protocol: "https",
         hostname: cdnURLObject.hostname,
       },
-      {
-        protocol: "https",
-        hostname: `${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
-        pathname: `/unverified/**`,
-      },
+      ...(assetsS3RemotePattern ? [assetsS3RemotePattern] : []),
     ],
   },
 

@@ -27,7 +27,7 @@ cp .env.example .env
 3. AWS access is required to run the Developer Portal locally. The following AWS services are used:
    - **KMS** - for signing/encryption (Sign in with World ID, RP Registry)
    - **SSM Parameter Store** - for feature flags (e.g., World ID 4.0 enabled teams)
-   - **S3** - for asset storage
+   - **S3** - for asset storage (emulated locally by LocalStack)
 
    **For Worldcoin team members:** Use the `worldcoin-consumer-stage` AWS profile:
    ```bash
@@ -42,6 +42,18 @@ cp .env.example .env
    **For external contributors:** You will need AWS credentials with relevant permissions. Here is an [IAM sample policy](web/aws-role-sample-policy.json) for this.
 
    If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal-deployment#local-development) instead.
+
+### Local S3 with LocalStack
+
+Install the [LocalStack CLI](https://docs.localstack.cloud/aws/getting-started/installation/), then run these commands from `web/`:
+
+```bash
+# One time only; never commit your personal token.
+localstack auth set-token <your-auth-token>
+pnpm localstack:s3
+```
+
+The `.env.example` values already point S3 at this bucket. Run `pnpm localstack:stop` to stop LocalStack.
 
 ### Starting the app
 

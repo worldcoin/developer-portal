@@ -16,7 +16,14 @@ import { checkUserPermissions } from "./lib/utils";
 const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_IMAGES_CDN_URL || "https://world-id-assets.com",
 );
-const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
+const assetsS3Endpoint = process.env.AWS_ENDPOINT_URL_S3?.trim();
+const assetsS3EndpointUrl = assetsS3Endpoint ? new URL(assetsS3Endpoint) : null;
+const s3BucketUrl =
+  assetsS3EndpointUrl && process.env.ASSETS_S3_BUCKET_NAME
+    ? `${assetsS3EndpointUrl.protocol}//${process.env.ASSETS_S3_BUCKET_NAME}.${assetsS3EndpointUrl.host}`
+    : process.env.ASSETS_S3_BUCKET_NAME && process.env.ASSETS_S3_REGION
+      ? `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`
+      : null;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 // The portal is served from both worldcoin.org and world.org variants of the
 // same hostname. NEXT_PUBLIC_APP_URL is build-baked, so we mirror it onto the
