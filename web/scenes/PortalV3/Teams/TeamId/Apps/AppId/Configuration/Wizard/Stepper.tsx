@@ -21,6 +21,8 @@ export type WizardStepConfig = {
   label: string;
 };
 
+export type WizardStepStatus = "complete" | "incomplete" | "error" | "neutral";
+
 /**
  * Step list for the configuration wizard. Store listing only applies to mini
  * apps (external apps have no store presence or Mini App permissions to
@@ -79,38 +81,55 @@ export const getWizardStepForField = (
 // flex-wrap: on narrow windows the row breaks into lines instead of ever
 // producing a horizontal scrollbar.
 const stepperRowClassName = "flex flex-wrap items-center justify-center gap-4";
-const stepperConnectorClassName = clsx(
-  "h-px w-8 bg-portal-border",
-  opticalIconClassName,
-);
+const stepperConnectorClassName = "h-px w-8";
 const stepperStepClassName = "flex items-center gap-2";
 const stepperLabelClassName =
   "text-13 leading-[1.2] font-medium whitespace-nowrap";
 
 /**
  * Numbered-dot step indicator across the top of the configuration wizard.
- * True to the Figma frames: steps behind the active one show the green
- * check, the active and upcoming ones show their number. Each step is a
- * button that jumps straight to it.
+ * Completion is supplied by the wizard's last successfully persisted form
+ * snapshot; it must never be inferred from navigation or unsaved field input.
  */
 export const Stepper = (props: {
   steps: WizardStepConfig[];
   activeIndex: number;
+  statusByStep: Record<WizardStep, WizardStepStatus>;
   onStepSelect?: (step: WizardStep) => void;
 }) => (
   <ol className={stepperRowClassName}>
     {props.steps.map((step, index) => {
       const isActive = index === props.activeIndex;
-      const isCompleted = index < props.activeIndex;
+      const currentStepStatus = props.statusByStep[step.id];
+      const isCompleted = currentStepStatus === "complete";
+      const isIncompleteWithReviewError = currentStepStatus === "error";
+      const previousStep = props.steps[index - 1];
+      const doesPreviousStepCompleteConnector =
+        previousStep && props.statusByStep[previousStep.id] === "complete";
+      const accessibleStepState = isCompleted
+        ? "complete"
+        : isIncompleteWithReviewError
+          ? "needs attention"
+          : "incomplete";
       return (
         <Fragment key={step.id}>
           {index > 0 && (
-            <li aria-hidden="true" className={stepperConnectorClassName} />
+            <li
+              aria-hidden="true"
+              className={clsx(
+                stepperConnectorClassName,
+                opticalIconClassName,
+                doesPreviousStepCompleteConnector
+                  ? "bg-[#00c230]"
+                  : "bg-portal-border",
+              )}
+            />
           )}
           <li aria-current={isActive ? "step" : undefined}>
             <button
               type="button"
               onClick={() => props.onStepSelect?.(step.id)}
+              aria-label={`${step.label}, ${isActive ? "current step, " : ""}${accessibleStepState}`}
               className={clsx(
                 stepperStepClassName,
                 "cursor-pointer transition-opacity hover:opacity-70",
@@ -126,6 +145,9 @@ export const Stepper = (props: {
                   className={clsx(
                     "flex size-5 items-center justify-center rounded-full bg-[#00c230]",
                     opticalIconClassName,
+                    // A checkmark owns completion. The ring keeps an active,
+                    // complete step visibly selected without adding copy.
+                    isActive && "ring-2 ring-portal-ink ring-offset-2",
                   )}
                 >
                   <Icon name="radio-check" className="size-[13.333px]" />
@@ -135,9 +157,11 @@ export const Stepper = (props: {
                   className={clsx(
                     "flex size-5 items-center justify-center rounded-full text-center text-13 leading-[1.2] font-medium",
                     opticalIconClassName,
-                    isActive
-                      ? "bg-portal-ink text-white"
-                      : "bg-portal-canvas text-portal-subtle",
+                    isIncompleteWithReviewError
+                      ? "border-2 border-[#ea392a] bg-white text-[#ea392a]"
+                      : isActive
+                        ? "bg-portal-ink text-white"
+                        : "bg-portal-canvas text-portal-subtle",
                   )}
                 >
                   <span className={bubbleDigitClassName}>{index + 1}</span>
@@ -146,9 +170,11 @@ export const Stepper = (props: {
               <span
                 className={clsx(
                   stepperLabelClassName,
-                  isActive || isCompleted
-                    ? "text-portal-ink"
-                    : "text-portal-subtle",
+                  isActive
+                    ? "font-semibold text-portal-ink"
+                    : isCompleted
+                      ? "text-portal-ink"
+                      : "text-portal-subtle",
                 )}
               >
                 {step.label}

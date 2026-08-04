@@ -147,6 +147,21 @@ describe("useAppModeToggle [in-place persistence]", () => {
 
 // #region Logo hover feedback
 describe("LogoDropZone [existing logo]", () => {
+  it("marks the required logo at the upper-right edge", () => {
+    render(<LogoDropZone onFileSelected={jest.fn()} />);
+
+    expect(screen.getByText("*")).toHaveClass(
+      "absolute",
+      "top-3",
+      "right-4",
+      "text-[#ea392a]",
+    );
+    expect(screen.getByLabelText(/Upload app logo/)).toHaveAttribute(
+      "aria-required",
+      "true",
+    );
+  });
+
   it("darkens an editable logo on hover and focus, but not a disabled logo", () => {
     const { rerender } = render(
       <LogoDropZone
@@ -158,7 +173,9 @@ describe("LogoDropZone [existing logo]", () => {
     // The logo <img> is decorative (alt="") since #2195; the label is named
     // by its sr-only text instead.
     const editableLabel = screen.getByText("Upload app logo").closest("label");
-    const hoverShade = editableLabel?.querySelector('span[aria-hidden="true"]');
+    const hoverShade = editableLabel?.querySelector(
+      'span[class*="bg-grey-900/50"]',
+    );
     expect(editableLabel).toHaveClass("group", "cursor-pointer");
     expect(hoverShade).toHaveClass(
       "bg-grey-900/50",
@@ -177,7 +194,7 @@ describe("LogoDropZone [existing logo]", () => {
 
     const disabledLabel = screen.getByText("Upload app logo").closest("label");
     expect(
-      disabledLabel?.querySelector('span[aria-hidden="true"]'),
+      disabledLabel?.querySelector('span[class*="bg-grey-900/50"]'),
     ).not.toBeInTheDocument();
   });
 });

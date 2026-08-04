@@ -15,6 +15,12 @@ export type UseAutosaveOptions<T extends FieldValues> = {
   enabled: boolean;
   debounceMs?: number;
   onStatus: (status: AutosaveStatus) => void;
+  /**
+   * Publishes the exact form snapshot only after it has been persisted and is
+   * still current. Consumers can use this for UI that must never acknowledge
+   * a change while it is merely waiting in the debounce window.
+   */
+  onSaved?: (data: T) => void;
   onPendingChange?: (isPending: boolean) => void;
   /**
    * Returns true for fields persisted by someone other than this autosave —
@@ -135,6 +141,7 @@ export function useAutosave<T extends FieldValues>(
             keepTouched: true,
           });
           onStatus({ state: "saved", at: Date.now() });
+          optionsRef.current.onSaved?.(snapshot);
         }
         // When not stable the user typed during the save: a new debounce was
         // scheduled by the watch subscription, so leave the status on "saving"

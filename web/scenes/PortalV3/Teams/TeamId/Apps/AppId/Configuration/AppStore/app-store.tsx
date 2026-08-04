@@ -4,7 +4,15 @@ import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { WarningBadgeIcon } from "@/scenes/PortalV3/common/Icon";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { createContext, PropsWithChildren, useContext, useMemo } from "react";
+import {
+  createContext,
+  PropsWithChildren,
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useContext,
+  useMemo,
+} from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
 import { CategorySection } from "./components/FormSections/CategorySection";
@@ -48,7 +56,14 @@ type AppStoreFormContextValue = ReturnType<typeof useAppStoreForm> &
   AppStoreFormProps & {
     isEnoughPermissions: boolean;
     supportedLanguages: string[];
+    reportSelfPersistedValues: (
+      update: (values: AppStoreFormValues) => AppStoreFormValues,
+    ) => void;
   };
+
+type AppStoreFormWithAutosaveProps = AppStoreFormProps & {
+  onAutosaveSuccess?: Dispatch<SetStateAction<AppStoreFormValues>>;
+};
 
 const AppStoreFormContext = createContext<AppStoreFormContextValue | null>(
   null,
@@ -70,8 +85,9 @@ export const AppStoreForm = ({
   appId,
   teamId,
   appMetadata,
+  onAutosaveSuccess,
   children,
-}: PropsWithChildren<AppStoreFormProps>) => {
+}: PropsWithChildren<AppStoreFormWithAutosaveProps>) => {
   const { user } = useUser() as Auth0SessionUser;
 
   const appStoreForm = useAppStoreForm(appId, appMetadata);
@@ -88,6 +104,16 @@ export const AppStoreForm = ({
 
   const supportedLanguages = useWatch({ control, name: "supported_languages" });
 
+  const reportAutosaveSuccess = useCallback(
+    (values: AppStoreFormValues) => onAutosaveSuccess?.(values),
+    [onAutosaveSuccess],
+  );
+  const reportSelfPersistedValues = useCallback(
+    (update: (values: AppStoreFormValues) => AppStoreFormValues) =>
+      onAutosaveSuccess?.(update),
+    [onAutosaveSuccess],
+  );
+
   useAutosaveWithStatus<AppStoreFormValues>({
     id: "app-store",
     form,
@@ -95,6 +121,7 @@ export const AppStoreForm = ({
     save: async (data, signal) => {
       await submitSilent(data, signal);
     },
+    onSaved: reportAutosaveSuccess,
     isSelfPersisting: isSelfPersistingField,
   });
 
@@ -107,6 +134,7 @@ export const AppStoreForm = ({
         appMetadata,
         isEnoughPermissions,
         supportedLanguages,
+        reportSelfPersistedValues,
       }}
     >
       <form

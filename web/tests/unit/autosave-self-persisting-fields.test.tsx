@@ -25,8 +25,10 @@ let api: {
 
 const Harness = ({
   isSelfPersisting,
+  onSaved,
 }: {
   isSelfPersisting?: (name: string) => boolean;
+  onSaved?: (values: Values) => void;
 }) => {
   const form = useForm<Values>({
     defaultValues: {
@@ -41,6 +43,7 @@ const Harness = ({
     debounceMs: DEBOUNCE_MS,
     save: (...args) => save(...args),
     onStatus: () => {},
+    onSaved,
     isSelfPersisting,
   });
 
@@ -67,6 +70,36 @@ afterEach(() => {
 });
 
 describe("autosave and self-persisting fields", () => {
+  it("publishes form values only after autosave succeeds", async () => {
+    const onSaved = jest.fn();
+    render(<Harness onSaved={onSaved} />);
+
+    act(() => {
+      api!.setValue("name", "renamed", { shouldDirty: true });
+    });
+
+    expect(onSaved).not.toHaveBeenCalled();
+
+    await settle();
+
+    expect(onSaved).toHaveBeenCalledTimes(1);
+    expect(onSaved.mock.calls[0][0].name).toBe("renamed");
+  });
+
+  it("does not publish form values when autosave fails", async () => {
+    const onSaved = jest.fn();
+    save.mockRejectedValueOnce(new Error("save failed"));
+    render(<Harness onSaved={onSaved} />);
+
+    act(() => {
+      api!.setValue("name", "renamed", { shouldDirty: true });
+    });
+    await settle();
+
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(onSaved).not.toHaveBeenCalled();
+  });
+
   it("skips the full-form save when a self-persisting field writes back", async () => {
     render(
       <Harness

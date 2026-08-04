@@ -8,6 +8,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import React from "react";
+import { FormProvider, useForm, type UseFormReturn } from "react-hook-form";
 
 // #region Mocks
 const flushAllMock = jest.fn();
@@ -48,10 +49,22 @@ jest.mock(
   }),
 );
 
+let mockAppStoreAutosaveSuccess:
+  | ((values: Record<string, unknown>) => void)
+  | undefined;
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/app-store",
   () => ({
-    AppStoreForm: ({ children }: { children: React.ReactNode }) => children,
+    AppStoreForm: ({
+      children,
+      onAutosaveSuccess,
+    }: {
+      children: React.ReactNode;
+      onAutosaveSuccess?: (values: Record<string, unknown>) => void;
+    }) => {
+      mockAppStoreAutosaveSuccess = onAutosaveSuccess;
+      return children;
+    },
   }),
 );
 
@@ -120,18 +133,76 @@ const app = {
   verified_app_metadata: [verifiedMetadata],
 };
 
+type TestAppStoreFormValues = {
+  category: string;
+  support_type: string;
+  support_email: string;
+  support_link: string;
+  is_android_only: boolean;
+  is_for_humans_only: boolean;
+  supported_countries: string[];
+  supported_languages: string[];
+  localisations: Array<{
+    language: string;
+    name: string;
+    short_name: string;
+    world_app_description: string;
+    description_overview: string;
+    meta_tag_image_url: string;
+    showcase_img_urls: string[];
+  }>;
+};
+
+const defaultAppStoreFormValues: TestAppStoreFormValues = {
+  category: "External",
+  support_type: "email",
+  support_email: "",
+  support_link: "",
+  is_android_only: false,
+  is_for_humans_only: false,
+  supported_countries: [],
+  supported_languages: ["en"],
+  localisations: [
+    {
+      language: "en",
+      name: "",
+      short_name: "",
+      world_app_description: "",
+      description_overview: "",
+      meta_tag_image_url: "",
+      showcase_img_urls: [],
+    },
+  ],
+};
+
+let mockAppStoreForm: UseFormReturn<TestAppStoreFormValues> | null = null;
+
+const WizardTestFormProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const form = useForm<TestAppStoreFormValues>({
+    defaultValues: defaultAppStoreFormValues,
+  });
+  mockAppStoreForm = form;
+  return <FormProvider {...form}>{children}</FormProvider>;
+};
+
 const renderWizard = (onVersionSwitchingChange = jest.fn()) =>
   render(
-    <ConfigurationWizard
-      appId={appId}
-      teamId={teamId}
-      app={app as never}
-      appMetadata={draftMetadata as never}
-      teamName="Test team"
-      activeStep={WizardStep.BASIC}
-      setActiveStep={jest.fn()}
-      onVersionSwitchingChange={onVersionSwitchingChange}
-    />,
+    <WizardTestFormProvider>
+      <ConfigurationWizard
+        appId={appId}
+        teamId={teamId}
+        app={app as never}
+        appMetadata={draftMetadata as never}
+        teamName="Test team"
+        activeStep={WizardStep.BASIC}
+        setActiveStep={jest.fn()}
+        onVersionSwitchingChange={onVersionSwitchingChange}
+      />
+    </WizardTestFormProvider>,
   );
 // #endregion
 
@@ -139,6 +210,34 @@ beforeEach(() => {
   jest.clearAllMocks();
   getDefaultStore().set(viewModeAtom, "unverified");
   getDefaultStore().set(isMiniAppAtom, false);
+  mockAppStoreAutosaveSuccess = undefined;
+  mockAppStoreForm = null;
+});
+
+describe("configuration wizard [step completion]", () => {
+  it("waits for autosave success before showing a completion check", () => {
+    renderWizard();
+
+    expect(
+      screen.getByRole("button", { name: "Availability, incomplete" }),
+    ).toBeInTheDocument();
+
+    act(() => {
+      mockAppStoreForm!.setValue("supported_countries", ["US"]);
+    });
+
+    expect(
+      screen.getByRole("button", { name: "Availability, incomplete" }),
+    ).toBeInTheDocument();
+
+    act(() => {
+      mockAppStoreAutosaveSuccess?.(mockAppStoreForm!.getValues());
+    });
+
+    expect(
+      screen.getByRole("button", { name: "Availability, complete" }),
+    ).toBeInTheDocument();
+  });
 });
 
 describe("configuration wizard [version switching]", () => {
