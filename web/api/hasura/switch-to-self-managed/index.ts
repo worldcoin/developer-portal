@@ -52,7 +52,7 @@ const schema = yup
  * 3. Claims the mode-switch slot (prevents concurrent operations)
  * 4. Submits an updateRp transaction to transfer the manager on-chain
  * 5. Updates the DB to self_managed mode, clears KMS key and signer address
- * 6. Schedules KMS key deletion
+ * 6. Schedules KMS key deletion when the key is dedicated to this RP
  */
 export const POST = async (req: NextRequest) => {
   const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);
@@ -293,8 +293,11 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
-    // STEP 8: Schedule KMS key deletion
-    await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    // STEP 8: Schedule KMS key deletion only for dedicated per-RP keys.
+    // The shared manager key must never be scheduled for deletion.
+    if (registration.is_unique_manager_key) {
+      await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    }
 
     logger.info("Mode switch to self-managed successful", {
       app_id,

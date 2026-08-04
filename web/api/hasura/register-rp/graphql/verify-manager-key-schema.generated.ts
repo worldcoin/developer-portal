@@ -4,49 +4,24 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type GetRpRegistrationQueryVariables = Types.Exact<{
-  app_id: Types.Scalars["String"]["input"];
+export type VerifyManagerKeySchemaQueryVariables = Types.Exact<{
+  rp_id: Types.Scalars["String"]["input"];
 }>;
 
-export type GetRpRegistrationQuery = {
+export type VerifyManagerKeySchemaQuery = {
   __typename?: "query_root";
-  rp_registration: Array<{
+  rp_registration_by_pk?: {
     __typename?: "rp_registration";
     rp_id: string;
-    app_id: string;
-    mode: unknown;
-    status: unknown;
-    signer_address?: string | null;
-    manager_kms_key_id?: string | null;
     is_unique_manager_key: boolean;
-    operation_hash?: string | null;
-    app: {
-      __typename?: "app";
-      team_id: string;
-      deleted_at?: string | null;
-      status: string;
-      is_archived: boolean;
-    };
-  }>;
+  } | null;
 };
 
-export const GetRpRegistrationDocument = gql`
-  query GetRpRegistration($app_id: String!) {
-    rp_registration(where: { app_id: { _eq: $app_id } }) {
+export const VerifyManagerKeySchemaDocument = gql`
+  query VerifyManagerKeySchema($rp_id: String!) {
+    rp_registration_by_pk(rp_id: $rp_id) {
       rp_id
-      app_id
-      mode
-      status
-      signer_address
-      manager_kms_key_id
       is_unique_manager_key
-      operation_hash
-      app {
-        team_id
-        deleted_at
-        status
-        is_archived
-      }
     }
   }
 `;
@@ -70,18 +45,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetRpRegistration(
-      variables: GetRpRegistrationQueryVariables,
+    VerifyManagerKeySchema(
+      variables: VerifyManagerKeySchemaQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetRpRegistrationQuery> {
+    ): Promise<VerifyManagerKeySchemaQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetRpRegistrationQuery>(
-            GetRpRegistrationDocument,
+          client.request<VerifyManagerKeySchemaQuery>(
+            VerifyManagerKeySchemaDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "GetRpRegistration",
+        "VerifyManagerKeySchema",
         "query",
         variables,
       );
