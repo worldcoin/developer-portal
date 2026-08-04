@@ -1,8 +1,8 @@
 "use client";
 
-import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { DangerZoneCard } from "@/components/DangerZoneCard";
 import { urls } from "@/lib/urls";
+import { ActionDangerZone } from "@/scenes/PortalV3/common/ActionDangerZone";
 import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { useApolloClient } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
