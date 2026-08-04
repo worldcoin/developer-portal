@@ -53,6 +53,12 @@ localstack auth set-token <your-auth-token>
 pnpm localstack:s3
 ```
 
+Without an AWS profile, start the app with LocalStack test credentials:
+
+```bash
+AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test pnpm dev
+```
+
 The `.env.example` values already point S3 at this bucket. Run `pnpm localstack:stop` to stop LocalStack.
 
 ### Starting the app
