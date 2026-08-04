@@ -100,7 +100,11 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const latestValueRef = useRef(value);
+  const deleteQueueRef = useRef<Promise<void>>(Promise.resolve());
   const isLocalized = locale !== "en";
+
+  latestValueRef.current = value;
 
   const { uploadViaPresignedPost, getImage } = useImage();
 
@@ -252,29 +256,43 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   );
 
   const handleDelete = useCallback(
-    async (imagePath: string) => {
-      const newUrls = value.filter((url) => !url.includes(imagePath));
+    (imagePath: string) => {
+      const runDelete = async () => {
+        // Calculate from the latest successfully persisted list only when this
+        // operation reaches the front of the queue. Precomputing here would let
+        // rapid deletes save competing arrays derived from the same stale value.
+        const currentUrls = latestValueRef.current;
+        const newUrls = currentUrls.filter((url) => !url.includes(imagePath));
+        if (newUrls.length === currentUrls.length) return;
 
-      try {
-        await onAutosave(newUrls);
-        onChange(newUrls);
-      } catch (error) {
-        console.error("error removing image:", error);
-        toast.error("Couldn't remove that image. Please try again.");
-        return;
-      }
+        try {
+          await onAutosave(newUrls);
+          latestValueRef.current = newUrls;
+          onChange(newUrls);
+        } catch (error) {
+          console.error("error removing image:", error);
+          toast.error("Couldn't remove that image. Please try again.");
+          return;
+        }
 
-      try {
-        await onRefetchImages();
-      } catch (error) {
-        console.error(
-          "image removed but post-delete refresh failed:",
-          error,
-          "— image is persisted; UI will catch up on next fetch",
-        );
-      }
+        try {
+          await onRefetchImages();
+        } catch (error) {
+          console.error(
+            "image removed but post-delete refresh failed:",
+            error,
+            "— image is persisted; UI will catch up on next fetch",
+          );
+        }
+      };
+
+      const queuedDelete = deleteQueueRef.current
+        .catch(() => undefined)
+        .then(runDelete);
+      deleteQueueRef.current = queuedDelete;
+      return queuedDelete;
     },
-    [value, onChange, onAutosave, onRefetchImages],
+    [onChange, onAutosave, onRefetchImages],
   );
 
   const canUploadMore = value.length < maxImages;

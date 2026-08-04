@@ -44,23 +44,28 @@ import { ImageUploadField } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Conf
 
 // #region Test Data
 const IMAGE_PATH = "showcase_img_1.png";
+const SECOND_IMAGE_PATH = "showcase_img_2.png";
+const THIRD_IMAGE_PATH = "showcase_img_3.png";
 
-const renderField = (callbacks: {
-  onAutosave: jest.Mock<Promise<void>, [string[]]>;
-  onChange: jest.Mock<void, [string[]]>;
-  onRefetchImages: jest.Mock<Promise<void>, []>;
-}) => {
+const renderField = (
+  callbacks: {
+    onAutosave: jest.Mock<Promise<void>, [string[]]>;
+    onChange: jest.Mock<void, [string[]]>;
+    onRefetchImages: jest.Mock<Promise<void>, []>;
+  },
+  value = [IMAGE_PATH],
+) => {
   const rendered = render(
     <ImageUploadField
-      value={[IMAGE_PATH]}
+      value={value}
       onChange={callbacks.onChange}
       onAutosave={callbacks.onAutosave}
       appId="app_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"
       teamId="team_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"
       isAppVerified={false}
-      unverifiedImageUrls={[
-        `https://signed.test/${IMAGE_PATH}?version=current`,
-      ]}
+      unverifiedImageUrls={value.map(
+        (path) => `https://signed.test/${path}?version=current`,
+      )}
       isImagesLoading={false}
       onRefetchImages={callbacks.onRefetchImages}
       maxImages={3}
@@ -76,14 +81,15 @@ const renderField = (callbacks: {
     />,
   );
 
-  const previewButton = screen.getByRole("button", {
+  const previewButtons = screen.getAllByRole("button", {
     name: "View full resolution",
   });
-  const deleteButton = within(previewButton.parentElement!).getAllByRole(
-    "button",
-  )[1];
+  const deleteButtons = previewButtons.map(
+    (previewButton) =>
+      within(previewButton.parentElement!).getAllByRole("button")[1],
+  );
 
-  return { ...rendered, deleteButton };
+  return { ...rendered, deleteButton: deleteButtons[0], deleteButtons };
 };
 // #endregion
 
@@ -150,6 +156,44 @@ describe("ImageUploadField [delete]", () => {
     );
     expect(onChange).not.toHaveBeenCalled();
     expect(onRefetchImages).not.toHaveBeenCalled();
+  });
+
+  it("serializes rapid deletions against the latest persisted array", async () => {
+    let finishFirstDelete!: () => void;
+    const onAutosave = jest
+      .fn<Promise<void>, [string[]]>()
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            finishFirstDelete = resolve;
+          }),
+      )
+      .mockResolvedValue(undefined);
+    const onChange = jest.fn<void, [string[]]>();
+    const onRefetchImages = jest.fn<Promise<void>, []>().mockResolvedValue();
+    const { deleteButtons } = renderField(
+      { onAutosave, onChange, onRefetchImages },
+      [IMAGE_PATH, SECOND_IMAGE_PATH, THIRD_IMAGE_PATH],
+    );
+
+    fireEvent.click(deleteButtons[0]);
+    fireEvent.click(deleteButtons[1]);
+
+    await waitFor(() => expect(onAutosave).toHaveBeenCalledTimes(1));
+    expect(onAutosave).toHaveBeenLastCalledWith([
+      SECOND_IMAGE_PATH,
+      THIRD_IMAGE_PATH,
+    ]);
+
+    finishFirstDelete();
+
+    await waitFor(() => expect(onAutosave).toHaveBeenCalledTimes(2));
+    expect(onAutosave).toHaveBeenLastCalledWith([THIRD_IMAGE_PATH]);
+    expect(onChange).toHaveBeenNthCalledWith(1, [
+      SECOND_IMAGE_PATH,
+      THIRD_IMAGE_PATH,
+    ]);
+    expect(onChange).toHaveBeenNthCalledWith(2, [THIRD_IMAGE_PATH]);
   });
 });
 // #endregion
