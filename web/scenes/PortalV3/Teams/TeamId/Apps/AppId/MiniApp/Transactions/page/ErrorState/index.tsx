@@ -1,8 +1,8 @@
 "use client";
 
-import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { AlertIcon } from "@/components/Icons/AlertIcon";
+import { ModalIcon } from "@/components/ModalIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 export const ErrorState = () => {
@@ -11,30 +11,40 @@ export const ErrorState = () => {
   };
 
   return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center gap-y-6 text-center">
-      <div className="grid max-w-[300px] justify-items-center gap-y-4">
-        <div className="grid gap-y-2 font-rubik leading-[1.2]">
-          <CircleIconContainer variant="error">
-            <CloseIcon className="size-4 text-system-error-500" />
-          </CircleIconContainer>
+    <div className="flex min-h-[400px] flex-col items-center justify-center">
+      {/* Same icon, copy and spacing recipe as DeleteConfirmationDialog. */}
+      <div className="grid max-w-md justify-items-center gap-y-6">
+        <ModalIcon variant="error">
+          <AlertIcon className="size-7 text-white" />
+        </ModalIcon>
+
+        <div className="grid w-full place-items-center gap-y-5">
+          <Typography
+            as="h3"
+            variant={TYPOGRAPHY.H6}
+            className="text-center text-grey-900"
+          >
+            Failed to load transactions
+          </Typography>
+
+          <Typography
+            variant={TYPOGRAPHY.R3}
+            className="text-center text-grey-500"
+          >
+            Something went wrong while loading transactions. Please try
+            refreshing the page.
+          </Typography>
         </div>
-        <Typography variant={TYPOGRAPHY.H6}>
-          Failed to load transactions
-        </Typography>
-        <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-          Something went wrong while loading transactions. Please try refreshing
-          the page.
-        </Typography>
+
+        <DecoratedButton
+          type="button"
+          variant="secondary"
+          className="px-8 py-3"
+          onClick={handleRetry}
+        >
+          <Typography variant={TYPOGRAPHY.R3}>Try Again</Typography>
+        </DecoratedButton>
       </div>
-      <DecoratedButton
-        type="button"
-        variant="secondary"
-        className="h-fit max-w-full px-8"
-        color="primary"
-        onClick={handleRetry}
-      >
-        <Typography variant={TYPOGRAPHY.M3}>Try Again</Typography>
-      </DecoratedButton>
     </div>
   );
 };
