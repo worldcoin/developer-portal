@@ -139,7 +139,7 @@ const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
   status: "registered",
   signer_address: "0x1111111111111111111111111111111111111111",
   manager_kms_key_id: "kms-key-123",
-  manager_key_dedicated: true,
+  is_unique_manager_key: true,
   operation_hash: null,
   staging_status: null,
   // Stale by default; pending-specific tests override to a fresh timestamp.
@@ -205,7 +205,7 @@ beforeEach(() => {
     update_rp_registration_by_pk: { rp_id: rpId },
   });
   VerifyManagerKeySchema.mockResolvedValue({
-    rp_registration_by_pk: { rp_id: rpId, manager_key_dedicated: false },
+    rp_registration_by_pk: { rp_id: rpId, is_unique_manager_key: false },
   });
   submitRegisterRpTransactionMock.mockResolvedValue("0xregophash");
   (createManagerKey as jest.Mock).mockResolvedValue({
@@ -246,7 +246,7 @@ describe("submitManagedRpRegistration", () => {
     expect(UpdateRpRegistration).toHaveBeenCalledWith({
       rp_id: expect.stringMatching(/^rp_/),
       manager_kms_key_id: sharedManagerKeyArn,
-      manager_key_dedicated: false,
+      is_unique_manager_key: false,
       operation_hash: "0xregophash",
       staging_operation_hash: null,
       staging_status: null,
@@ -272,9 +272,9 @@ describe("submitManagedRpRegistration", () => {
     });
   });
 
-  it("aborts before any KMS or on-chain work when manager_key_dedicated is missing", async () => {
+  it("aborts before any KMS or on-chain work when is_unique_manager_key is missing", async () => {
     VerifyManagerKeySchema.mockRejectedValue(
-      new Error("field 'manager_key_dedicated' not found in type"),
+      new Error("field 'is_unique_manager_key' not found in type"),
     );
 
     const res = await submitManagedRpRegistration(registrationArgs);
@@ -346,7 +346,7 @@ describe("submitManagedRpRegistration", () => {
     });
   });
 
-  it("persists manager_key_dedicated true for a dedicated key", async () => {
+  it("persists is_unique_manager_key true for a dedicated key", async () => {
     const res = await submitManagedRpRegistration(registrationArgs);
 
     expect(res).toMatchObject({ ok: true });
@@ -354,7 +354,7 @@ describe("submitManagedRpRegistration", () => {
     expect(UpdateRpRegistration).toHaveBeenCalledWith(
       expect.objectContaining({
         manager_kms_key_id: dedicatedManagerKeyId,
-        manager_key_dedicated: true,
+        is_unique_manager_key: true,
       }),
     );
   });
@@ -370,7 +370,7 @@ describe("submitManagedRpRegistration", () => {
     expect(UpdateRpRegistration).toHaveBeenCalledWith(
       expect.objectContaining({
         manager_kms_key_id: dedicatedManagerKeyId,
-        manager_key_dedicated: true,
+        is_unique_manager_key: true,
       }),
     );
   });

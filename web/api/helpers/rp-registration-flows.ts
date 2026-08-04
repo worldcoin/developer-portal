@@ -128,7 +128,7 @@ export async function submitManagedRpRegistration({
   // Slot is now claimed; any failure between here and the final DB write
   // must release it so retries don't bounce off `already_registered`.
 
-  // manager_key_dedicated is written together with the manager key at the end
+  // is_unique_manager_key is written together with the manager key at the end
   // of this flow. If the migration adding it has not been applied yet, fail
   // here rather than after the on-chain transaction has been submitted.
   try {
@@ -136,7 +136,7 @@ export async function submitManagedRpRegistration({
       rp_id: rpIdString,
     });
   } catch (error) {
-    logger.error("rp_registration schema is missing manager_key_dedicated", {
+    logger.error("rp_registration schema is missing is_unique_manager_key", {
       error,
       app_id: appId,
     });
@@ -166,7 +166,7 @@ export async function submitManagedRpRegistration({
 
   let managerKmsKeyId: string;
   let managerAddress: string;
-  let managerKeyDedicated: boolean;
+  let isUniqueManagerKey: boolean;
 
   const useSharedManagerKey =
     process.env.ENABLE_SHARED_KEY_RP_REGISTRATION === "true";
@@ -185,7 +185,7 @@ export async function submitManagedRpRegistration({
     try {
       managerAddress = await getEthAddressFromKMS(kmsClient, sharedKeyId);
       managerKmsKeyId = sharedKeyId;
-      managerKeyDedicated = false;
+      isUniqueManagerKey = false;
     } catch (error) {
       logger.error("Failed to derive address for shared manager key", {
         error,
@@ -210,7 +210,7 @@ export async function submitManagedRpRegistration({
     }
     managerKmsKeyId = created.keyId;
     managerAddress = created.address;
-    managerKeyDedicated = true;
+    isUniqueManagerKey = true;
   }
 
   let operationHash: string;
@@ -227,7 +227,7 @@ export async function submitManagedRpRegistration({
       error,
       app_id: appId,
     });
-    if (managerKeyDedicated) {
+    if (isUniqueManagerKey) {
       await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
     }
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
@@ -281,7 +281,7 @@ export async function submitManagedRpRegistration({
     ).UpdateRpRegistration({
       rp_id: rpIdString,
       manager_kms_key_id: managerKmsKeyId,
-      manager_key_dedicated: managerKeyDedicated,
+      is_unique_manager_key: isUniqueManagerKey,
       operation_hash: operationHash,
       staging_operation_hash: stagingOperationHash,
       staging_status: stagingStatus,

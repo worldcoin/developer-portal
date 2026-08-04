@@ -75282,7 +75282,7 @@
             "deprecationReason": null
           },
           {
-            "name": "manager_key_dedicated",
+            "name": "is_unique_manager_key",
             "description": null,
             "args": [],
             "type": {
@@ -76023,7 +76023,7 @@
             "deprecationReason": null
           },
           {
-            "name": "manager_key_dedicated",
+            "name": "is_unique_manager_key",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -76225,7 +76225,7 @@
             "deprecationReason": null
           },
           {
-            "name": "manager_key_dedicated",
+            "name": "is_unique_manager_key",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -77274,7 +77274,7 @@
             "deprecationReason": null
           },
           {
-            "name": "manager_key_dedicated",
+            "name": "is_unique_manager_key",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -77446,7 +77446,7 @@
             "deprecationReason": null
           },
           {
-            "name": "manager_key_dedicated",
+            "name": "is_unique_manager_key",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -77517,7 +77517,7 @@
         "interfaces": null,
         "enumValues": [
           {
-            "name": "manager_key_dedicated",
+            "name": "is_unique_manager_key",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -77534,7 +77534,7 @@
         "interfaces": null,
         "enumValues": [
           {
-            "name": "manager_key_dedicated",
+            "name": "is_unique_manager_key",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -77573,7 +77573,7 @@
             "deprecationReason": null
           },
           {
-            "name": "manager_key_dedicated",
+            "name": "is_unique_manager_key",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -77912,7 +77912,7 @@
             "deprecationReason": null
           },
           {
-            "name": "manager_key_dedicated",
+            "name": "is_unique_manager_key",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -78057,7 +78057,7 @@
             "deprecationReason": null
           },
           {
-            "name": "manager_key_dedicated",
+            "name": "is_unique_manager_key",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

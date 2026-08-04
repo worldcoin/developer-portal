@@ -80,7 +80,7 @@ const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
   status: "registered",
   signer_address: "0x2222222222222222222222222222222222222222",
   manager_kms_key_id: managerKmsKeyId,
-  manager_key_dedicated: true,
+  is_unique_manager_key: true,
   operation_hash: null,
   app: {
     team_id: teamId,
@@ -154,7 +154,7 @@ describe("/api/hasura/switch-to-self-managed [key deletion]", () => {
 
   it("does not schedule key deletion when the manager key is shared", async () => {
     GetRpRegistration.mockResolvedValue({
-      rp_registration: [makeRegistration({ manager_key_dedicated: false })],
+      rp_registration: [makeRegistration({ is_unique_manager_key: false })],
     });
 
     const res = (await POST(

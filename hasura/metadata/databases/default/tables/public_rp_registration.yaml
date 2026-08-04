@@ -53,7 +53,7 @@ select_permissions:
         - mode
         - signer_address
         - manager_kms_key_id
-        - manager_key_dedicated
+        - is_unique_manager_key
         - status
         - operation_hash
         - staging_status
@@ -88,7 +88,7 @@ update_permissions:
         - mode
         - signer_address
         - manager_kms_key_id
-        - manager_key_dedicated
+        - is_unique_manager_key
         - status
         - operation_hash
         - staging_status
