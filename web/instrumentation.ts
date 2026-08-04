@@ -6,6 +6,10 @@ export async function register() {
       typeof window === "undefined" &&
       process.env.NEXT_RUNTIME === "nodejs"
     ) {
+      if (process.env.AWS_ENDPOINT_URL_S3 && !process.env.AWS_PROFILE) {
+        process.env.AWS_ACCESS_KEY_ID ??= "test";
+        process.env.AWS_SECRET_ACCESS_KEY ??= "test";
+      }
       const { ParameterStore } = await import("./lib/parameter-store");
       global.ParameterStore = new ParameterStore("developer-portal");
 
