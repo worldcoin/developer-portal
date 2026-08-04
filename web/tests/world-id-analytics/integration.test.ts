@@ -291,7 +291,11 @@ describe("World ID analytics [real cold backfill and endpoint]", () => {
       createdAt: "2026-01-10T03:00:00.000Z",
     });
 
-    await expect(callRollup()).resolves.toEqual({ success: true });
+    await expect(callRollup()).resolves.toEqual({
+      success: true,
+      outcome: "advanced",
+      processed_through: expect.any(String),
+    });
 
     expect(
       await getDailyRows(
@@ -802,7 +806,10 @@ describe("World ID analytics [real atomicity and locking]", () => {
       const firstRun = callRollup();
       await waitForBarrierWaiter();
 
-      await expect(callRollup()).resolves.toEqual({ success: true });
+      await expect(callRollup()).resolves.toEqual({
+        success: true,
+        outcome: "lock_missed",
+      });
       expect(
         await getDailyRows(
           "action_legacy_stats_daily",
@@ -833,7 +840,10 @@ describe("World ID analytics [real atomicity and locking]", () => {
     try {
       await lockClient.query("BEGIN");
       await lockClient.query("SELECT pg_advisory_xact_lock(533214, 43)");
-      await expect(callRollup()).resolves.toEqual({ success: true });
+      await expect(callRollup()).resolves.toEqual({
+        success: true,
+        outcome: "lock_missed",
+      });
       expect(
         await getDailyRows(
           "action_legacy_stats_daily",
@@ -844,7 +854,11 @@ describe("World ID analytics [real atomicity and locking]", () => {
       await lockClient.query("ROLLBACK");
       await lockClient.query("BEGIN");
       await lockClient.query("SELECT pg_advisory_xact_lock(533214, 42)");
-      await expect(callRollup()).resolves.toEqual({ success: true });
+      await expect(callRollup()).resolves.toEqual({
+        success: true,
+        outcome: "advanced",
+        processed_through: expect.any(String),
+      });
       expect(
         await getDailyRows(
           "action_legacy_stats_daily",

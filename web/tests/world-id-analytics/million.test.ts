@@ -54,9 +54,22 @@ const runRollup = async () => {
   const body = await response.json();
   expect({ status: response.status, body }).toEqual({
     status: 200,
-    body: { success: true },
+    body: {
+      success: true,
+      outcome: "advanced",
+      processed_through: expect.any(String),
+    },
   });
   return elapsedMs;
+};
+
+// The initial full-history backfill follows the production runbook: the
+// chunked operator procedure, not the capped cron route (the 31-day seed
+// exceeds one tick's 30-day advance).
+const runProcedureBackfill = async () => {
+  const started = performance.now();
+  await pool.query("CALL public.backfill_world_id_analytics(1)");
+  return performance.now() - started;
 };
 
 const readEndpoint = async (
@@ -434,7 +447,7 @@ afterAll(async () => {
         31,
       );
 
-      const backfillMs = await runRollup();
+      const backfillMs = await runProcedureBackfill();
       const afterBackfill = await assertCanonicalParity();
       expect(afterBackfill).toEqual(initialCanonical);
       await assertEveryAppEnvironmentEndpoint(afterBackfill);
