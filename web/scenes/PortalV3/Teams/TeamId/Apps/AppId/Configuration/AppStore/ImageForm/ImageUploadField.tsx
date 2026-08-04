@@ -251,9 +251,14 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   const handleDelete = useCallback(
     async (imagePath: string) => {
       const newUrls = value.filter((url) => !url.includes(imagePath));
-      onChange(newUrls);
-      await onAutosave(newUrls);
-      await onRefetchImages();
+      try {
+        await onAutosave(newUrls);
+        await onRefetchImages();
+        onChange(newUrls);
+      } catch (error) {
+        console.error("error removing image:", error);
+        toast.error("Couldn't remove that image. Please try again.");
+      }
     },
     [value, onChange, onAutosave, onRefetchImages],
   );
