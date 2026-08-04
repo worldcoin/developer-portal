@@ -1,12 +1,20 @@
 /** @jest-environment jsdom */
 
 import "@testing-library/jest-dom";
+import {
+  ApolloClient,
+  ApolloLink,
+  gql,
+  InMemoryCache,
+  Observable,
+} from "@apollo/client";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
 const getImageMock = jest.fn();
 const uploadViaPresignedPostMock = jest.fn();
 const toastErrorMock = jest.fn();
+const updateLogoMutationMock = jest.fn();
 
 jest.mock("react-toastify", () => ({
   toast: { error: (...args: unknown[]) => toastErrorMock(...args) },
@@ -32,13 +40,6 @@ jest.mock(
   },
 );
 
-jest.mock(
-  "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload/graphql/client/update-logo.generated",
-  () => ({
-    UpdateLogoDocument: { __mockDoc: "updateLogo" },
-  }),
-);
-
 // Apollo Client 4: the react hooks live in "@apollo/client/react". The rendered
 // tree only calls useMutation (LogoImageUpload's update-logo mutation); the
 // other hooks are stubbed defensively so any nested Apollo call is inert.
@@ -53,10 +54,7 @@ jest.mock("@apollo/client/react", () => ({
     jest.fn(),
     { data: undefined, loading: false, called: false },
   ],
-  useMutation: () => [
-    jest.fn().mockResolvedValue({ data: {} }),
-    { loading: false },
-  ],
+  useMutation: () => [updateLogoMutationMock, { loading: false }],
   useApolloClient: () => ({
     cache: { modify: jest.fn(), identify: jest.fn() },
     readQuery: () => null,
@@ -65,14 +63,27 @@ jest.mock("@apollo/client/react", () => ({
   skipToken: Symbol.for("apollo.skipToken"),
 }));
 
+import { getDefaultStore } from "jotai";
 import { LogoImageUpload } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload";
+import { unverifiedImageAtom } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/layout/ImagesProvider";
+import { UpdateLogoDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload/graphql/client/update-logo.generated";
+
+const appId = "app_9cdd0a714aec9ed17dca660bc9ffe72a";
+const appMetadataId = "metadata_1";
+const teamId = "team_1";
+const logoFragment = gql`
+  fragment LogoImageRefreshTest on app_metadata {
+    id
+    logo_img_url
+  }
+`;
 
 const renderUploader = () =>
   render(
     React.createElement(LogoImageUpload, {
-      appId: "app_9cdd0a714aec9ed17dca660bc9ffe72a",
-      appMetadataId: "metadata_1",
-      teamId: "team_1",
+      appId,
+      appMetadataId,
+      teamId,
       open: true,
       onClose: jest.fn(),
     }),
@@ -86,7 +97,61 @@ const selectFile = (file: File) =>
 // Selection-time validation runs for real; the image decode (the I/O) is
 // faked by stubbing window.Image with controllable dimensions.
 let decodedDimensions = { width: 800, height: 400 };
+const originalLocation = window.location;
+const reloadMock = jest.fn();
 
+// #region Apollo normalization
+describe("UpdateLogo [Apollo normalization]", () => {
+  it("merges the returned logo URL into cached app metadata", async () => {
+    const cache = new InMemoryCache();
+    const cacheId = cache.identify({
+      __typename: "app_metadata",
+      id: appMetadataId,
+    });
+    cache.writeFragment({
+      id: cacheId,
+      fragment: logoFragment,
+      data: {
+        __typename: "app_metadata",
+        id: appMetadataId,
+        logo_img_url: "old-logo.png",
+      },
+    });
+    const client = new ApolloClient({
+      cache,
+      link: new ApolloLink(
+        (operation) =>
+          new Observable((observer) => {
+            observer.next({
+              data: {
+                update_app_metadata_by_pk: {
+                  __typename: "app_metadata",
+                  id: appMetadataId,
+                  logo_img_url: operation.variables.fileName,
+                },
+              },
+            });
+            observer.complete();
+          }),
+      ),
+    });
+
+    await client.mutate({
+      mutation: UpdateLogoDocument,
+      variables: { id: appMetadataId, fileName: "logo_img.png" },
+    });
+
+    expect(
+      cache.readFragment<{ logo_img_url: string }>({
+        id: cacheId,
+        fragment: logoFragment,
+      })?.logo_img_url,
+    ).toBe("logo_img.png");
+  });
+});
+// #endregion
+
+// #region Crop and upload flow
 describe("logo upload crop flow", () => {
   beforeAll(() => {
     Object.defineProperty(Element.prototype, "getAnimations", {
@@ -99,6 +164,9 @@ describe("logo upload crop flow", () => {
     jest.clearAllMocks();
     decodedDimensions = { width: 800, height: 400 };
     getImageMock.mockResolvedValue("https://cdn/logo_img.png");
+    uploadViaPresignedPostMock.mockResolvedValue(undefined);
+    updateLogoMutationMock.mockResolvedValue({ data: {} });
+    getDefaultStore().set(unverifiedImageAtom, { logo_img_url: "" });
     Object.defineProperty(URL, "createObjectURL", {
       configurable: true,
       value: jest.fn(() => "blob:logo-preview"),
@@ -125,6 +193,23 @@ describe("logo upload crop flow", () => {
         }
       },
     });
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: Object.assign(new URL("https://developer.test"), {
+        reload: reloadMock,
+      }),
+    });
+  });
+
+  afterAll(() => {
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: originalLocation,
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it("goes straight from file selection to the crop step for a non-square logo", async () => {
@@ -180,6 +265,72 @@ describe("logo upload crop flow", () => {
     expect(screen.queryByAltText("Logo crop preview")).not.toBeInTheDocument();
   });
 
+  it("uploads two square logos without refetching or reloading", async () => {
+    decodedDimensions = { width: 512, height: 512 };
+    getImageMock
+      .mockResolvedValueOnce("https://cdn/logo_img.png?version=first")
+      .mockResolvedValueOnce("https://cdn/logo_img.png?version=second");
+    renderUploader();
+
+    selectFile(new File(["first"], "logo.png", { type: "image/png" }));
+    await waitFor(() =>
+      expect(updateLogoMutationMock).toHaveBeenCalledTimes(1),
+    );
+
+    selectFile(new File(["second"], "logo.png", { type: "image/png" }));
+    await waitFor(() =>
+      expect(updateLogoMutationMock).toHaveBeenCalledTimes(2),
+    );
+
+    expect(updateLogoMutationMock.mock.calls).toEqual([
+      [
+        {
+          variables: { id: appMetadataId, fileName: "logo_img.png" },
+        },
+      ],
+      [
+        {
+          variables: { id: appMetadataId, fileName: "logo_img.png" },
+        },
+      ],
+    ]);
+    expect(reloadMock).not.toHaveBeenCalled();
+    expect(getDefaultStore().get(unverifiedImageAtom).logo_img_url).toBe(
+      "https://cdn/logo_img.png?version=second",
+    );
+  });
+
+  it("keeps the persisted preview when the metadata update fails", async () => {
+    const previousLogoUrl = "https://cdn/logo_img.png?version=old";
+    const replacementLogoUrl = "https://cdn/logo_img.png?version=new";
+    const consoleError = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    decodedDimensions = { width: 512, height: 512 };
+    getDefaultStore().set(unverifiedImageAtom, {
+      logo_img_url: previousLogoUrl,
+    });
+    getImageMock.mockResolvedValue(replacementLogoUrl);
+    updateLogoMutationMock.mockRejectedValueOnce(
+      new Error("metadata update failed"),
+    );
+    renderUploader();
+
+    selectFile(new File(["replacement"], "logo.png", { type: "image/png" }));
+
+    await waitFor(() =>
+      expect(toastErrorMock).toHaveBeenCalledWith("Error uploading image"),
+    );
+    expect(consoleError).toHaveBeenCalledWith(
+      "Logo Upload Failed: ",
+      expect.any(Error),
+    );
+    expect(getDefaultStore().get(unverifiedImageAtom).logo_img_url).toBe(
+      previousLogoUrl,
+    );
+    expect(reloadMock).not.toHaveBeenCalled();
+  });
+
   it("rejects a square logo at the 500 kB upload limit", async () => {
     renderUploader();
 
@@ -198,3 +349,4 @@ describe("logo upload crop flow", () => {
     expect(screen.queryByAltText("Logo crop preview")).not.toBeInTheDocument();
   });
 });
+// #endregion
