@@ -1,4 +1,5 @@
-DROP FUNCTION IF EXISTS public.rollup_world_id_analytics();
+DROP PROCEDURE IF EXISTS public.backfill_world_id_analytics(integer);
+DROP FUNCTION IF EXISTS public.rollup_world_id_analytics(integer);
 DROP FUNCTION IF EXISTS public.world_id_analytics_app_daily(varchar, varchar, date, date);
 DROP TABLE IF EXISTS public.world_id_app_stats_daily;
 DROP TABLE IF EXISTS public.world_id_analytics_state;

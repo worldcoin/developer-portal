@@ -140,6 +140,7 @@ fi
 if [[ "${1:-}" == "--release-gate" ]]; then
   npx jest \
     tests/world-id-analytics/stack-smoke.test.ts \
+    tests/world-id-analytics/chunked-rollup.test.ts \
     tests/world-id-analytics/backfill-and-validate.test.ts \
     --runInBand
   exit 0
@@ -147,5 +148,6 @@ fi
 
 npx jest \
   tests/world-id-analytics/stack-smoke.test.ts \
+  tests/world-id-analytics/chunked-rollup.test.ts \
   tests/world-id-analytics/backfill-and-validate.test.ts \
   --runInBand
