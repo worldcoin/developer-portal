@@ -17,7 +17,7 @@ import {
 } from "@/lib/team-settings";
 import { urls } from "@/lib/urls";
 import { cn } from "@/lib/utils";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { Icon, preloadIcons } from "@/scenes/PortalV3/common/Icon";
 import {
   ArrowLeftIcon,
   BadgeCheckIcon,
@@ -124,10 +124,33 @@ const NavIcon = (props: { name: string; active?: boolean }) => (
   </span>
 );
 
+/**
+ * Static `/images/portal-v3/icons` assets used by the sidebar. Top-level
+ * NavIcon rows mount idle+active together; `nav-configuration` only mounts
+ * when the World ID submenu opens, so warm the full set with the nav itself.
+ */
+const sidebarPreloadIcons = [
+  // Top-level rows (idle + active)
+  "nav-world-id",
+  "nav-world-id-active",
+  "nav-mini-app",
+  "nav-mini-app-active",
+  "nav-home",
+  "nav-home-active",
+  "nav-settings",
+  "nav-settings-active",
+  // World ID submenu
+  "nav-configuration",
+  // Sandbox CTA
+  "world-id-sandbox-app-icon",
+] as const;
+
 export const SidebarNav = (props: {
   initialSandboxRequest?: SandboxAccessRequestState | null;
   apiKeyTeamIds?: string[];
 }) => {
+  preloadIcons(sidebarPreloadIcons);
+
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
   const committedSearchParams = useSearchParams();

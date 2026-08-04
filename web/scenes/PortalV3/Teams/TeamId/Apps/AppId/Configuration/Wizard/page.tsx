@@ -1,6 +1,8 @@
 "use client";
 
 import { ErrorPage } from "@/components/ErrorPage";
+import { formCountriesList } from "@/lib/languages";
+import { preloadIcons } from "@/scenes/PortalV3/common/Icon";
 import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
@@ -8,6 +10,7 @@ import { useQuery } from "@apollo/client/react";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { preload } from "react-dom";
 import { AppStoreFormProvider } from "../AppStore/app-store-form-provider";
 import {
   AppMetadata,
@@ -26,6 +29,24 @@ type ConfigurationWizardPageProps = {
 };
 
 /**
+ * Portal-v3 icons used across Get verified wizard steps. Warm with the page
+ * layout so conditional / late-visible glyphs aren't blank on first paint.
+ */
+const configurationWizardPreloadIcons = [
+  "share-ios", // LogoDropZone + LocalisedContentStep empty drop zones
+  "radio-check", // Stepper completed steps + AppModeCards selection
+  "star", // ReviewStep rating placeholder
+  "xmark", // ChipSelect remove on selected chips
+  "dropdown-check", // ChipSelect selected option in country/language lists
+] as const;
+
+// Country flags only mount inside the Availability dropdown — warm them with
+// the Get verified layout so the list isn't blank on first open.
+const configurationWizardPreloadFlagHrefs = formCountriesList().map(
+  (country) => `/icons/flags/${country.value}.svg`,
+);
+
+/**
  * Route entry for the redesigned configuration wizard. Mirrors the previous
  * page's data plumbing exactly: draft/verified row selection via the shared
  * view-mode atom, the keyed form provider (remounts on row/view change), the
@@ -34,6 +55,11 @@ type ConfigurationWizardPageProps = {
 export const ConfigurationWizardPage = ({
   params,
 }: ConfigurationWizardPageProps) => {
+  preloadIcons(configurationWizardPreloadIcons);
+  for (const href of configurationWizardPreloadFlagHrefs) {
+    preload(href, { as: "image", type: "image/svg+xml" });
+  }
+
   const routeParams = useParams<{ appId: `app_${string}`; teamId: string }>();
   const appId = (params?.appId || routeParams?.appId) as `app_${string}`;
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;

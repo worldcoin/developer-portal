@@ -3,7 +3,7 @@
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { Icon, preloadIcons } from "@/scenes/PortalV3/common/Icon";
 import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { useCreateAppDialog } from "@/scenes/common/layout/CreateAppDialog/useCreateAppDialog";
@@ -23,6 +23,17 @@ const CreateKeyModal = dynamic(
 
 // Collapses Chrome's visibilitychange+focus double-fire on a tab return.
 const RETURN_CHECK_MIN_INTERVAL_MS = 1_000;
+
+/**
+ * Static icons for the post-team-creation empty overview. This is the landing
+ * page after create-team, so warm the cards here plus radio-check for the
+ * World ID register-RP option cards that follow first-app creation.
+ */
+const appsPagePreloadIcons = [
+  "card-toolkit", // "Create an app" card
+  "card-wand", // "Set up MCP via API key" card
+  "radio-check", // Register-RP / World ID 4.0 option cards (next step)
+] as const;
 
 const ActionCard = (props: {
   icon: ReactNode;
@@ -62,6 +73,8 @@ export const AppsPageClient = (props: {
   teamId: string;
   initialIsOwner?: boolean;
 }) => {
+  preloadIcons(appsPagePreloadIcons);
+
   const { open: openCreateAppDialog } = useCreateAppDialog();
   const [createKeyOpen, setCreateKeyOpen] = useState(false);
   const [keyDialogMounted, setKeyDialogMounted] = useState(false);
