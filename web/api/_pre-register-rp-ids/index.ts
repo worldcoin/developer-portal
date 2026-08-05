@@ -12,8 +12,8 @@ import {
   isZeroAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
+import { releaseClaim, reserveClaim } from "@/api/helpers/rp-claims";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
-import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
@@ -28,47 +28,6 @@ import * as yup from "yup";
  * larger backlog across repeated calls.
  */
 const MAX_APPS_PER_CALL = 25;
-
-/**
- * How long a submitted claim is remembered so a repeat run does not resubmit it.
- * `submitRegisterRpTransaction` returns once the UserOp is submitted, not mined,
- * and the UserOp nonce carries per-attempt randomness — so a second register()
- * for the same rp_id can be accepted concurrently and one of them later reverts,
- * burning gas. Covers the UserOp validity window plus margin, after which the
- * on-chain read is authoritative again.
- */
-const CLAIM_IN_FLIGHT_TTL_SECONDS = Math.ceil(
-  (USER_OP_MAX_VALIDITY_MS + 5 * 60 * 1000) / 1000,
-);
-const CLAIM_IN_FLIGHT_KEY_PREFIX = "rp_claim_in_flight:";
-
-/**
- * Reserves an rp_id for this run. False means a claim was submitted recently and
- * has not settled, so skip it.
- *
- * Fails OPEN when Redis is unavailable: the endpoint is operator-driven and
- * dry-run by default, so refusing to work without Redis would be worse than the
- * duplicate submission this guards against. The on-chain read still catches
- * anything that has actually mined.
- */
-async function reserveClaim(rpIdString: string): Promise<boolean> {
-  const redis = global.RedisClient;
-  if (!redis) {
-    return true;
-  }
-  try {
-    const reserved = await redis.set(
-      `${CLAIM_IN_FLIGHT_KEY_PREFIX}${rpIdString}`,
-      "1",
-      "EX",
-      CLAIM_IN_FLIGHT_TTL_SECONDS,
-      "NX",
-    );
-    return reserved === "OK";
-  } catch {
-    return true;
-  }
-}
 
 const schema = yup
   .object({
@@ -368,7 +327,7 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      if (!(await reserveClaim(`${registry.label}:${rpIdString}`))) {
+      if (!(await reserveClaim(registry.label, rpIdString))) {
         // A claim for this id was submitted recently and has not settled yet.
         logger.warn("Skipping an rp_id with a claim still in flight", {
           app_id: appId,
@@ -409,6 +368,10 @@ export async function POST(request: NextRequest) {
           rp_id: rpIdString,
         });
       } catch (error) {
+        // Nothing was submitted, so holding the reservation would report
+        // `skipped_claim_in_flight` for the whole TTL on an operation that does
+        // not exist.
+        await releaseClaim(registry.label, rpIdString);
         logger.error("Failed to claim rp_id", {
           error,
           app_id: appId,

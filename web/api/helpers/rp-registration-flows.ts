@@ -24,6 +24,7 @@ import { getSdk as getRevertToggleSdk } from "@/api/hasura/toggle-rp-active/grap
 import { getSdk as getUpdateToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import { createManagerKey, getEthAddressFromKMS } from "@/api/helpers/kms-eth";
+import { isClaimInFlight } from "@/api/helpers/rp-claims";
 import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import {
   submitRegisterRpTransaction,
@@ -265,6 +266,30 @@ export async function submitManagedRpRegistration({
         ourManagerAddress &&
         addressesEqual(existingOnChainRp.manager, ourManagerAddress),
     );
+  }
+
+  // A defensive claim may have been submitted moments ago and not mined yet, in
+  // which case the read above still shows the id as free. Registering into that
+  // window means two competing register() calls: if the pre-claim wins with the
+  // shared manager while this row records a dedicated one, every later status
+  // check and retry reads the shared claim as foreign and the registration never
+  // reconciles. Ask the developer to retry instead — by then the claim is visible
+  // and the adoption path takes over.
+  if (
+    !existingOnChainRp?.initialized &&
+    (await isClaimInFlight("production", rpIdString))
+  ) {
+    logger.warn("Registration raced an in-flight defensive claim", {
+      app_id: appId,
+      rpIdString,
+    });
+    await releaseSlot();
+    return {
+      ok: false,
+      code: "submission_error",
+      detail:
+        "This app's RP ID is being prepared. Please try again in a few minutes.",
+    };
   }
 
   // Only the PRODUCTION registry is authoritative for whether this app can be

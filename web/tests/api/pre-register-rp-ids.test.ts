@@ -355,6 +355,21 @@ describe("/api/_pre-register-rp-ids [skips]", () => {
     expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
   });
 
+  it("releases the reservation when the submission fails", async () => {
+    // Nothing was submitted, so holding the reservation would report
+    // skipped_claim_in_flight for the whole TTL on an operation that never
+    // existed, leaving the id unclaimed by the tool.
+    submitRegisterRpTransactionMock.mockRejectedValueOnce(
+      new Error("bundler down"),
+    );
+    const first = await (await run()).json();
+    expect(first.counts).toEqual({ "production:failed_submission": 1 });
+
+    const second = await (await run()).json();
+
+    expect(second.counts).toEqual({ "production:claimed": 1 });
+  });
+
   it("records a submission failure without aborting the rest of the batch", async () => {
     const secondAppId = "app_00000000000000000000000000000002";
     submitRegisterRpTransactionMock

@@ -161,8 +161,9 @@ const sharedManagerKeyArn =
   "arn:aws:kms:eu-west-1:000000000000:key/shared-manager";
 const dedicatedManagerKeyId = "dedicated-kms-key";
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
+  await global.RedisClient?.flushall();
   // Non-production by default so the staging mirror is out of scope; the
   // staging suite opts in explicitly.
   process.env.NEXT_PUBLIC_APP_ENV = "test";
@@ -1286,6 +1287,31 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
 
     expect(res).toMatchObject({ ok: true });
     expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
+  });
+
+  it("refuses to race a defensive claim that has not mined yet", async () => {
+    // The claim was submitted moments ago, so the on-chain read still shows the id
+    // as free. Registering here means two competing register() calls; if the
+    // pre-claim wins with the shared manager while this row records a dedicated
+    // one, status and retry read the shared claim as foreign forever.
+    const { reserveClaim } = jest.requireActual("@/api/helpers/rp-claims");
+    const { generateRpIdString } = jest.requireActual("@/lib/rp");
+    await reserveClaim("production", generateRpIdString(appId));
+
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+      manager: `0x${"0".repeat(40)}`,
+      signer: `0x${"0".repeat(40)}`,
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "submission_error" });
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
   });
 
   it("still reports rp_id_taken when releasing the slot fails", async () => {
