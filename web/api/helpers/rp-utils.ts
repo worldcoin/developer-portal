@@ -85,7 +85,12 @@ export function isZeroAddress(address: string): boolean {
   return normalizeAddress(address).toLowerCase() === ZERO_ADDRESS;
 }
 
-function addressesEqual(a: string, b: string): boolean {
+/**
+ * Case- and checksum-insensitive address comparison. Exported so ownership
+ * checks outside this module can't drift into their own `.toLowerCase()`
+ * comparison that skips normalization.
+ */
+export function addressesEqual(a: string, b: string): boolean {
   return (
     normalizeAddress(a).toLowerCase() === normalizeAddress(b).toLowerCase()
   );

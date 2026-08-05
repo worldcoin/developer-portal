@@ -92,12 +92,14 @@ jest.mock("@/api/helpers/temporal-rpc", () => ({
 
 const submitToggleRpActiveTransactionMock = jest.fn();
 const submitRegisterRpTransactionMock = jest.fn();
+const submitRotateSignerTransactionMock = jest.fn();
 jest.mock("@/api/helpers/rp-transactions", () => ({
   submitToggleRpActiveTransaction: (...args: unknown[]) =>
     submitToggleRpActiveTransactionMock(...args),
   submitRegisterRpTransaction: (...args: unknown[]) =>
     submitRegisterRpTransactionMock(...args),
-  submitRotateSignerTransaction: jest.fn(),
+  submitRotateSignerTransaction: (...args: unknown[]) =>
+    submitRotateSignerTransactionMock(...args),
 }));
 
 jest.mock("@/api/helpers/kms", () => ({
@@ -159,13 +161,15 @@ const sharedManagerKeyArn =
   "arn:aws:kms:eu-west-1:000000000000:key/shared-manager";
 const dedicatedManagerKeyId = "dedicated-kms-key";
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
+  await global.RedisClient?.flushall();
   // Non-production by default so the staging mirror is out of scope; the
   // staging suite opts in explicitly.
   process.env.NEXT_PUBLIC_APP_ENV = "test";
   delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
   delete process.env.ENABLE_SHARED_KEY_RP_REGISTRATION;
+  delete process.env.RP_ID_PRE_REGISTRATION_SIGNER;
   mockGetRpRegistryConfig.mockReturnValue({
     contractAddress: "0xcontract",
     kmsRegion: "us-east-1",
@@ -208,6 +212,7 @@ beforeEach(() => {
     rp_registration_by_pk: { rp_id: rpId, is_unique_manager_key: false },
   });
   submitRegisterRpTransactionMock.mockResolvedValue("0xregophash");
+  submitRotateSignerTransactionMock.mockResolvedValue("0xrotateophash");
   (createManagerKey as jest.Mock).mockResolvedValue({
     keyId: dedicatedManagerKeyId,
     address: managerAddress,
@@ -1141,6 +1146,240 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     expect(res).toMatchObject({ ok: false, code: "already_registered" });
     // The on-chain read is never reached for an app that already has a row.
     expect(getRpFromContractMock).not.toHaveBeenCalled();
+  });
+
+  it("adopts an rp_id the Portal claimed defensively by rotating its signer", async () => {
+    // Pre-registration (_pre-register-rp-ids) claims the id with the SHARED
+    // manager key and a placeholder signer. Registering again would revert with
+    // IdAlreadyInUse, so the real registration has to rotate instead — otherwise
+    // every pre-claimed app is permanently locked out of onboarding.
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: managerAddress,
+      signer: "0x000000000000000000000000000000000000dead",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true, operationHash: "0xrotateophash" });
+    expect(submitRotateSignerTransactionMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ newSignerAddress: signerAddress }),
+    );
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    // Adoption must sign with the key already recorded on-chain, so it cannot
+    // mint a dedicated one even though shared mode is off.
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
+  });
+
+  it("returns a retryable kms_error, not rp_id_taken, when our manager cannot be resolved", async () => {
+    // A KMS outage must not be reported as "someone else owns your id, contact
+    // support" — that sends developers of pre-claimed apps to support over a
+    // transient failure they could just retry.
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    (getEthAddressFromKMS as jest.Mock).mockRejectedValue(
+      new Error("kms unavailable"),
+    );
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: managerAddress,
+      signer: "0x000000000000000000000000000000000000dead",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "kms_error" });
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    expect(submitRotateSignerTransactionMock).not.toHaveBeenCalled();
+    // The slot is released so a retry is not answered with already_registered.
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
+  });
+
+  it("still refuses a foreign claim when the shared manager key is configured", async () => {
+    // The manager is what distinguishes our own claim from a squatter's, so the
+    // adoption path must not widen into "any initialized RP is ours".
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0x00000000000000000000000000000000000000ff",
+      signer: "0x00000000000000000000000000000000000000ee",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "rp_id_taken" });
+    expect(submitRotateSignerTransactionMock).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("uses the shared key when only STAGING was pre-claimed", async () => {
+    // The sweep can succeed on staging and not production. The row stores one
+    // manager key, so minting a dedicated one for production would leave staging
+    // permanently failed: its register() reverts on an initialized id, and every
+    // later staging status/retry compares against the dedicated key and reads the
+    // shared pre-claim as foreign.
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    mockGetStagingRpRegistryConfig.mockReturnValue({
+      contractAddress: "0xstagingcontract",
+      kmsRegion: "us-east-1",
+    });
+    getRpFromContractMock.mockImplementation(
+      async (_rpId: bigint, contractAddress: string) => ({
+        // Free on production, already ours on staging.
+        initialized: contractAddress === "0xstagingcontract",
+        active: contractAddress === "0xstagingcontract",
+        manager: managerAddress,
+        signer: "0x000000000000000000000000000000000000dead",
+      }),
+    );
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true });
+    // Shared key, not a dedicated one, even though shared mode is off.
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
+    // Production registers (it was free); staging rotates (already ours).
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+    expect(submitRotateSignerTransactionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ contractAddress: "0xstagingcontract" }),
+      expect.objectContaining({ newSignerAddress: signerAddress }),
+    );
+  });
+
+  it("uses the shared key when staging ownership cannot be determined", async () => {
+    // The staging read is best-effort, so it must not block a production
+    // registration — but "unknown" must not become "not ours" either. If staging
+    // is in fact pre-claimed and we mint a dedicated key, staging's register()
+    // reverts on an initialized id and every later staging status/retry reads the
+    // shared pre-claim as foreign, so that side never recovers.
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    // Set only where pre-registration has actually been run, which is what scopes
+    // this fallback.
+    process.env.RP_ID_PRE_REGISTRATION_SIGNER =
+      "0x000000000000000000000000000000000000dEaD";
+    mockGetStagingRpRegistryConfig.mockReturnValue({
+      contractAddress: "0xstagingcontract",
+      kmsRegion: "us-east-1",
+    });
+    getRpFromContractMock.mockImplementation(
+      async (_rpId: bigint, contractAddress: string) => {
+        if (contractAddress === "0xstagingcontract") {
+          throw new Error("staging rpc timeout");
+        }
+        return {
+          initialized: false,
+          active: false,
+          manager: `0x${"0".repeat(40)}`,
+          signer: `0x${"0".repeat(40)}`,
+        };
+      },
+    );
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true });
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
+  });
+
+  it("refuses to race a defensive claim that has not mined yet", async () => {
+    // The claim was submitted moments ago, so the on-chain read still shows the id
+    // as free. Registering here means two competing register() calls; if the
+    // pre-claim wins with the shared manager while this row records a dedicated
+    // one, status and retry read the shared claim as foreign forever.
+    const { reserveClaim } = jest.requireActual("@/api/helpers/rp-claims");
+    const { generateRpIdString } = jest.requireActual("@/lib/rp");
+    await reserveClaim("production", generateRpIdString(appId));
+
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+      manager: `0x${"0".repeat(40)}`,
+      signer: `0x${"0".repeat(40)}`,
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "submission_error" });
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
+  });
+
+  it("returns a retryable config error when the shared key is missing but pre-claims exist", async () => {
+    // A missing RP_REGISTRY_MANAGER_KMS_KEY_ID is a deploy problem, not proof that
+    // someone else owns the id. Reporting rp_id_taken sends a developer whose app
+    // we are holding to support over a config outage.
+    process.env.RP_ID_PRE_REGISTRATION_SIGNER =
+      "0x000000000000000000000000000000000000dEaD";
+    delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: managerAddress,
+      signer: "0x000000000000000000000000000000000000dead",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "config_error" });
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("still reports rp_id_taken for a foreign id where pre-claims are impossible", async () => {
+    // The retryable path above must not swallow the genuine squatter case in an
+    // environment that has never pre-claimed anything.
+    delete process.env.RP_ID_PRE_REGISTRATION_SIGNER;
+    delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0x00000000000000000000000000000000000000ff",
+      signer: "0x00000000000000000000000000000000000000ee",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "rp_id_taken" });
+  });
+
+  it("forces the shared key when a STAGING claim is still settling", async () => {
+    // The writer reserves both registries; a reader that only checks production
+    // lets a dedicated key be minted while the staging pre-claim lands, which
+    // leaves staging unrecoverable. Staging is best-effort, so this forces the
+    // shared key rather than failing the registration.
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    process.env.RP_ID_PRE_REGISTRATION_SIGNER =
+      "0x000000000000000000000000000000000000dEaD";
+    mockGetStagingRpRegistryConfig.mockReturnValue({
+      contractAddress: "0xstagingcontract",
+      kmsRegion: "us-east-1",
+    });
+    const { reserveClaim } = jest.requireActual("@/api/helpers/rp-claims");
+    const { generateRpIdString } = jest.requireActual("@/lib/rp");
+    await reserveClaim("staging", generateRpIdString(appId));
+
+    // Both registries read as free — the staging claim has not mined.
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+      manager: `0x${"0".repeat(40)}`,
+      signer: `0x${"0".repeat(40)}`,
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true });
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
   });
 
   it("still reports rp_id_taken when releasing the slot fails", async () => {
