@@ -28,6 +28,10 @@ const ANDROID_URL: string | null =
 const TESTFLIGHT_APP_STORE_URL: string | null =
   process.env.NEXT_PUBLIC_TESTFLIGHT_APP_STORE_URL || null;
 
+const ANDROID_FIRST_SIGN_IN_NOTE =
+  "If this is your first Play Store sign-in, accept all Google Play Terms of Service before continuing. Make sure the browser opening the test link and the Play Store use that same account; mismatched sessions can block the download.";
+const SANDBOX_SUPPORT_EMAIL = "sandbox.access@toolsforhumanity.org";
+
 type Platform = "ios" | "android";
 
 const PLATFORMS: Record<
@@ -51,10 +55,10 @@ const PLATFORMS: Record<
     label: "Android",
     url: ANDROID_URL,
     steps: [
-      "On your Android device, confirm that the Google Play Store is signed in with the same Google account you requested access for. If this is your first Play Store sign-in, accept all Google Play Terms of Service before continuing. Make sure the browser opening the test link and the Play Store use that same account; mismatched sessions can block the download.",
+      "On your Android device, confirm that the Google Play Store is signed in with the same Google account you requested access for.",
       "If this is the first time that account has signed in to Google Play, allow time for Google's backend caches to recognize the new account before retrying.",
       "Once the correct account is signed in and the Terms of Service are accepted, scan the QR code or open the internal testing link below, then install the build.",
-      "If you still cannot access or install the build, contact sandbox.access@toolsforhumanity.org.",
+      "Still having trouble? Contact Sandbox Support:",
     ],
   },
 };
@@ -321,6 +325,17 @@ export const SandboxButton = (props: {
                       className="pt-0.5 text-grey-700"
                     >
                       {step}
+                      {platform === "android" && index === 0 ? (
+                        <span className="mt-3 block rounded-8 border border-system-warning-200 bg-system-warning-50 px-3 py-2 text-system-warning-700">
+                          <strong>Important:</strong>{" "}
+                          {ANDROID_FIRST_SIGN_IN_NOTE}
+                        </span>
+                      ) : null}
+                      {platform === "android" && index === 3 ? (
+                        <span className="mt-1 block w-fit font-medium whitespace-nowrap text-grey-900">
+                          {SANDBOX_SUPPORT_EMAIL}
+                        </span>
+                      ) : null}
                     </Typography>
                   </li>
                 ))}
