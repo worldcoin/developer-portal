@@ -261,10 +261,12 @@ describe("World ID analytics [backfill and validation gate]", () => {
 
     await removeParitySabotage();
     // The gate resumes from the committed watermark by design, so a parity
-    // failure requires the runbook's explicit reset before the retry.
+    // failure requires the runbook's full reset — truncate plus watermark —
+    // before the retry.
     await pool.query(`
+      TRUNCATE public.action_legacy_stats_daily, public.action_v4_stats_daily;
       UPDATE public.world_id_analytics_state
-         SET processed_through = '-infinity' WHERE singleton
+         SET processed_through = '-infinity' WHERE singleton;
     `);
 
     const retry = runBackfillAndValidate();
@@ -282,6 +284,48 @@ describe("World ID analytics [backfill and validation gate]", () => {
       [fixture.productionV4ActionId, createdAt],
     );
     expect(rolled.rows).toEqual([{ unique_count: "1" }]);
+  });
+
+  it("clears rolled-only rows through the documented full reset", async () => {
+    // A rolled row whose raw rows were later deleted, dated before the
+    // oldest surviving raw row: capped rebuilds anchor at that oldest raw
+    // row, so no watermark reset alone can ever sweep it.
+    await pool.query(
+      `INSERT INTO public.action_legacy_stats_daily (
+         action_id, date_utc, unique_count
+       ) VALUES ($1, '2026-01-01', 5)`,
+      [fixture.productionV3ActionId],
+    );
+    await insertV3Nullifier(pool, {
+      id: "nullifier_v3_reset_survivor",
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+
+    const withoutReset = runBackfillAndValidate();
+    expect(withoutReset.status).not.toBe(0);
+    expect(commandOutput(withoutReset)).toContain(
+      "Raw/rollup parity validation failed",
+    );
+
+    await pool.query(`
+      TRUNCATE public.action_legacy_stats_daily, public.action_v4_stats_daily;
+      UPDATE public.world_id_analytics_state
+         SET processed_through = '-infinity' WHERE singleton;
+    `);
+
+    const retry = runBackfillAndValidate();
+    expect({
+      error: retry.error,
+      output: commandOutput(retry),
+      status: retry.status,
+    }).toEqual(expect.objectContaining({ error: undefined, status: 0 }));
+
+    const stale = await pool.query(
+      `SELECT 1
+         FROM public.action_legacy_stats_daily
+        WHERE date_utc = '2026-01-01'`,
+    );
+    expect(stale.rows).toEqual([]);
   });
 
   it("fails when rolled v3 counts differ from the canonical raw rows", async () => {
