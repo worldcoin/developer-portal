@@ -48,6 +48,7 @@ const nextConfig = {
 
   output: "standalone",
   images: {
+    dangerouslyAllowLocalIP: assetsS3RemotePattern?.protocol === "http",
     // Next 16 changed the default from 60s to 4h. Pin the previous value so a
     // user who updates an app icon/image doesn't keep seeing the stale one (up to
     // 4h) from the image optimizer cache.
