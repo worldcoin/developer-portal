@@ -8,7 +8,7 @@ const cdnURLObject = new URL(
  * @param {{ endpoint?: string, bucket?: string, region?: string }} settings
  * @returns {{ protocol: "http" | "https", hostname: string, port?: string, pathname: string } | undefined}
  */
-export const getAssetsS3RemotePattern = ({ endpoint, bucket, region }) => {
+const getAssetsS3RemotePattern = ({ endpoint, bucket, region }) => {
   const normalizedBucket = bucket?.trim();
   if (!normalizedBucket) return undefined;
 
