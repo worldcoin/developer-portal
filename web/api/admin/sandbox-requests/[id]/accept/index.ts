@@ -1,11 +1,8 @@
 import { getInternalDashboardGraphqlClientForUser } from "@/api/helpers/graphql";
-import { sendEmail } from "@/api/helpers/send-email";
 import { authenticateAdminRequest } from "@/lib/admin-auth";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
-import { getSdk as getSandboxAccessRequestSdk } from "./graphql/get-sandbox-access-request.generated";
-import { getSdk as getMarkSandboxInviteSentSdk } from "./graphql/mark-sandbox-invite-sent.generated";
-import { buildSandboxAccessEmail } from "./sandbox-access-email";
+import { getSdk } from "./graphql/mark-sandbox-invite-sent.generated";
 
 const SANDBOX_REQUEST_ID_REGEX = /^sbxreq_[a-zA-Z0-9]+$/;
 const isSandboxRequestId = (id: string) =>
@@ -13,10 +10,10 @@ const isSandboxRequestId = (id: string) =>
 
 /**
  * Approves a sandbox request after an authenticated dashboard user grants
- * access in Google Play Console. Claims the row atomically
- * (`accepted = false` → true), then sends the invite only for the winning
- * claim so concurrent Approves cannot double-email. Idempotent for
- * already-accepted requests.
+ * access in Google Play Console. The mutation is one-way and idempotent:
+ * accepted requests keep their original processed_at timestamp. This
+ * low-stakes acknowledgement is intentionally available to every authenticated
+ * dashboard user.
  */
 export async function POST(
   req: NextRequest,
@@ -35,81 +32,16 @@ export async function POST(
     );
   }
 
-  const sendgridApiKey = process.env.SENDGRID_API_KEY;
-  const emailFrom = process.env.SENDGRID_EMAIL_FROM;
-  if (!sendgridApiKey || !emailFrom) {
-    logger.error("Sandbox invite email is not configured", {
-      hasApiKey: Boolean(sendgridApiKey),
-      hasFrom: Boolean(emailFrom),
-    });
-    return NextResponse.json(
-      { error: "Sandbox invite email is not configured" },
-      { status: 503 },
-    );
-  }
-
   try {
     const client = await getInternalDashboardGraphqlClientForUser(admin);
-    const requestResult = await getSandboxAccessRequestSdk(
-      client,
-    ).GetSandboxAccessRequest({ id });
-    const sandboxRequest = requestResult.sandbox_access_request[0];
-
-    if (!sandboxRequest) {
-      return NextResponse.json(
-        { error: "Sandbox request not found" },
-        { status: 404 },
-      );
-    }
-
-    if (sandboxRequest.accepted) {
-      return NextResponse.json({ success: true, changed: false });
-    }
-
-    const markResult = await getMarkSandboxInviteSentSdk(
-      client,
-    ).MarkSandboxInviteSent({
+    const result = await getSdk(client).MarkSandboxInviteSent({
       id,
       processed_at: new Date().toISOString(),
     });
-    const claimed =
-      markResult.update_sandbox_access_request?.affected_rows === 1;
-
-    // Lost the race to another Approver — they own the invite send.
-    if (!claimed) {
-      return NextResponse.json({ success: true, changed: false });
-    }
-
-    const { subject, text } = buildSandboxAccessEmail({
-      androidInstallUrl: process.env.NEXT_PUBLIC_ANDROID_INTERNAL_TEST_URL,
-    });
-
-    try {
-      await sendEmail({
-        apiKey: sendgridApiKey,
-        from: emailFrom,
-        to: sandboxRequest.google_email,
-        subject,
-        text,
-      });
-    } catch (error) {
-      // Row is already accepted so retries will not re-send. Surface the
-      // failure so an admin can follow up manually.
-      logger.error("Failed to send sandbox invite email", {
-        requestId: id,
-        googleEmail: sandboxRequest.google_email,
-        adminSubject: admin.subject,
-        error,
-      });
-      return NextResponse.json(
-        { error: "Unable to send sandbox invite email" },
-        { status: 503 },
-      );
-    }
 
     return NextResponse.json({
       success: true,
-      changed: true,
+      changed: result.update_sandbox_access_request?.affected_rows === 1,
     });
   } catch (error) {
     logger.error("Failed to approve sandbox request", {

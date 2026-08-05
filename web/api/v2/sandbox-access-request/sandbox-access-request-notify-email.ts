@@ -25,6 +25,6 @@ export const buildSandboxAccessRequestNotifyEmail = (params: {
       : []),
     "",
     "Allowlist this Google account in Play Console, then Approve the request",
-    "in the developer admin dashboard so the invite email is sent.",
+    "in the developer admin dashboard.",
   ].join("\n"),
 });
