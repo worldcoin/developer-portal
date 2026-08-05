@@ -7,10 +7,13 @@ import {
 } from "@/api/helpers/rp-registration-flows";
 import {
   generateRpIdString,
+  getRpRegistryConfig,
   isZeroAddress,
   normalizeAddress,
+  parseRpId,
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
+import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
@@ -153,6 +156,47 @@ export const POST = async (req: NextRequest) => {
   // Self-managed: just create the DB record. No KMS / on-chain work.
   if (mode === "self_managed") {
     const rpIdString = generateRpIdString(app_id);
+
+    // A self-managed developer registers the rp_id from their own wallet, so if
+    // the id is already claimed on-chain their `register()` has already reverted
+    // (or is about to). Inserting the row anyway would leave the dashboard
+    // polling `pending` forever with no explanation. This covers both a
+    // squatter and an id the Portal claimed defensively via
+    // _pre-register-rp-ids — the latter needs the manager transferred to them,
+    // which no flow drives yet, so both cases route to support.
+    //
+    // Best-effort: a read failure must not block onboarding for the common case
+    // where the id is free.
+    const primaryConfig = getRpRegistryConfig();
+    if (primaryConfig) {
+      try {
+        const onChain = await getRpFromContract(
+          parseRpId(rpIdString),
+          primaryConfig.contractAddress,
+        );
+        if (onChain.initialized) {
+          logger.warn("Self-managed rp_id is already claimed on-chain", {
+            app_id,
+            rpIdString,
+            onChainManager: onChain.manager,
+          });
+          return errorHasuraQuery({
+            req,
+            detail:
+              "This app's RP ID is already registered on-chain. Portal cannot manage it — contact support.",
+            code: "rp_id_taken",
+            app_id,
+          });
+        }
+      } catch (error) {
+        logger.warn("Could not pre-check on-chain RP ownership; continuing", {
+          error,
+          app_id,
+          rpIdString,
+        });
+      }
+    }
+
     const { insert_rp_registration_one: claimedSlot } = await getClaimRpSdk(
       client,
     ).ClaimRpRegistration({

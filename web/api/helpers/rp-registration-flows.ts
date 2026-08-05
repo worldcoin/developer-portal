@@ -24,12 +24,14 @@ import { getSdk as getRevertToggleSdk } from "@/api/hasura/toggle-rp-active/grap
 import { getSdk as getUpdateToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import { createManagerKey, getEthAddressFromKMS } from "@/api/helpers/kms-eth";
+import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import {
   submitRegisterRpTransaction,
   submitRotateSignerTransaction,
   submitToggleRpActiveTransaction,
 } from "@/api/helpers/rp-transactions";
 import {
+  addressesEqual,
   generateRpIdString,
   getRpRegistryConfig,
   getStagingRpRegistryConfig,
@@ -151,9 +153,8 @@ export async function submitManagedRpRegistration({
   // dependency to a flow that works fine without it.
   //
   // Only the read is inside the try. A wider catch would swallow a failure from
-  // the slot release below and fall through to KMS and a UserOp for an rp_id we
-  // have already proven is taken — the exact wedged row this check exists to
-  // avoid.
+  // a slot release below and fall through to KMS and a UserOp for an rp_id we
+  // have already resolved, which is the wedged row this check exists to avoid.
   let existingOnChainRp: Awaited<ReturnType<typeof getRpFromContract>> | null =
     null;
   try {
@@ -166,6 +167,81 @@ export async function submitManagedRpRegistration({
       error,
       app_id: appId,
       rpIdString,
+    });
+  }
+
+  // Releasing the slot must never abort the decision that led here: the row is
+  // ours to clean up, and a failure leaves it wedged for ops rather than changing
+  // what the caller should be told.
+  const releaseSlot = async () => {
+    try {
+      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    } catch (error) {
+      logger.error("Failed to release the registration slot", {
+        error,
+        app_id: appId,
+        rpIdString,
+      });
+    }
+  };
+
+  // The claim above means the Portal held no row for this app, so an existing
+  // on-chain entry is either a squatter's or one WE claimed defensively via
+  // _pre-register-rp-ids. Those look identical except for the manager, which only
+  // our KMS key can sign for — so the manager is what tells them apart.
+  //
+  // Three outcomes, and the difference between them is what the caller can do:
+  //   - manager is ours          -> adopt: rotate the placeholder signer to the
+  //     real one instead of registering an id we already hold
+  //   - manager is someone else  -> rp_id_taken, terminal, needs support
+  //   - manager unresolvable     -> kms_error, RETRYABLE. A KMS outage must not be
+  //     reported as "someone else owns your id, contact support"; that would send
+  //     developers of pre-claimed apps to support over a transient failure.
+  let adoptExistingClaim = false;
+  if (existingOnChainRp?.initialized) {
+    const sharedManagerKeyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
+    const ourManagerAddress = sharedManagerKeyId
+      ? await resolveManagerAddress(sharedManagerKeyId, primaryConfig.kmsRegion)
+      : null;
+
+    if (sharedManagerKeyId && !ourManagerAddress) {
+      logger.error(
+        "Cannot tell whether an initialized rp_id is a Portal pre-claim",
+        { app_id: appId, rpIdString },
+      );
+      await releaseSlot();
+      return {
+        ok: false,
+        code: "kms_error",
+        detail: "Failed to resolve manager key. Please try again.",
+      };
+    }
+
+    adoptExistingClaim = Boolean(
+      ourManagerAddress &&
+        addressesEqual(existingOnChainRp.manager, ourManagerAddress),
+    );
+
+    if (!adoptExistingClaim) {
+      logger.warn("rp_id already registered on-chain by a foreign manager", {
+        app_id: appId,
+        rpIdString,
+        onChainManager: existingOnChainRp.manager,
+        onChainSigner: existingOnChainRp.signer,
+      });
+      await releaseSlot();
+      return {
+        ok: false,
+        code: "rp_id_taken",
+        detail:
+          "This app's RP ID is already registered on-chain by another party. Portal cannot manage it — contact support.",
+      };
+    }
+
+    logger.info("Adopting an rp_id the Portal claimed defensively", {
+      app_id: appId,
+      rpIdString,
+      onChainSigner: existingOnChainRp.signer,
     });
   }
 
@@ -238,7 +314,12 @@ export async function submitManagedRpRegistration({
   let managerAddress: string;
   let isUniqueManagerKey: boolean;
 
+  // Adoption has no choice of key: the manager already recorded on-chain is the
+  // shared one we claimed with, and only that key can sign the rotation. Minting
+  // a dedicated key here would produce a manager the contract has never heard
+  // of, and every update would revert.
   const useSharedManagerKey =
+    adoptExistingClaim ||
     process.env.ENABLE_SHARED_KEY_RP_REGISTRATION === "true";
 
   if (useSharedManagerKey) {
@@ -291,17 +372,29 @@ export async function submitManagedRpRegistration({
 
   let operationHash: string;
   try {
-    operationHash = await submitRegisterRpTransaction(primaryConfig, {
-      rpId,
-      managerAddress,
-      signerAddress,
-      appName,
-      kmsClient,
-    });
+    operationHash = adoptExistingClaim
+      ? // The id is already registered to our manager with a placeholder
+        // signer, so registering again would revert with IdAlreadyInUse.
+        // Rotating installs the developer's real signer and completes the
+        // handover in one transaction.
+        await submitRotateSignerTransaction(primaryConfig, {
+          rpId,
+          newSignerAddress: signerAddress,
+          managerKmsKeyId,
+          kmsClient,
+        })
+      : await submitRegisterRpTransaction(primaryConfig, {
+          rpId,
+          managerAddress,
+          signerAddress,
+          appName,
+          kmsClient,
+        });
   } catch (error) {
     logger.error("Failed to submit registration transaction", {
       error,
       app_id: appId,
+      adopting: adoptExistingClaim,
     });
     if (isUniqueManagerKey) {
       await scheduleKeyDeletion(kmsClient, managerKmsKeyId);

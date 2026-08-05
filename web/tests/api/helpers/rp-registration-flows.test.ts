@@ -92,12 +92,14 @@ jest.mock("@/api/helpers/temporal-rpc", () => ({
 
 const submitToggleRpActiveTransactionMock = jest.fn();
 const submitRegisterRpTransactionMock = jest.fn();
+const submitRotateSignerTransactionMock = jest.fn();
 jest.mock("@/api/helpers/rp-transactions", () => ({
   submitToggleRpActiveTransaction: (...args: unknown[]) =>
     submitToggleRpActiveTransactionMock(...args),
   submitRegisterRpTransaction: (...args: unknown[]) =>
     submitRegisterRpTransactionMock(...args),
-  submitRotateSignerTransaction: jest.fn(),
+  submitRotateSignerTransaction: (...args: unknown[]) =>
+    submitRotateSignerTransactionMock(...args),
 }));
 
 jest.mock("@/api/helpers/kms", () => ({
@@ -208,6 +210,7 @@ beforeEach(() => {
     rp_registration_by_pk: { rp_id: rpId, is_unique_manager_key: false },
   });
   submitRegisterRpTransactionMock.mockResolvedValue("0xregophash");
+  submitRotateSignerTransactionMock.mockResolvedValue("0xrotateophash");
   (createManagerKey as jest.Mock).mockResolvedValue({
     keyId: dedicatedManagerKeyId,
     address: managerAddress,
@@ -1141,6 +1144,50 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     expect(res).toMatchObject({ ok: false, code: "already_registered" });
     // The on-chain read is never reached for an app that already has a row.
     expect(getRpFromContractMock).not.toHaveBeenCalled();
+  });
+
+  it("adopts an rp_id the Portal claimed defensively by rotating its signer", async () => {
+    // Pre-registration (_pre-register-rp-ids) claims the id with the SHARED
+    // manager key and a placeholder signer. Registering again would revert with
+    // IdAlreadyInUse, so the real registration has to rotate instead — otherwise
+    // every pre-claimed app is permanently locked out of onboarding.
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: managerAddress,
+      signer: "0x000000000000000000000000000000000000dead",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true, operationHash: "0xrotateophash" });
+    expect(submitRotateSignerTransactionMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ newSignerAddress: signerAddress }),
+    );
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    // Adoption must sign with the key already recorded on-chain, so it cannot
+    // mint a dedicated one even though shared mode is off.
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
+  });
+
+  it("still refuses a foreign claim when the shared manager key is configured", async () => {
+    // The manager is what distinguishes our own claim from a squatter's, so the
+    // adoption path must not widen into "any initialized RP is ours".
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0x00000000000000000000000000000000000000ff",
+      signer: "0x00000000000000000000000000000000000000ee",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "rp_id_taken" });
+    expect(submitRotateSignerTransactionMock).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
   it("still reports rp_id_taken when releasing the slot fails", async () => {
