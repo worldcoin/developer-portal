@@ -5,7 +5,6 @@ import {
   submitManagedRpRegistration,
   type ManagedRegistrationResult,
 } from "@/api/helpers/rp-registration-flows";
-import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import {
   addressesEqual,
   generateRpIdString,
@@ -167,44 +166,49 @@ export const POST = async (req: NextRequest) => {
     // The one case that has to fail is an id the Portal claimed defensively via
     // _pre-register-rp-ids: the developer's own `register()` reverted against it,
     // and handing them the id needs the manager transferred to them, which no
-    // flow drives yet. Our shared manager address is what identifies that case;
-    // any other manager is the developer's own registration (or a squatter's,
-    // which for self-managed we cannot tell apart either way — unchanged by
-    // this PR, since the Portal stores no expected roles for self-managed).
+    // flow drives yet.
     //
-    // Best-effort: a read failure must not block onboarding.
+    // The PLACEHOLDER SIGNER identifies that case, not the manager address. Both
+    // would work, but resolving our manager means a KMS call, and KMS has no
+    // business in a self-managed registration — the Portal holds no keys for
+    // these apps. Depending on it would mean that during a KMS outage this check
+    // either blocks every legitimate self-managed completion (initialized is the
+    // normal state here) or silently falls through and lets a pre-claimed id
+    // through, which rp-status then promotes against the placeholder signer,
+    // leaving the developer a registration that can never sign. The placeholder
+    // is a plain env var we control, so the comparison cannot fail open.
+    //
+    // Any other signer is the developer's own registration — or a squatter's,
+    // which for self-managed the Portal cannot tell apart either way, unchanged
+    // by this PR since it stores no expected roles for self-managed rows.
     const primaryConfig = getRpRegistryConfig();
-    const sharedManagerKeyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
-    if (primaryConfig && sharedManagerKeyId) {
+    const placeholderSigner = process.env.RP_ID_PRE_REGISTRATION_SIGNER;
+    if (primaryConfig && placeholderSigner) {
       try {
         const onChain = await getRpFromContract(
           parseRpId(rpIdString),
           primaryConfig.contractAddress,
         );
-        if (onChain.initialized) {
-          const ourManagerAddress = await resolveManagerAddress(
-            sharedManagerKeyId,
-            primaryConfig.kmsRegion,
-          );
-          if (
-            ourManagerAddress &&
-            addressesEqual(onChain.manager, ourManagerAddress)
-          ) {
-            logger.warn("Self-managed rp_id is held by the Portal's manager", {
-              app_id,
-              rpIdString,
-              onChainManager: onChain.manager,
-            });
-            return errorHasuraQuery({
-              req,
-              detail:
-                "This app's RP ID is held by Portal and cannot be self-managed yet — contact support.",
-              code: "rp_id_taken",
-              app_id,
-            });
-          }
+        if (
+          onChain.initialized &&
+          addressesEqual(onChain.signer, placeholderSigner)
+        ) {
+          logger.warn("Self-managed rp_id is held by a Portal pre-claim", {
+            app_id,
+            rpIdString,
+            onChainManager: onChain.manager,
+          });
+          return errorHasuraQuery({
+            req,
+            detail:
+              "This app's RP ID is held by Portal and cannot be self-managed yet — contact support.",
+            code: "rp_id_taken",
+            app_id,
+          });
         }
       } catch (error) {
+        // A read failure must not block onboarding: the common case is an id the
+        // developer just registered themselves.
         logger.warn("Could not pre-check on-chain RP ownership; continuing", {
           error,
           app_id,

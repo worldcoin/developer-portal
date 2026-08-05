@@ -83,12 +83,14 @@ const createMockRequest = (input: Record<string, unknown>) =>
 // #endregion
 
 const portalManagerAddress = "0x2222222222222222222222222222222222222222";
+const placeholderSigner = "0x000000000000000000000000000000000000dEaD";
 
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.INTERNAL_ENDPOINTS_SECRET = "internal-secret";
   process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID =
     "arn:aws:kms:eu-west-1:000000000000:key/shared-manager";
+  process.env.RP_ID_PRE_REGISTRATION_SIGNER = placeholderSigner;
   appIsStaging = false;
   authorizedTeam = [{ id: teamId }];
 
@@ -206,20 +208,40 @@ describe("/api/hasura/register-rp [self-managed on-chain ownership]", () => {
     expect((await res.json()).status).toBe("pending");
   });
 
-  it("refuses when the id is held by the Portal's own manager", async () => {
+  it("refuses when the id carries the Portal's pre-claim placeholder signer", async () => {
     // Defensively pre-claimed: the developer's register() reverted against it,
     // and handing the id over needs a manager transfer that no flow drives yet.
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
       manager: portalManagerAddress,
-      signer: "0x000000000000000000000000000000000000dEaD",
+      signer: placeholderSigner,
     });
 
     const res = (await selfManaged())!;
     const body = await res.json();
 
     expect(body.code ?? body.extensions?.code).toBe("rp_id_taken");
+  });
+
+  it("does not depend on KMS to recognise a pre-claim", async () => {
+    // The check compares the placeholder signer, an env var we control, rather
+    // than resolving our manager key. A KMS outage must not decide between
+    // blocking every legitimate self-managed completion and silently admitting a
+    // pre-claimed id that rp-status would then promote against a dead signer.
+    resolveManagerAddressMock.mockResolvedValue(null);
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: portalManagerAddress,
+      signer: placeholderSigner,
+    });
+
+    const res = (await selfManaged())!;
+    const body = await res.json();
+
+    expect(body.code ?? body.extensions?.code).toBe("rp_id_taken");
+    expect(resolveManagerAddressMock).not.toHaveBeenCalled();
   });
 
   it("still succeeds when the on-chain read fails", async () => {
