@@ -8,6 +8,7 @@ import {
   type OnChainTrust,
   parseRpId,
   RpRegistrationStatus,
+  shouldFailUntrustedRegistration,
 } from "@/api/helpers/rp-utils";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
@@ -404,48 +405,29 @@ export async function GET(
     }
   }
 
-  // Timeout: a managed RP that is initialized on-chain by a manager/signer pair
-  // the Portal doesn't own can never become a trusted `registered` — either a
-  // foreign party won the permissionless on-chain register() for this rp_id, or
-  // a signer rotation never settled. The `!productionInitialized` guard above
-  // can't catch this (it IS initialized), so without this the row is wedged in
-  // `pending` forever, polling endlessly and never exposing the retry path. Only
-  // fail it once the UserOp validity window has elapsed: before that an in-flight
-  // signer rotation could still land, and failing early would cache `failed` for
-  // an hour over what then becomes a trusted `registered`.
-  //
-  // `unknown` is normally excluded: it means we could not resolve our own
-  // manager address (a KMS outage), which is not evidence of a takeover, and
-  // failing healthy registrations because our own dependency is down would turn a
-  // KMS blip into a self-inflicted incident.
-  //
-  // The exception is a managed row with no `manager_kms_key_id` at all. That is
-  // not an outage, it is a durable data defect: submitManagedRpRegistration
-  // deliberately keeps the claimed row when the DB write after a successful
-  // on-chain submission throws, which leaves a Portal-owned registration with no
-  // recorded manager key. Such a row can never resolve to `trusted`, so treating
-  // it as transient would wedge it in `pending` forever — before the trust gate
-  // existed it was promoted on `initialized && active` alone and healed itself.
-  // Fail it so the UI stops polling and surfaces the state.
+  // See shouldFailUntrustedRegistration for why this exists and why `unknown` is
+  // treated the way it is. Shared with the MCP status tool so the two readers of
+  // these rows cannot drift.
   //
   // NOTE: rp-retry also rejects rows without a manager key, so the retry button
   // on such a row reports a clear error rather than recovering. Fully fixing that
   // means persisting manager_kms_key_id BEFORE the on-chain submission, which
   // needs a new mutation (UpdateRpRegistration requires a non-null
   // operation_hash) and therefore a codegen run.
-  const isUnrecoverableMissingManagerKey =
-    productionTrust === "unknown" &&
-    dbRecord.mode === "managed" &&
-    !dbRecord.manager_kms_key_id;
+  const {
+    shouldFail: shouldFailProduction,
+    missingManagerKey: isUnrecoverableMissingManagerKey,
+  } = shouldFailUntrustedRegistration({
+    trust: productionTrust,
+    dbStatus: currentDbStatus,
+    mode: dbRecord.mode,
+    managerKmsKeyId: dbRecord.manager_kms_key_id,
+    isInitializedOnChain: productionInitialized,
+    updatedAt: dbRecord.updated_at,
+    isAppDeleted,
+  });
 
-  if (
-    !isAppDeleted &&
-    productionInitialized &&
-    (productionTrust === "untrusted" || isUnrecoverableMissingManagerKey) &&
-    currentDbStatus === RpRegistrationStatus.Pending &&
-    isPastUserOpValidityWindow &&
-    dbRecord.mode === "managed"
-  ) {
+  if (shouldFailProduction) {
     if (isUnrecoverableMissingManagerKey) {
       // Alertable: a registration we paid for on-chain that the Portal can no
       // longer manage, because the manager key was never recorded.

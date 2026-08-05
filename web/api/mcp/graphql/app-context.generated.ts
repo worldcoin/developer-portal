@@ -84,6 +84,7 @@ export type McpAppContextQuery = {
       status: unknown;
       signer_address?: string | null;
       manager_kms_key_id?: string | null;
+      updated_at: unknown;
       staging_status?: unknown | null;
       actions_v4: Array<{
         __typename?: "action_v4";
@@ -182,6 +183,7 @@ export const McpAppContextDocument = gql`
         status
         signer_address
         manager_kms_key_id
+        updated_at
         staging_status
         actions_v4(order_by: { created_at: desc }) {
           id

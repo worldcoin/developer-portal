@@ -6,6 +6,8 @@ import {
   mapOnChainToDbStatus,
   type OnChainTrust,
   parseRpId,
+  RpRegistrationStatus,
+  shouldFailUntrustedRegistration,
 } from "@/api/helpers/rp-utils";
 import {
   submitManagedRpRegistration,
@@ -827,6 +829,48 @@ const syncWorldIdRegistrationStatus = async (
       rp_id: rpId,
       status: productionStatus,
     });
+  }
+
+  // Same timeout /api/v4/rp-status applies, via the same helper. Without it an
+  // MCP-only client polls `pending` forever after its registration is front-run
+  // on-chain, and the surviving pending row keeps follow-up MCP registration and
+  // rotation calls from reaching a recoverable state.
+  if (!productionSynced) {
+    const { shouldFail, missingManagerKey } = shouldFailUntrustedRegistration({
+      trust: productionTrust,
+      dbStatus: currentProductionStatus,
+      mode: registration.mode,
+      managerKmsKeyId: registration.manager_kms_key_id,
+      isInitializedOnChain: productionInitialized,
+      updatedAt: registration.updated_at,
+      // The MCP app lookup already filters deleted apps out, so reaching here
+      // means the app is live.
+      isAppDeleted: false,
+    });
+
+    if (shouldFail) {
+      if (missingManagerKey) {
+        logger.error(
+          "Managed RP is initialized on-chain but has no manager key recorded",
+          { app_id, rp_id: rpId, updatedAt: registration.updated_at },
+        );
+      }
+      logger.warn(
+        "RP untrusted-initialized past grace — transitioning to failed",
+        {
+          app_id,
+          rp_id: rpId,
+          trust: productionTrust,
+          updatedAt: registration.updated_at,
+        },
+      );
+
+      await getUpdateRpStatusSdk(ctx.client).UpdateRpStatus({
+        rp_id: rpId,
+        status: RpRegistrationStatus.Failed,
+      });
+      productionStatus = RpRegistrationStatus.Failed;
+    }
   }
 
   const stagingContractAddress =

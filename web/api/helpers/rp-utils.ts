@@ -9,6 +9,14 @@ import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { keccak256, toUtf8Bytes } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
+import { USER_OP_MAX_VALIDITY_MS } from "./user-operation";
+
+/**
+ * Grace period on top of the UserOp validity window before an unsettled
+ * operation is treated as dead. Mirrors the pending timeout the status endpoint
+ * applies to registrations that never made it on-chain.
+ */
+const PENDING_TIMEOUT_MS = 5 * 60 * 1000;
 
 // =============================================================================
 // Types
@@ -166,6 +174,74 @@ export function evaluateOnChainTrust({
   return addressesEqual(onChainSigner, expectedSigner)
     ? "trusted"
     : "untrusted";
+}
+
+/**
+ * Whether a managed row that is initialized on-chain but not provably ours has to
+ * be failed so it stops polling `pending` forever.
+ *
+ * A managed RP initialized on-chain by a manager/signer pair the Portal does not
+ * own can never become a trusted `registered` — either a foreign party won the
+ * permissionless `register()` for this rp_id, or a signer rotation never settled.
+ * The "not initialized on-chain" timeout cannot catch it, because it IS
+ * initialized. Only fail once the UserOp validity window has elapsed: before
+ * that an in-flight rotation could still land, and failing early would cache
+ * `failed` over what then becomes a trusted `registered`.
+ *
+ * `unknown` is normally excluded — it means we could not resolve our own manager
+ * address, i.e. a KMS outage, which is not evidence of a takeover, and failing
+ * healthy registrations because our own dependency is down turns a KMS blip into
+ * a self-inflicted incident. The exception is a managed row with no
+ * `manager_kms_key_id` at all: that is a durable data defect rather than an
+ * outage (submitManagedRpRegistration deliberately keeps the claimed row when the
+ * DB write after a successful on-chain submission throws), and such a row can
+ * never resolve to `trusted`.
+ *
+ * Shared by `/api/v4/rp-status` and the MCP status tool deliberately. Those two
+ * reconcile the same rows, and the original vulnerability here was two copies of
+ * one rule drifting apart.
+ */
+export function shouldFailUntrustedRegistration({
+  trust,
+  dbStatus,
+  mode,
+  managerKmsKeyId,
+  isInitializedOnChain,
+  updatedAt,
+  isAppDeleted,
+}: {
+  trust: OnChainTrust;
+  dbStatus: RpRegistrationStatus | string | null;
+  mode: unknown;
+  managerKmsKeyId: string | null | undefined;
+  isInitializedOnChain: boolean;
+  /** `rp_registration.updated_at`; anything unparseable counts as too recent. */
+  updatedAt: unknown;
+  isAppDeleted: boolean;
+}): { shouldFail: boolean; missingManagerKey: boolean } {
+  const missingManagerKey =
+    trust === "unknown" && mode === "managed" && !managerKmsKeyId;
+
+  // A registration or rotation UserOp stays includable for
+  // USER_OP_MAX_VALIDITY_MS, so an unsettled op is only provably dead once that
+  // window plus the settlement margin has passed. Failing sooner races an op that
+  // can still land. An unparseable timestamp yields NaN, and every comparison
+  // against NaN is false, so the row is left alone — the safe direction.
+  const updatedAgeMs =
+    Date.now() -
+    new Date(typeof updatedAt === "string" ? updatedAt : NaN).getTime();
+  const isPastUserOpValidityWindow =
+    updatedAgeMs > USER_OP_MAX_VALIDITY_MS + PENDING_TIMEOUT_MS;
+
+  const shouldFail =
+    !isAppDeleted &&
+    isInitializedOnChain &&
+    (trust === "untrusted" || missingManagerKey) &&
+    dbStatus === RpRegistrationStatus.Pending &&
+    isPastUserOpValidityWindow &&
+    mode === "managed";
+
+  return { shouldFail, missingManagerKey };
 }
 
 // =============================================================================

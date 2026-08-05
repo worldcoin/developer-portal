@@ -154,6 +154,9 @@ const appContextResponse = {
           status: "registered",
           signer_address: "0x0000000000000000000000000000000000000001",
           manager_kms_key_id: "kms-key-123",
+          // Fresh by default, so the untrusted-initialized timeout stays out of
+          // scope unless a test opts in with an older timestamp.
+          updated_at: new Date().toISOString(),
           staging_status: null,
           actions_v4: [],
         },
@@ -822,6 +825,52 @@ describe("/api/mcp", () => {
       ).toBe(false);
     },
   );
+
+  it("fails a managed RP wedged pending by a foreign owner once the UserOp window elapses", async () => {
+    // Without this an MCP-only client polls `pending` forever after its
+    // registration is front-run, and the surviving row blocks follow-up MCP
+    // registration and rotation calls. /api/v4/rp-status already did this; the
+    // decision is shared so the two readers cannot drift.
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          rp_registration: [
+            {
+              ...appContextResponse.app[0].rp_registration[0],
+              mode: "managed",
+              status: "pending",
+              updated_at: fortyMinutesAgo,
+            },
+          ],
+        },
+      ],
+    };
+    mockGetRpFromContract.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0x00000000000000000000000000000000000000ff",
+      signer: "0x00000000000000000000000000000000000000ee",
+      oprfKeyId: 0n,
+      unverifiedWellKnownDomain: "Attacker App",
+    });
+
+    const res = await POST(
+      callTool("get_world_id_registration_status", { app_id: appId }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    expect(payload.production_status).toBe("failed");
+
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "UpdateRpStatus",
+    );
+    expect(updateCall?.[1]).toEqual(
+      expect.objectContaining({ rp_id: rpId, status: "failed" }),
+    );
+  });
 
   it("returns -32602 for malformed signer_private_key", async () => {
     const res = await POST(
