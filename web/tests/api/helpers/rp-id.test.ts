@@ -107,15 +107,19 @@ describe("candidateRpIdsForApp", () => {
     expect(candidates[1]).toBe(generateRpIdString(appId));
   });
 
-  it("puts the legacy id first but still offers the salted one after a rollback", () => {
+  it("still probes the salted id first after a rollback", () => {
     // Flag off with the salt still present: the instructions screen may have
-    // shown the salted id from a task that had the flag on.
+    // shown the salted id from a task that had the flag on. Probing the
+    // guessable legacy id first would let a squatter's registration be adopted
+    // as this app's RP, so the order must not follow the flag.
     process.env.RP_ID_SALT = salt;
+    const legacy = generateRpIdString(appId);
 
     const candidates = candidateRpIdsForApp(appId);
 
-    expect(candidates[0]).toBe(generateRpIdString(appId));
     expect(candidates).toHaveLength(2);
+    expect(candidates[0]).not.toBe(legacy);
+    expect(candidates[1]).toBe(legacy);
   });
 
   it("ignores an unusably short salt rather than deriving with it", () => {

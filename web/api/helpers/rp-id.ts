@@ -85,8 +85,8 @@ export function resolveRpIdForNewRegistration(appId: string): `rp_${string}` {
 }
 
 /**
- * Every rp_id this deployment could have handed out for `appId`, current scheme
- * first.
+ * Every rp_id this deployment could have handed out for `appId`, in the order a
+ * caller should probe the chain: **salted first, always.**
  *
  * The self-managed flow derives the id twice across a gap it does not control:
  * the instructions screen shows the developer a number, the developer submits
@@ -98,9 +98,20 @@ export function resolveRpIdForNewRegistration(appId: string): `rp_${string}` {
  * on-chain registration is orphaned. Self-managed rows never time out, so that
  * app is stuck until someone cleans it up by hand.
  *
- * Enumerating the candidates lets the caller pick the one the developer actually
- * registered. Both values are derived here from the app_id, so nothing
- * caller-supplied widens what can be claimed.
+ * The order is the security-critical part, and it does NOT follow the flag.
+ * "Initialized on-chain" is not evidence that the *developer* registered it: the
+ * legacy id is guessable by anyone, so a squatter's registration looks identical.
+ * Probing legacy first during a rollback — where the developer was shown, and
+ * registered, the salted id — would find the squatter's row and bind the app to
+ * an attacker-controlled rp_id. Probing salted first cannot be gamed the same
+ * way, because an attacker cannot compute the salted id to register it. Legacy is
+ * only ever selected when the salted id is unregistered, which is the honest
+ * roll-forward case; a squatted legacy id there is the pre-existing exposure this
+ * PR is narrowing, not a new one.
+ *
+ * Both values are derived here from the app_id, so nothing caller-supplied widens
+ * what can be claimed. The caller keeps whatever the current scheme yields when
+ * neither candidate is on-chain.
  *
  * Salt *rotation* mid-flow is still not covered — the previous salt is gone by
  * definition. Rotation should be treated as a deliberate operation, not a
@@ -114,12 +125,7 @@ export function candidateRpIdsForApp(appId: string): `rp_${string}`[] {
       ? deriveSaltedRpIdString(appId, salt)
       : null;
 
-  // Current scheme first so it wins when the chain says nothing.
-  const ordered = isUnpredictableRpIdEnabled()
-    ? [salted, legacy]
-    : [legacy, salted];
-
   return Array.from(
-    new Set(ordered.filter((id): id is `rp_${string}` => Boolean(id))),
+    new Set([salted, legacy].filter((id): id is `rp_${string}` => Boolean(id))),
   );
 }

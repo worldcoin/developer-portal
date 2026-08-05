@@ -220,6 +220,37 @@ describe("/api/hasura/register-rp [self-managed scheme drift]", () => {
     expect(claimedRpId).toBe(legacyId);
   });
 
+  it("ignores a squatted legacy id and keeps the salted one the developer registered", async () => {
+    // Rollback: the instructions screen (flag on) showed the salted id and the
+    // developer registered it. An attacker has separately squatted the guessable
+    // legacy id. Probing legacy first would bind this app's row to the
+    // attacker's registration, which is strictly worse than the wedge the
+    // candidate lookup exists to prevent.
+    const { generateRpIdString } = jest.requireActual("@/lib/rp");
+    const legacyId = generateRpIdString(appId);
+
+    process.env.RP_ID_SALT = "s".repeat(32);
+    const { candidateRpIdsForApp } = jest.requireActual("@/api/helpers/rp-id");
+    const saltedId = candidateRpIdsForApp(appId).find(
+      (id: string) => id !== legacyId,
+    );
+
+    // BOTH are initialized on-chain: the attacker's legacy squat and the
+    // developer's own salted registration.
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0xSomeManager",
+      signer: "0xSomeSigner",
+    });
+
+    const res = (await selfManaged())!;
+
+    expect(res.status).toBe(200);
+    expect(claimedRpId).toBe(saltedId);
+    expect(claimedRpId).not.toBe(legacyId);
+  });
+
   it("uses the current scheme when neither candidate is registered yet", async () => {
     // Developer clicked Continue without doing the transaction: nothing on-chain,
     // so the row is created under the id we would hand out now.
