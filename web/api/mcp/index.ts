@@ -760,9 +760,14 @@ const syncWorldIdRegistrationStatus = async (
   // proof-context branding to a foreign OPRF signer.
   let productionTrust: OnChainTrust = "unknown";
 
-  // Same manager key backs both contracts, so resolve it once.
+  // Same manager key backs both contracts, so resolve it once. The region must
+  // be the one the key was created in (RP_REGISTRY_KMS_REGION) — getKMSClient
+  // otherwise defaults to AWS_REGION_NAME and every verdict becomes `unknown`.
   const expectedManager = registration.manager_kms_key_id
-    ? await resolveManagerAddress(registration.manager_kms_key_id)
+    ? await resolveManagerAddress(
+        registration.manager_kms_key_id,
+        process.env.RP_REGISTRY_KMS_REGION,
+      )
     : null;
 
   try {

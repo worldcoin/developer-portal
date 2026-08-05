@@ -143,8 +143,15 @@ export async function GET(
   // by the production and staging checks (the same manager key is used on both
   // contracts). `null` here means "couldn't resolve", which evaluateOnChainTrust
   // maps to `unknown` rather than `untrusted`.
+  // The region matters: manager keys are created in RP_REGISTRY_KMS_REGION, but
+  // getKMSClient defaults to AWS_REGION_NAME. If those differ, GetPublicKey fails
+  // for every managed row, every trust verdict becomes `unknown`, and no managed
+  // RP is ever promoted to `registered`.
   const expectedManager = dbRecord.manager_kms_key_id
-    ? await resolveManagerAddress(dbRecord.manager_kms_key_id)
+    ? await resolveManagerAddress(
+        dbRecord.manager_kms_key_id,
+        process.env.RP_REGISTRY_KMS_REGION,
+      )
     : null;
 
   // Fetch production on-chain state
@@ -407,22 +414,56 @@ export async function GET(
   // signer rotation could still land, and failing early would cache `failed` for
   // an hour over what then becomes a trusted `registered`.
   //
-  // Strictly `untrusted`, never `unknown`: `unknown` means we could not resolve
-  // our own manager address (a KMS outage), which is not evidence of a takeover.
-  // Failing healthy registrations on our own dependency being down would turn a
+  // `unknown` is normally excluded: it means we could not resolve our own
+  // manager address (a KMS outage), which is not evidence of a takeover, and
+  // failing healthy registrations because our own dependency is down would turn a
   // KMS blip into a self-inflicted incident.
+  //
+  // The exception is a managed row with no `manager_kms_key_id` at all. That is
+  // not an outage, it is a durable data defect: submitManagedRpRegistration
+  // deliberately keeps the claimed row when the DB write after a successful
+  // on-chain submission throws, which leaves a Portal-owned registration with no
+  // recorded manager key. Such a row can never resolve to `trusted`, so treating
+  // it as transient would wedge it in `pending` forever — before the trust gate
+  // existed it was promoted on `initialized && active` alone and healed itself.
+  // Fail it so the UI stops polling and surfaces the state.
+  //
+  // NOTE: rp-retry also rejects rows without a manager key, so the retry button
+  // on such a row reports a clear error rather than recovering. Fully fixing that
+  // means persisting manager_kms_key_id BEFORE the on-chain submission, which
+  // needs a new mutation (UpdateRpRegistration requires a non-null
+  // operation_hash) and therefore a codegen run.
+  const isUnrecoverableMissingManagerKey =
+    productionTrust === "unknown" &&
+    dbRecord.mode === "managed" &&
+    !dbRecord.manager_kms_key_id;
+
   if (
     !isAppDeleted &&
     productionInitialized &&
-    productionTrust === "untrusted" &&
+    (productionTrust === "untrusted" || isUnrecoverableMissingManagerKey) &&
     currentDbStatus === RpRegistrationStatus.Pending &&
     isPastUserOpValidityWindow &&
     dbRecord.mode === "managed"
   ) {
+    if (isUnrecoverableMissingManagerKey) {
+      // Alertable: a registration we paid for on-chain that the Portal can no
+      // longer manage, because the manager key was never recorded.
+      logger.error(
+        "Managed RP is initialized on-chain but has no manager key recorded",
+        {
+          rpId,
+          updatedAt: dbRecord.updated_at,
+          operation_hash: dbRecord.operation_hash ?? "null",
+        },
+      );
+    }
+
     logger.warn(
       "RP untrusted-initialized past grace — transitioning to failed",
       {
         rpId,
+        trust: productionTrust,
         updatedAt: dbRecord.updated_at,
         operation_hash: dbRecord.operation_hash ?? "null",
       },

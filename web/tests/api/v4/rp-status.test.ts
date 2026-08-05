@@ -364,6 +364,87 @@ describe("/api/v4/rp-status [production ownership verification]", () => {
     });
   });
 
+  it("fails a managed RP that is initialized on-chain but has no manager key recorded", async () => {
+    // submitManagedRpRegistration keeps the claimed row when the DB write after
+    // a successful on-chain submission throws, leaving no manager_kms_key_id.
+    // That resolves to `unknown` forever, so without this the row polls
+    // `pending` indefinitely — before the trust gate it was promoted on
+    // initialized && active alone and healed itself.
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        manager_kms_key_id: null,
+        created_at: fortyMinutesAgo,
+        updated_at: fortyMinutesAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: "0xSomeManager",
+            signer: "0xExpectedSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    UpdateRpStatus.mockResolvedValue({
+      update_rp_registration_by_pk: { rp_id: rpId },
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+    expect((await res.json()).production_status).toBe("failed");
+    expect(UpdateRpStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      status: RpRegistrationStatus.Failed,
+    });
+  });
+
+  it("does not fail an unknown-trust RP that still has a manager key (KMS outage)", async () => {
+    // The same `unknown` verdict caused by KMS being unavailable must NOT fail a
+    // healthy registration, or a KMS blip becomes a self-inflicted incident.
+    resolveManagerAddressMock.mockResolvedValue(null);
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        manager_kms_key_id: "kms-key-123",
+        created_at: fortyMinutesAgo,
+        updated_at: fortyMinutesAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: "0xSomeManager",
+            signer: "0xExpectedSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+    expect((await res.json()).production_status).toBe("pending");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
   it("promotes a self-managed RP whose row still carries a signer address", async () => {
     // The self-managed case is keyed off `mode`, not off an absent
     // signer_address. Those coincide today, but if a self-managed row ever
