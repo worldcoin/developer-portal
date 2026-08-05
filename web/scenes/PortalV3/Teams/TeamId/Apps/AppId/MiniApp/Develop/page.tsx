@@ -3,7 +3,14 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { ErrorPage } from "@/components/ErrorPage";
 import { InformationCircleIcon } from "@/components/Icons/InformationCircleIcon";
-import { Typography } from "@/components/Typography";
+import {
+  MiniAppPage,
+  MiniAppPageColumn,
+  MiniAppPageHeader,
+  MiniAppSectionHeading,
+} from "../common/MiniAppPage";
+import { NoticeCallout } from "../common/NoticeCallout";
+import { miniAppButtonClassName } from "../common/styles";
 import {
   Tooltip,
   TooltipContent,
@@ -131,33 +138,18 @@ export const DevelopContent = ({
     appMetadata.verification_status === "changes_requested";
 
   return (
-    <div className="grid gap-y-10 pt-8 pb-12">
-      <div className="grid gap-y-2">
-        <Typography
-          as="h1"
-          className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
-        >
-          Develop
-        </Typography>
-        <Typography
-          as="p"
-          className="font-world text-[15px] leading-[130%] font-medium text-grey-500"
-        >
-          Set the URL World App opens and preview your Mini App.
-        </Typography>
-      </div>
+    <MiniAppPage>
+      <MiniAppPageHeader
+        title="Develop"
+        description="Set the URL World App opens and preview your Mini App."
+      />
 
       <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-x-12 xl:gap-x-20">
-        <div className="grid w-full gap-y-8 lg:max-w-[620px]">
+        <MiniAppPageColumn>
           <section className="grid gap-y-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-1.5">
-                <Typography
-                  as="h2"
-                  className="font-world text-[17px] leading-[120%] font-medium text-grey-900"
-                >
-                  App URL
-                </Typography>
+                <MiniAppSectionHeading>App URL</MiniAppSectionHeading>
 
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -214,36 +206,37 @@ export const DevelopContent = ({
             />
 
             {isVerifiedOnly && (
-              <div className="flex flex-wrap items-center justify-between gap-4 rounded-[10px] bg-grey-50 p-4">
-                <Typography className="font-world text-[13px] leading-[130%] font-medium text-grey-700">
-                  This is the verified App URL. Create a draft before making
-                  changes.
-                </Typography>
-                {canManageDraft && (
-                  <DecoratedButton
-                    type="button"
-                    variant="secondary"
-                    loading={isCreating}
-                    onClick={() => void createNewDraft()}
-                    className="h-10 shrink-0 px-4 py-0"
-                  >
-                    Create draft
-                  </DecoratedButton>
-                )}
-              </div>
+              <NoticeCallout
+                action={
+                  canManageDraft && (
+                    <DecoratedButton
+                      type="button"
+                      variant="secondary"
+                      loading={isCreating}
+                      onClick={() => void createNewDraft()}
+                      className={miniAppButtonClassName}
+                    >
+                      Create draft
+                    </DecoratedButton>
+                  )
+                }
+              >
+                This is the verified App URL. Create a draft before making
+                changes.
+              </NoticeCallout>
             )}
 
             {isInReview && (
-              <Typography className="rounded-[10px] bg-grey-50 p-4 font-world text-[13px] leading-[130%] font-medium text-grey-700">
+              <NoticeCallout>
                 This draft is in review, so its App URL is temporarily locked.
-              </Typography>
+              </NoticeCallout>
             )}
 
             {needsResolution && (
-              <Typography className="rounded-[10px] bg-system-warning-100 p-4 font-world text-[13px] leading-[130%] font-medium text-system-warning-600">
+              <NoticeCallout variant="warning">
                 Resolve the requested changes in Get Verified before editing
                 this App URL.
-              </Typography>
+              </NoticeCallout>
             )}
           </section>
 
@@ -254,9 +247,9 @@ export const DevelopContent = ({
               appMetadata={appMetadata}
             />
           </section>
-        </div>
+        </MiniAppPageColumn>
       </div>
-    </div>
+    </MiniAppPage>
   );
 };
 
@@ -276,9 +269,9 @@ export const DevelopPage = (props: DevelopPageProps) => {
 
   if (loading || !app) {
     return (
-      <div className="pt-8 pb-12">
+      <MiniAppPage>
         <FormSkeleton count={4} />
-      </div>
+      </MiniAppPage>
     );
   }
 

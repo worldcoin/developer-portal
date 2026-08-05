@@ -83,21 +83,26 @@ const setMetadata = ({
   });
 };
 
+// The fields carry floating labels rather than placeholder-only labelling, so
+// they are addressed by accessible name. TextField renders its label twice
+// while empty (one copy class-hidden, which jsdom does not apply), so the
+// single-line fields match on a substring.
 const submitNotification = async () => {
+  fireEvent.change(screen.getByRole("textbox", { name: "Wallet addresses" }), {
+    target: { value: "0x0000000000000000000000000000000000000001" },
+  });
   fireEvent.change(
-    screen.getByPlaceholderText("Enter wallet addresses separated by commas"),
-    { target: { value: "0x0000000000000000000000000000000000000001" } },
+    screen.getByRole("textbox", { name: /Notification title/ }),
+    { target: { value: "Test notification" } },
   );
-  fireEvent.change(screen.getByPlaceholderText("Notification title"), {
-    target: { value: "Test notification" },
-  });
-  fireEvent.change(screen.getByPlaceholderText("Notification message"), {
-    target: { value: "Testing the Mini App" },
-  });
-  fireEvent.change(screen.getByPlaceholderText("Mini App Path"), {
+  fireEvent.change(
+    screen.getByRole("textbox", { name: "Notification message" }),
+    { target: { value: "Testing the Mini App" } },
+  );
+  fireEvent.change(screen.getByRole("textbox", { name: /Mini App path/ }), {
     target: { value: `worldapp://mini-app?app_id=${appId}` },
   });
-  fireEvent.change(screen.getByPlaceholderText("API Key"), {
+  fireEvent.change(screen.getByRole("textbox", { name: /API key/ }), {
     target: { value: "api_test" },
   });
   fireEvent.click(screen.getByRole("button", { name: "Send notification" }));
@@ -173,11 +178,10 @@ describe("NotificationsPage metadata states", () => {
 
     const content = screen.getByRole("region", { name: "Notifications" });
     const heading = screen.getByRole("heading", { name: "Notifications" });
-    const note = screen.getByText(
-      /Send notifications to specific wallet addresses/,
-    );
+    const note = screen.getByText(/Unverified apps are limited to/);
 
-    expect(content).toHaveClass("max-w-[580px]");
+    // Shared Mini App form column, so the tab's subtabs stay the same width.
+    expect(content).toHaveClass("lg:max-w-[620px]");
     expect(
       heading.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);

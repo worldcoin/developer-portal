@@ -44,7 +44,7 @@ export const TransactionRow = (props: {
           <Typography variant={TYPOGRAPHY.R4}>
             {formatAmount(transaction.inputTokenAmount, transaction.inputToken)}
           </Typography>
-          <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
+          <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
             {transaction.inputToken}
           </Typography>
         </div>
