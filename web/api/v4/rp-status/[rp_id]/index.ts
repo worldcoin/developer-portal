@@ -182,24 +182,53 @@ export async function GET(
         // managed RP this is an in-flight signer rotation, a foreign takeover of
         // the rp_id, or (when `unknown`) an unresolvable manager key.
         productionStatus = currentDbStatus;
-        // Throttled: this is a hot polling endpoint (pending statuses cache for
-        // 1s), so an unresolved mismatch would emit thousands of identical
-        // warnings. One per rp_id per window keeps it a triage signal instead
-        // of log spam.
+
+        // An already-`registered` row that reads `untrusted` is categorically
+        // worse than a pending one: proof-context and /api/v4/verify gate on the
+        // stored status, so the Portal is actively serving this app's verified
+        // branding over an OPRF signer we have just proven is not ours. It still
+        // is not safe to demote it from here — this is an unauthenticated
+        // polling endpoint, and if a cohort of rows has a stale
+        // manager_kms_key_id then auto-demoting would take World ID verification
+        // down for working apps on the strength of our own bad data. So the
+        // status is preserved and the condition is escalated instead, for a
+        // human to resolve out of band (the audit is: managed rows at
+        // `registered` whose on-chain manager/signer differ from the row's).
+        //
+        // The two logged signer values are the discriminator: a takeover
+        // mismatches BOTH manager and signer, whereas our own key drift leaves
+        // the on-chain signer still matching signer_address, because we set it.
+        const isServingUntrusted =
+          productionTrust === "untrusted" &&
+          currentDbStatus === RpRegistrationStatus.Registered;
+
+        // Throttled either way: this is a hot polling endpoint (pending statuses
+        // cache for 1s), so an unresolved mismatch would emit thousands of
+        // identical lines. One per rp_id per window keeps it a triage signal
+        // instead of log spam.
         if (await shouldLogSignerMismatch(rpId)) {
-          logger.warn(
-            "On-chain RP is not provably Portal-owned; preserving DB status",
-            {
-              rpId,
-              trust: productionTrust,
-              mode: dbRecord.mode,
-              dbStatus: currentDbStatus,
-              expectedManager,
-              onChainManager: onChainRp.manager,
-              expectedSigner: dbRecord.signer_address,
-              onChainSigner: onChainRp.signer,
-            },
-          );
+          const details = {
+            rpId,
+            trust: productionTrust,
+            mode: dbRecord.mode,
+            dbStatus: currentDbStatus,
+            expectedManager,
+            onChainManager: onChainRp.manager,
+            expectedSigner: dbRecord.signer_address,
+            onChainSigner: onChainRp.signer,
+          };
+
+          if (isServingUntrusted) {
+            logger.error(
+              "Registered RP is not Portal-owned on-chain; still serving stored status",
+              details,
+            );
+          } else {
+            logger.warn(
+              "On-chain RP is not provably Portal-owned; preserving DB status",
+              details,
+            );
+          }
         }
       }
     } else {

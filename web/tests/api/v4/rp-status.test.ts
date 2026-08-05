@@ -283,6 +283,51 @@ describe("/api/v4/rp-status [production ownership verification]", () => {
     expect(UpdateRpStatus).not.toHaveBeenCalled();
   });
 
+  it("escalates to error when an already-registered RP is proven not Portal-owned", async () => {
+    // The severe case: proof-context and /api/v4/verify gate on the stored
+    // `registered` status, so this app's verified branding is being served over
+    // a signer we have just proven is not ours. Demoting from this
+    // unauthenticated polling path is too dangerous (stale manager_kms_key_id
+    // data would take working apps down), so the status is preserved and the
+    // condition has to be loud enough to alert on — not the same throttled warn
+    // an in-flight rotation produces.
+    const { logger } = jest.requireMock("../../../lib/logger");
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        manager_kms_key_id: "kms-key-123",
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: "0xAttackerManager",
+            signer: "0xAttackerSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining("not Portal-owned"),
+      expect.objectContaining({ dbStatus: "registered" }),
+    );
+    // Preserved, not demoted, and never written back.
+    expect((await res.json()).production_status).toBe("registered");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
   it("promotes a self-managed RP to registered for any on-chain owner (no expected signer to check)", async () => {
     // Self-managed RPs have no Portal-stored signer to compare against — the
     // developer owns both on-chain roles — so the on-chain reading stays
