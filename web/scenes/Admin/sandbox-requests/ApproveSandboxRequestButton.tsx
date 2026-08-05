@@ -21,11 +21,19 @@ export const ApproveSandboxRequestButton = (props: { requestId: string }) => {
       );
 
       if (!response.ok) {
-        toast.error("Couldn't approve the request. Please try again.");
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        toast.error(
+          body?.error === "Unable to send sandbox invite email"
+            ? "Approved access wasn't saved — invite email failed. Try again."
+            : "Couldn't approve the request. Please try again.",
+        );
         return;
       }
 
       setCompleted(true);
+      toast.success("Approved — invite email sent.");
       router.refresh();
     } catch {
       toast.error("Couldn't approve the request. Please try again.");

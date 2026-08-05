@@ -1,0 +1,7 @@
+query GetSandboxAccessRequest($id: String!) {
+  sandbox_access_request(where: { id: { _eq: $id } }, limit: 1) {
+    id
+    google_email
+    accepted
+  }
+}
