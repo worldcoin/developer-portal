@@ -19,30 +19,28 @@ export const AppLogo = (props: {
   );
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const handleLoad = (e: any) => {
-    setIsLoading(false);
-  };
-
   return (
     <div>
       {src && props.verification_status === "verified" && (
-        <div className={clsx("relative size-16")}>
+        <div className="relative size-16">
           <Image
             className={clsx("size-16 rounded-2xl shadow-image", {
-              "absolute opacity-0": isLoading,
+              "opacity-0": isLoading,
             })}
             src={src}
-            width={500}
-            height={500}
-            alt="team logo"
-            onLoad={handleLoad}
+            width={64}
+            height={64}
+            alt="app logo"
+            onLoad={() => setIsLoading(false)}
             onError={() => setSrc(null)}
           />
-          <Skeleton
-            className={clsx("absolute size-16 rounded-2xl shadow-image", {
-              hidden: !isLoading,
-            })}
-          />
+          {isLoading && (
+            <Skeleton
+              containerClassName="absolute inset-0 leading-none"
+              className="size-full rounded-2xl shadow-image"
+              inline
+            />
+          )}
         </div>
       )}
 

@@ -32,6 +32,20 @@ mutation UpdateAppStoreComplete(
       ]
     }
   ) {
-    affected_rows
+    # The rows the browser's Apollo cache is patched with after this server
+    # action returns. Must stay in sync with the FetchLocalisations selection
+    # set — see fetch-localisations.graphql.
+    returning {
+      id
+      locale
+      name
+      description
+      world_app_button_text
+      world_app_description
+      short_name
+      hero_image_url
+      meta_tag_image_url
+      showcase_img_urls
+    }
   }
 }

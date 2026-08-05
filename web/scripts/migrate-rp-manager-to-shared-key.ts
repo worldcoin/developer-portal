@@ -135,7 +135,7 @@ const GET_MIGRATION_CANDIDATES = gql`
         status: { _eq: registered }
         signer_address: { _is_null: false }
         manager_kms_key_id: { _is_null: false }
-        manager_key_dedicated: { _eq: true }
+        is_unique_manager_key: { _eq: true }
         app: {
           status: { _eq: "active" }
           is_archived: { _eq: false }
@@ -159,7 +159,7 @@ const GET_MIGRATION_CANDIDATES_BY_ID = gql`
         status: { _eq: registered }
         signer_address: { _is_null: false }
         manager_kms_key_id: { _is_null: false }
-        manager_key_dedicated: { _eq: true }
+        is_unique_manager_key: { _eq: true }
         app: {
           status: { _eq: "active" }
           is_archived: { _eq: false }
@@ -188,7 +188,7 @@ const FINALIZE_MIGRATION = gql`
         status: { _eq: registered }
         signer_address: { _eq: $signer_address }
         manager_kms_key_id: { _eq: $old_manager_key_id }
-        manager_key_dedicated: { _eq: true }
+        is_unique_manager_key: { _eq: true }
         updated_at: { _eq: $expected_updated_at }
         app: {
           status: { _eq: "active" }
@@ -198,7 +198,7 @@ const FINALIZE_MIGRATION = gql`
       }
       _set: {
         manager_kms_key_id: $shared_manager_key_id
-        manager_key_dedicated: false
+        is_unique_manager_key: false
       }
     ) {
       affected_rows

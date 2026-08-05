@@ -42,7 +42,7 @@ export const ActionRowV4 = (props: ActionRowV4Props) => {
             <CopyButton
               fieldValue={action.action}
               fieldName="Action identifier"
-              className="cursor-pointer opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              className="opacity-0 transition-opacity duration-300 group-hover:opacity-100"
             />
           </div>
 

@@ -1,13 +1,17 @@
 "use client";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Input } from "@/components/Input";
-import { Section } from "@/components/Section";
 import { teamNameSchema } from "@/lib/schema";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { TextField } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/TextField";
+import {
+  AutosaveStatus,
+  useAutosave,
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/hook/use-autosave";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { validateAndUpdateTeamServerSide } from "../../Settings/server/submit";
@@ -22,7 +26,7 @@ type FormValues = yup.InferType<typeof schema>;
 
 // Team name comes from the parent settings page (single fetch); `onSaved` lets
 // the parent refetch after a successful update so its copy stays in sync.
-// `canWrite` blanks the display-name field + save for non-owners.
+// `canWrite` makes the display-name field unavailable to non-owners.
 export const TeamSettingsForm = (props: {
   teamId: string;
   teamName: string;
@@ -31,61 +35,94 @@ export const TeamSettingsForm = (props: {
 }) => {
   const { teamId, teamName, canWrite, onSaved } = props;
   const { refetch: refetchMe } = useRefetchQueries(FetchMeDocument);
+  const { invalidate } = useUser();
+  const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { isValid, errors, isSubmitting },
-  } = useForm<FormValues>({
-    values: {
+  const form = useForm<FormValues>({
+    defaultValues: {
       name: teamName,
     },
     resolver: yupResolver(schema),
     mode: "onChange",
   });
+  const {
+    control,
+    reset,
+    formState: { errors },
+  } = form;
+  const previousTeamNameRef = useRef(teamName);
 
-  const submit = useCallback(
-    async (values: FormValues) => {
-      if (!canWrite) {
-        return;
-      }
+  useEffect(() => {
+    if (previousTeamNameRef.current === teamName) {
+      return;
+    }
 
+    previousTeamNameRef.current = teamName;
+    if (!form.getFieldState("name").isDirty) {
+      reset({ name: teamName });
+    }
+  }, [form, reset, teamName]);
+
+  const save = useCallback(
+    async (values: FormValues, signal: AbortSignal) => {
       const result = await validateAndUpdateTeamServerSide(values.name, teamId);
-      if (!result.success) {
-        toast.error(result.message);
-      } else {
-        toast.success("Your team was successfully updated");
-        await Promise.all([onSaved?.(), refetchMe()]);
+      if (signal.aborted) {
+        throw new DOMException("Aborted", "AbortError");
       }
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      const [sessionResponse] = await Promise.all([
+        fetch("/api/update-session", { method: "POST" }).catch(() => null),
+        Promise.allSettled([onSaved?.(), refetchMe()]),
+      ]);
+
+      if (sessionResponse?.ok) {
+        await invalidate();
+      }
+
+      router.refresh();
     },
-    [canWrite, teamId, onSaved, refetchMe],
+    [invalidate, onSaved, refetchMe, router, teamId],
   );
 
+  const onAutosaveStatus = useCallback((status: AutosaveStatus) => {
+    if (status.state === "saved") {
+      toast.success("Team name updated");
+    } else if (status.state === "error") {
+      toast.error(status.error.message);
+    }
+  }, []);
+
+  useAutosave<FormValues>({
+    form,
+    save,
+    enabled: canWrite,
+    debounceMs: 1500,
+    onStatus: onAutosaveStatus,
+  });
+
   return (
-    <Section>
-      <Section.Header>
-        <Section.Header.Title>Team settings</Section.Header.Title>
-      </Section.Header>
-
-      <form
-        className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-145"
-        onSubmit={handleSubmit(submit)}
-      >
-        <Input
-          label="Display name"
-          register={register("name")}
-          errors={errors.name}
-          disabled={!canWrite}
-        />
-
-        <DecoratedButton
-          type="submit"
-          variant="primary"
-          disabled={!canWrite || !isValid || isSubmitting}
-        >
-          Save changes
-        </DecoratedButton>
-      </form>
-    </Section>
+    <div className="w-full max-w-xl">
+      <Controller
+        control={control}
+        name="name"
+        render={({ field }) => (
+          <TextField
+            label="Team name"
+            name={field.name}
+            value={field.value}
+            onChange={field.onChange}
+            onBlur={field.onBlur}
+            disabled={!canWrite}
+            error={errors.name?.message}
+            maxLength={128}
+            required
+            hideLabel
+          />
+        )}
+      />
+    </div>
   );
 };

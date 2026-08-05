@@ -1,10 +1,12 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import { FetchImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
 import { UpsertLocalisedShowcaseImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/upsert-localised-showcase-images.generated";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageUploadField } from "./ImageUploadField";
 import { useMutation, useQuery } from "@apollo/client/react";
+import { appendLocalisationToCache } from "../utils/update-localisations-cache";
+import { useImageSaveStatus } from "./use-image-save-status";
 
 interface ShowcaseImagesFieldProps {
   value?: string[];
@@ -19,9 +21,9 @@ interface ShowcaseImagesFieldProps {
   error?: string | null;
   onAutosaveSuccess?: () => void;
   onAutosaveError?: (error: any) => void;
+  dropZoneClassName?: string;
+  dropZoneContent?: React.ReactNode;
 }
-
-const TOAST_ID = "upload_showcase_toast";
 
 export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
   const {
@@ -37,6 +39,8 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     error,
     onAutosaveSuccess,
     onAutosaveError,
+    dropZoneClassName,
+    dropZoneContent,
   } = props;
 
   // en is not considered a localization, since we set english properties on app metadata
@@ -54,21 +58,30 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     },
   });
 
+  const { reportSaving, reportSaved, reportError, reportIdle } =
+    useImageSaveStatus(`image:showcase:${locale}`);
+
   const [upsertShowcaseImages] = useMutation(
     UpsertLocalisedShowcaseImagesDocument,
     {
-      onCompleted: () => {
-        toast.success("Showcase images saved successfully");
-        onAutosaveSuccess?.();
-      },
-      onError: (error) => {
-        console.error("autosave failed:", error);
-        toast.error("Failed to auto-save showcase images");
-        onAutosaveError?.(error);
+      // Field values merge themselves through normalization; only list
+      // membership for a row that did not exist yet needs handling.
+      update: (cache, result, { variables }) => {
+        const inserted = result.data?.insert_localisations?.returning?.[0];
+        if (!variables?.is_localized || !inserted) return;
+
+        appendLocalisationToCache(cache, variables.app_metadata_id, inserted);
       },
     },
   );
 
+  // Retry re-runs this same save; a ref breaks the self-reference cycle.
+  const handleAutosaveRef = useRef<((urls: string[]) => Promise<void>) | null>(
+    null,
+  );
+
+  // Both uploads and deletions route through here, so it is the one place that
+  // reports save state.
   const handleAutosave = useCallback(
     async (urls: string[]) => {
       if (!appMetadataId) return;
@@ -77,6 +90,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
         extractImagePathWithExtensionFromActualUrl(url),
       );
 
+      reportSaving();
       try {
         await upsertShowcaseImages({
           variables: {
@@ -87,9 +101,25 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
             is_localized: isLocalized,
           },
         });
+        reportSaved();
+        onAutosaveSuccess?.();
       } catch (error) {
-        // error is already handled by the mutation's onError callback
-        console.error("autosave error:", error);
+        // The file is already on S3 and only the database write failed, so
+        // retrying exactly this save can succeed.
+        console.error("showcase images autosave failed", {
+          appMetadataId,
+          locale,
+          isLocalized,
+          imageCount: newUrls.length,
+          error,
+        });
+        reportError(
+          error instanceof Error
+            ? error
+            : new Error("Failed to save showcase images"),
+          () => void handleAutosaveRef.current?.(urls),
+        );
+        onAutosaveError?.(error);
       }
     },
     [
@@ -98,35 +128,42 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
       supportedLanguages,
       isLocalized,
       locale,
+      reportSaving,
+      reportSaved,
+      reportError,
+      onAutosaveSuccess,
+      onAutosaveError,
     ],
   );
+
+  useEffect(() => {
+    handleAutosaveRef.current = handleAutosave;
+  }, [handleAutosave]);
 
   const handleRefetchImages = useCallback(async () => {
     await refetchUnverifiedImages();
   }, [refetchUnverifiedImages]);
 
-  const handleUploadStart = useCallback(() => {
-    toast.info("Uploading showcase image", {
-      toastId: TOAST_ID,
-      autoClose: false,
-    });
-  }, []);
+  // The upload is the slow half of saving an image, so the pill goes to
+  // "Saving…" here rather than waiting for the mutation.
+  const handleUploadStart = reportSaving;
 
-  const handleUploadSuccess = useCallback(() => {
-    toast.update(TOAST_ID, {
-      type: "success",
-      render: "Showcase image uploaded successfully",
-      autoClose: 2000,
-    });
-  }, []);
-
-  const handleUploadError = useCallback((error: any) => {
-    toast.update(TOAST_ID, {
-      type: "error",
-      render: "Error uploading showcase image",
-      autoClose: 2000,
-    });
-  }, []);
+  // Nothing was saved and there is nothing to retry, so this surfaces as a
+  // toast rather than the pill. Copy stays generic because validation failures
+  // (dimensions, size, type) already report their real reason from use-image.
+  const handleUploadError = useCallback(
+    (error: unknown) => {
+      console.error("showcase image upload failed", {
+        appMetadataId,
+        locale,
+        isLocalized,
+        error,
+      });
+      reportIdle();
+      toast.error("Couldn't upload that image. Please try again.");
+    },
+    [appMetadataId, locale, isLocalized, reportIdle],
+  );
 
   // extract unverified image URLs for base component
   const unverifiedImageUrls = useMemo(() => {
@@ -163,9 +200,11 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
       description="Upload up to 3 images to showcase your application."
       required={true}
       onUploadStart={handleUploadStart}
-      onUploadSuccess={handleUploadSuccess}
       onUploadError={handleUploadError}
+      onUploadCancelled={reportIdle}
       error={error}
+      dropZoneClassName={dropZoneClassName}
+      dropZoneContent={dropZoneContent}
     />
   );
 };

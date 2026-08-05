@@ -10,6 +10,7 @@ export type FetchLocalisationsQuery = {
   __typename?: "query_root";
   localisations: Array<{
     __typename?: "localisations";
+    id: string;
     locale: string;
     name: string;
     description: string;
@@ -82,6 +83,7 @@ export const FetchLocalisationsDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "locale" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },

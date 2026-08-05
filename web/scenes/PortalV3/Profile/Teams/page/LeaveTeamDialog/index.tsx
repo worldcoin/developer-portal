@@ -12,13 +12,10 @@ import { toast } from "react-toastify";
 import { useMutation } from "@apollo/client/react";
 import { LeaveTeamDocument } from "@/scenes/common/Profile/Teams/page/LeaveTeamDialog/graphql/client/leave-team.generated";
 
-import {
-  FetchMeDocument,
-  FetchMeQuery,
-} from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
+import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 
 type LeaveTeamDialogProps = DialogProps & {
-  team?: NonNullable<FetchMeQuery["user_by_pk"]>["memberships"][0]["team"];
+  team?: { id: string; name?: string | null };
 };
 
 export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
@@ -41,7 +38,7 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
         refetchQueries: [FetchMeDocument],
       });
 
-      toast.success("Team leaved!");
+      toast.success("You left the team");
       props.onClose(true);
     } catch (e) {
       console.error("Leave Team Dialog: ", e);

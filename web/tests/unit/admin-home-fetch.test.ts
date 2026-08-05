@@ -113,6 +113,16 @@ const createHomeResponse = () => ({
       name: "Recent user",
     },
   ],
+  sandbox_pending: {
+    aggregate: {
+      count: 4,
+    },
+  },
+  sandbox_total: {
+    aggregate: {
+      count: 15,
+    },
+  },
 });
 
 beforeEach(() => {
@@ -140,6 +150,8 @@ describe("admin home fetch", () => {
       teamsWithoutOwner: 11,
       usersWithoutTeams: 12,
     });
+    expect(home.inventory.sandboxPending).toBe(4);
+    expect(home.inventory.sandboxTotal).toBe(15);
   });
 
   it("returns zero for an empty queue", async () => {
@@ -172,14 +184,25 @@ describe("admin home fetch", () => {
       ...response.queues[0],
       total_count: "7" as unknown as number,
     };
+    response.sandbox_pending = {
+      aggregate: {
+        count: "4" as unknown as number,
+      },
+    };
+    response.sandbox_total = {
+      aggregate: {
+        count: "15" as unknown as number,
+      },
+    };
     mockFetchAdminHome.mockResolvedValue(response);
 
     const home = await fetchAdminHome();
 
-    expect(home.inventory.activeTeams + home.inventory.deletedTeams).toBe(
-      120602,
-    );
-    expect(home.inventory.activeApps + home.inventory.deletedApps).toBe(120610);
+    expect(home.inventory.activeTeams).toBe(120502);
+    expect(home.inventory.activeApps).toBe(120510);
+    expect(home.inventory.totalUsers).toBe(120506);
+    expect(home.inventory.sandboxPending).toBe(4);
+    expect(home.inventory.sandboxTotal).toBe(15);
     expect(home.queueCounts.appsAwaitingReview).toBe(7);
   });
 

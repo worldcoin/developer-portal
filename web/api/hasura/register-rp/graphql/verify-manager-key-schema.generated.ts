@@ -13,7 +13,7 @@ export type VerifyManagerKeySchemaQuery = {
   rp_registration_by_pk?: {
     __typename?: "rp_registration";
     rp_id: string;
-    manager_key_dedicated: boolean;
+    is_unique_manager_key: boolean;
   } | null;
 };
 
@@ -21,7 +21,7 @@ export const VerifyManagerKeySchemaDocument = gql`
   query VerifyManagerKeySchema($rp_id: String!) {
     rp_registration_by_pk(rp_id: $rp_id) {
       rp_id
-      manager_key_dedicated
+      is_unique_manager_key
     }
   }
 `;

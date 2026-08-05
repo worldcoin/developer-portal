@@ -3,6 +3,7 @@ import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import React from "react";
 
+// #region Mocks
 const getIsUserAllowedToReadApp = jest.fn();
 jest.mock("@/lib/permissions", () => ({
   getIsUserAllowedToReadApp: (...args: unknown[]) =>
@@ -14,6 +15,7 @@ jest.mock("@/components/ErrorPage", () => ({
     <div data-testid="error" data-status={statusCode} />
   ),
 }));
+// #endregion
 
 import { AppIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/layout";
 

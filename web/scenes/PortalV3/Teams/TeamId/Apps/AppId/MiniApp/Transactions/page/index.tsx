@@ -1,12 +1,12 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { PaymentMetadata } from "@/lib/types";
+import { getTransactionData } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/server/getTransactionData";
 import { ComponentProps } from "react";
 import { Suspense } from "react";
 import { SkeletonTable } from "@/components/Skeletons";
 import { ErrorState } from "./ErrorState";
 import { TransactionsTable } from "./TransactionsTable";
-import { getTransactionData } from "./server";
 
 type TransactionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -20,7 +20,7 @@ const TransactionsPageLayout = ({
   showHeading?: boolean;
 }) => {
   return (
-    <div className="my-6 min-h-dvh">
+    <div className="my-8 min-h-dvh">
       {showHeading && (
         <div className="flex items-center justify-start text-gray-900">
           <Typography variant={TYPOGRAPHY.H6}>Transactions</Typography>

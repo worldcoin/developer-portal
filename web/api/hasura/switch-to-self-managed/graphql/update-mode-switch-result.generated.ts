@@ -29,7 +29,7 @@ export const UpdateModeSwitchResultDocument = gql`
       _set: {
         mode: self_managed
         manager_kms_key_id: null
-        manager_key_dedicated: false
+        is_unique_manager_key: false
         signer_address: null
         operation_hash: $operation_hash
         staging_operation_hash: null

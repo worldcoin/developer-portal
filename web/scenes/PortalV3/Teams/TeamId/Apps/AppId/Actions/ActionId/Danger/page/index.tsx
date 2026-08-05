@@ -10,6 +10,8 @@ import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { GetActionsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/actions.generated";
+import { urls } from "@/lib/urls";
+import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { DeleteActionDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Danger/ActionDangerZoneContent/graphql/client/delete-action.generated";
 import { GetSingleActionDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Danger/page/graphql/client/get-single-action.generated";
 
@@ -56,8 +58,13 @@ export const ActionIdDangerPage = (props: ActionIdDangerPageProps) => {
       }
 
       toast.success(`${action?.name} was deleted.`);
-      router.prefetch(`/teams/${teamId}/apps/${appId}/actions`);
-      router.replace(`/teams/${teamId}/apps/${appId}/actions`);
+      const legacyActionsUrl = urls.worldIdTab({
+        team_id: teamId,
+        app_id: appId,
+        tab: WORLD_ID_TABS.LegacyActions,
+      });
+      router.prefetch(legacyActionsUrl);
+      router.replace(legacyActionsUrl);
     } catch (error) {
       throw error;
     }

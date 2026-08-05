@@ -1,5 +1,5 @@
 "use client";
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
@@ -84,14 +84,13 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
               </Typography>
             </div>
 
-            <DecoratedButton
+            <DestructiveTriggerButton
               type="button"
-              variant="destructive"
               onClick={() => setOpenDeleteModal(true)}
               className={clsx("w-fit", { hidden: !isEnoughPermissions })}
             >
-              <Typography variant={TYPOGRAPHY.R3}>Delete app</Typography>
-            </DecoratedButton>
+              Delete app
+            </DestructiveTriggerButton>
           </div>
         </SizingWrapper>
         <DeleteModal

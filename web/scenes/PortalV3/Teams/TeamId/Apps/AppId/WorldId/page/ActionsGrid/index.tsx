@@ -19,19 +19,22 @@ export const ActionsGrid = (props: {
   appId: string;
   search: string;
   canCreate: boolean;
+  /** Why creation is unavailable, shown when the grid has nothing to render. */
+  emptyReason: string;
   initialDialogOpen?: boolean;
-  onCreateActionRequested?: () => void;
   onCreateActionConsumed: () => void;
   onActionsChanged: () => void;
 }) => {
   const [dialogOpen, setDialogOpen] = useState(
     Boolean(props.initialDialogOpen) && props.canCreate,
   );
+  const [hasOpenedDialog, setHasOpenedDialog] = useState(dialogOpen);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (props.initialDialogOpen && props.canCreate) {
       setDialogOpen(true);
+      setHasOpenedDialog(true);
     }
   }, [props.initialDialogOpen, props.canCreate]);
 
@@ -49,6 +52,16 @@ export const ActionsGrid = (props: {
     (page - 1) * ACTIONS_PER_PAGE,
     page * ACTIONS_PER_PAGE,
   );
+  // The create tile is its own empty state, so only explain a grid that would
+  // otherwise render nothing at all.
+  const emptyMessage =
+    filtered.length > 0
+      ? null
+      : props.search
+        ? "No actions match your search."
+        : props.canCreate
+          ? null
+          : props.emptyReason;
 
   const handleDialogClose = (success?: boolean) => {
     setDialogOpen(false);
@@ -59,12 +72,8 @@ export const ActionsGrid = (props: {
   };
 
   const handleCreateAction = () => {
-    if (props.onCreateActionRequested) {
-      props.onCreateActionRequested();
-      return;
-    }
-
     setDialogOpen(true);
+    setHasOpenedDialog(true);
   };
 
   return (
@@ -82,6 +91,12 @@ export const ActionsGrid = (props: {
             action={action}
           />
         ))}
+
+        {emptyMessage ? (
+          <div className="col-span-full rounded-[10px] border border-dashed border-portal-border px-5 py-12 text-center font-world text-13 text-portal-muted">
+            {emptyMessage}
+          </div>
+        ) : null}
       </div>
 
       {totalPages > 1 ? (
@@ -111,7 +126,7 @@ export const ActionsGrid = (props: {
         </nav>
       ) : null}
 
-      {props.canCreate && dialogOpen ? (
+      {props.canCreate && hasOpenedDialog ? (
         <CreateActionDialogV4 open={dialogOpen} onClose={handleDialogClose} />
       ) : null}
     </>

@@ -36,6 +36,12 @@ jest.mock("@/scenes/PortalV3/layout", () => ({
     <div data-testid="v3-portal">{children}</div>
   ),
 }));
+jest.mock("@/scenes/Onboarding/CreateTeam/Dialog", () => ({
+  CreateTeamDialog: () => <div data-testid="create-team-dialog" />,
+}));
+jest.mock("@/scenes/common/layout/CreateAppDialog", () => ({
+  CreateAppDialog: () => <div data-testid="create-app-dialog" />,
+}));
 
 import PortalRootLayout from "../../app/(portal)/layout";
 
@@ -60,6 +66,8 @@ it("mounts the selected v3 shell and page inside Apollo", async () => {
   expect(apolloWrapper).toHaveAttribute("data-nonce", "test-nonce");
   expect(within(apolloWrapper).getByTestId("portal-page")).toBeInTheDocument();
   expect(screen.getByTestId("v3-portal")).toBeInTheDocument();
+  expect(screen.getByTestId("create-app-dialog")).toBeInTheDocument();
+  expect(screen.getByTestId("create-team-dialog")).toBeInTheDocument();
   expect(screen.queryByTestId("v2-portal")).not.toBeInTheDocument();
 });
 

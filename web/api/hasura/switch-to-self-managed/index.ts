@@ -295,7 +295,7 @@ export const POST = async (req: NextRequest) => {
 
     // STEP 8: Schedule KMS key deletion only for dedicated per-RP keys.
     // The shared manager key must never be scheduled for deletion.
-    if (registration.manager_key_dedicated) {
+    if (registration.is_unique_manager_key) {
       await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
     }
 

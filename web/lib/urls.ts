@@ -1,3 +1,5 @@
+import type { WorldIdTab } from "./world-id-tabs";
+
 type SignupParams = {
   invite_id?: string;
 };
@@ -21,6 +23,9 @@ export const urls = {
   miniAppPermissions: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/mini-app/permissions`,
 
+  miniAppDevelop: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app/develop`,
+
   miniAppTransactions: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/mini-app/transactions`,
 
@@ -35,6 +40,21 @@ export const urls = {
 
   enableWorldId4: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}?enableWorldId4=true`,
+
+  worldId: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/world-id`,
+
+  worldIdTab: (params: {
+    team_id: string;
+    app_id: string;
+    tab: WorldIdTab;
+    query?: string | URLSearchParams | Record<string, string>;
+  }): string => {
+    const query = new URLSearchParams(params.query);
+    query.set("tab", params.tab);
+
+    return `/teams/${params.team_id}/apps/${params.app_id}/world-id?${query.toString()}`;
+  },
 
   worldId40: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/world-id-4-0`,
@@ -64,6 +84,8 @@ export const urls = {
     `/teams/${params.team_id}/apps/${params.app_id}/world-id-actions/${params.action_id}/danger`,
 
   createTeam: (): "/create-team" => "/create-team",
+
+  dashboard: (): "/dashboard" => "/dashboard",
 
   signInWorldId: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/sign-in-with-world-id`,
@@ -111,8 +133,24 @@ export const urls = {
   teamApiKeys: (params: { team_id: string }): string =>
     `/teams/${params.team_id}/api-keys`,
 
-  teamSettings: (params: { team_id: string }): string =>
-    `/teams/${params.team_id}/settings`,
+  teamSettings: (params: {
+    team_id: string;
+    return_to?: string;
+    tab?: string;
+  }): string => {
+    const searchParams = new URLSearchParams();
+
+    if (params.return_to) {
+      searchParams.set("return_to", params.return_to);
+    }
+
+    if (params.tab) {
+      searchParams.set("tab", params.tab);
+    }
+
+    const query = searchParams.toString();
+    return `/teams/${params.team_id}/settings${query ? `?${query}` : ""}`;
+  },
 
   profile: (): "/profile" => "/profile",
   profileTeams: (): "/profile/teams" => "/profile/teams",

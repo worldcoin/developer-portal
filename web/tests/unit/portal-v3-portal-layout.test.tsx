@@ -16,18 +16,25 @@ jest.mock(
 jest.mock("@/lib/logger", () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
+jest.mock("next/headers", () => ({
+  headers: async () => ({ get: () => "/profile" }),
+}));
 
 // Stub the shell so we test only PortalLayout's session -> shell wiring.
 jest.mock("@/scenes/PortalV3/layout/Shell", () => ({
   PortalShell: (props: {
+    user: { name?: string | null };
     teams: { id: string }[];
+    apiKeyTeamIds: string[];
     sandboxRequest: { email: string } | null;
     children: React.ReactNode;
   }) => (
     <div
       data-testid="shell"
       data-team-count={props.teams.length}
+      data-api-key-team-ids={props.apiKeyTeamIds.join(",")}
       data-sandbox-email={props.sandboxRequest?.email}
+      data-user-name={props.user.name}
     >
       {props.children}
     </div>
@@ -44,19 +51,30 @@ beforeEach(() => {
 it("mounts the shell with teams from the session", async () => {
   getSession.mockResolvedValue({
     user: {
+      sub: "auth0|ada",
       name: "Ada",
       email: "ada@example.com",
-      hasura: { memberships: [{ team: { id: "team_1", name: "Acme" } }] },
+      hasura: {
+        memberships: [
+          { role: "OWNER", team: { id: "team_1", name: "Acme" } },
+          { role: "MEMBER", team: { id: "team_2", name: "Other" } },
+        ],
+      },
     },
   });
   render(await PortalLayout({ children: <div data-testid="body" /> }));
-  expect(screen.getByTestId("shell")).toHaveAttribute("data-team-count", "1");
+  expect(screen.getByTestId("shell")).toHaveAttribute("data-team-count", "2");
+  expect(screen.getByTestId("shell")).toHaveAttribute(
+    "data-api-key-team-ids",
+    "team_1",
+  );
   expect(screen.getByTestId("body")).toBeInTheDocument();
 });
 
 it("hydrates the user's sandbox request into the shell", async () => {
   getSession.mockResolvedValue({
     user: {
+      sub: "auth0|ada",
       name: "Ada",
       email: "ada@example.com",
       hasura: { id: "usr_abc123", memberships: [] },
@@ -74,5 +92,22 @@ it("hydrates the user's sandbox request into the shell", async () => {
   expect(screen.getByTestId("shell")).toHaveAttribute(
     "data-sandbox-email",
     "tester@gmail.com",
+  );
+});
+
+it("labels World ID sessions without exposing their nullifier-like name", async () => {
+  getSession.mockResolvedValue({
+    user: {
+      sub: "oauth2|worldcoin|0xabc123",
+      name: "0xabc123",
+      hasura: { id: "usr_world_id", memberships: [] },
+    },
+  });
+
+  render(await PortalLayout({ children: null }));
+
+  expect(screen.getByTestId("shell")).toHaveAttribute(
+    "data-user-name",
+    "Anonymous user",
   );
 });

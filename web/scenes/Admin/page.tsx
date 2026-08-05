@@ -36,17 +36,21 @@ const MetricCard = ({ detail, href, label, value }: MetricCardProps) => (
 type QueueSectionProps = {
   children: React.ReactNode;
   count: number;
+  href: string;
   title: string;
 };
 
-const QueueSection = ({ children, count, title }: QueueSectionProps) => (
+const QueueSection = ({ children, count, href, title }: QueueSectionProps) => (
   <section className="rounded-12 border border-grey-200 bg-grey-50 p-3">
-    <div className="flex items-center justify-between gap-3">
+    <Link
+      className="flex items-center justify-between gap-3 rounded-8 transition-colors outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500"
+      href={href}
+    >
       <h3 className="text-14 font-semibold text-grey-900">{title}</h3>
       <span className="rounded-full border border-grey-200 bg-grey-0 px-2.5 py-1 text-12 font-semibold text-grey-700">
         {count}
       </span>
-    </div>
+    </Link>
     {count === 0 ? (
       <p className="mt-2 text-13 text-grey-500">Nothing needs attention.</p>
     ) : (
@@ -75,19 +79,34 @@ const EntityLink = ({
   </Link>
 );
 
+const RecentSectionHeader = ({
+  href,
+  title,
+}: {
+  href: string;
+  title: string;
+}) => (
+  <Link
+    className="text-grey-600 text-12 font-semibold tracking-[0.08em] uppercase transition-colors outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500"
+    href={href}
+  >
+    {title}
+  </Link>
+);
+
 export const AdminPage = async () => {
   const home = await fetchAdminHome();
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-4">
-      <UIModule className="min-h-0 overflow-y-auto p-5">
+    <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-4 max-lg:h-auto lg:h-full">
+      <UIModule className="min-h-0 p-5 max-lg:overflow-visible lg:overflow-y-auto">
         <h1 className="text-24 font-semibold tracking-[-0.02em] text-grey-900">
           Internal dashboard
         </h1>
         <p className="mt-2 max-w-2xl text-14 text-grey-500">
           Monitor Developer Portal data and investigate operational issues.
         </p>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             detail={`${home.inventory.newTeams} new in 30 days`}
             href="/admin/teams"
@@ -107,28 +126,16 @@ export const AdminPage = async () => {
             value={home.inventory.totalUsers}
           />
           <MetricCard
-            detail={`${home.inventory.deletedTeams} deleted`}
-            href="/admin/teams?query=status%3Adeleted"
-            label="Teams"
-            value={home.inventory.activeTeams + home.inventory.deletedTeams}
-          />
-          <MetricCard
-            detail={`${home.inventory.deletedApps} deleted`}
-            href="/admin/apps"
-            label="Apps"
-            value={home.inventory.activeApps + home.inventory.deletedApps}
-          />
-          <MetricCard
-            detail={`${home.inventory.activeApiKeys} active API keys`}
-            href="/admin/teams"
-            label="Pending invites"
-            value={home.inventory.pendingInvites}
+            detail={`${home.inventory.sandboxTotal} total`}
+            href="/admin/sandbox-requests"
+            label="Sandbox requests"
+            value={home.inventory.sandboxPending}
           />
         </div>
       </UIModule>
 
       <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <UIModule className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-5">
+        <UIModule className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] p-5 max-lg:overflow-visible lg:overflow-hidden">
           <div>
             <h2 className="text-16 font-semibold text-grey-900">
               Needs attention
@@ -137,9 +144,10 @@ export const AdminPage = async () => {
               Data states that may need support or operational follow-up.
             </p>
           </div>
-          <div className="mt-4 grid min-h-0 gap-3 overflow-y-auto pr-1">
+          <div className="mt-4 grid min-h-0 gap-3 pr-1 max-lg:overflow-visible lg:overflow-y-auto">
             <QueueSection
               count={home.queueCounts.appsAwaitingReview}
+              href="/admin/apps?query=review%3Aawaiting_review"
               title="Apps in review"
             >
               {home.queues.appsAwaitingReview.map((app) => (
@@ -153,6 +161,7 @@ export const AdminPage = async () => {
             </QueueSection>
             <QueueSection
               count={home.queueCounts.appsChangesRequested}
+              href="/admin/apps?query=review%3Achanges_requested"
               title="Apps with changes requested"
             >
               {home.queues.appsChangesRequested.map((app) => (
@@ -166,6 +175,7 @@ export const AdminPage = async () => {
             </QueueSection>
             <QueueSection
               count={home.queueCounts.appsWithoutMetadata}
+              href="/admin/apps?query=metadata%3Anone"
               title="Apps without metadata"
             >
               {home.queues.appsWithoutMetadata.map((app) => (
@@ -179,6 +189,7 @@ export const AdminPage = async () => {
             </QueueSection>
             <QueueSection
               count={home.queueCounts.teamsWithoutOwner}
+              href="/admin/teams?query=owners%3A0%20status%3Aactive"
               title="Teams without an owner"
             >
               {home.queues.teamsWithoutOwner.map((team) => (
@@ -191,6 +202,7 @@ export const AdminPage = async () => {
             </QueueSection>
             <QueueSection
               count={home.queueCounts.soleOwnerTeams}
+              href="/admin/teams?query=owners%3A1%20status%3Aactive"
               title="Teams with one owner"
             >
               {home.queues.soleOwnerTeams.map((team) => (
@@ -204,6 +216,7 @@ export const AdminPage = async () => {
             </QueueSection>
             <QueueSection
               count={home.queueCounts.usersWithoutTeams}
+              href="/admin/users?query=teams%3A0"
               title="Users without a team"
             >
               {home.queues.usersWithoutTeams.map((user) => (
@@ -218,7 +231,7 @@ export const AdminPage = async () => {
           </div>
         </UIModule>
 
-        <UIModule className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-5">
+        <UIModule className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] p-5 max-lg:overflow-visible lg:overflow-hidden">
           <div>
             <h2 className="text-16 font-semibold text-grey-900">
               Recent changes
@@ -227,11 +240,12 @@ export const AdminPage = async () => {
               Newly created entities and the latest metadata updates.
             </p>
           </div>
-          <div className="mt-4 grid min-h-0 gap-3 overflow-y-auto pr-1">
+          <div className="mt-4 grid min-h-0 gap-3 pr-1 max-lg:overflow-visible lg:overflow-y-auto">
             <section className="rounded-12 border border-grey-200 bg-grey-50 p-3">
-              <h3 className="text-grey-600 text-12 font-semibold tracking-[0.08em] uppercase">
-                Apps
-              </h3>
+              <RecentSectionHeader
+                href="/admin/apps?sort=createdAt%3Adesc"
+                title="Apps"
+              />
               <div className="mt-1 divide-y divide-grey-100">
                 {home.recent.apps.map((app) => (
                   <Link
@@ -258,9 +272,10 @@ export const AdminPage = async () => {
               </div>
             </section>
             <section className="rounded-12 border border-grey-200 bg-grey-50 p-3">
-              <h3 className="text-grey-600 text-12 font-semibold tracking-[0.08em] uppercase">
-                Teams
-              </h3>
+              <RecentSectionHeader
+                href="/admin/teams?sort=createdAt%3Adesc"
+                title="Teams"
+              />
               <div className="mt-1 divide-y divide-grey-100">
                 {home.recent.teams.map((team) => (
                   <Link
@@ -282,9 +297,10 @@ export const AdminPage = async () => {
               </div>
             </section>
             <section className="rounded-12 border border-grey-200 bg-grey-50 p-3">
-              <h3 className="text-grey-600 text-12 font-semibold tracking-[0.08em] uppercase">
-                Users
-              </h3>
+              <RecentSectionHeader
+                href="/admin/users?sort=createdAt%3Adesc"
+                title="Users"
+              />
               <div className="mt-1 divide-y divide-grey-100">
                 {home.recent.users.map((user) => (
                   <EntityLink
