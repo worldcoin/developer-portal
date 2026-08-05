@@ -56,17 +56,17 @@ Never commit your personal token.
 Start LocalStack, then create the bucket and its browser CORS policy once:
 
 ```bash
-docker compose --profile localstack up --detach --wait localstack
-docker compose --profile localstack exec localstack \
+docker compose --env-file web/.env --profile localstack up --detach --wait localstack
+docker compose --env-file web/.env --profile localstack exec localstack \
   awslocal s3api create-bucket --bucket developer-portal-assets
-docker compose --profile localstack exec localstack \
+docker compose --env-file web/.env --profile localstack exec localstack \
   awslocal s3api put-bucket-cors \
   --bucket developer-portal-assets \
   --cors-configuration \
   '{"CORSRules":[{"AllowedOrigins":["http://localhost:3000"],"AllowedMethods":["GET","HEAD","POST"],"AllowedHeaders":["*"],"ExposeHeaders":["ETag"]}]}'
 ```
 
-Run `cd web && pnpm dev`, then image uploads from `http://localhost:3000` use LocalStack. Check the service with `docker compose --profile localstack ps localstack`; stop it with `docker compose --profile localstack stop localstack`.
+Run `cd web && pnpm dev`, then image uploads from `http://localhost:3000` use LocalStack. Check the service with `docker compose --env-file web/.env --profile localstack ps localstack`; stop it with `docker compose --env-file web/.env --profile localstack stop localstack`.
 
 ### Starting the app
 
