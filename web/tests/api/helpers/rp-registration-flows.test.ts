@@ -1216,6 +1216,41 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
+  it("uses the shared key when only STAGING was pre-claimed", async () => {
+    // The sweep can succeed on staging and not production. The row stores one
+    // manager key, so minting a dedicated one for production would leave staging
+    // permanently failed: its register() reverts on an initialized id, and every
+    // later staging status/retry compares against the dedicated key and reads the
+    // shared pre-claim as foreign.
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    mockGetStagingRpRegistryConfig.mockReturnValue({
+      contractAddress: "0xstagingcontract",
+      kmsRegion: "us-east-1",
+    });
+    getRpFromContractMock.mockImplementation(
+      async (_rpId: bigint, contractAddress: string) => ({
+        // Free on production, already ours on staging.
+        initialized: contractAddress === "0xstagingcontract",
+        active: contractAddress === "0xstagingcontract",
+        manager: managerAddress,
+        signer: "0x000000000000000000000000000000000000dead",
+      }),
+    );
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true });
+    // Shared key, not a dedicated one, even though shared mode is off.
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
+    // Production registers (it was free); staging rotates (already ours).
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+    expect(submitRotateSignerTransactionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ contractAddress: "0xstagingcontract" }),
+      expect.objectContaining({ newSignerAddress: signerAddress }),
+    );
+  });
+
   it("still reports rp_id_taken when releasing the slot fails", async () => {
     // The read's non-fatal catch must not extend over the slot release: swallowing
     // that failure would fall through to KMS and a UserOp for an rp_id already

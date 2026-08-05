@@ -197,8 +197,38 @@ export async function submitManagedRpRegistration({
   //   - manager unresolvable     -> kms_error, RETRYABLE. A KMS outage must not be
   //     reported as "someone else owns your id, contact support"; that would send
   //     developers of pre-claimed apps to support over a transient failure.
+  // Staging is read here too, not later at submission time. The row stores ONE
+  // manager_kms_key_id, so a pre-claim on EITHER registry has to decide the key
+  // for both. Deciding staging after a dedicated key was already minted for
+  // production leaves staging permanently failed: its register() reverts on an
+  // initialized id, and every later staging status/retry compares against the
+  // dedicated key and reads the shared pre-claim as foreign.
+  const stagingConfigForAdoption =
+    process.env.NEXT_PUBLIC_APP_ENV === "production"
+      ? getStagingRpRegistryConfig()
+      : null;
+  let existingStagingRp: Awaited<ReturnType<typeof getRpFromContract>> | null =
+    null;
+  if (stagingConfigForAdoption) {
+    try {
+      existingStagingRp = await getRpFromContract(
+        rpId,
+        stagingConfigForAdoption.contractAddress,
+      );
+    } catch (error) {
+      // Non-fatal for the same reason as production: staging is a best-effort
+      // mirror, so a failed read falls through to registering.
+      logger.warn("Could not pre-check the staging rp_id; registering", {
+        error,
+        app_id: appId,
+        rpIdString,
+      });
+    }
+  }
+
   let adoptExistingClaim = false;
-  if (existingOnChainRp?.initialized) {
+  let adoptStagingClaim = false;
+  if (existingOnChainRp?.initialized || existingStagingRp?.initialized) {
     const sharedManagerKeyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
     const ourManagerAddress = sharedManagerKeyId
       ? await resolveManagerAddress(sharedManagerKeyId, primaryConfig.kmsRegion)
@@ -217,11 +247,22 @@ export async function submitManagedRpRegistration({
       };
     }
 
-    adoptExistingClaim = Boolean(
-      ourManagerAddress &&
-        addressesEqual(existingOnChainRp.manager, ourManagerAddress),
+    adoptStagingClaim = Boolean(
+      existingStagingRp?.initialized &&
+        ourManagerAddress &&
+        addressesEqual(existingStagingRp.manager, ourManagerAddress),
     );
 
+    adoptExistingClaim = Boolean(
+      existingOnChainRp?.initialized &&
+        ourManagerAddress &&
+        addressesEqual(existingOnChainRp.manager, ourManagerAddress),
+    );
+  }
+
+  // Only the PRODUCTION registry is authoritative for whether this app can be
+  // registered at all; a foreign staging claim just means staging cannot mirror.
+  if (existingOnChainRp?.initialized) {
     if (!adoptExistingClaim) {
       logger.warn("rp_id already registered on-chain by a foreign manager", {
         app_id: appId,
@@ -288,9 +329,11 @@ export async function submitManagedRpRegistration({
   // Adoption has no choice of key: the manager already recorded on-chain is the
   // shared one we claimed with, and only that key can sign the rotation. Minting
   // a dedicated key here would produce a manager the contract has never heard
-  // of, and every update would revert.
+  // of, and every update would revert. A staging-only pre-claim forces it too —
+  // the row records one manager key for both registries.
   const useSharedManagerKey =
     adoptExistingClaim ||
+    adoptStagingClaim ||
     process.env.ENABLE_SHARED_KEY_RP_REGISTRATION === "true";
 
   if (useSharedManagerKey) {
@@ -387,28 +430,10 @@ export async function submitManagedRpRegistration({
     const stagingConfig = getStagingRpRegistryConfig();
     if (stagingConfig) {
       try {
-        // The staging mirror needs the same adoption branch as production: if the
-        // defensive sweep claimed this rp_id on the staging registry too, a
-        // register() here reverts with IdAlreadyInUse and staging is recorded
-        // `failed`, leaving the developer unable to use staging actions. Decided
-        // per-contract because the two registries are claimed independently and
-        // can disagree.
-        let adoptStagingClaim = false;
-        try {
-          const existingStagingRp = await getRpFromContract(
-            rpId,
-            stagingConfig.contractAddress,
-          );
-          adoptStagingClaim =
-            existingStagingRp.initialized &&
-            addressesEqual(existingStagingRp.manager, managerAddress);
-        } catch (error) {
-          logger.warn("Could not pre-check the staging rp_id; registering", {
-            error,
-            rpIdString,
-          });
-        }
-
+        // adoptStagingClaim was decided before the manager key was chosen — see
+        // there for why. If the sweep claimed this rp_id on staging, a register()
+        // here would revert with IdAlreadyInUse and record staging `failed`,
+        // leaving the developer unable to use staging actions.
         stagingOperationHash = adoptStagingClaim
           ? await submitRotateSignerTransaction(stagingConfig, {
               rpId,
