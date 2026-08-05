@@ -287,10 +287,16 @@ export async function GET(
           stagingOnChainRp.initialized,
           stagingOnChainRp.active,
         );
+        // Report the stored value when the reading is not provably ours, even
+        // when that value is null. Falling back to the on-chain mapping here
+        // would surface a squatter's staging registration as this app's
+        // `registered`, so a client would stop polling on someone else's success.
+        // The production branch above preserves currentDbStatus for the same
+        // reason; this is the same rule.
         stagingStatus =
           stagingTrust === "trusted"
             ? onChainMappedStatus
-            : currentDbStagingStatus ?? onChainMappedStatus;
+            : currentDbStagingStatus;
       } else {
         stagingStatus = RpRegistrationStatus.Pending;
       }

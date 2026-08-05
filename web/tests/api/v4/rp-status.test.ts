@@ -869,6 +869,49 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     });
   });
 
+  it("reports no staging status rather than a foreign staging registration", async () => {
+    // Nothing mirrored to staging yet (staging_status null) but someone else
+    // registered this rp_id on the staging contract. Falling back to the on-chain
+    // mapping would report their `registered` as this app's, and a client would
+    // stop polling on someone else's success. The production branch preserves the
+    // stored value for the same reason.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        staging_status: null,
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0xExpectedSigner",
+          };
+        }
+        return {
+          initialized: true,
+          active: true,
+          manager: "0xAttackerManager",
+          signer: "0xAttackerSigner",
+        };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.staging_status).toBeNull();
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+  });
+
   it("preserves DB staging_status=pending when on-chain signer mismatches (rotation in flight)", async () => {
     GetRpRegistration.mockResolvedValue({
       rp_registration_by_pk: makeDbRecord({

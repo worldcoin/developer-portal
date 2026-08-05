@@ -901,9 +901,12 @@ const syncWorldIdRegistrationStatus = async (
           stagingRp.initialized,
           stagingRp.active,
         );
+        // Same rule as /api/v4/rp-status: when the reading is not provably ours,
+        // report the stored value even if it is null, rather than surfacing a
+        // squatter's staging registration as this app's own.
         stagingStatus = stagingTrusted
           ? mappedStagingStatus
-          : currentStagingStatus ?? mappedStagingStatus;
+          : currentStagingStatus;
 
         if (stagingTrusted && stagingStatus !== currentStagingStatus) {
           await getUpdateStagingStatusSdk(ctx.client).UpdateStagingStatus({
