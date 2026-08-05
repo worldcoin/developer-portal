@@ -168,6 +168,7 @@ beforeEach(() => {
   process.env.NEXT_PUBLIC_APP_ENV = "test";
   delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
   delete process.env.ENABLE_SHARED_KEY_RP_REGISTRATION;
+  delete process.env.RP_ID_PRE_REGISTRATION_SIGNER;
   mockGetRpRegistryConfig.mockReturnValue({
     contractAddress: "0xcontract",
     kmsRegion: "us-east-1",
@@ -1249,6 +1250,42 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
       expect.objectContaining({ contractAddress: "0xstagingcontract" }),
       expect.objectContaining({ newSignerAddress: signerAddress }),
     );
+  });
+
+  it("uses the shared key when staging ownership cannot be determined", async () => {
+    // The staging read is best-effort, so it must not block a production
+    // registration — but "unknown" must not become "not ours" either. If staging
+    // is in fact pre-claimed and we mint a dedicated key, staging's register()
+    // reverts on an initialized id and every later staging status/retry reads the
+    // shared pre-claim as foreign, so that side never recovers.
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    // Set only where pre-registration has actually been run, which is what scopes
+    // this fallback.
+    process.env.RP_ID_PRE_REGISTRATION_SIGNER =
+      "0x000000000000000000000000000000000000dEaD";
+    mockGetStagingRpRegistryConfig.mockReturnValue({
+      contractAddress: "0xstagingcontract",
+      kmsRegion: "us-east-1",
+    });
+    getRpFromContractMock.mockImplementation(
+      async (_rpId: bigint, contractAddress: string) => {
+        if (contractAddress === "0xstagingcontract") {
+          throw new Error("staging rpc timeout");
+        }
+        return {
+          initialized: false,
+          active: false,
+          manager: `0x${"0".repeat(40)}`,
+          signer: `0x${"0".repeat(40)}`,
+        };
+      },
+    );
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true });
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
   });
 
   it("still reports rp_id_taken when releasing the slot fails", async () => {

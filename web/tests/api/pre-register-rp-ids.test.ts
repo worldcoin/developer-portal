@@ -77,8 +77,11 @@ const post = async (body: unknown) => {
 };
 // #endregion
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
+  // The in-flight claim markers are real Redis keys; without this the second test
+  // to touch an rp_id would be skipped as still settling.
+  await global.RedisClient?.flushall();
   process.env.INTERNAL_ENDPOINTS_SECRET = "test_secret";
   process.env.ENABLE_RP_ID_PRE_REGISTRATION = "true";
   process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID =
@@ -336,6 +339,20 @@ describe("/api/_pre-register-rp-ids [skips]", () => {
       "production:claimed": 1,
       "staging:skipped_taken_by_foreign_manager": 1,
     });
+  });
+
+  it("does not resubmit a claim that is still settling", async () => {
+    // submitRegisterRpTransaction returns on submission, not on mining, so a
+    // repeat run sees the id as still uninitialized. The UserOp nonce carries
+    // per-attempt randomness, so both can be accepted and one later reverts,
+    // burning gas. Dedupe within one payload does not cover this.
+    const first = await (await run()).json();
+    expect(first.counts).toEqual({ "production:claimed": 1 });
+
+    const second = await (await run()).json();
+
+    expect(second.counts).toEqual({ "production:skipped_claim_in_flight": 1 });
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
   });
 
   it("records a submission failure without aborting the rest of the batch", async () => {

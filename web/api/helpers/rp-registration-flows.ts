@@ -209,6 +209,7 @@ export async function submitManagedRpRegistration({
       : null;
   let existingStagingRp: Awaited<ReturnType<typeof getRpFromContract>> | null =
     null;
+  let stagingOwnershipUnknown = false;
   if (stagingConfigForAdoption) {
     try {
       existingStagingRp = await getRpFromContract(
@@ -216,8 +217,14 @@ export async function submitManagedRpRegistration({
         stagingConfigForAdoption.contractAddress,
       );
     } catch (error) {
-      // Non-fatal for the same reason as production: staging is a best-effort
-      // mirror, so a failed read falls through to registering.
+      // Non-fatal: staging is a best-effort mirror, so blocking a production
+      // registration on a staging RPC failure would be the wrong trade. But
+      // "unknown" must not silently become "not ours" — if a pre-claim exists on
+      // staging and we mint a dedicated key here, staging's register() reverts on
+      // an initialized id and every later staging status/retry reads the shared
+      // pre-claim as foreign, so that side never recovers. Force the shared key
+      // instead, which is always a valid choice for a fresh registration.
+      stagingOwnershipUnknown = true;
       logger.warn("Could not pre-check the staging rp_id; registering", {
         error,
         app_id: appId,
@@ -331,9 +338,16 @@ export async function submitManagedRpRegistration({
   // a dedicated key here would produce a manager the contract has never heard
   // of, and every update would revert. A staging-only pre-claim forces it too —
   // the row records one manager key for both registries.
+  // Scoped to environments that actually pre-claim: RP_ID_PRE_REGISTRATION_SIGNER
+  // stays configured once claims exist there (see _pre-register-rp-ids). Elsewhere
+  // an unreadable staging registry changes nothing, so dedicated keys keep their
+  // isolation.
+  const preClaimsPossible = Boolean(process.env.RP_ID_PRE_REGISTRATION_SIGNER);
+
   const useSharedManagerKey =
     adoptExistingClaim ||
     adoptStagingClaim ||
+    (stagingOwnershipUnknown && preClaimsPossible) ||
     process.env.ENABLE_SHARED_KEY_RP_REGISTRATION === "true";
 
   if (useSharedManagerKey) {
