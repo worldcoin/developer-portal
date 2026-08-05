@@ -98,29 +98,34 @@ export function resolveRpIdForNewRegistration(appId: string): `rp_${string}` {
  * on-chain registration is orphaned. Self-managed rows never time out, so that
  * app is stuck until someone cleans it up by hand.
  *
- * The order is the security-critical part, and it does NOT follow the flag.
- * "Initialized on-chain" is not evidence that the *developer* registered it: the
- * legacy id is guessable by anyone, so a squatter's registration looks identical.
- * Probing legacy first during a rollback — where the developer was shown, and
- * registered, the salted id — would find the squatter's row and bind the app to
- * an attacker-controlled rp_id. Probing salted first cannot be gamed the same
- * way, because an attacker cannot compute the salted id to register it. Legacy is
- * only ever selected when the salted id is unregistered, which is the honest
- * roll-forward case; a squatted legacy id there is the pre-existing exposure this
- * PR is narrowing, not a new one.
+ * Which ids are eligible is the security-critical part. "Initialized on-chain" is
+ * not evidence that the *developer* registered it: the legacy id is guessable by
+ * anyone, so a squatter's registration looks identical to the real thing.
  *
- * Both values are derived here from the app_id, so nothing caller-supplied widens
- * what can be claimed. The caller keeps whatever the current scheme yields when
- * neither candidate is on-chain.
+ * So while the feature is ON, the legacy id is not a candidate at all. Merely
+ * ordering it last was not enough — a developer who clicks Continue before their
+ * salted `register()` is visible on-chain (mined late, or a lagging RPC read)
+ * leaves the salted candidate looking uninitialized, and a squatted legacy id
+ * would then be the first initialized one found and get stored as this app's
+ * rp_id. Under the new scheme an initialized legacy id is by definition not
+ * something we handed out, so there is nothing there to adopt.
  *
- * `RP_ID_SALT_PREVIOUS` covers rotation. Without it, rotating while a developer
- * is between the instructions screen and completion orphans the registration they
+ * The cost is the roll-forward window: instructions screen served with the flag
+ * off, developer registers the legacy id, completion lands on a task with the flag
+ * on. No candidate matches, and the row is created under the salted id — a wedged
+ * registration needing manual cleanup. That is recoverable; binding an app to an
+ * attacker's rp_id is not, and the window is one deploy transition.
+ *
+ * All values are derived here from the app_id, so nothing caller-supplied widens
+ * what can be claimed. The caller keeps whatever the current scheme yields when no
+ * candidate is on-chain.
+ *
+ * `RP_ID_SALT_PREVIOUS` covers rotation. Without it, rotating while a developer is
+ * between the instructions screen and completion orphans the registration they
  * just paid for: the id they were shown is derived from a salt that no longer
  * exists anywhere. Since rotation is the advertised remedy for a leaked salt, it
- * has to be safe to perform — set the outgoing value here for one drain window,
- * then drop it. It is probed after the current salt and before legacy, so it
- * never takes precedence over the live scheme and never demotes the ordering
- * below a guessable id.
+ * has to be safe to perform — set the outgoing value for one drain window, then
+ * drop it.
  */
 export function candidateRpIdsForApp(appId: string): `rp_${string}`[] {
   const usableSalt = (salt: string | undefined) =>
@@ -129,12 +134,18 @@ export function candidateRpIdsForApp(appId: string): `rp_${string}`[] {
   const current = usableSalt(process.env.RP_ID_SALT);
   const previous = usableSalt(process.env.RP_ID_SALT_PREVIOUS);
 
-  const ordered = [
+  const salted = [
     current ? deriveSaltedRpIdString(appId, current) : null,
     previous ? deriveSaltedRpIdString(appId, previous) : null,
-    // Always last: the only candidate an attacker can compute.
-    generateRpIdString(appId),
   ];
+
+  // Flag on: salted only — an initialized legacy id is not ours to adopt.
+  // Flag off: legacy IS the current scheme, so adopting it is correct by
+  // definition. The salted ids stay reachable, and first, for the rollback window
+  // where the screen may have shown one; an attacker cannot have planted those.
+  const ordered = isUnpredictableRpIdEnabled()
+    ? salted
+    : [...salted, generateRpIdString(appId)];
 
   return Array.from(
     new Set(ordered.filter((id): id is `rp_${string}` => Boolean(id))),

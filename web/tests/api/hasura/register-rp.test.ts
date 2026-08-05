@@ -193,11 +193,12 @@ describe("/api/hasura/register-rp [self-managed scheme drift]", () => {
   const selfManaged = () =>
     POST(createMockRequest({ app_id: appId, mode: "self_managed" }));
 
-  it("stores the id the developer registered when the flag flipped on mid-flow", async () => {
-    // The instructions screen was served by a task with the flag OFF, so the
-    // developer registered the legacy id. This request lands on a task with the
-    // flag ON — a rolling deploy. Deriving again would store an id nobody
-    // registered and orphan their real one, and self-managed rows never time out.
+  it("does not adopt an initialized legacy id while the feature is on", async () => {
+    // The flag is on, so the legacy id is not something we handed out. It may be a
+    // squatter's, and it is indistinguishable from a developer who registered
+    // before a roll-forward — so it is never adopted. The cost is that the
+    // roll-forward case creates a row under the salted id and needs manual
+    // cleanup; the alternative is binding the app to an attacker's rp_id.
     const { generateRpIdString } = jest.requireActual("@/lib/rp");
     const legacyId = generateRpIdString(appId);
 
@@ -209,15 +210,15 @@ describe("/api/hasura/register-rp [self-managed scheme drift]", () => {
       return {
         initialized,
         active: initialized,
-        manager: "0xDeveloperOwnedManager",
-        signer: "0xDeveloperOwnedSigner",
+        manager: "0xSomeManager",
+        signer: "0xSomeSigner",
       };
     });
 
     const res = (await selfManaged())!;
 
     expect(res.status).toBe(200);
-    expect(claimedRpId).toBe(legacyId);
+    expect(claimedRpId).not.toBe(legacyId);
   });
 
   it("ignores a squatted legacy id and keeps the salted one the developer registered", async () => {

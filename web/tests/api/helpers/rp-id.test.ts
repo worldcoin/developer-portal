@@ -95,17 +95,17 @@ describe("candidateRpIdsForApp", () => {
     expect(candidateRpIdsForApp(appId)).toEqual([generateRpIdString(appId)]);
   });
 
-  it("puts the salted id first when the feature is on", () => {
+  it("excludes the guessable legacy id entirely when the feature is on", () => {
+    // Ordering it last is not enough: if the developer's salted register() is not
+    // visible yet, a squatted legacy id would be the first initialized candidate
+    // found and get stored as this app's rp_id.
     process.env.ENABLE_UNPREDICTABLE_RP_ID = "true";
     process.env.RP_ID_SALT = salt;
 
     const candidates = candidateRpIdsForApp(appId);
 
-    expect(candidates).toHaveLength(2);
-    expect(candidates[0]).toBe(resolveRpIdForNewRegistration(appId));
-    // The legacy id stays a candidate so a developer who registered before the
-    // flag flipped on is still matched to their own on-chain registration.
-    expect(candidates[1]).toBe(generateRpIdString(appId));
+    expect(candidates).toEqual([resolveRpIdForNewRegistration(appId)]);
+    expect(candidates).not.toContain(generateRpIdString(appId));
   });
 
   it("still probes the salted id first after a rollback", () => {
@@ -139,17 +139,18 @@ describe("candidateRpIdsForApp", () => {
 
     const candidates = candidateRpIdsForApp(appId);
 
-    expect(candidates).toHaveLength(3);
-    // Current salt wins; the guessable legacy id stays last regardless.
+    // Flag on, so both salted ids are eligible and legacy is not.
+    expect(candidates).toHaveLength(2);
     expect(candidates[0]).toBe(resolveRpIdForNewRegistration(appId));
-    expect(candidates[2]).toBe(generateRpIdString(appId));
+    expect(candidates).not.toContain(generateRpIdString(appId));
 
-    // The middle candidate is what the outgoing salt would have produced.
+    // The second candidate is what the outgoing salt would have produced.
     process.env.RP_ID_SALT = otherSalt;
     expect(candidates[1]).toBe(resolveRpIdForNewRegistration(appId));
   });
 
   it("ignores an unusable previous salt", () => {
+    // Flag off here, so the list is [salted, legacy] rather than [salted].
     process.env.RP_ID_SALT = salt;
     process.env.RP_ID_SALT_PREVIOUS = "short";
 
