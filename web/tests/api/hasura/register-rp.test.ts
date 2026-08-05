@@ -14,6 +14,26 @@ jest.mock("@/api/helpers/rp-registration-flows", () => ({
     submitManagedRpRegistrationMock(...args),
 }));
 
+const getRpFromContractMock = jest.fn();
+jest.mock("@/api/helpers/temporal-rpc", () => ({
+  getRpFromContract: (...args: unknown[]) => getRpFromContractMock(...args),
+}));
+
+const resolveManagerAddressMock = jest.fn();
+jest.mock("@/api/helpers/rp-manager", () => ({
+  resolveManagerAddress: (...args: unknown[]) =>
+    resolveManagerAddressMock(...args),
+}));
+
+const getRpRegistryConfigMock = jest.fn();
+jest.mock("@/api/helpers/rp-utils", () => {
+  const actual = jest.requireActual("@/api/helpers/rp-utils");
+  return {
+    ...actual,
+    getRpRegistryConfig: () => getRpRegistryConfigMock(),
+  };
+});
+
 jest.mock("@/lib/logger", () => ({
   logger: {
     info: jest.fn(),
@@ -62,11 +82,29 @@ const createMockRequest = (input: Record<string, unknown>) =>
   });
 // #endregion
 
+const portalManagerAddress = "0x2222222222222222222222222222222222222222";
+
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.INTERNAL_ENDPOINTS_SECRET = "internal-secret";
+  process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID =
+    "arn:aws:kms:eu-west-1:000000000000:key/shared-manager";
   appIsStaging = false;
   authorizedTeam = [{ id: teamId }];
+
+  getRpRegistryConfigMock.mockReturnValue({
+    contractAddress: "0xcontract",
+    kmsRegion: "eu-west-1",
+  });
+  resolveManagerAddressMock.mockResolvedValue(portalManagerAddress);
+  // Default: the self-managed developer has already run register() themselves,
+  // which is the state this mutation is reached in.
+  getRpFromContractMock.mockResolvedValue({
+    initialized: true,
+    active: true,
+    manager: "0xDeveloperOwnedManager",
+    signer: "0xDeveloperOwnedSigner",
+  });
 
   submitManagedRpRegistrationMock.mockResolvedValue({
     ok: true,
@@ -149,6 +187,47 @@ describe("/api/hasura/register-rp [success]", () => {
     expect(body.status).toBe("pending");
     // Self-managed skips the managed pipeline entirely.
     expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Self-managed vs a defensively claimed rp_id
+describe("/api/hasura/register-rp [self-managed on-chain ownership]", () => {
+  const selfManaged = () =>
+    POST(createMockRequest({ app_id: appId, mode: "self_managed" }));
+
+  it("succeeds when the developer has already registered the id themselves", async () => {
+    // This mutation is the "Continue" AFTER the instructions screen, so the id
+    // being initialized on-chain is the healthy state. Treating any initialized
+    // id as a conflict would break every legitimate self-managed completion.
+    const res = (await selfManaged())!;
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).status).toBe("pending");
+  });
+
+  it("refuses when the id is held by the Portal's own manager", async () => {
+    // Defensively pre-claimed: the developer's register() reverted against it,
+    // and handing the id over needs a manager transfer that no flow drives yet.
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: portalManagerAddress,
+      signer: "0x000000000000000000000000000000000000dEaD",
+    });
+
+    const res = (await selfManaged())!;
+    const body = await res.json();
+
+    expect(body.code ?? body.extensions?.code).toBe("rp_id_taken");
+  });
+
+  it("still succeeds when the on-chain read fails", async () => {
+    getRpFromContractMock.mockRejectedValue(new Error("rpc timeout"));
+
+    const res = (await selfManaged())!;
+
+    expect(res.status).toBe(200);
   });
 });
 // #endregion
