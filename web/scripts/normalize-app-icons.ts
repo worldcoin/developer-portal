@@ -390,9 +390,23 @@ async function main() {
       );
     }
 
-    const base =
+    // Both sources are written as complete URLs in practice - the workflow
+    // passes --cdn-base-url, and .env.example documents
+    // NEXT_PUBLIC_IMAGES_CDN_URL as "https://your-cdn-url" - but a bare
+    // hostname is an easy thing to type, and unconditionally prefixing a
+    // scheme turned the documented form into "https://https://your-cdn-url"
+    // and wrote unusable logoUrls into the manifest. Take the scheme as given
+    // when there is one, add https:// only when there isn't, and drop any
+    // trailing slash so it can't double up against the key below.
+    const configuredBase =
       cdnBaseUrl ??
-      `https://${process.env.NEXT_PUBLIC_IMAGES_CDN_URL ?? "world-id-assets.com"}`;
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL ??
+      "https://world-id-assets.com";
+    const base = (
+      /^https?:\/\//.test(configuredBase)
+        ? configuredBase
+        : `https://${configuredBase}`
+    ).replace(/\/+$/, "");
     const urlFor = (icon: NormalizedIcon) => `${base}/${icon.s3Key}`;
 
     const manifestDir = path.join(
