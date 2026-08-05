@@ -270,8 +270,11 @@ export const SandboxButton = (props: {
                   />
                   <InkButton
                     type="submit"
-                    disabled={existingRequest !== null || requestRefreshing}
-                    loading={requestSending}
+                    disabled={
+                      existingRequest !== null ||
+                      requestRefreshing ||
+                      requestSending
+                    }
                     className="h-9 shrink-0 px-4"
                   >
                     {existingRequest?.accepted

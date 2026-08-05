@@ -176,8 +176,11 @@ export const ProfilePage = () => {
                 <InkButton
                   type="submit"
                   className="h-8"
-                  disabled={!isDisplayNameDirty || !isDisplayNameValid}
-                  loading={isDisplayNameSubmitting}
+                  disabled={
+                    !isDisplayNameDirty ||
+                    !isDisplayNameValid ||
+                    isDisplayNameSubmitting
+                  }
                 >
                   Save
                 </InkButton>

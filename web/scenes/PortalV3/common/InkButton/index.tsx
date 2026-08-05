@@ -7,7 +7,7 @@ import { twMerge } from "tailwind-merge";
 
 type InkButtonProps = CommonButtonProps & {
   icon?: ReactNode;
-  /** Replaces the label with a spinner and disables the control. */
+  /** Disables the control and prefixes the label with a spinner. */
   loading?: boolean;
 };
 
@@ -36,21 +36,13 @@ export const InkButton = (props: InkButtonProps) => {
       className={twMerge(inkButtonClassName, className)}
     >
       {loading ? (
-        <>
-          <SpinnerIcon className="size-5 animate-spin" aria-hidden />
-          {/* Preserve the accessible name while the visible label is a spinner. */}
-          <span className="sr-only">{children}</span>
-        </>
-      ) : (
-        <>
-          {icon ? (
-            <span aria-hidden="true" className={`${opticalIconClassName} flex`}>
-              {icon}
-            </span>
-          ) : null}
-          {children}
-        </>
-      )}
+        <SpinnerIcon className="size-5 animate-spin" aria-hidden />
+      ) : icon ? (
+        <span aria-hidden="true" className={`${opticalIconClassName} flex`}>
+          {icon}
+        </span>
+      ) : null}
+      {children}
     </Button>
   );
 };
