@@ -258,10 +258,11 @@ describe("/api/hasura/register-rp [self-managed on-chain ownership]", () => {
   });
 
   it("skips the check entirely where pre-claims cannot exist", async () => {
-    // No placeholder configured and pre-registration never enabled: there is
-    // nothing to recognise, so a read failure must not block onboarding. This is
-    // every environment that has not run the tool.
+    // Neither tell available and pre-registration never enabled: there is nothing
+    // to recognise, so a read failure must not block onboarding. This is every
+    // environment that has not run the tool.
     delete process.env.RP_ID_PRE_REGISTRATION_SIGNER;
+    delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
     delete process.env.ENABLE_RP_ID_PRE_REGISTRATION;
     getRpFromContractMock.mockRejectedValue(new Error("rpc timeout"));
 
@@ -271,16 +272,54 @@ describe("/api/hasura/register-rp [self-managed on-chain ownership]", () => {
     expect(getRpFromContractMock).not.toHaveBeenCalled();
   });
 
-  it("refuses to proceed when pre-registration is on but its signer is unusable", async () => {
-    // Claims are being made and we cannot recognise them — a deploy fault, not
+  it("refuses to proceed when pre-registration is on and nothing identifies a claim", async () => {
+    // Claims are being made and neither tell is available — a deploy fault, not
     // something a developer should absorb as a broken registration.
     process.env.ENABLE_RP_ID_PRE_REGISTRATION = "true";
     process.env.RP_ID_PRE_REGISTRATION_SIGNER = `0x${"0".repeat(40)}`;
+    delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
 
     const res = (await selfManaged())!;
     const body = await res.json();
 
     expect(body.code ?? body.extensions?.code).toBe("config_error");
+  });
+
+  it("falls back to the shared manager when the placeholder signer is unset", async () => {
+    // Defensive claims outlive the kill switch, so the guard cannot be keyed to it:
+    // sweep has run, flag turned back off, placeholder unset. Without the manager
+    // fallback a Portal-held placeholder RP would be inserted as self_managed and
+    // rp-status would promote it against a signer that can never sign.
+    delete process.env.RP_ID_PRE_REGISTRATION_SIGNER;
+    delete process.env.ENABLE_RP_ID_PRE_REGISTRATION;
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: portalManagerAddress,
+      signer: "0xSomeOtherSigner",
+    });
+
+    const res = (await selfManaged())!;
+    const body = await res.json();
+
+    expect(body.code ?? body.extensions?.code).toBe("rp_id_taken");
+    expect(resolveManagerAddressMock).toHaveBeenCalled();
+  });
+
+  it("returns a retryable error when the manager fallback cannot resolve", async () => {
+    delete process.env.RP_ID_PRE_REGISTRATION_SIGNER;
+    resolveManagerAddressMock.mockResolvedValue(null);
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: portalManagerAddress,
+      signer: "0xSomeOtherSigner",
+    });
+
+    const res = (await selfManaged())!;
+    const body = await res.json();
+
+    expect(body.code ?? body.extensions?.code).toBe("kms_error");
   });
 });
 // #endregion

@@ -14,6 +14,7 @@ import {
   parseRpId,
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
+import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -182,36 +183,41 @@ export const POST = async (req: NextRequest) => {
     // which for self-managed the Portal cannot tell apart either way, unchanged
     // by this PR since it stores no expected roles for self-managed rows.
     //
-    // When the check CANNOT run, whether skipping is safe depends entirely on
-    // whether pre-claims can exist:
-    //   - pre-registration enabled but misconfigured -> config_error. Claims are
-    //     being made and we cannot recognise them, which is a deploy fault, not a
-    //     developer's problem to absorb silently.
-    //   - placeholder configured but the chain unreadable -> rpc_error, RETRYABLE.
-    //     A pre-claimed id admitted here becomes a row rp-status promotes (it
-    //     trusts self-managed rows by mode) against a signer that can never sign.
-    //     A retryable error is recoverable; that registration is not.
-    //   - placeholder unset and pre-registration never enabled -> skip. No claims
-    //     exist, so there is nothing to recognise. This is every environment that
-    //     has not run the tool.
+    // Two independent tells that Portal holds this id, in cost order:
     //
-    // OPERATIONAL INVARIANT: once pre-registration has been run in an
-    // environment, RP_ID_PRE_REGISTRATION_SIGNER must stay set there forever.
-    // The claims outlive the flag.
+    //   1. the PLACEHOLDER SIGNER — a plain env var, no remote call, so it cannot
+    //      fail open or fail closed on someone else's outage. Preferred.
+    //   2. the SHARED MANAGER address — needs a KMS round trip, so it is only a
+    //      fallback. KMS has no business in a self-managed registration, but a
+    //      silently broken registration is worse than a retryable error.
+    //
+    // The fallback exists because defensive claims OUTLIVE the kill switch. Keying
+    // the guard to ENABLE_RP_ID_PRE_REGISTRATION would leave the exact state this
+    // comment used to describe as an invariant — sweep has run, flag turned back
+    // off, placeholder unset — silently unguarded, and a Portal-held placeholder RP
+    // would be inserted as self_managed. rp-status trusts self-managed rows by
+    // mode, so it would then be promoted against a signer that can never sign.
+    //
+    // With neither tell available there is no in-band signal left, so the guard
+    // cannot run at all: that is a config error while claims are being made, and a
+    // no-op in an environment that has never claimed anything.
     const primaryConfig = getRpRegistryConfig();
     const placeholderSigner = process.env.RP_ID_PRE_REGISTRATION_SIGNER;
+    const sharedManagerKeyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
     const preRegistrationEnabled =
       process.env.ENABLE_RP_ID_PRE_REGISTRATION === "true";
-    const canRecognisePreClaims = Boolean(
+
+    const canCheckBySigner = Boolean(
       primaryConfig &&
         placeholderSigner &&
         isAddress(placeholderSigner) &&
         !isZeroAddress(placeholderSigner),
     );
+    const canCheckByManager = Boolean(primaryConfig && sharedManagerKeyId);
 
-    if (!canRecognisePreClaims && preRegistrationEnabled) {
+    if (!canCheckBySigner && !canCheckByManager && preRegistrationEnabled) {
       logger.error(
-        "Pre-registration is enabled but its placeholder signer is unusable",
+        "Pre-registration is enabled but nothing identifies a Portal pre-claim",
         { app_id, hasConfig: Boolean(primaryConfig) },
       );
       return errorHasuraQuery({
@@ -222,7 +228,7 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    if (canRecognisePreClaims) {
+    if (canCheckBySigner || canCheckByManager) {
       let onChain;
       try {
         onChain = await getRpFromContract(
@@ -244,22 +250,47 @@ export const POST = async (req: NextRequest) => {
         });
       }
 
-      if (
-        onChain.initialized &&
-        addressesEqual(onChain.signer, placeholderSigner!)
-      ) {
-        logger.warn("Self-managed rp_id is held by a Portal pre-claim", {
-          app_id,
-          rpIdString,
-          onChainManager: onChain.manager,
-        });
-        return errorHasuraQuery({
-          req,
-          detail:
-            "This app's RP ID is held by Portal and cannot be self-managed yet — contact support.",
-          code: "rp_id_taken",
-          app_id,
-        });
+      if (onChain.initialized) {
+        let heldByPortal =
+          canCheckBySigner &&
+          addressesEqual(onChain.signer, placeholderSigner!);
+
+        // Only pay for KMS when the cheap tell was unavailable or negative.
+        if (!heldByPortal && canCheckByManager) {
+          const ourManagerAddress = await resolveManagerAddress(
+            sharedManagerKeyId!,
+            primaryConfig!.kmsRegion,
+          );
+          if (!ourManagerAddress) {
+            logger.error(
+              "Cannot tell whether a self-managed rp_id is a Portal pre-claim",
+              { app_id, rpIdString },
+            );
+            return errorHasuraQuery({
+              req,
+              detail:
+                "Could not verify this app's RP ID. Please try again shortly.",
+              code: "kms_error",
+              app_id,
+            });
+          }
+          heldByPortal = addressesEqual(onChain.manager, ourManagerAddress);
+        }
+
+        if (heldByPortal) {
+          logger.warn("Self-managed rp_id is held by a Portal pre-claim", {
+            app_id,
+            rpIdString,
+            onChainManager: onChain.manager,
+          });
+          return errorHasuraQuery({
+            req,
+            detail:
+              "This app's RP ID is held by Portal and cannot be self-managed yet — contact support.",
+            code: "rp_id_taken",
+            app_id,
+          });
+        }
       }
     }
 
