@@ -481,7 +481,7 @@ export const NotificationsPage = () => {
           )}
         </div>
 
-        <InkButton type="submit" disabled={isSubmitting} className="mt-5 w-fit">
+        <InkButton type="submit" loading={isSubmitting} className="mt-5 w-fit">
           Send notification
         </InkButton>
       </form>
