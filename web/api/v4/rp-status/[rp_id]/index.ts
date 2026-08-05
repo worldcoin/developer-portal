@@ -165,6 +165,7 @@ export async function GET(
 
     if (onChainRp.initialized) {
       productionTrust = evaluateOnChainTrust({
+        mode: dbRecord.mode,
         onChainManager: onChainRp.manager,
         onChainSigner: onChainRp.signer,
         expectedSigner: dbRecord.signer_address,
@@ -238,6 +239,7 @@ export async function GET(
 
       if (stagingOnChainRp.initialized) {
         stagingTrust = evaluateOnChainTrust({
+          mode: dbRecord.mode,
           onChainManager: stagingOnChainRp.manager,
           onChainSigner: stagingOnChainRp.signer,
           expectedSigner: dbRecord.signer_address,

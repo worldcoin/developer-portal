@@ -774,6 +774,7 @@ const syncWorldIdRegistrationStatus = async (
 
     if (productionRp.initialized) {
       productionTrust = evaluateOnChainTrust({
+        mode: registration.mode,
         onChainManager: productionRp.manager,
         onChainSigner: productionRp.signer,
         expectedSigner: registration.signer_address,
@@ -840,6 +841,7 @@ const syncWorldIdRegistrationStatus = async (
       if (stagingRp.initialized) {
         const stagingTrusted =
           evaluateOnChainTrust({
+            mode: registration.mode,
             onChainManager: stagingRp.manager,
             onChainSigner: stagingRp.signer,
             expectedSigner: registration.signer_address,

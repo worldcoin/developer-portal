@@ -114,22 +114,37 @@ export type OnChainTrust = "trusted" | "untrusted" | "unknown";
  * proof-context would keep serving the app's verified branding over the
  * attacker's OPRF signer. Both roles must match.
  *
- * A self-managed RP has no expected signer (the developer owns both roles
- * on-chain), so on-chain is authoritative by definition.
+ * A self-managed RP is owned end-to-end by the developer on-chain — the Portal
+ * holds neither role and stores no expected address for either — so there is
+ * nothing to compare against and on-chain is authoritative by definition. That
+ * case keys off `mode` rather than off an absent `signer_address`: today the two
+ * always coincide (the self-managed insert writes a null signer, and
+ * switch-to-self-managed nulls `signer_address` and `manager_kms_key_id` in the
+ * same mutation), but that is a convention spread across several files, and
+ * inferring the mode from it would silently wedge every self-managed row's
+ * status polling at `pending` the day someone starts recording the developer's
+ * on-chain signer for display.
  */
 export function evaluateOnChainTrust({
+  mode,
   onChainManager,
   onChainSigner,
   expectedSigner,
   expectedManager,
 }: {
+  /**
+   * `rp_registration.mode` — "managed" or "self_managed". Typed `unknown`
+   * because that is what codegen produces for the Hasura enum; only equality
+   * against the two known values is needed here.
+   */
+  mode: unknown;
   onChainManager: string;
   onChainSigner: string;
   expectedSigner: string | null | undefined;
   /** Portal's manager address; `null` when it could not be resolved. */
   expectedManager: string | null | undefined;
 }): OnChainTrust {
-  if (!expectedSigner) {
+  if (mode === "self_managed") {
     return "trusted";
   }
 
@@ -139,6 +154,13 @@ export function evaluateOnChainTrust({
 
   if (!addressesEqual(onChainManager, expectedManager)) {
     return "untrusted";
+  }
+
+  // A managed row always has a signer — register_rp requires one for managed
+  // mode. If it is somehow absent, the manager match above already proved the
+  // registration is ours.
+  if (!expectedSigner) {
+    return "trusted";
   }
 
   return addressesEqual(onChainSigner, expectedSigner)

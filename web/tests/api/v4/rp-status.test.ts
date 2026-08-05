@@ -319,6 +319,44 @@ describe("/api/v4/rp-status [production ownership verification]", () => {
     });
   });
 
+  it("promotes a self-managed RP whose row still carries a signer address", async () => {
+    // The self-managed case is keyed off `mode`, not off an absent
+    // signer_address. Those coincide today, but if a self-managed row ever
+    // records the developer's on-chain signer, inferring the mode from the
+    // missing signer would leave every such row polling `pending` forever
+    // because there is no Portal manager key to compare against.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "self_managed",
+        signer_address: "0xDeveloperOwnedSigner",
+        manager_kms_key_id: null,
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0xDeveloperOwnedManager",
+      signer: "0xDeveloperOwnedSigner",
+    });
+
+    UpdateRpStatus.mockResolvedValue({
+      update_rp_registration_by_pk: { rp_id: rpId },
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("registered");
+    expect(UpdateRpStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      status: RpRegistrationStatus.Registered,
+    });
+  });
+
   it("times out a managed RP wedged pending by a foreign on-chain owner once the UserOp window elapses", async () => {
     // Foreign takeover of the rp_id: the row is still `pending` (the Portal's
     // registration never completed) but on-chain it's initialized+active under a
