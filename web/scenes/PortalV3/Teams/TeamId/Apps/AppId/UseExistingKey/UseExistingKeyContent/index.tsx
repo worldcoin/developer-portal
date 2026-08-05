@@ -4,10 +4,9 @@ import {
   formDialogErrorClassName,
   formDialogInputClassName,
   formDialogLabelClassName,
-  formDialogPrimaryActionClassName,
   formDialogSecondaryActionClassName,
 } from "@/components/FormDialog";
-import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { isAddress } from "ethers";
@@ -122,21 +121,15 @@ export const UseExistingKeyContent = ({
         >
           Back
         </button>
-        <button
+        <InkButton
           type="submit"
-          disabled={!isValid || loading}
+          disabled={!isValid}
+          loading={loading}
           data-testid="button-use-existing-key-create"
-          className={`${formDialogPrimaryActionClassName} order-1 gap-x-2 md:order-none`}
+          className="order-1 h-11 w-full md:order-none"
         >
-          {loading ? (
-            <>
-              <SpinnerIcon className="size-5 animate-spin" />
-              {loadingLabel}
-            </>
-          ) : (
-            "Create"
-          )}
-        </button>
+          {loading && loadingLabel ? loadingLabel : "Create"}
+        </InkButton>
       </div>
     </form>
   );

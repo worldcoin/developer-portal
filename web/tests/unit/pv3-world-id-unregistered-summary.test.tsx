@@ -56,9 +56,11 @@ it("shows the finalized configuration shape before registration", () => {
     screen.getByText(generateRpIdString(defaultProps.appId)),
   ).toBeInTheDocument();
   expect(screen.getByText("Signer address")).toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: "Register relying party" }),
-  ).toBeEnabled();
+  const registerButton = screen.getByRole("button", {
+    name: "Register relying party",
+  });
+  expect(registerButton).toBeEnabled();
+  expect(registerButton).toHaveClass("bg-portal-ink", "text-white");
   expect(
     screen.queryByRole("button", { name: "Rotate signer key" }),
   ).not.toBeInTheDocument();

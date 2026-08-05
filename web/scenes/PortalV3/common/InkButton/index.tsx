@@ -1,11 +1,14 @@
 import { Button } from "@/components/Button";
 import type { CommonButtonProps } from "@/components/Button";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import type { ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
 type InkButtonProps = CommonButtonProps & {
   icon?: ReactNode;
+  /** Disables the control and prefixes the label with a spinner. */
+  loading?: boolean;
 };
 
 const inkButtonClassName =
@@ -16,11 +19,25 @@ const inkButtonClassName =
  * raw inline SVGs align with cap-height labels without call-site adjustments.
  */
 export const InkButton = (props: InkButtonProps) => {
-  const { children, className, icon, ...buttonProps } = props;
+  const {
+    children,
+    className,
+    icon,
+    loading = false,
+    disabled,
+    ...buttonProps
+  } = props;
 
   return (
-    <Button {...buttonProps} className={twMerge(inkButtonClassName, className)}>
-      {icon ? (
+    <Button
+      {...buttonProps}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={twMerge(inkButtonClassName, className)}
+    >
+      {loading ? (
+        <SpinnerIcon className="size-5 animate-spin" aria-hidden />
+      ) : icon ? (
         <span aria-hidden="true" className={`${opticalIconClassName} flex`}>
           {icon}
         </span>
