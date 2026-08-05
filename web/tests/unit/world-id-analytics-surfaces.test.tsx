@@ -68,9 +68,23 @@ jest.mock(
 );
 
 jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/SettingsCard",
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Settings/UpdateActionV4Form",
   () => ({
-    SettingsCard: () => <div data-testid="v4-settings" />,
+    UpdateActionV4Form: () => <div data-testid="v4-settings" />,
+  }),
+);
+
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/DeleteAction",
+  () => ({
+    DeleteAction: () => <div data-testid="v4-delete" />,
+  }),
+);
+
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/VerificationHistory",
+  () => ({
+    VerificationHistory: () => <div data-testid="v4-history" />,
   }),
 );
 
@@ -307,6 +321,7 @@ describe("World ID action grid [visible previews]", () => {
         appId={appId}
         search=""
         canCreate={false}
+        emptyReason="Register a Relying Party to create actions."
         onCreateActionConsumed={jest.fn()}
         onActionsChanged={jest.fn()}
       />,
@@ -354,8 +369,8 @@ describe("World ID action grid [visible previews]", () => {
 // #endregion
 
 // #region V4 action detail
-describe("World ID v4 action detail [single aggregate and feed]", () => {
-  it("uses the graph number as the sole aggregate and preserves the latest-100 feed", async () => {
+describe("World ID v4 action detail [single aggregate]", () => {
+  it("uses the graph number as the sole aggregate beside the history feed", async () => {
     useQueryMock.mockReturnValue({
       data: v4DetailData,
       loading: false,
@@ -374,31 +389,12 @@ describe("World ID v4 action detail [single aggregate and feed]", () => {
       await screen.findByRole("heading", { name: "Unique Verifications" }),
     ).toBeInTheDocument();
     expect(screen.getByText("5", { selector: "div" })).toBeInTheDocument();
+    // The raw nullifier aggregate must never render as the headline stat;
+    // the verification feed itself is VerificationHistory's own coverage.
     expect(screen.queryByText("999")).not.toBeInTheDocument();
-    expect(screen.getByText("Recent verifications")).toBeInTheDocument();
-    expect(screen.getByText("Nullifier")).toBeInTheDocument();
-    expect(screen.getByText("0x1234567890...90abc001")).toBeInTheDocument();
-    expect(
-      screen.queryByText("0x1234567890...90abc006"),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("6", { selector: "span" }),
-    ).not.toBeInTheDocument();
-
-    const pagination = screen.getByText("6 results").parentElement;
-    expect(pagination).not.toBeNull();
-    fireEvent.click(within(pagination!).getAllByRole("button")[1]);
-    expect(screen.getByText("0x1234567890...90abc006")).toBeInTheDocument();
+    expect(screen.getByTestId("v4-history")).toBeInTheDocument();
     expect(screen.queryByText(/Verified humans/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^Human$/i)).not.toBeInTheDocument();
-
-    // The bounded feed limit is a narrow query-wiring obligation that cannot
-    // be inferred from a mocked result. Keep this one document assertion close
-    // to the rendered latest-100 behavior.
-    const feedDocument = print(useQueryMock.mock.calls[0][0]);
-    expect(feedDocument.replace(/\s+/g, " ")).toMatch(
-      /nullifiers\s*\(\s*limit:\s*100/i,
-    );
   });
 });
 // #endregion
