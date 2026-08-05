@@ -181,38 +181,84 @@ export const POST = async (req: NextRequest) => {
     // Any other signer is the developer's own registration — or a squatter's,
     // which for self-managed the Portal cannot tell apart either way, unchanged
     // by this PR since it stores no expected roles for self-managed rows.
+    //
+    // When the check CANNOT run, whether skipping is safe depends entirely on
+    // whether pre-claims can exist:
+    //   - pre-registration enabled but misconfigured -> config_error. Claims are
+    //     being made and we cannot recognise them, which is a deploy fault, not a
+    //     developer's problem to absorb silently.
+    //   - placeholder configured but the chain unreadable -> rpc_error, RETRYABLE.
+    //     A pre-claimed id admitted here becomes a row rp-status promotes (it
+    //     trusts self-managed rows by mode) against a signer that can never sign.
+    //     A retryable error is recoverable; that registration is not.
+    //   - placeholder unset and pre-registration never enabled -> skip. No claims
+    //     exist, so there is nothing to recognise. This is every environment that
+    //     has not run the tool.
+    //
+    // OPERATIONAL INVARIANT: once pre-registration has been run in an
+    // environment, RP_ID_PRE_REGISTRATION_SIGNER must stay set there forever.
+    // The claims outlive the flag.
     const primaryConfig = getRpRegistryConfig();
     const placeholderSigner = process.env.RP_ID_PRE_REGISTRATION_SIGNER;
-    if (primaryConfig && placeholderSigner) {
+    const preRegistrationEnabled =
+      process.env.ENABLE_RP_ID_PRE_REGISTRATION === "true";
+    const canRecognisePreClaims = Boolean(
+      primaryConfig &&
+        placeholderSigner &&
+        isAddress(placeholderSigner) &&
+        !isZeroAddress(placeholderSigner),
+    );
+
+    if (!canRecognisePreClaims && preRegistrationEnabled) {
+      logger.error(
+        "Pre-registration is enabled but its placeholder signer is unusable",
+        { app_id, hasConfig: Boolean(primaryConfig) },
+      );
+      return errorHasuraQuery({
+        req,
+        detail: "RP Registry is not configured correctly.",
+        code: "config_error",
+        app_id,
+      });
+    }
+
+    if (canRecognisePreClaims) {
+      let onChain;
       try {
-        const onChain = await getRpFromContract(
+        onChain = await getRpFromContract(
           parseRpId(rpIdString),
-          primaryConfig.contractAddress,
+          primaryConfig!.contractAddress,
         );
-        if (
-          onChain.initialized &&
-          addressesEqual(onChain.signer, placeholderSigner)
-        ) {
-          logger.warn("Self-managed rp_id is held by a Portal pre-claim", {
-            app_id,
-            rpIdString,
-            onChainManager: onChain.manager,
-          });
-          return errorHasuraQuery({
-            req,
-            detail:
-              "This app's RP ID is held by Portal and cannot be self-managed yet — contact support.",
-            code: "rp_id_taken",
-            app_id,
-          });
-        }
       } catch (error) {
-        // A read failure must not block onboarding: the common case is an id the
-        // developer just registered themselves.
-        logger.warn("Could not pre-check on-chain RP ownership; continuing", {
+        logger.warn("Could not read on-chain RP state for a self-managed id", {
           error,
           app_id,
           rpIdString,
+        });
+        return errorHasuraQuery({
+          req,
+          detail:
+            "Could not verify this app's RP ID on-chain. Please try again.",
+          code: "rpc_error",
+          app_id,
+        });
+      }
+
+      if (
+        onChain.initialized &&
+        addressesEqual(onChain.signer, placeholderSigner!)
+      ) {
+        logger.warn("Self-managed rp_id is held by a Portal pre-claim", {
+          app_id,
+          rpIdString,
+          onChainManager: onChain.manager,
+        });
+        return errorHasuraQuery({
+          req,
+          detail:
+            "This app's RP ID is held by Portal and cannot be self-managed yet — contact support.",
+          code: "rp_id_taken",
+          app_id,
         });
       }
     }

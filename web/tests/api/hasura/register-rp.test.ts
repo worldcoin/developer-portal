@@ -91,6 +91,7 @@ beforeEach(() => {
   process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID =
     "arn:aws:kms:eu-west-1:000000000000:key/shared-manager";
   process.env.RP_ID_PRE_REGISTRATION_SIGNER = placeholderSigner;
+  delete process.env.ENABLE_RP_ID_PRE_REGISTRATION;
   appIsStaging = false;
   authorizedTeam = [{ id: teamId }];
 
@@ -244,12 +245,42 @@ describe("/api/hasura/register-rp [self-managed on-chain ownership]", () => {
     expect(resolveManagerAddressMock).not.toHaveBeenCalled();
   });
 
-  it("still succeeds when the on-chain read fails", async () => {
+  it("returns a retryable error when the chain cannot be read and pre-claims are possible", async () => {
+    // Admitting a pre-claimed id here creates a row that rp-status promotes (it
+    // trusts self-managed rows by mode) against a signer that can never sign.
+    // A retryable error is recoverable; that registration is not.
+    getRpFromContractMock.mockRejectedValue(new Error("rpc timeout"));
+
+    const res = (await selfManaged())!;
+    const body = await res.json();
+
+    expect(body.code ?? body.extensions?.code).toBe("rpc_error");
+  });
+
+  it("skips the check entirely where pre-claims cannot exist", async () => {
+    // No placeholder configured and pre-registration never enabled: there is
+    // nothing to recognise, so a read failure must not block onboarding. This is
+    // every environment that has not run the tool.
+    delete process.env.RP_ID_PRE_REGISTRATION_SIGNER;
+    delete process.env.ENABLE_RP_ID_PRE_REGISTRATION;
     getRpFromContractMock.mockRejectedValue(new Error("rpc timeout"));
 
     const res = (await selfManaged())!;
 
     expect(res.status).toBe(200);
+    expect(getRpFromContractMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses to proceed when pre-registration is on but its signer is unusable", async () => {
+    // Claims are being made and we cannot recognise them — a deploy fault, not
+    // something a developer should absorb as a broken registration.
+    process.env.ENABLE_RP_ID_PRE_REGISTRATION = "true";
+    process.env.RP_ID_PRE_REGISTRATION_SIGNER = `0x${"0".repeat(40)}`;
+
+    const res = (await selfManaged())!;
+    const body = await res.json();
+
+    expect(body.code ?? body.extensions?.code).toBe("config_error");
   });
 });
 // #endregion

@@ -1172,6 +1172,32 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
   });
 
+  it("returns a retryable kms_error, not rp_id_taken, when our manager cannot be resolved", async () => {
+    // A KMS outage must not be reported as "someone else owns your id, contact
+    // support" — that sends developers of pre-claimed apps to support over a
+    // transient failure they could just retry.
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    (getEthAddressFromKMS as jest.Mock).mockRejectedValue(
+      new Error("kms unavailable"),
+    );
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: managerAddress,
+      signer: "0x000000000000000000000000000000000000dead",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "kms_error" });
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    expect(submitRotateSignerTransactionMock).not.toHaveBeenCalled();
+    // The slot is released so a retry is not answered with already_registered.
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
+  });
+
   it("still refuses a foreign claim when the shared manager key is configured", async () => {
     // The manager is what distinguishes our own claim from a squatter's, so the
     // adoption path must not widen into "any initialized RP is ours".
