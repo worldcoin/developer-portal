@@ -9,9 +9,13 @@
 -- 4. An interrupted run is safe to rerun as-is: the backfill resumes from the
 --    committed watermark. Only after a *parity validation failure* below must
 --    the rollup state be rebuilt from scratch — run
+--      TRUNCATE public.action_legacy_stats_daily, public.action_v4_stats_daily;
 --      UPDATE public.world_id_analytics_state
 --         SET processed_through = '-infinity' WHERE singleton;
---    and then rerun this script.
+--    and then rerun this script. The truncate is required: a capped rebuild
+--    anchors at the oldest raw row, so a rolled row whose raw rows were
+--    later deleted would survive a watermark-only reset and fail parity on
+--    every retry.
 DO $index_gate$
 BEGIN
   IF NOT EXISTS (
