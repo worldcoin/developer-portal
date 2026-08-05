@@ -51,9 +51,10 @@ const PLATFORMS: Record<
     label: "Android",
     url: ANDROID_URL,
     steps: [
-      "Request access for your Google account",
-      "Wait for your invite confirmation",
-      "Scan the QR code and install the build",
+      "On your Android device, confirm that the Google Play Store is signed in with the same Google account you requested access for. If this is your first Play Store sign-in, accept all Google Play Terms of Service before continuing. Make sure the browser opening the test link and the Play Store use that same account; mismatched sessions can block the download.",
+      "If this is the first time that account has signed in to Google Play, allow time for Google's backend caches to recognize the new account before retrying.",
+      "Once the correct account is signed in and the Terms of Service are accepted, scan the QR code or open the internal testing link below, then install the build.",
+      "If you still cannot access or install the build, contact sandbox.access@toolsforhumanity.org.",
     ],
   },
 };
