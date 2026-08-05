@@ -234,6 +234,12 @@ export async function submitManagedRpRegistration({
     }
   }
 
+  // Scoped to environments that actually pre-claim: RP_ID_PRE_REGISTRATION_SIGNER
+  // stays configured once claims exist there (see _pre-register-rp-ids). Elsewhere
+  // an unreadable or racing staging registry changes nothing, so dedicated keys
+  // keep their isolation.
+  const preClaimsPossible = Boolean(process.env.RP_ID_PRE_REGISTRATION_SIGNER);
+
   let adoptExistingClaim = false;
   let adoptStagingClaim = false;
   if (existingOnChainRp?.initialized || existingStagingRp?.initialized) {
@@ -242,16 +248,27 @@ export async function submitManagedRpRegistration({
       ? await resolveManagerAddress(sharedManagerKeyId, primaryConfig.kmsRegion)
       : null;
 
-    if (sharedManagerKeyId && !ourManagerAddress) {
+    // Two ways ownership can be UNKNOWN rather than foreign, and both must stay
+    // retryable: the key is configured but KMS cannot resolve it, or the key is not
+    // configured at all in an environment that does pre-claim. Reporting either as
+    // rp_id_taken sends a developer whose app we hold to support over a deploy
+    // problem.
+    if (!ourManagerAddress && (sharedManagerKeyId || preClaimsPossible)) {
       logger.error(
         "Cannot tell whether an initialized rp_id is a Portal pre-claim",
-        { app_id: appId, rpIdString },
+        {
+          app_id: appId,
+          rpIdString,
+          sharedManagerKeyConfigured: Boolean(sharedManagerKeyId),
+        },
       );
       await releaseSlot();
       return {
         ok: false,
-        code: "kms_error",
-        detail: "Failed to resolve manager key. Please try again.",
+        code: sharedManagerKeyId ? "kms_error" : "config_error",
+        detail: sharedManagerKeyId
+          ? "Failed to resolve manager key. Please try again."
+          : "RP Registry is not configured correctly. Please try again later.",
       };
     }
 
@@ -275,6 +292,22 @@ export async function submitManagedRpRegistration({
   // check and retry reads the shared claim as foreign and the registration never
   // reconciles. Ask the developer to retry instead — by then the claim is visible
   // and the adoption path takes over.
+  // Staging is checked as well — the writer reserves both registries. A settling
+  // staging claim only means staging cannot be decided yet, and staging is a
+  // best-effort mirror, so it forces the shared key rather than failing the whole
+  // registration (same treatment as an unreadable staging registry above).
+  if (
+    stagingConfigForAdoption &&
+    !existingStagingRp?.initialized &&
+    (await isClaimInFlight("staging", rpIdString))
+  ) {
+    stagingOwnershipUnknown = true;
+    logger.warn("A staging defensive claim is still settling", {
+      app_id: appId,
+      rpIdString,
+    });
+  }
+
   if (
     !existingOnChainRp?.initialized &&
     (await isClaimInFlight("production", rpIdString))
@@ -363,12 +396,6 @@ export async function submitManagedRpRegistration({
   // a dedicated key here would produce a manager the contract has never heard
   // of, and every update would revert. A staging-only pre-claim forces it too —
   // the row records one manager key for both registries.
-  // Scoped to environments that actually pre-claim: RP_ID_PRE_REGISTRATION_SIGNER
-  // stays configured once claims exist there (see _pre-register-rp-ids). Elsewhere
-  // an unreadable staging registry changes nothing, so dedicated keys keep their
-  // isolation.
-  const preClaimsPossible = Boolean(process.env.RP_ID_PRE_REGISTRATION_SIGNER);
-
   const useSharedManagerKey =
     adoptExistingClaim ||
     adoptStagingClaim ||

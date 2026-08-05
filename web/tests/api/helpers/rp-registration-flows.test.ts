@@ -1314,6 +1314,74 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     });
   });
 
+  it("returns a retryable config error when the shared key is missing but pre-claims exist", async () => {
+    // A missing RP_REGISTRY_MANAGER_KMS_KEY_ID is a deploy problem, not proof that
+    // someone else owns the id. Reporting rp_id_taken sends a developer whose app
+    // we are holding to support over a config outage.
+    process.env.RP_ID_PRE_REGISTRATION_SIGNER =
+      "0x000000000000000000000000000000000000dEaD";
+    delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: managerAddress,
+      signer: "0x000000000000000000000000000000000000dead",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "config_error" });
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("still reports rp_id_taken for a foreign id where pre-claims are impossible", async () => {
+    // The retryable path above must not swallow the genuine squatter case in an
+    // environment that has never pre-claimed anything.
+    delete process.env.RP_ID_PRE_REGISTRATION_SIGNER;
+    delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0x00000000000000000000000000000000000000ff",
+      signer: "0x00000000000000000000000000000000000000ee",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "rp_id_taken" });
+  });
+
+  it("forces the shared key when a STAGING claim is still settling", async () => {
+    // The writer reserves both registries; a reader that only checks production
+    // lets a dedicated key be minted while the staging pre-claim lands, which
+    // leaves staging unrecoverable. Staging is best-effort, so this forces the
+    // shared key rather than failing the registration.
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    process.env.RP_ID_PRE_REGISTRATION_SIGNER =
+      "0x000000000000000000000000000000000000dEaD";
+    mockGetStagingRpRegistryConfig.mockReturnValue({
+      contractAddress: "0xstagingcontract",
+      kmsRegion: "us-east-1",
+    });
+    const { reserveClaim } = jest.requireActual("@/api/helpers/rp-claims");
+    const { generateRpIdString } = jest.requireActual("@/lib/rp");
+    await reserveClaim("staging", generateRpIdString(appId));
+
+    // Both registries read as free — the staging claim has not mined.
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+      manager: `0x${"0".repeat(40)}`,
+      signer: `0x${"0".repeat(40)}`,
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true });
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
+  });
+
   it("still reports rp_id_taken when releasing the slot fails", async () => {
     // The read's non-fatal catch must not extend over the slot release: swallowing
     // that failure would fall through to KMS and a UserOp for an rp_id already
