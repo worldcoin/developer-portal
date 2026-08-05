@@ -45,23 +45,23 @@ cp .env.example .env
 
 ### Local S3 with LocalStack
 
-Install the [LocalStack CLI](https://docs.localstack.cloud/aws/getting-started/installation/), then run these commands from `web/`:
+The Docker Compose stack includes LocalStack, so the LocalStack CLI is not required. Create a [LocalStack auth token](https://docs.localstack.cloud/aws/getting-started/auth-token/) and expose it to Docker Compose before starting the local services:
 
 ```bash
-# One time only; never commit your personal token.
-localstack auth set-token <your-auth-token>
-pnpm localstack:s3
+export LOCALSTACK_AUTH_TOKEN=<your-auth-token>
 ```
 
-Without an AWS profile, the app uses dummy credentials to sign local S3 requests. The `.env.example` values already point S3 at this bucket. Run `pnpm localstack:stop` to stop LocalStack.
+Never commit your personal token. Without an AWS profile, the app uses dummy credentials to sign local S3 requests. The `.env.example` values already point S3 at the local bucket.
+
+If you already run LocalStack through another installation method, set `AWS_ENDPOINT_URL_S3` to that instance's S3 endpoint and run `pnpm localstack:s3`. The setup command only waits for and configures the instance; it does not start or stop LocalStack.
 
 ### Starting the app
 
-The following command will start two containers with the Postgres database, and Hasura server. Additionally, it will run the Next.js app from the [/web](./web) directory. All Hasura migrations and metadata are automatically applied.
+The following commands start the supporting services, create the local S3 bucket with its browser CORS rules, and run the Next.js app from the [/web](./web) directory. All Hasura migrations and metadata are automatically applied.
 
 ```bash
-docker compose up --detach
-cd web && pnpm dev
+docker compose up --detach --wait
+cd web && pnpm localstack:s3 && pnpm dev
 ```
 
 You can also take advantage of the Makefile, `make up`
