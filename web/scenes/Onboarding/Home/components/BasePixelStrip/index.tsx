@@ -1982,6 +1982,10 @@ const loadImage = (href: string) => {
 
 export const BasePixelStrip = () => {
   const svgRef = useRef<SVGSVGElement>(null);
+  // The group revealed icons are appended into, kept after the dot group so
+  // icons always paint above dots no matter how either layer reorders itself
+  // (see the render below).
+  const iconLayerRef = useRef<SVGGElement>(null);
   const rectsRef = useRef<Map<string, SVGRectElement>>(new Map());
   const activeRef = useRef<Set<string>>(new Set());
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
@@ -2067,8 +2071,9 @@ export const BasePixelStrip = () => {
 
   useEffect(() => {
     const svg = svgRef.current;
+    const iconLayer = iconLayerRef.current;
 
-    if (!svg) {
+    if (!svg || !iconLayer) {
       return;
     }
 
@@ -2110,7 +2115,7 @@ export const BasePixelStrip = () => {
         image.setAttribute("y", String(y));
         image.setAttribute("width", "8");
         image.setAttribute("height", "8");
-        svg.appendChild(image);
+        iconLayer.appendChild(image);
         iconElsRef.current.set(key, image);
       }
 
@@ -3225,27 +3230,42 @@ export const BasePixelStrip = () => {
           </clipPath>
         </defs>
 
-        {CELLS.map(([x, y, opacity]) => (
-          <rect
-            className="pixel-cell"
-            fill="#181818"
-            fillOpacity={opacity}
-            height={8}
-            key={`${x}-${y}`}
-            ref={(node) => {
-              const key = `${x},${y}`;
+        {/* Two layers, because both the dots and the icons get reordered
+            within themselves at runtime and SVG has no z-index - paint order
+            is document order, full stop. The lens/ripple move a newly
+            activated dot to the end of its parent so it isn't clipped under an
+            unscaled neighbor, and the reveal moves the most-zoomed icon to the
+            end of its parent so it paints on top of its siblings. As one flat
+            list those two fought: a dot moved to the end landed after the
+            icons and painted over them, and it stayed there until something
+            happened to change the icon order and trigger a restack. Keeping
+            them in separate groups makes "icons are above dots" a property of
+            the markup instead of something every restack has to preserve. */}
+        <g>
+          {CELLS.map(([x, y, opacity]) => (
+            <rect
+              className="pixel-cell"
+              fill="#181818"
+              fillOpacity={opacity}
+              height={8}
+              key={`${x}-${y}`}
+              ref={(node) => {
+                const key = `${x},${y}`;
 
-              if (node) {
-                rectsRef.current.set(key, node);
-              } else {
-                rectsRef.current.delete(key);
-              }
-            }}
-            width={8}
-            x={x}
-            y={y}
-          />
-        ))}
+                if (node) {
+                  rectsRef.current.set(key, node);
+                } else {
+                  rectsRef.current.delete(key);
+                }
+              }}
+              width={8}
+              x={x}
+              y={y}
+            />
+          ))}
+        </g>
+
+        <g ref={iconLayerRef} />
       </svg>
     </section>
   );
