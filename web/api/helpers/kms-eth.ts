@@ -181,13 +181,20 @@ function publicKeyToAddress(publicKey: Uint8Array): string {
 
 /**
  * Gets the Ethereum address for a KMS key.
+ *
+ * `region` must be the region the key lives in whenever the caller's client is
+ * not in `AWS_REGION_NAME`. A bare key ID plus `KMS_LEGACY_ACCOUNT_ID` is
+ * expanded into a full ARN, and that ARN carries its own region — so leaving it
+ * to the default builds an ARN pointing at the wrong region even when the client
+ * is correct, and GetPublicKey fails.
  */
 export async function getEthAddressFromKMS(
   client: KMSClient,
   keyId: string,
+  region?: string,
 ): Promise<string> {
   const { PublicKey } = await client.send(
-    new GetPublicKeyCommand({ KeyId: resolveKeyId(keyId) }),
+    new GetPublicKeyCommand({ KeyId: resolveKeyId(keyId, region) }),
   );
 
   if (!PublicKey) {

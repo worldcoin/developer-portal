@@ -250,9 +250,13 @@ describe("submitManagedRpRegistration", () => {
       operationHash: "0xregophash",
       status: "pending",
     });
+    // The registry's own KMS region is passed through, so a bare key ID expands
+    // to an ARN in the region the key actually lives in — and so this address
+    // matches the one resolveManagerAddress derives for the trust check.
     expect(getEthAddressFromKMS).toHaveBeenCalledWith(
       expect.anything(),
       sharedManagerKeyArn,
+      "us-east-1",
     );
     expect(createManagerKey).not.toHaveBeenCalled();
     expect(UpdateRpRegistration).toHaveBeenCalledWith({
@@ -1107,11 +1111,36 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     const res = await register();
 
     expect(res).toMatchObject({ ok: false, code: "rp_id_taken" });
-    // The guard runs before we spend a KMS manager key, claim the DB slot, or
-    // submit a UserOp the contract would reject with IdAlreadyInUse.
-    expect(ClaimRpRegistration).not.toHaveBeenCalled();
+    // The guard runs before we spend a KMS manager key or submit a UserOp the
+    // contract would reject with IdAlreadyInUse...
     expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    // ...and releases the slot it claimed, so a later attempt is not answered
+    // with `already_registered` for a row that never registered anything.
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
+  });
+
+  it("reports already_registered, not rp_id_taken, for an app the Portal already registered", async () => {
+    // A live managed RP reads as initialized on-chain exactly like a squatter's,
+    // so checking the chain before the DB claim would answer a repeat
+    // registration of a healthy app with a contact-support message.
+    ClaimRpRegistration.mockResolvedValue({
+      insert_rp_registration_one: null,
+    });
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: managerAddress,
+      signer: signerAddress,
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "already_registered" });
+    // The on-chain read is never reached for an app that already has a row.
+    expect(getRpFromContractMock).not.toHaveBeenCalled();
   });
 
   it("registers anyway when the on-chain pre-check read fails", async () => {

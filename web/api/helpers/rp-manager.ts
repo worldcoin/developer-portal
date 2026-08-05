@@ -34,7 +34,13 @@ export async function resolveManagerAddress(
 
   try {
     const kmsClient = await getKMSClient(kmsRegion);
-    const address = await getEthAddressFromKMS(kmsClient, managerKmsKeyId);
+    // The region is needed twice over: once for the client, and again so a bare
+    // key ID expands to an ARN in the right region.
+    const address = await getEthAddressFromKMS(
+      kmsClient,
+      managerKmsKeyId,
+      kmsRegion,
+    );
     managerAddressCache.set(managerKmsKeyId, address);
     return address;
   } catch (error) {

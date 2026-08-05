@@ -107,14 +107,41 @@ export async function submitManagedRpRegistration({
   const rpIdString = generateRpIdString(appId);
   const rpId = parseRpId(rpIdString);
 
+  // Claim the registration slot FIRST. on_conflict with empty update_columns
+  // means: if a row already exists, return null and we bail.
+  //
+  // Order matters. The on-chain collision check below cannot distinguish "a
+  // stranger claimed this rp_id" from "we registered this app ourselves and it
+  // is live on-chain" — both read as initialized. Running it first would answer a
+  // repeat registration of a perfectly healthy app with `rp_id_taken` and a
+  // contact-support message instead of the accurate `already_registered`. Letting
+  // the DB claim go first means only apps with no Portal row reach that check, so
+  // an initialized reading really is someone else's.
+  const { insert_rp_registration_one: claimedSlot } = await getClaimRpSdk(
+    client,
+  ).ClaimRpRegistration({
+    rp_id: rpIdString,
+    app_id: appId,
+    mode: "managed",
+    signer_address: signerAddress,
+  });
+  if (!claimedSlot) {
+    return {
+      ok: false,
+      code: "already_registered",
+      detail: "Registration already in progress or completed for this app.",
+    };
+  }
+
+  // Slot is now claimed; any failure between here and the final DB write
+  // must release it so retries don't bounce off `already_registered`.
+
   // rp_id is a pure function of the public app_id (uint64(keccak256(app_id))),
   // and on-chain `register()` is permissionless and first-come — so anyone can
   // compute an app's rp_id and claim it before the app migrates. Read the
   // registry before spending a KMS manager key on a UserOp that the contract
-  // would reject with IdAlreadyInUse, and give the caller an actionable
-  // conflict instead of a row wedged behind a doomed operation. Reaching here
-  // means the Portal holds no row for this app, so ANY existing on-chain entry
-  // is foreign.
+  // would reject with IdAlreadyInUse, and give the caller an actionable conflict
+  // instead of a row wedged behind a doomed operation.
   //
   // A failed read is deliberately non-fatal: this check prevents a wasted
   // submission and a confusing error, it is not the security boundary. That
@@ -134,6 +161,9 @@ export async function submitManagedRpRegistration({
         onChainManager: existingOnChainRp.manager,
         onChainSigner: existingOnChainRp.signer,
       });
+      // Release the slot: the app is not registered, and holding the row would
+      // make every later attempt report `already_registered` instead.
+      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
       return {
         ok: false,
         code: "rp_id_taken",
@@ -148,27 +178,6 @@ export async function submitManagedRpRegistration({
       rpIdString,
     });
   }
-
-  // Claim the registration slot. on_conflict with empty update_columns
-  // means: if a row already exists, return null and we bail.
-  const { insert_rp_registration_one: claimedSlot } = await getClaimRpSdk(
-    client,
-  ).ClaimRpRegistration({
-    rp_id: rpIdString,
-    app_id: appId,
-    mode: "managed",
-    signer_address: signerAddress,
-  });
-  if (!claimedSlot) {
-    return {
-      ok: false,
-      code: "already_registered",
-      detail: "Registration already in progress or completed for this app.",
-    };
-  }
-
-  // Slot is now claimed; any failure between here and the final DB write
-  // must release it so retries don't bounce off `already_registered`.
 
   // is_unique_manager_key is written together with the manager key at the end
   // of this flow. If the migration adding it has not been applied yet, fail
@@ -225,7 +234,13 @@ export async function submitManagedRpRegistration({
     }
 
     try {
-      managerAddress = await getEthAddressFromKMS(kmsClient, sharedKeyId);
+      // Same region as resolveManagerAddress uses later, or the address written
+      // here and the one the trust check derives would not agree.
+      managerAddress = await getEthAddressFromKMS(
+        kmsClient,
+        sharedKeyId,
+        primaryConfig.kmsRegion,
+      );
       managerKmsKeyId = sharedKeyId;
       isUniqueManagerKey = false;
     } catch (error) {

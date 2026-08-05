@@ -186,7 +186,11 @@ export const POST = async (req: NextRequest) => {
 
   let managerAddress: string;
   try {
-    managerAddress = await getEthAddressFromKMS(kmsClient, managerKmsKeyId);
+    managerAddress = await getEthAddressFromKMS(
+      kmsClient,
+      managerKmsKeyId,
+      config.kmsRegion,
+    );
   } catch (error) {
     logger.error("Failed to derive manager address from KMS key", {
       rpId,
