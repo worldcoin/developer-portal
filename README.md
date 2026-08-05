@@ -51,12 +51,11 @@ You can upload images locally without an AWS account or installing the LocalStac
 LOCALSTACK_AUTH_TOKEN=<auth-token>
 AWS_ACCESS_KEY_ID=test
 AWS_SECRET_ACCESS_KEY=test
-AWS_ENDPOINT_URL_S3=http://s3.localhost.localstack.cloud:4566
 ASSETS_S3_REGION=us-east-1
 ASSETS_S3_BUCKET_NAME=developer-portal-assets
 ```
 
-`LOCALSTACK_AUTH_TOKEN` comes from the [LocalStack auth token page](https://docs.localstack.cloud/aws/getting-started/auth-token/). The `test` values are dummy credentials accepted by LocalStack, not real AWS credentials. Never commit your personal token.
+`AWS_ENDPOINT_URL_S3` is already set to the LocalStack endpoint by `.env.example`, so it is copied into `.env` automatically. `LOCALSTACK_AUTH_TOKEN` comes from the [LocalStack auth token page](https://docs.localstack.cloud/aws/getting-started/auth-token/). The `test` values are dummy credentials accepted by LocalStack, not real AWS credentials. Never commit your personal token.
 
 Start LocalStack, then create the bucket and its browser CORS policy once:
 
