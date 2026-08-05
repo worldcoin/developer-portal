@@ -45,17 +45,13 @@ cp .env.example .env
 
 ### Local image uploads with LocalStack
 
-You can upload images locally without an AWS account or installing the LocalStack/AWS CLI on your machine. The `awslocal` commands below run inside the container. In the same `web/.env` from step 1, set:
+You can upload images locally without an AWS account or installing the LocalStack/AWS CLI on your machine. The `awslocal` commands below run inside the container. The S3 endpoint, bucket, region, and dummy credentials are already set by `.env.example`; after copying it in step 1, only set your [LocalStack auth token](https://docs.localstack.cloud/aws/getting-started/auth-token/) in `web/.env`:
 
 ```dotenv
 LOCALSTACK_AUTH_TOKEN=<auth-token>
-AWS_ACCESS_KEY_ID=test
-AWS_SECRET_ACCESS_KEY=test
-ASSETS_S3_REGION=us-east-1
-ASSETS_S3_BUCKET_NAME=developer-portal-assets
 ```
 
-`AWS_ENDPOINT_URL_S3` is already set to the LocalStack endpoint by `.env.example`, so it is copied into `.env` automatically. `LOCALSTACK_AUTH_TOKEN` comes from the [LocalStack auth token page](https://docs.localstack.cloud/aws/getting-started/auth-token/). The `test` values are dummy credentials accepted by LocalStack, not real AWS credentials. Never commit your personal token.
+Never commit your personal token.
 
 Start LocalStack, then create the bucket and its browser CORS policy once:
 
