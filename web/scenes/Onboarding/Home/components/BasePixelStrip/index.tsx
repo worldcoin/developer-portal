@@ -2683,6 +2683,33 @@ export const BasePixelStrip = () => {
         iconWaveActiveRef.current = nextIconWaveActive;
       }
 
+      // The release spring can still be playing after the pointer is gone -
+      // let go over something covering the logo, or leave it entirely, and
+      // pointerleave clears pointerRef while pressRef keeps scheduling frames.
+      // With no pointer, ripple, or icon wave, the pass above doesn't run at
+      // all, so the held cell never gets written and the cleanup below resets
+      // it mid-spring, snapping the icon back instead of easing it out. Drive
+      // that one cell here instead. It reduces to a scale and an offset: with
+      // no pointer there's no lens scale to layer onto, the cell IS the press
+      // origin so the neighbour bulge and radial push are both zero there, and
+      // the shake only runs while the button is actually held.
+      if (pressedKey && !nextActive.has(pressedKey)) {
+        const image = iconElsRef.current.get(pressedKey);
+
+        if (image) {
+          // Deliberately not clamped: pressProgress dips just below zero
+          // during the release overshoot, and that give-back under resting
+          // size is the whole point of easeOutBack.
+          const scale = 1 + (PRESS_TARGET_SCALE - 1) * pressProgress;
+          const offset = (CELL_SIZE * scale) / 4;
+
+          image.style.transform = `translate(${offset.toFixed(3)}px, ${(-offset).toFixed(3)}px) scale(${scale.toFixed(3)})`;
+          image.style.opacity = "1";
+          image.style.filter = "";
+          nextActive.add(pressedKey);
+        }
+      }
+
       // Repaint every revealed icon last (in ascending scale order), so the
       // most-zoomed one ends up as the final child and always renders on
       // top - not just whichever cell happened to activate most recently.
