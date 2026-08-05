@@ -143,40 +143,59 @@ export async function submitManagedRpRegistration({
   // would reject with IdAlreadyInUse, and give the caller an actionable conflict
   // instead of a row wedged behind a doomed operation.
   //
-  // A failed read is deliberately non-fatal: this check prevents a wasted
+  // A failed READ is deliberately non-fatal: this check prevents a wasted
   // submission and a confusing error, it is not the security boundary. That
   // lives in the status reconciliation (evaluateOnChainTrust), which refuses to
   // promote a row whose on-chain manager/signer aren't ours no matter how the
   // registration was submitted. Hard-failing here would add a new RPC
   // dependency to a flow that works fine without it.
+  //
+  // Only the read is inside the try. A wider catch would swallow a failure from
+  // the slot release below and fall through to KMS and a UserOp for an rp_id we
+  // have already proven is taken — the exact wedged row this check exists to
+  // avoid.
+  let existingOnChainRp: Awaited<ReturnType<typeof getRpFromContract>> | null =
+    null;
   try {
-    const existingOnChainRp = await getRpFromContract(
+    existingOnChainRp = await getRpFromContract(
       rpId,
       primaryConfig.contractAddress,
     );
-    if (existingOnChainRp.initialized) {
-      logger.warn("rp_id already registered on-chain by a foreign manager", {
-        app_id: appId,
-        rpIdString,
-        onChainManager: existingOnChainRp.manager,
-        onChainSigner: existingOnChainRp.signer,
-      });
-      // Release the slot: the app is not registered, and holding the row would
-      // make every later attempt report `already_registered` instead.
-      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
-      return {
-        ok: false,
-        code: "rp_id_taken",
-        detail:
-          "This app's RP ID is already registered on-chain by another party. Portal cannot manage it — contact support.",
-      };
-    }
   } catch (error) {
     logger.warn("Could not pre-check on-chain RP ownership; continuing", {
       error,
       app_id: appId,
       rpIdString,
     });
+  }
+
+  if (existingOnChainRp?.initialized) {
+    logger.warn("rp_id already registered on-chain by a foreign manager", {
+      app_id: appId,
+      rpIdString,
+      onChainManager: existingOnChainRp.manager,
+      onChainSigner: existingOnChainRp.signer,
+    });
+    // Release the slot: the app is not registered, and holding the row would
+    // make every later attempt report `already_registered` instead. A failure
+    // here leaves the row wedged, which is an ops problem — but the id really is
+    // taken, so that stays the answer either way, and continuing is not an
+    // option.
+    try {
+      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    } catch (error) {
+      logger.error("Failed to release the slot for a taken rp_id", {
+        error,
+        app_id: appId,
+        rpIdString,
+      });
+    }
+    return {
+      ok: false,
+      code: "rp_id_taken",
+      detail:
+        "This app's RP ID is already registered on-chain by another party. Portal cannot manage it — contact support.",
+    };
   }
 
   // is_unique_manager_key is written together with the manager key at the end

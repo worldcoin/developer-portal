@@ -1143,6 +1143,25 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     expect(getRpFromContractMock).not.toHaveBeenCalled();
   });
 
+  it("still reports rp_id_taken when releasing the slot fails", async () => {
+    // The read's non-fatal catch must not extend over the slot release: swallowing
+    // that failure would fall through to KMS and a UserOp for an rp_id already
+    // proven taken, which is the wedged row this check exists to prevent.
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0x00000000000000000000000000000000000000ff",
+      signer: "0x00000000000000000000000000000000000000ee",
+    });
+    DeleteRpRegistration.mockRejectedValue(new Error("db unavailable"));
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "rp_id_taken" });
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
   it("registers anyway when the on-chain pre-check read fails", async () => {
     // The pre-check is a UX guard, not the security boundary (status
     // reconciliation is), so a transient RPC failure must not block onboarding.
