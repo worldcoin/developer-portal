@@ -2192,6 +2192,11 @@ export const BasePixelStrip = () => {
       // to "release"). Used below to shake this one icon in place.
       let shakingKey: string | null = null;
       let shakeElapsed = 0;
+      // The cell the spring is playing out on, for as long as it's playing -
+      // through the release phase too, so the give-back is rendered even if
+      // the cursor ended up nowhere near it. See isPressedCell in the pass
+      // below, which keeps this one cell driven at any cursor distance.
+      const pressedKey = pressRef.current?.key ?? null;
 
       if (pressRef.current) {
         const press = pressRef.current;
@@ -2278,11 +2283,22 @@ export const BasePixelStrip = () => {
             const dx = x + 4 - pointer.x;
             const dy = y + 4 - pointer.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
+            // The press spring plays out on the cell recorded at pointerdown
+            // for as long as the button is held, wherever the cursor wanders
+            // in the meantime - so that one cell stays in the pass below even
+            // once it's out of lens/reveal range, which is the only branch
+            // that applies pressProgress and the shake. Otherwise dragging
+            // more than ICON_REVEAL_RADIUS away mid-hold dropped it out and
+            // the active cleanup reset it, releasing the icon early. Both
+            // falloffs are clamped because dist is now unbounded here: a
+            // negative lens falloff would come back squared and re-inflate
+            // the dot the further away the cursor got.
+            const isPressedCell = key === pressedKey;
 
-            if (dist < LENS_RADIUS) {
+            if (dist < LENS_RADIUS || isPressedCell) {
               isActive = true;
 
-              const falloff = 1 - dist / LENS_RADIUS;
+              const falloff = Math.max(0, 1 - dist / LENS_RADIUS);
               const scale = 1 + LENS_MAX_SCALE * falloff * falloff;
               const opacityFactor = 1 - falloff * (1 - LENS_MIN_OPACITY_FACTOR);
               const rect = rectsRef.current.get(key);
@@ -2324,7 +2340,11 @@ export const BasePixelStrip = () => {
               // lazily fetching just those keeps this cheap (no upfront
               // requests for all 1,645 cells) and matches the lens
               // metaphor: you reveal an icon by approaching it, not before.
-              if (dist < ICON_REVEAL_RADIUS) {
+              // The held cell is the one exception (see isPressedCell above):
+              // its icon is already revealed by definition - findPressedIcon
+              // only ever picks from cells whose icon has loaded - so this
+              // costs no extra fetch.
+              if (dist < ICON_REVEAL_RADIUS || isPressedCell) {
                 const cachedHref = iconHrefCacheRef.current.get(i);
 
                 if (cachedHref) {
@@ -2343,7 +2363,10 @@ export const BasePixelStrip = () => {
                   // z-order are already close in opacity/blur at the moment
                   // they cross, instead of both being fully opaque and
                   // popping.
-                  const falloff = 1 - dist / ICON_REVEAL_RADIUS;
+                  // Clamped at 0 for the same reason the lens falloff above
+                  // is: the held cell reaches this branch at any distance, and
+                  // a negative base raised to a fractional power is NaN.
+                  const falloff = Math.max(0, 1 - dist / ICON_REVEAL_RADIUS);
                   const baseIconScale =
                     1 + ICON_MAX_SCALE * falloff ** ICON_SCALE_FALLOFF_POWER;
                   // The press spring is layered on top of the lens's own
