@@ -26,7 +26,7 @@ export const ApproveSandboxRequestButton = (props: { requestId: string }) => {
         } | null;
         toast.error(
           body?.error === "Unable to send sandbox invite email"
-            ? "Approved access wasn't saved — invite email failed. Try again."
+            ? "Invite email failed — request still pending. Try again."
             : "Couldn't approve the request. Please try again.",
         );
         return;

@@ -69,8 +69,7 @@ const pendingRequest = {
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.SENDGRID_API_KEY = "sg-test-key";
-  process.env.SENDGRID_SANDBOX_EMAIL_FROM =
-    "sandbox.access@toolsforhumanity.com";
+  process.env.SENDGRID_EMAIL_FROM = "no-reply@worldcoin.org";
   process.env.NEXT_PUBLIC_ANDROID_INTERNAL_TEST_URL =
     "https://play.google.com/apps/internaltest/example";
 
@@ -109,8 +108,8 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
     expect(MarkSandboxInviteSent).not.toHaveBeenCalled();
   });
 
-  it("returns 503 when sandbox email env is missing", async () => {
-    delete process.env.SENDGRID_SANDBOX_EMAIL_FROM;
+  it("returns 503 when no-reply email env is missing", async () => {
+    delete process.env.SENDGRID_EMAIL_FROM;
 
     const response = await POST(createRequest(), createContext());
 
@@ -134,14 +133,14 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
     expect(MarkSandboxInviteSent).not.toHaveBeenCalled();
   });
 
-  it("sends the invite email then marks a pending request accepted", async () => {
+  it("sends the invite from no-reply then marks a pending request accepted", async () => {
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ success: true, changed: true });
     expect(sendEmail).toHaveBeenCalledWith({
       apiKey: "sg-test-key",
-      from: "sandbox.access@toolsforhumanity.com",
+      from: "no-reply@worldcoin.org",
       to: GOOGLE_EMAIL,
       subject: "Your World ID Sandbox invite",
       text: expect.stringContaining(

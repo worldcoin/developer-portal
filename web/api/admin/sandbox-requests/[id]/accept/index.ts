@@ -13,8 +13,9 @@ const isSandboxRequestId = (id: string) =>
 
 /**
  * Approves a sandbox request after an authenticated dashboard user grants
- * access in Google Play Console. Sends a plaintext invite email, then marks
- * the row accepted. Idempotent for already-accepted requests.
+ * access in Google Play Console. Sends a plaintext invite email from the
+ * shared no-reply sender, then marks the row accepted. Idempotent for
+ * already-accepted requests.
  */
 export async function POST(
   req: NextRequest,
@@ -34,11 +35,11 @@ export async function POST(
   }
 
   const sendgridApiKey = process.env.SENDGRID_API_KEY;
-  const sandboxEmailFrom = process.env.SENDGRID_SANDBOX_EMAIL_FROM;
-  if (!sendgridApiKey || !sandboxEmailFrom) {
+  const emailFrom = process.env.SENDGRID_EMAIL_FROM;
+  if (!sendgridApiKey || !emailFrom) {
     logger.error("Sandbox invite email is not configured", {
       hasApiKey: Boolean(sendgridApiKey),
-      hasFrom: Boolean(sandboxEmailFrom),
+      hasFrom: Boolean(emailFrom),
     });
     return NextResponse.json(
       { error: "Sandbox invite email is not configured" },
@@ -71,7 +72,7 @@ export async function POST(
     try {
       await sendEmail({
         apiKey: sendgridApiKey,
-        from: sandboxEmailFrom,
+        from: emailFrom,
         to: sandboxRequest.google_email,
         subject,
         text,
