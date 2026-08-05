@@ -27,7 +27,7 @@ cp .env.example .env
 3. AWS access is required to run the Developer Portal locally. The following AWS services are used:
    - **KMS** - for signing/encryption (Sign in with World ID, RP Registry)
    - **SSM Parameter Store** - for feature flags (e.g., World ID 4.0 enabled teams)
-   - **S3** - for asset storage (emulated locally by LocalStack)
+   - **S3** - for asset storage
 
    **For Worldcoin team members:** Use the `worldcoin-consumer-stage` AWS profile:
    ```bash
@@ -43,25 +43,24 @@ cp .env.example .env
 
    If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal-deployment#local-development) instead.
 
-### Local S3 with LocalStack
+### LocalStack
 
-The Docker Compose stack includes LocalStack, so the LocalStack CLI is not required. Create a [LocalStack auth token](https://docs.localstack.cloud/aws/getting-started/auth-token/) and expose it to Docker Compose before starting the local services:
+LocalStack is available as an optional Docker Compose service, so the LocalStack CLI is not required. Export your [LocalStack auth token](https://docs.localstack.cloud/aws/getting-started/auth-token/), then start the service:
 
 ```bash
-export LOCALSTACK_AUTH_TOKEN=<your-auth-token>
+export LOCALSTACK_AUTH_TOKEN=<auth-token>
+docker compose up --detach localstack
 ```
 
-Never commit your personal token. Without an AWS profile, the app uses dummy credentials to sign local S3 requests. The `.env.example` values already point S3 at the local bucket.
-
-If you already run LocalStack through another installation method, set `AWS_ENDPOINT_URL_S3` to that instance's S3 endpoint and run `pnpm localstack:s3`. The setup command only waits for and configures the instance; it does not start or stop LocalStack.
+Never commit your personal token. Run `docker compose stop localstack` when you are finished.
 
 ### Starting the app
 
-The following commands start the supporting services, create the local S3 bucket with its browser CORS rules, and run the Next.js app from the [/web](./web) directory. All Hasura migrations and metadata are automatically applied.
+The following command will start two containers with the Postgres database, and Hasura server. Additionally, it will run the Next.js app from the [/web](./web) directory. All Hasura migrations and metadata are automatically applied.
 
 ```bash
-docker compose up --detach --wait
-cd web && pnpm localstack:s3 && pnpm dev
+docker compose up --detach
+cd web && pnpm dev
 ```
 
 You can also take advantage of the Makefile, `make up`
