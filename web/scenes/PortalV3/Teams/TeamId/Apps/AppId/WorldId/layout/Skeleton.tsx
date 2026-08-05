@@ -1,7 +1,6 @@
 "use client";
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { generateRpIdString } from "@/lib/rp";
 import { WORLD_ID_TABS, type WorldIdTab } from "@/lib/world-id-tabs";
 import { LegacyActionsDeprecationBanner } from "../LegacyActions/page";
 import { ActionCardSkeleton } from "../page/ActionCard/Skeleton";
@@ -44,18 +43,14 @@ export const WorldIdLayoutSkeleton = (props: {
         </Typography>
 
         {/* RpSummary's section wrappers, so the field stack lands where the
-            loaded fields (or the register empty state) will. App ID and RP ID
-            render for real in BOTH variants — the RP ID is derived from the
-            app id (uint64(keccak256)), not stored data. */}
+            loaded fields (or the register empty state) will. Only the App ID
+            renders for real — the RP ID is stored data now, so it shimmers
+            until it loads and reads "—" if the app is unregistered. */}
         <section className="flex w-full max-w-[580px] flex-col gap-4">
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-5">
               <SummaryField label="App ID" value={props.appId} copy />
-              <SummaryField
-                label="RP ID"
-                value={generateRpIdString(props.appId)}
-                copy
-              />
+              <SummaryFieldSkeleton label="RP ID" />
               <SummaryFieldSkeleton label="Signer address" />
             </div>
           </div>

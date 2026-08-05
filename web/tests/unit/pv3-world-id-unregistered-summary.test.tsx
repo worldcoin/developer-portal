@@ -52,9 +52,14 @@ it("shows the finalized configuration shape before registration", () => {
     screen.getByRole("region", { name: "World ID configuration" }),
   ).toBeInTheDocument();
   expect(screen.getByText(defaultProps.appId)).toBeInTheDocument();
+  // The RP ID is assigned at registration, so the label renders but the value
+  // is a placeholder — publishing it in advance is what let the on-chain id be
+  // claimed before the app got there (H1 #3910854).
+  expect(screen.getByText("RP ID")).toBeInTheDocument();
+  expect(screen.getByText("—")).toBeInTheDocument();
   expect(
-    screen.getByText(generateRpIdString(defaultProps.appId)),
-  ).toBeInTheDocument();
+    screen.queryByText(generateRpIdString(defaultProps.appId)),
+  ).not.toBeInTheDocument();
   expect(screen.getByText("Signer address")).toBeInTheDocument();
   expect(
     screen.getByRole("button", { name: "Register relying party" }),

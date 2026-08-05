@@ -3,7 +3,6 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { generateRpIdString } from "@/lib/rp";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { SummaryField } from "./SummaryField";
@@ -68,11 +67,11 @@ export const RegisterRpEmptyState = (props: {
         <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-5">
             <SummaryField label="App ID" value={props.appId} copy />
-            <SummaryField
-              label="RP ID"
-              value={generateRpIdString(props.appId)}
-              copy
-            />
+            {/* An unregistered app has no RP ID yet. It used to be rendered
+                here by deriving it from the app id, but the id is assigned at
+                registration now and publishing it in advance is what let it be
+                claimed on-chain before the app got there (H1 #3910854). */}
+            <SummaryField label="RP ID" value="—" />
             <div className="w-full min-w-0">
               <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
                 Signer address

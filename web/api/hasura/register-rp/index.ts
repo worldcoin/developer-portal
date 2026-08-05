@@ -5,11 +5,8 @@ import {
   submitManagedRpRegistration,
   type ManagedRegistrationResult,
 } from "@/api/helpers/rp-registration-flows";
-import {
-  generateRpIdString,
-  normalizeAddress,
-  RpRegistrationStatus,
-} from "@/api/helpers/rp-utils";
+import { resolveRpIdForNewRegistration } from "@/api/helpers/rp-id";
+import { normalizeAddress, RpRegistrationStatus } from "@/api/helpers/rp-utils";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
@@ -145,7 +142,24 @@ export const POST = async (req: NextRequest) => {
 
   // Self-managed: just create the DB record. No KMS / on-chain work.
   if (mode === "self_managed") {
-    const rpIdString = generateRpIdString(app_id);
+    let rpIdString: string;
+    try {
+      // Must match what getSelfManagedRegistrationInfo showed the developer —
+      // they have already submitted register(uint64 rpId, ...) on-chain with
+      // that number. Both call the same resolver so they cannot drift.
+      rpIdString = resolveRpIdForNewRegistration(app_id);
+    } catch (error) {
+      logger.error("Cannot derive an rp_id for self-managed registration", {
+        error,
+        app_id,
+      });
+      return errorHasuraQuery({
+        req,
+        detail: "RP Registry is not configured correctly.",
+        code: "config_error",
+        app_id,
+      });
+    }
     const { insert_rp_registration_one: claimedSlot } = await getClaimRpSdk(
       client,
     ).ClaimRpRegistration({

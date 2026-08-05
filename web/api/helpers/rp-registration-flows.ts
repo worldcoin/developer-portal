@@ -29,8 +29,8 @@ import {
   submitRotateSignerTransaction,
   submitToggleRpActiveTransaction,
 } from "@/api/helpers/rp-transactions";
+import { resolveRpIdForNewRegistration } from "@/api/helpers/rp-id";
 import {
-  generateRpIdString,
   getRpRegistryConfig,
   getStagingRpRegistryConfig,
   parseRpId,
@@ -103,7 +103,23 @@ export async function submitManagedRpRegistration({
     };
   }
 
-  const rpIdString = generateRpIdString(appId);
+  let rpIdString: string;
+  try {
+    rpIdString = resolveRpIdForNewRegistration(appId);
+  } catch (error) {
+    // Misconfigured salt. Registering under the legacy guessable derivation
+    // instead would defeat the point, so surface it and let the caller retry
+    // once the environment is fixed.
+    logger.error("Cannot derive an rp_id for registration", {
+      error,
+      app_id: appId,
+    });
+    return {
+      ok: false,
+      code: "config_error",
+      detail: "Missing required environment variables for RP Registry.",
+    };
+  }
 
   // Claim the registration slot. on_conflict with empty update_columns
   // means: if a row already exists, return null and we bail.
