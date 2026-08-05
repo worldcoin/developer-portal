@@ -43,6 +43,7 @@ beforeEach(() => {
   delete process.env.LOCAL_DEV_PORTAL_V3_ENABLED;
   delete process.env.PORTAL_V3_EMAILS;
   delete process.env.INTERNAL_DASHBOARD_HOST;
+  delete process.env.AWS_ENDPOINT_URL_S3;
   hasAdminAuthenticationEvidence.mockReturnValue(false);
 });
 
@@ -258,6 +259,27 @@ describe("proxy [admin pages]", () => {
     expect(res.headers.get("x-current-path")).toBe("/admin");
     expect(res.headers.get("x-middleware-request-x-current-path")).toBe(
       "/admin",
+    );
+  });
+
+  it("allows the LocalStack bucket origin for browser uploads and previews", async () => {
+    process.env.AWS_ENDPOINT_URL_S3 =
+      "http://s3.localhost.localstack.cloud:4566";
+    process.env.ASSETS_S3_BUCKET_NAME = "developer-portal-assets";
+    process.env.ASSETS_S3_REGION = "us-east-1";
+    hasAdminAuthenticationEvidence.mockReturnValue(true);
+
+    const req = new NextRequest(`${CANONICAL}/admin`);
+    const res = await proxy(req);
+    const directives = res.headers.get("content-security-policy")?.split("; ");
+    const localBucketOrigin =
+      "http://developer-portal-assets.s3.localhost.localstack.cloud:4566";
+
+    expect(
+      directives?.find((value) => value.startsWith("connect-src")),
+    ).toContain(localBucketOrigin);
+    expect(directives?.find((value) => value.startsWith("img-src"))).toContain(
+      localBucketOrigin,
     );
   });
 

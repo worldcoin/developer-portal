@@ -43,15 +43,35 @@ cp .env.example .env
 
    If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal-deployment#local-development) instead.
 
-### LocalStack
+### Local image uploads with LocalStack
 
-LocalStack is an optional Docker Compose service (no LocalStack CLI required). Use the same `web/.env` from step 1 — set `LOCALSTACK_AUTH_TOKEN` there ([auth token docs](https://docs.localstack.cloud/aws/getting-started/auth-token/)), then:
+You can upload images locally without an AWS account or installing the LocalStack/AWS CLI on your machine. The `awslocal` commands below run inside the container. In the same `web/.env` from step 1, set:
 
-```bash
-docker compose --profile localstack up --detach localstack
+```dotenv
+LOCALSTACK_AUTH_TOKEN=<auth-token>
+AWS_ACCESS_KEY_ID=test
+AWS_SECRET_ACCESS_KEY=test
+AWS_ENDPOINT_URL_S3=http://s3.localhost.localstack.cloud:4566
+ASSETS_S3_REGION=us-east-1
+ASSETS_S3_BUCKET_NAME=developer-portal-assets
 ```
 
-Never commit your personal token. Stop with `docker compose --profile localstack stop localstack`.
+`LOCALSTACK_AUTH_TOKEN` comes from the [LocalStack auth token page](https://docs.localstack.cloud/aws/getting-started/auth-token/). The `test` values are dummy credentials accepted by LocalStack, not real AWS credentials. Never commit your personal token.
+
+Start LocalStack, then create the bucket and its browser CORS policy once:
+
+```bash
+docker compose --profile localstack up --detach --wait localstack
+docker compose --profile localstack exec localstack \
+  awslocal s3api create-bucket --bucket developer-portal-assets
+docker compose --profile localstack exec localstack \
+  awslocal s3api put-bucket-cors \
+  --bucket developer-portal-assets \
+  --cors-configuration \
+  '{"CORSRules":[{"AllowedOrigins":["http://localhost:3000"],"AllowedMethods":["GET","HEAD","POST"],"AllowedHeaders":["*"],"ExposeHeaders":["ETag"]}]}'
+```
+
+Run `cd web && pnpm dev`, then image uploads from `http://localhost:3000` use LocalStack. Check the service with `docker compose --profile localstack ps localstack`; stop it with `docker compose --profile localstack stop localstack`.
 
 ### Starting the app
 
