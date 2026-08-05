@@ -1,0 +1,107 @@
+name: Refresh pixel strip icons
+
+# Weekly maintenance for BasePixelStrip's icon reveal
+# (web/scenes/Onboarding/Home/components/BasePixelStrip): re-fetches fresh
+# bytes for the apps already in icon-manifest.ts (in case an app owner
+# updated their icon), normalizes them, and re-uploads. Only ever patches
+# logoUrl for existing entries - never adds/removes/reorders APPS - so
+# CELL_APP_INDICES (which references APPS by numeric index) stays valid.
+# See scripts/normalize-app-icons.ts's header comment for why adding newly
+# popular apps into the grid rotation needs a separate, harder change.
+#
+# Opens a PR instead of pushing directly so a broken/empty upstream response
+# can't silently reach production - a human reviews the diff (and CI) first.
+# Refreshed bytes are uploaded under content-addressed keys that nothing
+# references until that PR merges, so the review gate is real rather than
+# cosmetic, and reverting the PR is a complete rollback (see iconKeyFor in
+# scripts/normalize-app-icons.ts).
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Monday 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    name: Refresh + open PR
+    runs-on:
+      group: arc-public-large-amd64-runner
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: pnpm/action-setup@a15d269cd4658e1107c09f1fabf4cbd7bd1f308a # v4.4.0
+        with:
+          version: 9
+
+      - name: Set up Node 20
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: "pnpm"
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # NOTE: uses long-lived access keys for simplicity, since this repo
+      # doesn't yet have an OIDC role set up for any workflow. If/when one
+      # exists, prefer aws-actions/configure-aws-credentials with
+      # `role-to-assume` instead of static keys here.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        with:
+          aws-access-key-id: ${{ secrets.PIXEL_STRIP_ICONS_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PIXEL_STRIP_ICONS_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.ASSETS_S3_REGION }}
+
+      # `pnpm exec`, not `npx`: npx falls back to fetching from the registry
+      # when a command isn't installed locally, and this step runs with the AWS
+      # credentials configured above in its environment. Everything it runs has
+      # to come from the frozen lockfile.
+      - name: Refresh icons and patch the manifest
+        env:
+          ASSETS_S3_REGION: ${{ secrets.ASSETS_S3_REGION }}
+          ASSETS_S3_BUCKET_NAME: ${{ secrets.ASSETS_S3_BUCKET_NAME }}
+        run: |
+          pnpm exec tsx scripts/normalize-app-icons.ts \
+            --refresh-existing \
+            --upload \
+            --write-manifest \
+            --cdn-base-url "${{ vars.NEXT_PUBLIC_IMAGES_CDN_URL || 'https://world-id-assets.com' }}"
+
+      - name: Open a PR if anything changed
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6.1.0
+        with:
+          commit-message: "chore(portal): refresh pixel strip app icons"
+          title: "chore(portal): refresh pixel strip app icons"
+          body: |
+            Automated weekly refresh of the app icons used by the World
+            logomark's hover-lens icon reveal on the homepage.
+
+            Re-fetched and re-normalized icon bytes for apps already in
+            `icon-manifest.ts`, in case an app owner updated their icon.
+            Only `logoUrl` values change - no entries were added, removed, or
+            reordered, so the pixel-grid placement (`CELL_APP_INDICES`)
+            stays valid.
+
+            The new bytes are already in the asset bucket, under
+            content-addressed keys that nothing references yet - merging this
+            is what puts them in front of visitors, and reverting it puts the
+            previous icons back.
+
+            Please review before merging: check the diff is reasonably small
+            (a mass change usually means the upstream rankings API had a
+            problem, though a `sharp` upgrade can also legitimately rotate
+            every key at once) and that CI passes.
+          branch: automated/refresh-pixel-strip-icons
+          delete-branch: true
+          labels: automated
