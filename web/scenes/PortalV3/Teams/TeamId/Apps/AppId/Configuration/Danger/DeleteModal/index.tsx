@@ -1,19 +1,9 @@
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
-import { FloatingInput } from "@/components/FloatingInput";
-import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { ModalIcon } from "@/components/ModalIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
-import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import * as yup from "yup";
 import { deleteApp } from "./server";
 
 type DeleteModalProps = {
@@ -23,20 +13,6 @@ type DeleteModalProps = {
   appId: string;
   teamId: string;
 };
-
-// Typing the word beats typing the app name: same deliberate pause, no
-// copy-pasting a long name. Case-insensitive so DELETE works too.
-const schema = yup
-  .object()
-  .shape({
-    app_name: yup
-      .string()
-      .matches(/^delete$/i, "Please check if the input is correct")
-      .required("This field is required"),
-  })
-  .noUnknown();
-
-type DeleteFormValues = yup.Asserts<typeof schema>;
 
 export const DeleteModal = (props: DeleteModalProps) => {
   const { openDeleteModal, setOpenDeleteModal, appName, appId, teamId } = props;
@@ -91,81 +67,23 @@ export const DeleteModal = (props: DeleteModalProps) => {
     }
   };
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid },
-  } = useForm<DeleteFormValues>({
-    resolver: yupResolver(schema),
-  });
-
   return (
-    <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
-      <DialogOverlay />
-
-      <DialogPanel className="grid gap-y-6 md:max-w-xl">
-        <ModalIcon variant="error">
-          <AlertIcon className="size-7 text-white" />
-        </ModalIcon>
-
-        <div className="grid w-full place-items-center gap-y-5">
-          <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
-            Do you want to delete this app?
-          </Typography>
-
-          <Typography
-            variant={TYPOGRAPHY.R3}
-            className="text-center text-grey-500"
-          >
-            The{" "}
-            <Typography
-              variant={TYPOGRAPHY.M3}
-              className="break-all text-grey-900"
-            >
-              {appName ?? ""}
-            </Typography>{" "}
-            will be deleted, along with all of its actions, configurations and
-            statistics.
-          </Typography>
-        </div>
-
-        <form
-          className="grid w-full gap-y-7"
-          onSubmit={handleSubmit(handleDeleteApp)}
-        >
-          <FloatingInput
-            id="delete_app_name"
-            register={register("app_name")}
-            label={
-              <>
-                To verify, type{" "}
-                <span className="font-medium text-grey-900">Delete</span> below
-              </>
-            }
-            errors={errors.app_name}
-          />
-
-          <div className="grid w-full gap-4 md:grid-cols-2">
-            <DecoratedButton
-              type="button"
-              variant="secondary"
-              className="w-full py-3"
-              onClick={() => setOpenDeleteModal(false)}
-            >
-              <Typography variant={TYPOGRAPHY.R3}>No</Typography>
-            </DecoratedButton>
-
-            <DecoratedButton
-              type="submit"
-              variant="destructive"
-              className="w-full py-3"
-              disabled={!isValid}
-            >
-              <Typography variant={TYPOGRAPHY.R3}>Yes</Typography>
-            </DecoratedButton>
-          </div>
-        </form>
-      </DialogPanel>
-    </Dialog>
+    <DeleteConfirmationDialog
+      open={openDeleteModal}
+      onClose={() => setOpenDeleteModal(false)}
+      onConfirm={handleDeleteApp}
+      confirmationWord="Delete"
+      title="Do you want to delete this app?"
+      description={
+        <>
+          The{" "}
+          <span className="font-medium break-all text-grey-900">
+            {appName ?? ""}
+          </span>{" "}
+          will be deleted, along with all of its actions, configurations and
+          statistics.
+        </>
+      }
+    />
   );
 };

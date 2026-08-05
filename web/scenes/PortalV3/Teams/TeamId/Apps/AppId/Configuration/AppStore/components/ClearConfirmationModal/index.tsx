@@ -1,10 +1,4 @@
-import { ModalIcon } from "@/components/ModalIcon";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
-import { TrashIcon } from "@/components/Icons/TrashIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
 type ClearConfirmationModalProps = {
   open: boolean;
@@ -35,42 +29,14 @@ export const ClearConfirmationModal = ({
   };
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)}>
-      <DialogOverlay />
-      <DialogPanel className="gap-y-5 md:max-w-xl">
-        <ModalIcon variant="error">
-          <TrashIcon className="size-6 text-white" />
-        </ModalIcon>
-        <div className="grid gap-y-10">
-          <div className="grid grid-cols-1 justify-items-center gap-y-4">
-            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
-              {title}
-            </Typography>
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              className="text-center text-grey-500"
-            >
-              {description}
-            </Typography>
-          </div>
-          <div className="grid w-full gap-4 md:grid-cols-2">
-            <DecoratedButton
-              type="button"
-              variant="secondary"
-              onClick={() => setOpen(false)}
-            >
-              No
-            </DecoratedButton>
-            <DecoratedButton
-              type="button"
-              variant="destructive"
-              onClick={handleConfirm}
-            >
-              Yes
-            </DecoratedButton>
-          </div>
-        </div>
-      </DialogPanel>
-    </Dialog>
+    // No typed verification: clearing the list only stages a change that the
+    // surrounding form still has to save.
+    <DeleteConfirmationDialog
+      open={open}
+      onClose={() => setOpen(false)}
+      onConfirm={handleConfirm}
+      title={title}
+      description={description}
+    />
   );
 };

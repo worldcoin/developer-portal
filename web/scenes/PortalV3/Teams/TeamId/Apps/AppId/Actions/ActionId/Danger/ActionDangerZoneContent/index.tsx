@@ -1,10 +1,6 @@
 "use client";
-import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
-import { AlertIcon } from "@/components/Icons/AlertIcon";
+import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -81,50 +77,23 @@ export const ActionDangerZoneContent = (props: {
 
   return (
     <div>
-      <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
-        <DialogOverlay />
-
-        <DialogPanel className="grid gap-y-6 md:max-w-104">
-          <CircleIconContainer variant={"error"}>
-            <AlertIcon />
-          </CircleIconContainer>
-
-          <div className="grid w-full place-items-center gap-y-5 px-2">
-            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
-              Are you sure?
-            </Typography>
-
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              className="text-center text-grey-500"
-            >
-              Are you sure you want to proceed with deleting this action? Please
-              be aware that this action is irreversible, and all associated data
-              will be permanently lost.
-            </Typography>
-          </div>
-
-          <div className="grid w-full gap-4 md:grid-cols-2">
-            <DecoratedButton
-              type="button"
-              variant="danger"
-              className="order-2 w-full bg-system-error-100 py-3 md:order-1"
-              onClick={deleteAction}
-              disabled={deleteActionLoading}
-            >
-              <Typography variant={TYPOGRAPHY.R3}>Delete Action</Typography>
-            </DecoratedButton>
-
-            <DecoratedButton
-              type="button"
-              className="order-1 w-full py-3 md:order-2"
-              onClick={() => setOpenDeleteModal(false)}
-            >
-              <Typography variant={TYPOGRAPHY.R3}>Keep Action</Typography>
-            </DecoratedButton>
-          </div>
-        </DialogPanel>
-      </Dialog>
+      <DeleteConfirmationDialog
+        open={openDeleteModal}
+        onClose={() => setOpenDeleteModal(false)}
+        onConfirm={deleteAction}
+        confirmationWord="Delete"
+        loading={deleteActionLoading}
+        title="Do you want to delete this action?"
+        description={
+          <>
+            The{" "}
+            <span className="font-medium break-all text-grey-900">
+              {action?.name}
+            </span>{" "}
+            action and all of its data will be deleted for everyone.
+          </>
+        }
+      />
 
       <div className="grid w-full grid-cols-1 gap-y-10 md:grid-cols-1fr/auto">
         <div className="grid max-w-[480px] gap-y-10">

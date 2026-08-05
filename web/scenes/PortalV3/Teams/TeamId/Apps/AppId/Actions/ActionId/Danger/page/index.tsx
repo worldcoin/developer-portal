@@ -1,5 +1,5 @@
 "use client";
-import { ActionDangerZone } from "@/components/ActionDangerZone";
+import { ActionDangerZone } from "@/scenes/PortalV3/common/ActionDangerZone";
 import { ActionsHeader } from "@/components/ActionsHeader";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
