@@ -92,8 +92,8 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
 
     expect(response.status).toBe(401);
     expect(GetSandboxAccessRequest).not.toHaveBeenCalled();
-    expect(sendEmail).not.toHaveBeenCalled();
     expect(MarkSandboxInviteSent).not.toHaveBeenCalled();
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 
   it("rejects an invalid sandbox request id", async () => {
@@ -103,9 +103,8 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
     );
 
     expect(response.status).toBe(400);
-    expect(GetSandboxAccessRequest).not.toHaveBeenCalled();
-    expect(sendEmail).not.toHaveBeenCalled();
     expect(MarkSandboxInviteSent).not.toHaveBeenCalled();
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 
   it("returns 503 when no-reply email env is missing", async () => {
@@ -117,8 +116,8 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
     expect(await response.json()).toEqual({
       error: "Sandbox invite email is not configured",
     });
-    expect(sendEmail).not.toHaveBeenCalled();
     expect(MarkSandboxInviteSent).not.toHaveBeenCalled();
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 
   it("returns 404 when the sandbox request does not exist", async () => {
@@ -129,15 +128,19 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(404);
-    expect(sendEmail).not.toHaveBeenCalled();
     expect(MarkSandboxInviteSent).not.toHaveBeenCalled();
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it("sends the invite from no-reply then marks a pending request accepted", async () => {
+  it("claims the row first, then sends the invite from no-reply", async () => {
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ success: true, changed: true });
+    expect(MarkSandboxInviteSent).toHaveBeenCalledWith({
+      id: REQUEST_ID,
+      processed_at: expect.any(String),
+    });
     expect(sendEmail).toHaveBeenCalledWith({
       apiKey: "sg-test-key",
       from: "no-reply@worldcoin.org",
@@ -147,13 +150,12 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
         "https://play.google.com/apps/internaltest/example",
       ),
     });
-    expect(MarkSandboxInviteSent).toHaveBeenCalledWith({
-      id: REQUEST_ID,
-      processed_at: expect.any(String),
-    });
+    expect(MarkSandboxInviteSent.mock.invocationCallOrder[0]).toBeLessThan(
+      sendEmail.mock.invocationCallOrder[0],
+    );
   });
 
-  it("skips email for an already accepted request", async () => {
+  it("skips mark and email for an already accepted request", async () => {
     GetSandboxAccessRequest.mockResolvedValue({
       sandbox_access_request: [{ ...pendingRequest, accepted: true }],
     });
@@ -162,11 +164,23 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ success: true, changed: false });
-    expect(sendEmail).not.toHaveBeenCalled();
     expect(MarkSandboxInviteSent).not.toHaveBeenCalled();
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it("does not mark accepted when the invite email fails", async () => {
+  it("does not send email when another Approver already claimed the row", async () => {
+    MarkSandboxInviteSent.mockResolvedValue({
+      update_sandbox_access_request: { affected_rows: 0 },
+    });
+
+    const response = await POST(createRequest(), createContext());
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ success: true, changed: false });
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("keeps the claim and returns 503 when the invite email fails", async () => {
     sendEmail.mockRejectedValue(new Error("sendgrid down"));
 
     const response = await POST(createRequest(), createContext());
@@ -175,10 +189,10 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
     expect(await response.json()).toEqual({
       error: "Unable to send sandbox invite email",
     });
-    expect(MarkSandboxInviteSent).not.toHaveBeenCalled();
+    expect(MarkSandboxInviteSent).toHaveBeenCalled();
   });
 
-  it("returns 503 when the backend update fails after email send", async () => {
+  it("returns 503 when the claim mutation fails", async () => {
     MarkSandboxInviteSent.mockRejectedValue(new Error("hasura down"));
 
     const response = await POST(createRequest(), createContext());
@@ -187,7 +201,7 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
     expect(await response.json()).toEqual({
       error: "Unable to update sandbox request",
     });
-    expect(sendEmail).toHaveBeenCalled();
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 });
 // #endregion

@@ -19,7 +19,11 @@ jest.mock("next/navigation", () => ({
 }));
 
 jest.mock("react-toastify", () => ({
-  toast: { error: (...args: unknown[]) => toastError(...args) },
+  toast: {
+    error: (...args: unknown[]) => toastError(...args),
+    // Present so a stray success toast cannot throw and skip router.refresh().
+    success: jest.fn(),
+  },
 }));
 
 jest.mock("@/components/DecoratedButton", () => ({
@@ -70,22 +74,26 @@ describe("ApproveSandboxRequestButton", () => {
   it("approves the request and refreshes the admin table", async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
+      json: async () => ({ success: true, changed: true }),
     }) as unknown as typeof fetch;
 
     render(<ApproveSandboxRequestButton requestId="sbxreq_abc123" />);
     fireEvent.click(screen.getByRole("button", { name: "Approve" }));
 
-    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Approved" })).toBeDisabled(),
+    );
+    expect(refresh).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(
       "/api/admin/sandbox-requests/sbxreq_abc123/accept",
       { method: "POST" },
     );
-    expect(screen.getByRole("button", { name: "Approved" })).toBeDisabled();
   });
 
   it("keeps the action retryable when the backend rejects it", async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,
+      json: async () => ({ error: "Unable to update sandbox request" }),
     }) as unknown as typeof fetch;
 
     render(<ApproveSandboxRequestButton requestId="sbxreq_abc123" />);
@@ -94,6 +102,24 @@ describe("ApproveSandboxRequestButton", () => {
     await waitFor(() => expect(toastError).toHaveBeenCalledTimes(1));
     expect(refresh).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Approve" })).toBeEnabled();
+  });
+
+  it("surfaces invite-email failure after the row was already approved", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: "Unable to send sandbox invite email" }),
+    }) as unknown as typeof fetch;
+
+    render(<ApproveSandboxRequestButton requestId="sbxreq_abc123" />);
+    fireEvent.click(screen.getByRole("button", { name: "Approve" }));
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith(
+        "Approved, but the invite email failed. Follow up with the user.",
+      ),
+    );
+    expect(screen.getByRole("button", { name: "Approved" })).toBeDisabled();
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 });
 // #endregion

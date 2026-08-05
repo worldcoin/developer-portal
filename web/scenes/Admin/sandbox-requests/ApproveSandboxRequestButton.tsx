@@ -24,16 +24,23 @@ export const ApproveSandboxRequestButton = (props: { requestId: string }) => {
         const body = (await response.json().catch(() => null)) as {
           error?: string;
         } | null;
-        toast.error(
-          body?.error === "Unable to send sandbox invite email"
-            ? "Invite email failed — request still pending. Try again."
-            : "Couldn't approve the request. Please try again.",
-        );
+
+        // Approval already stuck server-side; surface the email failure and
+        // flip the button so the admin does not retry a no-op send.
+        if (body?.error === "Unable to send sandbox invite email") {
+          toast.error(
+            "Approved, but the invite email failed. Follow up with the user.",
+          );
+          setCompleted(true);
+          router.refresh();
+          return;
+        }
+
+        toast.error("Couldn't approve the request. Please try again.");
         return;
       }
 
       setCompleted(true);
-      toast.success("Approved — invite email sent.");
       router.refresh();
     } catch {
       toast.error("Couldn't approve the request. Please try again.");

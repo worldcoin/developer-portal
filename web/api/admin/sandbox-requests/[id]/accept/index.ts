@@ -13,8 +13,9 @@ const isSandboxRequestId = (id: string) =>
 
 /**
  * Approves a sandbox request after an authenticated dashboard user grants
- * access in Google Play Console. Sends a plaintext invite email from the
- * shared no-reply sender, then marks the row accepted. Idempotent for
+ * access in Google Play Console. Claims the row atomically
+ * (`accepted = false` → true), then sends the invite only for the winning
+ * claim so concurrent Approves cannot double-email. Idempotent for
  * already-accepted requests.
  */
 export async function POST(
@@ -65,6 +66,20 @@ export async function POST(
       return NextResponse.json({ success: true, changed: false });
     }
 
+    const markResult = await getMarkSandboxInviteSentSdk(
+      client,
+    ).MarkSandboxInviteSent({
+      id,
+      processed_at: new Date().toISOString(),
+    });
+    const claimed =
+      markResult.update_sandbox_access_request?.affected_rows === 1;
+
+    // Lost the race to another Approver — they own the invite send.
+    if (!claimed) {
+      return NextResponse.json({ success: true, changed: false });
+    }
+
     const { subject, text } = buildSandboxAccessEmail({
       androidInstallUrl: process.env.NEXT_PUBLIC_ANDROID_INTERNAL_TEST_URL,
     });
@@ -78,6 +93,8 @@ export async function POST(
         text,
       });
     } catch (error) {
+      // Row is already accepted so retries will not re-send. Surface the
+      // failure so an admin can follow up manually.
       logger.error("Failed to send sandbox invite email", {
         requestId: id,
         googleEmail: sandboxRequest.google_email,
@@ -90,16 +107,9 @@ export async function POST(
       );
     }
 
-    const result = await getMarkSandboxInviteSentSdk(
-      client,
-    ).MarkSandboxInviteSent({
-      id,
-      processed_at: new Date().toISOString(),
-    });
-
     return NextResponse.json({
       success: true,
-      changed: result.update_sandbox_access_request?.affected_rows === 1,
+      changed: true,
     });
   } catch (error) {
     logger.error("Failed to approve sandbox request", {
