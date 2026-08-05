@@ -113,19 +113,30 @@ export function resolveRpIdForNewRegistration(appId: string): `rp_${string}` {
  * what can be claimed. The caller keeps whatever the current scheme yields when
  * neither candidate is on-chain.
  *
- * Salt *rotation* mid-flow is still not covered — the previous salt is gone by
- * definition. Rotation should be treated as a deliberate operation, not a
- * routine one.
+ * `RP_ID_SALT_PREVIOUS` covers rotation. Without it, rotating while a developer
+ * is between the instructions screen and completion orphans the registration they
+ * just paid for: the id they were shown is derived from a salt that no longer
+ * exists anywhere. Since rotation is the advertised remedy for a leaked salt, it
+ * has to be safe to perform — set the outgoing value here for one drain window,
+ * then drop it. It is probed after the current salt and before legacy, so it
+ * never takes precedence over the live scheme and never demotes the ordering
+ * below a guessable id.
  */
 export function candidateRpIdsForApp(appId: string): `rp_${string}`[] {
-  const legacy = generateRpIdString(appId);
-  const salt = process.env.RP_ID_SALT;
-  const salted =
-    salt && salt.length >= MIN_SALT_LENGTH
-      ? deriveSaltedRpIdString(appId, salt)
-      : null;
+  const usableSalt = (salt: string | undefined) =>
+    salt && salt.length >= MIN_SALT_LENGTH ? salt : null;
+
+  const current = usableSalt(process.env.RP_ID_SALT);
+  const previous = usableSalt(process.env.RP_ID_SALT_PREVIOUS);
+
+  const ordered = [
+    current ? deriveSaltedRpIdString(appId, current) : null,
+    previous ? deriveSaltedRpIdString(appId, previous) : null,
+    // Always last: the only candidate an attacker can compute.
+    generateRpIdString(appId),
+  ];
 
   return Array.from(
-    new Set([salted, legacy].filter((id): id is `rp_${string}` => Boolean(id))),
+    new Set(ordered.filter((id): id is `rp_${string}` => Boolean(id))),
   );
 }

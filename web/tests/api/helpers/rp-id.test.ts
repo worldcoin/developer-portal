@@ -16,6 +16,7 @@ const otherSalt = "t".repeat(32);
 beforeEach(() => {
   delete process.env.ENABLE_UNPREDICTABLE_RP_ID;
   delete process.env.RP_ID_SALT;
+  delete process.env.RP_ID_SALT_PREVIOUS;
 });
 
 // #region Flag off — legacy derivation is preserved
@@ -126,6 +127,33 @@ describe("candidateRpIdsForApp", () => {
     process.env.RP_ID_SALT = "short";
 
     expect(candidateRpIdsForApp(appId)).toEqual([generateRpIdString(appId)]);
+  });
+
+  it("probes the previous salt during a rotation drain window", () => {
+    // Rotation is the advertised remedy for a leaked salt, so performing it must
+    // be safe: a developer shown an id derived from the outgoing salt has already
+    // registered that id on-chain.
+    process.env.ENABLE_UNPREDICTABLE_RP_ID = "true";
+    process.env.RP_ID_SALT = salt;
+    process.env.RP_ID_SALT_PREVIOUS = otherSalt;
+
+    const candidates = candidateRpIdsForApp(appId);
+
+    expect(candidates).toHaveLength(3);
+    // Current salt wins; the guessable legacy id stays last regardless.
+    expect(candidates[0]).toBe(resolveRpIdForNewRegistration(appId));
+    expect(candidates[2]).toBe(generateRpIdString(appId));
+
+    // The middle candidate is what the outgoing salt would have produced.
+    process.env.RP_ID_SALT = otherSalt;
+    expect(candidates[1]).toBe(resolveRpIdForNewRegistration(appId));
+  });
+
+  it("ignores an unusable previous salt", () => {
+    process.env.RP_ID_SALT = salt;
+    process.env.RP_ID_SALT_PREVIOUS = "short";
+
+    expect(candidateRpIdsForApp(appId)).toHaveLength(2);
   });
 });
 // #endregion
