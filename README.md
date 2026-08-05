@@ -45,15 +45,13 @@ cp .env.example .env
 
 ### LocalStack
 
-LocalStack is available as an optional Docker Compose service, so the LocalStack CLI is not required. Copy the root environment example, add your [LocalStack auth token](https://docs.localstack.cloud/aws/getting-started/auth-token/) to `.env`, then start the service:
+LocalStack is an optional Docker Compose service (no LocalStack CLI required). Use the same `web/.env` from step 1 — set `LOCALSTACK_AUTH_TOKEN` there ([auth token docs](https://docs.localstack.cloud/aws/getting-started/auth-token/)), then:
 
 ```bash
-cp .env.example .env
-# Set LOCALSTACK_AUTH_TOKEN in .env.
-docker compose up --detach localstack
+docker compose --profile localstack up --detach localstack
 ```
 
-Never commit your personal token. Run `docker compose stop localstack` when you are finished.
+Never commit your personal token. Stop with `docker compose --profile localstack stop localstack`.
 
 ### Starting the app
 
