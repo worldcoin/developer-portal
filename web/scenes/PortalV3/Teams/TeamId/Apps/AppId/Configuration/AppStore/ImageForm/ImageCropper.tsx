@@ -1,6 +1,9 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
+import {
+  formDialogPrimaryActionClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactCrop, {
@@ -158,23 +161,23 @@ export const ImageCropper = ({
         </Typography>
       ) : null}
 
-      <div className="grid w-full grid-cols-2 gap-4">
-        <DecoratedButton
+      <div className="grid w-full gap-3 md:grid-cols-2">
+        <button
           type="button"
-          variant="secondary"
           disabled={isApplying}
           onClick={onCancel}
+          className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
         >
           Cancel
-        </DecoratedButton>
-        <DecoratedButton
+        </button>
+        <button
           type="button"
-          loading={isApplying}
           disabled={isApplying || !completedCrop}
           onClick={() => void applyCrop()}
+          className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
         >
           Crop & upload
-        </DecoratedButton>
+        </button>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { APP_CREATED_TOAST_STORAGE_KEY } from "@/lib/app-created-toast";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { yupResolver } from "@hookform/resolvers/yup";
 import posthog from "posthog-js";
 import { useState } from "react";
@@ -127,14 +128,15 @@ export const CreateAppForm = ({ teamId }: CreateAppFormProps) => {
         ) : null}
       </div>
 
-      <button
+      <InkButton
         type="submit"
-        disabled={!isValid || isPending}
-        className="inline-flex h-11 w-full items-center justify-center rounded-8 bg-portal-ink px-4 text-13 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400"
+        disabled={!isValid}
+        loading={isPending}
+        className="h-11 w-full"
         data-testid="button-create-app"
       >
         {isPending ? "Creating app…" : "Create app"}
-      </button>
+      </InkButton>
     </form>
   );
 };
