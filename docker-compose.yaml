@@ -46,9 +46,9 @@ services:
     profiles: [localstack]
     ports:
       - "127.0.0.1:4566:4566"
-    # Do not expose unrelated application secrets from web/.env.
-    environment:
-      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:-}
+    # Reads LOCALSTACK_AUTH_TOKEN from the same web/.env used by the app.
+    env_file:
+      - ./web/.env
 
   opensearch:
     image: opensearchproject/opensearch:3
