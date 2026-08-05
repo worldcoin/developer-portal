@@ -416,16 +416,42 @@ export async function submitManagedRpRegistration({
     const stagingConfig = getStagingRpRegistryConfig();
     if (stagingConfig) {
       try {
-        stagingOperationHash = await submitRegisterRpTransaction(
-          stagingConfig,
-          {
+        // The staging mirror needs the same adoption branch as production: if the
+        // defensive sweep claimed this rp_id on the staging registry too, a
+        // register() here reverts with IdAlreadyInUse and staging is recorded
+        // `failed`, leaving the developer unable to use staging actions. Decided
+        // per-contract because the two registries are claimed independently and
+        // can disagree.
+        let adoptStagingClaim = false;
+        try {
+          const existingStagingRp = await getRpFromContract(
             rpId,
-            managerAddress,
-            signerAddress,
-            appName,
-            kmsClient,
-          },
-        );
+            stagingConfig.contractAddress,
+          );
+          adoptStagingClaim =
+            existingStagingRp.initialized &&
+            addressesEqual(existingStagingRp.manager, managerAddress);
+        } catch (error) {
+          logger.warn("Could not pre-check the staging rp_id; registering", {
+            error,
+            rpIdString,
+          });
+        }
+
+        stagingOperationHash = adoptStagingClaim
+          ? await submitRotateSignerTransaction(stagingConfig, {
+              rpId,
+              newSignerAddress: signerAddress,
+              managerKmsKeyId,
+              kmsClient,
+            })
+          : await submitRegisterRpTransaction(stagingConfig, {
+              rpId,
+              managerAddress,
+              signerAddress,
+              appName,
+              kmsClient,
+            });
         stagingStatus = RpRegistrationStatus.Pending;
         logger.info("Staging registration submitted", {
           rpIdString,

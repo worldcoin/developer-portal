@@ -38,11 +38,13 @@ jest.mock("@/api/helpers/temporal-rpc", () => ({
 }));
 
 const getRpRegistryConfigMock = jest.fn();
+const getStagingRpRegistryConfigMock = jest.fn();
 jest.mock("@/api/helpers/rp-utils", () => {
   const actual = jest.requireActual("@/api/helpers/rp-utils");
   return {
     ...actual,
     getRpRegistryConfig: () => getRpRegistryConfigMock(),
+    getStagingRpRegistryConfig: () => getStagingRpRegistryConfigMock(),
   };
 });
 
@@ -87,6 +89,8 @@ beforeEach(() => {
     contractAddress: "0xcontract",
     kmsRegion: "eu-west-1",
   });
+  delete process.env.NEXT_PUBLIC_APP_ENV;
+  getStagingRpRegistryConfigMock.mockReturnValue(null);
   resolveManagerAddressMock.mockResolvedValue(managerAddress);
   GetAppInfo.mockResolvedValue({
     app: [{ id: appId, is_staging: false, app_metadata: [{ name: "Test" }] }],
@@ -164,7 +168,7 @@ describe("/api/_pre-register-rp-ids [dry run]", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.dry_run).toBe(true);
-    expect(body.counts).toEqual({ would_claim: 1 });
+    expect(body.counts).toEqual({ "production:would_claim": 1 });
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
@@ -173,7 +177,7 @@ describe("/api/_pre-register-rp-ids [dry run]", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.counts).toEqual({ claimed: 1 });
+    expect(body.counts).toEqual({ "production:claimed": 1 });
     expect(submitRegisterRpTransactionMock).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
@@ -221,7 +225,9 @@ describe("/api/_pre-register-rp-ids [skips]", () => {
 
     const body = await (await run()).json();
 
-    expect(body.counts).toEqual({ skipped_already_claimed_by_us: 1 });
+    expect(body.counts).toEqual({
+      "production:skipped_already_claimed_by_us": 1,
+    });
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
@@ -235,7 +241,9 @@ describe("/api/_pre-register-rp-ids [skips]", () => {
 
     const body = await (await run()).json();
 
-    expect(body.counts).toEqual({ skipped_taken_by_foreign_manager: 1 });
+    expect(body.counts).toEqual({
+      "production:skipped_taken_by_foreign_manager": 1,
+    });
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
@@ -246,7 +254,7 @@ describe("/api/_pre-register-rp-ids [skips]", () => {
 
     const body = await (await run()).json();
 
-    expect(body.counts).toEqual({ failed_rpc: 1 });
+    expect(body.counts).toEqual({ "production:failed_rpc": 1 });
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
@@ -257,8 +265,57 @@ describe("/api/_pre-register-rp-ids [skips]", () => {
     const res = await post({ app_ids: [appId, appId], dry_run: false });
 
     const body = await res.json();
-    expect(body.counts).toEqual({ claimed: 1 });
+    expect(body.counts).toEqual({ "production:claimed": 1 });
     expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("claims the staging registry too when it is configured", async () => {
+    // A managed registration mirrors onto staging on production deployments, so
+    // leaving that side free lets a squatter take it and make the later
+    // migration's staging registration fail — while this endpoint still reported
+    // the app as claimed.
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    getStagingRpRegistryConfigMock.mockReturnValue({
+      contractAddress: "0xstagingcontract",
+      kmsRegion: "eu-west-1",
+    });
+
+    const body = await (await run()).json();
+
+    expect(body.counts).toEqual({
+      "production:claimed": 1,
+      "staging:claimed": 1,
+    });
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(2);
+    const contracts = submitRegisterRpTransactionMock.mock.calls.map(
+      (call) => call[0].contractAddress,
+    );
+    expect(contracts).toEqual(["0xcontract", "0xstagingcontract"]);
+  });
+
+  it("reports the registries separately when only one side is free", async () => {
+    // Half-claimed must be visible in the counts rather than collapsing into a
+    // single "claimed".
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    getStagingRpRegistryConfigMock.mockReturnValue({
+      contractAddress: "0xstagingcontract",
+      kmsRegion: "eu-west-1",
+    });
+    getRpFromContractMock.mockImplementation(
+      async (_rpId: bigint, contractAddress: string) => ({
+        initialized: contractAddress === "0xstagingcontract",
+        active: contractAddress === "0xstagingcontract",
+        manager: "0x00000000000000000000000000000000000000ff",
+        signer: "0x00000000000000000000000000000000000000ee",
+      }),
+    );
+
+    const body = await (await run()).json();
+
+    expect(body.counts).toEqual({
+      "production:claimed": 1,
+      "staging:skipped_taken_by_foreign_manager": 1,
+    });
   });
 
   it("records a submission failure without aborting the rest of the batch", async () => {
@@ -273,7 +330,10 @@ describe("/api/_pre-register-rp-ids [skips]", () => {
     });
     const body = await res.json();
 
-    expect(body.counts).toEqual({ failed_submission: 1, claimed: 1 });
+    expect(body.counts).toEqual({
+      "production:failed_submission": 1,
+      "production:claimed": 1,
+    });
   });
 });
 // #endregion

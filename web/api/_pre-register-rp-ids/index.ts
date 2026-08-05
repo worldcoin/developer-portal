@@ -5,8 +5,10 @@ import { getKMSClient } from "@/api/helpers/kms";
 import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import { submitRegisterRpTransaction } from "@/api/helpers/rp-transactions";
 import {
+  addressesEqual,
   generateRpIdString,
   getRpRegistryConfig,
+  getStagingRpRegistryConfig,
   isZeroAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
@@ -183,8 +185,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Only populated on production deployments, matching the managed registration
+  // flow's own staging mirror condition.
+  const stagingConfig =
+    process.env.NEXT_PUBLIC_APP_ENV === "production"
+      ? getStagingRpRegistryConfig()
+      : null;
+
   const client = await getAPIServiceGraphqlClient();
-  const results: { app_id: string; outcome: Outcome; rp_id?: string }[] = [];
+  const results: {
+    app_id: string;
+    registry?: "production" | "staging";
+    outcome: Outcome;
+    rp_id?: string;
+  }[] = [];
 
   for (const appId of appIds) {
     const rpIdString = generateRpIdString(appId);
@@ -220,85 +234,121 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    let onChain;
-    try {
-      onChain = await getRpFromContract(rpId, config.contractAddress);
-    } catch (error) {
-      // Never claim on a failed read: `register()` reverts with IdAlreadyInUse
-      // if the id is taken, so a blind submission burns gas and, worse, a read
-      // failure is indistinguishable from "free" here.
-      logger.warn("Could not read on-chain RP state; skipping", {
-        error,
-        app_id: appId,
-        rpIdString,
-      });
-      results.push({ app_id: appId, outcome: "failed_rpc", rp_id: rpIdString });
-      continue;
-    }
+    // Both registries have to be claimed. A managed registration mirrors onto the
+    // staging registry on production deployments, so leaving that side free lets a
+    // squatter take it and make the later migration's staging registration fail —
+    // and this endpoint would still have reported the app as `claimed`.
+    const registries = [
+      { label: "production" as const, config },
+      ...(stagingConfig
+        ? [{ label: "staging" as const, config: stagingConfig }]
+        : []),
+    ];
 
-    if (onChain.initialized) {
-      const isOurs =
-        onChain.manager?.toLowerCase() === managerAddress.toLowerCase();
-      if (!isOurs) {
-        // Already squatted. Nothing this endpoint can do — the contract has no
-        // reclaim path — but it is the single most important thing to surface.
-        logger.error("rp_id is already held by a foreign manager", {
+    for (const registry of registries) {
+      let onChain;
+      try {
+        onChain = await getRpFromContract(
+          rpId,
+          registry.config.contractAddress,
+        );
+      } catch (error) {
+        // Never claim on a failed read: `register()` reverts with IdAlreadyInUse
+        // if the id is taken, so a blind submission burns gas and, worse, a read
+        // failure is indistinguishable from "free" here.
+        logger.warn("Could not read on-chain RP state; skipping", {
+          error,
           app_id: appId,
           rpIdString,
-          onChainManager: onChain.manager,
-          onChainSigner: onChain.signer,
+          registry: registry.label,
+        });
+        results.push({
+          app_id: appId,
+          registry: registry.label,
+          outcome: "failed_rpc",
+          rp_id: rpIdString,
+        });
+        continue;
+      }
+
+      if (onChain.initialized) {
+        const isOurs = addressesEqual(onChain.manager, managerAddress);
+        if (!isOurs) {
+          // Already squatted. Nothing this endpoint can do — the contract has no
+          // reclaim path — but it is the single most important thing to surface.
+          logger.error("rp_id is already held by a foreign manager", {
+            app_id: appId,
+            rpIdString,
+            registry: registry.label,
+            onChainManager: onChain.manager,
+            onChainSigner: onChain.signer,
+          });
+        }
+        results.push({
+          app_id: appId,
+          registry: registry.label,
+          outcome: isOurs
+            ? "skipped_already_claimed_by_us"
+            : "skipped_taken_by_foreign_manager",
+          rp_id: rpIdString,
+        });
+        continue;
+      }
+
+      if (dryRun) {
+        results.push({
+          app_id: appId,
+          registry: registry.label,
+          outcome: "would_claim",
+          rp_id: rpIdString,
+        });
+        continue;
+      }
+
+      try {
+        const kmsClient = await getKMSClient(registry.config.kmsRegion);
+        const operationHash = await submitRegisterRpTransaction(
+          registry.config,
+          {
+            rpId,
+            managerAddress,
+            signerAddress: placeholderSigner,
+            appName: appInfo.app_metadata?.[0]?.name || "",
+            kmsClient,
+          },
+        );
+        logger.info("Claimed rp_id defensively", {
+          app_id: appId,
+          rpIdString,
+          registry: registry.label,
+          operationHash,
+        });
+        results.push({
+          app_id: appId,
+          registry: registry.label,
+          outcome: "claimed",
+          rp_id: rpIdString,
+        });
+      } catch (error) {
+        logger.error("Failed to claim rp_id", {
+          error,
+          app_id: appId,
+          rpIdString,
+          registry: registry.label,
+        });
+        results.push({
+          app_id: appId,
+          registry: registry.label,
+          outcome: "failed_submission",
+          rp_id: rpIdString,
         });
       }
-      results.push({
-        app_id: appId,
-        outcome: isOurs
-          ? "skipped_already_claimed_by_us"
-          : "skipped_taken_by_foreign_manager",
-        rp_id: rpIdString,
-      });
-      continue;
-    }
-
-    if (dryRun) {
-      results.push({
-        app_id: appId,
-        outcome: "would_claim",
-        rp_id: rpIdString,
-      });
-      continue;
-    }
-
-    try {
-      const kmsClient = await getKMSClient(config.kmsRegion);
-      const operationHash = await submitRegisterRpTransaction(config, {
-        rpId,
-        managerAddress,
-        signerAddress: placeholderSigner,
-        appName: appInfo.app_metadata?.[0]?.name || "",
-        kmsClient,
-      });
-      logger.info("Claimed rp_id defensively", {
-        app_id: appId,
-        rpIdString,
-        operationHash,
-      });
-      results.push({ app_id: appId, outcome: "claimed", rp_id: rpIdString });
-    } catch (error) {
-      logger.error("Failed to claim rp_id", {
-        error,
-        app_id: appId,
-        rpIdString,
-      });
-      results.push({
-        app_id: appId,
-        outcome: "failed_submission",
-        rp_id: rpIdString,
-      });
     }
   }
 
   const counts = results.reduce<Record<string, number>>((acc, r) => {
-    acc[r.outcome] = (acc[r.outcome] ?? 0) + 1;
+    const key = r.registry ? `${r.registry}:${r.outcome}` : r.outcome;
+    acc[key] = (acc[key] ?? 0) + 1;
     return acc;
   }, {});
 
