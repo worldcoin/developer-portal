@@ -1,4 +1,5 @@
 import {
+  candidateRpIdsForApp,
   isUnpredictableRpIdEnabled,
   resolveRpIdForNewRegistration,
 } from "@/api/helpers/rp-id";
@@ -83,6 +84,44 @@ describe("resolveRpIdForNewRegistration [flag on]", () => {
     process.env.RP_ID_SALT = otherSalt;
 
     expect(resolveRpIdForNewRegistration(appId)).not.toBe(before);
+  });
+});
+// #endregion
+
+// #region Candidate enumeration for the self-managed two-read gap
+describe("candidateRpIdsForApp", () => {
+  it("returns only the legacy id when no salt is configured", () => {
+    expect(candidateRpIdsForApp(appId)).toEqual([generateRpIdString(appId)]);
+  });
+
+  it("puts the salted id first when the feature is on", () => {
+    process.env.ENABLE_UNPREDICTABLE_RP_ID = "true";
+    process.env.RP_ID_SALT = salt;
+
+    const candidates = candidateRpIdsForApp(appId);
+
+    expect(candidates).toHaveLength(2);
+    expect(candidates[0]).toBe(resolveRpIdForNewRegistration(appId));
+    // The legacy id stays a candidate so a developer who registered before the
+    // flag flipped on is still matched to their own on-chain registration.
+    expect(candidates[1]).toBe(generateRpIdString(appId));
+  });
+
+  it("puts the legacy id first but still offers the salted one after a rollback", () => {
+    // Flag off with the salt still present: the instructions screen may have
+    // shown the salted id from a task that had the flag on.
+    process.env.RP_ID_SALT = salt;
+
+    const candidates = candidateRpIdsForApp(appId);
+
+    expect(candidates[0]).toBe(generateRpIdString(appId));
+    expect(candidates).toHaveLength(2);
+  });
+
+  it("ignores an unusably short salt rather than deriving with it", () => {
+    process.env.RP_ID_SALT = "short";
+
+    expect(candidateRpIdsForApp(appId)).toEqual([generateRpIdString(appId)]);
   });
 });
 // #endregion

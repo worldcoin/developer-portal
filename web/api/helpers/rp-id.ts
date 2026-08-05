@@ -83,3 +83,43 @@ export function resolveRpIdForNewRegistration(appId: string): `rp_${string}` {
 
   return deriveSaltedRpIdString(appId, salt);
 }
+
+/**
+ * Every rp_id this deployment could have handed out for `appId`, current scheme
+ * first.
+ *
+ * The self-managed flow derives the id twice across a gap it does not control:
+ * the instructions screen shows the developer a number, the developer submits
+ * `register(uint64 rpId, ...)` from their own wallet, and `register_rp` derives
+ * it again to insert the row. If the flag flips between those two reads — a
+ * rolling deploy serves them from tasks with different env, or the feature is
+ * rolled back — the second derivation returns a different id, and the Portal
+ * would store a row for an id nobody registered while the developer's actual
+ * on-chain registration is orphaned. Self-managed rows never time out, so that
+ * app is stuck until someone cleans it up by hand.
+ *
+ * Enumerating the candidates lets the caller pick the one the developer actually
+ * registered. Both values are derived here from the app_id, so nothing
+ * caller-supplied widens what can be claimed.
+ *
+ * Salt *rotation* mid-flow is still not covered — the previous salt is gone by
+ * definition. Rotation should be treated as a deliberate operation, not a
+ * routine one.
+ */
+export function candidateRpIdsForApp(appId: string): `rp_${string}`[] {
+  const legacy = generateRpIdString(appId);
+  const salt = process.env.RP_ID_SALT;
+  const salted =
+    salt && salt.length >= MIN_SALT_LENGTH
+      ? deriveSaltedRpIdString(appId, salt)
+      : null;
+
+  // Current scheme first so it wins when the chain says nothing.
+  const ordered = isUnpredictableRpIdEnabled()
+    ? [salted, legacy]
+    : [legacy, salted];
+
+  return Array.from(
+    new Set(ordered.filter((id): id is `rp_${string}` => Boolean(id))),
+  );
+}

@@ -5,8 +5,17 @@ import {
   submitManagedRpRegistration,
   type ManagedRegistrationResult,
 } from "@/api/helpers/rp-registration-flows";
-import { resolveRpIdForNewRegistration } from "@/api/helpers/rp-id";
-import { normalizeAddress, RpRegistrationStatus } from "@/api/helpers/rp-utils";
+import {
+  candidateRpIdsForApp,
+  resolveRpIdForNewRegistration,
+} from "@/api/helpers/rp-id";
+import {
+  getRpRegistryConfig,
+  normalizeAddress,
+  parseRpId,
+  RpRegistrationStatus,
+} from "@/api/helpers/rp-utils";
+import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
@@ -159,6 +168,47 @@ export const POST = async (req: NextRequest) => {
         code: "config_error",
         app_id,
       });
+    }
+
+    // ...unless the derivation changed between the two reads. The developer saw
+    // a number on the instructions screen and registered THAT one on-chain from
+    // their own wallet; if the flag flipped in between — a rolling deploy serving
+    // the two requests from tasks with different env, or a rollback — deriving
+    // again here yields a different id, and we would store a row for an id nobody
+    // registered while their real registration is orphaned. Self-managed rows
+    // never time out, so that app would be stuck until manual cleanup.
+    //
+    // Prefer whichever candidate the chain says is actually registered. Both are
+    // derived from the app_id server-side, so this cannot be steered into
+    // claiming an arbitrary id. Best-effort: if the reads fail, keep the
+    // currently-derived id, which is the pre-existing behaviour.
+    const selfManagedConfig = getRpRegistryConfig();
+    const candidates = candidateRpIdsForApp(app_id);
+    if (selfManagedConfig && candidates.length > 1) {
+      for (const candidate of candidates) {
+        try {
+          const onChain = await getRpFromContract(
+            parseRpId(candidate),
+            selfManagedConfig.contractAddress,
+          );
+          if (onChain.initialized) {
+            if (candidate !== rpIdString) {
+              logger.warn(
+                "Self-managed rp_id scheme changed mid-flow; using the id the developer registered",
+                { app_id, derived: rpIdString, registered: candidate },
+              );
+              rpIdString = candidate;
+            }
+            break;
+          }
+        } catch (error) {
+          logger.warn("Could not read on-chain state for an rp_id candidate", {
+            error,
+            app_id,
+            candidate,
+          });
+        }
+      }
     }
     const { insert_rp_registration_one: claimedSlot } = await getClaimRpSdk(
       client,
