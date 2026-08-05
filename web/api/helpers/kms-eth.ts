@@ -218,10 +218,11 @@ async function signWithKms(
   keyId: string,
   digest: Uint8Array,
   expectedAddress: string,
+  region?: string,
 ): Promise<EthSignature> {
   const { Signature: derSignature } = await client.send(
     new SignCommand({
-      KeyId: resolveKeyId(keyId),
+      KeyId: resolveKeyId(keyId, region),
       Message: digest,
       MessageType: "DIGEST",
       SigningAlgorithm: "ECDSA_SHA_256",
@@ -310,19 +311,26 @@ export async function createManagerKey(
 
 /**
  * Signs a 32-byte digest with a KMS key and returns an Ethereum signature.
+ *
+ * `region` must be the region the key lives in whenever that is not
+ * `AWS_REGION_NAME` — it reaches `resolveKeyId` on both the address lookup and
+ * the SignCommand, and a bare key ID expands to an ARN that carries its own
+ * region. Getting the address right but not the signature just moves the failure
+ * from status reconciliation to submission.
  */
 export async function signEthDigestWithKms(
   client: KMSClient,
   keyId: string,
   digest: Uint8Array,
+  region?: string,
 ): Promise<EthSignature | undefined> {
   if (digest.length !== 32) {
     return undefined;
   }
 
   try {
-    const address = await getEthAddressFromKMS(client, keyId);
-    return await signWithKms(client, keyId, digest, address);
+    const address = await getEthAddressFromKMS(client, keyId, region);
+    return await signWithKms(client, keyId, digest, address, region);
   } catch {
     return undefined;
   }
