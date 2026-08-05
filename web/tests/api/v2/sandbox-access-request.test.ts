@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 const getSession = jest.fn();
 const InsertSandboxAccessRequest = jest.fn();
 const GetSandboxAccessRequest = jest.fn();
+const sendEmail = jest.fn();
 
 jest.mock("server-only", () => ({}));
 
@@ -13,6 +14,10 @@ jest.mock("@/lib/auth0", () => ({
 
 jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
+}));
+
+jest.mock("@/api/helpers/send-email", () => ({
+  sendEmail: (...args: unknown[]) => sendEmail(...args),
 }));
 
 jest.mock(
@@ -68,6 +73,11 @@ const authedSession = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  process.env.SENDGRID_API_KEY = "sg-test-key";
+  process.env.SENDGRID_EMAIL_FROM = "no-reply@worldcoin.org";
+  process.env.SANDBOX_ACCESS_NOTIFY_EMAIL =
+    "sandbox.access@toolsforhumanity.com";
+
   InsertSandboxAccessRequest.mockResolvedValue({
     insert_sandbox_access_request_one: {
       id: "sbxreq_abc123",
@@ -79,6 +89,7 @@ beforeEach(() => {
   GetSandboxAccessRequest.mockResolvedValue({
     sandbox_access_request: [storedRequest],
   });
+  sendEmail.mockResolvedValue(true);
 });
 
 // #region /api/v2/sandbox-access-request
@@ -90,6 +101,7 @@ describe("/api/v2/sandbox-access-request", () => {
 
     expect(res.status).toBe(401);
     expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 
   it("returns 401 when the session has no Hasura user id", async () => {
@@ -112,7 +124,7 @@ describe("/api/v2/sandbox-access-request", () => {
     expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
   });
 
-  it("records the request for the authenticated user", async () => {
+  it("records the request and notifies the sandbox ops inbox", async () => {
     getSession.mockResolvedValue(authedSession);
 
     const res = await POST(makeRequest(validBody));
@@ -130,9 +142,26 @@ describe("/api/v2/sandbox-access-request", () => {
       google_email: "tester@gmail.com",
       user_id: USER_ID,
     });
+    expect(sendEmail).toHaveBeenCalledWith({
+      apiKey: "sg-test-key",
+      from: "no-reply@worldcoin.org",
+      to: "sandbox.access@toolsforhumanity.com",
+      subject: "New World ID Sandbox access request",
+      text: expect.stringContaining("tester@gmail.com"),
+    });
   });
 
-  it("returns the stored state without regressing a processed request", async () => {
+  it("still succeeds when ops notification email fails", async () => {
+    getSession.mockResolvedValue(authedSession);
+    sendEmail.mockRejectedValue(new Error("sendgrid down"));
+
+    const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ success: true });
+  });
+
+  it("returns the stored state without re-notifying on conflict", async () => {
     getSession.mockResolvedValue(authedSession);
     InsertSandboxAccessRequest.mockResolvedValue({
       insert_sandbox_access_request_one: null,
@@ -162,6 +191,7 @@ describe("/api/v2/sandbox-access-request", () => {
       google_email: "tester@gmail.com",
       user_id: USER_ID,
     });
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 
   it("returns 500 when the insert fails", async () => {
@@ -172,6 +202,7 @@ describe("/api/v2/sandbox-access-request", () => {
 
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ success: false });
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 });
 // #endregion

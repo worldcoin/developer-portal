@@ -18,7 +18,8 @@ import { AppStoreActions } from "../AppStoreActions";
 import { BasicInformationHandle } from "../BasicInformation";
 import { useCreateNewDraft } from "../hook/use-create-new-draft";
 import { isMiniAppAtom, viewModeAtom } from "../layout/ImagesProvider";
-import { SaveStatusIndicator } from "../SaveStatus";
+import { SaveStatusIndicator, useSaveStatusActions } from "../SaveStatus";
+import { SetupForm as MiniAppPermissionsForm } from "../../MiniApp/PermissionsForm";
 import { AvailabilityStep } from "./AvailabilityStep";
 import {
   BasicInformationStep,
@@ -75,6 +76,7 @@ export const ConfigurationWizard = (props: {
    * outside would push the docked action bar below the fold.
    */
   banner?: React.ReactNode;
+  onVersionSwitchingChange?: (isSwitching: boolean) => void;
 }) => {
   const {
     appId,
@@ -89,6 +91,8 @@ export const ConfigurationWizard = (props: {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { user } = useUser() as Auth0SessionUser;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
+  const saveStatusActions = useSaveStatusActions();
+  const [isSwitchingVersion, setIsSwitchingVersion] = useState(false);
 
   // Seed the optimistic mode atom from the row before using it for later
   // in-place mode changes. Until this row is synced, derive the first render
@@ -121,7 +125,7 @@ export const ConfigurationWizard = (props: {
     [setActiveStep],
   );
 
-  // Switching to external drops the store-listing step; land somewhere valid.
+  // Switching to external drops the Mini App-only steps; land somewhere valid.
   useEffect(() => {
     if (!steps.some((step) => step.id === activeStep)) {
       handleStepChange(WizardStep.AVAILABILITY);
@@ -165,6 +169,37 @@ export const ConfigurationWizard = (props: {
   const showVersionAction =
     hasVerified && (!isVerifiedView || hasDraft || canManageDraft);
 
+  const handleVersionAction = useCallback(async () => {
+    setIsSwitchingVersion(true);
+    props.onVersionSwitchingChange?.(true);
+
+    try {
+      const didFlush = (await saveStatusActions?.flushAll()) ?? true;
+      if (!didFlush) return;
+
+      if (!isVerifiedView) {
+        setViewMode("verified");
+        return;
+      }
+      if (hasDraft) {
+        setViewMode("unverified");
+        return;
+      }
+
+      await createNewDraft();
+    } finally {
+      setIsSwitchingVersion(false);
+      props.onVersionSwitchingChange?.(false);
+    }
+  }, [
+    createNewDraft,
+    hasDraft,
+    isVerifiedView,
+    props.onVersionSwitchingChange,
+    saveStatusActions,
+    setViewMode,
+  ]);
+
   const logoUrl = useResolvedLogoUrl(appId, appMetadata as AppMetadata);
 
   const stepWrapperClassName = (step: WizardStep, marginClassName: string) =>
@@ -177,7 +212,12 @@ export const ConfigurationWizard = (props: {
     // previous page's docked layout. overflow-x-clip keeps stray wide content
     // from ever handing the shell a horizontal scrollbar (which focus would
     // then jump along).
-    <div className={wizardFrameClassName}>
+    <div
+      data-testid="configuration-wizard"
+      className={wizardFrameClassName}
+      aria-busy={isSwitchingVersion}
+      inert={isSwitchingVersion ? true : undefined}
+    >
       {props.banner && (
         <div className="mx-auto mb-6 w-full max-w-[626px] shrink-0">
           {props.banner}
@@ -246,15 +286,31 @@ export const ConfigurationWizard = (props: {
           </div>
 
           {isMiniApp && (
-            <div
-              className={stepWrapperClassName(
-                WizardStep.STORE_LISTING,
-                "mx-auto mt-[76px] max-w-[626px]",
-              )}
-              aria-hidden={activeStep !== WizardStep.STORE_LISTING}
-            >
-              <StoreListingStep />
-            </div>
+            <>
+              <div
+                className={stepWrapperClassName(
+                  WizardStep.STORE_LISTING,
+                  "mx-auto mt-[76px] max-w-[626px]",
+                )}
+                aria-hidden={activeStep !== WizardStep.STORE_LISTING}
+              >
+                <StoreListingStep />
+              </div>
+
+              <div
+                className={stepWrapperClassName(
+                  WizardStep.MINI_APP_PERMISSIONS,
+                  "mx-auto mt-[76px] max-w-[626px]",
+                )}
+                aria-hidden={activeStep !== WizardStep.MINI_APP_PERMISSIONS}
+              >
+                <MiniAppPermissionsForm
+                  appId={appId}
+                  teamId={teamId}
+                  appMetadata={appMetadata}
+                />
+              </div>
+            </>
           )}
 
           <div
@@ -314,20 +370,9 @@ export const ConfigurationWizard = (props: {
             {showVersionAction && (
               <button
                 type="button"
-                disabled={isCreating}
+                disabled={isCreating || isSwitchingVersion}
                 className={clsx(secondaryButtonClassName, "gap-2")}
-                onClick={() => {
-                  if (!isVerifiedView) {
-                    setViewMode("verified");
-                    return;
-                  }
-                  if (hasDraft) {
-                    setViewMode("unverified");
-                  } else {
-                    // The draft hook flips the view after the new row lands.
-                    void createNewDraft();
-                  }
-                }}
+                onClick={() => void handleVersionAction()}
               >
                 {/* Named for the destination, not the current view — with the
                     destination's icon so the pair reads as a toggle. */}

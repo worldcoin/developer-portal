@@ -1,6 +1,8 @@
 "use client";
 
 import { ErrorPage } from "@/components/ErrorPage";
+import { formCountriesList } from "@/lib/languages";
+import { preloadIcons } from "@/scenes/PortalV3/common/Icon";
 import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
@@ -8,6 +10,7 @@ import { useQuery } from "@apollo/client/react";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { preload } from "react-dom";
 import { AppStoreFormProvider } from "../AppStore/app-store-form-provider";
 import {
   AppMetadata,
@@ -26,6 +29,24 @@ type ConfigurationWizardPageProps = {
 };
 
 /**
+ * Portal-v3 icons used across Get verified wizard steps. Warm with the page
+ * layout so conditional / late-visible glyphs aren't blank on first paint.
+ */
+const configurationWizardPreloadIcons = [
+  "share-ios", // LogoDropZone + LocalisedContentStep empty drop zones
+  "radio-check", // Stepper completed steps + AppModeCards selection
+  "star", // ReviewStep rating placeholder
+  "xmark", // ChipSelect remove on selected chips
+  "dropdown-check", // ChipSelect selected option in country/language lists
+] as const;
+
+// Country flags only mount inside the Availability dropdown — warm them with
+// the Get verified layout so the list isn't blank on first open.
+const configurationWizardPreloadFlagHrefs = formCountriesList().map(
+  (country) => `/icons/flags/${country.value}.svg`,
+);
+
+/**
  * Route entry for the redesigned configuration wizard. Mirrors the previous
  * page's data plumbing exactly: draft/verified row selection via the shared
  * view-mode atom, the keyed form provider (remounts on row/view change), the
@@ -34,10 +55,16 @@ type ConfigurationWizardPageProps = {
 export const ConfigurationWizardPage = ({
   params,
 }: ConfigurationWizardPageProps) => {
+  preloadIcons(configurationWizardPreloadIcons);
+  for (const href of configurationWizardPreloadFlagHrefs) {
+    preload(href, { as: "image", type: "image/svg+xml" });
+  }
+
   const routeParams = useParams<{ appId: `app_${string}`; teamId: string }>();
   const appId = (params?.appId || routeParams?.appId) as `app_${string}`;
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
+  const [isVersionSwitching, setIsVersionSwitching] = useState(false);
 
   // Lives here — ABOVE the keyed AppStoreFormProvider — so a provider remount
   // (metadata row change / view switch mid-autosave) can't yank the user back
@@ -102,41 +129,58 @@ export const ConfigurationWizardPage = ({
   }
 
   return (
-    <AppStoreFormProvider
-      key={`${appMetadata.id}-${viewMode}`}
-      appMetadata={appMetadata as AppMetadata}
-      localisationsData={
-        (localisationsData?.localisations || []) as LocalisationData
-      }
-    >
-      <SaveStatusProvider>
-        <ResolveModal
-          open={showResolveModal}
-          setOpen={setShowResolveModal}
-          reviewMessage={appMetadata?.review_message}
-          onResolve={removeFromReview}
-        />
-
-        <ConfigurationWizard
-          appId={appId}
-          teamId={teamId}
-          app={app}
-          appMetadata={appMetadata}
-          teamName={app.team?.name ?? ""}
-          activeStep={activeStep}
-          setActiveStep={setActiveStep}
-          // Inside the wizard's fixed frame: rendered out here it would push
-          // the docked action bar below the fold.
-          banner={
-            isRejected ? (
-              <RejectionBanner
-                message={appMetadata?.review_message}
-                onResolve={() => setShowResolveModal(true)}
-              />
-            ) : undefined
+    <div className="relative w-full" aria-busy={isVersionSwitching}>
+      <div
+        className={isVersionSwitching ? "invisible" : undefined}
+        aria-hidden={isVersionSwitching || undefined}
+      >
+        <AppStoreFormProvider
+          key={`${appMetadata.id}-${viewMode}`}
+          appMetadata={appMetadata as AppMetadata}
+          localisationsData={
+            (localisationsData?.localisations || []) as LocalisationData
           }
-        />
-      </SaveStatusProvider>
-    </AppStoreFormProvider>
+        >
+          <SaveStatusProvider>
+            <ResolveModal
+              open={showResolveModal}
+              setOpen={setShowResolveModal}
+              reviewMessage={appMetadata?.review_message}
+              onResolve={removeFromReview}
+            />
+
+            <ConfigurationWizard
+              appId={appId}
+              teamId={teamId}
+              app={app}
+              appMetadata={appMetadata}
+              teamName={app.team?.name ?? ""}
+              activeStep={activeStep}
+              setActiveStep={setActiveStep}
+              onVersionSwitchingChange={setIsVersionSwitching}
+              // Inside the wizard's fixed frame: rendered out here it would push
+              // the docked action bar below the fold.
+              banner={
+                isRejected ? (
+                  <RejectionBanner
+                    message={appMetadata?.review_message}
+                    onResolve={() => setShowResolveModal(true)}
+                  />
+                ) : undefined
+              }
+            />
+          </SaveStatusProvider>
+        </AppStoreFormProvider>
+      </div>
+
+      {isVersionSwitching && (
+        <div
+          data-testid="configuration-version-switch-skeleton"
+          className="absolute inset-0 z-10 bg-white"
+        >
+          <ConfigurationWizardSkeleton />
+        </div>
+      )}
+    </div>
   );
 };

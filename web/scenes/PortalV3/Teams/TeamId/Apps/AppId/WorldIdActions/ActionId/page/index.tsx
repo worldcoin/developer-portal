@@ -1,7 +1,9 @@
 "use client";
 
 import { ErrorPage } from "@/components/ErrorPage";
+import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { TextField } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/TextField";
 import { urls } from "@/lib/urls";
 import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { useQuery } from "@apollo/client/react";
@@ -68,16 +70,21 @@ export const WorldIdActionDetailPage = (props: {
             Actions
           </Link>
           <span className="font-world text-13 text-portal-subtle">/</span>
-          {!action ? (
-            <Skeleton width={120} />
-          ) : (
+          {!action && (
+            // Same type ramp as the loaded name — a bare Skeleton inherits
+            // the 16px base and makes this row 3px taller than loaded.
+            <span className="font-ibm text-13 font-medium">
+              <Skeleton width={120} />
+            </span>
+          )}
+          {action && (
             <span className="font-ibm text-13 font-medium text-portal-heading">
               {action.action}
             </span>
           )}
         </div>
 
-        {action ? (
+        {action && (
           <UpdateActionV4Form
             key={action.id}
             action={action}
@@ -85,10 +92,25 @@ export const WorldIdActionDetailPage = (props: {
             canModify={canModify}
             onUpdated={() => void refetch().catch(() => {})}
           />
-        ) : (
-          <div className="grid gap-4 rounded-16 border border-portal-border bg-white p-5 shadow-portal-card md:grid-cols-2">
-            <Skeleton height={48} />
-            <Skeleton height={48} />
+        )}
+        {!action && (
+          // UpdateActionV4Form's chrome with shimmer values, so the loaded
+          // form fills in place.
+          <div aria-hidden className="flex w-full flex-col gap-4">
+            <TextField
+              label="Action identifier"
+              value=""
+              readOnly
+              muted
+              loading
+              trailing={
+                <CopyIcon
+                  aria-hidden
+                  className="size-5 shrink-0 text-portal-ink"
+                />
+              }
+            />
+            <TextField label="Short description" value="" loading />
           </div>
         )}
 

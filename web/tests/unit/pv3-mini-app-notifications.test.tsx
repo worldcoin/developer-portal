@@ -138,12 +138,19 @@ describe("NotificationsPage metadata states", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("keeps external apps blocked", () => {
+  it("explains how external apps can enable notifications", () => {
     setMetadata({ draft: true, draftAppMode: "external" });
 
     render(<NotificationsPage />);
 
     expect(screen.getByText("Notifications unavailable")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Notifications are available to Mini Apps/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Get Verified" })).toHaveAttribute(
+      "href",
+      `/teams/${teamId}/apps/${appId}/configuration`,
+    );
     expect(
       screen.queryByRole("button", { name: "Send notification" }),
     ).not.toBeInTheDocument();
@@ -157,6 +164,23 @@ describe("NotificationsPage metadata states", () => {
     expect(
       screen.getByRole("button", { name: "Send notification" }),
     ).toBeInTheDocument();
+  });
+
+  it("places the information note below the heading at the form width", () => {
+    setMetadata({ draft: true });
+
+    render(<NotificationsPage />);
+
+    const content = screen.getByRole("region", { name: "Notifications" });
+    const heading = screen.getByRole("heading", { name: "Notifications" });
+    const note = screen.getByText(
+      /Send notifications to specific wallet addresses/,
+    );
+
+    expect(content).toHaveClass("max-w-[580px]");
+    expect(
+      heading.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   it("uses verified Mini App metadata before an external draft", () => {
@@ -183,6 +207,11 @@ describe("NotificationsPage metadata states", () => {
     render(<NotificationsPage />);
 
     expect(screen.getByText("Notifications unavailable")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /notifications remain unavailable until the draft is approved/,
+      ),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Send notification" }),
     ).not.toBeInTheDocument();

@@ -9,8 +9,21 @@
 // result so each caller (Hasura action vs JSON-RPC) can format its own
 // error envelope without parsing exception messages.
 
+import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
+import { getSdk as getDeleteRpSdk } from "@/api/hasura/register-rp/graphql/delete-rp-registration.generated";
+import { getSdk as getUpdateRpSdk } from "@/api/hasura/register-rp/graphql/update-rp-registration.generated";
+import { getSdk as getVerifySchemaSdk } from "@/api/hasura/register-rp/graphql/verify-manager-key-schema.generated";
+import { getSdk as getClaimRotationSdk } from "@/api/hasura/rotate-signer-key/graphql/claim-rotation-slot.generated";
+import { getSdk as getRpRegistrationSdk } from "@/api/hasura/rotate-signer-key/graphql/get-rp-registration.generated";
+import { getSdk as getRevertStatusSdk } from "@/api/hasura/rotate-signer-key/graphql/revert-rotation-status.generated";
+import { getSdk as getUpdateResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-rotation-result.generated";
+import { getSdk as getUpdateStagingResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-staging-rotation-result.generated";
+import { getSdk as getClaimToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/claim-toggle-slot.generated";
+import { getSdk as getResetStalePendingSdk } from "@/api/hasura/toggle-rp-active/graphql/reset-stale-pending-rp.generated";
+import { getSdk as getRevertToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/revert-toggle-status.generated";
+import { getSdk as getUpdateToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
-import { createManagerKey } from "@/api/helpers/kms-eth";
+import { createManagerKey, getEthAddressFromKMS } from "@/api/helpers/kms-eth";
 import {
   submitRegisterRpTransaction,
   submitRotateSignerTransaction,
@@ -25,18 +38,6 @@ import {
 } from "@/api/helpers/rp-utils";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
-import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
-import { getSdk as getDeleteRpSdk } from "@/api/hasura/register-rp/graphql/delete-rp-registration.generated";
-import { getSdk as getUpdateRpSdk } from "@/api/hasura/register-rp/graphql/update-rp-registration.generated";
-import { getSdk as getClaimRotationSdk } from "@/api/hasura/rotate-signer-key/graphql/claim-rotation-slot.generated";
-import { getSdk as getRpRegistrationSdk } from "@/api/hasura/rotate-signer-key/graphql/get-rp-registration.generated";
-import { getSdk as getRevertStatusSdk } from "@/api/hasura/rotate-signer-key/graphql/revert-rotation-status.generated";
-import { getSdk as getUpdateResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-rotation-result.generated";
-import { getSdk as getUpdateStagingResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-staging-rotation-result.generated";
-import { getSdk as getClaimToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/claim-toggle-slot.generated";
-import { getSdk as getResetStalePendingSdk } from "@/api/hasura/toggle-rp-active/graphql/reset-stale-pending-rp.generated";
-import { getSdk as getRevertToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/revert-toggle-status.generated";
-import { getSdk as getUpdateToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
 import { logger } from "@/lib/logger";
@@ -168,6 +169,27 @@ export async function submitManagedRpRegistration({
 
   // Slot is now claimed; any failure between here and the final DB write
   // must release it so retries don't bounce off `already_registered`.
+
+  // is_unique_manager_key is written together with the manager key at the end
+  // of this flow. If the migration adding it has not been applied yet, fail
+  // here rather than after the on-chain transaction has been submitted.
+  try {
+    await getVerifySchemaSdk(client).VerifyManagerKeySchema({
+      rp_id: rpIdString,
+    });
+  } catch (error) {
+    logger.error("rp_registration schema is missing is_unique_manager_key", {
+      error,
+      app_id: appId,
+    });
+    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    return {
+      ok: false,
+      code: "db_error",
+      detail: "Registration schema is not ready.",
+    };
+  }
+
   let kmsClient;
   try {
     kmsClient = await getKMSClient(primaryConfig.kmsRegion);
@@ -184,17 +206,54 @@ export async function submitManagedRpRegistration({
     };
   }
 
-  const managerKeyResult = await createManagerKey(kmsClient, rpIdString);
-  if (!managerKeyResult) {
-    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
-    return {
-      ok: false,
-      code: "kms_error",
-      detail: "Failed to create manager key.",
-    };
-  }
+  let managerKmsKeyId: string;
+  let managerAddress: string;
+  let isUniqueManagerKey: boolean;
 
-  const { keyId: managerKmsKeyId, address: managerAddress } = managerKeyResult;
+  const useSharedManagerKey =
+    process.env.ENABLE_SHARED_KEY_RP_REGISTRATION === "true";
+
+  if (useSharedManagerKey) {
+    const sharedKeyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID?.trim();
+    if (!sharedKeyId) {
+      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+      return {
+        ok: false,
+        code: "kms_error",
+        detail: "Shared manager key is not configured.",
+      };
+    }
+
+    try {
+      managerAddress = await getEthAddressFromKMS(kmsClient, sharedKeyId);
+      managerKmsKeyId = sharedKeyId;
+      isUniqueManagerKey = false;
+    } catch (error) {
+      logger.error("Failed to derive address for shared manager key", {
+        error,
+        app_id: appId,
+      });
+      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+      return {
+        ok: false,
+        code: "kms_error",
+        detail: "Failed to resolve manager key.",
+      };
+    }
+  } else {
+    const created = await createManagerKey(kmsClient, rpIdString);
+    if (!created) {
+      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+      return {
+        ok: false,
+        code: "kms_error",
+        detail: "Failed to create manager key.",
+      };
+    }
+    managerKmsKeyId = created.keyId;
+    managerAddress = created.address;
+    isUniqueManagerKey = true;
+  }
 
   let operationHash: string;
   try {
@@ -210,7 +269,9 @@ export async function submitManagedRpRegistration({
       error,
       app_id: appId,
     });
-    await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    if (isUniqueManagerKey) {
+      await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    }
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
     return {
       ok: false,
@@ -262,6 +323,7 @@ export async function submitManagedRpRegistration({
     ).UpdateRpRegistration({
       rp_id: rpIdString,
       manager_kms_key_id: managerKmsKeyId,
+      is_unique_manager_key: isUniqueManagerKey,
       operation_hash: operationHash,
       staging_operation_hash: stagingOperationHash,
       staging_status: stagingStatus,

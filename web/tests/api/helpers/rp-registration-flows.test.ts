@@ -3,12 +3,38 @@ import {
   submitManagedRpRegistration,
   submitManagedSignerRotation,
 } from "@/api/helpers/rp-registration-flows";
+import { scheduleKeyDeletion } from "@/api/helpers/kms";
+import { createManagerKey, getEthAddressFromKMS } from "@/api/helpers/kms-eth";
 
 // #region Mocks
 const GetRpRegistration = jest.fn();
 jest.mock(
   "@/api/hasura/rotate-signer-key/graphql/get-rp-registration.generated",
   () => ({ getSdk: () => ({ GetRpRegistration }) }),
+);
+
+const ClaimRpRegistration = jest.fn();
+jest.mock(
+  "@/api/hasura/register-rp/graphql/claim-rp-registration.generated",
+  () => ({ getSdk: () => ({ ClaimRpRegistration }) }),
+);
+
+const DeleteRpRegistration = jest.fn();
+jest.mock(
+  "@/api/hasura/register-rp/graphql/delete-rp-registration.generated",
+  () => ({ getSdk: () => ({ DeleteRpRegistration }) }),
+);
+
+const UpdateRpRegistration = jest.fn();
+jest.mock(
+  "@/api/hasura/register-rp/graphql/update-rp-registration.generated",
+  () => ({ getSdk: () => ({ UpdateRpRegistration }) }),
+);
+
+const VerifyManagerKeySchema = jest.fn();
+jest.mock(
+  "@/api/hasura/register-rp/graphql/verify-manager-key-schema.generated",
+  () => ({ getSdk: () => ({ VerifyManagerKeySchema }) }),
 );
 
 const ClaimToggleSlot = jest.fn();
@@ -59,26 +85,6 @@ jest.mock(
   () => ({ getSdk: () => ({ ClaimRotationSlot }) }),
 );
 
-// Registration-path mutations — the collision suite asserts they are NOT
-// reached when the rp_id is already taken on-chain.
-const ClaimRpRegistration = jest.fn();
-jest.mock(
-  "@/api/hasura/register-rp/graphql/claim-rp-registration.generated",
-  () => ({ getSdk: () => ({ ClaimRpRegistration }) }),
-);
-
-const DeleteRpRegistration = jest.fn();
-jest.mock(
-  "@/api/hasura/register-rp/graphql/delete-rp-registration.generated",
-  () => ({ getSdk: () => ({ DeleteRpRegistration }) }),
-);
-
-const UpdateRpRegistration = jest.fn();
-jest.mock(
-  "@/api/hasura/register-rp/graphql/update-rp-registration.generated",
-  () => ({ getSdk: () => ({ UpdateRpRegistration }) }),
-);
-
 const getRpFromContractMock = jest.fn();
 jest.mock("@/api/helpers/temporal-rpc", () => ({
   getRpFromContract: (...args: unknown[]) => getRpFromContractMock(...args),
@@ -99,9 +105,9 @@ jest.mock("@/api/helpers/kms", () => ({
   scheduleKeyDeletion: jest.fn(),
 }));
 
-const createManagerKeyMock = jest.fn();
 jest.mock("@/api/helpers/kms-eth", () => ({
-  createManagerKey: (...args: unknown[]) => createManagerKeyMock(...args),
+  createManagerKey: jest.fn(),
+  getEthAddressFromKMS: jest.fn(),
 }));
 
 const mockGetRpRegistryConfig = jest.fn();
@@ -133,6 +139,7 @@ const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
   status: "registered",
   signer_address: "0x1111111111111111111111111111111111111111",
   manager_kms_key_id: "kms-key-123",
+  is_unique_manager_key: true,
   operation_hash: null,
   staging_status: null,
   // Stale by default; pending-specific tests override to a fresh timestamp.
@@ -146,11 +153,19 @@ const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
+const signerAddress = "0x1111111111111111111111111111111111111111";
+const managerAddress = "0x2222222222222222222222222222222222222222";
+const sharedManagerKeyArn =
+  "arn:aws:kms:eu-west-1:000000000000:key/shared-manager";
+const dedicatedManagerKeyId = "dedicated-kms-key";
+
 beforeEach(() => {
   jest.clearAllMocks();
   // Non-production by default so the staging mirror is out of scope; the
   // staging suite opts in explicitly.
   process.env.NEXT_PUBLIC_APP_ENV = "test";
+  delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
+  delete process.env.ENABLE_SHARED_KEY_RP_REGISTRATION;
   mockGetRpRegistryConfig.mockReturnValue({
     contractAddress: "0xcontract",
     kmsRegion: "us-east-1",
@@ -183,15 +198,196 @@ beforeEach(() => {
   ClaimRpRegistration.mockResolvedValue({
     insert_rp_registration_one: { rp_id: rpId },
   });
+  DeleteRpRegistration.mockResolvedValue({
+    delete_rp_registration_by_pk: { rp_id: rpId },
+  });
   UpdateRpRegistration.mockResolvedValue({
     update_rp_registration_by_pk: { rp_id: rpId },
   });
-  createManagerKeyMock.mockResolvedValue({
-    keyId: "kms-key-123",
-    address: "0x2222222222222222222222222222222222222222",
+  VerifyManagerKeySchema.mockResolvedValue({
+    rp_registration_by_pk: { rp_id: rpId, is_unique_manager_key: false },
   });
-  submitRegisterRpTransactionMock.mockResolvedValue("0xregisterop");
+  submitRegisterRpTransactionMock.mockResolvedValue("0xregophash");
+  (createManagerKey as jest.Mock).mockResolvedValue({
+    keyId: dedicatedManagerKeyId,
+    address: managerAddress,
+    createdAt: new Date(),
+  });
+  (getEthAddressFromKMS as jest.Mock).mockResolvedValue(managerAddress);
 });
+
+// #region submitManagedRpRegistration
+describe("submitManagedRpRegistration", () => {
+  const registrationArgs = {
+    client,
+    appId,
+    signerAddress,
+    appName: "Test App",
+    isStaging: false,
+  };
+
+  // A first-time registration means the rp_id is still free on-chain. The
+  // top-level default models an already-registered RP for the rotation and
+  // deactivation suites, which the collision guard would reject as foreign.
+  beforeEach(() => {
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+      manager: `0x${"0".repeat(40)}`,
+      signer: `0x${"0".repeat(40)}`,
+    });
+  });
+
+  it("persists the shared manager key without creating a dedicated key", async () => {
+    process.env.ENABLE_SHARED_KEY_RP_REGISTRATION = "true";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toMatchObject({
+      ok: true,
+      managerAddress,
+      operationHash: "0xregophash",
+      status: "pending",
+    });
+    expect(getEthAddressFromKMS).toHaveBeenCalledWith(
+      expect.anything(),
+      sharedManagerKeyArn,
+    );
+    expect(createManagerKey).not.toHaveBeenCalled();
+    expect(UpdateRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+      manager_kms_key_id: sharedManagerKeyArn,
+      is_unique_manager_key: false,
+      operation_hash: "0xregophash",
+      staging_operation_hash: null,
+      staging_status: null,
+    });
+    expect(scheduleKeyDeletion).not.toHaveBeenCalled();
+  });
+
+  it("does not schedule shared key deletion when registration submission fails", async () => {
+    process.env.ENABLE_SHARED_KEY_RP_REGISTRATION = "true";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    submitRegisterRpTransactionMock.mockRejectedValue(new Error("boom"));
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toEqual({
+      ok: false,
+      code: "submission_error",
+      detail: "Failed to submit registration transaction.",
+    });
+    expect(scheduleKeyDeletion).not.toHaveBeenCalled();
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
+  });
+
+  it("aborts before any KMS or on-chain work when is_unique_manager_key is missing", async () => {
+    VerifyManagerKeySchema.mockRejectedValue(
+      new Error("field 'is_unique_manager_key' not found in type"),
+    );
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toEqual({
+      ok: false,
+      code: "db_error",
+      detail: "Registration schema is not ready.",
+    });
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
+    expect(createManagerKey).not.toHaveBeenCalled();
+    expect(getEthAddressFromKMS).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("returns kms_error when shared mode is enabled but the shared key ARN is missing", async () => {
+    process.env.ENABLE_SHARED_KEY_RP_REGISTRATION = "true";
+    delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toEqual({
+      ok: false,
+      code: "kms_error",
+      detail: "Shared manager key is not configured.",
+    });
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
+    expect(createManagerKey).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("returns kms_error and releases the slot when dedicated key creation fails", async () => {
+    (createManagerKey as jest.Mock).mockResolvedValue(undefined);
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toEqual({
+      ok: false,
+      code: "kms_error",
+      detail: "Failed to create manager key.",
+    });
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
+    expect(scheduleKeyDeletion).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("creates a dedicated key and deletes it when registration submission fails", async () => {
+    submitRegisterRpTransactionMock.mockRejectedValue(new Error("boom"));
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toEqual({
+      ok: false,
+      code: "submission_error",
+      detail: "Failed to submit registration transaction.",
+    });
+    expect(scheduleKeyDeletion).toHaveBeenCalledWith(
+      expect.anything(),
+      dedicatedManagerKeyId,
+    );
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
+  });
+
+  it("persists is_unique_manager_key true for a dedicated key", async () => {
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toMatchObject({ ok: true });
+    expect(createManagerKey).toHaveBeenCalledTimes(1);
+    expect(UpdateRpRegistration).toHaveBeenCalledWith(
+      expect.objectContaining({
+        manager_kms_key_id: dedicatedManagerKeyId,
+        is_unique_manager_key: true,
+      }),
+    );
+  });
+
+  it("keeps creating dedicated keys when ENABLE is unset even if ARN is present", async () => {
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toMatchObject({ ok: true });
+    expect(createManagerKey).toHaveBeenCalledTimes(1);
+    expect(getEthAddressFromKMS).not.toHaveBeenCalled();
+    expect(UpdateRpRegistration).toHaveBeenCalledWith(
+      expect.objectContaining({
+        manager_kms_key_id: dedicatedManagerKeyId,
+        is_unique_manager_key: true,
+      }),
+    );
+  });
+});
+// #endregion
 
 // #region submitManagedRpDeactivation
 describe("submitManagedRpDeactivation", () => {
@@ -896,7 +1092,7 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
 
     const res = await register();
 
-    expect(res).toMatchObject({ ok: true, operationHash: "0xregisterop" });
+    expect(res).toMatchObject({ ok: true, operationHash: "0xregophash" });
     expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
   });
 
@@ -914,7 +1110,7 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     // The guard runs before we spend a KMS manager key, claim the DB slot, or
     // submit a UserOp the contract would reject with IdAlreadyInUse.
     expect(ClaimRpRegistration).not.toHaveBeenCalled();
-    expect(createManagerKeyMock).not.toHaveBeenCalled();
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 

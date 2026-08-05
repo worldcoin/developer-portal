@@ -8,6 +8,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import React from "react";
+import { generateRpIdString } from "@/lib/rp";
 import { WorldIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout";
 import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
 
@@ -30,6 +31,7 @@ jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/LegacyActions/page",
   () => ({
     LegacyActionsPage: () => <div data-testid="legacy-actions-child" />,
+    LegacyActionsDeprecationBanner: () => <div data-testid="legacy-banner" />,
   }),
 );
 
@@ -81,10 +83,6 @@ jest.mock(
     },
   }),
 );
-
-jest.mock("@/components/Skeletons", () => ({
-  SkeletonForm: () => <div data-testid="skeleton-form" />,
-}));
 
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/RpSummary",
@@ -218,13 +216,67 @@ afterEach(() => jest.restoreAllMocks());
 
 // #region Loading boundary
 describe("WorldIdLayout [loading boundary]", () => {
-  it("renders only the configuration skeleton until RP data resolves", () => {
+  it("shows the actions-shaped skeleton until RP data resolves", () => {
     setQuery({ data: undefined, loading: true });
     render(el());
 
-    expect(screen.getByTestId("skeleton-form")).toBeInTheDocument();
     expect(screen.queryByTestId("actions-grid")).not.toBeInTheDocument();
+    // The toolbar is real chrome, but inert — there is no grid to filter yet.
+    const search = screen.getByPlaceholderText(/search/i);
+    expect(search.closest("[inert]")).not.toBeNull();
+    // Managers get the create tile asserted (an active RP is the common
+    // case); it renders disabled until the real grid mounts.
+    expect(
+      screen.getByRole("button", { name: "Create action", hidden: true }),
+    ).toBeDisabled();
+  });
+
+  it("omits the create tile for members while loading", () => {
+    setQuery({ data: undefined, loading: true });
+    render(el({ canManageWorldId: false }));
+
+    expect(
+      screen.queryByRole("button", { name: "Create action", hidden: true }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the configuration-shaped skeleton when the URL names that tab", () => {
+    searchParams = new URLSearchParams("tab=configuration");
+    setQuery({ data: undefined, loading: true });
+    render(el());
+
+    expect(
+      screen.getByRole("heading", { name: "World ID Configuration" }),
+    ).toBeInTheDocument();
+    // App ID and RP ID are route-derived and identical in both loaded
+    // variants, so they render for real; only the signer value shimmers.
+    expect(screen.getByText("app_1")).toBeInTheDocument();
+    expect(screen.getByText(generateRpIdString("app_1"))).toBeInTheDocument();
+    expect(screen.getByText("Signer address")).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("rp-summary")).not.toBeInTheDocument();
+  });
+
+  it("shows the configuration shape for setup/create deep links", () => {
+    searchParams = new URLSearchParams("createAction=true");
+    setQuery({ data: undefined, loading: true });
+    render(el());
+
+    expect(
+      screen.getByRole("heading", { name: "World ID Configuration" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
+  });
+
+  it("shows the legacy-shaped skeleton with the deprecation banner", () => {
+    searchParams = new URLSearchParams("tab=legacy-actions");
+    setQuery({ data: undefined, loading: true });
+    render(el());
+
+    expect(screen.getByTestId("legacy-banner")).toBeInTheDocument();
+    expect(
+      screen.queryByTestId("legacy-actions-child"),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps real content during a background refetch and never remounts the grid", () => {
@@ -259,7 +311,7 @@ describe("WorldIdLayout [loading boundary]", () => {
     setQuery({ data: makeData(), loading: true });
     render(el());
 
-    expect(screen.queryByTestId("skeleton-form")).not.toBeInTheDocument();
+    expect(document.querySelector(".react-loading-skeleton")).toBeNull();
     expect(screen.getByTestId("rp-summary")).toBeInTheDocument();
     expect(replace).toHaveBeenCalledWith(
       "/teams/team_1/apps/app_1/world-id?tab=configuration",

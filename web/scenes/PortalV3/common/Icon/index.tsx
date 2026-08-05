@@ -1,7 +1,23 @@
 import { AlertIcon } from "@/components/Icons/AlertIcon";
+import { preload } from "react-dom";
 import { twMerge } from "tailwind-merge";
 
 const ICON_PATH = "/images/portal-v3/icons";
+
+export const getIconPath = (name: string) => `${ICON_PATH}/${name}.svg`;
+
+/**
+ * Starts loading static icon assets before a lazily mounted menu needs them.
+ * Safe to call during render — React de-duplicates equivalent preload hints.
+ */
+export const preloadIcons = (names: readonly string[]) => {
+  for (const name of names) {
+    preload(getIconPath(name), {
+      as: "image",
+      type: "image/svg+xml",
+    });
+  }
+};
 
 /**
  * Optical alignment for an icon sitting beside cap-height text. Labels use
@@ -51,7 +67,7 @@ export const bubbleDigitClassName = "inline-block translate-y-[0.12em]";
  */
 export const Icon = (props: { name: string; className?: string }) => (
   <img
-    src={`${ICON_PATH}/${props.name}.svg`}
+    src={getIconPath(props.name)}
     alt=""
     aria-hidden="true"
     draggable={false}
