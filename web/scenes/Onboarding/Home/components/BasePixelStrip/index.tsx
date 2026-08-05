@@ -2874,8 +2874,17 @@ export const BasePixelStrip = () => {
       }
     };
 
+    // The ambient pop cadence (POP_MIN/MAX_INTERVAL_MS) is shorter than a
+    // pop's full lifetime, so popsRef is essentially never empty once the
+    // first pop fires - meaning the frame loop above re-arms itself for the
+    // rest of the page visit. The logomark sits in a fixed-height panel part
+    // way down a long marketing page, so that would keep writing styles at
+    // the display's refresh rate for something scrolled well out of view.
+    // Gated on actually being on screen instead.
+    let onScreen = true;
+
     const scheduleFrame = () => {
-      if (frameRef.current === null) {
+      if (onScreen && frameRef.current === null) {
         frameRef.current = requestAnimationFrame(applyLens);
       }
     };
@@ -3119,12 +3128,72 @@ export const BasePixelStrip = () => {
 
     scheduleNextPop();
 
+    // Park the ambient animation whenever the logomark isn't on screen: stop
+    // both of its drivers (the pop timer that starts work and the frame loop
+    // that plays it out), and hand every cell they were driving back to its
+    // resting style so nothing is left frozen mid-pop for whenever the
+    // visitor scrolls back. The pointer effects need no equivalent - they
+    // can't be driven without a pointer over the mark in the first place.
+    const parkAmbient = () => {
+      clearTimeout(popTimeoutId);
+
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+
+      for (const pop of popsRef.current) {
+        const rect = rectsRef.current.get(pop.key);
+
+        if (rect && !pop.spinSettled) {
+          rect.style.transform = "";
+        }
+      }
+
+      for (const key of popRingActiveRef.current) {
+        const rect = rectsRef.current.get(key);
+
+        if (rect) {
+          rect.style.transform = "";
+          rect.style.fill = "";
+        }
+      }
+
+      popsRef.current = [];
+      popRingActiveRef.current = new Set();
+    };
+
+    const visibility = new IntersectionObserver(
+      (entries) => {
+        const visible = entries[entries.length - 1].isIntersecting;
+
+        if (visible === onScreen) {
+          return;
+        }
+
+        onScreen = visible;
+
+        if (visible) {
+          scheduleNextPop();
+          scheduleFrame();
+          return;
+        }
+
+        parkAmbient();
+      },
+      // Any sliver on screen counts - the panel is tall, and a visitor
+      // reading the copy beside it can still see the corner of it move.
+      { threshold: 0 },
+    );
+    visibility.observe(svg);
+
     return () => {
       svg.removeEventListener("pointermove", handlePointerMove);
       svg.removeEventListener("pointerleave", handlePointerLeave);
       svg.removeEventListener("pointerdown", handlePointerDown);
       svg.removeEventListener("pointerup", handlePointerUp);
       svg.removeEventListener("pointercancel", handlePointerUp);
+      visibility.disconnect();
       clearTimeout(popTimeoutId);
 
       if (frameRef.current !== null) {
