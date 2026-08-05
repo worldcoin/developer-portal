@@ -113,7 +113,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { app_ids: appIds, dry_run: dryRun } = parsedParams;
+  const { app_ids: rawAppIds, dry_run: dryRun } = parsedParams;
+
+  // Dedupe before the loop. submitRegisterRpTransaction returns once the UserOp
+  // is submitted, not once it is mined, so a repeated app_id would read the
+  // chain as still uninitialized, submit a second register() for the same rp_id
+  // with a fresh nonce, and report two claims — double-spending gas and defeating
+  // the per-call ceiling this endpoint exists to enforce.
+  const appIds = Array.from(new Set<string>(rawAppIds));
+  if (appIds.length !== rawAppIds.length) {
+    logger.warn("Dropped duplicate app_ids from pre-registration request", {
+      requested: rawAppIds.length,
+      unique: appIds.length,
+    });
+  }
 
   const config = getRpRegistryConfig();
   if (!config) {

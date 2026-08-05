@@ -250,6 +250,17 @@ describe("/api/_pre-register-rp-ids [skips]", () => {
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
+  it("claims a repeated app_id only once", async () => {
+    // submitRegisterRpTransaction returns on submission, not on mining, so a
+    // duplicate would read the chain as still free and submit a second
+    // register() for the same rp_id — double-spending gas.
+    const res = await post({ app_ids: [appId, appId], dry_run: false });
+
+    const body = await res.json();
+    expect(body.counts).toEqual({ claimed: 1 });
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+  });
+
   it("records a submission failure without aborting the rest of the batch", async () => {
     const secondAppId = "app_00000000000000000000000000000002";
     submitRegisterRpTransactionMock
