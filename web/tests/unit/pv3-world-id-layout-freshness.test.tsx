@@ -248,10 +248,13 @@ describe("WorldIdLayout [loading boundary]", () => {
     expect(
       screen.getByRole("heading", { name: "World ID Configuration" }),
     ).toBeInTheDocument();
-    // App ID and RP ID are route-derived and identical in both loaded
-    // variants, so they render for real; only the signer value shimmers.
+    // Only the App ID is route-derived, so it renders for real; the RP ID is
+    // stored data now, so its value shimmers alongside the signer's.
     expect(screen.getByText("app_1")).toBeInTheDocument();
-    expect(screen.getByText(generateRpIdString("app_1"))).toBeInTheDocument();
+    expect(screen.getByText("RP ID")).toBeInTheDocument();
+    expect(
+      screen.queryByText(generateRpIdString("app_1")),
+    ).not.toBeInTheDocument();
     expect(screen.getByText("Signer address")).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId("rp-summary")).not.toBeInTheDocument();

@@ -14,6 +14,20 @@ jest.mock("@/api/helpers/rp-registration-flows", () => ({
     submitManagedRpRegistrationMock(...args),
 }));
 
+const getRpFromContractMock = jest.fn();
+jest.mock("@/api/helpers/temporal-rpc", () => ({
+  getRpFromContract: (...args: unknown[]) => getRpFromContractMock(...args),
+}));
+
+const getRpRegistryConfigMock = jest.fn();
+jest.mock("@/api/helpers/rp-utils", () => {
+  const actual = jest.requireActual("@/api/helpers/rp-utils");
+  return {
+    ...actual,
+    getRpRegistryConfig: () => getRpRegistryConfigMock(),
+  };
+});
+
 jest.mock("@/lib/logger", () => ({
   logger: {
     info: jest.fn(),
@@ -62,11 +76,28 @@ const createMockRequest = (input: Record<string, unknown>) =>
   });
 // #endregion
 
+/** Captures the rp_id the handler actually inserted. */
+let claimedRpId: string | null = null;
+
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.INTERNAL_ENDPOINTS_SECRET = "internal-secret";
+  delete process.env.ENABLE_UNPREDICTABLE_RP_ID;
+  delete process.env.RP_ID_SALT;
   appIsStaging = false;
   authorizedTeam = [{ id: teamId }];
+  claimedRpId = null;
+
+  getRpRegistryConfigMock.mockReturnValue({
+    contractAddress: "0xcontract",
+    kmsRegion: "eu-west-1",
+  });
+  getRpFromContractMock.mockResolvedValue({
+    initialized: false,
+    active: false,
+    manager: `0x${"0".repeat(40)}`,
+    signer: `0x${"0".repeat(40)}`,
+  });
 
   submitManagedRpRegistrationMock.mockResolvedValue({
     ok: true,
@@ -79,32 +110,36 @@ beforeEach(() => {
     stagingStatus: null,
   });
 
-  requestMock.mockImplementation(async (query: unknown) => {
-    const operationName = getOperationName(query);
+  requestMock.mockImplementation(
+    async (query: unknown, variables?: unknown) => {
+      const operationName = getOperationName(query);
 
-    if (operationName.includes("GetAppInfo")) {
-      return {
-        app: [
-          {
-            id: appId,
-            team_id: teamId,
-            is_staging: appIsStaging,
-            app_metadata: [{ name: "Test App" }],
-          },
-        ],
-      };
-    }
+      if (operationName.includes("GetAppInfo")) {
+        return {
+          app: [
+            {
+              id: appId,
+              team_id: teamId,
+              is_staging: appIsStaging,
+              app_metadata: [{ name: "Test App" }],
+            },
+          ],
+        };
+      }
 
-    if (operationName.includes("CheckUserInApp")) {
-      return { team: authorizedTeam };
-    }
+      if (operationName.includes("CheckUserInApp")) {
+        return { team: authorizedTeam };
+      }
 
-    if (operationName.includes("ClaimRpRegistration")) {
-      return { insert_rp_registration_one: { rp_id: "rp_abc123" } };
-    }
+      if (operationName.includes("ClaimRpRegistration")) {
+        claimedRpId =
+          (variables as { rp_id?: string } | undefined)?.rp_id ?? null;
+        return { insert_rp_registration_one: { rp_id: claimedRpId } };
+      }
 
-    throw new Error(`Unexpected query: ${operationName}`);
-  });
+      throw new Error(`Unexpected query: ${operationName}`);
+    },
+  );
 });
 
 // #region Successful registration (no rollout feature flag)
@@ -149,6 +184,87 @@ describe("/api/hasura/register-rp [success]", () => {
     expect(body.status).toBe("pending");
     // Self-managed skips the managed pipeline entirely.
     expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Self-managed rp_id scheme changing mid-flow
+describe("/api/hasura/register-rp [self-managed scheme drift]", () => {
+  const selfManaged = () =>
+    POST(createMockRequest({ app_id: appId, mode: "self_managed" }));
+
+  it("does not adopt an initialized legacy id while the feature is on", async () => {
+    // The flag is on, so the legacy id is not something we handed out. It may be a
+    // squatter's, and it is indistinguishable from a developer who registered
+    // before a roll-forward — so it is never adopted. The cost is that the
+    // roll-forward case creates a row under the salted id and needs manual
+    // cleanup; the alternative is binding the app to an attacker's rp_id.
+    const { generateRpIdString } = jest.requireActual("@/lib/rp");
+    const legacyId = generateRpIdString(appId);
+
+    process.env.ENABLE_UNPREDICTABLE_RP_ID = "true";
+    process.env.RP_ID_SALT = "s".repeat(32);
+
+    getRpFromContractMock.mockImplementation(async (numericRpId: bigint) => {
+      const initialized = numericRpId === BigInt(`0x${legacyId.slice(3)}`);
+      return {
+        initialized,
+        active: initialized,
+        manager: "0xSomeManager",
+        signer: "0xSomeSigner",
+      };
+    });
+
+    const res = (await selfManaged())!;
+
+    expect(res.status).toBe(200);
+    expect(claimedRpId).not.toBe(legacyId);
+  });
+
+  it("ignores a squatted legacy id and keeps the salted one the developer registered", async () => {
+    // Rollback: the instructions screen (flag on) showed the salted id and the
+    // developer registered it. An attacker has separately squatted the guessable
+    // legacy id. Probing legacy first would bind this app's row to the
+    // attacker's registration, which is strictly worse than the wedge the
+    // candidate lookup exists to prevent.
+    const { generateRpIdString } = jest.requireActual("@/lib/rp");
+    const legacyId = generateRpIdString(appId);
+
+    process.env.RP_ID_SALT = "s".repeat(32);
+    const { candidateRpIdsForApp } = jest.requireActual("@/api/helpers/rp-id");
+    const saltedId = candidateRpIdsForApp(appId).find(
+      (id: string) => id !== legacyId,
+    );
+
+    // BOTH are initialized on-chain: the attacker's legacy squat and the
+    // developer's own salted registration.
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0xSomeManager",
+      signer: "0xSomeSigner",
+    });
+
+    const res = (await selfManaged())!;
+
+    expect(res.status).toBe(200);
+    expect(claimedRpId).toBe(saltedId);
+    expect(claimedRpId).not.toBe(legacyId);
+  });
+
+  it("uses the current scheme when neither candidate is registered yet", async () => {
+    // Developer clicked Continue without doing the transaction: nothing on-chain,
+    // so the row is created under the id we would hand out now.
+    process.env.ENABLE_UNPREDICTABLE_RP_ID = "true";
+    process.env.RP_ID_SALT = "s".repeat(32);
+    const { resolveRpIdForNewRegistration } = jest.requireActual(
+      "@/api/helpers/rp-id",
+    );
+
+    const res = (await selfManaged())!;
+
+    expect(res.status).toBe(200);
+    expect(claimedRpId).toBe(resolveRpIdForNewRegistration(appId));
   });
 });
 // #endregion

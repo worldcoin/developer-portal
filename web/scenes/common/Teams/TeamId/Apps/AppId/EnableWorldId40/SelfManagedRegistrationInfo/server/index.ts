@@ -1,10 +1,10 @@
 "use server";
 
+import { resolveRpIdForNewRegistration } from "@/api/helpers/rp-id";
 import {
-  generateRpId,
-  generateRpIdString,
   getRpRegistryConfig,
   getStagingRpRegistryConfig,
+  parseRpId,
   WORLD_CHAIN_ID,
 } from "@/api/helpers/rp-utils";
 import { logger } from "@/lib/logger";
@@ -57,8 +57,12 @@ export async function getSelfManagedRegistrationInfo(
 
     const stagingConfig = getStagingRpRegistryConfig();
 
-    const rpIdString = generateRpIdString(appId);
-    const rpIdNumeric = generateRpId(appId).toString();
+    // The developer copies rpIdNumeric into register(uint64 rpId, ...) and
+    // submits it themselves, then register_rp inserts the row. Both derive the
+    // id through this same resolver, so the number they registered is the
+    // number we store.
+    const rpIdString = resolveRpIdForNewRegistration(appId);
+    const rpIdNumeric = parseRpId(rpIdString).toString();
 
     return {
       success: true,
