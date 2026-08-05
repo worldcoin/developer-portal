@@ -5,12 +5,11 @@ import { CopyButton } from "@/components/CopyButton";
 import {
   formDialogInputClassName,
   formDialogLabelClassName,
-  formDialogPrimaryActionClassName,
   formDialogSecondaryActionClassName,
 } from "@/components/FormDialog";
 import { EyeIcon } from "@/components/Icons/EyeIcon";
 import { EyeSlashIcon } from "@/components/Icons/EyeSlashIcon";
-import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import clsx from "clsx";
 import { Wallet } from "ethers";
 import { useEffect, useMemo, useState } from "react";
@@ -188,21 +187,15 @@ export const GenerateNewKeyContent = ({
         >
           Back
         </button>
-        <button
+        <InkButton
           type="submit"
-          disabled={!isValid || loading}
+          disabled={!isValid}
+          loading={loading}
           data-testid="button-generate-new-key-create"
-          className={`${formDialogPrimaryActionClassName} order-1 gap-x-2 md:order-none`}
+          className="order-1 h-11 w-full md:order-none"
         >
-          {loading ? (
-            <>
-              <SpinnerIcon className="size-5 animate-spin" />
-              {loadingLabel}
-            </>
-          ) : (
-            "Continue"
-          )}
-        </button>
+          {loading && loadingLabel ? loadingLabel : "Continue"}
+        </InkButton>
       </div>
     </form>
   );

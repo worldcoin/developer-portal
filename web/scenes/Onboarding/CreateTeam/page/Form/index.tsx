@@ -4,6 +4,7 @@ import type { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
 import { teamNameSchema } from "@/lib/schema";
 import { TEAM_CREATED_TOAST_STORAGE_KEY } from "@/lib/team-created-toast";
 import { urls } from "@/lib/urls";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -158,14 +159,15 @@ export const Form = () => {
       {/* The disabled state already signals the missing consent; the reminder
           only surfaces as a hover hint so the form never shouts in red. */}
       <div className="group relative mt-10 w-full max-w-[220px]">
-        <button
+        <InkButton
           type="submit"
-          disabled={!isValid || isPending}
+          disabled={!isValid}
+          loading={isPending}
           aria-describedby={!termsAccepted ? "terms-consent-hint" : undefined}
-          className="inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-8 bg-portal-ink px-6 text-14 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className="h-12 w-full cursor-pointer px-6 text-14 disabled:bg-portal-ink disabled:text-white disabled:opacity-40"
         >
           {isPending ? "Creating team…" : "Create team"}
-        </button>
+        </InkButton>
 
         {!termsAccepted ? (
           <span

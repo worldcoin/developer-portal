@@ -1,13 +1,13 @@
 "use client";
 
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import posthog from "posthog-js";
@@ -268,21 +268,21 @@ export const SandboxButton = (props: {
                     placeholder="google-account@gmail.com"
                     className="h-9 min-w-0 flex-1 rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300 disabled:bg-grey-100 disabled:text-grey-500"
                   />
-                  <DecoratedButton
+                  <InkButton
                     type="submit"
-                    variant="primary"
-                    disabled={existingRequest !== null || requestRefreshing}
-                    loading={requestSending}
+                    disabled={
+                      existingRequest !== null ||
+                      requestRefreshing ||
+                      requestSending
+                    }
                     className="h-9 shrink-0 px-4"
                   >
-                    <Typography variant={TYPOGRAPHY.M4}>
-                      {existingRequest?.accepted
-                        ? "Invite sent"
-                        : existingRequest
-                          ? "Request submitted"
-                          : "Request invite"}
-                    </Typography>
-                  </DecoratedButton>
+                    {existingRequest?.accepted
+                      ? "Invite sent"
+                      : existingRequest
+                        ? "Request submitted"
+                        : "Request invite"}
+                  </InkButton>
                 </form>
 
                 {existingRequest ? (

@@ -5,6 +5,7 @@ import { NotificationBellIcon } from "@/components/Icons/NotificationBellIcon";
 import { Link } from "@/components/Link";
 import { Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useRef, useState } from "react";
@@ -337,14 +338,13 @@ export const NotificationsPage = () => {
                 ref={fileInputRef}
               />
 
-              <DecoratedButton
+              <button
                 type="button"
-                variant="secondary"
                 onClick={handleImportClick}
-                className="h-10 min-w-[109px] px-3.5 py-0 text-[15px] font-semibold"
+                className="inline-flex h-10 min-w-[109px] items-center justify-center rounded-8 border border-grey-200 bg-white px-3.5 font-world text-13 leading-none font-medium text-portal-text transition-colors hover:bg-grey-50 focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden"
               >
                 Import CSV
-              </DecoratedButton>
+              </button>
 
               {walletAddressesValue && (
                 <DecoratedButton
@@ -481,14 +481,9 @@ export const NotificationsPage = () => {
           )}
         </div>
 
-        <DecoratedButton
-          type="submit"
-          disabled={isSubmitting}
-          loading={isSubmitting}
-          className="mt-5 h-14 w-fit px-6 py-0 text-[17px] font-semibold"
-        >
+        <InkButton type="submit" loading={isSubmitting} className="mt-5 w-fit">
           Send notification
-        </DecoratedButton>
+        </InkButton>
       </form>
     </section>
   );

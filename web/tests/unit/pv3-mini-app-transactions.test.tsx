@@ -67,6 +67,10 @@ describe("PortalV3 mini app transactions", () => {
     expect(getIsUserAllowedToReadApp).toHaveBeenCalledWith(appId);
     expect(signedFetch).not.toHaveBeenCalled();
     expect(screen.getByText("Failed to load transactions")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try Again" })).toHaveClass(
+      "bg-portal-ink",
+      "text-white",
+    );
   });
 
   it("loads transaction history without an app-mode lookup", async () => {

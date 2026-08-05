@@ -34,17 +34,9 @@ jest.mock("@/scenes/common/common/DeleteTeamDialog/server", () => ({
   deleteTeamServerSide: (...args: unknown[]) => deleteTeamServerSide(...args),
 }));
 
-// Render the dialog contents without Headless UI's portal/transition machinery.
-jest.mock("@/components/Dialog", () => ({
-  Dialog: ({ children, open }: React.PropsWithChildren<{ open: boolean }>) =>
-    open ? <div>{children}</div> : null,
-}));
-jest.mock("@/components/DialogOverlay", () => ({
-  DialogOverlay: () => null,
-}));
-jest.mock("@/components/DialogPanel", () => ({
-  DialogPanel: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-}));
+// FormDialog's DialogTitle needs the real Headless UI Dialog parent. The dialog
+// chrome renders in jsdom, so this test keeps it intact and still exercises the
+// real submit flow.
 // #endregion
 
 import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
