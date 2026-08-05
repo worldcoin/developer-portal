@@ -2693,7 +2693,15 @@ export const BasePixelStrip = () => {
       // no pointer there's no lens scale to layer onto, the cell IS the press
       // origin so the neighbour bulge and radial push are both zero there, and
       // the shake only runs while the button is actually held.
-      if (pressedKey && !nextActive.has(pressedKey)) {
+      //
+      // Guarded on the LIVE pressRef rather than on pressedKey, which was
+      // captured before the block above nulls it on the frame the spring
+      // finishes. Writing on that frame would re-apply the quarter-size offset
+      // and re-claim the cell for a press that no longer exists, leaving the
+      // icon sitting off its cell until some later frame happened to clear it.
+      // Skipping lets the cleanup below settle it on this very frame instead,
+      // with nothing left owing.
+      if (pressRef.current && pressedKey && !nextActive.has(pressedKey)) {
         const image = iconElsRef.current.get(pressedKey);
 
         if (image) {
