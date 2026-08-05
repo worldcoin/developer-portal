@@ -39,6 +39,12 @@ const schema = yup
     /**
      * Defaults to true: the only way to spend gas is to ask for it explicitly.
      * A dry run reports exactly what a real run would submit.
+     *
+     * NOT `.strict()`, deliberately — yup applies defaults during casting, which
+     * strict mode skips, so `.strict().default(true)` would leave an ABSENT
+     * dry_run as undefined and therefore falsy. That inverts the safety property.
+     * Non-boolean values are rejected by an explicit check on the raw body
+     * instead; see below.
      */
     dry_run: yup.boolean().default(true),
   })
@@ -102,6 +108,20 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => null);
+
+  // Checked on the RAW body, before yup casts. Opting out of the dry run is the
+  // only thing that lets this endpoint spend gas, so it has to be an actual JSON
+  // boolean — yup would happily coerce the string "false", which a hand-built
+  // curl or wrapper script produces by accident.
+  const rawDryRun = (body as { dry_run?: unknown } | null)?.dry_run;
+  if (rawDryRun !== undefined && typeof rawDryRun !== "boolean") {
+    logger.warn("Rejected a non-boolean dry_run", { type: typeof rawDryRun });
+    return NextResponse.json(
+      { error: "dry_run must be a JSON boolean." },
+      { status: 400 },
+    );
+  }
+
   const { isValid, parsedParams } = await validateRequestSchema({
     value: body,
     schema,

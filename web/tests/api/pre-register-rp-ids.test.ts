@@ -146,6 +146,26 @@ describe("/api/_pre-register-rp-ids [guards]", () => {
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
+  it('rejects the string "false" for dry_run rather than spending gas on it', async () => {
+    // yup would otherwise cast it to boolean false. Opting out of the dry run has
+    // to be an explicit JSON boolean — that is the whole safety property.
+    const res = await post({ app_ids: [appId], dry_run: "false" });
+
+    expect(res.status).toBe(400);
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("still dry-runs when dry_run is omitted entirely", async () => {
+    // Guards against fixing the cast by making the field strict, which would skip
+    // yup's default and leave an absent dry_run undefined — falsy, so it would
+    // spend gas. Exactly backwards.
+    const res = await post({ app_ids: [appId] });
+    const body = await res.json();
+
+    expect(body.dry_run).toBe(true);
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
   it("rejects a batch larger than the per-call ceiling", async () => {
     const tooMany = Array.from(
       { length: 26 },
