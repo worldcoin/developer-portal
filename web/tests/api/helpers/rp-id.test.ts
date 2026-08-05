@@ -129,32 +129,16 @@ describe("candidateRpIdsForApp", () => {
     expect(candidateRpIdsForApp(appId)).toEqual([generateRpIdString(appId)]);
   });
 
-  it("probes the previous salt during a rotation drain window", () => {
-    // Rotation is the advertised remedy for a leaked salt, so performing it must
-    // be safe: a developer shown an id derived from the outgoing salt has already
-    // registered that id on-chain.
+  it("does not probe a previous salt, even when one is configured", () => {
+    // Rotation is prompted by a leak, so the old salt is exactly what an attacker
+    // may know; probing it would let them plant an id that gets adopted.
     process.env.ENABLE_UNPREDICTABLE_RP_ID = "true";
     process.env.RP_ID_SALT = salt;
     process.env.RP_ID_SALT_PREVIOUS = otherSalt;
 
-    const candidates = candidateRpIdsForApp(appId);
-
-    // Flag on, so both salted ids are eligible and legacy is not.
-    expect(candidates).toHaveLength(2);
-    expect(candidates[0]).toBe(resolveRpIdForNewRegistration(appId));
-    expect(candidates).not.toContain(generateRpIdString(appId));
-
-    // The second candidate is what the outgoing salt would have produced.
-    process.env.RP_ID_SALT = otherSalt;
-    expect(candidates[1]).toBe(resolveRpIdForNewRegistration(appId));
-  });
-
-  it("ignores an unusable previous salt", () => {
-    // Flag off here, so the list is [salted, legacy] rather than [salted].
-    process.env.RP_ID_SALT = salt;
-    process.env.RP_ID_SALT_PREVIOUS = "short";
-
-    expect(candidateRpIdsForApp(appId)).toHaveLength(2);
+    expect(candidateRpIdsForApp(appId)).toEqual([
+      resolveRpIdForNewRegistration(appId),
+    ]);
   });
 });
 // #endregion
