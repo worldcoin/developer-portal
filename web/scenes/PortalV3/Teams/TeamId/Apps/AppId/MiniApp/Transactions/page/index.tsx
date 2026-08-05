@@ -1,6 +1,6 @@
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { PaymentMetadata } from "@/lib/types";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { getTransactionData } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/server/getTransactionData";
 import { ComponentProps } from "react";
 import { Suspense } from "react";
@@ -95,12 +95,12 @@ const EmptyState = () => {
           will see the transaction here.
         </Typography>
 
-        <DecoratedButton
+        <InkButton
           href="https://docs.world.org/mini-apps/commands/pay"
-          className="min-w-[112px] py-4"
+          className="min-w-[112px]"
         >
           See docs
-        </DecoratedButton>
+        </InkButton>
       </div>
     </div>
   );

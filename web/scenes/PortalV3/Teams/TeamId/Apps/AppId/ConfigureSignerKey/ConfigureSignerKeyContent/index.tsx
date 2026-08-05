@@ -6,7 +6,7 @@ import {
 } from "@/components/FormDialog";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import clsx from "clsx";
-import { useMemo, useTransition } from "react";
+import { ReactNode, useMemo, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { WorldId40OptionCard } from "../../EnableWorldId40/WorldId40OptionCard";
 
@@ -26,6 +26,8 @@ export type ConfigureSignerKeyContentProps = {
   onContinue: (setup: SignerKeySetup) => void;
   initialSetup?: SignerKeySetup;
   className?: string;
+  description?: ReactNode;
+  notice?: ReactNode;
 };
 
 export const ConfigureSignerKeyContent = ({
@@ -33,6 +35,8 @@ export const ConfigureSignerKeyContent = ({
   onContinue,
   initialSetup = "generate",
   className,
+  description,
+  notice,
 }: ConfigureSignerKeyContentProps) => {
   const [loading, startTransition] = useTransition();
   const defaultValues: FormValues = useMemo(
@@ -54,8 +58,12 @@ export const ConfigureSignerKeyContent = ({
       className={clsx("grid w-full gap-y-6", className)}
     >
       <p className="font-world text-14 leading-[1.5] text-portal-muted">
-        Your signer key is used to sign proof requests. Choose how you want to
-        set up your key.
+        {description ?? (
+          <>
+            Your signer key is used to sign proof requests. Choose how you want
+            to set up your key.
+          </>
+        )}
       </p>
 
       <div className="grid gap-y-3">
@@ -75,6 +83,8 @@ export const ConfigureSignerKeyContent = ({
           testId="existing"
         />
       </div>
+
+      {notice}
 
       <div className="grid w-full gap-3 md:grid-cols-2">
         <button
