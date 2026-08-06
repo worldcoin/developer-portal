@@ -28,13 +28,9 @@ export const resetFixture = async (database: Database) => {
     fixture.teamId,
   ]);
   await database.query(`
-    DO $$
-    BEGIN
-      IF to_regclass('public.world_id_analytics_state') IS NOT NULL THEN
-        EXECUTE 'TRUNCATE TABLE public.world_id_analytics_state';
-      END IF;
-    END
-    $$;
+    TRUNCATE TABLE
+      public.action_legacy_stats_daily,
+      public.action_v4_stats_daily;
   `);
 };
 
