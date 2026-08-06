@@ -895,11 +895,16 @@ describe("World ID analytics [real action deletion]", () => {
     },
   );
 
-  it("lets deletion win the insert race and reports the failed range for retry", async () => {
+  it("parks a concurrent action deletion behind the running chunk, then cascades", async () => {
+    // The rollup pre-locks its parent actions before touching child rows, so
+    // a mid-chunk deletion queues on the parent instead of deadlocking (the
+    // old cycle's 40P01 victim was the user's delete) and cascades cleanly
+    // once the chunk commits.
     await insertV3Nullifier(pool, {
       id: "nil_contract_delete_race",
       createdAt: "2026-01-10T12:00:00.000Z",
     });
+    await expectDatedRollup("2026-01-10", "2026-01-10");
     await installPauseTrigger();
     const blocker = await pool.connect();
     const deleteClient = await pool.connect();
@@ -911,29 +916,39 @@ describe("World ID analytics [real action deletion]", () => {
       });
       await waitForAdvisoryWaiter(barrierLock);
 
-      await deleteClient.query("SET lock_timeout = '750ms'");
-      await deleteClient.query("SET statement_timeout = '2s'");
-      await expect(
-        deleteClient.query("DELETE FROM public.action WHERE id = $1", [
+      await deleteClient.query("SET statement_timeout = '10s'");
+      const deletion = deleteClient
+        .query("DELETE FROM public.action WHERE id = $1", [
           fixture.productionV3ActionId,
-        ]),
-      ).resolves.toEqual(expect.objectContaining({ rowCount: 1 }));
+        ])
+        .then(
+          (result) => ({ ok: true as const, rows: result.rowCount }),
+          (error: { code?: string }) => ({
+            ok: false as const,
+            code: error.code,
+          }),
+        );
+      for (let attempt = 0; attempt < 1_000; attempt += 1) {
+        const waiting = await pool.query<{ waiting: boolean }>(
+          `SELECT EXISTS (
+             SELECT 1 FROM pg_stat_activity
+              WHERE wait_event_type = 'Lock'
+                AND query LIKE 'DELETE FROM public.action%'
+           ) AS waiting`,
+        );
+        if (waiting.rows[0].waiting) break;
+      }
 
       await releaseBarrier(blocker);
-      // The chunk's transaction loses to the deletion and lands in
-      // failed_ranges — the operator's retry input — instead of a 500.
       await expect(rollup).resolves.toEqual({
-        success: false,
+        success: true,
         chunks: 1,
-        failed_ranges: [
-          {
-            from_date: "2026-01-10",
-            to_date: "2026-01-10",
-            error: expect.any(String),
-          },
-        ],
+        failed_ranges: [],
       });
+      await expect(deletion).resolves.toEqual({ ok: true, rows: 1 });
 
+      // The cascade swept the chunk's freshly written rows with the action,
+      // and a re-roll of the range stays empty.
       await expectDatedRollup("2026-01-10", "2026-01-10");
       expect(
         await getDailyRows(
