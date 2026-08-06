@@ -19,11 +19,41 @@ import { getSdk as getVerifySchemaSdk } from "@/api/hasura/register-rp/graphql/v
 import { createManagerKey, getEthAddressFromKMS } from "@/api/helpers/kms-eth";
 import { logger } from "@/lib/logger";
 import type { KMSClient } from "@aws-sdk/client-kms";
-import type { GraphQLClient } from "graphql-request";
+import { gql, type GraphQLClient } from "graphql-request";
 import { randomUUID } from "node:crypto";
 
 const RP_LOCK_KEY_PREFIX = "rp-manager-key-migration:rp:";
 const RP_LOCK_TTL_MS = 5 * 60 * 1000; // 5 min
+
+const HEAL_RP_MANAGER_KEY = gql`
+  mutation HealRpManagerKeyAfterMigration(
+    $rp_id: String!
+    $old_manager_key_id: String!
+    $shared_manager_key_id: String!
+  ) {
+    update_rp_registration(
+      where: {
+        rp_id: { _eq: $rp_id }
+        mode: { _eq: managed }
+        manager_kms_key_id: { _eq: $old_manager_key_id }
+        is_unique_manager_key: { _eq: true }
+      }
+      _set: {
+        manager_kms_key_id: $shared_manager_key_id
+        is_unique_manager_key: false
+      }
+    ) {
+      affected_rows
+    }
+  }
+`;
+
+let cachedSharedManagerKeyId: string | null = null;
+let cachedSharedManagerAddress: string | null = null;
+
+function addressesEqual(left: string, right: string): boolean {
+  return left.toLowerCase() === right.toLowerCase();
+}
 
 type RedisLockClient = {
   get(key: string): Promise<string | null>;
@@ -214,5 +244,149 @@ export async function resolveManagerKeyForRegistration({
     managerKmsKeyId: created.keyId,
     managerAddress: created.address,
     isUniqueManagerKey: true,
+  };
+}
+
+export type DeactivationManagerKeys = {
+  primaryManagerKmsKeyId: string;
+  stagingManagerKmsKeyId: string;
+};
+
+async function getSharedManagerKeyConfig(
+  kmsClient: KMSClient,
+): Promise<
+  | { ok: true; keyId: string; address: string }
+  | { ok: false; code: "kms_error"; detail: string }
+> {
+  const keyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID?.trim();
+  if (!keyId) {
+    return {
+      ok: false,
+      code: "kms_error",
+      detail: "Shared manager key is not configured.",
+    };
+  }
+
+  if (cachedSharedManagerKeyId === keyId && cachedSharedManagerAddress) {
+    return { ok: true, keyId, address: cachedSharedManagerAddress };
+  }
+
+  try {
+    const address = await getEthAddressFromKMS(kmsClient, keyId);
+    cachedSharedManagerKeyId = keyId;
+    cachedSharedManagerAddress = address;
+    return { ok: true, keyId, address };
+  } catch (error) {
+    logger.error("Failed to derive address for shared manager key", { error });
+    return {
+      ok: false,
+      code: "kms_error",
+      detail: "Failed to resolve manager key.",
+    };
+  }
+}
+
+export async function resolveManagerKeyForDeactivation({
+  client,
+  kmsClient,
+  rpIdString,
+  dbManagerKmsKeyId,
+  primaryOnChainManager,
+  stagingOnChainManager,
+  primaryActive,
+  stagingActive,
+  stagingRegistryConfigured,
+}: {
+  client: GraphQLClient;
+  kmsClient: KMSClient;
+  rpIdString: string;
+  dbManagerKmsKeyId: string;
+  primaryOnChainManager: string;
+  stagingOnChainManager: string | null;
+  primaryActive: boolean;
+  stagingActive: boolean;
+  stagingRegistryConfigured: boolean;
+}): Promise<
+  | { ok: true; keys: DeactivationManagerKeys }
+  | { ok: false; code: "kms_error"; detail: string }
+> {
+  const sharedKeyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID?.trim();
+  if (!sharedKeyId) {
+    return {
+      ok: true,
+      keys: {
+        primaryManagerKmsKeyId: dbManagerKmsKeyId,
+        stagingManagerKmsKeyId: dbManagerKmsKeyId,
+      },
+    };
+  }
+
+  const shared = await getSharedManagerKeyConfig(kmsClient);
+  if (!shared.ok) return shared;
+
+  const keyForRegistry = (
+    onChainManager: string | null,
+    active: boolean,
+  ): string => {
+    if (!active || !onChainManager) return dbManagerKmsKeyId;
+    return addressesEqual(onChainManager, shared.address)
+      ? shared.keyId
+      : dbManagerKmsKeyId;
+  };
+
+  const primaryManagerKmsKeyId = keyForRegistry(
+    primaryOnChainManager,
+    primaryActive,
+  );
+  const stagingManagerKmsKeyId = keyForRegistry(
+    stagingOnChainManager,
+    stagingRegistryConfigured && stagingActive,
+  );
+
+  const applicableSharedOnChain: boolean[] = [];
+  if (primaryActive) {
+    applicableSharedOnChain.push(
+      addressesEqual(primaryOnChainManager, shared.address),
+    );
+  }
+  if (stagingRegistryConfigured && stagingActive && stagingOnChainManager) {
+    applicableSharedOnChain.push(
+      addressesEqual(stagingOnChainManager, shared.address),
+    );
+  }
+
+  const shouldHealDb =
+    dbManagerKmsKeyId !== shared.keyId &&
+    applicableSharedOnChain.length > 0 &&
+    applicableSharedOnChain.every(Boolean);
+
+  if (shouldHealDb) {
+    try {
+      await client.request<
+        { update_rp_registration: { affected_rows: number } | null },
+        {
+          rp_id: string;
+          old_manager_key_id: string;
+          shared_manager_key_id: string;
+        }
+      >(HEAL_RP_MANAGER_KEY, {
+        rp_id: rpIdString,
+        old_manager_key_id: dbManagerKmsKeyId,
+        shared_manager_key_id: shared.keyId,
+      });
+    } catch (error) {
+      logger.warn(
+        "Failed to heal RP manager key in database during deactivation",
+        {
+          error,
+          rp_id: rpIdString,
+        },
+      );
+    }
+  }
+
+  return {
+    ok: true,
+    keys: { primaryManagerKmsKeyId, stagingManagerKmsKeyId },
   };
 }

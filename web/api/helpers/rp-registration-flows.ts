@@ -25,6 +25,7 @@ import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import {
   abortIfManagerKeyMigrationInFlight,
   assertManagerKeySchemaReady,
+  resolveManagerKeyForDeactivation,
   resolveManagerKeyForRegistration,
 } from "@/api/helpers/rp-manager-key-migration";
 import {
@@ -661,7 +662,7 @@ export async function submitManagedRpDeactivation({
   if (registration.mode !== "managed" || !registration.manager_kms_key_id) {
     return { ok: true, outcome: "skipped", reason: "self_managed", rpIdString };
   }
-  const managerKmsKeyId = registration.manager_kms_key_id;
+  const dbManagerKmsKeyId = registration.manager_kms_key_id;
   const currentStatus = registration.status as RpRegistrationStatus;
   const currentStagingStatus =
     registration.staging_status as RpRegistrationStatus | null;
@@ -690,6 +691,7 @@ export async function submitManagedRpDeactivation({
   // note above. A failed read is retryable, so don't touch anything.
   let onChainInitialized: boolean;
   let onChainActive: boolean;
+  let primaryOnChainManager: string;
   try {
     const onChainRp = await getRpFromContract(
       rpId,
@@ -697,6 +699,7 @@ export async function submitManagedRpDeactivation({
     );
     onChainInitialized = onChainRp.initialized;
     onChainActive = onChainRp.active;
+    primaryOnChainManager = onChainRp.manager;
   } catch (error) {
     logger.error("Failed to read on-chain RP state for deactivation", {
       error,
@@ -722,6 +725,7 @@ export async function submitManagedRpDeactivation({
   // staging config while the row still has staging state) must not finalize.
   let stagingActive = false;
   let stagingReadOk = true;
+  let stagingOnChainManager: string | null = null;
   const isProduction = process.env.NEXT_PUBLIC_APP_ENV === "production";
   const stagingConfig = isProduction ? getStagingRpRegistryConfig() : null;
   if (stagingConfig) {
@@ -730,6 +734,7 @@ export async function submitManagedRpDeactivation({
         rpId,
         stagingConfig.contractAddress,
       );
+      stagingOnChainManager = stagingRp.manager;
       stagingActive = stagingRp.initialized && stagingRp.active;
     } catch (error) {
       stagingReadOk = false;
@@ -887,6 +892,20 @@ export async function submitManagedRpDeactivation({
     }
   };
 
+  // TODO: remove after the RP manager key migration completes
+  const migrationConflict = await abortIfManagerKeyMigrationInFlight({
+    rpId: rpIdString,
+    revert: revertStatus,
+    onConflict: () =>
+      ({
+        ok: true as const,
+        outcome: "skipped" as const,
+        reason: "concurrent" as const,
+        rpIdString,
+      }) satisfies ManagedDeactivationResult,
+  });
+  if (migrationConflict) return migrationConflict;
+
   let kmsClient;
   try {
     kmsClient = await getKMSClient(primaryConfig.kmsRegion);
@@ -905,6 +924,29 @@ export async function submitManagedRpDeactivation({
     };
   }
 
+  // TODO: remove after the RP manager key migration completes
+  const resolvedKeys = await resolveManagerKeyForDeactivation({
+    client,
+    kmsClient,
+    rpIdString,
+    dbManagerKmsKeyId,
+    primaryOnChainManager,
+    stagingOnChainManager,
+    primaryActive,
+    stagingActive,
+    stagingRegistryConfigured: stagingConfig !== null,
+  });
+  if (!resolvedKeys.ok) {
+    await revertStatus();
+    return {
+      ok: false,
+      code: "submission_error",
+      detail: resolvedKeys.detail,
+      rpIdString,
+    };
+  }
+  const { primaryManagerKmsKeyId, stagingManagerKmsKeyId } = resolvedKeys.keys;
+
   // Toggle each contract that is still active. `toggleActive` flips state, so we
   // must never toggle one that already reads inactive (that would re-enable it).
   // The primary toggle is the main event; staging is best-effort — unless it is
@@ -915,7 +957,7 @@ export async function submitManagedRpDeactivation({
     try {
       operationHash = await submitToggleRpActiveTransaction(primaryConfig, {
         rpId,
-        managerKmsKeyId,
+        managerKmsKeyId: primaryManagerKmsKeyId,
         kmsClient,
       });
     } catch (error) {
@@ -939,7 +981,7 @@ export async function submitManagedRpDeactivation({
     try {
       stagingOperationHash = await submitToggleRpActiveTransaction(
         stagingConfig,
-        { rpId, managerKmsKeyId, kmsClient },
+        { rpId, managerKmsKeyId: stagingManagerKmsKeyId, kmsClient },
       );
       logger.info("Staging RP deactivation submitted", {
         rpIdString,

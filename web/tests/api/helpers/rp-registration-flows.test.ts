@@ -134,7 +134,8 @@ jest.mock("@/lib/logger", () => ({
 // #endregion
 
 // #region Test Data
-const client = {} as never;
+const clientRequestMock = jest.fn();
+const client = { request: clientRequestMock } as never;
 const appId = "app_00000000000000000000000000000001";
 const rpId = "rp_0123456789abcdef";
 
@@ -163,11 +164,16 @@ const signerAddress = "0x1111111111111111111111111111111111111111";
 const managerAddress = "0x2222222222222222222222222222222222222222";
 const sharedManagerKeyArn =
   "arn:aws:kms:eu-west-1:000000000000:key/shared-manager";
+const sharedManagerOnChainAddress =
+  "0x3333333333333333333333333333333333333333";
 const dedicatedManagerKeyId = "dedicated-kms-key";
 
 beforeEach(async () => {
   jest.clearAllMocks();
   await global.RedisClient?.flushall();
+  clientRequestMock.mockResolvedValue({
+    update_rp_registration: { affected_rows: 1 },
+  });
   // Non-production by default so the staging mirror is out of scope; the
   // staging suite opts in explicitly.
   process.env.NEXT_PUBLIC_APP_ENV = "test";
@@ -185,6 +191,7 @@ beforeEach(async () => {
     initialized: true,
     active: true,
     signer: "0x1111111111111111111111111111111111111111",
+    manager: "0x4444444444444444444444444444444444444444",
   });
   ClaimToggleSlot.mockResolvedValue({
     update_rp_registration: { affected_rows: 1 },
@@ -1021,6 +1028,115 @@ describe("submitManagedRpDeactivation", () => {
       });
       expect(UpdateStagingStatus).not.toHaveBeenCalled();
     });
+  });
+});
+// #endregion
+
+// #region submitManagedRpDeactivation manager key migration
+describe("submitManagedRpDeactivation [manager key migration]", () => {
+  it("reverts the claim and skips when the migration lock is held", async () => {
+    await global.RedisClient?.set(
+      `rp-manager-key-migration:rp:${rpId}`,
+      "migration-owner",
+    );
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({
+      ok: true,
+      outcome: "skipped",
+      reason: "concurrent",
+      rpIdString: rpId,
+    });
+    expect(ClaimToggleSlot).toHaveBeenCalledTimes(1);
+    expect(RevertToggleStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      previous_status: "registered",
+    });
+    expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("signs with the shared key and heals the database when on-chain manager is shared", async () => {
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    (getEthAddressFromKMS as jest.Mock).mockImplementation(
+      async (_client: unknown, keyId: string) => {
+        if (keyId === sharedManagerKeyArn) return sharedManagerOnChainAddress;
+        return managerAddress;
+      },
+    );
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      signer: "0x1111111111111111111111111111111111111111",
+      manager: sharedManagerOnChainAddress,
+    });
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({ ok: true, outcome: "submitted" });
+    expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        managerKmsKeyId: sharedManagerKeyArn,
+      }),
+    );
+    expect(clientRequestMock).toHaveBeenCalledWith(
+      expect.stringContaining("HealRpManagerKeyAfterMigration"),
+      {
+        rp_id: rpId,
+        old_manager_key_id: "kms-key-123",
+        shared_manager_key_id: sharedManagerKeyArn,
+      },
+    );
+  });
+
+  it("uses different signing keys per registry when only primary is shared on-chain", async () => {
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    mockGetStagingRpRegistryConfig.mockReturnValue({
+      contractAddress: "0xstaging",
+      kmsRegion: "us-east-1",
+    });
+    (getEthAddressFromKMS as jest.Mock).mockImplementation(
+      async (_client: unknown, keyId: string) => {
+        if (keyId === sharedManagerKeyArn) return sharedManagerOnChainAddress;
+        return managerAddress;
+      },
+    );
+    getRpFromContractMock.mockImplementation(
+      async (_rpId: bigint, contractAddress: string) => {
+        if (contractAddress === "0xstaging") {
+          return {
+            initialized: true,
+            active: true,
+            signer: "0x1111111111111111111111111111111111111111",
+            manager: "0x4444444444444444444444444444444444444444",
+          };
+        }
+        return {
+          initialized: true,
+          active: true,
+          signer: "0x1111111111111111111111111111111111111111",
+          manager: sharedManagerOnChainAddress,
+        };
+      },
+    );
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({ ok: true, outcome: "submitted" });
+    expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledTimes(2);
+    expect(submitToggleRpActiveTransactionMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ contractAddress: "0xcontract" }),
+      expect.objectContaining({ managerKmsKeyId: sharedManagerKeyArn }),
+    );
+    expect(submitToggleRpActiveTransactionMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ contractAddress: "0xstaging" }),
+      expect.objectContaining({ managerKmsKeyId: "kms-key-123" }),
+    );
+    expect(clientRequestMock).not.toHaveBeenCalled();
   });
 });
 // #endregion

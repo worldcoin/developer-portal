@@ -180,25 +180,15 @@ const GET_MIGRATION_CANDIDATES_BY_ID = gql`
 const FINALIZE_MIGRATION = gql`
   mutation FinalizeRpManagerMigration(
     $rp_id: String!
-    $signer_address: String!
     $old_manager_key_id: String!
     $shared_manager_key_id: String!
-    $expected_updated_at: timestamptz!
   ) {
     update_rp_registration(
       where: {
         rp_id: { _eq: $rp_id }
         mode: { _eq: managed }
-        status: { _eq: registered }
-        signer_address: { _eq: $signer_address }
         manager_kms_key_id: { _eq: $old_manager_key_id }
         is_unique_manager_key: { _eq: true }
-        updated_at: { _eq: $expected_updated_at }
-        app: {
-          status: { _eq: "active" }
-          is_archived: { _eq: false }
-          deleted_at: { _is_null: true }
-        }
       }
       _set: {
         manager_kms_key_id: $shared_manager_key_id
@@ -629,17 +619,13 @@ async function migrateCandidate(
       FinalizeMigrationResult,
       {
         rp_id: string;
-        signer_address: string;
         old_manager_key_id: string;
         shared_manager_key_id: string;
-        expected_updated_at: string;
       }
     >(FINALIZE_MIGRATION, {
       rp_id: candidate.rp_id,
-      signer_address: candidate.signer_address,
       old_manager_key_id: candidate.manager_kms_key_id,
       shared_manager_key_id: context.sharedManagerKeyId,
-      expected_updated_at: candidate.updated_at,
     });
 
     if (response.update_rp_registration?.affected_rows !== 1) {

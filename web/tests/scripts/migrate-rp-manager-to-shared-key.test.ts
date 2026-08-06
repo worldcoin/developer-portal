@@ -227,10 +227,8 @@ describe("migrateRpManagersToSharedKey [successful migrations]", () => {
     expect(graphqlRequestMock).toHaveBeenCalledTimes(2);
     expect(graphqlRequestMock.mock.calls[1][1]).toEqual({
       rp_id: RP_ID,
-      signer_address: SIGNER,
       old_manager_key_id: OLD_KEY_ID,
       shared_manager_key_id: SHARED_KEY_ID,
-      expected_updated_at: candidate.updated_at,
     });
     expect(report.results).toEqual([
       expect.objectContaining({
@@ -693,6 +691,40 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
         status: "failed",
         eligibleForCleanup: false,
         failure: expect.objectContaining({ stage: "update_database" }),
+      }),
+    );
+  });
+
+  it("finalizes the database when the row is no longer registered after on-chain transfer", async () => {
+    const pendingCandidate = {
+      ...candidate,
+      status: "pending",
+      updated_at: "2026-08-06T12:00:00.000Z",
+    };
+    arrangeGraphql([pendingCandidate]);
+    arrangeRegistryQueues({
+      [productionConfig.contractAddress]: [
+        makeOnChainRp({ manager: SHARED_MANAGER }),
+        makeOnChainRp({ manager: SHARED_MANAGER }),
+      ],
+    });
+
+    const report = await migrateRpManagersToSharedKey({
+      graphqlClient,
+      kmsClient,
+      sharedManagerKeyId: SHARED_KEY_ID,
+      ...deploymentWithPrimaryOnly,
+      pollIntervalMs: 0,
+    });
+
+    expect(graphqlRequestMock.mock.calls[1][1]).toEqual({
+      rp_id: RP_ID,
+      old_manager_key_id: OLD_KEY_ID,
+      shared_manager_key_id: SHARED_KEY_ID,
+    });
+    expect(report.results[0]).toEqual(
+      expect.objectContaining({
+        status: "already_migrated",
       }),
     );
   });
