@@ -72,8 +72,10 @@ export const makeActionDailyResult = (input?: {
   action_v4_stats_daily: input?.v4 ?? [],
 });
 
-export const makeRollupOperationResult = (acquired: boolean) => ({
-  rollup_world_id_analytics: acquired
-    ? [{ processed_through: "2026-07-30T11:55:00.000Z" }]
-    : [],
+export const makeRollupOperationResult = (
+  rows: Array<{ date_utc: string; unique_count: string }> = [
+    { date_utc: "2026-07-30", unique_count: "2" },
+  ],
+) => ({
+  rollup_world_id_analytics: rows,
 });
