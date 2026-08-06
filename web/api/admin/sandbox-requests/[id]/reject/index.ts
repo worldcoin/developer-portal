@@ -36,9 +36,8 @@ const readReason = async (req: NextRequest) => {
 };
 
 /**
- * Rejects a pending sandbox request by deleting it, then sending the
- * rejection email. Mirrors accept: the mutation claims the row (with
- * returning) before SendGrid runs.
+ * Rejects a pending sandbox request after its requester has been notified.
+ * The row remains pending when delivery fails so the admin can retry.
  */
 export async function POST(
   req: NextRequest,
@@ -84,28 +83,33 @@ export async function POST(
 
   try {
     const client = await getInternalDashboardGraphqlClientForUser(admin);
-    const result = await getSdk(client).DeletePendingSandboxRequest({ id });
-    const deletion = result.delete_sandbox_access_request;
+    const sdk = getSdk(client);
+    const result = await sdk.GetPendingSandboxRequest({ id });
+    const rejectedRequest = result.sandbox_access_request[0];
 
-    if (deletion?.affected_rows === 0) {
+    if (!rejectedRequest) {
       return NextResponse.json({ success: true, changed: false });
     }
 
-    const rejectedRequest = deletion?.returning[0];
-    if (deletion?.affected_rows !== 1 || !rejectedRequest) {
-      throw new Error("Sandbox rejection did not return the deleted request");
+    const requesterEmail = rejectedRequest.user.email?.trim();
+    if (!requesterEmail) {
+      logger.error("Sandbox requester does not have an email address", {
+        requestId: id,
+        adminSubject: admin.subject,
+      });
+      return NextResponse.json(
+        { error: "Sandbox requester does not have an email address" },
+        { status: 503 },
+      );
     }
 
-    const username =
-      rejectedRequest.user?.name?.trim() ||
-      rejectedRequest.user?.email ||
-      rejectedRequest.google_email;
+    const username = rejectedRequest.user.name?.trim() || requesterEmail;
 
     try {
       await sendEmail({
         apiKey: sendgridApiKey,
         from: emailFrom,
-        to: rejectedRequest.google_email,
+        to: requesterEmail,
         templateId,
         templateData: {
           username,
@@ -116,6 +120,7 @@ export async function POST(
     } catch (error) {
       logger.error("Failed to send sandbox rejection email", {
         requestId: id,
+        requesterEmail,
         googleEmail: rejectedRequest.google_email,
         adminSubject: admin.subject,
         error,
@@ -124,6 +129,17 @@ export async function POST(
         { error: "Unable to send sandbox rejection email" },
         { status: 503 },
       );
+    }
+
+    const deletionResult = await sdk.DeletePendingSandboxRequest({ id });
+    const deletion = deletionResult.delete_sandbox_access_request;
+
+    if (deletion?.affected_rows === 0) {
+      return NextResponse.json({ success: true, changed: false });
+    }
+
+    if (deletion?.affected_rows !== 1) {
+      throw new Error("Sandbox rejection did not delete exactly one request");
     }
 
     return NextResponse.json({ success: true, changed: true });

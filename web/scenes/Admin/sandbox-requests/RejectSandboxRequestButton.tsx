@@ -56,7 +56,7 @@ export const RejectSandboxRequestButton = (props: { requestId: string }) => {
         disabled={submitting || completed}
         className="relative flex h-8 w-20 items-center justify-center rounded-[100px] border border-system-error-400 bg-grey-0 px-3 py-1.5 font-gta text-12 font-medium whitespace-nowrap text-system-error-600 hover:bg-system-error-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:pointer-events-none disabled:border-system-error-200 disabled:text-system-error-300"
       >
-        {open ? "Cancel" : "Reject"}
+        Reject
       </PopoverTrigger>
 
       <PopoverContent

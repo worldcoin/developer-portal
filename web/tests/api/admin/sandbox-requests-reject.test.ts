@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 
 // #region Mocks
 const authenticateAdminRequest = jest.fn();
+const GetPendingSandboxRequest = jest.fn();
 const DeletePendingSandboxRequest = jest.fn();
 const sendEmail = jest.fn();
 
@@ -21,7 +22,7 @@ jest.mock("@/api/helpers/send-email", () => ({
 jest.mock(
   "../../../api/admin/sandbox-requests/[id]/reject/graphql/delete-pending-sandbox-request.generated",
   () => ({
-    getSdk: () => ({ DeletePendingSandboxRequest }),
+    getSdk: () => ({ GetPendingSandboxRequest, DeletePendingSandboxRequest }),
   }),
 );
 
@@ -35,6 +36,7 @@ import { POST } from "@/api/admin/sandbox-requests/[id]/reject";
 // #region Test Data
 const REQUEST_ID = "sbxreq_abc123";
 const GOOGLE_EMAIL = "tester@gmail.com";
+const REQUESTER_EMAIL = "developer@example.com";
 const REASON = "Not eligible for sandbox access.";
 
 const createRequest = (body: unknown = { reason: REASON }) =>
@@ -64,16 +66,16 @@ beforeEach(() => {
     role: "internal_dashboard_readonly",
     subject: "admin-subject",
   });
+  GetPendingSandboxRequest.mockResolvedValue({
+    sandbox_access_request: [
+      {
+        google_email: GOOGLE_EMAIL,
+        user: { name: "Test Developer", email: REQUESTER_EMAIL },
+      },
+    ],
+  });
   DeletePendingSandboxRequest.mockResolvedValue({
-    delete_sandbox_access_request: {
-      affected_rows: 1,
-      returning: [
-        {
-          google_email: GOOGLE_EMAIL,
-          user: { name: "Test Developer", email: "developer@example.com" },
-        },
-      ],
-    },
+    delete_sandbox_access_request: { affected_rows: 1 },
   });
   sendEmail.mockResolvedValue(true);
 });
@@ -86,6 +88,7 @@ describe("POST /api/admin/sandbox-requests/[id]/reject", () => {
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(401);
+    expect(GetPendingSandboxRequest).not.toHaveBeenCalled();
     expect(DeletePendingSandboxRequest).not.toHaveBeenCalled();
     expect(sendEmail).not.toHaveBeenCalled();
   });
@@ -98,6 +101,7 @@ describe("POST /api/admin/sandbox-requests/[id]/reject", () => {
     const response = await POST(createRequest(body), createContext(id));
 
     expect(response.status).toBe(400);
+    expect(GetPendingSandboxRequest).not.toHaveBeenCalled();
     expect(DeletePendingSandboxRequest).not.toHaveBeenCalled();
     expect(sendEmail).not.toHaveBeenCalled();
   });
@@ -108,11 +112,12 @@ describe("POST /api/admin/sandbox-requests/[id]/reject", () => {
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(503);
+    expect(GetPendingSandboxRequest).not.toHaveBeenCalled();
     expect(DeletePendingSandboxRequest).not.toHaveBeenCalled();
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it("deletes a pending request and emails the Google account", async () => {
+  it("emails the requester before deleting the pending request", async () => {
     const response = await POST(
       createRequest({ reason: `  ${REASON}  ` }),
       createContext(),
@@ -120,12 +125,13 @@ describe("POST /api/admin/sandbox-requests/[id]/reject", () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ success: true, changed: true });
+    expect(GetPendingSandboxRequest).toHaveBeenCalledWith({ id: REQUEST_ID });
     expect(DeletePendingSandboxRequest).toHaveBeenCalledWith({
       id: REQUEST_ID,
     });
     expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: GOOGLE_EMAIL,
+        to: REQUESTER_EMAIL,
         templateId: "d-sandbox-rejected",
         templateData: {
           username: "Test Developer",
@@ -134,30 +140,47 @@ describe("POST /api/admin/sandbox-requests/[id]/reject", () => {
         },
       }),
     );
-    expect(
+    expect(sendEmail.mock.invocationCallOrder[0]).toBeLessThan(
       DeletePendingSandboxRequest.mock.invocationCallOrder[0],
-    ).toBeLessThan(sendEmail.mock.invocationCallOrder[0]);
+    );
   });
 
   it("is a no-op when the request is missing or already accepted", async () => {
-    DeletePendingSandboxRequest.mockResolvedValue({
-      delete_sandbox_access_request: { affected_rows: 0, returning: [] },
-    });
+    GetPendingSandboxRequest.mockResolvedValue({ sandbox_access_request: [] });
 
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ success: true, changed: false });
     expect(sendEmail).not.toHaveBeenCalled();
+    expect(DeletePendingSandboxRequest).not.toHaveBeenCalled();
   });
 
-  it("returns 503 after deleting when SendGrid fails", async () => {
+  it("keeps the request retryable when SendGrid fails", async () => {
     sendEmail.mockRejectedValue(new Error("sendgrid down"));
 
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(503);
-    expect(DeletePendingSandboxRequest).toHaveBeenCalled();
+    expect(GetPendingSandboxRequest).toHaveBeenCalled();
+    expect(DeletePendingSandboxRequest).not.toHaveBeenCalled();
+  });
+
+  it("keeps the request when the requester has no email address", async () => {
+    GetPendingSandboxRequest.mockResolvedValue({
+      sandbox_access_request: [
+        {
+          google_email: GOOGLE_EMAIL,
+          user: { name: "Test Developer", email: null },
+        },
+      ],
+    });
+
+    const response = await POST(createRequest(), createContext());
+
+    expect(response.status).toBe(503);
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(DeletePendingSandboxRequest).not.toHaveBeenCalled();
   });
 });
 // #endregion
