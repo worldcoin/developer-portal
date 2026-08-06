@@ -251,7 +251,8 @@ export const SandboxButton = (props: {
                 <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
                   The Android build is distributed as a Google Play internal
                   test. Your Google account email must be approved before the
-                  link works.
+                  link works. Make sure the email you provide is tied to a
+                  valid Google account.
                 </Typography>
 
                 <form
