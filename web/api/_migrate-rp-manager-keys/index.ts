@@ -2,6 +2,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient } from "@/api/helpers/kms";
 import {
   acquireRpMigrationLock,
+  holdRpMigrationLockForInFlightOp,
   migrationMayHaveInFlightOperation,
   releaseRpMigrationLock,
   retainRpMigrationLockForInFlightOp,
@@ -209,7 +210,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let rpLock: Awaited<ReturnType<typeof acquireRpMigrationLock>> | null = null;
   let mayHaveSubmittedTransfer = false;
   let retainRpLockForInFlightOp = false;
+  let rpLockHeldForInFlightOp: boolean | null = null;
   const startedAt = Date.now();
+
+  const holdRpLockForInFlightOp = async (
+    redis: Parameters<typeof holdRpMigrationLockForInFlightOp>[0],
+    rpId: string,
+    owner: string,
+  ): Promise<void> => {
+    // Recreate the key only when a transfer really left the process: the
+    // pre-submit gate aborts instead of submitting, so its lock must stay free.
+    rpLockHeldForInFlightOp = mayHaveSubmittedTransfer
+      ? await holdRpMigrationLockForInFlightOp(redis, rpId, owner, attemptId)
+      : await retainRpMigrationLockForInFlightOp(redis, rpId, owner, attemptId);
+
+    if (!rpLockHeldForInFlightOp && mayHaveSubmittedTransfer) {
+      logger.error(
+        "RP manager migration per-RP lock lost while a transfer may still land",
+        {
+          attempt_id: attemptId,
+          rp_id: rpId,
+        },
+      );
+    }
+  };
 
   try {
     const sharedKeyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID?.trim();
@@ -307,11 +331,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       (mayHaveSubmittedTransfer || migrationMayHaveInFlightOperation(result));
 
     if (retainRpLockForInFlightOp && rpLock.status === "acquired") {
-      await retainRpMigrationLockForInFlightOp(
+      await holdRpLockForInFlightOp(
         rpLock.redis,
         candidate.rp_id,
         rpLock.owner,
-        attemptId,
       );
     }
 
@@ -331,6 +354,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       outcome,
       failure: result?.status === "failed" ? result.failure : undefined,
       retain_rp_lock: retainRpLockForInFlightOp,
+      rp_lock_held: rpLockHeldForInFlightOp,
       duration_ms: Date.now() - startedAt,
     });
 
@@ -375,12 +399,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } finally {
     if (rpLock?.status === "acquired" && candidate) {
       if (retainRpLockForInFlightOp) {
-        await retainRpMigrationLockForInFlightOp(
-          rpLock.redis,
-          candidate.rp_id,
-          rpLock.owner,
-          attemptId,
-        );
+        if (rpLockHeldForInFlightOp !== true) {
+          await holdRpLockForInFlightOp(
+            rpLock.redis,
+            candidate.rp_id,
+            rpLock.owner,
+          );
+        }
       } else {
         await releaseRpMigrationLock(
           rpLock.redis,

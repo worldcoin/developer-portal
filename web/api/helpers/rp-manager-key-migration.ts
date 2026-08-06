@@ -176,6 +176,57 @@ export async function retainRpMigrationLockForInFlightOp(
 }
 
 /**
+ * Keeps the per-RP lock alive for an already submitted UserOp: extends the TTL
+ * while we still own the key, and recreates the key when it disappeared (Redis
+ * restart or eviction) so handlers keep failing closed for the op's validity
+ * window. False means another owner holds the key or Redis is unreachable.
+ */
+export async function holdRpMigrationLockForInFlightOp(
+  redis: RedisLockClient,
+  rpId: string,
+  owner: string,
+  attemptId?: string | null,
+  ttlMs: number = RP_MIGRATION_IN_FLIGHT_LOCK_MS,
+): Promise<boolean> {
+  const retained = await retainRpMigrationLockForInFlightOp(
+    redis,
+    rpId,
+    owner,
+    attemptId,
+    ttlMs,
+  );
+  if (retained) return true;
+
+  try {
+    const reacquired = await redis.set(
+      rpMigrationLockKey(rpId),
+      owner,
+      "PX",
+      ttlMs,
+      "NX",
+    );
+
+    if (reacquired !== "OK") return false;
+
+    logger.warn(
+      "Reacquired RP manager migration per-RP lock for in-flight op",
+      {
+        attempt_id: attemptId,
+        rp_id: rpId,
+      },
+    );
+    return true;
+  } catch (error) {
+    logger.error("Failed to reacquire RP manager migration per-RP lock", {
+      error,
+      attempt_id: attemptId,
+      rp_id: rpId,
+    });
+    return false;
+  }
+}
+
+/**
  * True when a migration attempt may have left a UserOp that can still land.
  * Includes submit_transfer failures where the bundler may have accepted the op
  * before the HTTP response failed (operationHashes not yet recorded).

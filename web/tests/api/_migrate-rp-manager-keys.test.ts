@@ -43,7 +43,7 @@ jest.mock("@/lib/logger", () => ({
 import { POST } from "@/api/_migrate-rp-manager-keys";
 
 const { logger: mockLogger } = jest.requireMock("@/lib/logger") as {
-  logger: { info: jest.Mock };
+  logger: { info: jest.Mock; warn: jest.Mock; error: jest.Mock };
 };
 
 // #endregion
@@ -335,6 +335,90 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
     );
     const ttlMs = await global.RedisClient?.pttl(RP_LOCK_KEY);
     expect(ttlMs).toBeGreaterThan(30 * 60 * 1000);
+  });
+
+  it("reacquires the per-RP lock when it disappears after the transfer was submitted", async () => {
+    arrangeCandidate();
+    migrateRpManagersToSharedKeyMock.mockImplementation(
+      async (input: {
+        beforeSubmitOperation?: (registryName: string) => Promise<void>;
+      }) => {
+        await input.beforeSubmitOperation?.("primary");
+        await global.RedisClient?.del(RP_LOCK_KEY);
+        return {
+          candidateCount: 1,
+          results: [
+            {
+              ...successResult,
+              status: "failed" as const,
+              eligibleForCleanup: false,
+              operationHashes: { primary: "0xpending" },
+              failure: {
+                stage: "wait_for_confirmation",
+                detail: "Timed out waiting for manager update",
+              },
+            },
+          ],
+        };
+      },
+    );
+    graphqlRequestMock.mockResolvedValueOnce({
+      update_rp_registration: { affected_rows: 1 },
+    });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toEqual(
+      expect.any(String),
+    );
+    const ttlMs = await global.RedisClient?.pttl(RP_LOCK_KEY);
+    expect(ttlMs).toBeGreaterThan(30 * 60 * 1000);
+  });
+
+  it("logs the lock as lost when another owner took it after the submit", async () => {
+    arrangeCandidate();
+    migrateRpManagersToSharedKeyMock.mockImplementation(
+      async (input: {
+        beforeSubmitOperation?: (registryName: string) => Promise<void>;
+      }) => {
+        await input.beforeSubmitOperation?.("primary");
+        await global.RedisClient?.set(RP_LOCK_KEY, "other-owner");
+        return {
+          candidateCount: 1,
+          results: [
+            {
+              ...successResult,
+              status: "failed" as const,
+              eligibleForCleanup: false,
+              operationHashes: { primary: "0xpending" },
+              failure: {
+                stage: "wait_for_confirmation",
+                detail: "Timed out waiting for manager update",
+              },
+            },
+          ],
+        };
+      },
+    );
+    graphqlRequestMock.mockResolvedValueOnce({
+      update_rp_registration: { affected_rows: 1 },
+    });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBe(
+      "other-owner",
+    );
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      "RP manager migration per-RP lock lost while a transfer may still land",
+      expect.objectContaining({ rp_id: RP_ID }),
+    );
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      "RP manager key migration attempt finished",
+      expect.objectContaining({ retain_rp_lock: true, rp_lock_held: false }),
+    );
   });
 
   it("aborts before submit when the per-RP lock cannot be retained", async () => {
