@@ -3,42 +3,10 @@
 const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_IMAGES_CDN_URL || "https://world-id-assets.com",
 );
-
-/**
- * @param {{ endpoint?: string, bucket?: string, region?: string }} settings
- * @returns {{ protocol: "http" | "https", hostname: string, port?: string, pathname: string } | undefined}
- */
-const getAssetsS3RemotePattern = ({ endpoint, bucket, region }) => {
-  const normalizedBucket = bucket?.trim();
-  if (!normalizedBucket) return undefined;
-
-  const normalizedEndpoint = endpoint?.trim();
-  if (normalizedEndpoint) {
-    const endpointURL = new URL(normalizedEndpoint);
-
-    return {
-      protocol: endpointURL.protocol === "http:" ? "http" : "https",
-      hostname: `${normalizedBucket}.${endpointURL.hostname}`,
-      port: endpointURL.port,
-      pathname: "/unverified/**",
-    };
-  }
-
-  const normalizedRegion = region?.trim();
-  if (!normalizedRegion) return undefined;
-
-  return {
-    protocol: "https",
-    hostname: `${normalizedBucket}.s3.${normalizedRegion}.amazonaws.com`,
-    pathname: "/unverified/**",
-  };
-};
-
-const assetsS3RemotePattern = getAssetsS3RemotePattern({
-  endpoint: process.env.AWS_ENDPOINT_URL_S3,
-  bucket: process.env.ASSETS_S3_BUCKET_NAME,
-  region: process.env.ASSETS_S3_REGION,
-});
+const assetsS3Endpoint = process.env.AWS_ENDPOINT_URL_S3?.trim();
+const assetsS3EndpointURL = assetsS3Endpoint
+  ? new URL(assetsS3Endpoint)
+  : undefined;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -48,7 +16,7 @@ const nextConfig = {
 
   output: "standalone",
   images: {
-    dangerouslyAllowLocalIP: assetsS3RemotePattern?.protocol === "http",
+    dangerouslyAllowLocalIP: assetsS3EndpointURL?.protocol === "http:",
     // Next 16 changed the default from 60s to 4h. Pin the previous value so a
     // user who updates an app icon/image doesn't keep seeing the stale one (up to
     // 4h) from the image optimizer cache.
@@ -58,7 +26,14 @@ const nextConfig = {
         protocol: "https",
         hostname: cdnURLObject.hostname,
       },
-      ...(assetsS3RemotePattern ? [assetsS3RemotePattern] : []),
+      {
+        protocol: assetsS3EndpointURL?.protocol === "http:" ? "http" : "https",
+        hostname: assetsS3EndpointURL
+          ? `${process.env.ASSETS_S3_BUCKET_NAME}.${assetsS3EndpointURL.hostname}`
+          : `${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
+        port: assetsS3EndpointURL?.port,
+        pathname: "/unverified/**",
+      },
     ],
   },
 
