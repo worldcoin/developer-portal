@@ -275,12 +275,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       beforeSubmitOperation: async () => {
         // Extend before submit so a crash between send and finally cannot
         // free the row while the UserOp is still includable.
-        await retainRpMigrationLockForInFlightOp(
+        const retained = await retainRpMigrationLockForInFlightOp(
           acquiredRpLock.redis,
           candidate!.rp_id,
           acquiredRpLock.owner,
           attemptId,
         );
+        if (!retained) {
+          logger.warn(
+            "Aborting RP manager migration transfer; per-RP lock was not retained",
+            {
+              attempt_id: attemptId,
+              rp_id: candidate!.rp_id,
+            },
+          );
+          throw new Error(
+            "Failed to retain per-RP lock before submitting transfer",
+          );
+        }
         mayHaveSubmittedTransfer = true;
       },
     });

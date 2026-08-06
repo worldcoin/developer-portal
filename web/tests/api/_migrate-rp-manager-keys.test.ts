@@ -337,6 +337,56 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
     expect(ttlMs).toBeGreaterThan(30 * 60 * 1000);
   });
 
+  it("aborts before submit when the per-RP lock cannot be retained", async () => {
+    arrangeCandidate();
+    migrateRpManagersToSharedKeyMock.mockImplementation(
+      async (input: {
+        beforeSubmitOperation?: (registryName: string) => Promise<void>;
+      }) => {
+        await global.RedisClient?.del(RP_LOCK_KEY);
+        try {
+          await input.beforeSubmitOperation?.("primary");
+        } catch (error) {
+          return {
+            candidateCount: 1,
+            results: [
+              {
+                ...successResult,
+                status: "failed" as const,
+                eligibleForCleanup: false,
+                operationHashes: {},
+                failure: {
+                  stage: "submit_transfer",
+                  detail:
+                    error instanceof Error ? error.message : String(error),
+                },
+              },
+            ],
+          };
+        }
+        throw new Error("beforeSubmitOperation should have aborted");
+      },
+    );
+    graphqlRequestMock.mockResolvedValueOnce({
+      update_rp_registration: { affected_rows: 1 },
+    });
+
+    const response = await POST(request());
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      rp_id: RP_ID,
+      outcome: "failed",
+      operation_hashes: {},
+    });
+    expect(graphqlRequestMock.mock.calls[1][1]).toEqual({
+      rp_id: RP_ID,
+      updated_at: expect.any(String),
+    });
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBeNull();
+  });
+
   it("releases the per-RP lock when failure happens before any transfer submit", async () => {
     arrangeCandidate();
     migrateRpManagersToSharedKeyMock.mockResolvedValue({
