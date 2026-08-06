@@ -1,8 +1,0 @@
-table:
-  name: world_id_analytics_state
-  schema: public
-select_permissions:
-  - role: service
-    permission:
-      columns: [singleton, processed_through]
-      filter: {}

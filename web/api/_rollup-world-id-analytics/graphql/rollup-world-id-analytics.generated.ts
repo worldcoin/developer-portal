@@ -5,21 +5,26 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type RollupWorldIdAnalyticsMutationVariables = Types.Exact<{
-  max_advance_days?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  from_date?: Types.InputMaybe<Types.Scalars["date"]["input"]>;
+  to_date?: Types.InputMaybe<Types.Scalars["date"]["input"]>;
 }>;
 
 export type RollupWorldIdAnalyticsMutation = {
   __typename?: "mutation_root";
   rollup_world_id_analytics: Array<{
-    __typename?: "world_id_analytics_state";
-    processed_through: string;
+    __typename?: "world_id_app_stats_daily";
+    date_utc: string;
+    unique_count: number;
   }>;
 };
 
 export const RollupWorldIdAnalyticsDocument = gql`
-  mutation RollupWorldIdAnalytics($max_advance_days: Int) {
-    rollup_world_id_analytics(args: { max_advance_days: $max_advance_days }) {
-      processed_through
+  mutation RollupWorldIdAnalytics($from_date: date, $to_date: date) {
+    rollup_world_id_analytics(
+      args: { from_date: $from_date, to_date: $to_date }
+    ) {
+      date_utc
+      unique_count
     }
   }
 `;

@@ -7163,10 +7163,6 @@ export type Mutation_Root = {
   delete_user?: Maybe<User_Mutation_Response>;
   /** delete single row from the table: "user" */
   delete_user_by_pk?: Maybe<User>;
-  /** delete data from the table: "world_id_analytics_state" */
-  delete_world_id_analytics_state?: Maybe<World_Id_Analytics_State_Mutation_Response>;
-  /** delete single row from the table: "world_id_analytics_state" */
-  delete_world_id_analytics_state_by_pk?: Maybe<World_Id_Analytics_State>;
   /** delete data from the table: "world_id_app_stats_daily" */
   delete_world_id_app_stats_daily?: Maybe<World_Id_App_Stats_Daily_Mutation_Response>;
   /** delete single row from the table: "world_id_app_stats_daily" */
@@ -7295,10 +7291,6 @@ export type Mutation_Root = {
   insert_user?: Maybe<User_Mutation_Response>;
   /** insert a single row into the table: "user" */
   insert_user_one?: Maybe<User>;
-  /** insert data into the table: "world_id_analytics_state" */
-  insert_world_id_analytics_state?: Maybe<World_Id_Analytics_State_Mutation_Response>;
-  /** insert a single row into the table: "world_id_analytics_state" */
-  insert_world_id_analytics_state_one?: Maybe<World_Id_Analytics_State>;
   /** insert data into the table: "world_id_app_stats_daily" */
   insert_world_id_app_stats_daily?: Maybe<World_Id_App_Stats_Daily_Mutation_Response>;
   /** insert a single row into the table: "world_id_app_stats_daily" */
@@ -7318,8 +7310,8 @@ export type Mutation_Root = {
   retry_rp?: Maybe<RetryRpOutput>;
   /** execute VOLATILE function "rollup_app_stats" which returns "app_stats" */
   rollup_app_stats: Array<App_Stats>;
-  /** execute VOLATILE function "rollup_world_id_analytics" which returns "world_id_analytics_state" */
-  rollup_world_id_analytics: Array<World_Id_Analytics_State>;
+  /** execute VOLATILE function "rollup_world_id_analytics" which returns "world_id_app_stats_daily" */
+  rollup_world_id_analytics: Array<World_Id_App_Stats_Daily>;
   /** Rotate the signer key for an RP (Relying Party) */
   rotate_signer_key?: Maybe<RotateSignerKeyOutput>;
   /** Switch an RP from managed to self-managed mode by transferring the on-chain manager key */
@@ -7542,14 +7534,6 @@ export type Mutation_Root = {
   update_user_by_pk?: Maybe<User>;
   /** update multiples rows of table: "user" */
   update_user_many?: Maybe<Array<Maybe<User_Mutation_Response>>>;
-  /** update data of the table: "world_id_analytics_state" */
-  update_world_id_analytics_state?: Maybe<World_Id_Analytics_State_Mutation_Response>;
-  /** update single row of the table: "world_id_analytics_state" */
-  update_world_id_analytics_state_by_pk?: Maybe<World_Id_Analytics_State>;
-  /** update multiples rows of table: "world_id_analytics_state" */
-  update_world_id_analytics_state_many?: Maybe<
-    Array<Maybe<World_Id_Analytics_State_Mutation_Response>>
-  >;
   /** update data of the table: "world_id_app_stats_daily" */
   update_world_id_app_stats_daily?: Maybe<World_Id_App_Stats_Daily_Mutation_Response>;
   /** update single row of the table: "world_id_app_stats_daily" */
@@ -7912,16 +7896,6 @@ export type Mutation_RootDelete_UserArgs = {
 /** mutation root */
 export type Mutation_RootDelete_User_By_PkArgs = {
   id: Scalars["String"]["input"];
-};
-
-/** mutation root */
-export type Mutation_RootDelete_World_Id_Analytics_StateArgs = {
-  where: World_Id_Analytics_State_Bool_Exp;
-};
-
-/** mutation root */
-export type Mutation_RootDelete_World_Id_Analytics_State_By_PkArgs = {
-  singleton: Scalars["Boolean"]["input"];
 };
 
 /** mutation root */
@@ -8307,18 +8281,6 @@ export type Mutation_RootInsert_User_OneArgs = {
 };
 
 /** mutation root */
-export type Mutation_RootInsert_World_Id_Analytics_StateArgs = {
-  objects: Array<World_Id_Analytics_State_Insert_Input>;
-  on_conflict?: InputMaybe<World_Id_Analytics_State_On_Conflict>;
-};
-
-/** mutation root */
-export type Mutation_RootInsert_World_Id_Analytics_State_OneArgs = {
-  object: World_Id_Analytics_State_Insert_Input;
-  on_conflict?: InputMaybe<World_Id_Analytics_State_On_Conflict>;
-};
-
-/** mutation root */
 export type Mutation_RootInsert_World_Id_App_Stats_DailyArgs = {
   objects: Array<World_Id_App_Stats_Daily_Insert_Input>;
   on_conflict?: InputMaybe<World_Id_App_Stats_Daily_On_Conflict>;
@@ -8384,11 +8346,11 @@ export type Mutation_RootRollup_App_StatsArgs = {
 /** mutation root */
 export type Mutation_RootRollup_World_Id_AnalyticsArgs = {
   args: Rollup_World_Id_Analytics_Args;
-  distinct_on?: InputMaybe<Array<World_Id_Analytics_State_Select_Column>>;
+  distinct_on?: InputMaybe<Array<World_Id_App_Stats_Daily_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<World_Id_Analytics_State_Order_By>>;
-  where?: InputMaybe<World_Id_Analytics_State_Bool_Exp>;
+  order_by?: InputMaybe<Array<World_Id_App_Stats_Daily_Order_By>>;
+  where?: InputMaybe<World_Id_App_Stats_Daily_Bool_Exp>;
 };
 
 /** mutation root */
@@ -8980,23 +8942,6 @@ export type Mutation_RootUpdate_User_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_User_ManyArgs = {
   updates: Array<User_Updates>;
-};
-
-/** mutation root */
-export type Mutation_RootUpdate_World_Id_Analytics_StateArgs = {
-  _set?: InputMaybe<World_Id_Analytics_State_Set_Input>;
-  where: World_Id_Analytics_State_Bool_Exp;
-};
-
-/** mutation root */
-export type Mutation_RootUpdate_World_Id_Analytics_State_By_PkArgs = {
-  _set?: InputMaybe<World_Id_Analytics_State_Set_Input>;
-  pk_columns: World_Id_Analytics_State_Pk_Columns_Input;
-};
-
-/** mutation root */
-export type Mutation_RootUpdate_World_Id_Analytics_State_ManyArgs = {
-  updates: Array<World_Id_Analytics_State_Updates>;
 };
 
 /** mutation root */
@@ -10513,12 +10458,6 @@ export type Query_Root = {
   world_id_analytics_app_daily: Array<World_Id_App_Stats_Daily>;
   /** execute function "world_id_analytics_app_daily" and query aggregates on result of table type "world_id_app_stats_daily" */
   world_id_analytics_app_daily_aggregate: World_Id_App_Stats_Daily_Aggregate;
-  /** fetch data from the table: "world_id_analytics_state" */
-  world_id_analytics_state: Array<World_Id_Analytics_State>;
-  /** fetch aggregated fields from the table: "world_id_analytics_state" */
-  world_id_analytics_state_aggregate: World_Id_Analytics_State_Aggregate;
-  /** fetch data from the table: "world_id_analytics_state" using primary key columns */
-  world_id_analytics_state_by_pk?: Maybe<World_Id_Analytics_State>;
   /** fetch data from the table: "world_id_app_stats_daily" */
   world_id_app_stats_daily: Array<World_Id_App_Stats_Daily>;
   /** fetch aggregated fields from the table: "world_id_app_stats_daily" */
@@ -11244,26 +11183,6 @@ export type Query_RootWorld_Id_Analytics_App_Daily_AggregateArgs = {
   where?: InputMaybe<World_Id_App_Stats_Daily_Bool_Exp>;
 };
 
-export type Query_RootWorld_Id_Analytics_StateArgs = {
-  distinct_on?: InputMaybe<Array<World_Id_Analytics_State_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<World_Id_Analytics_State_Order_By>>;
-  where?: InputMaybe<World_Id_Analytics_State_Bool_Exp>;
-};
-
-export type Query_RootWorld_Id_Analytics_State_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<World_Id_Analytics_State_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<World_Id_Analytics_State_Order_By>>;
-  where?: InputMaybe<World_Id_Analytics_State_Bool_Exp>;
-};
-
-export type Query_RootWorld_Id_Analytics_State_By_PkArgs = {
-  singleton: Scalars["Boolean"]["input"];
-};
-
 export type Query_RootWorld_Id_App_Stats_DailyArgs = {
   distinct_on?: InputMaybe<Array<World_Id_App_Stats_Daily_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -11671,7 +11590,8 @@ export type Rollup_App_Stats_Args = {
 };
 
 export type Rollup_World_Id_Analytics_Args = {
-  max_advance_days?: InputMaybe<Scalars["Int"]["input"]>;
+  from_date?: InputMaybe<Scalars["date"]["input"]>;
+  to_date?: InputMaybe<Scalars["date"]["input"]>;
 };
 
 /** columns and relationships of "rp_registration" */
@@ -12554,14 +12474,6 @@ export type Subscription_Root = {
   world_id_analytics_app_daily: Array<World_Id_App_Stats_Daily>;
   /** execute function "world_id_analytics_app_daily" and query aggregates on result of table type "world_id_app_stats_daily" */
   world_id_analytics_app_daily_aggregate: World_Id_App_Stats_Daily_Aggregate;
-  /** fetch data from the table: "world_id_analytics_state" */
-  world_id_analytics_state: Array<World_Id_Analytics_State>;
-  /** fetch aggregated fields from the table: "world_id_analytics_state" */
-  world_id_analytics_state_aggregate: World_Id_Analytics_State_Aggregate;
-  /** fetch data from the table: "world_id_analytics_state" using primary key columns */
-  world_id_analytics_state_by_pk?: Maybe<World_Id_Analytics_State>;
-  /** fetch data from the table in a streaming manner: "world_id_analytics_state" */
-  world_id_analytics_state_stream: Array<World_Id_Analytics_State>;
   /** fetch data from the table: "world_id_app_stats_daily" */
   world_id_app_stats_daily: Array<World_Id_App_Stats_Daily>;
   /** fetch aggregated fields from the table: "world_id_app_stats_daily" */
@@ -13449,32 +13361,6 @@ export type Subscription_RootWorld_Id_Analytics_App_Daily_AggregateArgs = {
   where?: InputMaybe<World_Id_App_Stats_Daily_Bool_Exp>;
 };
 
-export type Subscription_RootWorld_Id_Analytics_StateArgs = {
-  distinct_on?: InputMaybe<Array<World_Id_Analytics_State_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<World_Id_Analytics_State_Order_By>>;
-  where?: InputMaybe<World_Id_Analytics_State_Bool_Exp>;
-};
-
-export type Subscription_RootWorld_Id_Analytics_State_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<World_Id_Analytics_State_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<World_Id_Analytics_State_Order_By>>;
-  where?: InputMaybe<World_Id_Analytics_State_Bool_Exp>;
-};
-
-export type Subscription_RootWorld_Id_Analytics_State_By_PkArgs = {
-  singleton: Scalars["Boolean"]["input"];
-};
-
-export type Subscription_RootWorld_Id_Analytics_State_StreamArgs = {
-  batch_size: Scalars["Int"]["input"];
-  cursor: Array<InputMaybe<World_Id_Analytics_State_Stream_Cursor_Input>>;
-  where?: InputMaybe<World_Id_Analytics_State_Bool_Exp>;
-};
-
 export type Subscription_RootWorld_Id_App_Stats_DailyArgs = {
   distinct_on?: InputMaybe<Array<World_Id_App_Stats_Daily_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -14218,138 +14104,7 @@ export type World_Id_Analytics_App_Daily_Args = {
   through_date_input?: InputMaybe<Scalars["date"]["input"]>;
 };
 
-/** columns and relationships of "world_id_analytics_state" */
-export type World_Id_Analytics_State = {
-  __typename?: "world_id_analytics_state";
-  processed_through: Scalars["timestamptz"]["output"];
-  singleton: Scalars["Boolean"]["output"];
-};
-
-/** aggregated selection of "world_id_analytics_state" */
-export type World_Id_Analytics_State_Aggregate = {
-  __typename?: "world_id_analytics_state_aggregate";
-  aggregate?: Maybe<World_Id_Analytics_State_Aggregate_Fields>;
-  nodes: Array<World_Id_Analytics_State>;
-};
-
-/** aggregate fields of "world_id_analytics_state" */
-export type World_Id_Analytics_State_Aggregate_Fields = {
-  __typename?: "world_id_analytics_state_aggregate_fields";
-  count: Scalars["Int"]["output"];
-  max?: Maybe<World_Id_Analytics_State_Max_Fields>;
-  min?: Maybe<World_Id_Analytics_State_Min_Fields>;
-};
-
-/** aggregate fields of "world_id_analytics_state" */
-export type World_Id_Analytics_State_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<World_Id_Analytics_State_Select_Column>>;
-  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
-};
-
-/** Boolean expression to filter rows from the table "world_id_analytics_state". All fields are combined with a logical 'AND'. */
-export type World_Id_Analytics_State_Bool_Exp = {
-  _and?: InputMaybe<Array<World_Id_Analytics_State_Bool_Exp>>;
-  _not?: InputMaybe<World_Id_Analytics_State_Bool_Exp>;
-  _or?: InputMaybe<Array<World_Id_Analytics_State_Bool_Exp>>;
-  processed_through?: InputMaybe<Timestamptz_Comparison_Exp>;
-  singleton?: InputMaybe<Boolean_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "world_id_analytics_state" */
-export enum World_Id_Analytics_State_Constraint {
-  /** unique or primary key constraint on columns "singleton" */
-  WorldIdAnalyticsStatePkey = "world_id_analytics_state_pkey",
-}
-
-/** input type for inserting data into table "world_id_analytics_state" */
-export type World_Id_Analytics_State_Insert_Input = {
-  processed_through?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  singleton?: InputMaybe<Scalars["Boolean"]["input"]>;
-};
-
-/** aggregate max on columns */
-export type World_Id_Analytics_State_Max_Fields = {
-  __typename?: "world_id_analytics_state_max_fields";
-  processed_through?: Maybe<Scalars["timestamptz"]["output"]>;
-};
-
-/** aggregate min on columns */
-export type World_Id_Analytics_State_Min_Fields = {
-  __typename?: "world_id_analytics_state_min_fields";
-  processed_through?: Maybe<Scalars["timestamptz"]["output"]>;
-};
-
-/** response of any mutation on the table "world_id_analytics_state" */
-export type World_Id_Analytics_State_Mutation_Response = {
-  __typename?: "world_id_analytics_state_mutation_response";
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars["Int"]["output"];
-  /** data from the rows affected by the mutation */
-  returning: Array<World_Id_Analytics_State>;
-};
-
-/** on_conflict condition type for table "world_id_analytics_state" */
-export type World_Id_Analytics_State_On_Conflict = {
-  constraint: World_Id_Analytics_State_Constraint;
-  update_columns?: Array<World_Id_Analytics_State_Update_Column>;
-  where?: InputMaybe<World_Id_Analytics_State_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "world_id_analytics_state". */
-export type World_Id_Analytics_State_Order_By = {
-  processed_through?: InputMaybe<Order_By>;
-  singleton?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: world_id_analytics_state */
-export type World_Id_Analytics_State_Pk_Columns_Input = {
-  singleton: Scalars["Boolean"]["input"];
-};
-
-/** select columns of table "world_id_analytics_state" */
-export enum World_Id_Analytics_State_Select_Column {
-  /** column name */
-  ProcessedThrough = "processed_through",
-  /** column name */
-  Singleton = "singleton",
-}
-
-/** input type for updating data in table "world_id_analytics_state" */
-export type World_Id_Analytics_State_Set_Input = {
-  processed_through?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  singleton?: InputMaybe<Scalars["Boolean"]["input"]>;
-};
-
-/** Streaming cursor of the table "world_id_analytics_state" */
-export type World_Id_Analytics_State_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: World_Id_Analytics_State_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type World_Id_Analytics_State_Stream_Cursor_Value_Input = {
-  processed_through?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  singleton?: InputMaybe<Scalars["Boolean"]["input"]>;
-};
-
-/** update columns of table "world_id_analytics_state" */
-export enum World_Id_Analytics_State_Update_Column {
-  /** column name */
-  ProcessedThrough = "processed_through",
-  /** column name */
-  Singleton = "singleton",
-}
-
-export type World_Id_Analytics_State_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<World_Id_Analytics_State_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: World_Id_Analytics_State_Bool_Exp;
-};
-
-/** Empty tracked return shape for the service-only app analytics SQL function. */
+/** Empty tracked return shape for the service-only app analytics SQL functions. */
 export type World_Id_App_Stats_Daily = {
   __typename?: "world_id_app_stats_daily";
   date_utc: Scalars["date"]["output"];

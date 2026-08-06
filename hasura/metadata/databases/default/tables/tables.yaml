@@ -29,5 +29,4 @@
 - "!include public_sandbox_access_request.yaml"
 - "!include public_team.yaml"
 - "!include public_user.yaml"
-- "!include public_world_id_analytics_state.yaml"
 - "!include public_world_id_app_stats_daily.yaml"
