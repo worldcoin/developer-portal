@@ -36,6 +36,7 @@ jest.mock("@/lib/permissions", () => ({
 // #region Test Data
 const pool = new Pool({ max: 12 });
 const barrierLock: [number, number] = [812_404, 71];
+const rollupLock: [number, number] = [533_214, 43];
 
 type DailyRow = {
   action_id?: string;
@@ -44,22 +45,33 @@ type DailyRow = {
   unique_count: string;
 };
 
-const callRollup = async () => {
+const callRollup = async (body?: {
+  chunk_days?: number;
+  from_date: string;
+  to_date: string;
+}) => {
   const response = await rollupWorldIdAnalytics(
     new NextRequest("http://localhost:3000/api/_rollup-world-id-analytics", {
       method: "POST",
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET as string,
       },
+      body: body === undefined ? undefined : JSON.stringify(body),
     }),
   );
-  const body = await response.json();
+  const responseBody = await response.json();
   if (!response.ok) {
     throw new Error(
-      `rollup failed (${response.status}): ${JSON.stringify(body)}`,
+      `rollup failed (${response.status}): ${JSON.stringify(responseBody)}`,
     );
   }
-  return body;
+  return responseBody;
+};
+
+const expectDatedRollup = async (fromDate: string, toDate: string) => {
+  await expect(
+    callRollup({ from_date: fromDate, to_date: toDate }),
+  ).resolves.toEqual({ success: true, chunks: 1, failed_ranges: [] });
 };
 
 const callEndpoint = async (input?: {
@@ -126,7 +138,7 @@ const installPauseTrigger = async () => {
   );
 };
 
-const waitForBarrierWaiter = async () => {
+const waitForAdvisoryWaiter = async (lock: [number, number]) => {
   for (let attempt = 0; attempt < 1_000; attempt += 1) {
     const result = await pool.query<{ waiting: boolean }>(
       `SELECT EXISTS (
@@ -137,7 +149,7 @@ const waitForBarrierWaiter = async () => {
             AND objid::bigint = $2
             AND NOT granted
        ) AS waiting`,
-      barrierLock,
+      lock,
     );
     if (result.rows[0].waiting) return;
   }
@@ -238,7 +250,7 @@ afterAll(async () => {
 });
 
 // #region Cold backfill, canonical parity, and endpoint payload
-describe("World ID analytics [real cold backfill and endpoint]", () => {
+describe("World ID analytics [real dated backfill and endpoint]", () => {
   it("counts canonical v3/v4 rows once by UTC, sums apps, and isolates environments", async () => {
     await pool.query("SET TIME ZONE 'America/Los_Angeles'");
     await insertV3Nullifier(pool, {
@@ -291,11 +303,7 @@ describe("World ID analytics [real cold backfill and endpoint]", () => {
       createdAt: "2026-01-10T03:00:00.000Z",
     });
 
-    await expect(callRollup()).resolves.toEqual({
-      success: true,
-      outcome: "advanced",
-      processed_through: expect.any(String),
-    });
+    await expectDatedRollup("2026-01-09", "2026-01-10");
 
     expect(
       await getDailyRows(
@@ -365,7 +373,7 @@ describe("World ID analytics [real cold backfill and endpoint]", () => {
       id: "nullifier_v4_contract_endpoint",
       createdAt: "2026-01-12T12:00:00.000Z",
     });
-    await callRollup();
+    await expectDatedRollup("2026-01-09", "2026-01-13");
     await pool.query("SELECT pg_stat_statements_reset()");
 
     const response = await callEndpoint({
@@ -453,7 +461,7 @@ describe("World ID analytics [real cold backfill and endpoint]", () => {
       actionId: fixture.v4OnlyActionId,
       createdAt: "2026-01-05T12:00:00.000Z",
     });
-    await callRollup();
+    await expectDatedRollup("2026-01-05", "2026-01-05");
 
     const v3Only = await endpointBody({ appId: fixture.v3OnlyAppId });
     const v4Only = await endpointBody({ appId: fixture.v4OnlyAppId });
@@ -503,7 +511,7 @@ describe("World ID analytics [real cold backfill and endpoint]", () => {
     }
 
     const canonical = await readCanonicalSourceDaily(pool, fixture.teamId);
-    await callRollup();
+    await expectDatedRollup("2026-01-08", "2026-01-09");
     const rolled = await readRolledSourceDaily(pool, fixture.teamId);
 
     expect(rolled).toEqual(canonical);
@@ -545,9 +553,9 @@ describe("World ID analytics [real cold backfill and endpoint]", () => {
 
 // #region Rebuild, catch-up, cutoff, and mutable v3 fields
 describe("World ID analytics [real rebuild and catch-up]", () => {
-  it("runs a full dual-source cold backfill, an identical rerun, and an absolute overlap refresh", async () => {
-    // Anchors stay inside the ~25-hour rebuild overlap behind the watermark;
-    // a bounded-window rollup never revisits dates older than that.
+  it("runs a cron-window rebuild, an identical rerun, and an absolute overlap refresh", async () => {
+    // Anchors stay inside the trailing ~25-hour window every cron-mode call
+    // rebuilds; the recurring tick never revisits dates older than that.
     const anchors = await pool.query<{ cold_at: string; late_at: string }>(
       `SELECT
          (clock_timestamp() - INTERVAL '3 hours')::text AS cold_at,
@@ -574,8 +582,9 @@ describe("World ID analytics [real rebuild and catch-up]", () => {
     await callRollup();
     expect(await readRolledSourceDaily(pool, fixture.teamId)).toEqual(first);
 
-    // A row committing late — behind the watermark but inside the overlap —
-    // is recaptured by the next absolute rebuild, never added incrementally.
+    // A row committing late — already-processed territory, but inside the
+    // trailing window — is recaptured by the next absolute rebuild, never
+    // added incrementally.
     await insertV3Nullifier(pool, {
       id: "nil_contract_overlap_late",
       createdAt: late_at,
@@ -596,13 +605,13 @@ describe("World ID analytics [real rebuild and catch-up]", () => {
       updatedAt: "2026-01-10T10:00:00.000Z",
       uses: 0,
     });
-    await callRollup();
+    await expectDatedRollup("2026-01-10", "2026-01-10");
     await pool.query(
       `UPDATE public.nullifier
           SET uses = 50, updated_at = '2026-06-01T10:00:00Z'
         WHERE id = 'nil_contract_mutable_fields'`,
     );
-    await callRollup();
+    await expectDatedRollup("2026-01-10", "2026-01-10");
 
     expect(
       await getDailyRows(
@@ -646,7 +655,7 @@ describe("World ID analytics [real rebuild and catch-up]", () => {
     try {
       await blocker.query("SELECT pg_advisory_lock($1, $2)", barrierLock);
       const firstRun = callRollup();
-      await waitForBarrierWaiter();
+      await waitForAdvisoryWaiter(barrierLock);
 
       await insertV3Nullifier(pool, {
         id: "nil_contract_after_v3_scan",
@@ -693,25 +702,16 @@ describe("World ID analytics [real rebuild and catch-up]", () => {
     ]);
   });
 
-  it("recovers every missed day after a multi-day stalled watermark", async () => {
-    await insertV3Nullifier(pool, {
-      id: "nil_contract_stalled_initial",
-      createdAt: "2026-01-20T12:00:00.000Z",
-    });
-    await callRollup();
-    await pool.query(
-      `UPDATE public.world_id_analytics_state
-          SET processed_through = '2026-01-20T23:59:59.999Z'`,
-    );
-
-    for (const day of [21, 22, 23, 24, 25]) {
+  it("repairs an arbitrary multi-day historical gap through one dated call", async () => {
+    for (const day of [20, 21, 22, 23, 24, 25]) {
       await insertV3Nullifier(pool, {
-        id: `nil_contract_stalled_${day}`,
+        id: `nil_contract_gap_${day}`,
         createdAt: `2026-01-${day}T12:00:00.000Z`,
         uses: day % 9,
       });
     }
-    await callRollup();
+
+    await expectDatedRollup("2026-01-20", "2026-01-25");
 
     expect(
       (
@@ -729,41 +729,22 @@ describe("World ID analytics [real rebuild and catch-up]", () => {
       "2026-01-25",
     ]);
   });
-
-  it("keeps one unique watermark and never moves it backward", async () => {
-    await callRollup();
-    const future = await pool.query<{ processed_through: string }>(
-      `UPDATE public.world_id_analytics_state
-          SET processed_through = clock_timestamp() + INTERVAL '2 days'
-      RETURNING processed_through::text`,
-    );
-
-    await callRollup();
-    const state = await pool.query<{ processed_through: string }>(
-      `SELECT processed_through::text
-         FROM public.world_id_analytics_state`,
-    );
-
-    expect(state.rows).toHaveLength(1);
-    expect(
-      new Date(state.rows[0].processed_through).getTime(),
-    ).toBeGreaterThanOrEqual(
-      new Date(future.rows[0].processed_through).getTime(),
-    );
-  });
 });
 // #endregion
 
 // #region Atomicity and single-run exclusion
 describe("World ID analytics [real atomicity and locking]", () => {
-  it("rolls back both source legs and shared state when the v4 leg fails", async () => {
+  it("rolls back both source legs when the v4 leg fails", async () => {
+    const anchor = await pool.query<{ recent_at: string }>(
+      `SELECT (clock_timestamp() - INTERVAL '2 hours')::text AS recent_at`,
+    );
     await insertV3Nullifier(pool, {
       id: "nil_contract_atomic_v3",
-      createdAt: "2026-01-10T12:00:00.000Z",
+      createdAt: anchor.rows[0].recent_at,
     });
     await insertV4Nullifier(pool, {
       id: "nullifier_v4_contract_atomic_v4",
-      createdAt: "2026-01-10T12:00:00.000Z",
+      createdAt: anchor.rows[0].recent_at,
     });
     await pool.query(
       `CREATE FUNCTION public.contract_fail_v4_analytics_rollup()
@@ -789,27 +770,27 @@ describe("World ID analytics [real atomicity and locking]", () => {
     expect(
       await getDailyRows("action_v4_stats_daily", fixture.productionV4ActionId),
     ).toEqual([]);
-    expect(
-      (await pool.query("SELECT * FROM public.world_id_analytics_state")).rows,
-    ).toEqual([]);
   });
 
-  it("lets a concurrent cron invocation exit successfully while the first owns the rollup", async () => {
+  it("queues a concurrent cron invocation behind the running one and loses nothing", async () => {
+    const anchor = await pool.query<{ recent_at: string }>(
+      `SELECT (clock_timestamp() - INTERVAL '2 hours')::text AS recent_at`,
+    );
     await insertV3Nullifier(pool, {
       id: "nil_contract_lock",
-      createdAt: "2026-01-10T12:00:00.000Z",
+      createdAt: anchor.rows[0].recent_at,
     });
     await installPauseTrigger();
     const blocker = await pool.connect();
     try {
       await blocker.query("SELECT pg_advisory_lock($1, $2)", barrierLock);
       const firstRun = callRollup();
-      await waitForBarrierWaiter();
+      await waitForAdvisoryWaiter(barrierLock);
 
-      await expect(callRollup()).resolves.toEqual({
-        success: true,
-        outcome: "lock_missed",
-      });
+      // The second invocation blocks on the rollup's own advisory lock while
+      // the first holds it at the barrier — no skip, no interleaving.
+      const secondRun = callRollup();
+      await waitForAdvisoryWaiter(rollupLock);
       expect(
         await getDailyRows(
           "action_legacy_stats_daily",
@@ -818,47 +799,39 @@ describe("World ID analytics [real atomicity and locking]", () => {
       ).toEqual([]);
 
       await releaseBarrier(blocker);
-      await firstRun;
+      await expect(firstRun).resolves.toEqual(
+        expect.objectContaining({ success: true, outcome: "advanced" }),
+      );
+      await expect(secondRun).resolves.toEqual(
+        expect.objectContaining({ success: true, outcome: "advanced" }),
+      );
       expect(
         await getDailyRows(
           "action_legacy_stats_daily",
           fixture.productionV3ActionId,
         ),
-      ).toHaveLength(1);
+      ).toEqual([expect.objectContaining({ unique_count: "1" })]);
     } finally {
       await blocker.query("SELECT pg_advisory_unlock_all()");
       blocker.release();
     }
   });
 
-  it("uses lock (533214,43) and remains independent of legacy lock (533214,42)", async () => {
+  it("remains independent of the legacy app-stats lock (533214,42)", async () => {
+    const anchor = await pool.query<{ recent_at: string }>(
+      `SELECT (clock_timestamp() - INTERVAL '2 hours')::text AS recent_at`,
+    );
     await insertV3Nullifier(pool, {
       id: "nil_contract_exact_lock",
-      createdAt: "2026-01-10T12:00:00.000Z",
+      createdAt: anchor.rows[0].recent_at,
     });
     const lockClient = await pool.connect();
     try {
       await lockClient.query("BEGIN");
-      await lockClient.query("SELECT pg_advisory_xact_lock(533214, 43)");
-      await expect(callRollup()).resolves.toEqual({
-        success: true,
-        outcome: "lock_missed",
-      });
-      expect(
-        await getDailyRows(
-          "action_legacy_stats_daily",
-          fixture.productionV3ActionId,
-        ),
-      ).toEqual([]);
-
-      await lockClient.query("ROLLBACK");
-      await lockClient.query("BEGIN");
       await lockClient.query("SELECT pg_advisory_xact_lock(533214, 42)");
-      await expect(callRollup()).resolves.toEqual({
-        success: true,
-        outcome: "advanced",
-        processed_through: expect.any(String),
-      });
+      await expect(callRollup()).resolves.toEqual(
+        expect.objectContaining({ success: true, outcome: "advanced" }),
+      );
       expect(
         await getDailyRows(
           "action_legacy_stats_daily",
@@ -902,14 +875,14 @@ describe("World ID analytics [real action deletion]", () => {
           createdAt: "2026-01-10T12:00:00.000Z",
         });
       }
-      await callRollup();
+      await expectDatedRollup("2026-01-10", "2026-01-10");
 
       await pool.query(
         `DELETE FROM public.${source === "v3" ? "action" : "action_v4"}
           WHERE id = $1`,
         [actionId],
       );
-      await callRollup();
+      await expectDatedRollup("2026-01-10", "2026-01-10");
 
       expect(
         (
@@ -922,7 +895,7 @@ describe("World ID analytics [real action deletion]", () => {
     },
   );
 
-  it("lets deletion win a deterministic insert race with no timing sleep", async () => {
+  it("lets deletion win the insert race and reports the failed range for retry", async () => {
     await insertV3Nullifier(pool, {
       id: "nil_contract_delete_race",
       createdAt: "2026-01-10T12:00:00.000Z",
@@ -932,8 +905,11 @@ describe("World ID analytics [real action deletion]", () => {
     const deleteClient = await pool.connect();
     try {
       await blocker.query("SELECT pg_advisory_lock($1, $2)", barrierLock);
-      const rollup = callRollup();
-      await waitForBarrierWaiter();
+      const rollup = callRollup({
+        from_date: "2026-01-10",
+        to_date: "2026-01-10",
+      });
+      await waitForAdvisoryWaiter(barrierLock);
 
       await deleteClient.query("SET lock_timeout = '750ms'");
       await deleteClient.query("SET statement_timeout = '2s'");
@@ -944,8 +920,21 @@ describe("World ID analytics [real action deletion]", () => {
       ).resolves.toEqual(expect.objectContaining({ rowCount: 1 }));
 
       await releaseBarrier(blocker);
-      await expect(rollup).rejects.toThrow("rollup failed (500)");
-      await callRollup();
+      // The chunk's transaction loses to the deletion and lands in
+      // failed_ranges — the operator's retry input — instead of a 500.
+      await expect(rollup).resolves.toEqual({
+        success: false,
+        chunks: 1,
+        failed_ranges: [
+          {
+            from_date: "2026-01-10",
+            to_date: "2026-01-10",
+            error: expect.any(String),
+          },
+        ],
+      });
+
+      await expectDatedRollup("2026-01-10", "2026-01-10");
       expect(
         await getDailyRows(
           "action_legacy_stats_daily",
@@ -963,7 +952,7 @@ describe("World ID analytics [real action deletion]", () => {
 
 // #region Applied metadata and role isolation
 describe("World ID analytics [real Hasura metadata]", () => {
-  it("applies the five-minute protected cron while preserving the legacy hourly job", async () => {
+  it("applies the fifteen-minute protected cron while preserving the legacy hourly job", async () => {
     const response = await fetch(
       process.env.WIA_HASURA_METADATA_URL as string,
       {
@@ -990,7 +979,7 @@ describe("World ID analytics [real Hasura metadata]", () => {
     );
     expect(analyticsCron).toEqual(
       expect.objectContaining({
-        schedule: "*/5 * * * *",
+        schedule: "*/15 * * * *",
         webhook: "{{NEXT_API_URL}}/_rollup-world-id-analytics",
       }),
     );
@@ -1005,7 +994,7 @@ describe("World ID analytics [real Hasura metadata]", () => {
     ).toEqual(expect.objectContaining({ schedule: "0 * * * *" }));
   });
 
-  it("exposes every tracked analytics table, state, return object, and function only to service", async () => {
+  it("exposes every tracked analytics table, return object, and function only to service", async () => {
     const metadataResponse = await fetch(
       process.env.WIA_HASURA_METADATA_URL as string,
       {
@@ -1080,7 +1069,7 @@ describe("World ID analytics [real Hasura metadata]", () => {
       expect.arrayContaining([
         "action_legacy_stats_daily",
         "action_v4_stats_daily",
-        "world_id_analytics_state",
+        "world_id_app_stats_daily",
       ]),
     );
     expect(trackedFunctions.length).toBeGreaterThanOrEqual(2);

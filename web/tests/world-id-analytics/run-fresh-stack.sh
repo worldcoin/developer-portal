@@ -115,6 +115,10 @@ export DATABASE_URL="postgres://postgres:password@127.0.0.1:${postgres_port}/pos
 export NEXT_PUBLIC_GRAPHQL_API_URL="${hasura_url}/v1/graphql"
 export HASURA_GRAPHQL_ADMIN_SECRET="secret!"
 export INTERNAL_ENDPOINTS_SECRET="world-id-analytics-test-secret"
+# Must match the stack's HASURA_GRAPHQL_JWT_SECRET so a service JWT minted by
+# the real route is accepted by this Hasura.
+export HASURA_GRAPHQL_JWT_SECRET='{"key":"unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ","type":"HS512"}'
+export JWT_ISSUER="https://world-id-analytics.test"
 export WORLD_ID_ANALYTICS_ROLLUP_ENABLED=true
 export WIA_HASURA_METADATA_URL="${hasura_url}/v1/metadata"
 export WIA_MIGRATIONS_PROVEN=true
@@ -140,8 +144,11 @@ fi
 if [[ "${1:-}" == "--release-gate" ]]; then
   npx jest \
     tests/world-id-analytics/stack-smoke.test.ts \
-    tests/world-id-analytics/chunked-rollup.test.ts \
-    tests/world-id-analytics/backfill-and-validate.test.ts \
+    tests/world-id-analytics/window-rollup.test.ts \
+    tests/world-id-analytics/rollup-parity.test.ts \
+    tests/world-id-analytics/index-build-locking.test.ts \
+    tests/world-id-analytics/cron-and-rollout.test.ts \
+    tests/world-id-analytics/end-to-end-release.test.ts \
     --runInBand
   exit 0
 fi
@@ -162,7 +169,10 @@ fi
 
 npx jest \
   tests/world-id-analytics/stack-smoke.test.ts \
-  tests/world-id-analytics/chunked-rollup.test.ts \
-  tests/world-id-analytics/backfill-and-validate.test.ts \
+  tests/world-id-analytics/window-rollup.test.ts \
+  tests/world-id-analytics/rollup-parity.test.ts \
+  tests/world-id-analytics/index-build-locking.test.ts \
+  tests/world-id-analytics/cron-and-rollout.test.ts \
+  tests/world-id-analytics/end-to-end-release.test.ts \
   --runInBand
 npx jest tests/world-id-analytics/integration.test.ts --runInBand
