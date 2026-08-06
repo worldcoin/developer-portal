@@ -10,12 +10,14 @@ import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import { ImageCropDialog } from "../AppStore/ImageForm/ImageCropDialog";
 import { AppStoreFormValues } from "../AppStore/FormSchema/types";
+import { useAppStoreFormContext } from "../AppStore/app-store";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
 import { useLogoUpload } from "../AppTopBar/LogoImageUpload";
 import {
   BasicInformationHandle,
   useBasicInformationForm,
 } from "../BasicInformation";
+import type { BasicInformationFormValues } from "../BasicInformation/form-schema";
 import { unverifiedImageAtom } from "../layout/ImagesProvider";
 import { useAppModeToggle } from "../MiniAppConfiguration";
 import { AppModeCards } from "./AppModeCards";
@@ -152,8 +154,8 @@ export const BasicInformationStepSkeleton = () => (
 /**
  * Step 1 of the configuration wizard: identity fields plus the Mini App /
  * External mode choice. Persists through the same paths as the previous
- * page: the basic-information autosave form (name/URLs) and the app-mode
- * server action with optimistic atom flip.
+ * page. The English app name is the same App Store form field rendered by the
+ * Localised content step; the basic-information form owns only the URLs.
  */
 export const BasicInformationStep = forwardRef<
   BasicInformationHandle,
@@ -163,11 +165,33 @@ export const BasicInformationStep = forwardRef<
     app: FetchAppMetadataQuery["app"][0];
     appMetadata: AppMetadata;
     publisher: string;
+    onSavedEdit?: (patch: Partial<BasicInformationFormValues>) => void;
   }
->(({ appId, teamId, app, appMetadata, publisher }, ref) => {
-  const { form, errors, isEditable, isEnoughPermissions, submit } =
-    useBasicInformationForm({ appId, teamId, app });
-  const { control, setValue } = form;
+>(({ appId, teamId, app, appMetadata, publisher, onSavedEdit }, ref) => {
+  const {
+    control: appStoreControl,
+    errors: appStoreErrors,
+    localisations,
+  } = useAppStoreFormContext();
+  const englishIndex = Math.max(
+    0,
+    localisations.findIndex((localisation) => localisation.language === "en"),
+  );
+  const englishNameField = `localisations.${englishIndex}.name` as const;
+  const {
+    form,
+    errors: basicInformationErrors,
+    isEditable,
+    isEnoughPermissions,
+    submit,
+  } = useBasicInformationForm({
+    appId,
+    teamId,
+    app,
+    managesName: false,
+    onSavedEdit,
+  });
+  const { control: basicInformationControl, setValue } = form;
 
   useImperativeHandle(ref, () => ({ submit }), [submit]);
 
@@ -195,8 +219,8 @@ export const BasicInformationStep = forwardRef<
       <div className="flex w-full flex-col gap-4">
         <div className="flex w-full items-start gap-4">
           <Controller
-            control={control}
-            name="name"
+            control={appStoreControl}
+            name={englishNameField}
             render={({ field }) => (
               <TextField
                 label="App name"
@@ -207,7 +231,9 @@ export const BasicInformationStep = forwardRef<
                 onChange={field.onChange}
                 onBlur={field.onBlur}
                 disabled={disabled}
-                error={errors.name?.message}
+                error={
+                  appStoreErrors.localisations?.[englishIndex]?.name?.message
+                }
               />
             )}
           />
@@ -217,7 +243,7 @@ export const BasicInformationStep = forwardRef<
         </div>
 
         <Controller
-          control={control}
+          control={basicInformationControl}
           name="integration_url"
           render={({ field }) => (
             <TextField
@@ -232,13 +258,13 @@ export const BasicInformationStep = forwardRef<
                 makeUrlBlur("integration_url", field.value ?? "")();
               }}
               disabled={disabled}
-              error={errors.integration_url?.message}
+              error={basicInformationErrors.integration_url?.message}
             />
           )}
         />
 
         <Controller
-          control={control}
+          control={basicInformationControl}
           name="app_website_url"
           render={({ field }) => (
             <TextField
@@ -253,7 +279,7 @@ export const BasicInformationStep = forwardRef<
                 makeUrlBlur("app_website_url", field.value ?? "")();
               }}
               disabled={disabled}
-              error={errors.app_website_url?.message}
+              error={basicInformationErrors.app_website_url?.message}
             />
           )}
         />

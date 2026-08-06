@@ -71,7 +71,7 @@ export const LivePreview = ({
   const loc =
     localisations?.find((l) => l?.language === selectedLanguage) ??
     localisations?.find((l) => l?.language === "en");
-  const name = basicInfo.name?.trim() || loc?.name?.trim() || "Untitled app";
+  const name = loc?.name?.trim() || basicInfo.name?.trim() || "Untitled app";
   const tagLine =
     loc?.world_app_description?.trim() || "A one-line summary of your app";
   const description =

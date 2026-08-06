@@ -9,18 +9,18 @@ export type AutosaveStatus =
   | { state: "saved"; at: number }
   | { state: "error"; at: number; error: Error; retry: () => void };
 
-export type UseAutosaveOptions<T extends FieldValues> = {
+export type UseAutosaveOptions<T extends FieldValues, TSaved = void> = {
   form: UseFormReturn<T>;
-  save: (data: T, signal: AbortSignal) => Promise<void>;
+  save: (data: T, signal: AbortSignal) => Promise<TSaved>;
   enabled: boolean;
   debounceMs?: number;
   onStatus: (status: AutosaveStatus) => void;
   /**
-   * Called with the exact form snapshot only after that edit has been saved
-   * and is still current. Consumers can use this for UI that must never
-   * acknowledge a change while it is merely waiting in the debounce window.
+   * Called with the save function's committed result only after that edit has
+   * saved and is still current. The result may intentionally omit stale form
+   * fields that were not part of the persistence operation.
    */
-  onSavedEdit?: (data: T) => void;
+  onSavedEdit?: (data: TSaved) => void;
   onPendingChange?: (isPending: boolean) => void;
   /**
    * Returns true for fields persisted by someone other than this autosave —
@@ -50,8 +50,8 @@ class StaleSaveError extends Error {
   }
 }
 
-export function useAutosave<T extends FieldValues>(
-  options: UseAutosaveOptions<T>,
+export function useAutosave<T extends FieldValues, TSaved = void>(
+  options: UseAutosaveOptions<T, TSaved>,
 ): UseAutosaveResult {
   const { form, debounceMs = DEFAULT_DEBOUNCE_MS } = options;
 
@@ -125,7 +125,7 @@ export function useAutosave<T extends FieldValues>(
       onStatus({ state: "saving" });
 
       try {
-        await save(snapshot, controller.signal);
+        const saved = await save(snapshot, controller.signal);
         if (controller.signal.aborted) throw new StaleSaveError();
 
         const fresh = f.getValues();
@@ -141,7 +141,7 @@ export function useAutosave<T extends FieldValues>(
             keepTouched: true,
           });
           onStatus({ state: "saved", at: Date.now() });
-          optionsRef.current.onSavedEdit?.(snapshot);
+          optionsRef.current.onSavedEdit?.(saved);
         }
         // When the snapshot is no longer current, the user typed during the
         // save: a new debounce was scheduled by the watch subscription, so

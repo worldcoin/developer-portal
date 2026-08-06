@@ -11,13 +11,21 @@ import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/ho
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import { useFormContext } from "react-hook-form";
 import { AppStoreForm } from "../AppStore/app-store";
 import { AppStoreFormValues } from "../AppStore/FormSchema/types";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
 import { AppStoreActions } from "../AppStoreActions";
 import { BasicInformationHandle } from "../BasicInformation";
+import type { BasicInformationFormValues } from "../BasicInformation/form-schema";
 import { useCreateNewDraft } from "../hook/use-create-new-draft";
 import { isMiniAppAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { SaveStatusIndicator, useSaveStatusActions } from "../SaveStatus";
@@ -32,6 +40,11 @@ import { LocalisedContentStep } from "./LocalisedContentStep";
 import { ReviewStep } from "./ReviewStep";
 import { StoreListingStep } from "./StoreListingStep";
 import { Stepper } from "./Stepper";
+import {
+  AppStorePersistedPatch,
+  cloneAppStoreFormValues,
+  wizardPersistedDraftReducer,
+} from "../persisted-draft";
 import {
   getWizardStepForField,
   getWizardSteps,
@@ -58,18 +71,6 @@ export const wizardActionBarClassName =
   "-mx-6 shrink-0 border-t border-portal-border bg-white px-6 py-3";
 export const wizardActionBarInnerClassName =
   "mx-auto flex w-full max-w-[626px] items-center gap-3";
-
-const cloneAppStoreFormValues = (
-  values: AppStoreFormValues,
-): AppStoreFormValues => ({
-  ...values,
-  supported_countries: [...values.supported_countries],
-  supported_languages: [...values.supported_languages],
-  localisations: values.localisations.map((localisation) => ({
-    ...localisation,
-    showcase_img_urls: [...(localisation.showcase_img_urls ?? [])],
-  })),
-});
 
 /**
  * Q3 2026 configuration wizard (Figma: Dev Portal Q3 2026). The designed
@@ -105,32 +106,37 @@ export const ConfigurationWizard = (props: {
   const basicInfoRef = useRef<BasicInformationHandle>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const appStoreForm = useFormContext<AppStoreFormValues>();
-  // Keep completion detached from RHF's live values. A step can acknowledge a
-  // new value only when the owning autosave (or self-persisting image mutation)
-  // publishes a successful snapshot below.
-  const [appStoreFieldSnapshot, setAppStoreFieldSnapshot] =
-    useState<AppStoreFormValues>(() =>
-      cloneAppStoreFormValues(appStoreForm.getValues()),
-    );
+  // Form values are edit buffers. Completion reads this single persisted
+  // draft, updated only with the exact result of a successful save.
+  const [persistedDraft, dispatchPersistedDraft] = useReducer(
+    wizardPersistedDraftReducer,
+    {
+      basicInformation: {
+        name: appMetadata.name ?? "",
+        integration_url: appMetadata.integration_url ?? "",
+        app_website_url: appMetadata.app_website_url ?? "",
+      },
+      appStore: cloneAppStoreFormValues(appStoreForm.getValues()),
+    },
+  );
   const { user } = useUser() as Auth0SessionUser;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const saveStatusActions = useSaveStatusActions();
   const [isSwitchingVersion, setIsSwitchingVersion] = useState(false);
   const [showReviewValidationErrors, setShowReviewValidationErrors] =
     useState(false);
-  const handleSavedEdit = useCallback(
-    (
-      nextValues:
-        | AppStoreFormValues
-        | ((currentValues: AppStoreFormValues) => AppStoreFormValues),
-    ) => {
-      setAppStoreFieldSnapshot((currentValues) =>
-        cloneAppStoreFormValues(
-          typeof nextValues === "function"
-            ? nextValues(currentValues)
-            : nextValues,
-        ),
-      );
+  const handleSavedEdit = useCallback((patch: AppStorePersistedPatch) => {
+    dispatchPersistedDraft({ type: "app-store-saved", patch });
+  }, []);
+  const handleSelfPersistedEdit = useCallback(
+    (update: (values: AppStoreFormValues) => AppStoreFormValues) => {
+      dispatchPersistedDraft({ type: "app-store-self-persisted", update });
+    },
+    [],
+  );
+  const handleBasicInformationSavedEdit = useCallback(
+    (patch: Partial<BasicInformationFormValues>) => {
+      dispatchPersistedDraft({ type: "basic-information-saved", patch });
     },
     [],
   );
@@ -159,24 +165,12 @@ export const ConfigurationWizard = (props: {
     appId,
     appMetadata as AppMetadata,
   );
-  const basicInformationFieldSnapshot = useMemo(
-    () => ({
-      name: appMetadata.name ?? "",
-      integration_url: appMetadata.integration_url ?? "",
-      app_website_url: appMetadata.app_website_url ?? "",
-    }),
-    [
-      appMetadata.app_website_url,
-      appMetadata.integration_url,
-      appMetadata.name,
-    ],
-  );
   const wizardStepStatuses = useMemo(
     () =>
       getWizardStepStatuses({
         isMiniApp,
-        basicInformationFieldSnapshot,
-        appStoreFieldSnapshot,
+        basicInformationFieldSnapshot: persistedDraft.basicInformation,
+        appStoreFieldSnapshot: persistedDraft.appStore,
         logoImageFieldSnapshot: appMetadata.logo_img_url,
         contentCardImageFieldSnapshot: appMetadata.content_card_image_url,
         showReviewValidationErrors,
@@ -185,8 +179,7 @@ export const ConfigurationWizard = (props: {
       appMetadata.content_card_image_url,
       appMetadata.logo_img_url,
       isMiniApp,
-      appStoreFieldSnapshot,
-      basicInformationFieldSnapshot,
+      persistedDraft,
       showReviewValidationErrors,
     ],
   );
@@ -337,6 +330,7 @@ export const ConfigurationWizard = (props: {
           teamId={teamId}
           appMetadata={appMetadata as AppMetadata}
           onSavedEdit={handleSavedEdit}
+          onSelfPersistedEdit={handleSelfPersistedEdit}
         >
           <div
             className={stepWrapperClassName(WizardStep.BASIC, "")}
@@ -358,6 +352,7 @@ export const ConfigurationWizard = (props: {
                 app={app}
                 appMetadata={appMetadata as AppMetadata}
                 publisher={teamName}
+                onSavedEdit={handleBasicInformationSavedEdit}
               />
             </div>
           </div>
