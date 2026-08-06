@@ -51,7 +51,7 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
     teamId,
     supportedLanguages,
     setValue,
-    reportSelfPersistedValues,
+    updateFieldSnapshot,
   } = useAppStoreFormContext();
   const disabled = !isEditable || !isEnoughPermissions;
   const isAppVerified = appMetadata.verification_status === "verified";
@@ -223,13 +223,12 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
                   urls,
                   { shouldDirty: false, shouldValidate: true },
                 );
-                reportSelfPersistedValues((persistedValues) => ({
-                  ...persistedValues,
-                  localisations: persistedValues.localisations.map(
-                    (localisation) =>
-                      localisation.language === selectedLocale
-                        ? { ...localisation, showcase_img_urls: urls }
-                        : localisation,
+                updateFieldSnapshot((snapshot) => ({
+                  ...snapshot,
+                  localisations: snapshot.localisations.map((localisation) =>
+                    localisation.language === selectedLocale
+                      ? { ...localisation, showcase_img_urls: urls }
+                      : localisation,
                   ),
                 }));
               }}
@@ -273,13 +272,12 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
                   url ?? "",
                   { shouldDirty: false, shouldValidate: true },
                 );
-                reportSelfPersistedValues((persistedValues) => ({
-                  ...persistedValues,
-                  localisations: persistedValues.localisations.map(
-                    (localisation) =>
-                      localisation.language === selectedLocale
-                        ? { ...localisation, meta_tag_image_url: url ?? "" }
-                        : localisation,
+                updateFieldSnapshot((snapshot) => ({
+                  ...snapshot,
+                  localisations: snapshot.localisations.map((localisation) =>
+                    localisation.language === selectedLocale
+                      ? { ...localisation, meta_tag_image_url: url ?? "" }
+                      : localisation,
                   ),
                 }));
               }}

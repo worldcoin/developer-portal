@@ -83,12 +83,6 @@ export const LogoDropZone = (props: {
             </span>
           </>
         )}
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute top-3 right-4 z-10 flex size-5 items-center justify-center rounded-full bg-white text-15 leading-none font-semibold text-[#ea392a] shadow-xs"
-        >
-          *
-        </span>
         <input
           type="file"
           accept="image/png,image/jpeg"

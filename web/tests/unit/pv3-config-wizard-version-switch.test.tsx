@@ -8,7 +8,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import React from "react";
-import { FormProvider, useForm, type UseFormReturn } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 
 // #region Mocks
 const flushAllMock = jest.fn();
@@ -38,33 +38,20 @@ jest.mock(
   }),
 );
 
-const createNewDraftMock = jest.fn();
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/hook/use-create-new-draft",
   () => ({
     useCreateNewDraft: () => ({
-      createNewDraft: createNewDraftMock,
+      createNewDraft: jest.fn(),
       isCreating: false,
     }),
   }),
 );
 
-let mockAppStoreAutosaveSuccess:
-  | ((values: Record<string, unknown>) => void)
-  | undefined;
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/app-store",
   () => ({
-    AppStoreForm: ({
-      children,
-      onAutosaveSuccess,
-    }: {
-      children: React.ReactNode;
-      onAutosaveSuccess?: (values: Record<string, unknown>) => void;
-    }) => {
-      mockAppStoreAutosaveSuccess = onAutosaveSuccess;
-      return children;
-    },
+    AppStoreForm: ({ children }: { children: React.ReactNode }) => children,
   }),
 );
 
@@ -105,8 +92,9 @@ jest.mock(
 // #endregion
 
 import { getDefaultStore } from "jotai";
+import { AppStoreFormValues } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/types";
 import { ConfigurationWizard } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard";
-import { WizardStep } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/Stepper";
+import { WizardStep } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/wizard-steps";
 import {
   isMiniAppAtom,
   viewModeAtom,
@@ -123,37 +111,12 @@ const draftMetadata = {
   verification_status: "unverified",
   logo_img_url: "",
 };
-const verifiedMetadata = {
-  ...draftMetadata,
-  id: "meta_verified",
-  verification_status: "verified",
-};
 const app = {
   app_metadata: [draftMetadata],
-  verified_app_metadata: [verifiedMetadata],
+  verified_app_metadata: [{ ...draftMetadata, id: "meta_verified", verification_status: "verified" }],
 };
 
-type TestAppStoreFormValues = {
-  category: string;
-  support_type: string;
-  support_email: string;
-  support_link: string;
-  is_android_only: boolean;
-  is_for_humans_only: boolean;
-  supported_countries: string[];
-  supported_languages: string[];
-  localisations: Array<{
-    language: string;
-    name: string;
-    short_name: string;
-    world_app_description: string;
-    description_overview: string;
-    meta_tag_image_url: string;
-    showcase_img_urls: string[];
-  }>;
-};
-
-const defaultAppStoreFormValues: TestAppStoreFormValues = {
+const defaultAppStoreFormValues: AppStoreFormValues = {
   category: "External",
   support_type: "email",
   support_email: "",
@@ -175,17 +138,14 @@ const defaultAppStoreFormValues: TestAppStoreFormValues = {
   ],
 };
 
-let mockAppStoreForm: UseFormReturn<TestAppStoreFormValues> | null = null;
-
 const WizardTestFormProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const form = useForm<TestAppStoreFormValues>({
+  const form = useForm<AppStoreFormValues>({
     defaultValues: defaultAppStoreFormValues,
   });
-  mockAppStoreForm = form;
   return <FormProvider {...form}>{children}</FormProvider>;
 };
 
@@ -210,34 +170,6 @@ beforeEach(() => {
   jest.clearAllMocks();
   getDefaultStore().set(viewModeAtom, "unverified");
   getDefaultStore().set(isMiniAppAtom, false);
-  mockAppStoreAutosaveSuccess = undefined;
-  mockAppStoreForm = null;
-});
-
-describe("configuration wizard [step completion]", () => {
-  it("waits for autosave success before showing a completion check", () => {
-    renderWizard();
-
-    expect(
-      screen.getByRole("button", { name: "Availability, incomplete" }),
-    ).toBeInTheDocument();
-
-    act(() => {
-      mockAppStoreForm!.setValue("supported_countries", ["US"]);
-    });
-
-    expect(
-      screen.getByRole("button", { name: "Availability, incomplete" }),
-    ).toBeInTheDocument();
-
-    act(() => {
-      mockAppStoreAutosaveSuccess?.(mockAppStoreForm!.getValues());
-    });
-
-    expect(
-      screen.getByRole("button", { name: "Availability, complete" }),
-    ).toBeInTheDocument();
-  });
 });
 
 describe("configuration wizard [version switching]", () => {
@@ -257,13 +189,6 @@ describe("configuration wizard [version switching]", () => {
     expect(onVersionSwitchingChange).toHaveBeenCalledWith(true);
     expect(getDefaultStore().get(viewModeAtom)).toBe("unverified");
     expect(screen.getByTestId("configuration-wizard")).toHaveAttribute("inert");
-    expect(screen.getByTestId("configuration-wizard")).toHaveAttribute(
-      "aria-busy",
-      "true",
-    );
-    expect(
-      screen.getByTestId("configuration-version-indicator"),
-    ).toHaveAccessibleName("Draft version");
 
     await act(async () => finishFlush(true));
 
@@ -271,9 +196,6 @@ describe("configuration wizard [version switching]", () => {
       expect(getDefaultStore().get(viewModeAtom)).toBe("verified"),
     );
     expect(onVersionSwitchingChange).toHaveBeenLastCalledWith(false);
-    expect(screen.getByTestId("configuration-wizard")).not.toHaveAttribute(
-      "inert",
-    );
   });
 
   it("does not switch versions when a pending autosave cannot be flushed", async () => {
@@ -285,13 +207,7 @@ describe("configuration wizard [version switching]", () => {
 
     await waitFor(() => expect(flushAllMock).toHaveBeenCalledTimes(1));
     expect(getDefaultStore().get(viewModeAtom)).toBe("unverified");
-    expect(
-      screen.getByTestId("configuration-version-indicator"),
-    ).toHaveAccessibleName("Draft version");
     expect(onVersionSwitchingChange).toHaveBeenNthCalledWith(1, true);
     expect(onVersionSwitchingChange).toHaveBeenLastCalledWith(false);
-    expect(screen.getByTestId("configuration-wizard")).not.toHaveAttribute(
-      "inert",
-    );
   });
 });

@@ -56,13 +56,13 @@ type AppStoreFormContextValue = ReturnType<typeof useAppStoreForm> &
   AppStoreFormProps & {
     isEnoughPermissions: boolean;
     supportedLanguages: string[];
-    reportSelfPersistedValues: (
+    updateFieldSnapshot: (
       update: (values: AppStoreFormValues) => AppStoreFormValues,
     ) => void;
   };
 
 type AppStoreFormWithAutosaveProps = AppStoreFormProps & {
-  onAutosaveSuccess?: Dispatch<SetStateAction<AppStoreFormValues>>;
+  onSavedEdit?: Dispatch<SetStateAction<AppStoreFormValues>>;
 };
 
 const AppStoreFormContext = createContext<AppStoreFormContextValue | null>(
@@ -85,7 +85,7 @@ export const AppStoreForm = ({
   appId,
   teamId,
   appMetadata,
-  onAutosaveSuccess,
+  onSavedEdit,
   children,
 }: PropsWithChildren<AppStoreFormWithAutosaveProps>) => {
   const { user } = useUser() as Auth0SessionUser;
@@ -104,14 +104,14 @@ export const AppStoreForm = ({
 
   const supportedLanguages = useWatch({ control, name: "supported_languages" });
 
-  const reportAutosaveSuccess = useCallback(
-    (values: AppStoreFormValues) => onAutosaveSuccess?.(values),
-    [onAutosaveSuccess],
+  const handleSavedEdit = useCallback(
+    (values: AppStoreFormValues) => onSavedEdit?.(values),
+    [onSavedEdit],
   );
-  const reportSelfPersistedValues = useCallback(
+  const updateFieldSnapshot = useCallback(
     (update: (values: AppStoreFormValues) => AppStoreFormValues) =>
-      onAutosaveSuccess?.(update),
-    [onAutosaveSuccess],
+      onSavedEdit?.(update),
+    [onSavedEdit],
   );
 
   useAutosaveWithStatus<AppStoreFormValues>({
@@ -121,7 +121,7 @@ export const AppStoreForm = ({
     save: async (data, signal) => {
       await submitSilent(data, signal);
     },
-    onSaved: reportAutosaveSuccess,
+    onSavedEdit: handleSavedEdit,
     isSelfPersisting: isSelfPersistingField,
   });
 
@@ -134,7 +134,7 @@ export const AppStoreForm = ({
         appMetadata,
         isEnoughPermissions,
         supportedLanguages,
-        reportSelfPersistedValues,
+        updateFieldSnapshot,
       }}
     >
       <form

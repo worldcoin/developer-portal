@@ -1,8 +1,10 @@
 import { AppStoreFormValues } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/types";
-import { getWizardStepStatuses } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/step-status";
-import { WizardStep } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/Stepper";
+import {
+  getWizardStepStatuses,
+  WizardStep,
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/wizard-steps";
 
-const completeBasicInformationDraftValues = {
+const completeBasicInformationFieldSnapshot = {
   name: "Example Mini App",
   integration_url: "https://example.world.org",
   app_website_url: "https://example.com",
@@ -35,57 +37,41 @@ const getStatuses = (
 ) =>
   getWizardStepStatuses({
     isMiniApp: true,
-    basicInformationDraftValues: completeBasicInformationDraftValues,
-    appStoreFormValues: completeMiniAppStoreFormValues,
-    resolvedLogoImageUrl: "https://example.com/logo.png",
-    resolvedContentCardImageUrl: "https://example.com/content-card.png",
-    shouldShowIncompleteReviewStepsAsErrors: false,
+    basicInformationFieldSnapshot: completeBasicInformationFieldSnapshot,
+    appStoreFieldSnapshot: completeMiniAppStoreFormValues,
+    logoImageFieldSnapshot: "https://example.com/logo.png",
+    contentCardImageFieldSnapshot: "https://example.com/content-card.png",
+    showReviewValidationErrors: false,
     ...overrides,
   });
 
-describe("Get Verified reactive step statuses", () => {
-  it("does not mark blank earlier steps complete merely because navigation advanced", () => {
-    const statuses = getStatuses({
-      basicInformationDraftValues: {},
-      appStoreFormValues: {} as AppStoreFormValues,
-      resolvedLogoImageUrl: "",
-      resolvedContentCardImageUrl: "",
+describe("wizard field-snapshot step statuses", () => {
+  it("scores incomplete vs complete from field snapshots, and leaves permissions/review untracked", () => {
+    const blank = getStatuses({
+      basicInformationFieldSnapshot: {},
+      appStoreFieldSnapshot: {} as AppStoreFormValues,
+      logoImageFieldSnapshot: "",
+      contentCardImageFieldSnapshot: "",
     });
+    expect(blank[WizardStep.BASIC]).toBe("incomplete");
+    expect(blank[WizardStep.STORE_LISTING]).toBe("incomplete");
+    expect(blank[WizardStep.AVAILABILITY]).toBe("incomplete");
+    expect(blank[WizardStep.LOCALISED_CONTENT]).toBe("incomplete");
 
-    expect(statuses[WizardStep.BASIC]).toBe("incomplete");
-    expect(statuses[WizardStep.STORE_LISTING]).toBe("incomplete");
-    expect(statuses[WizardStep.AVAILABILITY]).toBe("incomplete");
-    expect(statuses[WizardStep.LOCALISED_CONTENT]).toBe("incomplete");
+    const ready = getStatuses();
+    expect(ready[WizardStep.BASIC]).toBe("complete");
+    expect(ready[WizardStep.STORE_LISTING]).toBe("complete");
+    expect(ready[WizardStep.AVAILABILITY]).toBe("complete");
+    expect(ready[WizardStep.LOCALISED_CONTENT]).toBe("complete");
+    expect(ready[WizardStep.MINI_APP_PERMISSIONS]).toBe("untracked");
+    expect(ready[WizardStep.REVIEW]).toBe("untracked");
   });
 
-  it("marks only genuinely review-ready sections complete", () => {
-    const statuses = getStatuses();
-
-    expect(statuses[WizardStep.BASIC]).toBe("complete");
-    expect(statuses[WizardStep.STORE_LISTING]).toBe("complete");
-    expect(statuses[WizardStep.AVAILABILITY]).toBe("complete");
-    expect(statuses[WizardStep.LOCALISED_CONTENT]).toBe("complete");
-    expect(statuses[WizardStep.MINI_APP_PERMISSIONS]).toBe("neutral");
-    expect(statuses[WizardStep.REVIEW]).toBe("neutral");
-  });
-
-  it("reacts to a previously complete section becoming incomplete", () => {
+  it("surfaces errors only after a review submission attempt", () => {
     const statuses = getStatuses({
-      appStoreFormValues: {
-        ...completeMiniAppStoreFormValues,
-        supported_countries: [],
-      },
-    });
-
-    expect(statuses[WizardStep.AVAILABILITY]).toBe("incomplete");
-    expect(statuses[WizardStep.BASIC]).toBe("complete");
-  });
-
-  it("shows errors only after a review submission attempt", () => {
-    const statuses = getStatuses({
-      basicInformationDraftValues: {},
-      resolvedLogoImageUrl: "",
-      shouldShowIncompleteReviewStepsAsErrors: true,
+      basicInformationFieldSnapshot: {},
+      logoImageFieldSnapshot: "",
+      showReviewValidationErrors: true,
     });
 
     expect(statuses[WizardStep.BASIC]).toBe("error");
@@ -95,7 +81,7 @@ describe("Get Verified reactive step statuses", () => {
   it("does not apply store-listing completion requirements to external apps", () => {
     const statuses = getStatuses({ isMiniApp: false });
 
-    expect(statuses[WizardStep.STORE_LISTING]).toBe("neutral");
+    expect(statuses[WizardStep.STORE_LISTING]).toBe("untracked");
     expect(statuses[WizardStep.AVAILABILITY]).toBe("complete");
     expect(statuses[WizardStep.LOCALISED_CONTENT]).toBe("complete");
   });

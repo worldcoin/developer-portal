@@ -11,7 +11,7 @@ type Options<T extends FieldValues> = {
   save: (data: T, signal: AbortSignal) => Promise<void>;
   enabled: boolean;
   debounceMs?: number;
-  onSaved?: (data: T) => void;
+  onSavedEdit?: (data: T) => void;
   /** See `UseAutosaveOptions.isSelfPersisting`. */
   isSelfPersisting?: (name: string) => boolean;
 };
@@ -48,7 +48,7 @@ export const useAutosaveWithStatus = <T extends FieldValues>(
     enabled: options.enabled,
     debounceMs: options.debounceMs,
     isSelfPersisting: options.isSelfPersisting,
-    onSaved: options.onSaved,
+    onSavedEdit: options.onSavedEdit,
     onStatus: (status: AutosaveStatus) => {
       ctxRef.current?.pushStatus(idRef.current, status);
     },

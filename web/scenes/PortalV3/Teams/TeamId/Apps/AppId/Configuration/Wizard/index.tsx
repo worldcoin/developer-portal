@@ -31,13 +31,13 @@ import {
 import { LocalisedContentStep } from "./LocalisedContentStep";
 import { ReviewStep } from "./ReviewStep";
 import { StoreListingStep } from "./StoreListingStep";
+import { Stepper } from "./Stepper";
 import {
   getWizardStepForField,
   getWizardSteps,
-  Stepper,
+  getWizardStepStatuses,
   WizardStep,
-} from "./Stepper";
-import { getWizardStepStatuses } from "./step-status";
+} from "./wizard-steps";
 
 export const secondaryButtonClassName =
   "flex h-10 items-center justify-center rounded-[10px] bg-portal-canvas px-6 text-15 leading-[1.2] font-semibold text-portal-ink transition-colors hover:bg-portal-border disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-portal-canvas";
@@ -108,7 +108,7 @@ export const ConfigurationWizard = (props: {
   // Keep completion detached from RHF's live values. A step can acknowledge a
   // new value only when the owning autosave (or self-persisting image mutation)
   // publishes a successful snapshot below.
-  const [persistedAppStoreFormValues, setPersistedAppStoreFormValues] =
+  const [appStoreFieldSnapshot, setAppStoreFieldSnapshot] =
     useState<AppStoreFormValues>(() =>
       cloneAppStoreFormValues(appStoreForm.getValues()),
     );
@@ -116,15 +116,15 @@ export const ConfigurationWizard = (props: {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const saveStatusActions = useSaveStatusActions();
   const [isSwitchingVersion, setIsSwitchingVersion] = useState(false);
-  const [hasAttemptedReviewSubmission, setHasAttemptedReviewSubmission] =
+  const [showReviewValidationErrors, setShowReviewValidationErrors] =
     useState(false);
-  const handleAppStoreAutosaveSuccess = useCallback(
+  const handleSavedEdit = useCallback(
     (
       nextValues:
         | AppStoreFormValues
         | ((currentValues: AppStoreFormValues) => AppStoreFormValues),
     ) => {
-      setPersistedAppStoreFormValues((currentValues) =>
+      setAppStoreFieldSnapshot((currentValues) =>
         cloneAppStoreFormValues(
           typeof nextValues === "function"
             ? nextValues(currentValues)
@@ -159,7 +159,7 @@ export const ConfigurationWizard = (props: {
     appId,
     appMetadata as AppMetadata,
   );
-  const persistedBasicInformationValues = useMemo(
+  const basicInformationFieldSnapshot = useMemo(
     () => ({
       name: appMetadata.name ?? "",
       integration_url: appMetadata.integration_url ?? "",
@@ -175,19 +175,19 @@ export const ConfigurationWizard = (props: {
     () =>
       getWizardStepStatuses({
         isMiniApp,
-        basicInformationDraftValues: persistedBasicInformationValues,
-        appStoreFormValues: persistedAppStoreFormValues,
-        resolvedLogoImageUrl: appMetadata.logo_img_url,
-        resolvedContentCardImageUrl: appMetadata.content_card_image_url,
-        shouldShowIncompleteReviewStepsAsErrors: hasAttemptedReviewSubmission,
+        basicInformationFieldSnapshot,
+        appStoreFieldSnapshot,
+        logoImageFieldSnapshot: appMetadata.logo_img_url,
+        contentCardImageFieldSnapshot: appMetadata.content_card_image_url,
+        showReviewValidationErrors,
       }),
     [
       appMetadata.content_card_image_url,
       appMetadata.logo_img_url,
-      hasAttemptedReviewSubmission,
       isMiniApp,
-      persistedAppStoreFormValues,
-      persistedBasicInformationValues,
+      appStoreFieldSnapshot,
+      basicInformationFieldSnapshot,
+      showReviewValidationErrors,
     ],
   );
 
@@ -210,7 +210,7 @@ export const ConfigurationWizard = (props: {
 
   const handleValidationError = useCallback(
     (fieldPath?: string) => {
-      setHasAttemptedReviewSubmission(true);
+      setShowReviewValidationErrors(true);
       const target = getWizardStepForField(isMiniApp, fieldPath);
       handleStepChange(
         steps.some((step) => step.id === target) ? target : WizardStep.BASIC,
@@ -302,7 +302,7 @@ export const ConfigurationWizard = (props: {
         <Stepper
           steps={steps}
           activeIndex={activeIndex}
-          statusByStep={wizardStepStatuses}
+          stepStatuses={wizardStepStatuses}
           onStepSelect={handleStepChange}
         />
         {/* Static cue for which version the form shows — not a control.
@@ -336,7 +336,7 @@ export const ConfigurationWizard = (props: {
           appId={appId}
           teamId={teamId}
           appMetadata={appMetadata as AppMetadata}
-          onAutosaveSuccess={handleAppStoreAutosaveSuccess}
+          onSavedEdit={handleSavedEdit}
         >
           <div
             className={stepWrapperClassName(WizardStep.BASIC, "")}
