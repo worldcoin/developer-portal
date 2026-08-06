@@ -299,6 +299,68 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
     await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBeNull();
   });
 
+  it("retains the per-RP lock when a transfer was submitted but not confirmed", async () => {
+    arrangeCandidate();
+    migrateRpManagersToSharedKeyMock.mockImplementation(
+      async (input: {
+        beforeSubmitOperation?: (registryName: string) => Promise<void>;
+      }) => {
+        await input.beforeSubmitOperation?.("primary");
+        return {
+          candidateCount: 1,
+          results: [
+            {
+              ...successResult,
+              status: "failed" as const,
+              eligibleForCleanup: false,
+              operationHashes: { primary: "0xpending" },
+              failure: {
+                stage: "wait_for_confirmation",
+                detail: "Timed out waiting for manager update",
+              },
+            },
+          ],
+        };
+      },
+    );
+    graphqlRequestMock.mockResolvedValueOnce({
+      update_rp_registration: { affected_rows: 1 },
+    });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toEqual(
+      expect.any(String),
+    );
+    const ttlMs = await global.RedisClient?.pttl(RP_LOCK_KEY);
+    expect(ttlMs).toBeGreaterThan(30 * 60 * 1000);
+  });
+
+  it("releases the per-RP lock when failure happens before any transfer submit", async () => {
+    arrangeCandidate();
+    migrateRpManagersToSharedKeyMock.mockResolvedValue({
+      candidateCount: 1,
+      results: [
+        {
+          ...successResult,
+          status: "failed",
+          eligibleForCleanup: false,
+          operationHashes: {},
+          failure: { stage: "read_registry", detail: "RPC unavailable" },
+        },
+      ],
+    });
+    graphqlRequestMock.mockResolvedValueOnce({
+      update_rp_registration: { affected_rows: 1 },
+    });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBeNull();
+  });
+
   it("reports ineligible when the candidate is no longer eligible after the lock", async () => {
     arrangeCandidate();
     migrateRpManagersToSharedKeyMock.mockResolvedValue({

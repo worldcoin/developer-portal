@@ -12,18 +12,30 @@
 // Redis unavailable: the cron fails closed (503) on the global and per-RP locks.
 // Handler guards also fail closed when the per-RP lock cannot be read, so a
 // migration that already acquired the lock cannot race with user operations.
+// After a transfer UserOp is submitted, the cron retains the per-RP lock for
+// USER_OP_MAX_VALIDITY_MS (+ margin) instead of releasing it on confirmation
+// timeout, so toggle / rotate / mode-switch stay blocked while the op can land.
 
 import "server-only";
 
 import { getSdk as getVerifySchemaSdk } from "@/api/hasura/register-rp/graphql/verify-manager-key-schema.generated";
 import { createManagerKey, getEthAddressFromKMS } from "@/api/helpers/kms-eth";
+import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
 import { logger } from "@/lib/logger";
 import type { KMSClient } from "@aws-sdk/client-kms";
 import { gql, type GraphQLClient } from "graphql-request";
 import { randomUUID } from "node:crypto";
 
 const RP_LOCK_KEY_PREFIX = "rp-manager-key-migration:rp:";
-const RP_LOCK_TTL_MS = 5 * 60 * 1000; // 5 min
+const RP_LOCK_TTL_MS = 5 * 60 * 1000; // 5 min — active cron hold
+const RP_MIGRATION_SETTLE_MARGIN_MS = 5 * 60 * 1000;
+
+/**
+ * How long to keep the per-RP lock after a migration UserOp may still be
+ * includable. Matches the deactivation grace: validUntil window + clock skew.
+ */
+export const RP_MIGRATION_IN_FLIGHT_LOCK_MS =
+  USER_OP_MAX_VALIDITY_MS + RP_MIGRATION_SETTLE_MARGIN_MS;
 
 const HEAL_RP_MANAGER_KEY = gql`
   mutation HealRpManagerKeyAfterMigration(
@@ -67,8 +79,7 @@ type RedisLockClient = {
   eval(
     script: string,
     numberOfKeys: number,
-    key: string,
-    owner: string,
+    ...args: Array<string | number>
   ): Promise<unknown>;
 };
 
@@ -128,6 +139,60 @@ export async function releaseRpMigrationLock(
       rp_id: rpId,
     });
   }
+}
+
+/**
+ * Extends the per-RP lock TTL while we still own it. Used before submitting a
+ * migration UserOp so a process crash or confirmation timeout cannot free the
+ * row while the op remains includable.
+ */
+export async function retainRpMigrationLockForInFlightOp(
+  redis: RedisLockClient,
+  rpId: string,
+  owner: string,
+  attemptId?: string | null,
+  ttlMs: number = RP_MIGRATION_IN_FLIGHT_LOCK_MS,
+): Promise<boolean> {
+  try {
+    const result = await redis.eval(
+      `if redis.call("get", KEYS[1]) == ARGV[1] then
+         return redis.call("pexpire", KEYS[1], ARGV[2])
+       end
+       return 0`,
+      1,
+      rpMigrationLockKey(rpId),
+      owner,
+      ttlMs,
+    );
+    return result === 1;
+  } catch (error) {
+    logger.warn("Failed to retain RP manager migration per-RP lock", {
+      error,
+      attempt_id: attemptId,
+      rp_id: rpId,
+    });
+    return false;
+  }
+}
+
+/**
+ * True when a migration attempt may have left a UserOp that can still land.
+ * Includes submit_transfer failures where the bundler may have accepted the op
+ * before the HTTP response failed (operationHashes not yet recorded).
+ */
+export function migrationMayHaveInFlightOperation(
+  result:
+    | {
+        status: string;
+        operationHashes?: Record<string, string>;
+        failure?: { stage: string };
+      }
+    | null
+    | undefined,
+): boolean {
+  if (!result || result.status !== "failed") return false;
+  if (Object.keys(result.operationHashes ?? {}).length > 0) return true;
+  return result.failure?.stage === "submit_transfer";
 }
 
 /**

@@ -2,7 +2,9 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient } from "@/api/helpers/kms";
 import {
   acquireRpMigrationLock,
+  migrationMayHaveInFlightOperation,
   releaseRpMigrationLock,
+  retainRpMigrationLockForInFlightOp,
 } from "@/api/helpers/rp-manager-key-migration";
 import {
   getRpRegistryConfig,
@@ -46,8 +48,7 @@ type RedisLockClient = {
   eval(
     script: string,
     numberOfKeys: number,
-    key: string,
-    owner: string,
+    ...args: Array<string | number>
   ): Promise<unknown>;
 };
 
@@ -206,6 +207,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let candidate: Candidate | null = null;
   let attemptId: string | null = null;
   let rpLock: Awaited<ReturnType<typeof acquireRpMigrationLock>> | null = null;
+  let mayHaveSubmittedTransfer = false;
+  let retainRpLockForInFlightOp = false;
   const startedAt = Date.now();
 
   try {
@@ -255,6 +258,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
     const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
+    const acquiredRpLock = rpLock;
 
     const report = await migrateRpManagersToSharedKey({
       graphqlClient: client,
@@ -268,9 +272,36 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       attemptId,
       pollIntervalMs: 2_000,
       confirmationTimeoutMs: 15_000,
+      beforeSubmitOperation: async () => {
+        // Extend before submit so a crash between send and finally cannot
+        // free the row while the UserOp is still includable.
+        await retainRpMigrationLockForInFlightOp(
+          acquiredRpLock.redis,
+          candidate!.rp_id,
+          acquiredRpLock.owner,
+          attemptId,
+        );
+        mayHaveSubmittedTransfer = true;
+      },
     });
 
     const result = report.results[0];
+
+    const settled =
+      result?.status === "migrated" || result?.status === "already_migrated";
+
+    retainRpLockForInFlightOp =
+      !settled &&
+      (mayHaveSubmittedTransfer || migrationMayHaveInFlightOperation(result));
+
+    if (retainRpLockForInFlightOp && rpLock.status === "acquired") {
+      await retainRpMigrationLockForInFlightOp(
+        rpLock.redis,
+        candidate.rp_id,
+        rpLock.owner,
+        attemptId,
+      );
+    }
 
     if (!result || result.status === "failed") {
       await touchForCooldown(client, candidate.rp_id, attemptId);
@@ -287,6 +318,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       skipped_registries: result?.skippedRegistries ?? [],
       outcome,
       failure: result?.status === "failed" ? result.failure : undefined,
+      retain_rp_lock: retainRpLockForInFlightOp,
       duration_ms: Date.now() - startedAt,
     });
 
@@ -296,6 +328,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       operation_hashes: result?.operationHashes ?? {},
     });
   } catch (error) {
+    if (mayHaveSubmittedTransfer) {
+      retainRpLockForInFlightOp = true;
+    }
+
     if (client && candidate) {
       try {
         await touchForCooldown(
@@ -326,12 +362,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   } finally {
     if (rpLock?.status === "acquired" && candidate) {
-      await releaseRpMigrationLock(
-        rpLock.redis,
-        candidate.rp_id,
-        rpLock.owner,
-        attemptId,
-      );
+      if (retainRpLockForInFlightOp) {
+        await retainRpMigrationLockForInFlightOp(
+          rpLock.redis,
+          candidate.rp_id,
+          rpLock.owner,
+          attemptId,
+        );
+      } else {
+        await releaseRpMigrationLock(
+          rpLock.redis,
+          candidate.rp_id,
+          rpLock.owner,
+          attemptId,
+        );
+      }
     }
     await releaseGlobalLock(lock.redis, lock.owner, attemptId);
   }
