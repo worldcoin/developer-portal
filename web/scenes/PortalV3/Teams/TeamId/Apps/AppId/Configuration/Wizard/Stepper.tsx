@@ -38,11 +38,19 @@ export const Stepper = (props: {
     {props.steps.map((step, index) => {
       const isActive = index === props.activeIndex;
       const stepStatus = props.stepStatuses[step.id];
-      const isCompleted = stepStatus === "complete";
+      // Permissions has no completion requirement — check it only once the
+      // user has moved past it. Review stays incomplete until submission.
+      const isCompleted =
+        stepStatus === "complete" ||
+        (step.id === WizardStep.MINI_APP_PERMISSIONS &&
+          props.activeIndex > index);
       const hasValidationError = stepStatus === "error";
       const previousStep = props.steps[index - 1];
       const isPreviousStepComplete =
-        previousStep && props.stepStatuses[previousStep.id] === "complete";
+        previousStep &&
+        (props.stepStatuses[previousStep.id] === "complete" ||
+          (previousStep.id === WizardStep.MINI_APP_PERMISSIONS &&
+            props.activeIndex > index - 1));
       const accessibleStepState = isCompleted
         ? "complete"
         : hasValidationError

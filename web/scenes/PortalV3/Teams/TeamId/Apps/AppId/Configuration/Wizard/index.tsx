@@ -363,31 +363,15 @@ export const ConfigurationWizard = (props: {
           </div>
 
           {isMiniApp && (
-            <>
-              <div
-                className={stepWrapperClassName(
-                  WizardStep.STORE_LISTING,
-                  "mx-auto mt-[76px] max-w-[626px]",
-                )}
-                aria-hidden={activeStep !== WizardStep.STORE_LISTING}
-              >
-                <StoreListingStep />
-              </div>
-
-              <div
-                className={stepWrapperClassName(
-                  WizardStep.MINI_APP_PERMISSIONS,
-                  "mx-auto mt-[76px] max-w-[626px]",
-                )}
-                aria-hidden={activeStep !== WizardStep.MINI_APP_PERMISSIONS}
-              >
-                <MiniAppPermissionsForm
-                  appId={appId}
-                  teamId={teamId}
-                  appMetadata={appMetadata}
-                />
-              </div>
-            </>
+            <div
+              className={stepWrapperClassName(
+                WizardStep.STORE_LISTING,
+                "mx-auto mt-[76px] max-w-[626px]",
+              )}
+              aria-hidden={activeStep !== WizardStep.STORE_LISTING}
+            >
+              <StoreListingStep />
+            </div>
           )}
 
           <div
@@ -409,6 +393,22 @@ export const ConfigurationWizard = (props: {
           >
             <LocalisedContentStep isMiniApp={isMiniApp} />
           </div>
+
+          {isMiniApp && (
+            <div
+              className={stepWrapperClassName(
+                WizardStep.MINI_APP_PERMISSIONS,
+                "mx-auto mt-[76px] max-w-[626px]",
+              )}
+              aria-hidden={activeStep !== WizardStep.MINI_APP_PERMISSIONS}
+            >
+              <MiniAppPermissionsForm
+                appId={appId}
+                teamId={teamId}
+                appMetadata={appMetadata}
+              />
+            </div>
+          )}
 
           <div
             className={stepWrapperClassName(

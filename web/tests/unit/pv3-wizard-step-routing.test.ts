@@ -9,9 +9,9 @@ describe("getWizardSteps", () => {
     expect(getWizardSteps(true).map((step) => step.id)).toEqual([
       WizardStep.BASIC,
       WizardStep.STORE_LISTING,
-      WizardStep.MINI_APP_PERMISSIONS,
       WizardStep.AVAILABILITY,
       WizardStep.LOCALISED_CONTENT,
+      WizardStep.MINI_APP_PERMISSIONS,
       WizardStep.REVIEW,
     ]);
     expect(getWizardSteps(false).map((step) => step.id)).toEqual([

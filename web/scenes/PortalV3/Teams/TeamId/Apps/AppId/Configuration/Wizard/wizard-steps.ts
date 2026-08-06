@@ -117,15 +117,6 @@ const WIZARD_STEP_DEFINITIONS: readonly WizardStepDefinition[] = [
     completion: { kind: "app-store-review-fields" },
   },
   {
-    id: WizardStep.MINI_APP_PERMISSIONS,
-    label: "Mini App Permissions",
-    isVisible: isMiniAppStep,
-    validationFields: [],
-    // Permissions are useful configuration but currently have no submission
-    // requirement. A checkmark would incorrectly imply completion.
-    completion: { kind: "untracked" },
-  },
-  {
     id: WizardStep.AVAILABILITY,
     label: "Availability",
     isVisible: isAlwaysVisible,
@@ -141,6 +132,15 @@ const WIZARD_STEP_DEFINITIONS: readonly WizardStepDefinition[] = [
     isVisible: isAlwaysVisible,
     validationFields: [{ path: "localisations" }],
     completion: { kind: "app-store-review-fields" },
+  },
+  {
+    id: WizardStep.MINI_APP_PERMISSIONS,
+    label: "Mini App Permissions",
+    isVisible: isMiniAppStep,
+    validationFields: [],
+    // No submission requirement; the stepper checks this once the user moves
+    // past it (see Stepper).
+    completion: { kind: "untracked" },
   },
   {
     id: WizardStep.REVIEW,
