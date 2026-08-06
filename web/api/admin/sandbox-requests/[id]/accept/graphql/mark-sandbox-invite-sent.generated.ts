@@ -14,6 +14,11 @@ export type MarkSandboxInviteSentMutation = {
   update_sandbox_access_request?: {
     __typename?: "sandbox_access_request_mutation_response";
     affected_rows: number;
+    returning: Array<{
+      __typename?: "sandbox_access_request";
+      google_email: string;
+      user: { __typename?: "user"; name: string; email?: string | null };
+    }>;
   } | null;
 };
 
@@ -24,6 +29,13 @@ export const MarkSandboxInviteSentDocument = gql`
       _set: { accepted: true, processed_at: $processed_at }
     ) {
       affected_rows
+      returning {
+        google_email
+        user {
+          name
+          email
+        }
+      }
     }
   }
 `;
