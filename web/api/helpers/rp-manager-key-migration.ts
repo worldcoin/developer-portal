@@ -9,9 +9,9 @@
 // 5. Remove `ENABLE_SHARED_KEY_RP_REGISTRATION` once all new registrations use
 //    the shared key permanently (or fold that path into the permanent flow).
 //
-// Redis unavailable: the cron already fails closed (503) on the global lock.
-// Handler guards fail open so user operations keep working if Redis blips;
-// the cron will not run without Redis, so there is no concurrent migration.
+// Redis unavailable: the cron fails closed (503) on the global and per-RP locks.
+// Handler guards also fail closed when the per-RP lock cannot be read, so a
+// migration that already acquired the lock cannot race with user operations.
 
 import "server-only";
 
@@ -132,7 +132,7 @@ export async function releaseRpMigrationLock(
 
 /**
  * After a handler claims the DB slot, abort if the migration cron holds the
- * per-RP Redis lock. Fail open when Redis is missing or errors.
+ * per-RP Redis lock. Fail closed when Redis is missing or the lock read errors.
  */
 export async function abortIfManagerKeyMigrationInFlight<T>({
   rpId,
@@ -143,21 +143,25 @@ export async function abortIfManagerKeyMigrationInFlight<T>({
   revert: () => Promise<void>;
   onConflict: () => T;
 }): Promise<T | null> {
+  const abortWithConflict = async (): Promise<T> => {
+    await revert();
+    return onConflict();
+  };
+
   const redis = global.RedisClient as RedisLockClient | undefined;
-  if (!redis) return null;
+  if (!redis) return abortWithConflict();
 
   try {
     const held = await redis.get(rpMigrationLockKey(rpId));
     if (!held) return null;
 
-    await revert();
-    return onConflict();
+    return abortWithConflict();
   } catch (error) {
     logger.warn("Failed to check RP manager migration per-RP lock", {
       error,
       rp_id: rpId,
     });
-    return null;
+    return abortWithConflict();
   }
 }
 

@@ -159,5 +159,49 @@ describe("/api/hasura/toggle-rp-active [manager key migration lock]", () => {
     expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledTimes(1);
     expect(RevertToggleStatus).not.toHaveBeenCalled();
   });
+
+  it("reverts the claim and rejects when Redis is unavailable", async () => {
+    const redis = global.RedisClient;
+    global.RedisClient = undefined;
+
+    try {
+      const res = (await POST(createMockRequest({ app_id: appId })))!;
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body.extensions.code).toBe("operation_in_progress");
+      expect(ClaimToggleSlot).toHaveBeenCalledTimes(1);
+      expect(RevertToggleStatus).toHaveBeenCalledWith({
+        rp_id: rpId,
+        previous_status: "registered",
+      });
+      expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
+
+  it("reverts the claim and rejects when the migration lock read fails", async () => {
+    const redis = global.RedisClient;
+    global.RedisClient = {
+      get: () => Promise.reject(new Error("simulated Redis outage")),
+    } as unknown as typeof global.RedisClient;
+
+    try {
+      const res = (await POST(createMockRequest({ app_id: appId })))!;
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body.extensions.code).toBe("operation_in_progress");
+      expect(ClaimToggleSlot).toHaveBeenCalledTimes(1);
+      expect(RevertToggleStatus).toHaveBeenCalledWith({
+        rp_id: rpId,
+        previous_status: "registered",
+      });
+      expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
 });
 // #endregion

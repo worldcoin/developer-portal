@@ -201,5 +201,53 @@ describe("/api/hasura/switch-to-self-managed [manager key migration lock]", () =
     expect(RevertModeSwitchStatus).toHaveBeenCalledWith({ rp_id: rpId });
     expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
   });
+
+  it("reverts the claim and rejects when Redis is unavailable", async () => {
+    const redis = global.RedisClient;
+    global.RedisClient = undefined;
+
+    try {
+      const res = (await POST(
+        createMockRequest({
+          app_id: appId,
+          new_manager_address: newManagerAddress,
+        }),
+      ))!;
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body.extensions.code).toBe("operation_in_progress");
+      expect(ClaimModeSwitchSlot).toHaveBeenCalledTimes(1);
+      expect(RevertModeSwitchStatus).toHaveBeenCalledWith({ rp_id: rpId });
+      expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
+
+  it("reverts the claim and rejects when the migration lock read fails", async () => {
+    const redis = global.RedisClient;
+    global.RedisClient = {
+      get: () => Promise.reject(new Error("simulated Redis outage")),
+    } as unknown as typeof global.RedisClient;
+
+    try {
+      const res = (await POST(
+        createMockRequest({
+          app_id: appId,
+          new_manager_address: newManagerAddress,
+        }),
+      ))!;
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body.extensions.code).toBe("operation_in_progress");
+      expect(ClaimModeSwitchSlot).toHaveBeenCalledTimes(1);
+      expect(RevertModeSwitchStatus).toHaveBeenCalledWith({ rp_id: rpId });
+      expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
 });
 // #endregion

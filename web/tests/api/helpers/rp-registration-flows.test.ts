@@ -1056,6 +1056,56 @@ describe("submitManagedRpDeactivation [manager key migration]", () => {
     expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
   });
 
+  it("reverts the claim and skips when Redis is unavailable", async () => {
+    const redis = global.RedisClient;
+    global.RedisClient = undefined;
+
+    try {
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({
+        ok: true,
+        outcome: "skipped",
+        reason: "concurrent",
+        rpIdString: rpId,
+      });
+      expect(ClaimToggleSlot).toHaveBeenCalledTimes(1);
+      expect(RevertToggleStatus).toHaveBeenCalledWith({
+        rp_id: rpId,
+        previous_status: "registered",
+      });
+      expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
+
+  it("reverts the claim and skips when the migration lock read fails", async () => {
+    const redis = global.RedisClient;
+    global.RedisClient = {
+      get: () => Promise.reject(new Error("simulated Redis outage")),
+    } as unknown as typeof global.RedisClient;
+
+    try {
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({
+        ok: true,
+        outcome: "skipped",
+        reason: "concurrent",
+        rpIdString: rpId,
+      });
+      expect(ClaimToggleSlot).toHaveBeenCalledTimes(1);
+      expect(RevertToggleStatus).toHaveBeenCalledWith({
+        rp_id: rpId,
+        previous_status: "registered",
+      });
+      expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
+
   it("signs with the shared key and heals the database when on-chain manager is shared", async () => {
     process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
     (getEthAddressFromKMS as jest.Mock).mockImplementation(
@@ -1212,6 +1262,68 @@ describe("submitManagedSignerRotation [manager key migration lock]", () => {
     expect(ClaimRotationSlot).toHaveBeenCalledTimes(1);
     expect(RevertRotationStatus).toHaveBeenCalledWith({ rp_id: rpId });
     expect(submitRotateSignerTransaction).not.toHaveBeenCalled();
+  });
+
+  it("reverts the claim and rejects when Redis is unavailable", async () => {
+    ClaimRotationSlot.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+    RevertRotationStatus.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+
+    const redis = global.RedisClient;
+    global.RedisClient = undefined;
+
+    try {
+      const res = await submitManagedSignerRotation({
+        client,
+        appId,
+        newSignerAddress,
+      });
+
+      expect(res).toMatchObject({
+        ok: false,
+        code: "rotation_in_progress",
+      });
+      expect(ClaimRotationSlot).toHaveBeenCalledTimes(1);
+      expect(RevertRotationStatus).toHaveBeenCalledWith({ rp_id: rpId });
+      expect(submitRotateSignerTransaction).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
+
+  it("reverts the claim and rejects when the migration lock read fails", async () => {
+    ClaimRotationSlot.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+    RevertRotationStatus.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+
+    const redis = global.RedisClient;
+    global.RedisClient = {
+      get: () => Promise.reject(new Error("simulated Redis outage")),
+    } as unknown as typeof global.RedisClient;
+
+    try {
+      const res = await submitManagedSignerRotation({
+        client,
+        appId,
+        newSignerAddress,
+      });
+
+      expect(res).toMatchObject({
+        ok: false,
+        code: "rotation_in_progress",
+      });
+      expect(ClaimRotationSlot).toHaveBeenCalledTimes(1);
+      expect(RevertRotationStatus).toHaveBeenCalledWith({ rp_id: rpId });
+      expect(submitRotateSignerTransaction).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
   });
 });
 // #endregion
