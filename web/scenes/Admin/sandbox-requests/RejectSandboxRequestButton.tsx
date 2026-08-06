@@ -77,7 +77,7 @@ export const RejectSandboxRequestButton = (props: { requestId: string }) => {
             htmlFor={reasonId}
             className="text-12 font-medium text-grey-700"
           >
-            Reason for rejection?
+            Reason for rejection? (Required)
           </label>
           <textarea
             id={reasonId}
