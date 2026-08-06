@@ -126,31 +126,56 @@ export async function POST(
         error,
       });
       return NextResponse.json(
-        { error: "Unable to send sandbox rejection email" },
+        {
+          error: "Unable to send sandbox rejection email",
+          code: "REJECTION_EMAIL_FAILED",
+          retryable: true,
+        },
         { status: 503 },
       );
     }
 
-    const deletionResult = await sdk.DeletePendingSandboxRequest({ id });
-    const deletion = deletionResult.delete_sandbox_access_request;
+    try {
+      const deletionResult = await sdk.DeletePendingSandboxRequest({ id });
+      const deletion = deletionResult.delete_sandbox_access_request;
 
-    if (deletion?.affected_rows === 0) {
-      return NextResponse.json({ success: true, changed: false });
+      if (deletion?.affected_rows === 0) {
+        return NextResponse.json({ success: true, changed: false });
+      }
+
+      if (deletion?.affected_rows !== 1) {
+        throw new Error("Sandbox rejection did not delete exactly one request");
+      }
+
+      return NextResponse.json({ success: true, changed: true });
+    } catch (error) {
+      logger.error(
+        "Failed to delete sandbox request after sending rejection email",
+        {
+          requestId: id,
+          requesterEmail,
+          adminSubject: admin.subject,
+          error,
+        },
+      );
+      return NextResponse.json(
+        {
+          error: "Rejection email sent, but the request could not be deleted",
+          code: "REJECTION_EMAIL_SENT_DELETE_FAILED",
+          notificationSent: true,
+          retryable: false,
+        },
+        { status: 500 },
+      );
     }
-
-    if (deletion?.affected_rows !== 1) {
-      throw new Error("Sandbox rejection did not delete exactly one request");
-    }
-
-    return NextResponse.json({ success: true, changed: true });
   } catch (error) {
-    logger.error("Failed to reject sandbox request", {
+    logger.error("Failed to load sandbox request for rejection", {
       requestId: id,
       adminSubject: admin.subject,
       error,
     });
     return NextResponse.json(
-      { error: "Unable to delete sandbox request" },
+      { error: "Unable to load sandbox request" },
       { status: 503 },
     );
   }

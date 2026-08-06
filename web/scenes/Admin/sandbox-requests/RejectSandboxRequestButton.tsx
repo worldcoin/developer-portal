@@ -10,6 +10,7 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 
 const MAX_REASON_LENGTH = 1000;
+const EMAIL_SENT_DELETE_FAILED = "REJECTION_EMAIL_SENT_DELETE_FAILED";
 
 export const RejectSandboxRequestButton = (props: { requestId: string }) => {
   const router = useRouter();
@@ -35,6 +36,21 @@ export const RejectSandboxRequestButton = (props: { requestId: string }) => {
       );
 
       if (!response.ok) {
+        const result: unknown = await response.json().catch(() => null);
+        if (
+          result &&
+          typeof result === "object" &&
+          "code" in result &&
+          result.code === EMAIL_SENT_DELETE_FAILED
+        ) {
+          setCompleted(true);
+          setOpen(false);
+          toast.error(
+            "Rejection email was sent, but the request couldn't be removed. Don't retry; contact support.",
+          );
+          return;
+        }
+
         toast.error("Couldn't reject the request. Please try again.");
         return;
       }

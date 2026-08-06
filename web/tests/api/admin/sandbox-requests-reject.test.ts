@@ -162,8 +162,29 @@ describe("POST /api/admin/sandbox-requests/[id]/reject", () => {
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      error: "Unable to send sandbox rejection email",
+      code: "REJECTION_EMAIL_FAILED",
+      retryable: true,
+    });
     expect(GetPendingSandboxRequest).toHaveBeenCalled();
     expect(DeletePendingSandboxRequest).not.toHaveBeenCalled();
+  });
+
+  it("marks a post-email deletion failure as non-retryable", async () => {
+    DeletePendingSandboxRequest.mockRejectedValue(new Error("hasura down"));
+
+    const response = await POST(createRequest(), createContext());
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: "Rejection email sent, but the request could not be deleted",
+      code: "REJECTION_EMAIL_SENT_DELETE_FAILED",
+      notificationSent: true,
+      retryable: false,
+    });
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(DeletePendingSandboxRequest).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the request when the requester has no email address", async () => {
