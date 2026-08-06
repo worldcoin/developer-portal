@@ -43,15 +43,9 @@ cp .env.example .env
 
    If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal-deployment#local-development) instead.
 
-### Local image uploads with LocalStack
-
-You can upload images locally without an AWS account or installing the LocalStack/AWS CLI on your machine. The S3 endpoint, bucket, region, and dummy credentials are already set by `.env.example`; after copying it in step 1, only set your [LocalStack auth token](https://docs.localstack.cloud/aws/getting-started/auth-token/) in `web/.env`:
-
 ```dotenv
 LOCALSTACK_AUTH_TOKEN=<auth-token>
 ```
-
-Never commit your personal token.
 
 Start LocalStack with `web/.env`:
 
@@ -65,8 +59,6 @@ Alternatively, export the token and start LocalStack without specifying an env f
 export LOCALSTACK_AUTH_TOKEN=<auth-token>
 docker compose up --detach localstack
 ```
-
-Compose automatically creates the `developer-portal-assets` bucket and applies its browser CORS policy when LocalStack becomes ready. Run `cd web && pnpm dev`, then image uploads from `http://localhost:3000` use LocalStack. Check the service with `docker compose ps localstack`; stop it with `docker compose stop localstack`.
 
 ### Starting the app
 
