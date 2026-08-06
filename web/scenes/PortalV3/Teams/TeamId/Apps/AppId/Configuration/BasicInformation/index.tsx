@@ -55,14 +55,10 @@ export const useBasicInformationForm = ({
   appId,
   teamId,
   app,
-  managesName = true,
-  onSavedEdit,
 }: {
   appId: string;
   teamId: string;
   app: FetchAppMetadataQuery["app"][0];
-  managesName?: boolean;
-  onSavedEdit?: (patch: Partial<BasicInformationFormValues>) => void;
 }) => {
   const apolloClient = useApolloClient();
 
@@ -129,38 +125,27 @@ export const useBasicInformationForm = ({
 
   // Publish live values for the live preview.
   useEffect(() => {
-    const initialValues = form.getValues();
-    setBasicInfoDraft({
-      name: managesName ? initialValues.name : undefined,
-      integration_url: initialValues.integration_url,
-      app_website_url: initialValues.app_website_url,
-    });
+    setBasicInfoDraft(form.getValues());
     const subscription = watch((values) => {
       setBasicInfoDraft({
-        name: managesName ? values.name : undefined,
+        name: values.name,
         integration_url: values.integration_url,
         app_website_url: values.app_website_url,
       });
     });
     return () => subscription.unsubscribe();
-  }, [form, managesName, watch, setBasicInfoDraft]);
+  }, [form, watch, setBasicInfoDraft]);
 
   const persist = useCallback(
     async (
       data: BasicInformationFormValues,
       signal?: AbortSignal,
-    ): Promise<Partial<BasicInformationFormValues>> => {
+    ): Promise<boolean> => {
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
-      const persistedPatch: Partial<BasicInformationFormValues> = managesName
-        ? data
-        : {
-            integration_url: data.integration_url,
-            app_website_url: data.app_website_url,
-          };
       const result = await validateAndSubmitServerSide(
         appMetaData?.id,
         appId,
-        persistedPatch,
+        data,
       );
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       if (!result.success) {
@@ -175,34 +160,30 @@ export const useBasicInformationForm = ({
             id: appMetaData.id,
           }),
           fields: {
-            ...(persistedPatch.name !== undefined && {
-              name: () => persistedPatch.name ?? "",
+            ...(data.name !== undefined && {
+              name: () => data.name ?? "",
             }),
-            ...(persistedPatch.integration_url !== undefined && {
-              integration_url: () => persistedPatch.integration_url ?? "",
+            ...(data.integration_url !== undefined && {
+              integration_url: () => data.integration_url ?? "",
             }),
-            ...(persistedPatch.app_website_url !== undefined && {
-              app_website_url: () => persistedPatch.app_website_url ?? "",
+            ...(data.app_website_url !== undefined && {
+              app_website_url: () => data.app_website_url ?? "",
             }),
           },
         });
       }
-      return persistedPatch;
+      return true;
     },
-    [appMetaData?.id, appId, apolloClient, managesName],
+    [appMetaData?.id, appId, apolloClient],
   );
 
-  const autosave = useAutosaveWithStatus<
-    BasicInformationFormValues,
-    Partial<BasicInformationFormValues>
-  >({
+  const autosave = useAutosaveWithStatus<BasicInformationFormValues>({
     id: "basic-information",
     form,
     enabled: isEditable && isEnoughPermissions,
     save: async (data, signal) => {
-      return persist(data, signal);
+      await persist(data, signal);
     },
-    onSavedEdit,
   });
 
   const submit = useCallback(
@@ -212,9 +193,7 @@ export const useBasicInformationForm = ({
           async (data) => {
             if (opts?.forReview) {
               try {
-                await (
-                  managesName ? reviewSchema : reviewSchema.omit(["name"])
-                ).validate(data, { abortEarly: false });
+                await reviewSchema.validate(data, { abortEarly: false });
               } catch (err) {
                 if (err instanceof yup.ValidationError) {
                   err.inner.forEach((e) => {
@@ -242,7 +221,7 @@ export const useBasicInformationForm = ({
           () => resolve(false),
         )();
       }),
-    [autosave, handleSubmit, managesName, setError],
+    [autosave, handleSubmit, setError],
   );
 
   const makeUrlRegister = useCallback(

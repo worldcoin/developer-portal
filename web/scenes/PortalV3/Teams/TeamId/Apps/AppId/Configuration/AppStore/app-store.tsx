@@ -7,6 +7,8 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import {
   createContext,
   PropsWithChildren,
+  type Dispatch,
+  type SetStateAction,
   useCallback,
   useContext,
   useMemo,
@@ -24,7 +26,6 @@ import { SupportSection } from "./components/FormSections/SupportSection";
 import { AppStoreFormValues } from "./FormSchema/types";
 import { useAppStoreForm } from "./hooks/useAppStoreForm";
 import { AppStoreFormProps } from "./types/AppStoreFormTypes";
-import type { AppStorePersistedPatch } from "../persisted-draft";
 
 export const LawsAndRegulationsBanner = () => (
   <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
@@ -61,10 +62,7 @@ type AppStoreFormContextValue = ReturnType<typeof useAppStoreForm> &
   };
 
 type AppStoreFormWithAutosaveProps = AppStoreFormProps & {
-  onSavedEdit?: (patch: AppStorePersistedPatch) => void;
-  onSelfPersistedEdit?: (
-    update: (values: AppStoreFormValues) => AppStoreFormValues,
-  ) => void;
+  onSavedEdit?: Dispatch<SetStateAction<AppStoreFormValues>>;
 };
 
 const AppStoreFormContext = createContext<AppStoreFormContextValue | null>(
@@ -88,7 +86,6 @@ export const AppStoreForm = ({
   teamId,
   appMetadata,
   onSavedEdit,
-  onSelfPersistedEdit,
   children,
 }: PropsWithChildren<AppStoreFormWithAutosaveProps>) => {
   const { user } = useUser() as Auth0SessionUser;
@@ -108,21 +105,21 @@ export const AppStoreForm = ({
   const supportedLanguages = useWatch({ control, name: "supported_languages" });
 
   const handleSavedEdit = useCallback(
-    (patch: AppStorePersistedPatch) => onSavedEdit?.(patch),
+    (values: AppStoreFormValues) => onSavedEdit?.(values),
     [onSavedEdit],
   );
   const updateFieldSnapshot = useCallback(
     (update: (values: AppStoreFormValues) => AppStoreFormValues) =>
-      onSelfPersistedEdit?.(update),
-    [onSelfPersistedEdit],
+      onSavedEdit?.(update),
+    [onSavedEdit],
   );
 
-  useAutosaveWithStatus<AppStoreFormValues, AppStorePersistedPatch>({
+  useAutosaveWithStatus<AppStoreFormValues>({
     id: "app-store",
     form,
     enabled: isEditable && isEnoughPermissions,
     save: async (data, signal) => {
-      return submitSilent(data, signal);
+      await submitSilent(data, signal);
     },
     onSavedEdit: handleSavedEdit,
     isSelfPersisting: isSelfPersistingField,

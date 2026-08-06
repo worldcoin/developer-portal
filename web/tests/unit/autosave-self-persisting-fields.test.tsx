@@ -17,7 +17,7 @@ type Values = {
   localisations: { showcase_img_urls: string[]; meta_tag_image_url: string }[];
 };
 
-const save = jest.fn<Promise<Values>, [Values, AbortSignal]>();
+const save = jest.fn<Promise<void>, [Values, AbortSignal]>();
 
 let api: {
   setValue: ReturnType<typeof useForm<Values>>["setValue"];
@@ -37,7 +37,7 @@ const Harness = ({
     },
   });
 
-  useAutosave<Values, Values>({
+  useAutosave<Values>({
     form,
     enabled: true,
     debounceMs: DEBOUNCE_MS,
@@ -61,7 +61,7 @@ const settle = async () => {
 beforeEach(() => {
   jest.useFakeTimers();
   save.mockReset();
-  save.mockImplementation(async (values) => values);
+  save.mockResolvedValue(undefined);
   api = null;
 });
 
@@ -84,25 +84,6 @@ describe("autosave and self-persisting fields", () => {
 
     expect(onSavedEdit).toHaveBeenCalledTimes(1);
     expect(onSavedEdit.mock.calls[0][0].name).toBe("renamed");
-  });
-
-  it("publishes the committed save result instead of the RHF snapshot", async () => {
-    const onSavedEdit = jest.fn();
-    save.mockImplementationOnce(async (values) => ({
-      ...values,
-      name: "committed-name",
-    }));
-    render(<Harness onSavedEdit={onSavedEdit} />);
-
-    act(() => {
-      api!.setValue("name", "stale-form-name", { shouldDirty: true });
-    });
-    await settle();
-
-    expect(save.mock.calls[0][0].name).toBe("stale-form-name");
-    expect(onSavedEdit).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "committed-name" }),
-    );
   });
 
   it("does not publish form values when autosave fails", async () => {

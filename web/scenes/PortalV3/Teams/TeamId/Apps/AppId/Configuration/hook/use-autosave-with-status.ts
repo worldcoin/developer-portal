@@ -5,19 +5,19 @@ import { FieldValues, UseFormReturn } from "react-hook-form";
 import { useSaveStatusActions } from "../SaveStatus";
 import { AutosaveStatus, useAutosave } from "./use-autosave";
 
-type Options<T extends FieldValues, TSaved = void> = {
+type Options<T extends FieldValues> = {
   id: string;
   form: UseFormReturn<T>;
-  save: (data: T, signal: AbortSignal) => Promise<TSaved>;
+  save: (data: T, signal: AbortSignal) => Promise<void>;
   enabled: boolean;
   debounceMs?: number;
-  onSavedEdit?: (data: TSaved) => void;
+  onSavedEdit?: (data: T) => void;
   /** See `UseAutosaveOptions.isSelfPersisting`. */
   isSelfPersisting?: (name: string) => boolean;
 };
 
-export const useAutosaveWithStatus = <T extends FieldValues, TSaved = void>(
-  options: Options<T, TSaved>,
+export const useAutosaveWithStatus = <T extends FieldValues>(
+  options: Options<T>,
 ) => {
   const ctx = useSaveStatusActions();
   const idRef = useRef(options.id);
@@ -39,10 +39,10 @@ export const useAutosaveWithStatus = <T extends FieldValues, TSaved = void>(
     const run = () => saveRef.current(data, signal);
     const c = ctxRef.current;
     if (!c) return run();
-    return c.runExclusive(run);
+    await c.runExclusive(run);
   }, []);
 
-  const autosave = useAutosave<T, TSaved>({
+  const autosave = useAutosave<T>({
     form: options.form,
     save: wrappedSave,
     enabled: options.enabled,

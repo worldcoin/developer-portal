@@ -16,10 +16,6 @@ import { AppMetadata, SupportType } from "../types/AppStoreFormTypes";
 import { getFirstFormError } from "../utils/form-error-utils";
 import { synchronizeLocalisationsCache } from "../utils/update-localisations-cache";
 import { useSupportType } from "./useSupportType";
-import {
-  AppStorePersistedPatch,
-  buildAppStorePersistedPatch,
-} from "../../persisted-draft";
 
 export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
   const isEditable = appMetadata?.verification_status === "unverified";
@@ -98,10 +94,7 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
   }, [supportedLanguages, localisations, append, remove]);
 
   const submitSilent = useCallback(
-    async (
-      data: AppStoreFormValues,
-      signal?: AbortSignal,
-    ): Promise<AppStorePersistedPatch> => {
+    async (data: AppStoreFormValues, signal?: AbortSignal) => {
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
       // The English localisation in this form mirrors columns on app_metadata
@@ -119,13 +112,32 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
         (dirtyFields.localisations as
           | Array<Record<string, boolean>>
           | undefined) ?? [];
-      const persistedPatch = buildAppStorePersistedPatch(
-        data,
-        dirtyLocalisations,
-      );
+      const localisations = data.localisations.map((l, i) => {
+        if (l.language !== "en") return l;
+        const dirty = dirtyLocalisations[i];
+        if (!dirty) return { language: "en" };
+        return {
+          language: "en",
+          ...(dirty.name && { name: l.name }),
+          ...(dirty.short_name && { short_name: l.short_name }),
+          ...(dirty.world_app_description && {
+            world_app_description: l.world_app_description,
+          }),
+          ...(dirty.description_overview && {
+            description_overview: l.description_overview,
+          }),
+          ...(dirty.meta_tag_image_url && {
+            meta_tag_image_url: l.meta_tag_image_url,
+          }),
+          ...(dirty.showcase_img_urls && {
+            showcase_img_urls: l.showcase_img_urls,
+          }),
+        };
+      });
 
       const result = await updateAppStoreMetadata({
-        ...persistedPatch,
+        ...data,
+        localisations,
         app_metadata_id: appMetadata.id,
       });
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
@@ -142,9 +154,9 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
       // Patch the Apollo cache locally instead of refetching. A network
       // round-trip would refresh every metadata consumer and look like a page
       // reload. Keep the en-localisation mirror columns current for previews.
-      const en = persistedPatch.localisations.find(
-        (localisation) => localisation.language === "en",
-      ) as Record<string, unknown> | undefined;
+      const en = localisations.find((l) => l.language === "en") as
+        | Record<string, unknown>
+        | undefined;
       if (en) {
         apolloClient.cache.modify({
           id: apolloClient.cache.identify({
@@ -162,7 +174,6 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
           },
         });
       }
-      return persistedPatch;
     },
     [appMetadata.id, formContext, apolloClient],
   );

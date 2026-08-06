@@ -43,7 +43,7 @@ export const ReviewStep = (props: {
   const localisations = useWatch({ control, name: "localisations" }) ?? [];
   const en = localisations.find((l) => l.language === "en");
 
-  const name = en?.name || basicInfoDraft.name || appMetadata.name || "";
+  const name = basicInfoDraft.name || appMetadata.name || "";
   const tagline =
     en?.world_app_description || appMetadata.world_app_description || "";
   const description = en?.description_overview ?? "";
