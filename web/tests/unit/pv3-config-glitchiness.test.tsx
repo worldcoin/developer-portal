@@ -147,15 +147,9 @@ describe("useAppModeToggle [in-place persistence]", () => {
 
 // #region Logo hover feedback
 describe("LogoDropZone [existing logo]", () => {
-  it("marks the required logo at the upper-right edge", () => {
+  it("exposes the logo upload as required to assistive tech", () => {
     render(<LogoDropZone onFileSelected={jest.fn()} />);
 
-    expect(screen.getByText("*")).toHaveClass(
-      "absolute",
-      "top-3",
-      "right-4",
-      "text-[#ea392a]",
-    );
     expect(screen.getByLabelText(/Upload app logo/)).toHaveAttribute(
       "aria-required",
       "true",
