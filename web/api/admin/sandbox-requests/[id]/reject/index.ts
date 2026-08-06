@@ -36,9 +36,9 @@ const readReason = async (req: NextRequest) => {
 };
 
 /**
- * Rejects a pending sandbox request by deleting it before sending the
- * rejection email. The conditional delete claims the request so repeated
- * submissions cannot send duplicate emails.
+ * Rejects a pending sandbox request by deleting it, then sending the
+ * rejection email. Mirrors accept: the mutation claims the row (with
+ * returning) before SendGrid runs.
  */
 export async function POST(
   req: NextRequest,

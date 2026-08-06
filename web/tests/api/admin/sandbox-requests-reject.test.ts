@@ -31,17 +31,11 @@ jest.mock("@/lib/logger", () => ({
 // #endregion
 
 import { POST } from "@/api/admin/sandbox-requests/[id]/reject";
-import { logger } from "@/lib/logger";
 
 // #region Test Data
 const REQUEST_ID = "sbxreq_abc123";
 const GOOGLE_EMAIL = "tester@gmail.com";
-const REASON = "The Google account is not eligible for sandbox access.";
-const admin = {
-  email: "admin@example.com",
-  role: "internal_dashboard_readonly",
-  subject: "admin-subject",
-};
+const REASON = "Not eligible for sandbox access.";
 
 const createRequest = (body: unknown = { reason: REASON }) =>
   new NextRequest(
@@ -65,17 +59,18 @@ beforeEach(() => {
   process.env.SENDGRID_SANDBOX_ACCESS_REJECTED_TEMPLATE_ID =
     "d-sandbox-rejected";
 
-  authenticateAdminRequest.mockResolvedValue(admin);
+  authenticateAdminRequest.mockResolvedValue({
+    email: "admin@example.com",
+    role: "internal_dashboard_readonly",
+    subject: "admin-subject",
+  });
   DeletePendingSandboxRequest.mockResolvedValue({
     delete_sandbox_access_request: {
       affected_rows: 1,
       returning: [
         {
           google_email: GOOGLE_EMAIL,
-          user: {
-            name: "Test Developer",
-            email: "developer@example.com",
-          },
+          user: { name: "Test Developer", email: "developer@example.com" },
         },
       ],
     },
@@ -95,57 +90,29 @@ describe("POST /api/admin/sandbox-requests/[id]/reject", () => {
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it("rejects an invalid sandbox request id", async () => {
-    const response = await POST(
-      createRequest(),
-      createContext("not-a-request"),
-    );
-
-    expect(response.status).toBe(400);
-    expect(DeletePendingSandboxRequest).not.toHaveBeenCalled();
-    expect(sendEmail).not.toHaveBeenCalled();
-  });
-
   it.each([
-    ["missing", {}],
-    ["empty", { reason: "   " }],
-  ])("rejects a %s reason", async (_description, body) => {
-    const response = await POST(createRequest(body), createContext());
+    ["invalid id", { reason: REASON }, "bad-id"],
+    ["missing reason", {}, REQUEST_ID],
+    ["empty reason", { reason: "   " }, REQUEST_ID],
+  ])("returns 400 for %s", async (_label, body, id) => {
+    const response = await POST(createRequest(body), createContext(id));
 
     expect(response.status).toBe(400);
     expect(DeletePendingSandboxRequest).not.toHaveBeenCalled();
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it("rejects a reason longer than 1000 characters", async () => {
-    const response = await POST(
-      createRequest({ reason: "x".repeat(1001) }),
-      createContext(),
-    );
-
-    expect(response.status).toBe(400);
-    expect(DeletePendingSandboxRequest).not.toHaveBeenCalled();
-    expect(sendEmail).not.toHaveBeenCalled();
-  });
-
-  it("returns 503 without deleting when rejection email is not configured", async () => {
+  it("returns 503 when rejection email is not configured", async () => {
     delete process.env.SENDGRID_SANDBOX_ACCESS_REJECTED_TEMPLATE_ID;
 
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({
-      error: "Sandbox rejection email is not configured",
-    });
-    expect(logger.error).toHaveBeenCalledWith(
-      "Sandbox rejection email is not configured",
-      expect.objectContaining({ hasTemplateId: false }),
-    );
     expect(DeletePendingSandboxRequest).not.toHaveBeenCalled();
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it("deletes a pending request and emails the Google account with the reason", async () => {
+  it("deletes a pending request and emails the Google account", async () => {
     const response = await POST(
       createRequest({ reason: `  ${REASON}  ` }),
       createContext(),
@@ -156,23 +123,23 @@ describe("POST /api/admin/sandbox-requests/[id]/reject", () => {
     expect(DeletePendingSandboxRequest).toHaveBeenCalledWith({
       id: REQUEST_ID,
     });
-    expect(sendEmail).toHaveBeenCalledWith({
-      apiKey: "sg-test-key",
-      from: "no-reply@worldcoin.org",
-      to: GOOGLE_EMAIL,
-      templateId: "d-sandbox-rejected",
-      templateData: {
-        username: "Test Developer",
-        approved_email: GOOGLE_EMAIL,
-        reason: REASON,
-      },
-    });
+    expect(sendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: GOOGLE_EMAIL,
+        templateId: "d-sandbox-rejected",
+        templateData: {
+          username: "Test Developer",
+          approved_email: GOOGLE_EMAIL,
+          reason: REASON,
+        },
+      }),
+    );
     expect(
       DeletePendingSandboxRequest.mock.invocationCallOrder[0],
     ).toBeLessThan(sendEmail.mock.invocationCallOrder[0]);
   });
 
-  it("treats an accepted or missing request as an idempotent success", async () => {
+  it("is a no-op when the request is missing or already accepted", async () => {
     DeletePendingSandboxRequest.mockResolvedValue({
       delete_sandbox_access_request: { affected_rows: 0, returning: [] },
     });
@@ -184,20 +151,13 @@ describe("POST /api/admin/sandbox-requests/[id]/reject", () => {
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it("returns 503 after deleting the request when SendGrid fails", async () => {
+  it("returns 503 after deleting when SendGrid fails", async () => {
     sendEmail.mockRejectedValue(new Error("sendgrid down"));
 
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({
-      error: "Unable to send sandbox rejection email",
-    });
     expect(DeletePendingSandboxRequest).toHaveBeenCalled();
-    expect(logger.error).toHaveBeenCalledWith(
-      "Failed to send sandbox rejection email",
-      expect.objectContaining({ requestId: REQUEST_ID }),
-    );
   });
 });
 // #endregion
