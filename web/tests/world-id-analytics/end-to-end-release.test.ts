@@ -3,6 +3,7 @@ import { createServer, type IncomingMessage, type Server } from "node:http";
 import { Pool } from "pg";
 // Entry through the app-router re-export, exactly as production routes it.
 import { POST } from "../../app/api/%5Frollup-world-id-analytics/route";
+import { readParityMismatches } from "./canonical-analytics";
 import {
   fixture,
   insertV3Nullifier,
@@ -10,11 +11,7 @@ import {
   resetFixture,
   seedFixture,
 } from "./fresh-stack-fixture";
-import {
-  commandOutput,
-  requiredEnv,
-  runSqlOperation,
-} from "./run-sql-operation";
+import { requiredEnv } from "./run-sql-operation";
 
 // #region Mocks
 // Only the log sink is mocked; route, GraphQL client, service JWT, Hasura and
@@ -97,16 +94,6 @@ const rolledRowCount = async () =>
     ).rows[0].count,
   );
 
-const runParityGate = () => runSqlOperation("backfill-and-validate.sql");
-
-const expectParityGatePasses = () => {
-  const gate = runParityGate();
-  expect({
-    error: gate.error,
-    output: commandOutput(gate),
-    status: gate.status,
-  }).toEqual(expect.objectContaining({ error: undefined, status: 0 }));
-};
 // #endregion
 
 beforeAll(() => {
@@ -212,8 +199,9 @@ describe("World ID analytics [release runbook end to end]", () => {
       });
     }
 
-    // ── 4. The parity gate signs off the backfill.
-    expectParityGatePasses();
+    // ── 4. Parity signs off the backfill: every complete UTC day matches a
+    // recount of the raw tables in both directions.
+    expect(await readParityMismatches(pool)).toEqual([]);
 
     // ── 5. The read function serves every app/environment correctly.
     expect(
@@ -349,8 +337,8 @@ describe("World ID analytics [release runbook end to end]", () => {
       await readAppDaily(fixture.productionAppId, "production", 2, 0),
     ).not.toContainEqual({ date_utc: lateDate, unique_count: "1" });
 
-    // ── 9. Steady state still satisfies the parity gate.
-    expectParityGatePasses();
+    // ── 9. Steady state still matches the raw tables exactly.
+    expect(await readParityMismatches(pool)).toEqual([]);
   });
 });
 // #endregion

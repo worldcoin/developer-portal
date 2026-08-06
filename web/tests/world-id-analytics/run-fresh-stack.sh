@@ -145,7 +145,7 @@ if [[ "${1:-}" == "--release-gate" ]]; then
   npx jest \
     tests/world-id-analytics/stack-smoke.test.ts \
     tests/world-id-analytics/window-rollup.test.ts \
-    tests/world-id-analytics/backfill-and-validate.test.ts \
+    tests/world-id-analytics/rollup-parity.test.ts \
     tests/world-id-analytics/index-build-locking.test.ts \
     tests/world-id-analytics/cron-and-rollout.test.ts \
     tests/world-id-analytics/end-to-end-release.test.ts \
@@ -156,7 +156,7 @@ fi
 npx jest \
   tests/world-id-analytics/stack-smoke.test.ts \
   tests/world-id-analytics/window-rollup.test.ts \
-  tests/world-id-analytics/backfill-and-validate.test.ts \
+  tests/world-id-analytics/rollup-parity.test.ts \
   tests/world-id-analytics/index-build-locking.test.ts \
   tests/world-id-analytics/cron-and-rollout.test.ts \
   tests/world-id-analytics/end-to-end-release.test.ts \

@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { readParityMismatches } from "./canonical-analytics";
 import {
   fixture,
   insertV3Nullifier,
@@ -9,8 +10,6 @@ import {
 import { commandOutput, runSqlOperation } from "./run-sql-operation";
 
 const pool = new Pool();
-
-const runParityGate = () => runSqlOperation("backfill-and-validate.sql");
 
 const runCreateNullifierIndex = () =>
   runSqlOperation("create-nullifier-created-at-index.sql");
@@ -34,7 +33,7 @@ const daysAgoIso = (daysAgo: number, hours = 12) => {
   return date.toISOString();
 };
 
-const rollupRange = (fromDate: string, toDate: string) =>
+const rollupRange = (fromDate: string | null, toDate: string | null) =>
   pool.query(
     `SELECT * FROM public.rollup_world_id_analytics($1::date, $2::date)`,
     [fromDate, toDate],
@@ -85,8 +84,8 @@ afterAll(async () => {
 
 jest.setTimeout(150_000);
 
-// #region Deployment gate
-describe("World ID analytics [parity validation gate]", () => {
+// #region Index script gate
+describe("World ID analytics [index operations script]", () => {
   it("rejects an invalid same-named concurrent index", async () => {
     const duplicateCreatedAt = daysAgoIso(7);
     await insertV3Nullifier(pool, {
@@ -107,12 +106,11 @@ describe("World ID analytics [parity validation gate]", () => {
         `),
       ).rejects.toThrow();
 
-      for (const result of [runCreateNullifierIndex(), runParityGate()]) {
-        expect(result.status).not.toBe(0);
-        expect(commandOutput(result)).toContain(
-          "nullifier_created_at_idx is missing or invalid",
-        );
-      }
+      const result = runCreateNullifierIndex();
+      expect(result.status).not.toBe(0);
+      expect(commandOutput(result)).toContain(
+        "nullifier_created_at_idx is missing or invalid",
+      );
     } finally {
       await pool.query(
         "DROP INDEX CONCURRENTLY IF EXISTS public.nullifier_created_at_idx",
@@ -123,54 +121,25 @@ describe("World ID analytics [parity validation gate]", () => {
       `);
     }
   });
+});
+// #endregion
 
-  it("fails before any validation work when the v4 source index is missing", async () => {
-    await insertV3Nullifier(pool, {
-      id: "nullifier_v3_index_gate",
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    });
-    await pool.query(
-      "DROP INDEX CONCURRENTLY public.nullifier_v4_created_at_idx",
-    );
-
-    try {
-      const result = runParityGate();
-
-      expect(result.status).not.toBe(0);
-      expect(commandOutput(result)).toContain(
-        "nullifier_v4_created_at_idx is missing or invalid",
-      );
-      // The gate aborted before its catch-up, so nothing was rolled up.
-      expect(await rolledRowCount()).toBe(0);
-    } finally {
-      await pool.query(`
-        CREATE INDEX CONCURRENTLY nullifier_v4_created_at_idx
-          ON public.nullifier_v4 (created_at)
-      `);
-    }
-  });
-
-  it("passes after the dated backfill covered all history", async () => {
+// #region Raw/rollup parity
+describe("World ID analytics [raw/rollup parity]", () => {
+  it("holds after the dated backfill plus a trailing-window rollup", async () => {
     await insertV4Nullifier(pool, {
-      id: "nullifier_v4_gate_success",
+      id: "nullifier_v4_parity_success",
       createdAt: daysAgoIso(7),
     });
     await insertV3Nullifier(pool, {
-      id: "nullifier_v3_gate_success_recent",
+      id: "nullifier_v3_parity_success_recent",
       createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     });
+
     await rollupRange(utcDate(10), utcDate(1));
+    await rollupRange(null, null);
 
-    const result = runParityGate();
-    const output = commandOutput(result);
-
-    expect({ error: result.error, output, status: result.status }).toEqual(
-      expect.objectContaining({ error: undefined, status: 0 }),
-    );
-    expect(output).not.toContain("parity validation failed");
-
-    // The gate's own catch-up rebuilt the trailing window inside its
-    // snapshot, so the recent row is rolled up after a passing run.
+    expect(await readParityMismatches(pool)).toEqual([]);
     const recent = await pool.query(
       `SELECT unique_count::text
          FROM public.action_legacy_stats_daily
@@ -180,22 +149,26 @@ describe("World ID analytics [parity validation gate]", () => {
     expect(recent.rows).toEqual([{ unique_count: "1" }]);
   });
 
-  it("fails when history was never backfilled", async () => {
+  it("flags history the backfill never covered", async () => {
     await insertV3Nullifier(pool, {
       id: "nullifier_v3_missing_history",
       createdAt: daysAgoIso(7),
     });
 
-    const result = runParityGate();
+    const mismatches = await readParityMismatches(pool);
 
-    expect(result.status).not.toBe(0);
-    expect(commandOutput(result)).toContain(
-      "Raw/rollup parity validation failed",
-    );
-    expect(commandOutput(result)).toContain("canonical_missing_or_mismatched");
+    expect(mismatches).toEqual([
+      {
+        direction: "canonical_missing_or_mismatched",
+        source: "legacy",
+        action_id: fixture.productionV3ActionId,
+        date_utc: utcDate(7),
+        unique_count: "1",
+      },
+    ]);
   });
 
-  it("fails on corrupted v4 counts, then passes after re-rolling the range", async () => {
+  it("flags corrupted v4 counts, then holds after re-rolling the range", async () => {
     await pool.query(`
       CREATE FUNCTION public.contract_corrupt_v4_analytics_rollup()
       RETURNS trigger
@@ -213,30 +186,24 @@ describe("World ID analytics [parity validation gate]", () => {
       EXECUTE FUNCTION public.contract_corrupt_v4_analytics_rollup();
     `);
     await insertV4Nullifier(pool, {
-      id: "nullifier_v4_gate_mismatch",
+      id: "nullifier_v4_parity_mismatch",
       createdAt: daysAgoIso(7),
     });
     await rollupRange(utcDate(10), utcDate(1));
 
-    const result = runParityGate();
-
-    expect(result.status).not.toBe(0);
-    expect(commandOutput(result)).toContain(
-      "Raw/rollup parity validation failed",
-    );
+    const mismatches = await readParityMismatches(pool);
+    expect(mismatches).toHaveLength(2);
+    expect(mismatches.map((row) => row.direction).sort()).toEqual([
+      "canonical_missing_or_mismatched",
+      "rollup_extra_or_mismatched",
+    ]);
 
     // The documented repair: re-POST (here: re-roll) the suspect range, no
     // reset step. The rebuild both recounts and sweeps.
     await removeParitySabotage();
     await rollupRange(utcDate(10), utcDate(1));
 
-    const retry = runParityGate();
-    expect({
-      error: retry.error,
-      output: commandOutput(retry),
-      status: retry.status,
-    }).toEqual(expect.objectContaining({ error: undefined, status: 0 }));
-
+    expect(await readParityMismatches(pool)).toEqual([]);
     const rolled = await pool.query(
       `SELECT unique_count::text
          FROM public.action_v4_stats_daily
@@ -246,7 +213,7 @@ describe("World ID analytics [parity validation gate]", () => {
     expect(rolled.rows).toEqual([{ unique_count: "1" }]);
   });
 
-  it("fails on corrupted v3 counts", async () => {
+  it("flags corrupted v3 counts", async () => {
     await pool.query(`
       CREATE FUNCTION public.contract_corrupt_v3_analytics_rollup()
       RETURNS trigger
@@ -264,21 +231,19 @@ describe("World ID analytics [parity validation gate]", () => {
       EXECUTE FUNCTION public.contract_corrupt_v3_analytics_rollup();
     `);
     await insertV3Nullifier(pool, {
-      id: "nullifier_v3_gate_mismatch",
+      id: "nullifier_v3_parity_mismatch",
       createdAt: daysAgoIso(7),
     });
     await rollupRange(utcDate(10), utcDate(1));
 
-    const result = runParityGate();
+    const mismatches = await readParityMismatches(pool);
 
-    expect(result.status).not.toBe(0);
-    expect(commandOutput(result)).toContain(
-      "Raw/rollup parity validation failed",
-    );
+    expect(mismatches).not.toEqual([]);
+    expect(mismatches.every((row) => row.source === "legacy")).toBe(true);
   });
 
   it("catches rolled rows whose raw rows were deleted, healed by re-rolling", async () => {
-    // A rolled day with no surviving raw rows: the gate must flag it, and
+    // A rolled day with no surviving raw rows: parity must flag it, and
     // re-rolling exactly that range must sweep it.
     await pool.query(
       `INSERT INTO public.action_legacy_stats_daily (
@@ -287,20 +252,19 @@ describe("World ID analytics [parity validation gate]", () => {
       [fixture.productionV3ActionId],
     );
 
-    const withoutRepair = runParityGate();
-    expect(withoutRepair.status).not.toBe(0);
-    expect(commandOutput(withoutRepair)).toContain(
-      "rollup_extra_or_mismatched",
-    );
+    expect(await readParityMismatches(pool)).toEqual([
+      {
+        direction: "rollup_extra_or_mismatched",
+        source: "legacy",
+        action_id: fixture.productionV3ActionId,
+        date_utc: "2026-01-01",
+        unique_count: "5",
+      },
+    ]);
 
     await rollupRange("2026-01-01", "2026-01-01");
 
-    const retry = runParityGate();
-    expect({
-      error: retry.error,
-      output: commandOutput(retry),
-      status: retry.status,
-    }).toEqual(expect.objectContaining({ error: undefined, status: 0 }));
+    expect(await readParityMismatches(pool)).toEqual([]);
     expect(await rolledRowCount()).toBe(0);
   });
 });
