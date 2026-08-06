@@ -6,6 +6,7 @@ import {
   migrationMayHaveInFlightOperation,
   releaseRpMigrationLock,
   retainRpMigrationLockForInFlightOp,
+  RP_MIGRATION_IN_FLIGHT_LOCK_MS,
 } from "@/api/helpers/rp-manager-key-migration";
 import {
   getRpRegistryConfig,
@@ -22,7 +23,8 @@ import { migrateRpManagersToSharedKey } from "../../scripts/migrate-rp-manager-t
 
 const GLOBAL_LOCK_KEY = "rp-manager-key-migration:run";
 const GLOBAL_LOCK_TTL_MS = 5 * 60 * 1000; // 5 min
-const FAILURE_COOLDOWN_MS = 15 * 60 * 1000; // 15 min
+const FAILURE_COOLDOWN_MS = RP_MIGRATION_IN_FLIGHT_LOCK_MS;
+const CANDIDATE_BATCH_SIZE = 10;
 
 type Candidate = {
   rp_id: string;
@@ -57,8 +59,11 @@ type RedisLockClient = {
 
 // #region GraphQL
 
-const GET_NEXT_CANDIDATE = gql`
-  query GetNextRpManagerKeyMigrationCandidate($before: timestamptz!) {
+const GET_NEXT_CANDIDATES = gql`
+  query GetNextRpManagerKeyMigrationCandidates(
+    $before: timestamptz!
+    $limit: Int!
+  ) {
     rp_registration(
       where: {
         mode: { _eq: managed }
@@ -74,7 +79,7 @@ const GET_NEXT_CANDIDATE = gql`
         }
       }
       order_by: [{ updated_at: asc }, { created_at: asc }]
-      limit: 1
+      limit: $limit
     ) {
       rp_id
       app_id
@@ -211,6 +216,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let mayHaveSubmittedTransfer = false;
   let retainRpLockForInFlightOp = false;
   let rpLockHeldForInFlightOp: boolean | null = null;
+  let lockedCandidatesSkipped = 0;
   const startedAt = Date.now();
 
   const holdRpLockForInFlightOp = async (
@@ -250,28 +256,47 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const candidates = await client.request<
       CandidateQueryResult,
-      { before: string }
-    >(GET_NEXT_CANDIDATE, { before });
+      { before: string; limit: number }
+    >(GET_NEXT_CANDIDATES, { before, limit: CANDIDATE_BATCH_SIZE });
 
-    candidate = candidates.rp_registration[0] ?? null;
-    if (!candidate) return new NextResponse(null, { status: 204 });
-    attemptId = randomUUID();
-
-    rpLock = await acquireRpMigrationLock(candidate.rp_id);
-    if (rpLock.status === "busy") {
+    if (candidates.rp_registration.length === 0) {
       return new NextResponse(null, { status: 204 });
     }
-    if (rpLock.status === "unavailable") {
-      logger.error("Redis unavailable for RP manager migration per-RP lock", {
-        error: rpLock.error,
+
+    attemptId = randomUUID();
+
+    for (const next of candidates.rp_registration) {
+      const lockAttempt = await acquireRpMigrationLock(next.rp_id);
+      if (lockAttempt.status === "busy") {
+        lockedCandidatesSkipped += 1;
+        continue;
+      }
+      if (lockAttempt.status === "unavailable") {
+        logger.error("Redis unavailable for RP manager migration per-RP lock", {
+          error: lockAttempt.error,
+          attempt_id: attemptId,
+          rp_id: next.rp_id,
+        });
+
+        return NextResponse.json(
+          { error: "migration_dependency_unavailable" },
+          { status: 503 },
+        );
+      }
+
+      candidate = next;
+      rpLock = lockAttempt;
+      break;
+    }
+
+    if (!candidate || rpLock?.status !== "acquired") {
+      logger.info("No unlocked RP manager migration candidate available", {
         attempt_id: attemptId,
-        rp_id: candidate.rp_id,
+        candidate_count: candidates.rp_registration.length,
+        locked_candidates_skipped: lockedCandidatesSkipped,
       });
 
-      return NextResponse.json(
-        { error: "migration_dependency_unavailable" },
-        { status: 503 },
-      );
+      return new NextResponse(null, { status: 204 });
     }
 
     logger.info("RP manager key migration attempt started", {
@@ -279,6 +304,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       rp_id: candidate.rp_id,
       app_id: candidate.app_id,
       old_manager_kms_key_id: candidate.manager_kms_key_id,
+      locked_candidates_skipped: lockedCandidatesSkipped,
     });
 
     const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
@@ -353,6 +379,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       skipped_registries: result?.skippedRegistries ?? [],
       outcome,
       failure: result?.status === "failed" ? result.failure : undefined,
+      locked_candidates_skipped: lockedCandidatesSkipped,
       retain_rp_lock: retainRpLockForInFlightOp,
       rp_lock_held: rpLockHeldForInFlightOp,
       duration_ms: Date.now() - startedAt,

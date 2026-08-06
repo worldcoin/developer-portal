@@ -41,6 +41,7 @@ jest.mock("@/lib/logger", () => ({
 }));
 
 import { POST } from "@/api/_migrate-rp-manager-keys";
+import { RP_MIGRATION_IN_FLIGHT_LOCK_MS } from "@/api/helpers/rp-manager-key-migration";
 
 const { logger: mockLogger } = jest.requireMock("@/lib/logger") as {
   logger: { info: jest.Mock; warn: jest.Mock; error: jest.Mock };
@@ -82,10 +83,16 @@ const request = () =>
     method: "POST",
   });
 
-function arrangeCandidate(value: typeof candidate | null = candidate): void {
+function arrangeCandidates(
+  values: Array<typeof candidate> | null = [candidate],
+): void {
   graphqlRequestMock.mockResolvedValueOnce({
-    rp_registration: value ? [value] : [],
+    rp_registration: values ?? [],
   });
+}
+
+function arrangeCandidate(value: typeof candidate | null = candidate): void {
+  arrangeCandidates(value ? [value] : null);
 }
 
 beforeEach(async () => {
@@ -212,6 +219,20 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
     await expect(global.RedisClient?.get(GLOBAL_LOCK_KEY)).resolves.toBeNull();
   });
 
+  it("keeps failed candidates out of the query while their lock can be retained", async () => {
+    arrangeCandidate();
+
+    await POST(request());
+
+    const variables = graphqlRequestMock.mock.calls[0][1] as {
+      before: string;
+      limit: number;
+    };
+    expect(variables.limit).toBeGreaterThan(1);
+    const cooldownMs = Date.now() - Date.parse(variables.before);
+    expect(cooldownMs).toBeGreaterThanOrEqual(RP_MIGRATION_IN_FLIGHT_LOCK_MS);
+  });
+
   it("passes the staging mirror to the migration in production", async () => {
     process.env.NEXT_PUBLIC_APP_ENV = "production";
     getStagingRpRegistryConfigMock.mockReturnValue(STAGING_CONFIG);
@@ -230,7 +251,7 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
     );
   });
 
-  it("touches a failed candidate so it cools down for 15 minutes", async () => {
+  it("touches a failed candidate so it cools down before the next attempt", async () => {
     arrangeCandidate();
     migrateRpManagersToSharedKeyMock.mockResolvedValue({
       candidateCount: 1,
@@ -278,10 +299,55 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
 
     expect(response.status).toBe(204);
     expect(migrateRpManagersToSharedKeyMock).not.toHaveBeenCalled();
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      "No unlocked RP manager migration candidate available",
+      expect.objectContaining({
+        candidate_count: 1,
+        locked_candidates_skipped: 1,
+      }),
+    );
     await expect(global.RedisClient?.get(GLOBAL_LOCK_KEY)).resolves.toBeNull();
     await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBe(
       "other-owner",
     );
+  });
+
+  it("skips a busy per-RP lock and migrates the next unlocked candidate", async () => {
+    const secondRpId = "rp_abcdef1234567890";
+    const secondAppId = "app_abcdef1234567890abcdef1234567890";
+    const secondLockKey = `rp-manager-key-migration:rp:${secondRpId}`;
+    const secondCandidate = {
+      rp_id: secondRpId,
+      app_id: secondAppId,
+      manager_kms_key_id: OLD_KEY,
+    };
+
+    await global.RedisClient?.set(RP_LOCK_KEY, "other-owner");
+    arrangeCandidates([candidate, secondCandidate]);
+    migrateRpManagersToSharedKeyMock.mockResolvedValue({
+      candidateCount: 1,
+      results: [
+        {
+          ...successResult,
+          rpId: secondRpId,
+          appId: secondAppId,
+        },
+      ],
+    });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    expect(migrateRpManagersToSharedKeyMock).toHaveBeenCalledWith(
+      expect.objectContaining({ rpIds: [secondRpId] }),
+    );
+    await expect(response.json()).resolves.toEqual(
+      expect.objectContaining({ rp_id: secondRpId, outcome: "migrated" }),
+    );
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBe(
+      "other-owner",
+    );
+    await expect(global.RedisClient?.get(secondLockKey)).resolves.toBeNull();
   });
 
   it("holds the per-RP lock for the duration of the migration and releases it", async () => {
