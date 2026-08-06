@@ -113,7 +113,9 @@ const draftMetadata = {
 };
 const app = {
   app_metadata: [draftMetadata],
-  verified_app_metadata: [{ ...draftMetadata, id: "meta_verified", verification_status: "verified" }],
+  verified_app_metadata: [
+    { ...draftMetadata, id: "meta_verified", verification_status: "verified" },
+  ],
 };
 
 const defaultAppStoreFormValues: AppStoreFormValues = {
