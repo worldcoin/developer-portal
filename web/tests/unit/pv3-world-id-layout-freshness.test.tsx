@@ -27,6 +27,15 @@ jest.mock(
   () => ({ GetWorldIdOverviewDocument: { __mockDoc: "worldIdOverview" } }),
 );
 
+// Keep the layout's single-query and revalidation contract isolated from the
+// independently tested analytics graph's fetch and refresh behavior.
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/common/WorldIdAnalyticsGraph",
+  () => ({
+    WorldIdAnalyticsGraph: () => <div data-testid="analytics-graph" />,
+  }),
+);
+
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/LegacyActions/page",
   () => ({

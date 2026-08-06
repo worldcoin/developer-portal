@@ -4,7 +4,7 @@ import { EngineType } from "@/lib/types";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SkeletonTable } from "@/components/Skeletons";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { ActionStatsGraph } from "./ActionStatsGraph";
+import { WorldIdAnalyticsGraph } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/common/WorldIdAnalyticsGraph";
 import { VerifiedTable } from "./VerifiedTable";
 import { GetSingleActionAndNullifiersDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/page/graphql/client/get-single-action.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
@@ -25,6 +25,7 @@ export const ActionIdPage = (props: ActionIdPageProps) => {
   });
 
   const action = data?.action[0];
+  const environment = action?.app.is_staging ? "staging" : "production";
 
   if (!loading && !action) {
     return (
@@ -42,14 +43,22 @@ export const ActionIdPage = (props: ActionIdPageProps) => {
     return (
       <SizingWrapper gridClassName="pt-6 pb-6 md:pb-10">
         <div className="grid w-full grid-cols-1 items-start justify-between gap-y-10 lg:grid-cols-2 lg:gap-x-32">
-          <ActionStatsGraph />
+          <WorldIdAnalyticsGraph
+            appId={appId ?? ""}
+            environment={environment}
+            scope={{
+              type: "action",
+              source: "legacy",
+              actionId: actionId ?? "",
+            }}
+          />
 
           {loading ? (
             <div className="grid w-full gap-y-6">
               <Typography variant={TYPOGRAPHY.H7} className="mt-6">
-                Verified humans
+                Recent verifications
               </Typography>
-              <SkeletonTable columns={["Human", "Uses", "Time"]} rows={5} />
+              <SkeletonTable columns={["Nullifier", "Uses", "Time"]} rows={5} />
             </div>
           ) : (
             <VerifiedTable

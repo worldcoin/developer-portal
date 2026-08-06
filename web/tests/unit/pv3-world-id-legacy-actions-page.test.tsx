@@ -100,6 +100,25 @@ beforeEach(() => {
 // #endregion
 
 describe("LegacyActionsPage", () => {
+  it("keeps loading skeletons at the legacy card height", () => {
+    useQueryMock.mockReturnValue({
+      data: undefined,
+      loading: true,
+      error: undefined,
+    });
+
+    const { container } = renderPage();
+    const skeletonFrames = Array.from(
+      container.querySelectorAll<HTMLElement>('div[aria-hidden="true"]'),
+    );
+
+    expect(skeletonFrames).toHaveLength(3);
+    for (const frame of skeletonFrames) {
+      expect(frame).toHaveClass("min-h-[144px]");
+      expect(frame).not.toHaveClass("min-h-[220px]");
+    }
+  });
+
   it("renders the warning, matching search/grid UI, and read-only cards", async () => {
     renderPage();
 

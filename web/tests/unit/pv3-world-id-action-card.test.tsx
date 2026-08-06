@@ -12,6 +12,21 @@ global.ResizeObserver = class {
   disconnect() {}
 } as typeof ResizeObserver;
 
+// The grid fetches Last 7 Days previews for visible cards; stub the
+// endpoint so jsdom never attempts real network I/O (approach note §8).
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      period: "last_7_days",
+      app: { count: "0", series: [] },
+      legacy_actions: [],
+      actions: [],
+    }),
+  } as Response),
+) as unknown as typeof fetch;
+
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/page/CreateActionDialogV4",
   () => ({

@@ -52,6 +52,50 @@ export const ActionsGrid = (props: {
     (page - 1) * ACTIONS_PER_PAGE,
     page * ACTIONS_PER_PAGE,
   );
+  const [previews, setPreviews] = useState<
+    Record<
+      string,
+      { count: string; series: Array<{ count: string; date: string }> }
+    >
+  >({});
+
+  useEffect(() => {
+    if (!pageActions.length) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      environment: "production",
+      period: "last_7_days",
+      action_ids: pageActions.map((action) => action.id).join(","),
+    });
+    void fetch(`/api/portal/apps/${props.appId}/world-id-analytics?${params}`, {
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("analytics request failed");
+        return response.json();
+      })
+      .then(
+        (body: {
+          actions?: Array<{
+            id: string;
+            count: string;
+            series: Array<{ count: string; date: string }>;
+          }>;
+        }) => {
+          setPreviews(
+            Object.fromEntries(
+              (body.actions ?? []).map((item) => [
+                item.id,
+                { count: item.count, series: item.series },
+              ]),
+            ),
+          );
+        },
+      )
+      .catch(() => {});
+    return () => controller.abort();
+  }, [props.appId, page, props.search]);
+
   // The create tile is its own empty state, so only explain a grid that would
   // otherwise render nothing at all.
   const emptyMessage =
@@ -89,6 +133,8 @@ export const ActionsGrid = (props: {
             teamId={props.teamId}
             appId={props.appId}
             action={action}
+            previewCount={previews[action.id]?.count}
+            previewSeries={previews[action.id]?.series}
           />
         ))}
 

@@ -26,7 +26,7 @@ export const VerifiedRow = (props: {
               <Typography
                 className="text-grey-700"
                 variant={TYPOGRAPHY.R3}
-              >{`${nullifier.nullifier_hash.slice(0, 10)}...${nullifier.nullifier_hash.slice(-8)}`}</Typography>
+              >{`${nullifier.nullifier_hash.slice(0, 12)}...${nullifier.nullifier_hash.slice(-8)}`}</Typography>
 
               <Typography
                 className="block text-grey-500 md:hidden"
