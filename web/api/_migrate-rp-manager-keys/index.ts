@@ -206,8 +206,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const sharedKeyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID?.trim();
     const primaryConfig = getRpRegistryConfig();
+    const isProduction = process.env.NEXT_PUBLIC_APP_ENV === "production";
+    const stagingConfig = isProduction ? getStagingRpRegistryConfig() : null;
 
-    if (!sharedKeyId || !primaryConfig) {
+    if (!sharedKeyId || !primaryConfig || (isProduction && !stagingConfig)) {
       throw new Error("RP manager migration configuration is incomplete");
     }
 
@@ -229,11 +231,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       app_id: candidate.app_id,
       old_manager_kms_key_id: candidate.manager_kms_key_id,
     });
-
-    const stagingConfig =
-      process.env.NEXT_PUBLIC_APP_ENV === "production"
-        ? getStagingRpRegistryConfig()
-        : null;
 
     const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
 

@@ -55,6 +55,10 @@ const APP_ID = "app_1234567890abcdef1234567890abcdef";
 const OLD_KEY = "arn:aws:kms:eu-west-1:111111111111:key/old";
 const SHARED_KEY = "arn:aws:kms:eu-west-1:111111111111:key/shared";
 const GLOBAL_LOCK_KEY = "rp-manager-key-migration:run";
+const STAGING_CONFIG = {
+  kmsRegion: "eu-west-1",
+  contractAddress: "0x2222222222222222222222222222222222222222",
+};
 
 const candidate = {
   rp_id: RP_ID,
@@ -151,6 +155,18 @@ describe("/_migrate-rp-manager-keys [guards]", () => {
     global.RedisClient = redis;
   });
 
+  it("fails closed when the staging registry config is missing in production", async () => {
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(503);
+    expect(getStagingRpRegistryConfigMock).toHaveBeenCalledTimes(1);
+    expect(getAPIServiceGraphqlClientMock).not.toHaveBeenCalled();
+    expect(migrateRpManagersToSharedKeyMock).not.toHaveBeenCalled();
+    await expect(global.RedisClient?.get(GLOBAL_LOCK_KEY)).resolves.toBeNull();
+  });
+
   it("returns 204 when no candidate is outside the cooldown", async () => {
     arrangeCandidate(null);
 
@@ -193,6 +209,24 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
     );
     expect(graphqlRequestMock).toHaveBeenCalledTimes(1);
     await expect(global.RedisClient?.get(GLOBAL_LOCK_KEY)).resolves.toBeNull();
+  });
+
+  it("passes the staging mirror to the migration in production", async () => {
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    getStagingRpRegistryConfigMock.mockReturnValue(STAGING_CONFIG);
+    arrangeCandidate();
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    expect(migrateRpManagersToSharedKeyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stagingMirrorRegistry: {
+          name: "staging",
+          config: STAGING_CONFIG,
+        },
+      }),
+    );
   });
 
   it("touches a failed candidate so it cools down for 15 minutes", async () => {
