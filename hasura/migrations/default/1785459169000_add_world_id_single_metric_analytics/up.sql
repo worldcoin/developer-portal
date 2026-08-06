@@ -111,6 +111,34 @@ BEGIN
   -- Waiters are bounded by the caller's request timeout.
   PERFORM pg_advisory_xact_lock(533214, 43);
 
+  -- Take the recount's parent locks BEFORE touching child rows. Without
+  -- this, a concurrent action deletion (parent row first, then a cascade
+  -- into the very child rows this window just deleted) forms a lock cycle
+  -- whose victim is nearly always the user's delete (40P01, reproduced
+  -- 3/3). Parent-before-child on both sides removes the cycle: the delete
+  -- briefly waits for this transaction, then cascades cleanly.
+  PERFORM 1
+    FROM public.action locked_action
+   WHERE locked_action.id IN (
+       SELECT DISTINCT n.action_id
+         FROM public.nullifier n
+        WHERE n.created_at >= (window_start::timestamp AT TIME ZONE 'UTC')
+          AND n.created_at < rebuild_until
+     )
+   ORDER BY locked_action.id
+   FOR KEY SHARE OF locked_action;
+
+  PERFORM 1
+    FROM public.action_v4 locked_action
+   WHERE locked_action.id IN (
+       SELECT DISTINCT n.action_v4_id
+         FROM public.nullifier_v4 n
+        WHERE n.created_at >= (window_start::timestamp AT TIME ZONE 'UTC')
+          AND n.created_at < rebuild_until
+     )
+   ORDER BY locked_action.id
+   FOR KEY SHARE OF locked_action;
+
   DELETE FROM public.action_legacy_stats_daily
    WHERE date_utc BETWEEN window_start AND window_end;
   DELETE FROM public.action_v4_stats_daily

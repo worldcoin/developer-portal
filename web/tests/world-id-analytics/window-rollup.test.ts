@@ -65,6 +65,43 @@ const insertStaleRolledRow = (dateUtc: string, count: number) =>
     [fixture.productionV3ActionId, dateUtc, count],
   );
 
+const barrierLock: [number, number] = [812_404, 72];
+
+const installPauseTrigger = async () => {
+  await pool.query(`
+    CREATE FUNCTION public.contract_pause_window_rollup()
+    RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN
+      PERFORM pg_advisory_xact_lock(${barrierLock[0]}, ${barrierLock[1]});
+      RETURN NEW;
+    END
+    $$;
+
+    CREATE TRIGGER contract_pause_window_rollup
+    BEFORE INSERT ON public.action_legacy_stats_daily
+    FOR EACH ROW EXECUTE FUNCTION public.contract_pause_window_rollup();
+  `);
+};
+
+const removePauseTrigger = async () => {
+  await pool.query(`
+    DROP TRIGGER IF EXISTS contract_pause_window_rollup
+      ON public.action_legacy_stats_daily;
+    DROP FUNCTION IF EXISTS public.contract_pause_window_rollup();
+  `);
+};
+
+const waitForLockWaiter = async (
+  predicateSql: string,
+  values: Array<number | string>,
+) => {
+  for (let attempt = 0; attempt < 1_000; attempt += 1) {
+    const result = await pool.query<{ waiting: boolean }>(predicateSql, values);
+    if (result.rows[0].waiting) return;
+  }
+  throw new Error("never reached the deterministic lock barrier");
+};
+
 beforeAll(() => {
   if (process.env.WIA_FRESH_STACK !== "true") {
     throw new Error(
@@ -74,11 +111,13 @@ beforeAll(() => {
 });
 
 beforeEach(async () => {
+  await removePauseTrigger();
   await resetFixture(pool);
   await seedFixture(pool);
 });
 
 afterAll(async () => {
+  await removePauseTrigger();
   await resetFixture(pool);
   await pool.end();
 });
@@ -223,6 +262,74 @@ describe("World ID analytics [window rollup]", () => {
       "from_date and to_date must be supplied together",
     );
     await expect(rollup(utcDate(3), utcDate(5))).rejects.toThrow("is after");
+  });
+
+  it("lets a concurrent action deletion wait out a re-rolled window instead of deadlocking", async () => {
+    // The deadlock precondition: the window already holds rolled rows, so
+    // the run's child-row deletes lock something a deletion cascade wants.
+    await insertV3Nullifier(pool, {
+      id: "nullifier_v3_deadlock_regression",
+      createdAt: atUtc(6, 12, 0),
+    });
+    await rollup(utcDate(6), utcDate(6));
+    await installPauseTrigger();
+
+    const blocker = await pool.connect();
+    const deleter = await pool.connect();
+    try {
+      await blocker.query("SELECT pg_advisory_lock($1, $2)", barrierLock);
+      // The re-run pre-locks the parent, deletes the rolled rows, and pauses
+      // at its first recount insert — exactly where the cycle used to form.
+      const rerun = rollup(utcDate(6), utcDate(6));
+      await waitForLockWaiter(
+        `SELECT EXISTS (
+           SELECT 1 FROM pg_locks
+            WHERE locktype = 'advisory'
+              AND classid::bigint = $1 AND objid::bigint = $2
+              AND NOT granted
+         ) AS waiting`,
+        barrierLock,
+      );
+
+      await deleter.query("SET statement_timeout = '10s'");
+      const deletion = deleter
+        .query("DELETE FROM public.action WHERE id = $1", [
+          fixture.productionV3ActionId,
+        ])
+        .then(
+          (result) => ({ ok: true as const, rows: result.rowCount }),
+          (error: { code?: string }) => ({
+            ok: false as const,
+            code: error.code,
+          }),
+        );
+      // The deletion must be parked on the parent's KEY SHARE lock — not
+      // deadlocked — while the rollup is still mid-transaction.
+      await waitForLockWaiter(
+        `SELECT EXISTS (
+           SELECT 1 FROM pg_locks
+            WHERE locktype = 'tuple' AND NOT granted
+              AND relation = 'public.action'::regclass
+         ) OR EXISTS (
+           SELECT 1 FROM pg_stat_activity
+            WHERE wait_event_type = 'Lock'
+              AND query LIKE 'DELETE FROM public.action%'
+         ) AS waiting`,
+        [],
+      );
+
+      await blocker.query("SELECT pg_advisory_unlock($1, $2)", barrierLock);
+      await expect(rerun).resolves.toEqual([
+        { date_utc: utcDate(6), unique_count: "1" },
+      ]);
+      await expect(deletion).resolves.toEqual({ ok: true, rows: 1 });
+      // The cascade swept the freshly rolled rows with the action.
+      expect(await readLegacyDaily()).toEqual([]);
+    } finally {
+      await blocker.query("SELECT pg_advisory_unlock_all()");
+      blocker.release();
+      deleter.release();
+    }
   });
 
   it("blocks behind a concurrent run instead of silently skipping", async () => {
