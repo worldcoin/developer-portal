@@ -57,19 +57,51 @@ const runRollup = async () => {
     body: {
       success: true,
       outcome: "advanced",
-      processed_through: expect.any(String),
+      days: expect.any(Number),
+      total: expect.any(String),
     },
   });
   return elapsedMs;
 };
 
-// The initial full-history backfill follows the production runbook: the
-// chunked operator procedure, not the capped cron route (the 31-day seed
-// exceeds one tick's 30-day advance).
-const runProcedureBackfill = async () => {
+const utcDate = (daysAgo: number) => {
+  const now = new Date();
+  return new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() - daysAgo,
+    ),
+  )
+    .toISOString()
+    .slice(0, 10);
+};
+
+// The initial full-history backfill follows the production runbook: dated
+// POSTs to the same route the cron uses, chunked into bounded per-chunk
+// transactions (the 31-day seed spans several chunks).
+const runDatedBackfill = async () => {
   const started = performance.now();
-  await pool.query("CALL public.backfill_world_id_analytics(1)");
-  return performance.now() - started;
+  const response = await rollupWorldIdAnalytics(
+    new NextRequest("http://localhost:3000/api/_rollup-world-id-analytics", {
+      method: "POST",
+      headers: {
+        authorization: process.env.INTERNAL_ENDPOINTS_SECRET as string,
+      },
+      body: JSON.stringify({
+        from_date: utcDate(31),
+        to_date: utcDate(0),
+        chunk_days: 10,
+      }),
+    }),
+  );
+  const elapsedMs = performance.now() - started;
+  const body = await response.json();
+  expect({ status: response.status, body }).toEqual({
+    status: 200,
+    body: { success: true, chunks: 4, failed_ranges: [] },
+  });
+  return elapsedMs;
 };
 
 const readEndpoint = async (
@@ -447,7 +479,7 @@ afterAll(async () => {
         31,
       );
 
-      const backfillMs = await runProcedureBackfill();
+      const backfillMs = await runDatedBackfill();
       const afterBackfill = await assertCanonicalParity();
       expect(afterBackfill).toEqual(initialCanonical);
       await assertEveryAppEnvironmentEndpoint(afterBackfill);
@@ -478,57 +510,36 @@ afterAll(async () => {
         { table_name: "nullifier_v4", has_created_at_index: true },
       ]);
 
-      const catchupWindow = await pool.query<{
-        catchup_at: string;
-        catchup_date: string;
-        previous_cutoff: string;
-        previous_cutoff_candidate: string;
+      // Late-arriving rows land at a timestamp the backfill already
+      // processed; it sits well inside the trailing ~25h window every
+      // cron-mode call rebuilds, so the next tick must recapture it.
+      const catchup_at = newest_initial_at;
+      const catchupDateRow = await pool.query<{ catchup_date: string }>(
+        `SELECT ($1::timestamptz AT TIME ZONE 'UTC')::date::text
+           AS catchup_date`,
+        [catchup_at],
+      );
+      const catchup_date = catchupDateRow.rows[0].catchup_date;
+      const before = await pool.query<{
+        v3_before: string;
+        v4_before: string;
       }>(
-        `WITH boundaries AS (
-           SELECT
-             $1::timestamptz AS initial_anchor,
-             processed_through AS previous_cutoff,
-             processed_through - INTERVAL '1 hour'
-               AS previous_cutoff_candidate
-           FROM public.world_id_analytics_state
-         ),
-         delayed_row AS (
-           SELECT
-             CASE
-               WHEN (
-                 previous_cutoff_candidate AT TIME ZONE 'UTC'
-               )::date = (initial_anchor AT TIME ZONE 'UTC')::date
-                 THEN previous_cutoff_candidate
-               ELSE initial_anchor
-             END AS catchup_at,
-             previous_cutoff,
-             previous_cutoff_candidate
-           FROM boundaries
-         )
-         SELECT
-           catchup_at::text,
-           (catchup_at AT TIME ZONE 'UTC')::date::text AS catchup_date,
-           previous_cutoff::text,
-           previous_cutoff_candidate::text
-         FROM delayed_row`,
-        [newest_initial_at],
+        `SELECT
+           (
+             SELECT coalesce(sum(unique_count), 0)::text
+             FROM public.action_legacy_stats_daily
+             WHERE date_utc = $1::date
+           ) AS v3_before,
+           (
+             SELECT coalesce(sum(unique_count), 0)::text
+             FROM public.action_v4_stats_daily
+             WHERE date_utc = $1::date
+           ) AS v4_before`,
+        [catchup_date],
       );
-      expect(catchupWindow.rows).toHaveLength(1);
-      const {
-        catchup_at,
-        catchup_date,
-        previous_cutoff,
-        previous_cutoff_candidate,
-      } = catchupWindow.rows[0];
-      expect(new Date(newest_initial_at).getTime()).toBeLessThan(
-        new Date(previous_cutoff).getTime(),
-      );
-      expect(new Date(catchup_at).getTime()).toBeLessThanOrEqual(
-        new Date(previous_cutoff_candidate).getTime(),
-      );
-      expect(new Date(catchup_at).getTime()).toBeLessThan(
-        new Date(previous_cutoff).getTime(),
-      );
+      const { v3_before, v4_before } = before.rows[0];
+      expect(BigInt(v3_before)).toBeGreaterThan(0n);
+      expect(BigInt(v4_before)).toBeGreaterThan(0n);
 
       await pool.query(
         `INSERT INTO public.nullifier (
@@ -571,79 +582,10 @@ afterAll(async () => {
         ],
       );
 
-      const catchupReadiness = await pool.query<{
-        next_overlap_lower_bound: string;
-        next_rebuild_start_date: string;
-        v3_before: string;
-        v4_before: string;
-      }>(
-        `WITH observed_boundaries AS (
-           SELECT
-             clock_timestamp() - INTERVAL '25 hours 5 minutes'
-               AS next_overlap_lower_bound,
-             processed_through AS previous_cutoff
-           FROM public.world_id_analytics_state
-         )
-         SELECT
-           next_overlap_lower_bound::text,
-           (
-             LEAST(previous_cutoff, next_overlap_lower_bound)
-               AT TIME ZONE 'UTC'
-           )::date::text AS next_rebuild_start_date,
-           (
-             SELECT coalesce(sum(unique_count), 0)::text
-             FROM public.action_legacy_stats_daily
-             WHERE date_utc = $1::date
-           ) AS v3_before,
-           (
-             SELECT coalesce(sum(unique_count), 0)::text
-             FROM public.action_v4_stats_daily
-             WHERE date_utc = $1::date
-           ) AS v4_before
-         FROM observed_boundaries`,
-        [catchup_date],
-      );
-      expect(catchupReadiness.rows).toHaveLength(1);
-      const {
-        next_overlap_lower_bound,
-        next_rebuild_start_date,
-        v3_before,
-        v4_before,
-      } = catchupReadiness.rows[0];
-      expect(BigInt(v3_before)).toBeGreaterThan(0n);
-      expect(BigInt(v4_before)).toBeGreaterThan(0n);
-      expect(
-        new Date(catchup_at).getTime() -
-          new Date(next_overlap_lower_bound).getTime(),
-      ).toBeGreaterThan(20 * 60 * 60 * 1_000);
-      expect(
-        next_rebuild_start_date.localeCompare(catchup_date),
-      ).toBeLessThanOrEqual(0);
-
       const catchupLogWindow = logWindowStart();
       const catchupMs = await runRollup();
       const catchupPlans = readOwnPostgresLogs(catchupLogWindow);
       expectActualRecurringPlans(catchupPlans);
-
-      const nextCutoff = await pool.query<{
-        overlap_start: string;
-        processed_through: string;
-      }>(
-        `SELECT
-           (processed_through - INTERVAL '25 hours')::text AS overlap_start,
-           processed_through::text
-           FROM public.world_id_analytics_state`,
-      );
-      expect(nextCutoff.rows).toHaveLength(1);
-      expect(
-        new Date(nextCutoff.rows[0].processed_through).getTime(),
-      ).toBeGreaterThanOrEqual(new Date(previous_cutoff).getTime());
-      expect(new Date(catchup_at).getTime()).toBeGreaterThan(
-        new Date(nextCutoff.rows[0].overlap_start).getTime(),
-      );
-      expect(new Date(catchup_at).getTime()).toBeLessThan(
-        new Date(nextCutoff.rows[0].processed_through).getTime(),
-      );
 
       const recaptured = await pool.query<{
         v3_after: string;
