@@ -12,7 +12,6 @@
 import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
 import { getSdk as getDeleteRpSdk } from "@/api/hasura/register-rp/graphql/delete-rp-registration.generated";
 import { getSdk as getUpdateRpSdk } from "@/api/hasura/register-rp/graphql/update-rp-registration.generated";
-import { getSdk as getVerifySchemaSdk } from "@/api/hasura/register-rp/graphql/verify-manager-key-schema.generated";
 import { getSdk as getClaimRotationSdk } from "@/api/hasura/rotate-signer-key/graphql/claim-rotation-slot.generated";
 import { getSdk as getRpRegistrationSdk } from "@/api/hasura/rotate-signer-key/graphql/get-rp-registration.generated";
 import { getSdk as getRevertStatusSdk } from "@/api/hasura/rotate-signer-key/graphql/revert-rotation-status.generated";
@@ -23,7 +22,11 @@ import { getSdk as getResetStalePendingSdk } from "@/api/hasura/toggle-rp-active
 import { getSdk as getRevertToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/revert-toggle-status.generated";
 import { getSdk as getUpdateToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
-import { createManagerKey, getEthAddressFromKMS } from "@/api/helpers/kms-eth";
+import {
+  abortIfManagerKeyMigrationInFlight,
+  assertManagerKeySchemaReady,
+  resolveManagerKeyForRegistration,
+} from "@/api/helpers/rp-manager-key-migration";
 import {
   submitRegisterRpTransaction,
   submitRotateSignerTransaction,
@@ -128,18 +131,8 @@ export async function submitManagedRpRegistration({
   // Slot is now claimed; any failure between here and the final DB write
   // must release it so retries don't bounce off `already_registered`.
 
-  // is_unique_manager_key is written together with the manager key at the end
-  // of this flow. If the migration adding it has not been applied yet, fail
-  // here rather than after the on-chain transaction has been submitted.
-  try {
-    await getVerifySchemaSdk(client).VerifyManagerKeySchema({
-      rp_id: rpIdString,
-    });
-  } catch (error) {
-    logger.error("rp_registration schema is missing is_unique_manager_key", {
-      error,
-      app_id: appId,
-    });
+  // TODO: remove after the RP manager key migration completes
+  if (!(await assertManagerKeySchemaReady(client, rpIdString, appId))) {
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
     return {
       ok: false,
@@ -164,54 +157,17 @@ export async function submitManagedRpRegistration({
     };
   }
 
-  let managerKmsKeyId: string;
-  let managerAddress: string;
-  let isUniqueManagerKey: boolean;
-
-  const useSharedManagerKey =
-    process.env.ENABLE_SHARED_KEY_RP_REGISTRATION === "true";
-
-  if (useSharedManagerKey) {
-    const sharedKeyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID?.trim();
-    if (!sharedKeyId) {
-      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
-      return {
-        ok: false,
-        code: "kms_error",
-        detail: "Shared manager key is not configured.",
-      };
-    }
-
-    try {
-      managerAddress = await getEthAddressFromKMS(kmsClient, sharedKeyId);
-      managerKmsKeyId = sharedKeyId;
-      isUniqueManagerKey = false;
-    } catch (error) {
-      logger.error("Failed to derive address for shared manager key", {
-        error,
-        app_id: appId,
-      });
-      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
-      return {
-        ok: false,
-        code: "kms_error",
-        detail: "Failed to resolve manager key.",
-      };
-    }
-  } else {
-    const created = await createManagerKey(kmsClient, rpIdString);
-    if (!created) {
-      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
-      return {
-        ok: false,
-        code: "kms_error",
-        detail: "Failed to create manager key.",
-      };
-    }
-    managerKmsKeyId = created.keyId;
-    managerAddress = created.address;
-    isUniqueManagerKey = true;
+  // TODO: remove after the RP manager key migration completes
+  const managerKey = await resolveManagerKeyForRegistration({
+    kmsClient,
+    rpIdString,
+    appId,
+  });
+  if (!managerKey.ok) {
+    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    return managerKey;
   }
+  const { managerKmsKeyId, managerAddress, isUniqueManagerKey } = managerKey;
 
   let operationHash: string;
   try {
@@ -446,6 +402,20 @@ export async function submitManagedSignerRotation({
       });
     }
   };
+
+  // TODO: remove after the RP manager key migration completes
+  const migrationConflict = await abortIfManagerKeyMigrationInFlight({
+    rpId: rpIdString,
+    revert: revertStatus,
+    onConflict: () =>
+      ({
+        ok: false as const,
+        code: "rotation_in_progress" as const,
+        detail:
+          "Cannot rotate signer key. RP status is not 'registered' (rotation may already be in progress).",
+      }) satisfies ManagedRotationResult,
+  });
+  if (migrationConflict) return migrationConflict;
 
   // From here on the RP status is `pending`; any unhandled exception or
   // tagged failure must revert it so the user can retry. Otherwise a

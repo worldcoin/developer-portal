@@ -1,30 +1,29 @@
-import { POST } from "@/api/hasura/switch-to-self-managed";
-import { scheduleKeyDeletion } from "@/api/helpers/kms";
+import { POST } from "@/api/hasura/toggle-rp-active";
 import { NextRequest } from "next/server";
 
 // #region Mocks
 const GetRpRegistration = jest.fn();
 jest.mock(
-  "@/api/hasura/switch-to-self-managed/graphql/get-rp-registration.generated",
+  "@/api/hasura/toggle-rp-active/graphql/get-rp-registration.generated",
   () => ({ getSdk: () => ({ GetRpRegistration }) }),
 );
 
-const ClaimModeSwitchSlot = jest.fn();
+const ClaimToggleSlot = jest.fn();
 jest.mock(
-  "@/api/hasura/switch-to-self-managed/graphql/claim-mode-switch-slot.generated",
-  () => ({ getSdk: () => ({ ClaimModeSwitchSlot }) }),
+  "@/api/hasura/toggle-rp-active/graphql/claim-toggle-slot.generated",
+  () => ({ getSdk: () => ({ ClaimToggleSlot }) }),
 );
 
-const UpdateModeSwitchResult = jest.fn();
+const UpdateToggleResult = jest.fn();
 jest.mock(
-  "@/api/hasura/switch-to-self-managed/graphql/update-mode-switch-result.generated",
-  () => ({ getSdk: () => ({ UpdateModeSwitchResult }) }),
+  "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated",
+  () => ({ getSdk: () => ({ UpdateToggleResult }) }),
 );
 
-const RevertModeSwitchStatus = jest.fn();
+const RevertToggleStatus = jest.fn();
 jest.mock(
-  "@/api/hasura/switch-to-self-managed/graphql/revert-mode-switch-status.generated",
-  () => ({ getSdk: () => ({ RevertModeSwitchStatus }) }),
+  "@/api/hasura/toggle-rp-active/graphql/revert-toggle-status.generated",
+  () => ({ getSdk: () => ({ RevertToggleStatus }) }),
 );
 
 const CheckUserInApp = jest.fn();
@@ -38,13 +37,12 @@ jest.mock("@/api/helpers/graphql", () => ({
 
 jest.mock("@/api/helpers/kms", () => ({
   getKMSClient: jest.fn().mockResolvedValue({}),
-  scheduleKeyDeletion: jest.fn(),
 }));
 
-const submitTransferManagerTransactionMock = jest.fn();
+const submitToggleRpActiveTransactionMock = jest.fn();
 jest.mock("@/api/helpers/rp-transactions", () => ({
-  submitTransferManagerTransaction: (...args: unknown[]) =>
-    submitTransferManagerTransactionMock(...args),
+  submitToggleRpActiveTransaction: (...args: unknown[]) =>
+    submitToggleRpActiveTransactionMock(...args),
 }));
 
 const mockGetRpRegistryConfig = jest.fn();
@@ -71,7 +69,6 @@ const userId = "user_123";
 const rpId = "rp_0123456789abcdef";
 const managerKmsKeyId =
   "arn:aws:kms:eu-west-1:000000000000:key/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
-const newManagerAddress = "0x1111111111111111111111111111111111111111";
 
 const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
   rp_id: rpId,
@@ -92,14 +89,14 @@ const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
 });
 
 const createMockRequest = (input: Record<string, unknown>) =>
-  new NextRequest("http://localhost:3000/api/hasura/switch-to-self-managed", {
+  new NextRequest("http://localhost:3000/api/hasura/toggle-rp-active", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`,
     },
     body: JSON.stringify({
-      action: { name: "switch_to_self_managed" },
+      action: { name: "toggle_rp_active" },
       session_variables: {
         "x-hasura-user-id": userId,
       },
@@ -122,84 +119,45 @@ beforeEach(async () => {
     rp_registration: [makeRegistration()],
   });
   CheckUserInApp.mockResolvedValue({ team: [{ id: teamId }] });
-  ClaimModeSwitchSlot.mockResolvedValue({
+  ClaimToggleSlot.mockResolvedValue({
     update_rp_registration: { affected_rows: 1 },
   });
-  RevertModeSwitchStatus.mockResolvedValue({
+  RevertToggleStatus.mockResolvedValue({
     update_rp_registration: { affected_rows: 1 },
   });
-  submitTransferManagerTransactionMock.mockResolvedValue("0xophash");
-  UpdateModeSwitchResult.mockResolvedValue({
+  submitToggleRpActiveTransactionMock.mockResolvedValue("0xophash");
+  UpdateToggleResult.mockResolvedValue({
     update_rp_registration_by_pk: { rp_id: rpId },
   });
 });
 
-// #region KMS key deletion guard
-describe("/api/hasura/switch-to-self-managed [key deletion]", () => {
-  it("schedules key deletion when the manager key is dedicated", async () => {
-    const res = (await POST(
-      createMockRequest({
-        app_id: appId,
-        new_manager_address: newManagerAddress,
-      }),
-    ))!;
-
-    expect(res.status).toBe(200);
-    expect(submitTransferManagerTransactionMock).toHaveBeenCalledTimes(1);
-    expect(UpdateModeSwitchResult).toHaveBeenCalledWith({
-      rp_id: rpId,
-      operation_hash: "0xophash",
-    });
-    expect(scheduleKeyDeletion).toHaveBeenCalledWith(
-      expect.anything(),
-      managerKmsKeyId,
-    );
-  });
-
-  it("does not schedule key deletion when the manager key is shared", async () => {
-    GetRpRegistration.mockResolvedValue({
-      rp_registration: [makeRegistration({ is_unique_manager_key: false })],
-    });
-
-    const res = (await POST(
-      createMockRequest({
-        app_id: appId,
-        new_manager_address: newManagerAddress,
-      }),
-    ))!;
-
-    expect(res.status).toBe(200);
-    expect(submitTransferManagerTransactionMock).toHaveBeenCalledTimes(1);
-    expect(UpdateModeSwitchResult).toHaveBeenCalledWith({
-      rp_id: rpId,
-      operation_hash: "0xophash",
-    });
-    expect(scheduleKeyDeletion).not.toHaveBeenCalled();
-  });
-});
-// #endregion
-
 // #region Manager key migration lock
-describe("/api/hasura/switch-to-self-managed [manager key migration lock]", () => {
+describe("/api/hasura/toggle-rp-active [manager key migration lock]", () => {
   it("reverts the claim and rejects when the migration lock is held", async () => {
     await global.RedisClient?.set(
       `rp-manager-key-migration:rp:${rpId}`,
       "migration-owner",
     );
 
-    const res = (await POST(
-      createMockRequest({
-        app_id: appId,
-        new_manager_address: newManagerAddress,
-      }),
-    ))!;
+    const res = (await POST(createMockRequest({ app_id: appId })))!;
     const body = await res.json();
 
     expect(res.status).toBe(400);
     expect(body.extensions.code).toBe("operation_in_progress");
-    expect(ClaimModeSwitchSlot).toHaveBeenCalledTimes(1);
-    expect(RevertModeSwitchStatus).toHaveBeenCalledWith({ rp_id: rpId });
-    expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
+    expect(ClaimToggleSlot).toHaveBeenCalledTimes(1);
+    expect(RevertToggleStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      previous_status: "registered",
+    });
+    expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("submits the toggle when the migration lock is not held", async () => {
+    const res = (await POST(createMockRequest({ app_id: appId })))!;
+
+    expect(res.status).toBe(200);
+    expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledTimes(1);
+    expect(RevertToggleStatus).not.toHaveBeenCalled();
   });
 });
 // #endregion

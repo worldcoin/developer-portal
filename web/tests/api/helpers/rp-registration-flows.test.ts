@@ -85,6 +85,12 @@ jest.mock(
   () => ({ getSdk: () => ({ ClaimRotationSlot }) }),
 );
 
+const RevertRotationStatus = jest.fn();
+jest.mock(
+  "@/api/hasura/rotate-signer-key/graphql/revert-rotation-status.generated",
+  () => ({ getSdk: () => ({ RevertRotationStatus }) }),
+);
+
 const getRpFromContractMock = jest.fn();
 jest.mock("@/api/helpers/temporal-rpc", () => ({
   getRpFromContract: (...args: unknown[]) => getRpFromContractMock(...args),
@@ -159,8 +165,9 @@ const sharedManagerKeyArn =
   "arn:aws:kms:eu-west-1:000000000000:key/shared-manager";
 const dedicatedManagerKeyId = "dedicated-kms-key";
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
+  await global.RedisClient?.flushall();
   // Non-production by default so the staging mirror is out of scope; the
   // staging suite opts in explicitly.
   process.env.NEXT_PUBLIC_APP_ENV = "test";
@@ -1054,5 +1061,41 @@ describe("submitManagedSignerRotation [app-state guard]", () => {
       expect(ClaimRotationSlot).not.toHaveBeenCalled();
     },
   );
+});
+// #endregion
+
+// #region submitManagedSignerRotation manager key migration lock
+describe("submitManagedSignerRotation [manager key migration lock]", () => {
+  const newSignerAddress = "0x2222222222222222222222222222222222222222";
+  const { submitRotateSignerTransaction } = jest.requireMock(
+    "@/api/helpers/rp-transactions",
+  ) as { submitRotateSignerTransaction: jest.Mock };
+
+  it("reverts the claim and rejects when the migration lock is held", async () => {
+    ClaimRotationSlot.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+    RevertRotationStatus.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+    await global.RedisClient?.set(
+      `rp-manager-key-migration:rp:${rpId}`,
+      "migration-owner",
+    );
+
+    const res = await submitManagedSignerRotation({
+      client,
+      appId,
+      newSignerAddress,
+    });
+
+    expect(res).toMatchObject({
+      ok: false,
+      code: "rotation_in_progress",
+    });
+    expect(ClaimRotationSlot).toHaveBeenCalledTimes(1);
+    expect(RevertRotationStatus).toHaveBeenCalledWith({ rp_id: rpId });
+    expect(submitRotateSignerTransaction).not.toHaveBeenCalled();
+  });
 });
 // #endregion

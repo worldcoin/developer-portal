@@ -55,6 +55,7 @@ const APP_ID = "app_1234567890abcdef1234567890abcdef";
 const OLD_KEY = "arn:aws:kms:eu-west-1:111111111111:key/old";
 const SHARED_KEY = "arn:aws:kms:eu-west-1:111111111111:key/shared";
 const GLOBAL_LOCK_KEY = "rp-manager-key-migration:run";
+const RP_LOCK_KEY = `rp-manager-key-migration:rp:${RP_ID}`;
 const STAGING_CONFIG = {
   kmsRegion: "eu-west-1",
   contractAddress: "0x2222222222222222222222222222222222222222",
@@ -267,6 +268,57 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
     await expect(global.RedisClient?.get(GLOBAL_LOCK_KEY)).resolves.toBe(
       "replacement-owner",
     );
+  });
+
+  it("returns 204 when the per-RP migration lock is already held", async () => {
+    await global.RedisClient?.set(RP_LOCK_KEY, "other-owner");
+    arrangeCandidate();
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(204);
+    expect(migrateRpManagersToSharedKeyMock).not.toHaveBeenCalled();
+    await expect(global.RedisClient?.get(GLOBAL_LOCK_KEY)).resolves.toBeNull();
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBe(
+      "other-owner",
+    );
+  });
+
+  it("holds the per-RP lock for the duration of the migration and releases it", async () => {
+    arrangeCandidate();
+    migrateRpManagersToSharedKeyMock.mockImplementation(async () => {
+      await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toEqual(
+        expect.any(String),
+      );
+      return { candidateCount: 1, results: [successResult] };
+    });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBeNull();
+  });
+
+  it("reports ineligible when the candidate is no longer eligible after the lock", async () => {
+    arrangeCandidate();
+    migrateRpManagersToSharedKeyMock.mockResolvedValue({
+      candidateCount: 0,
+      results: [],
+    });
+    graphqlRequestMock.mockResolvedValueOnce({
+      update_rp_registration: { affected_rows: 1 },
+    });
+
+    const response = await POST(request());
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      rp_id: RP_ID,
+      outcome: "ineligible",
+      operation_hashes: {},
+    });
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBeNull();
   });
 });
 

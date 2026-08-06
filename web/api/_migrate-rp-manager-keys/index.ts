@@ -1,6 +1,10 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient } from "@/api/helpers/kms";
 import {
+  acquireRpMigrationLock,
+  releaseRpMigrationLock,
+} from "@/api/helpers/rp-manager-key-migration";
+import {
   getRpRegistryConfig,
   getStagingRpRegistryConfig,
 } from "@/api/helpers/rp-utils";
@@ -201,6 +205,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let client: GraphQLClient | null = null;
   let candidate: Candidate | null = null;
   let attemptId: string | null = null;
+  let rpLock: Awaited<ReturnType<typeof acquireRpMigrationLock>> | null = null;
   const startedAt = Date.now();
 
   try {
@@ -224,6 +229,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     candidate = candidates.rp_registration[0] ?? null;
     if (!candidate) return new NextResponse(null, { status: 204 });
     attemptId = randomUUID();
+
+    rpLock = await acquireRpMigrationLock(candidate.rp_id);
+    if (rpLock.status === "busy") {
+      return new NextResponse(null, { status: 204 });
+    }
+    if (rpLock.status === "unavailable") {
+      logger.error("Redis unavailable for RP manager migration per-RP lock", {
+        error: rpLock.error,
+        attempt_id: attemptId,
+        rp_id: candidate.rp_id,
+      });
+
+      return NextResponse.json(
+        { error: "migration_dependency_unavailable" },
+        { status: 503 },
+      );
+    }
 
     logger.info("RP manager key migration attempt started", {
       attempt_id: attemptId,
@@ -303,6 +325,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 503 },
     );
   } finally {
+    if (rpLock?.status === "acquired" && candidate) {
+      await releaseRpMigrationLock(
+        rpLock.redis,
+        candidate.rp_id,
+        rpLock.owner,
+        attemptId,
+      );
+    }
     await releaseGlobalLock(lock.redis, lock.owner, attemptId);
   }
 }
