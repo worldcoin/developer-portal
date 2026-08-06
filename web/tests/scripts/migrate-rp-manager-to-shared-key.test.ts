@@ -34,6 +34,10 @@ jest.mock("@/lib/logger", () => ({
 
 import { migrateRpManagersToSharedKey } from "../../scripts/migrate-rp-manager-to-shared-key";
 
+const { logger: mockLogger } = jest.requireMock("@/lib/logger") as {
+  logger: { info: jest.Mock; error: jest.Mock };
+};
+
 // #endregion
 
 // #region Test data
@@ -205,6 +209,7 @@ describe("migrateRpManagersToSharedKey [successful migrations]", () => {
       kmsClient,
       sharedManagerKeyId: SHARED_KEY_ID,
       ...deploymentWithStagingMirror,
+      attemptId: "attempt-123",
       pollIntervalMs: 0,
     });
 
@@ -238,6 +243,16 @@ describe("migrateRpManagersToSharedKey [successful migrations]", () => {
         },
       }),
     ]);
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      "RP manager key migration completed",
+      expect.objectContaining({
+        attempt_id: "attempt-123",
+        rp_id: RP_ID,
+        app_id: APP_ID,
+        migrated_registries: ["production", "staging"],
+        skipped_registries: [],
+      }),
+    );
   });
 
   it("finalizes the database without sending transactions when both registries already use the shared manager", async () => {

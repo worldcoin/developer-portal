@@ -14,6 +14,7 @@ import {
 import { logger } from "@/lib/logger";
 import type { KMSClient } from "@aws-sdk/client-kms";
 import { gql, type GraphQLClient } from "graphql-request";
+import { randomUUID } from "node:crypto";
 
 // #region Types
 
@@ -31,6 +32,8 @@ export type RpManagerMigrationInput = {
   /** Optional additional registry configured by the current deployment. */
   stagingMirrorRegistry?: RpManagerMigrationRegistry;
   rpIds?: readonly string[];
+  /** Correlates caller and script logs for one migration invocation. */
+  attemptId?: string;
   pollIntervalMs?: number;
   confirmationTimeoutMs?: number;
 };
@@ -81,6 +84,7 @@ type MigrationCandidate = {
   staging_status: string | null;
   staging_operation_hash: string | null;
   updated_at: string;
+  attempt_id?: string;
 };
 
 type CandidateQueryResult = {
@@ -283,8 +287,9 @@ function failedResult(
   skippedRegistries: string[] = [],
 ): RpManagerMigrationItemResult {
   logger.error("RP manager key migration failed", {
-    rpId: candidate.rp_id,
-    appId: candidate.app_id,
+    attempt_id: candidate.attempt_id,
+    rp_id: candidate.rp_id,
+    app_id: candidate.app_id,
     stage,
     detail,
   });
@@ -660,11 +665,12 @@ async function migrateCandidate(
     Object.keys(operationHashes).length === 0 ? "already_migrated" : "migrated";
 
   logger.info("RP manager key migration completed", {
-    rpId: candidate.rp_id,
-    appId: candidate.app_id,
+    attempt_id: candidate.attempt_id,
+    rp_id: candidate.rp_id,
+    app_id: candidate.app_id,
     status,
-    migratedRegistries: Object.keys(operationHashes),
-    skippedRegistries,
+    migrated_registries: Object.keys(operationHashes),
+    skipped_registries: skippedRegistries,
   });
 
   return {
@@ -702,6 +708,7 @@ export async function migrateRpManagersToSharedKey(
   assertValidInput(input);
 
   const sharedManagerKeyId = input.sharedManagerKeyId.trim();
+  const attemptId = input.attemptId ?? randomUUID();
   const sharedManagerAddress = await getEthAddressFromKMS(
     input.kmsClient,
     sharedManagerKeyId,
@@ -722,7 +729,12 @@ export async function migrateRpManagersToSharedKey(
 
   const results: RpManagerMigrationItemResult[] = [];
   for (const candidate of candidates) {
-    results.push(await migrateCandidate(context, candidate));
+    results.push(
+      await migrateCandidate(context, {
+        ...candidate,
+        attempt_id: attemptId,
+      }),
+    );
   }
 
   return {

@@ -68,3 +68,17 @@
     - name: Authorization
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: Deactivate the managed RP signer on-chain for soft-deleted apps whose RP is still live (reconciles delete-time failures and backfills apps deleted before delete-time deactivation existed).
+- name: Migrate RP manager keys
+  webhook: '{{NEXT_API_URL}}/_migrate-rp-manager-keys'
+  schedule: '* * * * *'
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 0
+    retry_interval_seconds: 10
+    timeout_seconds: 60
+    tolerance_seconds: 21600
+  headers:
+    - name: Authorization
+      value_from_env: INTERNAL_ENDPOINTS_SECRET
+  comment: Migrate one eligible managed RP from its legacy KMS manager key to the deployment shared manager key.
