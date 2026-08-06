@@ -46,9 +46,12 @@ services:
     profiles: [localstack]
     ports:
       - "127.0.0.1:4566:4566"
-    # Reads LOCALSTACK_AUTH_TOKEN from the same web/.env used by the app.
-    env_file:
-      - ./web/.env
+    environment:
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:-}
+    configs:
+      - source: localstack_s3_init
+        target: /etc/localstack/init/ready.d/10-s3.sh
+        mode: 0555
 
   opensearch:
     image: opensearchproject/opensearch:3
@@ -73,3 +76,18 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+
+configs:
+  localstack_s3_init:
+    content: |
+      #!/bin/sh
+      set -eu
+
+      if ! awslocal s3api head-bucket --bucket developer-portal-assets >/dev/null 2>&1; then
+        awslocal s3api create-bucket --bucket developer-portal-assets
+      fi
+
+      awslocal s3api put-bucket-cors \
+        --bucket developer-portal-assets \
+        --cors-configuration \
+        '{"CORSRules":[{"AllowedOrigins":["http://localhost:3000"],"AllowedMethods":["GET","HEAD","POST"],"AllowedHeaders":["*"],"ExposeHeaders":["ETag"]}]}'
