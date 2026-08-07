@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-const MAX_REASON_LENGTH = 1000;
 const EMAIL_SENT_DELETE_FAILED = "REJECTION_EMAIL_SENT_DELETE_FAILED";
 
 export const RejectSandboxRequestButton = (props: { requestId: string }) => {
@@ -98,7 +97,6 @@ export const RejectSandboxRequestButton = (props: { requestId: string }) => {
           <textarea
             id={reasonId}
             value={reason}
-            maxLength={MAX_REASON_LENGTH}
             rows={3}
             autoFocus
             required

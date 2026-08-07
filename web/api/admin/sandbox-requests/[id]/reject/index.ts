@@ -6,7 +6,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSdk } from "./graphql/delete-pending-sandbox-request.generated";
 
 const SANDBOX_REQUEST_ID_REGEX = /^sbxreq_[a-zA-Z0-9]+$/;
-const MAX_REASON_LENGTH = 1000;
 
 const isSandboxRequestId = (id: string) =>
   id.length <= 100 && SANDBOX_REQUEST_ID_REGEX.test(id);
@@ -30,9 +29,7 @@ const readReason = async (req: NextRequest) => {
   }
 
   const reason = body.reason.trim();
-  return reason.length > 0 && reason.length <= MAX_REASON_LENGTH
-    ? reason
-    : null;
+  return reason.length > 0 ? reason : null;
 };
 
 /**
@@ -59,9 +56,7 @@ export async function POST(
   const reason = await readReason(req);
   if (!reason) {
     return NextResponse.json(
-      {
-        error: `Rejection reason is required and must be at most ${MAX_REASON_LENGTH} characters`,
-      },
+      { error: "Rejection reason is required" },
       { status: 400 },
     );
   }
