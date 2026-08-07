@@ -13,7 +13,11 @@ import {
 import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { encodeNullifierForStorage, verifyProof } from "@/api/helpers/verify";
+import {
+  canonicalizeNullifierHash,
+  encodeNullifierForStorage,
+  verifyProof,
+} from "@/api/helpers/verify";
 import { Nullifier_Constraint } from "@/graphql/graphql";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
@@ -325,6 +329,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Canonicalize the nullifier to a fixed-width hex form before it becomes an
+    // identity anywhere downstream. verifyProof normalizes case / prefix /
+    // leading-zero re-encodings internally (decodeToHexString) before the
+    // sequencer sees them, so the same human can produce many byte-distinct
+    // nullifier_hash values that all pass verification. Left raw, that value
+    // flows verbatim into the nullifier lookup, the stored nullifier row, the
+    // auth code and the id_token sub/email — letting one verified human mint
+    // multiple stable OIDC subjects and create sibling rows in public.nullifier
+    // (RP-side Sybil). Computed only after verifyProof succeeds: parseProofInputs
+    // has already rejected malformed / over-width nullifiers with a 400, so
+    // canonicalizeNullifierHash cannot throw here. Mirrors the v2/verify handler.
+    const canonical_nullifier_hash = canonicalizeNullifierHash(nullifier_hash);
+
     // ANCHOR: Proof is valid, issue relevant codes
     const response = {} as { code?: string; id_token?: string; token?: string };
 
@@ -335,7 +352,7 @@ export async function POST(req: NextRequest) {
 
       response.code = await generateOIDCCode(
         app.id,
-        nullifier_hash,
+        canonical_nullifier_hash,
         verification_level,
         sanitizedScopes,
         redirect_uri,
@@ -357,7 +374,7 @@ export async function POST(req: NextRequest) {
 
           jwt = await generateOIDCJWT({
             app_id: app.id,
-            nullifier_hash,
+            nullifier_hash: canonical_nullifier_hash,
             verification_level,
             nonce: signal,
             scope: sanitizedScopes,
@@ -378,7 +395,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const fetchNullifierResult = await nullifierSdk.Nullifier({
-        nullifier_hash,
+        nullifier_hash: canonical_nullifier_hash,
       });
 
       if (!fetchNullifierResult?.nullifier) {
@@ -392,7 +409,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
       // Temp Fix to reduce on call alerts
       logger.warn("Query error nullifier.", {
-        nullifier_hash,
+        nullifier_hash: canonical_nullifier_hash,
         errorMessage: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         app_id,
@@ -404,9 +421,11 @@ export async function POST(req: NextRequest) {
         const { insert_nullifier_one } =
           await upsertNullifierSdk.UpsertNullifier({
             object: {
-              nullifier_hash,
+              nullifier_hash: canonical_nullifier_hash,
               action_id: app.action_id,
-              nullifier_hash_int: encodeNullifierForStorage(nullifier_hash),
+              nullifier_hash_int: encodeNullifierForStorage(
+                canonical_nullifier_hash,
+              ),
             },
             on_conflict: {
               constraint: Nullifier_Constraint.NullifierPkey,
