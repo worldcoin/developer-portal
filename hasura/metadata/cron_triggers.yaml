@@ -70,7 +70,7 @@
   comment: Deactivate the managed RP signer on-chain for soft-deleted apps whose RP is still live (reconciles delete-time failures and backfills apps deleted before delete-time deactivation existed).
 - name: Migrate RP manager keys
   webhook: '{{NEXT_API_URL}}/_migrate-rp-manager-keys'
-  schedule: '* * * * *'
+  schedule: '*/15 * * * *'
   include_in_metadata: true
   payload: {}
   retry_conf:
