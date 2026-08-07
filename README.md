@@ -43,23 +43,6 @@ cp .env.example .env
 
    If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal-deployment#local-development) instead.
 
-```dotenv
-LOCALSTACK_AUTH_TOKEN=<auth-token>
-```
-
-Start LocalStack with `web/.env`:
-
-```bash
-docker compose --env-file web/.env up --detach localstack
-```
-
-Alternatively, export the token and start LocalStack without specifying an env file:
-
-```bash
-export LOCALSTACK_AUTH_TOKEN=<auth-token>
-docker compose up --detach localstack
-```
-
 ### Starting the app
 
 The following command will start two containers with the Postgres database, and Hasura server. Additionally, it will run the Next.js app from the [/web](./web) directory. All Hasura migrations and metadata are automatically applied.

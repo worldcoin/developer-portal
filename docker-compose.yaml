@@ -42,12 +42,9 @@ services:
       - "6379:6379"
 
   localstack:
-    image: localstack/localstack:2026.07.0
-    profiles: [localstack]
+    image: localstack/localstack:4.14.0
     ports:
       - "127.0.0.1:4566:4566"
-    environment:
-      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:-}
     configs:
       - source: localstack_s3_init
         target: /etc/localstack/init/ready.d/10-s3.sh
@@ -81,13 +78,6 @@ configs:
   localstack_s3_init:
     content: |
       #!/bin/sh
-      set -eu
-
-      if ! awslocal s3api head-bucket --bucket developer-portal-assets >/dev/null 2>&1; then
-        awslocal s3api create-bucket --bucket developer-portal-assets
-      fi
-
-      awslocal s3api put-bucket-cors \
-        --bucket developer-portal-assets \
-        --cors-configuration \
+      awslocal s3 mb s3://developer-portal-assets 2>/dev/null || true
+      awslocal s3api put-bucket-cors --bucket developer-portal-assets --cors-configuration \
         '{"CORSRules":[{"AllowedOrigins":["http://localhost:3000"],"AllowedMethods":["GET","HEAD","POST"],"AllowedHeaders":["*"],"ExposeHeaders":["ETag"]}]}'
