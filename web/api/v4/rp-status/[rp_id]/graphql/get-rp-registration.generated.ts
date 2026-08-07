@@ -17,6 +17,7 @@ export type GetRpRegistrationQuery = {
     status: unknown;
     mode: unknown;
     signer_address?: string | null;
+    manager_kms_key_id?: string | null;
     created_at: string;
     updated_at: string;
     operation_hash?: string | null;
@@ -34,6 +35,7 @@ export const GetRpRegistrationDocument = gql`
       status
       mode
       signer_address
+      manager_kms_key_id
       created_at
       updated_at
       operation_hash
