@@ -1,4 +1,3 @@
-import { Role_Enum } from "@/graphql/graphql";
 import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser, Auth0User } from "@/lib/types";
@@ -22,9 +21,9 @@ import {
 } from "./graphql/get-invite-by-id.generated";
 
 import {
-  InsertMembershipMutation,
-  getSdk as getInsertMembershipAndDeleteInviteSdk,
-} from "./graphql/insert-membership-and-delete-invite.generated";
+  AcceptTeamInviteMutation,
+  getSdk as getAcceptTeamInviteSdk,
+} from "./graphql/accept-team-invite.generated";
 
 import { captureEvent } from "@/services/posthogClient";
 import {
@@ -202,8 +201,8 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  let insertedMembership:
-    | InsertMembershipMutation["insert_membership_one"]
+  let acceptedMembership:
+    | AcceptTeamInviteMutation["accept_team_invite"][number]
     | null = null;
 
   try {
@@ -215,19 +214,15 @@ export const POST = async (req: NextRequest) => {
       throw new Error("User id is null");
     }
 
-    const { insert_membership_one, delete_invite_by_pk } =
-      await getInsertMembershipAndDeleteInviteSdk(client).InsertMembership({
-        team_id: inviteData.team.id,
-        user_id: insertedUser?.id,
-        role: Role_Enum.Member,
-        invite_id,
-      });
+    const acceptInviteResult = await getAcceptTeamInviteSdk(
+      client,
+    ).AcceptTeamInvite({
+      team_id: inviteData.team.id,
+      user_id: insertedUser.id,
+      invite_id,
+    });
 
-    insertedMembership = insert_membership_one;
-
-    if (!delete_invite_by_pk?.id) {
-      throw new Error("Failed to delete invite");
-    }
+    acceptedMembership = acceptInviteResult.accept_team_invite[0] ?? null;
   } catch (error) {
     return errorResponse({
       statusCode: 500,
@@ -238,20 +233,37 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  if (!insertedMembership) {
+  if (!acceptedMembership) {
     return errorResponse({
-      statusCode: 500,
-      code: "server_error",
-      detail: "Failed to join team",
+      statusCode: 400,
+      code: "invalid_invite",
       req,
       team_id: inviteData.team.id,
     });
   }
 
-  const user = insertedMembership.user;
+  // Hasura resolves a function's nested relationships from a snapshot taken
+  // before the function's INSERT. Add the newly-created membership to the
+  // session result when it is missing from user.memberships.
+  const priorMemberships = acceptedMembership.user.memberships;
+  const joinedTeamPresent = priorMemberships.some(
+    (membership) => membership.team.id === acceptedMembership.team.id,
+  );
+  const user = {
+    ...acceptedMembership.user,
+    memberships: joinedTeamPresent
+      ? priorMemberships
+      : [
+          ...priorMemberships,
+          {
+            team: acceptedMembership.team,
+            role: acceptedMembership.role,
+          },
+        ],
+  };
 
   const res = NextResponse.json({
-    returnTo: urls.teams({ team_id: insertedMembership?.team_id }),
+    returnTo: urls.teams({ team_id: acceptedMembership.team_id }),
   });
 
   // Body-free request for the SDK (see toSessionRequest): the body was read above,
