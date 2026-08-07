@@ -16,7 +16,11 @@ import {
 import { urls } from "@/lib/urls";
 import { Color } from "@/scenes/common/Profile/types";
 import { colorAtom } from "@/scenes/common/layout/color-atom";
-import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
+import {
+  Icon,
+  opticalIconClassName,
+  preloadIcons,
+} from "@/scenes/PortalV3/common/Icon";
 import { useAtomValue } from "jotai";
 import { ChevronsUpDownIcon } from "lucide-react";
 import Link from "next/link";
@@ -33,6 +37,27 @@ const accountLinks = [
     label: "Profile",
     icon: "profile-menu-profile",
   },
+];
+
+/**
+ * Static icons inside the lazily mounted account menu.
+ * Keep in sync with UserPopup rows + HelpCenterMenu link icons.
+ */
+const userPopupPreloadIcons = [
+  // Account menu rows
+  "profile-menu-profile",
+  "nav-help",
+  "profile-menu-log-out",
+  // Help Center submenu
+  "profile-menu-docs",
+  "profile-menu-help",
+  "profile-menu-privacy",
+  "profile-menu-status",
+  "profile-menu-telegram",
+  "profile-menu-message",
+  "profile-menu-discord",
+  "profile-menu-policy",
+  "profile-menu-terms",
 ];
 
 const getInitials = (name: string) => {
@@ -70,6 +95,10 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
   const { user } = props;
   const selectedColor = useAtomValue(colorAtom);
   const color = selectedColor ?? props.color;
+
+  // Menu icons live in Radix's lazily mounted portal — warm them while the
+  // always-visible trigger renders so the first open is instant.
+  preloadIcons(userPopupPreloadIcons);
 
   return (
     <SidebarMenu>

@@ -29,6 +29,65 @@ jest.mock("@/hooks/use-mobile", () => ({
 
 // #region Trigger focus treatment
 describe("Portal v3 shell dropdown focus treatment", () => {
+  it("preloads account-menu icons before the lazy menu opens", () => {
+    render(
+      <TooltipProvider>
+        <SidebarProvider>
+          <UserPopup
+            user={{ name: "Ada Lovelace", email: "ada@example.com" }}
+            color={null}
+          />
+        </SidebarProvider>
+      </TooltipProvider>,
+    );
+
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+
+    const preloadedImages = Array.from(
+      document.head.querySelectorAll<HTMLLinkElement>(
+        'link[rel="preload"][as="image"]',
+      ),
+      (link) => link.getAttribute("href"),
+    );
+
+    expect(preloadedImages).toEqual(
+      expect.arrayContaining([
+        "/images/portal-v3/icons/profile-menu-profile.svg",
+        "/images/portal-v3/icons/nav-help.svg",
+        "/images/portal-v3/icons/profile-menu-log-out.svg",
+        "/images/portal-v3/icons/profile-menu-docs.svg",
+        "/images/portal-v3/icons/profile-menu-terms.svg",
+      ]),
+    );
+  });
+
+  it("preloads switcher icons before the lazy popover opens", () => {
+    render(
+      <TooltipProvider>
+        <SidebarProvider>
+          <TeamsDropdown teams={[{ id: "team_1", name: "Example team" }]} />
+        </SidebarProvider>
+      </TooltipProvider>,
+    );
+
+    expect(screen.queryByTestId("team-switcher-list")).not.toBeInTheDocument();
+
+    const preloadedImages = Array.from(
+      document.head.querySelectorAll<HTMLLinkElement>(
+        'link[rel="preload"][as="image"]',
+      ),
+      (link) => link.getAttribute("href"),
+    );
+
+    expect(preloadedImages).toEqual(
+      expect.arrayContaining([
+        "/images/portal-v3/icons/dropdown-plus.svg",
+        "/images/portal-v3/icons/dropdown-check.svg",
+        "/images/portal-v3/icons/apps-empty-icon.svg",
+      ]),
+    );
+  });
+
   it("uses a clean background cue instead of a persistent focus ring", () => {
     render(
       <TooltipProvider>

@@ -269,7 +269,7 @@ export const BasicInformationStep = forwardRef<
 
       <div className="flex w-full flex-col gap-5">
         <h2 className="text-15 leading-[1.2] font-medium text-portal-ink">
-          Advanced settings
+          App type
         </h2>
         <AppModeCards
           value={isMiniApp ? "mini-app" : "external"}

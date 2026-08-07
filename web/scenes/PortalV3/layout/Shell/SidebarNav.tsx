@@ -17,14 +17,14 @@ import {
 } from "@/lib/team-settings";
 import { urls } from "@/lib/urls";
 import { cn } from "@/lib/utils";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { Icon, preloadIcons } from "@/scenes/PortalV3/common/Icon";
 import {
   ArrowLeftIcon,
   BadgeCheckIcon,
   BellIcon,
   ChevronRightIcon,
+  Code2Icon,
   KeyRoundIcon,
-  LockKeyholeIcon,
   Settings2Icon,
   UsersIcon,
   WalletCardsIcon,
@@ -124,10 +124,33 @@ const NavIcon = (props: { name: string; active?: boolean }) => (
   </span>
 );
 
+/**
+ * Static `/images/portal-v3/icons` assets used by the sidebar. Top-level
+ * NavIcon rows mount idle+active together; `nav-configuration` only mounts
+ * when the World ID submenu opens, so warm the full set with the nav itself.
+ */
+const sidebarPreloadIcons = [
+  // Top-level rows (idle + active)
+  "nav-world-id",
+  "nav-world-id-active",
+  "nav-mini-app",
+  "nav-mini-app-active",
+  "nav-home",
+  "nav-home-active",
+  "nav-settings",
+  "nav-settings-active",
+  // World ID submenu
+  "nav-configuration",
+  // Sandbox CTA
+  "world-id-sandbox-app-icon",
+] as const;
+
 export const SidebarNav = (props: {
   initialSandboxRequest?: SandboxAccessRequestState | null;
   apiKeyTeamIds?: string[];
 }) => {
+  preloadIcons(sidebarPreloadIcons);
+
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
   const committedSearchParams = useSearchParams();
@@ -188,7 +211,7 @@ export const SidebarNav = (props: {
   const ids = teamId && appId ? { team_id: teamId, app_id: appId } : undefined;
 
   const configurationHref = ids ? urls.configuration(ids) : teamOverviewHref;
-  const miniAppHref = ids ? urls.miniAppPermissions(ids) : teamOverviewHref;
+  const miniAppHref = ids ? urls.miniAppDevelop(ids) : teamOverviewHref;
   const teamSettingsBase = teamId
     ? urls.teamSettings({ team_id: teamId })
     : teamsLandingHref;
@@ -269,8 +292,9 @@ export const SidebarNav = (props: {
           : []),
       ]
     : [];
-  const miniAppPermissionsActive =
+  const miniAppDevelopActive =
     currentPathname === (appBase ? `${appBase}/mini-app` : "") ||
+    withinApp("/mini-app/develop") ||
     withinApp("/mini-app/permissions");
   const miniAppTransactionsActive =
     withinApp("/mini-app/transactions") || withinApp("/transactions");
@@ -279,10 +303,10 @@ export const SidebarNav = (props: {
   const miniAppItems = ids
     ? [
         {
-          label: "Permissions",
-          href: urls.miniAppPermissions(ids),
-          active: miniAppPermissionsActive,
-          icon: <LockKeyholeIcon strokeWidth={1.5} className="size-4" />,
+          label: "Develop",
+          href: urls.miniAppDevelop(ids),
+          active: miniAppDevelopActive,
+          icon: <Code2Icon strokeWidth={1.5} className="size-4" />,
         },
         {
           label: "Transactions",

@@ -1,5 +1,6 @@
 "use client";
 
+import { Link } from "@/components/Link";
 import {
   formCountriesList,
   formLanguagesList,
@@ -12,6 +13,12 @@ import { useAppStoreFormContext } from "../AppStore/app-store";
 import { ClearConfirmationModal } from "../AppStore/components/ClearConfirmationModal";
 import { ChipSelect } from "./ChipSelect";
 import { SectionHeader } from "./SectionHeader";
+
+const EcosystemLink = () => (
+  <Link href="https://world.org/ecosystem" className="underline">
+    ecosystem page
+  </Link>
+);
 
 const LawsAndRegulationsBanner = () => (
   // Figma nucleus/status-warning (#ffae00) — no portal token for it yet
@@ -67,7 +74,19 @@ export const AvailabilityStep = (props: { isMiniApp: boolean }) => {
         <SectionHeader
           title="Supported Countries"
           required
-          description="List of countries where your app is available. This setting allows you to display your App in the Mini App Store in selected countries only."
+          description={
+            props.isMiniApp ? (
+              <>
+                Choose the countries where your Mini App is available in World
+                App and can be featured on the <EcosystemLink />.
+              </>
+            ) : (
+              <>
+                Choose the countries where your integration is available and can
+                be featured on the <EcosystemLink />.
+              </>
+            )
+          }
         />
         {props.isMiniApp && <LawsAndRegulationsBanner />}
         <Controller
@@ -104,7 +123,20 @@ export const AvailabilityStep = (props: { isMiniApp: boolean }) => {
         <SectionHeader
           title="Supported Languages"
           required
-          description="Choose the languages you want to localize your Mini App Store listing in. Users will then see your Mini App in their preferred language, in the App Store. After selecting languages, you'll be required to fill out the additional sections below."
+          description={
+            props.isMiniApp ? (
+              <>
+                Choose the languages for your Mini App listing. People will see
+                the localized version in World App and on the <EcosystemLink />.
+              </>
+            ) : (
+              <>
+                Choose the languages for your integration&apos;s listing on the{" "}
+                <EcosystemLink />. You&apos;ll add the localized content in the
+                next step.
+              </>
+            )
+          }
         />
         <Controller
           control={control}
