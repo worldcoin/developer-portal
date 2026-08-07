@@ -1,4 +1,3 @@
-import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { WorldIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout";
 import { ReactNode } from "react";
@@ -10,20 +9,15 @@ type Props = {
 };
 
 export default async function Layout(props: Props) {
-  return pickPortalVersion(
-    async () => {
-      const params = await props.params;
+  const params = await props.params;
 
-      return (
-        <WorldIdLayout
-          teamId={params.teamId}
-          appId={params.appId}
-          canManageWorldId={await getIsUserAllowedToUpdateApp(params.appId)}
-        >
-          {props.children}
-        </WorldIdLayout>
-      );
-    },
-    () => <>{props.children}</>,
+  return (
+    <WorldIdLayout
+      teamId={params.teamId}
+      appId={params.appId}
+      canManageWorldId={await getIsUserAllowedToUpdateApp(params.appId)}
+    >
+      {props.children}
+    </WorldIdLayout>
   );
 }
