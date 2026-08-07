@@ -2,13 +2,14 @@ import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.g
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
+import { abortIfManagerKeyMigrationInFlight } from "@/api/helpers/rp-manager-key-migration";
+import { submitTransferManagerTransaction } from "@/api/helpers/rp-transactions";
 import {
   getRpRegistryConfig,
   getStagingRpRegistryConfig,
   normalizeAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
-import { submitTransferManagerTransaction } from "@/api/helpers/rp-transactions";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
@@ -197,6 +198,24 @@ export const POST = async (req: NextRequest) => {
       });
     }
   };
+
+  // TODO: remove after the RP manager key migration completes
+  const migrationConflict = await abortIfManagerKeyMigrationInFlight({
+    rpId: rpIdString,
+    revert: revertStatus,
+    onConflict: () =>
+      errorHasuraQuery({
+        req,
+        detail:
+          "Cannot switch mode. RP status is not 'registered' (another operation may be in progress).",
+        code: "operation_in_progress",
+        app_id,
+      }),
+  });
+
+  if (migrationConflict) {
+    return migrationConflict;
+  }
 
   try {
     // STEP 5a: Submit primary manager transfer (required)
