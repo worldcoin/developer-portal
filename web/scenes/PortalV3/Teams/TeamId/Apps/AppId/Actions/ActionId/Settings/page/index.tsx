@@ -52,11 +52,7 @@ export const ActionIdSettingsPage = (props: ActionIdSettingsPageProps) => {
           {loading ? (
             <SkeletonCard className="h-[400px] md:w-[480px]" lines={3} />
           ) : (
-            <TryAction
-              action={action!}
-              is_v4_action={false}
-              enableKiosk={false}
-            />
+            <TryAction action={action!} />
           )}
         </div>
       </SizingWrapper>
