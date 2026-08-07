@@ -622,7 +622,6 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
     arrangeRegistryQueues({
       [productionConfig.contractAddress]: [makeOnChainRp(), makeOnChainRp()],
     });
-    const beforeSubmitOperation = jest.fn().mockResolvedValue(undefined);
 
     const report = await migrateRpManagersToSharedKey({
       graphqlClient,
@@ -630,13 +629,8 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
       sharedManagerKeyId: SHARED_KEY_ID,
       ...deploymentWithPrimaryOnly,
       confirmationTimeoutMs: 0,
-      beforeSubmitOperation,
     });
 
-    expect(beforeSubmitOperation).toHaveBeenCalledWith("production");
-    expect(beforeSubmitOperation.mock.invocationCallOrder[0]).toBeLessThan(
-      submitTransferManagerTransactionMock.mock.invocationCallOrder[0],
-    );
     expect(graphqlRequestMock).toHaveBeenCalledTimes(1);
     expect(report.results[0]).toEqual(
       expect.objectContaining({

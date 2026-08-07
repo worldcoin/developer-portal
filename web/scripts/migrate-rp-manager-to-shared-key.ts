@@ -36,11 +36,6 @@ export type RpManagerMigrationInput = {
   attemptId?: string;
   pollIntervalMs?: number;
   confirmationTimeoutMs?: number;
-  /**
-   * Called immediately before each transfer UserOp is submitted so the caller
-   * can retain the per-RP lock for the op's full validity window.
-   */
-  beforeSubmitOperation?: (registryName: string) => Promise<void>;
 };
 
 export type RpManagerMigrationFailureStage =
@@ -117,7 +112,6 @@ type MigrationContext = {
   stagingMirrorRegistry?: RpManagerMigrationRegistry;
   pollIntervalMs: number;
   confirmationTimeoutMs: number;
-  beforeSubmitOperation?: (registryName: string) => Promise<void>;
 };
 
 // #endregion
@@ -518,9 +512,6 @@ async function migrateCandidate(
   for (const state of registryStates.filter((item) => item.needsTransfer)) {
     let operationHash: string;
     try {
-      if (context.beforeSubmitOperation) {
-        await context.beforeSubmitOperation(state.registry.name);
-      }
       operationHash = await submitTransferManagerTransaction(
         state.registry.config,
         {
@@ -720,7 +711,6 @@ export async function migrateRpManagersToSharedKey(
     pollIntervalMs: input.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
     confirmationTimeoutMs:
       input.confirmationTimeoutMs ?? DEFAULT_CONFIRMATION_TIMEOUT_MS,
-    beforeSubmitOperation: input.beforeSubmitOperation,
   };
 
   const results: RpManagerMigrationItemResult[] = [];

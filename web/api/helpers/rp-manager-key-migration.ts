@@ -12,9 +12,9 @@
 // Redis unavailable: the cron fails closed (503) on the global and per-RP locks.
 // Handler guards also fail closed when the per-RP lock cannot be read, so a
 // migration that already acquired the lock cannot race with user operations.
-// After a transfer UserOp is submitted, the cron retains the per-RP lock for
-// USER_OP_MAX_VALIDITY_MS (+ margin) instead of releasing it on confirmation
-// timeout, so toggle / rotate / mode-switch stay blocked while the op can land.
+// The per-RP lock is acquired for USER_OP_MAX_VALIDITY_MS (+ margin). Successful
+// and pre-submission failures release it early; confirmation timeouts leave it
+// in place so toggle / rotate / mode-switch stay blocked while the op can land.
 
 import "server-only";
 
@@ -27,14 +27,13 @@ import { gql, type GraphQLClient } from "graphql-request";
 import { randomUUID } from "node:crypto";
 
 const RP_LOCK_KEY_PREFIX = "rp-manager-key-migration:rp:";
-const RP_LOCK_TTL_MS = 5 * 60 * 1000; // 5 min — active cron hold
 const RP_MIGRATION_SETTLE_MARGIN_MS = 5 * 60 * 1000;
 
 /**
- * How long to keep the per-RP lock after a migration UserOp may still be
- * includable. Matches the deactivation grace: validUntil window + clock skew.
+ * The per-RP lock TTL. Matches the UserOp validity window plus clock-skew
+ * margin, so a submitted migration cannot outlive its lock.
  */
-export const RP_MIGRATION_IN_FLIGHT_LOCK_MS =
+export const RP_MIGRATION_LOCK_TTL_MS =
   USER_OP_MAX_VALIDITY_MS + RP_MIGRATION_SETTLE_MARGIN_MS;
 
 const HEAL_RP_MANAGER_KEY = gql`
@@ -104,7 +103,7 @@ export async function acquireRpMigrationLock(
       rpMigrationLockKey(rpId),
       owner,
       "PX",
-      RP_LOCK_TTL_MS,
+      RP_MIGRATION_LOCK_TTL_MS,
       "NX",
     );
 
@@ -138,91 +137,6 @@ export async function releaseRpMigrationLock(
       attempt_id: attemptId,
       rp_id: rpId,
     });
-  }
-}
-
-/**
- * Extends the per-RP lock TTL while we still own it. Used before submitting a
- * migration UserOp so a process crash or confirmation timeout cannot free the
- * row while the op remains includable.
- */
-export async function retainRpMigrationLockForInFlightOp(
-  redis: RedisLockClient,
-  rpId: string,
-  owner: string,
-  attemptId?: string | null,
-  ttlMs: number = RP_MIGRATION_IN_FLIGHT_LOCK_MS,
-): Promise<boolean> {
-  try {
-    const result = await redis.eval(
-      `if redis.call("get", KEYS[1]) == ARGV[1] then
-         return redis.call("pexpire", KEYS[1], ARGV[2])
-       end
-       return 0`,
-      1,
-      rpMigrationLockKey(rpId),
-      owner,
-      ttlMs,
-    );
-    return result === 1;
-  } catch (error) {
-    logger.warn("Failed to retain RP manager migration per-RP lock", {
-      error,
-      attempt_id: attemptId,
-      rp_id: rpId,
-    });
-    return false;
-  }
-}
-
-/**
- * Keeps the per-RP lock alive for an already submitted UserOp: extends the TTL
- * while we still own the key, and recreates the key when it disappeared (Redis
- * restart or eviction) so handlers keep failing closed for the op's validity
- * window. False means another owner holds the key or Redis is unreachable.
- */
-export async function holdRpMigrationLockForInFlightOp(
-  redis: RedisLockClient,
-  rpId: string,
-  owner: string,
-  attemptId?: string | null,
-  ttlMs: number = RP_MIGRATION_IN_FLIGHT_LOCK_MS,
-): Promise<boolean> {
-  const retained = await retainRpMigrationLockForInFlightOp(
-    redis,
-    rpId,
-    owner,
-    attemptId,
-    ttlMs,
-  );
-  if (retained) return true;
-
-  try {
-    const reacquired = await redis.set(
-      rpMigrationLockKey(rpId),
-      owner,
-      "PX",
-      ttlMs,
-      "NX",
-    );
-
-    if (reacquired !== "OK") return false;
-
-    logger.warn(
-      "Reacquired RP manager migration per-RP lock for in-flight op",
-      {
-        attempt_id: attemptId,
-        rp_id: rpId,
-      },
-    );
-    return true;
-  } catch (error) {
-    logger.error("Failed to reacquire RP manager migration per-RP lock", {
-      error,
-      attempt_id: attemptId,
-      rp_id: rpId,
-    });
-    return false;
   }
 }
 

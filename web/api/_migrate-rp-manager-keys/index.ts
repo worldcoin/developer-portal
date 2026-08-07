@@ -2,11 +2,9 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient } from "@/api/helpers/kms";
 import {
   acquireRpMigrationLock,
-  holdRpMigrationLockForInFlightOp,
   migrationMayHaveInFlightOperation,
   releaseRpMigrationLock,
-  retainRpMigrationLockForInFlightOp,
-  RP_MIGRATION_IN_FLIGHT_LOCK_MS,
+  RP_MIGRATION_LOCK_TTL_MS,
 } from "@/api/helpers/rp-manager-key-migration";
 import {
   getRpRegistryConfig,
@@ -23,7 +21,7 @@ import { migrateRpManagersToSharedKey } from "../../scripts/migrate-rp-manager-t
 
 const GLOBAL_LOCK_KEY = "rp-manager-key-migration:run";
 const GLOBAL_LOCK_TTL_MS = 5 * 60 * 1000; // 5 min
-const FAILURE_COOLDOWN_MS = RP_MIGRATION_IN_FLIGHT_LOCK_MS;
+const FAILURE_COOLDOWN_MS = RP_MIGRATION_LOCK_TTL_MS;
 const CANDIDATE_BATCH_SIZE = 10;
 
 type Candidate = {
@@ -213,33 +211,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let candidate: Candidate | null = null;
   let attemptId: string | null = null;
   let rpLock: Awaited<ReturnType<typeof acquireRpMigrationLock>> | null = null;
-  let mayHaveSubmittedTransfer = false;
-  let retainRpLockForInFlightOp = false;
-  let rpLockHeldForInFlightOp: boolean | null = null;
+  let migrationInvocationStarted = false;
+  let keepRpLockForInFlightOp = false;
   let lockedCandidatesSkipped = 0;
   const startedAt = Date.now();
-
-  const holdRpLockForInFlightOp = async (
-    redis: Parameters<typeof holdRpMigrationLockForInFlightOp>[0],
-    rpId: string,
-    owner: string,
-  ): Promise<void> => {
-    // Recreate the key only when a transfer really left the process: the
-    // pre-submit gate aborts instead of submitting, so its lock must stay free.
-    rpLockHeldForInFlightOp = mayHaveSubmittedTransfer
-      ? await holdRpMigrationLockForInFlightOp(redis, rpId, owner, attemptId)
-      : await retainRpMigrationLockForInFlightOp(redis, rpId, owner, attemptId);
-
-    if (!rpLockHeldForInFlightOp && mayHaveSubmittedTransfer) {
-      logger.error(
-        "RP manager migration per-RP lock lost while a transfer may still land",
-        {
-          attempt_id: attemptId,
-          rp_id: rpId,
-        },
-      );
-    }
-  };
 
   try {
     const sharedKeyId = process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID?.trim();
@@ -308,8 +283,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
     const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
-    const acquiredRpLock = rpLock;
 
+    migrationInvocationStarted = true;
     const report = await migrateRpManagersToSharedKey({
       graphqlClient: client,
       kmsClient,
@@ -322,29 +297,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       attemptId,
       pollIntervalMs: 2_000,
       confirmationTimeoutMs: 15_000,
-      beforeSubmitOperation: async () => {
-        // Extend before submit so a crash between send and finally cannot
-        // free the row while the UserOp is still includable.
-        const retained = await retainRpMigrationLockForInFlightOp(
-          acquiredRpLock.redis,
-          candidate!.rp_id,
-          acquiredRpLock.owner,
-          attemptId,
-        );
-        if (!retained) {
-          logger.warn(
-            "Aborting RP manager migration transfer; per-RP lock was not retained",
-            {
-              attempt_id: attemptId,
-              rp_id: candidate!.rp_id,
-            },
-          );
-          throw new Error(
-            "Failed to retain per-RP lock before submitting transfer",
-          );
-        }
-        mayHaveSubmittedTransfer = true;
-      },
     });
 
     const result = report.results[0];
@@ -352,17 +304,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const settled =
       result?.status === "migrated" || result?.status === "already_migrated";
 
-    retainRpLockForInFlightOp =
-      !settled &&
-      (mayHaveSubmittedTransfer || migrationMayHaveInFlightOperation(result));
-
-    if (retainRpLockForInFlightOp && rpLock.status === "acquired") {
-      await holdRpLockForInFlightOp(
-        rpLock.redis,
-        candidate.rp_id,
-        rpLock.owner,
-      );
-    }
+    keepRpLockForInFlightOp =
+      !settled && migrationMayHaveInFlightOperation(result);
 
     if (!result || result.status === "failed") {
       await touchForCooldown(client, candidate.rp_id, attemptId);
@@ -380,8 +323,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       outcome,
       failure: result?.status === "failed" ? result.failure : undefined,
       locked_candidates_skipped: lockedCandidatesSkipped,
-      retain_rp_lock: retainRpLockForInFlightOp,
-      rp_lock_held: rpLockHeldForInFlightOp,
+      retain_rp_lock: keepRpLockForInFlightOp,
       duration_ms: Date.now() - startedAt,
     });
 
@@ -391,8 +333,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       operation_hashes: result?.operationHashes ?? {},
     });
   } catch (error) {
-    if (mayHaveSubmittedTransfer) {
-      retainRpLockForInFlightOp = true;
+    if (migrationInvocationStarted) {
+      keepRpLockForInFlightOp = true;
     }
 
     if (client && candidate) {
@@ -424,23 +366,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 503 },
     );
   } finally {
-    if (rpLock?.status === "acquired" && candidate) {
-      if (retainRpLockForInFlightOp) {
-        if (rpLockHeldForInFlightOp !== true) {
-          await holdRpLockForInFlightOp(
-            rpLock.redis,
-            candidate.rp_id,
-            rpLock.owner,
-          );
-        }
-      } else {
-        await releaseRpMigrationLock(
-          rpLock.redis,
-          candidate.rp_id,
-          rpLock.owner,
-          attemptId,
-        );
-      }
+    if (
+      rpLock?.status === "acquired" &&
+      candidate &&
+      !keepRpLockForInFlightOp
+    ) {
+      await releaseRpMigrationLock(
+        rpLock.redis,
+        candidate.rp_id,
+        rpLock.owner,
+        attemptId,
+      );
     }
     await releaseGlobalLock(lock.redis, lock.owner, attemptId);
   }
