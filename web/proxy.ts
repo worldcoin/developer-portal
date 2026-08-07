@@ -16,7 +16,24 @@ import { checkUserPermissions } from "./lib/utils";
 const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_IMAGES_CDN_URL || "https://world-id-assets.com",
 );
-const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
+
+const getAssetsS3BucketOrigin = () => {
+  const bucket = process.env.ASSETS_S3_BUCKET_NAME?.trim();
+  if (!bucket) return undefined;
+
+  const endpoint = process.env.AWS_ENDPOINT_URL_S3?.trim();
+  if (endpoint) {
+    const endpointURL = new URL(endpoint);
+    endpointURL.hostname = `${bucket}.${endpointURL.hostname}`;
+    return endpointURL.origin;
+  }
+
+  const region = process.env.ASSETS_S3_REGION?.trim();
+  if (!region) return undefined;
+
+  return `https://${bucket}.s3.${region}.amazonaws.com`;
+};
+
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 // The portal is served from both worldcoin.org and world.org variants of the
 // same hostname. NEXT_PUBLIC_APP_URL is build-baked, so we mirror it onto the
@@ -25,6 +42,7 @@ const altAppUrl = siblingOrigin(appUrl);
 const isDev = process.env.NODE_ENV === "development";
 const generateCsp = () => {
   const nonce = crypto.randomUUID();
+  const s3BucketOrigin = getAssetsS3BucketOrigin();
 
   const csp = [
     { name: "default-src", values: ["'self'"] },
@@ -72,7 +90,7 @@ const generateCsp = () => {
         "https://bridge.worldcoin.org",
         "https://us.i.posthog.com",
         "https://us-assets.i.posthog.com",
-        ...(s3BucketUrl ? [s3BucketUrl] : []),
+        ...(s3BucketOrigin ? [s3BucketOrigin] : []),
         ...(appUrl ? [appUrl] : []),
         ...(altAppUrl ? [altAppUrl] : []),
       ],
@@ -84,7 +102,7 @@ const generateCsp = () => {
         "blob:", // Used to enforce image width and height
         "data:",
         "https://world.org",
-        ...(s3BucketUrl ? [s3BucketUrl] : []),
+        ...(s3BucketOrigin ? [s3BucketOrigin] : []),
         ...(cdnURLObject ? [cdnURLObject.hostname] : []),
         ...(appUrl ? [appUrl] : []),
         ...(altAppUrl ? [altAppUrl] : []),
