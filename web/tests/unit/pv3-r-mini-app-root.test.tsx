@@ -5,10 +5,11 @@ const redirect = jest.fn();
 jest.mock("next/navigation", () => ({
   redirect: (...args: unknown[]) => redirect(...args),
 }));
-import RoutePage from "../../app/(portal)/teams/[teamId]/apps/[appId]/mini-app/permissions/page";
 
-it("redirects the permissions route to Develop", async () => {
+import RoutePage from "../../app/(portal)/teams/[teamId]/apps/[appId]/mini-app/page";
+
+it("redirects the mini app root to Develop", async () => {
   await RoutePage();
 
-  expect(redirect).toHaveBeenCalledWith("../develop");
+  expect(redirect).toHaveBeenCalledWith("./develop");
 });

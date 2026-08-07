@@ -2,19 +2,13 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import React from "react";
-jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
-  pickPortalVersion: async (v3: () => unknown) => v3(),
-}));
-jest.mock(
-  "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/Danger/page",
-  () => ({ ActionIdDangerPage: () => <div data-testid="v2-actions-danger" /> }),
-);
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/Danger/page",
   () => ({ ActionIdDangerPage: () => <div data-testid="v3-actions-danger" /> }),
 );
 import RoutePage from "../../app/(portal)/teams/[teamId]/apps/[appId]/actions/[actionId]/danger/page";
-it("renders v3 actions-danger", async () => {
+
+it("renders the action danger zone", async () => {
   render(
     await RoutePage({
       params: Promise.resolve({
@@ -25,5 +19,4 @@ it("renders v3 actions-danger", async () => {
     }),
   );
   expect(screen.getByTestId("v3-actions-danger")).toBeInTheDocument();
-  expect(screen.queryByTestId("v2-actions-danger")).not.toBeInTheDocument();
 });

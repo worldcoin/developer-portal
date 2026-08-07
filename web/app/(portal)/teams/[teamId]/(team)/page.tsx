@@ -1,6 +1,4 @@
-import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
-import { TeamIdPage } from "@/scenes/Portal/Teams/TeamId/Team/page";
 import { TeamIdPage as TeamIdPageV3 } from "@/scenes/PortalV3/Teams/TeamId/Team/page";
 import { Metadata } from "next";
 
@@ -16,8 +14,5 @@ export default async function Page(props: {
     props.params,
     props.searchParams,
   ]);
-  return pickPortalVersion(
-    () => <TeamIdPageV3 params={params} searchParams={searchParams} />,
-    () => <TeamIdPage params={params} searchParams={searchParams} />,
-  );
+  return <TeamIdPageV3 params={params} searchParams={searchParams} />;
 }

@@ -40,8 +40,6 @@ const DASHBOARD_HOST = "developer-dashboard.toolsforhumanity.com";
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.APP_BASE_URL = CANONICAL;
-  delete process.env.LOCAL_DEV_PORTAL_V3_ENABLED;
-  delete process.env.PORTAL_V3_EMAILS;
   delete process.env.INTERNAL_DASHBOARD_HOST;
   hasAdminAuthenticationEvidence.mockReturnValue(false);
 });
@@ -201,7 +199,6 @@ describe("proxy [protected route role restrictions]", () => {
   });
 
   it("allows a member to open the consolidated team settings page", async () => {
-    process.env.PORTAL_V3_EMAILS = "member@example.com";
     const req = new NextRequest(`${CANONICAL}/teams/${teamId}/settings`);
     const res = await proxy(req);
 
@@ -209,18 +206,8 @@ describe("proxy [protected route role restrictions]", () => {
     expect(res.headers.get("x-current-path")).toBe(`/teams/${teamId}/settings`);
   });
 
-  it("keeps team settings owner-only for a v2 member", async () => {
-    const req = new NextRequest(`${CANONICAL}/teams/${teamId}/settings`);
-    const res = await proxy(req);
-
-    expect(res.headers.get("x-middleware-rewrite")).toBe(
-      `${CANONICAL}/unauthorized`,
-    );
-  });
-
   it("sends another team's settings to the root for a non-member", async () => {
     // No membership in the URL's team at all → home (root routes onward) instead of a dead-end 401.
-    process.env.PORTAL_V3_EMAILS = "member@example.com";
     const req = new NextRequest(
       `${CANONICAL}/teams/team_abcdef0123456789/settings`,
     );

@@ -2,13 +2,6 @@
 import "@testing-library/jest-dom";
 
 const mockRedirect = jest.fn();
-
-jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
-  pickPortalVersion: async (v3: () => unknown) => v3(),
-}));
-jest.mock("@/scenes/Portal/Profile/Teams/page", () => ({
-  TeamsPage: () => null,
-}));
 jest.mock("next/navigation", () => ({
   redirect: (...args: unknown[]) => mockRedirect(...args),
 }));
