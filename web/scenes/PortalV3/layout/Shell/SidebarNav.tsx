@@ -23,7 +23,6 @@ import {
   BadgeCheckIcon,
   BellIcon,
   ChevronRightIcon,
-  Code2Icon,
   KeyRoundIcon,
   Settings2Icon,
   UsersIcon,
@@ -49,8 +48,7 @@ import {
 } from "react";
 import { NavActivePill, NavItem } from "./NavItem";
 import { SandboxButton } from "./SandboxButton";
-import { SidebarSubNavigation } from "./SidebarSubNavigation";
-import { WorldIdNavItem } from "./WorldIdNavItem";
+import { WorldIdNavItems } from "./WorldIdNavItems";
 
 type ShellNavigation = {
   /** Target href of an in-flight sidebar navigation, until the route commits. */
@@ -125,21 +123,18 @@ const NavIcon = (props: { name: string; active?: boolean }) => (
 );
 
 /**
- * Static `/images/portal-v3/icons` assets used by the sidebar. Top-level
- * NavIcon rows mount idle+active together; `nav-configuration` only mounts
- * when the World ID submenu opens, so warm the full set with the nav itself.
+ * Static `/images/portal-v3/icons` assets used by the sidebar. NavIcon rows
+ * mount idle+active together, so warm the full set with the nav itself.
  */
 const sidebarPreloadIcons = [
   // Top-level rows (idle + active)
-  "nav-world-id",
-  "nav-world-id-active",
   "nav-mini-app",
   "nav-mini-app-active",
   "nav-home",
   "nav-home-active",
   "nav-settings",
   "nav-settings-active",
-  // World ID submenu
+  // World ID configuration row
   "nav-configuration",
   // Sandbox CTA
   "world-id-sandbox-app-icon",
@@ -164,8 +159,18 @@ export const SidebarNav = (props: {
   // `currentHref` falls back to the real pathname, which either confirms the
   // pending target (navigation committed) or reverts it (navigation failed).
   const { pendingHref, isNavigating, navigate } = useShellNavigation();
-  const optimisticHref =
+  const pendingTargetHref =
     isNavigating && pendingHref !== null ? pendingHref : null;
+  const isSettingsHref = (href: string) =>
+    isTeamSettingsPath(href.split(/[?#]/, 1)[0]);
+  // App-tab changes keep the immediate pill slide, as do switches between
+  // settings sections. Crossing into or out of settings replaces the entire
+  // sidebar, so wait for the route commit and swap both page and nav once.
+  const optimisticHref =
+    pendingTargetHref !== null &&
+    isSettingsHref(pendingTargetHref) === isSettingsHref(pathname)
+      ? pendingTargetHref
+      : null;
   const currentHref = optimisticHref ?? pathname;
   // Sidebar destinations may use query-backed sections. Route ownership and
   // active parent checks must compare only the pathname portion.
@@ -212,6 +217,12 @@ export const SidebarNav = (props: {
 
   const configurationHref = ids ? urls.configuration(ids) : teamOverviewHref;
   const miniAppHref = ids ? urls.miniAppDevelop(ids) : teamOverviewHref;
+  const miniAppTransactionsHref = ids
+    ? urls.miniAppTransactions(ids)
+    : teamOverviewHref;
+  const miniAppNotificationsHref = ids
+    ? urls.miniAppNotifications(ids)
+    : teamOverviewHref;
   const teamSettingsBase = teamId
     ? urls.teamSettings({ team_id: teamId })
     : teamsLandingHref;
@@ -229,17 +240,7 @@ export const SidebarNav = (props: {
     return relativePath === prefix || relativePath.startsWith(`${prefix}/`);
   };
 
-  const worldIdActive =
-    (Boolean(appBase) && currentPathname === appBase) ||
-    withinApp("/world-id") ||
-    withinApp("/world-id-4-0") ||
-    withinApp("/world-id-actions") ||
-    withinApp("/actions");
   const configurationActive = withinApp("/configuration");
-  const miniAppActive =
-    withinApp("/mini-app") ||
-    withinApp("/transactions") ||
-    withinApp("/notifications");
   const settingsActive = teamId ? currentPathname === teamSettingsBase : false;
   const teamSettingsContext = isTeamSettingsPath(currentPathname);
   const canViewApiKeys = Boolean(
@@ -258,7 +259,7 @@ export const SidebarNav = (props: {
   const teamSettingsItems = teamId
     ? [
         {
-          label: "General",
+          label: "Team Name",
           value: TEAM_SETTINGS_TABS.General,
           href: urls.teamSettings({
             team_id: teamId,
@@ -300,37 +301,9 @@ export const SidebarNav = (props: {
     withinApp("/mini-app/transactions") || withinApp("/transactions");
   const miniAppNotificationsActive =
     withinApp("/mini-app/notifications") || withinApp("/notifications");
-  const miniAppItems = ids
-    ? [
-        {
-          label: "Develop",
-          href: urls.miniAppDevelop(ids),
-          active: miniAppDevelopActive,
-          icon: <Code2Icon strokeWidth={1.5} className="size-4" />,
-        },
-        {
-          label: "Transactions",
-          href: urls.miniAppTransactions(ids),
-          active: miniAppTransactionsActive,
-          icon: <WalletCardsIcon strokeWidth={1.5} className="size-4" />,
-        },
-        {
-          label: "Notifications",
-          href: urls.miniAppNotifications(ids),
-          active: miniAppNotificationsActive,
-          icon: <BellIcon strokeWidth={1.5} className="size-4" />,
-        },
-      ]
-    : [];
-
-  // The nav renders different item sets for app vs team routes, so when a
-  // navigation crosses that boundary (e.g. Get verified → Team settings) the
-  // items above the target mount/unmount and every position shifts twice:
-  // once optimistically at click, once when the params commit. Sliding
-  // through that reads as a down-then-up stutter — instead, a context change
-  // remounts the pill (key below), which re-places itself instantly via its
-  // unanimated first paint. Both the optimistic target's context and the
-  // rendered params' context are in the key so each of the two shifts snaps.
+  // The nav renders different item sets for app vs team routes. Remount the
+  // pill when that context changes so it snaps to the new hierarchy instead
+  // of sliding through rows that are mounting or unmounting.
   const pathContext = /\/apps\/[^/]+/.test(currentPathname) ? "app" : "team";
   const paramsContext = appId ? "app" : "team";
   const pillContextKey = `${teamId ?? "none"}:${paramsContext}:${pathContext}`;
@@ -395,16 +368,12 @@ export const SidebarNav = (props: {
               <SidebarMenu className="gap-2">
                 {appId ? (
                   <>
-                    <WorldIdNavItem
+                    <WorldIdNavItems
                       teamId={teamId}
                       appId={appId}
-                      active={worldIdActive}
                       currentPathname={currentPathname}
                       optimisticHref={optimisticHref}
                       getNavigationHandler={beginNavigation}
-                      icon={
-                        <NavIcon name="nav-world-id" active={worldIdActive} />
-                      }
                     />
                     <NavItem
                       label="Get verified"
@@ -418,21 +387,31 @@ export const SidebarNav = (props: {
                     <NavItem
                       label="Mini App"
                       href={miniAppHref}
-                      active={miniAppActive}
-                      current={false}
+                      active={miniAppDevelopActive}
                       onNavigate={beginNavigation(miniAppHref)}
                       icon={
-                        <NavIcon name="nav-mini-app" active={miniAppActive} />
-                      }
-                    >
-                      {miniAppActive ? (
-                        <SidebarSubNavigation
-                          label="Mini App navigation"
-                          items={miniAppItems}
-                          getNavigationHandler={beginNavigation}
+                        <NavIcon
+                          name="nav-mini-app"
+                          active={miniAppDevelopActive}
                         />
-                      ) : null}
-                    </NavItem>
+                      }
+                    />
+                    <NavItem
+                      label="Transactions"
+                      href={miniAppTransactionsHref}
+                      active={miniAppTransactionsActive}
+                      onNavigate={beginNavigation(miniAppTransactionsHref)}
+                      icon={
+                        <WalletCardsIcon strokeWidth={1.5} className="size-4" />
+                      }
+                    />
+                    <NavItem
+                      label="Notifications"
+                      href={miniAppNotificationsHref}
+                      active={miniAppNotificationsActive}
+                      onNavigate={beginNavigation(miniAppNotificationsHref)}
+                      icon={<BellIcon strokeWidth={1.5} className="size-4" />}
+                    />
                   </>
                 ) : (
                   <NavItem
@@ -469,7 +448,8 @@ export const SidebarNav = (props: {
                 trailing={
                   <ChevronRightIcon
                     aria-hidden="true"
-                    className="size-4 text-portal-muted"
+                    strokeWidth={2}
+                    className="size-[18px] text-portal-text"
                   />
                 }
               />

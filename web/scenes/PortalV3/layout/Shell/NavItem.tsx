@@ -130,10 +130,10 @@ type ActivePillOptions = {
  * in from (0, 0), which is what lets the host remount it (via `key`) to force
  * an instant re-place when the nav's item set is rebuilt.
  *
- * The measuring effect deliberately has no dependency array: everything that
- * moves the items (active change, Mini App submenu expanding, Danger zone
- * appearing) is render-driven, and one rect read per render is negligible.
- * The ResizeObserver covers non-render size changes of the active item.
+ * The measuring effect deliberately has no dependency array: active changes
+ * and route-driven item availability are render-driven, and one rect read per
+ * render is negligible. The ResizeObserver covers non-render size changes of
+ * the active item.
  *
  * The pill finds its container through its own rendered node instead of a ref
  * passed from the parent: a parent's element ref is not attached yet when a
@@ -240,28 +240,6 @@ export const NavActivePill = () => {
       aria-hidden="true"
       className={cn(
         "pointer-events-none absolute top-0 left-0 rounded-[10px] border border-portal-border bg-white shadow-portal-card",
-        !placement && "hidden",
-        placement?.animate &&
-          "transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none",
-      )}
-      style={activePillStyle(placement)}
-    />
-  );
-};
-
-export const SidebarSubNavigationActivePill = () => {
-  const { placement, setElementRef } = useActivePillPlacement({
-    containerSelector: '[data-sidebar="menu-sub"]',
-    activeItemSelector: '[data-sidebar="menu-sub-button"][data-active="true"]',
-  });
-
-  return (
-    <li
-      ref={setElementRef}
-      aria-hidden="true"
-      data-sidebar="menu-sub-active-pill"
-      className={cn(
-        "pointer-events-none absolute top-0 left-0 rounded-md bg-white",
         !placement && "hidden",
         placement?.animate &&
           "transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none",
