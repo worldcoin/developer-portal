@@ -9,4 +9,5 @@ README.md
 # Added by SEC-1406 patch
 .gitignore
 .env*
-scripts
+scripts/*
+!scripts/migrate-rp-manager-to-shared-key.ts
