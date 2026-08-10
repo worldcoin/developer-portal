@@ -164,7 +164,7 @@ export const Form = () => {
           disabled={!isValid}
           loading={isPending}
           aria-describedby={!termsAccepted ? "terms-consent-hint" : undefined}
-          className="h-12 w-full cursor-pointer px-6 disabled:bg-portal-ink text-white disabled:opacity-40"
+          className="h-12 w-full cursor-pointer px-6 text-white disabled:bg-portal-ink disabled:opacity-40"
         >
           {isPending ? "Creating team…" : "Create team"}
         </InkButton>
