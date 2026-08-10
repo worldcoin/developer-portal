@@ -1,12 +1,11 @@
 import {
   localisationFormSchema,
-  mainAppStoreFormReviewSubmitSchema as portalReviewSubmitSchema,
-} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
-import { mainAppStoreFormReviewSubmitSchema as portalV3ReviewSubmitSchema } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
+  mainAppStoreFormReviewSubmitSchema,
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import {
   reviewSchema as basicReviewSchema,
   schema as basicSchema,
-} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/BasicInformation/form-schema";
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/BasicInformation/form-schema";
 
 describe("BasicInformation editing schema", () => {
   it("accepts empty strings for all fields (autosave-friendly)", () => {
@@ -80,14 +79,13 @@ describe("AppStore localisationFormSchema", () => {
   });
 });
 
-// The Portal and PortalV3 review schemas are duplicated copies; test both so
-// they can't silently drift apart.
-describe.each([
-  ["Portal", portalReviewSubmitSchema],
-  ["PortalV3", portalV3ReviewSubmitSchema],
-])("%s review submit schema — category vs mini app", (_name, schema) => {
+describe("review submit schema — category vs mini app", () => {
   const validateCategory = (category: string | undefined, isMiniApp: boolean) =>
-    schema.validateSyncAt("category", { category }, { context: { isMiniApp } });
+    mainAppStoreFormReviewSubmitSchema.validateSyncAt(
+      "category",
+      { category },
+      { context: { isMiniApp } },
+    );
 
   it("rejects the External category for mini apps", () => {
     expect(() => validateCategory("External", true)).toThrow();

@@ -19,9 +19,7 @@
 
 ## Feature flags
 
-All feature flags are exposed through the single `featureFlags` object in `web/lib/feature-flags/index.ts`, accessed as `featureFlags.<featureName>.<accessor>()` (e.g. `featureFlags.portalV3.isEnabled()`). New flags register a namespace there; call sites must import `featureFlags` rather than individual flag modules.
-
-Pros: every flag in the system is discoverable from one import via autocomplete. Each decision's source is obvious at the call site from the `featureFlags.` prefix. Resolution backends (env, hardcoded lists, a future vendor provider) can change without touching call sites.
+Each feature flag lives in its own directory under `web/lib/feature-flags/<flag-name>/` and is imported directly by call sites (e.g. the `world-id-4-0` team allowlist). Flags read their configuration from env vars or hardcoded lists inside their module, so resolution backends can change without touching call sites. Delete the directory when a rollout completes — do not leave dead flags behind.
 
 ## Making Changes
 
