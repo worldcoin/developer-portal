@@ -51,6 +51,7 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
     teamId,
     supportedLanguages,
     setValue,
+    updateFieldSnapshot,
   } = useAppStoreFormContext();
   const disabled = !isEditable || !isEnoughPermissions;
   const isAppVerified = appMetadata.verification_status === "verified";
@@ -216,6 +217,21 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               isAppVerified={isAppVerified}
               appMetadataId={appMetadata.id}
               supportedLanguages={supportedLanguages}
+              onAutosaveSuccess={(urls) => {
+                setValue(
+                  `localisations.${selectedIndex}.showcase_img_urls`,
+                  urls,
+                  { shouldDirty: false, shouldValidate: true },
+                );
+                updateFieldSnapshot((snapshot) => ({
+                  ...snapshot,
+                  localisations: snapshot.localisations.map((localisation) =>
+                    localisation.language === selectedLocale
+                      ? { ...localisation, showcase_img_urls: urls }
+                      : localisation,
+                  ),
+                }));
+              }}
               error={fieldErrors?.showcase_img_urls?.message}
               dropZoneClassName="h-42"
               dropZoneContent={dropZoneContent}
@@ -250,6 +266,21 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
               isAppVerified={isAppVerified}
               appMetadataId={appMetadata.id}
               supportedLanguages={supportedLanguages}
+              onAutosaveSuccess={(url) => {
+                setValue(
+                  `localisations.${selectedIndex}.meta_tag_image_url`,
+                  url ?? "",
+                  { shouldDirty: false, shouldValidate: true },
+                );
+                updateFieldSnapshot((snapshot) => ({
+                  ...snapshot,
+                  localisations: snapshot.localisations.map((localisation) =>
+                    localisation.language === selectedLocale
+                      ? { ...localisation, meta_tag_image_url: url ?? "" }
+                      : localisation,
+                  ),
+                }));
+              }}
               error={fieldErrors?.meta_tag_image_url?.message}
               dropZoneClassName="h-42"
               dropZoneContent={dropZoneContent}

@@ -19,7 +19,7 @@ interface ShowcaseImagesFieldProps {
   appMetadataId?: string;
   supportedLanguages: string[];
   error?: string | null;
-  onAutosaveSuccess?: () => void;
+  onAutosaveSuccess?: (urls: string[]) => void;
   onAutosaveError?: (error: any) => void;
   dropZoneClassName?: string;
   dropZoneContent?: React.ReactNode;
@@ -102,7 +102,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
           },
         });
         reportSaved();
-        onAutosaveSuccess?.();
+        onAutosaveSuccess?.(urls);
       } catch (error) {
         // The file is already on S3 and only the database write failed, so
         // retrying exactly this save can succeed.
