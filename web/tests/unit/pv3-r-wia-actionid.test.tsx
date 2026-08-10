@@ -4,20 +4,10 @@ import { render, screen } from "@testing-library/react";
 import React from "react";
 
 const mockGetIsUserAllowedToUpdateApp = jest.fn();
-let mockPortalV3Enabled = true;
-
-jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
-  pickPortalVersion: async (v3: () => unknown, v2: () => unknown) =>
-    mockPortalV3Enabled ? v3() : v2(),
-}));
 jest.mock("@/lib/permissions", () => ({
   getIsUserAllowedToUpdateApp: (...args: unknown[]) =>
     mockGetIsUserAllowedToUpdateApp(...args),
 }));
-jest.mock(
-  "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page",
-  () => ({ WorldIdActionIdPage: () => <div data-testid="v2-wia-actionid" /> }),
-);
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page",
   () => ({
@@ -37,10 +27,9 @@ const props = () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockPortalV3Enabled = true;
 });
 
-it("renders the new v3 detail without modify permission", async () => {
+it("renders the action detail without modify permission", async () => {
   mockGetIsUserAllowedToUpdateApp.mockResolvedValue(false);
 
   render(await RoutePage(props()));
@@ -51,10 +40,9 @@ it("renders the new v3 detail without modify permission", async () => {
     "false",
   );
   expect(mockGetIsUserAllowedToUpdateApp).toHaveBeenCalledWith("a");
-  expect(screen.queryByTestId("v2-wia-actionid")).not.toBeInTheDocument();
 });
 
-it("renders the new v3 detail with modify permission", async () => {
+it("renders the action detail with modify permission", async () => {
   mockGetIsUserAllowedToUpdateApp.mockResolvedValue(true);
 
   render(await RoutePage(props()));
@@ -63,13 +51,4 @@ it("renders the new v3 detail with modify permission", async () => {
     "data-can-modify",
     "true",
   );
-});
-
-it("keeps the legacy detail for v2", async () => {
-  mockPortalV3Enabled = false;
-
-  render(await RoutePage(props()));
-
-  expect(screen.getByTestId("v2-wia-actionid")).toBeInTheDocument();
-  expect(mockGetIsUserAllowedToUpdateApp).not.toHaveBeenCalled();
 });

@@ -7,7 +7,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { ReactNode } from "react";
 import { PortalShell } from "./Shell";
 
-/** v3 shell layout, mounted once at app/(portal)/layout.tsx via pickPortalVersion. */
+/** Canonical portal shell layout, mounted once at app/(portal)/layout.tsx. */
 export const PortalLayout = async (props: { children: ReactNode }) => {
   const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];

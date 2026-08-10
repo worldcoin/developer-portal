@@ -4,12 +4,6 @@ import { render, screen } from "@testing-library/react";
 import React from "react";
 
 // #region Mocks
-let mockPortalVersion: "v2" | "v3" = "v3";
-jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
-  pickPortalVersion: async (v3: () => unknown, v2: () => unknown) =>
-    mockPortalVersion === "v3" ? v3() : v2(),
-}));
-
 const getIsUserAllowedToUpdateApp = jest.fn().mockResolvedValue(true);
 jest.mock("@/lib/permissions", () => ({
   getIsUserAllowedToUpdateApp: (...args: unknown[]) =>
@@ -44,10 +38,9 @@ const props = {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockPortalVersion = "v3";
 });
 
-describe("/world-id layout [Portal V3]", () => {
+describe("/world-id layout", () => {
   it("renders the shared scene layout with route identity and permissions", async () => {
     render(await RouteLayout(props));
 
@@ -65,17 +58,5 @@ describe("/world-id layout [Portal V3]", () => {
     );
     expect(screen.getByTestId("route-child")).toBeInTheDocument();
     expect(getIsUserAllowedToUpdateApp).toHaveBeenCalledWith("app_1");
-  });
-});
-
-describe("/world-id layout [Portal V2]", () => {
-  it("passes children through without loading the V3 scene", async () => {
-    mockPortalVersion = "v2";
-
-    render(await RouteLayout(props));
-
-    expect(screen.getByTestId("route-child")).toBeInTheDocument();
-    expect(screen.queryByTestId("world-id-layout")).not.toBeInTheDocument();
-    expect(getIsUserAllowedToUpdateApp).not.toHaveBeenCalled();
   });
 });
