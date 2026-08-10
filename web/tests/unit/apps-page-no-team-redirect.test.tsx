@@ -17,7 +17,7 @@ jest.mock("@/api/helpers/graphql", () => ({
 
 const InitialApp = jest.fn();
 jest.mock(
-  "../../scenes/Portal/Teams/TeamId/Apps/page/graphql/server/apps.generated",
+  "../../scenes/PortalV3/Teams/TeamId/Team/page/graphql/server/apps.generated",
   () => ({
     getSdk: () => ({ InitialApp }),
   }),

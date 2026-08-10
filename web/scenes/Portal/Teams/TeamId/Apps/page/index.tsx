@@ -4,7 +4,7 @@ import { auth0 } from "@/lib/auth0";
 import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
 import { AppsPageClient } from "./AppsPageClient";
-import { getSdk as getInitialAppSdk } from "./graphql/server/apps.generated";
+import { getSdk as getInitialAppSdk } from "@/scenes/PortalV3/Teams/TeamId/Team/page/graphql/server/apps.generated";
 
 type AppPage = {
   params: Promise<Record<string, string>>;
