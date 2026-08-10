@@ -41,7 +41,7 @@ export const ApproveSandboxRequestButton = (props: { requestId: string }) => {
       disabled={completed}
       loading={submitting}
       onClick={approveRequest}
-      className="h-8 px-3 py-1.5 text-12 whitespace-nowrap"
+      className="h-8 w-20 px-3 py-1.5 text-12 whitespace-nowrap"
     >
       {completed ? "Approved" : "Approve"}
     </DecoratedButton>
