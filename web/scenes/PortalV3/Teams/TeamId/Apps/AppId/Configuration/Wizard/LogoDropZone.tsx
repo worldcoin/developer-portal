@@ -86,6 +86,7 @@ export const LogoDropZone = (props: {
         <input
           type="file"
           accept="image/png,image/jpeg"
+          aria-required="true"
           disabled={isInert}
           className="sr-only"
           onChange={(event) => {

@@ -25,8 +25,10 @@ let api: {
 
 const Harness = ({
   isSelfPersisting,
+  onSavedEdit,
 }: {
   isSelfPersisting?: (name: string) => boolean;
+  onSavedEdit?: (values: Values) => void;
 }) => {
   const form = useForm<Values>({
     defaultValues: {
@@ -41,6 +43,7 @@ const Harness = ({
     debounceMs: DEBOUNCE_MS,
     save: (...args) => save(...args),
     onStatus: () => {},
+    onSavedEdit,
     isSelfPersisting,
   });
 
@@ -67,6 +70,36 @@ afterEach(() => {
 });
 
 describe("autosave and self-persisting fields", () => {
+  it("publishes form values only after autosave succeeds", async () => {
+    const onSavedEdit = jest.fn();
+    render(<Harness onSavedEdit={onSavedEdit} />);
+
+    act(() => {
+      api!.setValue("name", "renamed", { shouldDirty: true });
+    });
+
+    expect(onSavedEdit).not.toHaveBeenCalled();
+
+    await settle();
+
+    expect(onSavedEdit).toHaveBeenCalledTimes(1);
+    expect(onSavedEdit.mock.calls[0][0].name).toBe("renamed");
+  });
+
+  it("does not publish form values when autosave fails", async () => {
+    const onSavedEdit = jest.fn();
+    save.mockRejectedValueOnce(new Error("save failed"));
+    render(<Harness onSavedEdit={onSavedEdit} />);
+
+    act(() => {
+      api!.setValue("name", "renamed", { shouldDirty: true });
+    });
+    await settle();
+
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(onSavedEdit).not.toHaveBeenCalled();
+  });
+
   it("skips the full-form save when a self-persisting field writes back", async () => {
     render(
       <Harness
