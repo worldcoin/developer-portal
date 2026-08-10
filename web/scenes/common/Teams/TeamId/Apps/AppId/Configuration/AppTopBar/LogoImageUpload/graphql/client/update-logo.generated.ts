@@ -12,6 +12,7 @@ export type UpdateLogoMutation = {
   update_app_metadata_by_pk?: {
     __typename?: "app_metadata";
     id: string;
+    logo_img_url: string;
   } | null;
 };
 
@@ -95,6 +96,10 @@ export const UpdateLogoDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "logo_img_url" },
+                },
               ],
             },
           },
