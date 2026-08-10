@@ -294,7 +294,7 @@ export const POST = async (req: NextRequest) => {
 
   const user = insertedMembership.user;
 
-  const returnTo = urls[effectiveHasUser ? "teams" : "app"]({
+  const returnTo = urls.teams({
     team_id: insertedMembership.team_id,
   });
 
