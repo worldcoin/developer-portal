@@ -6,111 +6,73 @@ import {
 import clsx from "clsx";
 import { Fragment } from "react";
 import Skeleton from "react-loading-skeleton";
-
-export enum WizardStep {
-  BASIC = "basic-information",
-  STORE_LISTING = "store-listing",
-  MINI_APP_PERMISSIONS = "mini-app-permissions",
-  AVAILABILITY = "availability",
-  LOCALISED_CONTENT = "localised-content",
-  REVIEW = "review-and-confirm",
-}
-
-export type WizardStepConfig = {
-  id: WizardStep;
-  label: string;
-};
-
-/**
- * Step list for the configuration wizard. Store listing only applies to mini
- * apps (external apps have no store presence or Mini App permissions to
- * configure).
- */
-export const getWizardSteps = (isMiniApp: boolean): WizardStepConfig[] => [
-  { id: WizardStep.BASIC, label: "Basic information" },
-  ...(isMiniApp
-    ? [
-        { id: WizardStep.STORE_LISTING, label: "Store listing" },
-        {
-          id: WizardStep.MINI_APP_PERMISSIONS,
-          label: "Mini App Permissions",
-        },
-      ]
-    : []),
-  { id: WizardStep.AVAILABILITY, label: "Availability" },
-  { id: WizardStep.LOCALISED_CONTENT, label: "Localised content" },
-  { id: WizardStep.REVIEW, label: "Review and confirm" },
-];
-
-/**
- * Routes a review-flow validation error to the wizard step that owns the
- * failing field, mirroring the previous page's getStepForField. Unrecognized
- * paths belong to the store-listing fields (category, support, content card,
- * compliance), which external apps render nowhere — fall back to Basic.
- */
-export const getWizardStepForField = (
-  isMiniApp: boolean,
-  fieldPath?: string,
-): WizardStep => {
-  if (
-    !fieldPath ||
-    fieldPath === "basic_information" ||
-    fieldPath === "logo_img_url"
-  ) {
-    return WizardStep.BASIC;
-  }
-
-  if (
-    fieldPath.startsWith("supported_countries") ||
-    fieldPath.startsWith("supported_languages")
-  ) {
-    return WizardStep.AVAILABILITY;
-  }
-
-  if (fieldPath.startsWith("localisations")) {
-    return WizardStep.LOCALISED_CONTENT;
-  }
-
-  return isMiniApp ? WizardStep.STORE_LISTING : WizardStep.BASIC;
-};
+import {
+  getWizardSteps,
+  WizardStep,
+  WizardStepConfig,
+  WizardStepStatus,
+} from "./wizard-steps";
 
 // Row/connector/step geometry, shared with StepperSkeleton so the loading
 // state wraps at exactly the same widths as the real stepper.
 // flex-wrap: on narrow windows the row breaks into lines instead of ever
 // producing a horizontal scrollbar.
 const stepperRowClassName = "flex flex-wrap items-center justify-center gap-4";
-const stepperConnectorClassName = clsx(
-  "h-px w-8 bg-portal-border",
-  opticalIconClassName,
-);
+const stepperConnectorClassName = "h-px w-8";
 const stepperStepClassName = "flex items-center gap-2";
 const stepperLabelClassName =
   "text-13 leading-[1.2] font-medium whitespace-nowrap";
 
 /**
  * Numbered-dot step indicator across the top of the configuration wizard.
- * True to the Figma frames: steps behind the active one show the green
- * check, the active and upcoming ones show their number. Each step is a
- * button that jumps straight to it.
+ * Completion is supplied by the wizard's last successfully saved field snapshot
+ * snapshot; it must never be inferred from navigation or unsaved field input.
  */
 export const Stepper = (props: {
   steps: WizardStepConfig[];
   activeIndex: number;
+  stepStatuses: Record<WizardStep, WizardStepStatus>;
   onStepSelect?: (step: WizardStep) => void;
 }) => (
   <ol className={stepperRowClassName}>
     {props.steps.map((step, index) => {
       const isActive = index === props.activeIndex;
-      const isCompleted = index < props.activeIndex;
+      const stepStatus = props.stepStatuses[step.id];
+      // Permissions has no completion requirement — check it only once the
+      // user has moved past it. Review stays incomplete until submission.
+      const isCompleted =
+        stepStatus === "complete" ||
+        (step.id === WizardStep.MINI_APP_PERMISSIONS &&
+          props.activeIndex > index);
+      const hasValidationError = stepStatus === "error";
+      const previousStep = props.steps[index - 1];
+      const isPreviousStepComplete =
+        previousStep &&
+        (props.stepStatuses[previousStep.id] === "complete" ||
+          (previousStep.id === WizardStep.MINI_APP_PERMISSIONS &&
+            props.activeIndex > index - 1));
+      const accessibleStepState = isCompleted
+        ? "complete"
+        : hasValidationError
+          ? "needs attention"
+          : "incomplete";
       return (
         <Fragment key={step.id}>
           {index > 0 && (
-            <li aria-hidden="true" className={stepperConnectorClassName} />
+            <li
+              aria-hidden="true"
+              className={clsx(
+                stepperConnectorClassName,
+                opticalIconClassName,
+                isPreviousStepComplete ? "bg-[#00c230]" : "bg-portal-border",
+              )}
+            />
           )}
           <li aria-current={isActive ? "step" : undefined}>
             <button
               type="button"
               onClick={() => props.onStepSelect?.(step.id)}
+              aria-label={`${step.label}, ${isActive ? "current step, " : ""}${accessibleStepState}`}
               className={clsx(
                 stepperStepClassName,
                 "cursor-pointer transition-opacity hover:opacity-70",
@@ -122,10 +84,15 @@ export const Stepper = (props: {
               {isCompleted ? (
                 // Figma nucleus/status-success (#00c230) — no portal token
                 // for it yet (closest, additional-green-500, is #00c313).
+                // Inactive complete steps stay green but dimmed so the active
+                // step (ring + full opacity) remains the clear focus.
                 <span
                   className={clsx(
                     "flex size-5 items-center justify-center rounded-full bg-[#00c230]",
                     opticalIconClassName,
+                    isActive
+                      ? "ring-2 ring-portal-ink ring-offset-2"
+                      : "opacity-50",
                   )}
                 >
                   <Icon name="radio-check" className="size-[13.333px]" />
@@ -135,9 +102,14 @@ export const Stepper = (props: {
                   className={clsx(
                     "flex size-5 items-center justify-center rounded-full text-center text-13 leading-[1.2] font-medium",
                     opticalIconClassName,
-                    isActive
-                      ? "bg-portal-ink text-white"
-                      : "bg-portal-canvas text-portal-subtle",
+                    hasValidationError
+                      ? "border-2 border-[#ea392a] bg-white text-[#ea392a]"
+                      : isActive
+                        ? "bg-portal-ink text-white"
+                        : "bg-portal-canvas text-portal-subtle",
+                    // Same selection ring as complete+active — current step
+                    // always reads as selected, complete or not.
+                    isActive && "ring-2 ring-portal-ink ring-offset-2",
                   )}
                 >
                   <span className={bubbleDigitClassName}>{index + 1}</span>
@@ -146,9 +118,11 @@ export const Stepper = (props: {
               <span
                 className={clsx(
                   stepperLabelClassName,
-                  isActive || isCompleted
-                    ? "text-portal-ink"
-                    : "text-portal-subtle",
+                  isActive
+                    ? "font-semibold text-portal-ink"
+                    : isCompleted
+                      ? "text-portal-ink"
+                      : "text-portal-subtle",
                 )}
               >
                 {step.label}
