@@ -30,6 +30,26 @@ describe("admin app detail fetch", () => {
   it("maps app identity, team, and metadata workflow", async () => {
     mockFetchAdminAppDetails.mockResolvedValue({
       app_by_pk: {
+        actions: [
+          {
+            action: "claim-offer",
+            created_at: "2026-01-04",
+            id: "action_claim",
+            name: "Claim offer",
+            nullifiers_aggregate: {
+              aggregate: { count: 3, sum: { uses: 7 } },
+            },
+            status: "active",
+          },
+          {
+            action: "",
+            created_at: "2026-01-01",
+            id: "action_sign_in",
+            name: "",
+            nullifiers_aggregate: { aggregate: null },
+            status: "active",
+          },
+        ],
         created_at: "2026-01-01",
         deleted_at: null,
         draft_metadata: [
@@ -41,6 +61,32 @@ describe("admin app detail fetch", () => {
         ],
         id: "app_current",
         name: "Current app",
+        rp_registration: [
+          {
+            actions_v4: [
+              {
+                action: "production-action",
+                created_at: "2026-01-05",
+                environment: "production",
+                id: "action_v4_production",
+                nullifiers_aggregate: { aggregate: { count: 11 } },
+              },
+            ],
+            rp_id: "rp_1111111111111111",
+          },
+          {
+            actions_v4: [
+              {
+                action: "staging-action",
+                created_at: "2026-01-06",
+                environment: "staging",
+                id: "action_v4_staging",
+                nullifiers_aggregate: { aggregate: null },
+              },
+            ],
+            rp_id: "rp_2222222222222222",
+          },
+        ],
         team: {
           created_at: "2026-01-01",
           deleted_at: null,
@@ -75,12 +121,50 @@ describe("admin app detail fetch", () => {
           name: "Current app",
         }),
         draftMetadata: expect.objectContaining({ name: "Draft app" }),
+        legacyActions: [
+          {
+            action: "claim-offer",
+            createdAt: "2026-01-04",
+            id: "action_claim",
+            name: "Claim offer",
+            status: "active",
+            totalUses: 7,
+            uniqueNullifiers: 3,
+          },
+          {
+            action: "",
+            createdAt: "2026-01-01",
+            id: "action_sign_in",
+            name: "",
+            status: "active",
+            totalUses: 0,
+            uniqueNullifiers: 0,
+          },
+        ],
         metadataVersions: [expect.objectContaining({ name: "Verified app" })],
         team: expect.objectContaining({
           id: "team_current",
           name: "Current team",
         }),
         verifiedMetadata: expect.objectContaining({ name: "Verified app" }),
+        worldId40Actions: [
+          {
+            action: "staging-action",
+            createdAt: "2026-01-06",
+            environment: "staging",
+            id: "action_v4_staging",
+            recordedUniqueUses: 0,
+            rpId: "rp_2222222222222222",
+          },
+          {
+            action: "production-action",
+            createdAt: "2026-01-05",
+            environment: "production",
+            id: "action_v4_production",
+            recordedUniqueUses: 11,
+            rpId: "rp_1111111111111111",
+          },
+        ],
       }),
     );
   });
