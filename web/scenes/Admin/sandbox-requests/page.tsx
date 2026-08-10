@@ -3,7 +3,7 @@ import { MobileAdminList } from "@/components/AdminDashboard/common/MobileAdminL
 import { UIModule } from "@/components/AdminDashboard/UIModule";
 import clsx from "clsx";
 import { fetchSandboxAccessRequests } from "./server/fetch-sandbox-requests";
-import { ApproveSandboxRequestButton } from "./ApproveSandboxRequestButton";
+import { SandboxRequestActions } from "./SandboxRequestActions";
 
 const formatDate = (isoDate: string) => isoDate.slice(0, 10);
 
@@ -111,7 +111,7 @@ export const AdminSandboxRequestsPage = async () => {
                     {request.accepted ? (
                       <span className="text-13 text-grey-400">Approved</span>
                     ) : (
-                      <ApproveSandboxRequestButton requestId={request.id} />
+                      <SandboxRequestActions requestId={request.id} />
                     )}
                   </div>
                 </article>
@@ -161,7 +161,7 @@ export const AdminSandboxRequestsPage = async () => {
                       {request.accepted ? (
                         <span className="text-grey-400">Approved</span>
                       ) : (
-                        <ApproveSandboxRequestButton requestId={request.id} />
+                        <SandboxRequestActions requestId={request.id} />
                       )}
                     </td>
                   </tr>

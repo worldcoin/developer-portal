@@ -6,6 +6,7 @@ import { FormDialog } from "@/components/FormDialog";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import { deleteAuth0Identity } from "@/scenes/common/Profile/DangerZone/DeleteAccountDialog/delete-auth0-identity";
 import { DeleteAccountDocument } from "@/scenes/common/Profile/DangerZone/DeleteAccountDialog/graphql/client/delete-account.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useMutation } from "@apollo/client/react";
@@ -58,8 +59,9 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           user_id: user.hasura.id,
         },
       });
+      await deleteAuth0Identity();
       toast.success("Account Deleted!");
-      window.location.href = urls.api.authDeleteAccount();
+      window.location.href = urls.logout(window.location.origin);
     } catch (e) {
       console.error("Delete Account Dialog: ", e);
       toast.error("Error deleting account");
