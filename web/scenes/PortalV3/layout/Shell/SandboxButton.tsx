@@ -6,7 +6,7 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { bubbleDigitClassName, Icon } from "@/scenes/PortalV3/common/Icon";
 import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
@@ -28,42 +28,43 @@ const ANDROID_URL: string | null =
 const TESTFLIGHT_APP_STORE_URL: string | null =
   process.env.NEXT_PUBLIC_TESTFLIGHT_APP_STORE_URL || null;
 
-const ANDROID_FIRST_SIGN_IN_NOTE =
-  "If this is your first Play Store sign-in, accept all Google Play Terms of Service before continuing. Make sure the browser opening the test link and the Play Store use that same account; mismatched sessions can block the download.";
-const SANDBOX_SUPPORT_EMAIL = "sandbox.access@toolsforhumanity.org";
-
 type Platform = "ios" | "android";
 
-const PLATFORMS: Record<
-  Platform,
-  {
-    label: string;
-    url: string | null;
-    steps: readonly string[];
-  }
-> = {
-  ios: {
-    label: "iOS",
-    url: IOS_TESTFLIGHT_URL,
-    steps: [
-      "Open the camera on your iPhone",
-      "Scan the QR code",
-      "Join TestFlight and install the build",
-    ],
-  },
-  android: {
-    label: "Android",
-    url: ANDROID_URL,
-    steps: [
-      "On your Android device, confirm that the Google Play Store is signed in with the same Google account you requested access for.",
-      "If this is the first time that account has signed in to Google Play, allow time for Google's backend caches to recognize the new account before retrying.",
-      "Once the correct account is signed in and the Terms of Service are accepted, scan the QR code or open the internal testing link below, then install the build.",
-      "Still having trouble? Contact Sandbox Support:",
-    ],
-  },
+const PLATFORMS: Record<Platform, { label: string; url: string | null }> = {
+  ios: { label: "iOS", url: IOS_TESTFLIGHT_URL },
+  android: { label: "Android", url: ANDROID_URL },
 };
 
+const IOS_STEPS: readonly string[] = [
+  "Open the camera on your iPhone",
+  "Scan the QR code",
+  "Join TestFlight and install the build",
+];
+
+// Each caveat is stated exactly once; the sign-in edge cases are compact
+// notes under the steps so the default view stays scannable.
+const ANDROID_DEVICE_STEPS: readonly string[] = [
+  "On your Android device, sign in with the same email as the approved Google Play account.",
+  "Scan the QR code and install the internal testing build.",
+];
+
+const ANDROID_NOTES: readonly string[] = [
+  "Accept the Google Play Terms of Service and set up your account before requesting access.",
+  "Open the test link in a browser signed in to that same account.",
+  "New accounts can take a few minutes for Google to recognize.",
+];
+
 const PLATFORM_ORDER: readonly Platform[] = ["ios", "android"];
+
+const StepNumber = (props: { n: number }) => (
+  <Typography
+    aria-hidden
+    variant={TYPOGRAPHY.M5}
+    className="flex size-6 items-center justify-center rounded-[10px] border border-grey-200 text-grey-700"
+  >
+    <span className={bubbleDigitClassName}>{props.n}</span>
+  </Typography>
+);
 
 /**
  * Sidebar entry point for the World ID sandbox: a modal with QR codes / store
@@ -163,6 +164,47 @@ export const SandboxButton = (props: {
     setPlatform(next);
   };
 
+  const storeLink = active.url ? (
+    <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+      On the web?{" "}
+      <a
+        href={active.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() =>
+          posthog.capture("sandbox_store_link_clicked", { platform })
+        }
+        className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+      >
+        Click here
+      </a>
+    </Typography>
+  ) : null;
+
+  const qrCard = (
+    <div className="w-full max-w-[236px] rounded-12 bg-grey-50 p-5">
+      {active.url ? (
+        <QRCode
+          value={active.url}
+          size={196}
+          className="h-auto w-full"
+          aria-label={`QR code to install the ${active.label} sandbox build`}
+        />
+      ) : (
+        <div className="flex aspect-square w-full items-center justify-center rounded-8 border border-dashed border-grey-300">
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            className="text-center text-grey-400"
+          >
+            {active.label} build
+            <br />
+            coming soon
+          </Typography>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <>
       <button
@@ -247,156 +289,153 @@ export const SandboxButton = (props: {
             </div>
 
             {platform === "android" ? (
-              <div className="rounded-12 bg-grey-50 px-4 py-3">
-                <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
-                  The Android build is distributed as a Google Play internal
-                  test. Your Google account email must be approved before the
-                  link works. Make sure the email you provide is tied to a valid
-                  Google account.
-                </Typography>
-
-                <form
-                  className="mt-3 flex flex-wrap items-center gap-2"
-                  onSubmit={submitAccessRequest}
-                >
-                  <input
-                    type="email"
-                    required
-                    disabled={existingRequest !== null || requestRefreshing}
-                    value={requestEmail}
-                    onChange={(e) => setRequestEmail(e.target.value)}
-                    aria-label="Google account email"
-                    placeholder="google-account@gmail.com"
-                    className="h-9 min-w-0 flex-1 rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300 disabled:bg-grey-100 disabled:text-grey-500"
-                  />
-                  <InkButton
-                    type="submit"
-                    disabled={
-                      existingRequest !== null ||
-                      requestRefreshing ||
-                      requestSending
-                    }
-                    className="h-9 shrink-0 px-4"
-                  >
-                    {existingRequest?.accepted
-                      ? "Invite sent"
-                      : existingRequest
-                        ? "Request submitted"
-                        : "Request invite"}
-                  </InkButton>
-                </form>
-
-                {existingRequest ? (
-                  <Typography
-                    variant={TYPOGRAPHY.M4}
-                    className="mt-2 block text-grey-900"
-                  >
-                    {existingRequest.accepted ? (
-                      <>
-                        An invite has been sent to {existingRequest.email}. Scan
-                        the QR code to install.
-                      </>
-                    ) : (
-                      <>
-                        Your request for {existingRequest.email} is pending.
-                        We&apos;ll email you when the invite has been sent.
-                      </>
-                    )}
+              /* Request box spans the full width so the email input stays
+                 wide; steps + notes share the left column beside the QR,
+                 filling the vertical space the QR sets anyway. */
+              <div className="grid gap-y-6">
+                <div className="grid gap-y-3 rounded-12 bg-grey-50 px-4 py-3">
+                  <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
+                    Your Google Play account needs approval. Request approval
+                    here:
                   </Typography>
-                ) : null}
-              </div>
-            ) : null}
 
-            <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:gap-12">
-              <ol className="grid gap-y-5">
-                {active.steps.map((step, index) => (
-                  <li
-                    key={step}
-                    className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-x-3"
+                  <form
+                    className="flex flex-wrap items-center gap-2"
+                    onSubmit={submitAccessRequest}
                   >
-                    <Typography
-                      aria-hidden
-                      variant={TYPOGRAPHY.M5}
-                      className="flex size-6 items-center justify-center rounded-[10px] border border-grey-200 text-grey-700"
-                    >
-                      {index + 1}
-                    </Typography>
-                    <Typography
-                      variant={TYPOGRAPHY.R4}
-                      className="pt-0.5 text-grey-700"
-                    >
-                      {step}
-                      {platform === "android" && index === 0 ? (
-                        <span className="mt-3 block rounded-8 border border-system-warning-200 bg-system-warning-50 px-3 py-2 text-system-warning-700">
-                          <strong>Important:</strong>{" "}
-                          {ANDROID_FIRST_SIGN_IN_NOTE}
-                        </span>
-                      ) : null}
-                      {platform === "android" && index === 3 ? (
-                        <span className="mt-1 block w-fit font-medium whitespace-nowrap text-grey-900">
-                          {SANDBOX_SUPPORT_EMAIL}
-                        </span>
-                      ) : null}
-                    </Typography>
-                  </li>
-                ))}
-              </ol>
-
-              <div className="grid justify-items-center gap-y-3">
-                {active.url ? (
-                  <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-                    On the web?{" "}
-                    <a
-                      href={active.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() =>
-                        posthog.capture("sandbox_store_link_clicked", {
-                          platform,
-                        })
-                      }
-                      className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
-                    >
-                      Click here
-                    </a>
-                  </Typography>
-                ) : null}
-                <div className="w-full max-w-[236px] rounded-12 bg-grey-50 p-5">
-                  {active.url ? (
-                    <QRCode
-                      value={active.url}
-                      size={196}
-                      className="h-auto w-full"
-                      aria-label={`QR code to install the ${active.label} sandbox build`}
+                    <input
+                      type="email"
+                      required
+                      disabled={existingRequest !== null || requestRefreshing}
+                      value={requestEmail}
+                      onChange={(e) => setRequestEmail(e.target.value)}
+                      aria-label="Google account email"
+                      placeholder="google-account@gmail.com"
+                      className="h-9 min-w-[240px] flex-1 rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300 disabled:bg-grey-100 disabled:text-grey-500"
                     />
-                  ) : (
-                    <div className="flex aspect-square w-full items-center justify-center rounded-8 border border-dashed border-grey-300">
+                    <InkButton
+                      type="submit"
+                      disabled={
+                        existingRequest !== null ||
+                        requestRefreshing ||
+                        requestSending
+                      }
+                      className="h-9 shrink-0 px-4"
+                    >
+                      {existingRequest?.accepted
+                        ? "Invite sent"
+                        : existingRequest
+                          ? "Request submitted"
+                          : "Request invite"}
+                    </InkButton>
+                  </form>
+
+                  {existingRequest ? (
+                    <Typography
+                      variant={TYPOGRAPHY.M4}
+                      className="block text-grey-900"
+                    >
+                      {existingRequest.accepted
+                        ? `An invite has been sent to ${existingRequest.email}. Scan the QR code to install.`
+                        : `Your request for ${existingRequest.email} is pending. We'll email you when the invite has been sent.`}
+                    </Typography>
+                  ) : null}
+                </div>
+
+                <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:gap-12">
+                  <div className="grid content-start gap-y-5">
+                    <ol className="grid gap-y-5">
+                      {ANDROID_DEVICE_STEPS.map((step, index) => (
+                        <li
+                          key={step}
+                          className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-x-3"
+                        >
+                          <StepNumber n={index + 1} />
+                          <Typography
+                            variant={TYPOGRAPHY.R4}
+                            className="pt-0.5 text-grey-700"
+                          >
+                            {step}
+                          </Typography>
+                        </li>
+                      ))}
+                    </ol>
+
+                    <div className="grid gap-y-1.5">
+                      <Typography
+                        variant={TYPOGRAPHY.M5}
+                        className="text-system-warning-700"
+                      >
+                        Important
+                      </Typography>
+                      <ul className="grid gap-y-1.5">
+                        {ANDROID_NOTES.map((note) => (
+                          <li
+                            key={note}
+                            className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2"
+                          >
+                            <span aria-hidden className="text-grey-400">
+                              •
+                            </span>
+                            <Typography
+                              variant={TYPOGRAPHY.R5}
+                              className="text-grey-500"
+                            >
+                              {note}
+                            </Typography>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="grid justify-items-center gap-y-3">
+                    {storeLink}
+                    {qrCard}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:gap-12">
+                <ol className="grid gap-y-5">
+                  {IOS_STEPS.map((step, index) => (
+                    <li
+                      key={step}
+                      className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-x-3"
+                    >
+                      <StepNumber n={index + 1} />
                       <Typography
                         variant={TYPOGRAPHY.R4}
-                        className="text-center text-grey-400"
+                        className="pt-0.5 text-grey-700"
                       >
-                        {active.label} build
-                        <br />
-                        coming soon
+                        {step}
                       </Typography>
-                    </div>
-                  )}
-                </div>
-                {platform === "ios" && TESTFLIGHT_APP_STORE_URL ? (
-                  <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-                    Installing World ID Sandbox requires{" "}
-                    <a
-                      href={TESTFLIGHT_APP_STORE_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                    </li>
+                  ))}
+                </ol>
+
+                <div className="grid justify-items-center gap-y-3">
+                  {storeLink}
+                  {qrCard}
+                  {TESTFLIGHT_APP_STORE_URL ? (
+                    <Typography
+                      variant={TYPOGRAPHY.R5}
+                      className="text-grey-500"
                     >
-                      TestFlight
-                    </a>
-                  </Typography>
-                ) : null}
+                      Installing World ID Sandbox requires{" "}
+                      <a
+                        href={TESTFLIGHT_APP_STORE_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                      >
+                        TestFlight
+                      </a>
+                    </Typography>
+                  ) : null}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </DialogPanel>
       </Dialog>
