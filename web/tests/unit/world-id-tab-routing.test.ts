@@ -1,5 +1,4 @@
 import ActionsLayout from "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/layout";
-import WorldId40Layout from "@/app/(portal)/teams/[teamId]/apps/[appId]/world-id-4-0/layout";
 import WorldIdActionsLayout from "@/app/(portal)/teams/[teamId]/apps/[appId]/world-id-actions/layout";
 import { FetchAppEnvQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
 
@@ -7,10 +6,6 @@ import { FetchAppEnvQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/layout
 const redirectMock = jest.fn();
 jest.mock("next/navigation", () => ({
   redirect: (...args: unknown[]) => redirectMock(...args),
-}));
-
-jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
-  pickPortalVersion: async (v3: () => unknown) => v3(),
 }));
 
 const fetchAppEnvCachedMock = jest.fn();
@@ -61,19 +56,6 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// #region world-id-4-0 layout (combined v3 surface)
-describe("world-id-4-0 layout [combined v3 surface]", () => {
-  it("lets the page handle setup when an app has no RP registration", async () => {
-    withAppEnv({ rpRegistrations: [] });
-
-    await WorldId40Layout(makeProps());
-
-    expect(redirectMock).not.toHaveBeenCalled();
-    expect(fetchAppEnvCachedMock).not.toHaveBeenCalled();
-  });
-});
-// #endregion
-
 // #region world-id-actions layout (RP required)
 describe("world-id-actions layout [RP required]", () => {
   it("redirects into the enable flow when the app has no RP registration", async () => {
@@ -94,9 +76,9 @@ describe("world-id-actions layout [RP required]", () => {
 });
 // #endregion
 
-// #region actions layout (legacy v3 surface)
+// #region actions layout (legacy surface)
 describe("actions layout [legacy route stays reachable]", () => {
-  it("does not redirect — legacy /actions remains available for v3 apps", async () => {
+  it("does not redirect — legacy /actions remains available", async () => {
     withAppEnv({ actions: [] });
 
     await ActionsLayout(makeProps());

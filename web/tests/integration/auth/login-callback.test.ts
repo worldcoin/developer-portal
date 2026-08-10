@@ -65,7 +65,9 @@ describe("test /login-callback", () => {
     const response = await loginCallback(mockReq);
 
     expect(getSession).toHaveReturned();
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
   it("should login nullifier user successfully", async () => {
@@ -81,7 +83,9 @@ describe("test /login-callback", () => {
     const response = await loginCallback(mockReq);
 
     expect(getSession).toHaveReturned();
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
   it("should redirect to /create-team if no user is found", async () => {
@@ -181,7 +185,9 @@ describe("test /login-callback", () => {
       }),
     );
 
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
   it("Should redirect new invited user to /join-callback", async () => {
@@ -247,7 +253,9 @@ describe("test /login-callback", () => {
     const response = await loginCallback(mockReq);
 
     expect(response.headers.get("location")).not.toContain("evil.com");
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
   it("should ignore a protocol-relative URL returnTo and use default redirect", async () => {
@@ -262,7 +270,9 @@ describe("test /login-callback", () => {
     const response = await loginCallback(mockReq);
 
     expect(response.headers.get("location")).not.toContain("evil.com");
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
   it("should ignore a backslash-prefixed returnTo that resolves off-site", async () => {
@@ -277,7 +287,9 @@ describe("test /login-callback", () => {
     const response = await loginCallback(mockReq);
 
     expect(response.headers.get("location")).not.toContain("evil.com");
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
   it("Should add membership for the invited existing user", async () => {
@@ -351,7 +363,9 @@ describe("test /login-callback", () => {
     ).toBeTruthy();
 
     expect(getSession).toHaveReturned();
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith(`/teams/${team_id}`),
+    ).toBeTruthy();
   });
 
   it("Should add membership for the invited existing World ID user", async () => {
@@ -481,7 +495,9 @@ describe("test /login-callback", () => {
 
     // First acceptance succeeds and consumes the invite.
     const first = await loginCallback(mockReq);
-    expect(first.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      first.headers.get("location")?.endsWith(`/teams/${team_id}`),
+    ).toBeTruthy();
 
     // Second attempt with the same (now-consumed) invite must not create a
     // second membership; it falls through to the logout redirect.
