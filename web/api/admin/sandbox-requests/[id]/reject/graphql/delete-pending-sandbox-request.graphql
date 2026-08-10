@@ -1,0 +1,20 @@
+query GetPendingSandboxRequest($id: String!) {
+  sandbox_access_request(
+    where: { id: { _eq: $id }, accepted: { _eq: false } }
+    limit: 1
+  ) {
+    google_email
+    user {
+      name
+      email
+    }
+  }
+}
+
+mutation DeletePendingSandboxRequest($id: String!) {
+  delete_sandbox_access_request(
+    where: { id: { _eq: $id }, accepted: { _eq: false } }
+  ) {
+    affected_rows
+  }
+}
