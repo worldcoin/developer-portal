@@ -24,6 +24,43 @@ export type FetchAdminAppDetailsQuery = {
       created_at: string;
       deleted_at?: string | null;
     };
+    actions: Array<{
+      __typename?: "action";
+      id: string;
+      action: string;
+      name: string;
+      status: string;
+      created_at: string;
+      nullifiers_aggregate: {
+        __typename?: "nullifier_aggregate";
+        aggregate?: {
+          __typename?: "nullifier_aggregate_fields";
+          count: number;
+          sum?: {
+            __typename?: "nullifier_sum_fields";
+            uses?: number | null;
+          } | null;
+        } | null;
+      };
+    }>;
+    rp_registration: Array<{
+      __typename?: "rp_registration";
+      rp_id: string;
+      actions_v4: Array<{
+        __typename?: "action_v4";
+        id: string;
+        action: string;
+        environment: unknown;
+        created_at: string;
+        nullifiers_aggregate: {
+          __typename?: "nullifier_v4_aggregate";
+          aggregate?: {
+            __typename?: "nullifier_v4_aggregate_fields";
+            count: number;
+          } | null;
+        };
+      }>;
+    }>;
     draft_metadata: Array<{
       __typename?: "app_metadata";
       name: string;
@@ -61,6 +98,35 @@ export const FetchAdminAppDetailsDocument = gql`
         name
         created_at
         deleted_at
+      }
+      actions(order_by: { created_at: desc }) {
+        id
+        action
+        name
+        status
+        created_at
+        nullifiers_aggregate {
+          aggregate {
+            count
+            sum {
+              uses
+            }
+          }
+        }
+      }
+      rp_registration(order_by: { created_at: desc }) {
+        rp_id
+        actions_v4(order_by: { created_at: desc }) {
+          id
+          action
+          environment
+          created_at
+          nullifiers_aggregate {
+            aggregate {
+              count
+            }
+          }
+        }
       }
       draft_metadata: app_metadata(
         where: { verification_status: { _neq: "verified" } }
