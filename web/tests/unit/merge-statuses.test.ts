@@ -1,5 +1,5 @@
-import { mergeStatuses } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/SaveStatus/save-status-context";
-import { AutosaveStatus } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/hook/use-autosave";
+import { mergeStatuses } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/SaveStatus/save-status-context";
+import { AutosaveStatus } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/hook/use-autosave";
 
 const noop = () => {};
 

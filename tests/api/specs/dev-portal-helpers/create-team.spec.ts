@@ -119,16 +119,12 @@ describe("Dev Portal Helpers API Endpoints", () => {
       ).toBe(200);
       expect(response.data).toEqual(
         expect.objectContaining({
-          returnTo: expect.stringMatching(
-            /^\/teams\/team_[a-f0-9]{32}\/apps\/$/,
-          ),
+          returnTo: expect.stringMatching(/^\/teams\/team_[a-f0-9]{32}$/),
         }),
       );
 
       // Extract team_id from returnTo URL for cleanup
-      const createdTeamId = response.data.returnTo
-        .split("/teams/")[1]
-        .split("/apps/")[0];
+      const createdTeamId = response.data.returnTo.split("/teams/")[1];
       cleanUpFunctions.push(async () => await deleteTestTeam(createdTeamId));
 
       // Find and cleanup the created user by auth0Id

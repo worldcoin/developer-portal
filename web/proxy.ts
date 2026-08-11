@@ -8,7 +8,6 @@ import { auth0 } from "@/lib/auth0";
 import { InvalidConfigurationError } from "@auth0/nextjs-auth0/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { Role_Enum } from "./graphql/graphql";
-import { isPortalV3EnabledForEmail } from "./lib/feature-flags/portal-v3/flag";
 import { Auth0SessionUser } from "./lib/types";
 import { urls } from "./lib/urls";
 import { checkUserPermissions } from "./lib/utils";
@@ -155,10 +154,9 @@ const checkRouteRolesRestrictions = (
   }
 
   if (teamSettingsRoutes.some((route) => pathname.match(route))) {
-    // The V3 portal allows team members to access the team settings page, but the V2 portal does not. Therefore, we check if the user has access to the V3 portal and allow them to access the team settings page if they do.
-    const validRoles = isPortalV3EnabledForEmail(user?.email)
-      ? [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member]
-      : [Role_Enum.Owner];
+    // Team settings is member-accessible: the page itself scopes what each
+    // role can see/do.
+    const validRoles = [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member];
 
     if (!checkUserPermissions(user, teamId, validRoles)) {
       return restrictedRouteResponse();

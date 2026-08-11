@@ -3,13 +3,8 @@ import "@testing-library/jest-dom";
 import { render, screen, within } from "@testing-library/react";
 import React from "react";
 
-let mockUseV3 = true;
 const mockHeaderGet = jest.fn();
 
-jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
-  pickPortalVersion: async (v3: () => unknown, v2: () => unknown) =>
-    mockUseV3 ? v3() : v2(),
-}));
 jest.mock("next/headers", () => ({
   headers: async () => ({ get: mockHeaderGet }),
 }));
@@ -26,14 +21,9 @@ jest.mock("@/lib/apollo-wrapper", () => ({
     </div>
   ),
 }));
-jest.mock("@/scenes/Portal/layout", () => ({
-  PortalLayout: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="v2-portal">{children}</div>
-  ),
-}));
 jest.mock("@/scenes/PortalV3/layout", () => ({
   PortalLayout: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="v3-portal">{children}</div>
+    <div data-testid="portal-shell">{children}</div>
   ),
 }));
 jest.mock("@/scenes/Onboarding/CreateTeam/Dialog", () => ({
@@ -54,35 +44,22 @@ const renderLayout = async () =>
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockUseV3 = true;
   mockHeaderGet.mockReturnValue("test-nonce");
 });
 
-it("mounts the selected v3 shell and page inside Apollo", async () => {
+it("mounts the portal shell, page, and dialogs inside Apollo with the request nonce", async () => {
   await renderLayout();
 
   const apolloWrapper = screen.getByTestId("apollo-wrapper");
   expect(mockHeaderGet).toHaveBeenCalledWith("x-nonce");
   expect(apolloWrapper).toHaveAttribute("data-nonce", "test-nonce");
   expect(within(apolloWrapper).getByTestId("portal-page")).toBeInTheDocument();
-  expect(screen.getByTestId("v3-portal")).toBeInTheDocument();
+  expect(screen.getByTestId("portal-shell")).toBeInTheDocument();
   expect(screen.getByTestId("create-app-dialog")).toBeInTheDocument();
   expect(screen.getByTestId("create-team-dialog")).toBeInTheDocument();
-  expect(screen.queryByTestId("v2-portal")).not.toBeInTheDocument();
 });
 
-it("mounts the selected v2 shell and page inside Apollo", async () => {
-  mockUseV3 = false;
-
-  await renderLayout();
-
-  const apolloWrapper = screen.getByTestId("apollo-wrapper");
-  expect(within(apolloWrapper).getByTestId("portal-page")).toBeInTheDocument();
-  expect(screen.getByTestId("v2-portal")).toBeInTheDocument();
-  expect(screen.queryByTestId("v3-portal")).not.toBeInTheDocument();
-});
-
-it("renders the selected shell when the request has no nonce", async () => {
+it("renders the shell when the request has no nonce", async () => {
   mockHeaderGet.mockReturnValue(null);
 
   await renderLayout();
