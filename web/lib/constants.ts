@@ -58,7 +58,6 @@ export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated
 export const SIMULATOR_URL = "https://simulator.worldcoin.org";
 export const TELEGRAM_DEVELOPERS_GROUP_URL = "https://t.me/worldcoindevelopers";
 export const TELEGRAM_MATEO_URL = "https://t.me/MateoSauton";
-// Unlinked from the UI while the server is compromised; kept for when it returns.
 export const DISCORD_URL = "https://discord.com/invite/worldnetwork";
 export const WORLD_STATUS_URL = "https://status.world.org/";
 export const WORLD_PRIVACY_URL = "https://world.org/privacy";
