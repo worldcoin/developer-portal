@@ -74,9 +74,6 @@ describe("mcp-snippets module", () => {
     expect(() =>
       require("@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys/ApiKeySecretFields"),
     ).not.toThrow();
-    expect(() =>
-      require("@/scenes/Portal/Teams/TeamId/Team/ApiKeys/page/ApiKeySecretFields"),
-    ).not.toThrow();
   });
 
   it("returns exactly the provider ids declared in PROVIDERS", () => {

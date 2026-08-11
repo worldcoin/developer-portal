@@ -1,6 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { auth0 } from "@/lib/auth0";
-import { isPortalV3EnabledForEmail } from "@/lib/feature-flags/portal-v3/flag";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
@@ -59,10 +58,5 @@ export const RootPage = async () => {
     return redirect(urls.createTeam());
   }
 
-  if (isPortalV3EnabledForEmail(auth0User.email)) {
-    return redirect(urls.dashboard());
-  }
-
-  const team_id = membership[0].team_id;
-  return redirect(urls.apps({ team_id }));
+  return redirect(urls.dashboard());
 };

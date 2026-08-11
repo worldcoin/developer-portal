@@ -40,7 +40,6 @@ jest.mock("@/scenes/common/common/DeleteTeamDialog/server", () => ({
 // #endregion
 
 import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
-import { DeleteTeamDialog as DeleteTeamDialogV2 } from "@/scenes/Portal/common/DeleteTeamDialog";
 import { toast } from "react-toastify";
 
 // #region Test Data
@@ -211,22 +210,6 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     await waitFor(() => expect(deleteTeamServerSide).toHaveBeenCalled());
     expect(refetch).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();
-  });
-});
-// #endregion
-
-// #region v2 dialog — same session gate, but its nav is client-fetched so it never refreshes
-describe("DeleteTeamDialog [v2]", () => {
-  it("returns to the legacy teams page without refreshing the router", async () => {
-    refetch.mockResolvedValue(refetchResultWithMemberships(2));
-
-    render(<DeleteTeamDialogV2 open onClose={jest.fn()} team={team} />);
-    await confirmAndSubmit();
-
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
-    expect(global.fetch).not.toHaveBeenCalled();
-    expect(invalidate).toHaveBeenCalled();
-    expect(refresh).not.toHaveBeenCalled();
   });
 });
 // #endregion
