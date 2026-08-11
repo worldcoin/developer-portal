@@ -55,7 +55,6 @@ const userPopupPreloadIcons = [
   "profile-menu-status",
   "profile-menu-telegram",
   "profile-menu-message",
-  "profile-menu-discord",
   "profile-menu-policy",
   "profile-menu-terms",
 ];

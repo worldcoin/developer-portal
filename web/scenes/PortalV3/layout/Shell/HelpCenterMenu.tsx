@@ -11,7 +11,6 @@ import {
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  DISCORD_URL,
   DOCS_URL,
   FAQ_URL,
   TELEGRAM_DEVELOPERS_GROUP_URL,
@@ -129,12 +128,6 @@ export const HelpCenterMenu = () => {
               label="Text Mateo"
               icon="profile-menu-message"
               onSelect={track("telegram_mateo")}
-            />
-            <HelpLink
-              href={DISCORD_URL}
-              label="Join our Discord"
-              icon="profile-menu-discord"
-              onSelect={track("discord")}
             />
           </DropdownMenuGroup>
 
