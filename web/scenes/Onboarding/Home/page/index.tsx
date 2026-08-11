@@ -207,7 +207,6 @@ const FOOTER_SOCIAL_LINKS: FooterLink[] = [
     href: "https://whatsapp.com/channel/0029VasfcwXA89MkWpeNDB41",
     label: "WhatsApp",
   },
-  { href: "https://discord.com/invite/worldnetwork", label: "Discord" },
   { href: "https://t.me/worldnetworkofficial", label: "Telegram" },
   { href: "https://youtube.com/@worldnetworkofficial", label: "YouTube" },
   { href: "https://instagram.com/world", label: "Instagram" },
