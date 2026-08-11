@@ -85,6 +85,12 @@ jest.mock(
   () => ({ getSdk: () => ({ ClaimRotationSlot }) }),
 );
 
+const RevertRotationStatus = jest.fn();
+jest.mock(
+  "@/api/hasura/rotate-signer-key/graphql/revert-rotation-status.generated",
+  () => ({ getSdk: () => ({ RevertRotationStatus }) }),
+);
+
 const getRpFromContractMock = jest.fn();
 jest.mock("@/api/helpers/temporal-rpc", () => ({
   getRpFromContract: (...args: unknown[]) => getRpFromContractMock(...args),
@@ -128,7 +134,8 @@ jest.mock("@/lib/logger", () => ({
 // #endregion
 
 // #region Test Data
-const client = {} as never;
+const clientRequestMock = jest.fn();
+const client = { request: clientRequestMock } as never;
 const appId = "app_00000000000000000000000000000001";
 const rpId = "rp_0123456789abcdef";
 
@@ -157,10 +164,16 @@ const signerAddress = "0x1111111111111111111111111111111111111111";
 const managerAddress = "0x2222222222222222222222222222222222222222";
 const sharedManagerKeyArn =
   "arn:aws:kms:eu-west-1:000000000000:key/shared-manager";
+const sharedManagerOnChainAddress =
+  "0x3333333333333333333333333333333333333333";
 const dedicatedManagerKeyId = "dedicated-kms-key";
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
+  await global.RedisClient?.flushall();
+  clientRequestMock.mockResolvedValue({
+    update_rp_registration: { affected_rows: 1 },
+  });
   // Non-production by default so the staging mirror is out of scope; the
   // staging suite opts in explicitly.
   process.env.NEXT_PUBLIC_APP_ENV = "test";
@@ -178,6 +191,7 @@ beforeEach(() => {
     initialized: true,
     active: true,
     signer: "0x1111111111111111111111111111111111111111",
+    manager: "0x4444444444444444444444444444444444444444",
   });
   ClaimToggleSlot.mockResolvedValue({
     update_rp_registration: { affected_rows: 1 },
@@ -1034,6 +1048,165 @@ describe("submitManagedRpDeactivation", () => {
 });
 // #endregion
 
+// #region submitManagedRpDeactivation manager key migration
+describe("submitManagedRpDeactivation [manager key migration]", () => {
+  it("reverts the claim and skips when the migration lock is held", async () => {
+    await global.RedisClient?.set(
+      `rp-manager-key-migration:rp:${rpId}`,
+      "migration-owner",
+    );
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({
+      ok: true,
+      outcome: "skipped",
+      reason: "concurrent",
+      rpIdString: rpId,
+    });
+    expect(ClaimToggleSlot).toHaveBeenCalledTimes(1);
+    expect(RevertToggleStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      previous_status: "registered",
+    });
+    expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("reverts the claim and skips when Redis is unavailable", async () => {
+    const redis = global.RedisClient;
+    global.RedisClient = undefined;
+
+    try {
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({
+        ok: true,
+        outcome: "skipped",
+        reason: "concurrent",
+        rpIdString: rpId,
+      });
+      expect(ClaimToggleSlot).toHaveBeenCalledTimes(1);
+      expect(RevertToggleStatus).toHaveBeenCalledWith({
+        rp_id: rpId,
+        previous_status: "registered",
+      });
+      expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
+
+  it("reverts the claim and skips when the migration lock read fails", async () => {
+    const redis = global.RedisClient;
+    global.RedisClient = {
+      get: () => Promise.reject(new Error("simulated Redis outage")),
+    } as unknown as typeof global.RedisClient;
+
+    try {
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({
+        ok: true,
+        outcome: "skipped",
+        reason: "concurrent",
+        rpIdString: rpId,
+      });
+      expect(ClaimToggleSlot).toHaveBeenCalledTimes(1);
+      expect(RevertToggleStatus).toHaveBeenCalledWith({
+        rp_id: rpId,
+        previous_status: "registered",
+      });
+      expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
+
+  it("signs with the shared key and heals the database when on-chain manager is shared", async () => {
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    (getEthAddressFromKMS as jest.Mock).mockImplementation(
+      async (_client: unknown, keyId: string) => {
+        if (keyId === sharedManagerKeyArn) return sharedManagerOnChainAddress;
+        return managerAddress;
+      },
+    );
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      signer: "0x1111111111111111111111111111111111111111",
+      manager: sharedManagerOnChainAddress,
+    });
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({ ok: true, outcome: "submitted" });
+    expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        managerKmsKeyId: sharedManagerKeyArn,
+      }),
+    );
+    expect(clientRequestMock).toHaveBeenCalledWith(
+      expect.stringContaining("HealRpManagerKeyAfterMigration"),
+      {
+        rp_id: rpId,
+        old_manager_key_id: "kms-key-123",
+        shared_manager_key_id: sharedManagerKeyArn,
+      },
+    );
+  });
+
+  it("uses different signing keys per registry when only primary is shared on-chain", async () => {
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    mockGetStagingRpRegistryConfig.mockReturnValue({
+      contractAddress: "0xstaging",
+      kmsRegion: "us-east-1",
+    });
+    (getEthAddressFromKMS as jest.Mock).mockImplementation(
+      async (_client: unknown, keyId: string) => {
+        if (keyId === sharedManagerKeyArn) return sharedManagerOnChainAddress;
+        return managerAddress;
+      },
+    );
+    getRpFromContractMock.mockImplementation(
+      async (_rpId: bigint, contractAddress: string) => {
+        if (contractAddress === "0xstaging") {
+          return {
+            initialized: true,
+            active: true,
+            signer: "0x1111111111111111111111111111111111111111",
+            manager: "0x4444444444444444444444444444444444444444",
+          };
+        }
+        return {
+          initialized: true,
+          active: true,
+          signer: "0x1111111111111111111111111111111111111111",
+          manager: sharedManagerOnChainAddress,
+        };
+      },
+    );
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({ ok: true, outcome: "submitted" });
+    expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledTimes(2);
+    expect(submitToggleRpActiveTransactionMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ contractAddress: "0xcontract" }),
+      expect.objectContaining({ managerKmsKeyId: sharedManagerKeyArn }),
+    );
+    expect(submitToggleRpActiveTransactionMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ contractAddress: "0xstaging" }),
+      expect.objectContaining({ managerKmsKeyId: "kms-key-123" }),
+    );
+    expect(clientRequestMock).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
 // #region submitManagedSignerRotation app-state guard
 describe("submitManagedSignerRotation [app-state guard]", () => {
   const newSignerAddress = "0x2222222222222222222222222222222222222222";
@@ -1171,6 +1344,104 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
 
     expect(res).toMatchObject({ ok: true });
     expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+  });
+});
+// #endregion
+
+// #region submitManagedSignerRotation manager key migration lock
+describe("submitManagedSignerRotation [manager key migration lock]", () => {
+  const newSignerAddress = "0x2222222222222222222222222222222222222222";
+  const { submitRotateSignerTransaction } = jest.requireMock(
+    "@/api/helpers/rp-transactions",
+  ) as { submitRotateSignerTransaction: jest.Mock };
+
+  it("reverts the claim and rejects when the migration lock is held", async () => {
+    ClaimRotationSlot.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+    RevertRotationStatus.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+    await global.RedisClient?.set(
+      `rp-manager-key-migration:rp:${rpId}`,
+      "migration-owner",
+    );
+
+    const res = await submitManagedSignerRotation({
+      client,
+      appId,
+      newSignerAddress,
+    });
+
+    expect(res).toMatchObject({
+      ok: false,
+      code: "rotation_in_progress",
+    });
+    expect(ClaimRotationSlot).toHaveBeenCalledTimes(1);
+    expect(RevertRotationStatus).toHaveBeenCalledWith({ rp_id: rpId });
+    expect(submitRotateSignerTransaction).not.toHaveBeenCalled();
+  });
+
+  it("reverts the claim and rejects when Redis is unavailable", async () => {
+    ClaimRotationSlot.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+    RevertRotationStatus.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+
+    const redis = global.RedisClient;
+    global.RedisClient = undefined;
+
+    try {
+      const res = await submitManagedSignerRotation({
+        client,
+        appId,
+        newSignerAddress,
+      });
+
+      expect(res).toMatchObject({
+        ok: false,
+        code: "rotation_in_progress",
+      });
+      expect(ClaimRotationSlot).toHaveBeenCalledTimes(1);
+      expect(RevertRotationStatus).toHaveBeenCalledWith({ rp_id: rpId });
+      expect(submitRotateSignerTransaction).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
+
+  it("reverts the claim and rejects when the migration lock read fails", async () => {
+    ClaimRotationSlot.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+    RevertRotationStatus.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+
+    const redis = global.RedisClient;
+    global.RedisClient = {
+      get: () => Promise.reject(new Error("simulated Redis outage")),
+    } as unknown as typeof global.RedisClient;
+
+    try {
+      const res = await submitManagedSignerRotation({
+        client,
+        appId,
+        newSignerAddress,
+      });
+
+      expect(res).toMatchObject({
+        ok: false,
+        code: "rotation_in_progress",
+      });
+      expect(ClaimRotationSlot).toHaveBeenCalledTimes(1);
+      expect(RevertRotationStatus).toHaveBeenCalledWith({ rp_id: rpId });
+      expect(submitRotateSignerTransaction).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
   });
 });
 // #endregion

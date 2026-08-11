@@ -62,6 +62,42 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).not.toContain("- manager_kms_key_id");
   });
 
+  it("allows legacy action aggregates without exposing nullifier identity", () => {
+    const actionPermission = getReadonlyPermission("public_action.yaml");
+    const nullifierPermission = getReadonlyPermission("public_nullifier.yaml");
+
+    expect(actionPermission).toContain("- action");
+    expect(actionPermission).toContain("- app_id");
+    expect(actionPermission).toContain("- name");
+    expect(actionPermission).toContain("- status");
+    expect(actionPermission).toContain("allow_aggregations: true");
+    expect(actionPermission).not.toContain("- client_secret");
+    expect(actionPermission).not.toContain("- external_nullifier");
+
+    expect(nullifierPermission).toContain("- uses");
+    expect(nullifierPermission).toContain("allow_aggregations: true");
+    expect(nullifierPermission).not.toContain("- id");
+    expect(nullifierPermission).not.toContain("- nullifier_hash");
+    expect(nullifierPermission).not.toContain("- nullifier_hash_int");
+  });
+
+  it("allows World ID 4.0 counts without exposing nullifier values", () => {
+    const actionPermission = getReadonlyPermission("public_action_v4.yaml");
+    const nullifierPermission = getReadonlyPermission(
+      "public_nullifier_v4.yaml",
+    );
+
+    expect(actionPermission).toContain("- action");
+    expect(actionPermission).toContain("- environment");
+    expect(actionPermission).toContain("- rp_id");
+    expect(actionPermission).toContain("allow_aggregations: true");
+
+    expect(nullifierPermission).toContain("- action_v4_id");
+    expect(nullifierPermission).toContain("allow_aggregations: true");
+    expect(nullifierPermission).not.toContain("- id");
+    expect(nullifierPermission).not.toMatch(/^\s+- nullifier$/m);
+  });
+
   it("lets dashboard readers update only sandbox invite processing fields", () => {
     const metadata = readFileSync(
       path.join(tablesPath, "public_sandbox_access_request.yaml"),

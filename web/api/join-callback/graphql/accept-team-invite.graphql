@@ -1,0 +1,34 @@
+# Consume a single-use invite and create its membership atomically. The delete
+# inside accept_team_invite is the concurrency gate, so only the caller that
+# removes the invite can create a membership for a new user.
+mutation AcceptTeamInvite(
+  $invite_id: String!
+  $team_id: String!
+  $user_id: String!
+) {
+  accept_team_invite(
+    args: { _invite_id: $invite_id, _team_id: $team_id, _user_id: $user_id }
+  ) {
+    team_id
+    role
+    team {
+      id
+      name
+    }
+    user {
+      id
+      email
+      name
+      auth0Id
+      posthog_id
+      is_allow_tracking
+      memberships {
+        team {
+          id
+          name
+        }
+        role
+      }
+    }
+  }
+}

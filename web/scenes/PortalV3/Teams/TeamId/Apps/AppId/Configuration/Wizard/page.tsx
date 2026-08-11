@@ -22,7 +22,7 @@ import { ResolveModal } from "../ResolveModal";
 import { SaveStatusProvider } from "../SaveStatus";
 import { ConfigurationWizard } from "./index";
 import { ConfigurationWizardSkeleton } from "./Skeleton";
-import { WizardStep } from "./Stepper";
+import { WizardStep } from "./wizard-steps";
 
 type ConfigurationWizardPageProps = {
   params: Record<string, string> | null | undefined;

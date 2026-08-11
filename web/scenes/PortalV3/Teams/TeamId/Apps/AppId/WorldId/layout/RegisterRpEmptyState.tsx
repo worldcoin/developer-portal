@@ -1,9 +1,9 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { generateRpIdString } from "@/lib/rp";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { SummaryField } from "./SummaryField";
@@ -78,11 +78,10 @@ export const RegisterRpEmptyState = (props: {
                 Signer address
               </Typography>
               <div className="mt-1 flex flex-col items-start gap-2">
-                <DecoratedButton
+                <InkButton
                   type="button"
-                  variant="primary"
                   disabled={!canRegister}
-                  className="h-9 shrink-0 rounded-full px-4 py-0 text-xs"
+                  className="h-9 shrink-0"
                   aria-describedby={
                     unavailableReason
                       ? "world-id-registration-unavailable-reason"
@@ -94,7 +93,7 @@ export const RegisterRpEmptyState = (props: {
                   }}
                 >
                   Register relying party
-                </DecoratedButton>
+                </InkButton>
                 {unavailableReason ? (
                   <Typography
                     id="world-id-registration-unavailable-reason"

@@ -12,6 +12,7 @@ export type UpdateContentCardImageMutation = {
   update_app_metadata_by_pk?: {
     __typename?: "app_metadata";
     id: string;
+    content_card_image_url: string;
   } | null;
 };
 
@@ -95,6 +96,10 @@ export const UpdateContentCardImageDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "content_card_image_url" },
+                },
               ],
             },
           },
