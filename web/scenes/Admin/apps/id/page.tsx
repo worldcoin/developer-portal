@@ -5,6 +5,7 @@ import { AppStatus, type StatusVariant } from "@/components/AppStatus";
 import { StatusBadge } from "@/components/AdminDashboard/Teams/StatusBadge";
 import { TeamMetric } from "@/components/AdminDashboard/Teams/TeamMetric";
 import { UIModule } from "@/components/AdminDashboard/UIModule";
+import { AdminMiniAppQrCard } from "./AdminMiniAppQrCard";
 import { fetchAdminAppDetails } from "./server/fetch-app-details";
 
 type AdminAppPageProps = {
@@ -204,36 +205,40 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
             </div>
           </section>
         </UIModule>
-        <UIModule className="self-start p-5">
-          <h2 className="text-16 font-semibold text-grey-900">Owning team</h2>
-          <Link
-            className="group mt-4 block min-w-0 rounded-8 outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            href={`/admin/teams/${details.team.id}`}
-            rel="noreferrer"
-            target="_blank"
-          >
-            <p className="truncate text-14 font-medium text-grey-900 transition-colors group-hover:text-blue-500">
-              {details.team.name}
-            </p>
-            <p className="mt-1 truncate font-mono text-12 text-grey-400">
-              {details.team.id}
-            </p>
-          </Link>
-          <dl className="mt-4 grid gap-2 text-14">
-            <div className="flex items-center justify-between gap-4 border-b border-grey-100 py-2">
-              <dt className="text-grey-500">Status</dt>
-              <dd>
-                <StatusBadge status={teamStatus} />
-              </dd>
-            </div>
-            <div className="flex justify-between gap-4 border-b border-grey-100 py-2">
-              <dt className="text-grey-500">Created</dt>
-              <dd className="font-medium text-grey-900">
-                {details.team.created_at.slice(0, 10)}
-              </dd>
-            </div>
-          </dl>
-        </UIModule>
+        <div className="grid content-start gap-4">
+          <UIModule className="p-5">
+            <h2 className="text-16 font-semibold text-grey-900">Owning team</h2>
+            <Link
+              className="group mt-4 block min-w-0 rounded-8 outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              href={`/admin/teams/${details.team.id}`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <p className="truncate text-14 font-medium text-grey-900 transition-colors group-hover:text-blue-500">
+                {details.team.name}
+              </p>
+              <p className="mt-1 truncate font-mono text-12 text-grey-400">
+                {details.team.id}
+              </p>
+            </Link>
+            <dl className="mt-4 grid gap-2 text-14">
+              <div className="flex items-center justify-between gap-4 border-b border-grey-100 py-2">
+                <dt className="text-grey-500">Status</dt>
+                <dd>
+                  <StatusBadge status={teamStatus} />
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4 border-b border-grey-100 py-2">
+                <dt className="text-grey-500">Created</dt>
+                <dd className="font-medium text-grey-900">
+                  {details.team.created_at.slice(0, 10)}
+                </dd>
+              </div>
+            </dl>
+          </UIModule>
+
+          <AdminMiniAppQrCard appId={details.app.id} />
+        </div>
       </div>
     </div>
   );
