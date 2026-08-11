@@ -56,7 +56,6 @@
     "next-useragent": "^2.8.0",
     "node-cache": "^5.1.2",
     "ox": "^0.14.0",
-    "playwright-qase-reporter": "^2.0.17",
     "posthog-js": "^1.166.1",
     "posthog-node": "^4.2.0",
     "qrcode": "^1.5.4",
