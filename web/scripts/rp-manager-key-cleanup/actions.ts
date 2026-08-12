@@ -646,4 +646,37 @@ export async function recordCleanupOutcome(
   });
 }
 
+// ANCHOR: Move a still-referenced row to the back of the cleanup queue.
+export async function touchSkippedCleanupCandidate(
+  input: RpManagerKeyCleanupInput,
+  candidate: ManagerKeyCleanupCandidate,
+): Promise<void> {
+  const response = await input.graphqlClient.request<
+    UpdateAuditResult,
+    { rp_id: string; updated_at: string }
+  >(
+    gql`
+      mutation TouchSkippedRpManagerKeyCleanup(
+        $rp_id: String!
+        $updated_at: timestamptz!
+      ) {
+        update_rp_manager_key_migration_audit_by_pk(
+          pk_columns: { rp_id: $rp_id }
+          _set: { updated_at: $updated_at }
+        ) {
+          rp_id
+        }
+      }
+    `,
+    {
+      rp_id: candidate.rp_id,
+      updated_at: new Date().toISOString(),
+    },
+  );
+
+  if (!response.update_rp_manager_key_migration_audit_by_pk) {
+    throw new Error("Cleanup audit row no longer exists");
+  }
+}
+
 // #endregion

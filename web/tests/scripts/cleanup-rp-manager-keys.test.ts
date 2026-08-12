@@ -99,6 +99,7 @@ let databaseState: {
   duplicate_audits: [{ rp_id: RP_ID }],
 };
 let recordedOutcomes: Array<Record<string, unknown>> = [];
+let skippedTouches: Array<Record<string, unknown>> = [];
 
 const graphqlRequestMock = jest.fn();
 const graphqlClient = {
@@ -132,6 +133,11 @@ function arrangeGraphql(): void {
           return databaseState;
         case "RecordRpManagerKeyCleanupOutcome":
           recordedOutcomes.push(variables as Record<string, unknown>);
+          return {
+            update_rp_manager_key_migration_audit_by_pk: { rp_id: RP_ID },
+          };
+        case "TouchSkippedRpManagerKeyCleanup":
+          skippedTouches.push(variables as Record<string, unknown>);
           return {
             update_rp_manager_key_migration_audit_by_pk: { rp_id: RP_ID },
           };
@@ -212,6 +218,7 @@ beforeEach(() => {
     duplicate_audits: [{ rp_id: RP_ID }],
   };
   recordedOutcomes = [];
+  skippedTouches = [];
 
   arrangeGraphql();
   arrangeCurrentAccountKms();
@@ -273,6 +280,12 @@ describe("cleanupRpManagerKeys [pipeline]", () => {
     expect(getRpFromContractMock).not.toHaveBeenCalled();
     expect(kmsSendMock).not.toHaveBeenCalled();
     expect(recordedOutcomes).toEqual([]);
+    expect(skippedTouches).toEqual([
+      {
+        rp_id: RP_ID,
+        updated_at: expect.any(String),
+      },
+    ]);
     expect(report.results[0]).toEqual(
       expect.objectContaining({
         status: "skipped",

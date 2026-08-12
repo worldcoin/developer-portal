@@ -6,6 +6,7 @@ import {
   PlanStep,
   recordCleanupOutcome,
   scheduleOldKeyDeletion,
+  touchSkippedCleanupCandidate,
   type ManagerKeyCleanupCandidate,
   type ManagerKeyCleanupPlan,
   type RpManagerKeyCleanupInput,
@@ -26,6 +27,7 @@ export async function executeCleanupPlan(
 
   switch (plan.nextStep) {
     case PlanStep.Skip:
+      await touchSkippedCleanupCandidate(input, candidate);
       logger.info("RP manager key cleanup skipped", {
         rp_id: candidate.rp_id,
         old_manager_kms_key_arn: candidate.old_manager_kms_key_arn,

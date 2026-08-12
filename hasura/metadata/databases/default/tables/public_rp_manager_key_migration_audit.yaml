@@ -35,5 +35,6 @@ update_permissions:
         - last_error_detail
         - deletion_scheduled_at
         - expected_deletion_at
+        - updated_at
       filter: {}
       check: {}
