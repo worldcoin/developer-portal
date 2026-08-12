@@ -1,0 +1,39 @@
+table:
+  name: rp_manager_key_migration_audit
+  schema: public
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - rp_id
+        - app_id
+        - old_manager_kms_key_id
+        - old_manager_kms_key_arn
+        - shared_manager_kms_key_id
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - rp_id
+        - app_id
+        - old_manager_kms_key_id
+        - old_manager_kms_key_arn
+        - shared_manager_kms_key_id
+        - cleanup_status
+        - last_error_detail
+        - deletion_scheduled_at
+        - expected_deletion_at
+        - created_at
+        - updated_at
+      filter: {}
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - cleanup_status
+        - last_error_detail
+        - deletion_scheduled_at
+        - expected_deletion_at
+      filter: {}
+      check: {}

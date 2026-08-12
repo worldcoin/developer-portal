@@ -11,3 +11,6 @@ README.md
 .env*
 scripts/*
 !scripts/migrate-rp-manager-to-shared-key.ts
+!scripts/rp-manager-key-migration/**
+!scripts/cleanup-rp-manager-keys.ts
+!scripts/rp-manager-key-cleanup/**

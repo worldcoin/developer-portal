@@ -50,6 +50,7 @@ const OLD_KEY_ID = "arn:aws:kms:eu-west-1:111111111111:key/old-key";
 const SECOND_OLD_KEY_ID =
   "arn:aws:kms:eu-west-1:111111111111:key/second-old-key";
 const SHARED_KEY_ID = "arn:aws:kms:eu-west-1:111111111111:key/shared-key";
+const ATTEMPT_ID = "12345678-1234-4234-8234-123456789abc";
 const OLD_MANAGER = "0x1111111111111111111111111111111111111111";
 const SHARED_MANAGER = "0x2222222222222222222222222222222222222222";
 const SIGNER = "0x3333333333333333333333333333333333333333";
@@ -209,7 +210,7 @@ describe("migrateRpManagersToSharedKey [successful migrations]", () => {
       kmsClient,
       sharedManagerKeyId: SHARED_KEY_ID,
       ...deploymentWithStagingMirror,
-      attemptId: "attempt-123",
+      attemptId: ATTEMPT_ID,
       pollIntervalMs: 0,
     });
 
@@ -224,8 +225,15 @@ describe("migrateRpManagersToSharedKey [successful migrations]", () => {
         kmsClient,
       }),
     );
-    expect(graphqlRequestMock).toHaveBeenCalledTimes(2);
+    expect(graphqlRequestMock).toHaveBeenCalledTimes(3);
     expect(graphqlRequestMock.mock.calls[1][1]).toEqual({
+      rp_id: RP_ID,
+      app_id: APP_ID,
+      old_manager_kms_key_id: OLD_KEY_ID,
+      old_manager_kms_key_arn: OLD_KEY_ID,
+      shared_manager_kms_key_id: SHARED_KEY_ID,
+    });
+    expect(graphqlRequestMock.mock.calls[2][1]).toEqual({
       rp_id: RP_ID,
       old_manager_key_id: OLD_KEY_ID,
       shared_manager_key_id: SHARED_KEY_ID,
@@ -244,7 +252,7 @@ describe("migrateRpManagersToSharedKey [successful migrations]", () => {
     expect(mockLogger.info).toHaveBeenCalledWith(
       "RP manager key migration completed",
       expect.objectContaining({
-        attempt_id: "attempt-123",
+        attempt_id: ATTEMPT_ID,
         rp_id: RP_ID,
         app_id: APP_ID,
         migrated_registries: ["production", "staging"],
@@ -440,7 +448,7 @@ describe("migrateRpManagersToSharedKey [registry configurations]", () => {
     });
 
     expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
-    expect(graphqlRequestMock).toHaveBeenCalledTimes(1);
+    expect(graphqlRequestMock).toHaveBeenCalledTimes(2);
     expect(report.results[0]).toEqual(
       expect.objectContaining({
         status: "failed",
@@ -491,7 +499,7 @@ describe("migrateRpManagersToSharedKey [registry configurations]", () => {
     });
 
     expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
-    expect(graphqlRequestMock).toHaveBeenCalledTimes(1);
+    expect(graphqlRequestMock).toHaveBeenCalledTimes(2);
     expect(report.results[0]).toEqual(
       expect.objectContaining({
         status: "failed",
@@ -500,7 +508,7 @@ describe("migrateRpManagersToSharedKey [registry configurations]", () => {
     );
   });
 
-  it("does not update the database if an initially absent mirror appears during migration", async () => {
+  it("does not update the registration if an initially absent mirror appears during migration", async () => {
     arrangeGraphql([{ ...candidate, staging_status: null }]);
     arrangeRegistryQueues({
       [productionConfig.contractAddress]: [
@@ -517,7 +525,7 @@ describe("migrateRpManagersToSharedKey [registry configurations]", () => {
       ...deploymentWithStagingMirror,
     });
 
-    expect(graphqlRequestMock).toHaveBeenCalledTimes(1);
+    expect(graphqlRequestMock).toHaveBeenCalledTimes(2);
     expect(report.results[0]).toEqual(
       expect.objectContaining({
         status: "failed",
@@ -532,7 +540,33 @@ describe("migrateRpManagersToSharedKey [registry configurations]", () => {
 // #region Failure isolation and safety guards
 
 describe("migrateRpManagersToSharedKey [safety guards]", () => {
-  it("does not submit or update the database when a registry has an unexpected manager", async () => {
+  it("does not start migration when the audit record cannot be written", async () => {
+    graphqlRequestMock
+      .mockResolvedValueOnce({ rp_registration: [candidate] })
+      .mockRejectedValueOnce(new Error("audit database unavailable"));
+
+    const report = await migrateRpManagersToSharedKey({
+      graphqlClient,
+      kmsClient,
+      sharedManagerKeyId: SHARED_KEY_ID,
+      ...deploymentWithPrimaryOnly,
+    });
+
+    expect(getEthAddressFromKMSMock).toHaveBeenCalledTimes(1);
+    expect(getRpFromContractMock).not.toHaveBeenCalled();
+    expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
+    expect(report.results[0]).toEqual(
+      expect.objectContaining({
+        status: "failed",
+        failure: {
+          stage: "write_audit",
+          detail: "audit database unavailable",
+        },
+      }),
+    );
+  });
+
+  it("does not submit or update the registration when a registry has an unexpected manager", async () => {
     arrangeGraphql();
     arrangeRegistryQueues({
       [productionConfig.contractAddress]: [
@@ -548,7 +582,7 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
     });
 
     expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
-    expect(graphqlRequestMock).toHaveBeenCalledTimes(1);
+    expect(graphqlRequestMock).toHaveBeenCalledTimes(2);
     expect(report.results[0]).toEqual(
       expect.objectContaining({
         status: "failed",
@@ -558,7 +592,7 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
     );
   });
 
-  it("does not update the database when transaction submission fails", async () => {
+  it("does not update the registration when transaction submission fails", async () => {
     arrangeGraphql();
     arrangeRegistryQueues({
       [productionConfig.contractAddress]: [makeOnChainRp()],
@@ -575,7 +609,7 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
       ...deploymentWithStagingMirror,
     });
 
-    expect(graphqlRequestMock).toHaveBeenCalledTimes(1);
+    expect(graphqlRequestMock).toHaveBeenCalledTimes(2);
     expect(report.results[0]).toEqual(
       expect.objectContaining({
         status: "failed",
@@ -584,7 +618,7 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
     );
   });
 
-  it("keeps the database unchanged when the second registry fails after the first one succeeds", async () => {
+  it("keeps the registration unchanged when the second registry fails after the first one succeeds", async () => {
     arrangeGraphql();
     arrangeRegistryQueues({
       [productionConfig.contractAddress]: [
@@ -606,7 +640,7 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
     });
 
     expect(submitTransferManagerTransactionMock).toHaveBeenCalledTimes(2);
-    expect(graphqlRequestMock).toHaveBeenCalledTimes(1);
+    expect(graphqlRequestMock).toHaveBeenCalledTimes(2);
     expect(report.results[0]).toEqual(
       expect.objectContaining({
         status: "failed",
@@ -617,7 +651,7 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
     );
   });
 
-  it("does not update the database when on-chain confirmation times out", async () => {
+  it("does not update the registration when on-chain confirmation times out", async () => {
     arrangeGraphql();
     arrangeRegistryQueues({
       [productionConfig.contractAddress]: [makeOnChainRp(), makeOnChainRp()],
@@ -631,7 +665,7 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
       confirmationTimeoutMs: 0,
     });
 
-    expect(graphqlRequestMock).toHaveBeenCalledTimes(1);
+    expect(graphqlRequestMock).toHaveBeenCalledTimes(2);
     expect(report.results[0]).toEqual(
       expect.objectContaining({
         status: "failed",
@@ -643,7 +677,7 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
     );
   });
 
-  it("does not update the database when final verification detects a signer change", async () => {
+  it("does not update the registration when final verification detects a signer change", async () => {
     arrangeGraphql();
     arrangeRegistryQueues({
       [productionConfig.contractAddress]: [
@@ -661,7 +695,7 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
       pollIntervalMs: 0,
     });
 
-    expect(graphqlRequestMock).toHaveBeenCalledTimes(1);
+    expect(graphqlRequestMock).toHaveBeenCalledTimes(2);
     expect(report.results[0]).toEqual(
       expect.objectContaining({
         status: "failed",
@@ -717,7 +751,7 @@ describe("migrateRpManagersToSharedKey [safety guards]", () => {
       pollIntervalMs: 0,
     });
 
-    expect(graphqlRequestMock.mock.calls[1][1]).toEqual({
+    expect(graphqlRequestMock.mock.calls[2][1]).toEqual({
       rp_id: RP_ID,
       old_manager_key_id: OLD_KEY_ID,
       shared_manager_key_id: SHARED_KEY_ID,
