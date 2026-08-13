@@ -56,7 +56,7 @@ describe("admin app detail fetch", () => {
           {
             name: "Draft app",
             supported_countries: ["US", "GB"],
-            updated_at: "2026-01-02",
+            updated_at: "2026-01-04",
             verification_status: "awaiting_review",
           },
         ],
@@ -108,10 +108,24 @@ describe("admin app detail fetch", () => {
       metadata_versions: [
         {
           app_id: "app_current",
+          name: "Draft app",
+          updated_at: "2026-01-04",
+          verification_status: "awaiting_review",
+          verified_at: null,
+        },
+        {
+          app_id: "app_current",
           name: "Verified app",
           updated_at: "2026-01-03",
           verification_status: "verified",
           verified_at: "2026-01-03",
+        },
+        {
+          app_id: "app_current",
+          name: "Earlier app",
+          updated_at: "2026-01-01",
+          verification_status: "changes_requested",
+          verified_at: null,
         },
       ],
     });
@@ -146,7 +160,8 @@ describe("admin app detail fetch", () => {
             uniqueNullifiers: 0,
           },
         ],
-        metadataVersions: [expect.objectContaining({ name: "Verified app" })],
+        latestMetadataUpdate: "2026-01-04",
+        metadataHistory: [expect.objectContaining({ name: "Earlier app" })],
         team: expect.objectContaining({
           id: "team_current",
           name: "Current team",

@@ -20,6 +20,13 @@ export const fetchAdminAppDetails = async (appId: string) => {
       rp_registration: rpRegistrations,
       ...app
     } = data.app_by_pk;
+    const draftMetadata = data.app_by_pk.draft_metadata[0] ?? null;
+    const verifiedMetadata = data.app_by_pk.verified_metadata[0] ?? null;
+    const currentMetadataUpdates = new Set(
+      [draftMetadata?.updated_at, verifiedMetadata?.updated_at].filter(
+        (updatedAt): updatedAt is string => Boolean(updatedAt),
+      ),
+    );
     const legacyActions = actions.map((action) => ({
       action: action.action,
       createdAt: action.created_at,
@@ -44,11 +51,14 @@ export const fetchAdminAppDetails = async (appId: string) => {
 
     return {
       app,
-      draftMetadata: data.app_by_pk.draft_metadata[0] ?? null,
+      draftMetadata,
       legacyActions,
-      metadataVersions: data.metadata_versions,
+      latestMetadataUpdate: data.metadata_versions[0]?.updated_at ?? null,
+      metadataHistory: data.metadata_versions.filter(
+        (metadata) => !currentMetadataUpdates.has(metadata.updated_at),
+      ),
       team: data.app_by_pk.team,
-      verifiedMetadata: data.app_by_pk.verified_metadata[0] ?? null,
+      verifiedMetadata,
       worldId40Actions,
     };
   } catch (error) {

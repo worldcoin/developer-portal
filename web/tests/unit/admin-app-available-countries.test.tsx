@@ -11,6 +11,7 @@ describe("admin app available countries", () => {
     expect(
       screen.getByText("United States, United Kingdom, Germany"),
     ).toBeVisible();
+    expect(screen.getByText("Available countries:")).toBeVisible();
     expect(screen.queryByText("US")).toBeNull();
   });
 

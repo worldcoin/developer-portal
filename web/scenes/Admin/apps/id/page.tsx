@@ -46,7 +46,6 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
     details.verifiedMetadata?.verification_status,
   );
   const teamStatus = details.team.deleted_at ? "Deleted" : "Active";
-  const latestMetadataUpdate = details.metadataVersions[0]?.updated_at;
   const workflowStatus = draftStatus ?? verifiedStatus;
 
   return (
@@ -110,7 +109,7 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
             />
             <TeamMetric
               label="Last metadata update"
-              value={latestMetadataUpdate?.slice(0, 10) ?? "—"}
+              value={details.latestMetadataUpdate?.slice(0, 10) ?? "—"}
             />
             <TeamMetric
               label="Verified at"
@@ -131,12 +130,6 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
               </dd>
             </div>
           </dl>
-          <AvailableCountries
-            countryCodes={
-              details.draftMetadata?.supported_countries ??
-              details.verifiedMetadata?.supported_countries
-            }
-          />
           <section className="mt-6">
             <h3 className="text-14 font-semibold text-grey-900">
               Metadata workflow
@@ -152,9 +145,14 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
                     {details.draftMetadata?.name ?? "No draft metadata"}
                   </p>
                   {details.draftMetadata && (
-                    <time className="text-12 text-grey-500">
-                      Updated {details.draftMetadata.updated_at.slice(0, 10)}
-                    </time>
+                    <>
+                      <time className="text-12 text-grey-500">
+                        Updated {details.draftMetadata.updated_at.slice(0, 10)}
+                      </time>
+                      <AvailableCountries
+                        countryCodes={details.draftMetadata.supported_countries}
+                      />
+                    </>
                   )}
                 </div>
                 {draftStatus && <AppStatus status={draftStatus} />}
@@ -171,6 +169,13 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
                       {details.verifiedMetadata.verified_at.slice(0, 10)}
                     </time>
                   )}
+                  {details.verifiedMetadata && (
+                    <AvailableCountries
+                      countryCodes={
+                        details.verifiedMetadata.supported_countries
+                      }
+                    />
+                  )}
                 </div>
                 {verifiedStatus && <AppStatus status={verifiedStatus} />}
               </div>
@@ -178,15 +183,15 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
           </section>
           <section className="mt-6">
             <h3 className="text-14 font-semibold text-grey-900">
-              Metadata history
+              Earlier metadata history
             </h3>
             <div className="mt-2 divide-y divide-grey-100">
-              {details.metadataVersions.length === 0 ? (
+              {details.metadataHistory.length === 0 ? (
                 <p className="py-3 text-14 text-grey-500">
-                  No metadata history.
+                  No earlier metadata versions.
                 </p>
               ) : (
-                details.metadataVersions.map((metadata) => {
+                details.metadataHistory.map((metadata) => {
                   const status = getMetadataStatus(
                     metadata.verification_status,
                   );
