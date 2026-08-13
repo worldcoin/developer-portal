@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/AdminDashboard/Teams/StatusBadge";
 import { TeamMetric } from "@/components/AdminDashboard/Teams/TeamMetric";
 import { UIModule } from "@/components/AdminDashboard/UIModule";
 import { AdminAppActionsSection } from "./ActionsSection";
+import { AvailableCountries } from "./AvailableCountries";
 import { fetchAdminAppDetails } from "./server/fetch-app-details";
 
 type AdminAppPageProps = {
@@ -130,6 +131,12 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
               </dd>
             </div>
           </dl>
+          <AvailableCountries
+            countryCodes={
+              details.draftMetadata?.supported_countries ??
+              details.verifiedMetadata?.supported_countries
+            }
+          />
           <section className="mt-6">
             <h3 className="text-14 font-semibold text-grey-900">
               Metadata workflow

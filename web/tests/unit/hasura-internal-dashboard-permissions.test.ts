@@ -47,6 +47,16 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).not.toContain("- api_key");
   });
 
+  it("allows app country availability needed by the app detail page", () => {
+    const permission = getReadonlyPermission("public_app_metadata.yaml");
+
+    expect(permission).toContain("- app_id");
+    expect(permission).toContain("- name");
+    expect(permission).toContain("- supported_countries");
+    expect(permission).not.toContain("- reviewed_by");
+    expect(permission).not.toContain("- whitelisted_addresses");
+  });
+
   it("allows RP registration reads without manager KMS key IDs", () => {
     const permission = getReadonlyPermission("public_rp_registration.yaml");
 

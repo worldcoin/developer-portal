@@ -119,6 +119,7 @@ select_permissions:
       columns:
         - app_id
         - name
+        - supported_countries
         - updated_at
         - verification_status
         - verified_at

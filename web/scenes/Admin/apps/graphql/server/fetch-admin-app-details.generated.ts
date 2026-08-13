@@ -64,12 +64,14 @@ export type FetchAdminAppDetailsQuery = {
     draft_metadata: Array<{
       __typename?: "app_metadata";
       name: string;
+      supported_countries?: Array<string> | null;
       verification_status: string;
       updated_at: string;
     }>;
     verified_metadata: Array<{
       __typename?: "app_metadata";
       name: string;
+      supported_countries?: Array<string> | null;
       verification_status: string;
       verified_at?: string | null;
       updated_at: string;
@@ -134,6 +136,7 @@ export const FetchAdminAppDetailsDocument = gql`
         limit: 1
       ) {
         name
+        supported_countries
         verification_status
         updated_at
       }
@@ -143,6 +146,7 @@ export const FetchAdminAppDetailsDocument = gql`
         limit: 1
       ) {
         name
+        supported_countries
         verification_status
         verified_at
         updated_at

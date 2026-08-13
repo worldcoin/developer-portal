@@ -55,6 +55,7 @@ describe("admin app detail fetch", () => {
         draft_metadata: [
           {
             name: "Draft app",
+            supported_countries: ["US", "GB"],
             updated_at: "2026-01-02",
             verification_status: "awaiting_review",
           },
@@ -97,6 +98,7 @@ describe("admin app detail fetch", () => {
         verified_metadata: [
           {
             name: "Verified app",
+            supported_countries: ["US"],
             updated_at: "2026-01-03",
             verification_status: "verified",
             verified_at: "2026-01-03",
@@ -120,7 +122,10 @@ describe("admin app detail fetch", () => {
           id: "app_current",
           name: "Current app",
         }),
-        draftMetadata: expect.objectContaining({ name: "Draft app" }),
+        draftMetadata: expect.objectContaining({
+          name: "Draft app",
+          supported_countries: ["US", "GB"],
+        }),
         legacyActions: [
           {
             action: "claim-offer",
@@ -146,7 +151,10 @@ describe("admin app detail fetch", () => {
           id: "team_current",
           name: "Current team",
         }),
-        verifiedMetadata: expect.objectContaining({ name: "Verified app" }),
+        verifiedMetadata: expect.objectContaining({
+          name: "Verified app",
+          supported_countries: ["US"],
+        }),
         worldId40Actions: [
           {
             action: "staging-action",
