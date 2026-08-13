@@ -403,10 +403,14 @@
             WHERE mode = 'managed' AND manager_kms_key_id IS NULL
           )::bigint AS managed_without_key,
           COUNT(*) FILTER (
-            WHERE mode = 'managed' AND is_unique_manager_key = true
+            WHERE mode = 'managed'
+              AND is_unique_manager_key = true
+              AND manager_kms_key_id IS NOT NULL
           )::bigint AS unique_manager_key_rps,
           COUNT(*) FILTER (
-            WHERE mode = 'managed' AND is_unique_manager_key = false
+            WHERE mode = 'managed'
+              AND is_unique_manager_key = false
+              AND manager_kms_key_id IS NOT NULL
           )::bigint AS shared_manager_key_rps,
           COUNT(*) FILTER (WHERE status = 'pending')::bigint AS status_pending,
           COUNT(*) FILTER (WHERE status = 'registered')::bigint AS status_registered,
