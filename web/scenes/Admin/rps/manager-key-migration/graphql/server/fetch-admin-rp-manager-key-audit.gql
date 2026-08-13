@@ -2,7 +2,6 @@
 query FetchAdminRpManagerKeyAudit($rpId: String!) {
   rp_registration_by_pk(rp_id: $rpId) {
     is_unique_manager_key
-    manager_kms_key_id
   }
   rp_manager_key_migration_audit_by_pk(rp_id: $rpId) {
     rp_id

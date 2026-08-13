@@ -62,7 +62,6 @@ const AuditSectionContent = ({ data }: { data: AdminRpManagerKeyAudit }) => {
   return (
     <dl className="mt-3 min-w-0">
       <Field label="Manager key mode" value={keyMode} />
-      <Field label="Current manager key" mono value={data.managerKmsKeyId} />
       {data.audit ? (
         <>
           <Field

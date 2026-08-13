@@ -13,7 +13,6 @@ export type FetchAdminRpManagerKeyAuditQuery = {
   rp_registration_by_pk?: {
     __typename?: "rp_registration";
     is_unique_manager_key: boolean;
-    manager_kms_key_id?: string | null;
   } | null;
   rp_manager_key_migration_audit_by_pk?: {
     __typename?: "rp_manager_key_migration_audit";
@@ -35,7 +34,6 @@ export const FetchAdminRpManagerKeyAuditDocument = gql`
   query FetchAdminRpManagerKeyAudit($rpId: String!) {
     rp_registration_by_pk(rp_id: $rpId) {
       is_unique_manager_key
-      manager_kms_key_id
     }
     rp_manager_key_migration_audit_by_pk(rp_id: $rpId) {
       rp_id

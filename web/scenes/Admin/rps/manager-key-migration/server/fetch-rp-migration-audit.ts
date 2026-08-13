@@ -9,7 +9,6 @@ import { getSdk } from "../graphql/server/fetch-admin-rp-manager-key-audit.gener
 
 export type AdminRpManagerKeyAudit = {
   isUniqueManagerKey: boolean;
-  managerKmsKeyId: string | null;
   audit: {
     rpId: string;
     appId: string;
@@ -42,7 +41,6 @@ export const fetchAdminRpManagerKeyAudit = async (
 
     return {
       isUniqueManagerKey: data.rp_registration_by_pk.is_unique_manager_key,
-      managerKmsKeyId: data.rp_registration_by_pk.manager_kms_key_id ?? null,
       audit: auditRow
         ? {
             rpId: auditRow.rp_id,

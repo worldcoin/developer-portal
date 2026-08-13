@@ -273,7 +273,6 @@ describe("admin RP manager key migration fetch", () => {
     mockFetchAdminRpManagerKeyAudit.mockResolvedValue({
       rp_registration_by_pk: {
         is_unique_manager_key: false,
-        manager_kms_key_id: "arn:aws:kms:eu-west-1:1:key/shared",
       },
       rp_manager_key_migration_audit_by_pk: {
         rp_id: "rp_eeeeeeeeeeeeeeee",
@@ -294,7 +293,6 @@ describe("admin RP manager key migration fetch", () => {
       fetchAdminRpManagerKeyAudit("rp_eeeeeeeeeeeeeeee"),
     ).resolves.toEqual({
       isUniqueManagerKey: false,
-      managerKmsKeyId: "arn:aws:kms:eu-west-1:1:key/shared",
       audit: {
         rpId: "rp_eeeeeeeeeeeeeeee",
         appId: "app_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
@@ -315,7 +313,6 @@ describe("admin RP manager key migration fetch", () => {
     mockFetchAdminRpManagerKeyAudit.mockResolvedValue({
       rp_registration_by_pk: {
         is_unique_manager_key: false,
-        manager_kms_key_id: "arn:aws:kms:eu-west-1:1:key/shared",
       },
       rp_manager_key_migration_audit_by_pk: null,
     });
@@ -324,7 +321,6 @@ describe("admin RP manager key migration fetch", () => {
       fetchAdminRpManagerKeyAudit("rp_ffffffffffffffff"),
     ).resolves.toEqual({
       isUniqueManagerKey: false,
-      managerKmsKeyId: "arn:aws:kms:eu-west-1:1:key/shared",
       audit: null,
     });
   });

@@ -37,7 +37,6 @@ select_permissions:
         - app_id
         - mode
         - signer_address
-        - manager_kms_key_id
         - is_unique_manager_key
         - status
         - operation_hash

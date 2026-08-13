@@ -58,6 +58,7 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).toContain("- signer_address");
     expect(permission).toContain("- operation_hash");
     expect(permission).toContain("- staging_operation_hash");
+    expect(permission).toContain("- is_unique_manager_key");
     expect(permission).toContain("allow_aggregations: true");
     expect(permission).not.toContain("- manager_kms_key_id");
   });
