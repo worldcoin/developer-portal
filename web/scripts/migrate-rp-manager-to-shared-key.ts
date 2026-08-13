@@ -15,6 +15,7 @@ import { logger } from "@/lib/logger";
 import type { KMSClient } from "@aws-sdk/client-kms";
 import { gql, type GraphQLClient } from "graphql-request";
 import { randomUUID } from "node:crypto";
+import { insertMigrationAuditRecord } from "./rp-manager-key-migration/insert-migration-audit-record";
 
 // #region Types
 
@@ -39,6 +40,7 @@ export type RpManagerMigrationInput = {
 };
 
 export type RpManagerMigrationFailureStage =
+  | "write_audit"
   | "load_old_key"
   | "read_registry"
   | "conflict"
@@ -127,76 +129,6 @@ const MIGRATION_CANDIDATE_FIELDS = gql`
     staging_status
     staging_operation_hash
     updated_at
-  }
-`;
-
-const GET_MIGRATION_CANDIDATES = gql`
-  ${MIGRATION_CANDIDATE_FIELDS}
-  query GetRpManagerMigrationCandidates {
-    rp_registration(
-      where: {
-        mode: { _eq: managed }
-        status: { _eq: registered }
-        signer_address: { _is_null: false }
-        manager_kms_key_id: { _is_null: false }
-        is_unique_manager_key: { _eq: true }
-        app: {
-          status: { _eq: "active" }
-          is_archived: { _eq: false }
-          deleted_at: { _is_null: true }
-        }
-      }
-      order_by: { created_at: asc }
-    ) {
-      ...RpManagerMigrationCandidate
-    }
-  }
-`;
-
-const GET_MIGRATION_CANDIDATES_BY_ID = gql`
-  ${MIGRATION_CANDIDATE_FIELDS}
-  query GetRpManagerMigrationCandidatesById($rp_ids: [String!]!) {
-    rp_registration(
-      where: {
-        rp_id: { _in: $rp_ids }
-        mode: { _eq: managed }
-        status: { _eq: registered }
-        signer_address: { _is_null: false }
-        manager_kms_key_id: { _is_null: false }
-        is_unique_manager_key: { _eq: true }
-        app: {
-          status: { _eq: "active" }
-          is_archived: { _eq: false }
-          deleted_at: { _is_null: true }
-        }
-      }
-      order_by: { created_at: asc }
-    ) {
-      ...RpManagerMigrationCandidate
-    }
-  }
-`;
-
-const FINALIZE_MIGRATION = gql`
-  mutation FinalizeRpManagerMigration(
-    $rp_id: String!
-    $old_manager_key_id: String!
-    $shared_manager_key_id: String!
-  ) {
-    update_rp_registration(
-      where: {
-        rp_id: { _eq: $rp_id }
-        mode: { _eq: managed }
-        manager_kms_key_id: { _eq: $old_manager_key_id }
-        is_unique_manager_key: { _eq: true }
-      }
-      _set: {
-        manager_kms_key_id: $shared_manager_key_id
-        is_unique_manager_key: false
-      }
-    ) {
-      affected_rows
-    }
   }
 `;
 
@@ -306,12 +238,53 @@ async function loadCandidates(
 
   const response = rpIds
     ? await graphqlClient.request<CandidateQueryResult, { rp_ids: string[] }>(
-        GET_MIGRATION_CANDIDATES_BY_ID,
+        gql`
+          ${MIGRATION_CANDIDATE_FIELDS}
+          query GetRpManagerMigrationCandidatesById($rp_ids: [String!]!) {
+            rp_registration(
+              where: {
+                rp_id: { _in: $rp_ids }
+                mode: { _eq: managed }
+                status: { _eq: registered }
+                signer_address: { _is_null: false }
+                manager_kms_key_id: { _is_null: false }
+                is_unique_manager_key: { _eq: true }
+                app: {
+                  status: { _eq: "active" }
+                  is_archived: { _eq: false }
+                  deleted_at: { _is_null: true }
+                }
+              }
+              order_by: { created_at: asc }
+            ) {
+              ...RpManagerMigrationCandidate
+            }
+          }
+        `,
         { rp_ids: [...new Set(rpIds)] },
       )
-    : await graphqlClient.request<CandidateQueryResult>(
-        GET_MIGRATION_CANDIDATES,
-      );
+    : await graphqlClient.request<CandidateQueryResult>(gql`
+        ${MIGRATION_CANDIDATE_FIELDS}
+        query GetRpManagerMigrationCandidates {
+          rp_registration(
+            where: {
+              mode: { _eq: managed }
+              status: { _eq: registered }
+              signer_address: { _is_null: false }
+              manager_kms_key_id: { _is_null: false }
+              is_unique_manager_key: { _eq: true }
+              app: {
+                status: { _eq: "active" }
+                is_archived: { _eq: false }
+                deleted_at: { _is_null: true }
+              }
+            }
+            order_by: { created_at: asc }
+          ) {
+            ...RpManagerMigrationCandidate
+          }
+        }
+      `);
 
   return response.rp_registration;
 }
@@ -408,6 +381,24 @@ async function migrateCandidate(
   }
 
   const rpId = parseRpId(candidate.rp_id);
+
+  try {
+    await insertMigrationAuditRecord({
+      graphqlClient: context.graphqlClient,
+      rpId: candidate.rp_id,
+      appId: candidate.app_id,
+      oldManagerKeyId: candidate.manager_kms_key_id,
+      sharedManagerKeyId: context.sharedManagerKeyId,
+      kmsRegion: context.primaryRegistry.config.kmsRegion,
+    });
+  } catch (error) {
+    return failedResult(
+      candidate,
+      operationHashes,
+      "write_audit",
+      errorMessage(error),
+    );
+  }
 
   let oldManagerAddress: string;
   try {
@@ -622,11 +613,35 @@ async function migrateCandidate(
         old_manager_key_id: string;
         shared_manager_key_id: string;
       }
-    >(FINALIZE_MIGRATION, {
-      rp_id: candidate.rp_id,
-      old_manager_key_id: candidate.manager_kms_key_id,
-      shared_manager_key_id: context.sharedManagerKeyId,
-    });
+    >(
+      gql`
+        mutation FinalizeRpManagerMigration(
+          $rp_id: String!
+          $old_manager_key_id: String!
+          $shared_manager_key_id: String!
+        ) {
+          update_rp_registration(
+            where: {
+              rp_id: { _eq: $rp_id }
+              mode: { _eq: managed }
+              manager_kms_key_id: { _eq: $old_manager_key_id }
+              is_unique_manager_key: { _eq: true }
+            }
+            _set: {
+              manager_kms_key_id: $shared_manager_key_id
+              is_unique_manager_key: false
+            }
+          ) {
+            affected_rows
+          }
+        }
+      `,
+      {
+        rp_id: candidate.rp_id,
+        old_manager_key_id: candidate.manager_kms_key_id,
+        shared_manager_key_id: context.sharedManagerKeyId,
+      },
+    );
 
     if (response.update_rp_registration?.affected_rows !== 1) {
       return failedResult(
