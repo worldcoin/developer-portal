@@ -6,9 +6,13 @@ import { useMemo, useState } from "react";
 import type { AdminRpManagerKeyMigrationQueueItem } from "./types";
 
 const QueueItem = ({ item }: { item: AdminRpManagerKeyMigrationQueueItem }) => {
-  const detail =
-    item.cleanupStatus ??
-    (item.updatedAt ? item.updatedAt.slice(0, 10) : undefined);
+  const detail = item.cleanupStatus
+    ? item.lastErrorDetail
+      ? `${item.cleanupStatus} — ${item.lastErrorDetail}`
+      : item.cleanupStatus
+    : item.updatedAt
+      ? item.updatedAt.slice(0, 10)
+      : undefined;
 
   return (
     <Link
@@ -19,7 +23,10 @@ const QueueItem = ({ item }: { item: AdminRpManagerKeyMigrationQueueItem }) => {
         {item.rpId}
       </span>
       {detail && (
-        <span className="max-w-[45%] shrink-0 truncate text-11 text-grey-500">
+        <span
+          className="max-w-[45%] shrink-0 truncate text-11 text-grey-500"
+          title={detail}
+        >
           {detail}
         </span>
       )}

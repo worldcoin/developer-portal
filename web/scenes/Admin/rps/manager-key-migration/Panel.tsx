@@ -61,11 +61,10 @@ const ProcessSummary = ({
 }: {
   inventory: AdminRpManagerKeyMigrationInventory;
 }) => {
-  const needsPerson =
-    inventory.auditFailed +
-    inventory.auditBlocked +
-    inventory.auditReadyForExternalCleanup +
-    inventory.auditDeletionOverdue;
+  const scheduledNotOverdue = Math.max(
+    0,
+    inventory.auditDeletionScheduled - inventory.auditDeletionOverdue,
+  );
 
   return (
     <div className="grid gap-3">
@@ -81,6 +80,11 @@ const ProcessSummary = ({
             warn
           />
           <Stat
+            hint="Unique-key RPs the migrate job skips: not registered, missing signer, or app not active."
+            label="Job skips"
+            value={inventory.uniqueExcludedFromCron}
+          />
+          <Stat
             hint="An audit row exists but the RP still uses the old key. Cleanup will skip these."
             label="Failed, still unique"
             value={inventory.uniqueWithAudit}
@@ -94,22 +98,48 @@ const ProcessSummary = ({
         </h3>
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
           <Stat
-            hint="Already on the shared key, old key recorded, waiting for the cleanup job."
-            label="Waiting for cleanup"
-            value={inventory.onSharedWithAudit}
+            hint="Audit rows waiting for the cleanup job to schedule KMS deletion."
+            label="Pending"
+            value={inventory.auditPending}
           />
           <Stat
-            hint="Cleanup failed, blocked, key in another AWS account, or deletion date already passed."
-            label="Needs a person"
-            value={needsPerson}
+            hint="Cleanup failed. Needs a retry or a person."
+            label="Failed"
+            value={inventory.auditFailed}
             warn
           />
           <Stat
-            hint="KMS deletion is scheduled or the old key is already gone."
-            label="Scheduled or deleted"
-            value={inventory.auditDeleted + inventory.auditDeletionScheduled}
+            hint="Cleanup stopped because the RP still uses the old key or checks failed."
+            label="Blocked"
+            value={inventory.auditBlocked}
+            warn
+          />
+          <Stat
+            hint="Old key lives in another AWS account. Portal cannot delete it."
+            label="Other AWS account"
+            value={inventory.auditReadyForExternalCleanup}
+            warn
+          />
+          <Stat
+            hint="KMS deletion is scheduled and the deletion date has not passed."
+            label="Scheduled"
+            value={scheduledNotOverdue}
+          />
+          <Stat
+            hint="KMS deletion date has passed but the key is not confirmed gone."
+            label="Overdue"
+            value={inventory.auditDeletionOverdue}
+            warn
+          />
+          <Stat
+            hint="Old per-RP KMS key is gone."
+            label="Deleted"
+            value={inventory.auditDeleted}
           />
         </div>
+        <p className="mt-2 text-12 text-grey-500">
+          Shared, no old key: {inventory.onSharedWithoutAudit}
+        </p>
       </section>
     </div>
   );
@@ -163,6 +193,14 @@ export const RpManagerKeyMigrationPanel = async () => {
             />
           </div>
         )}
+        {status &&
+          !status.flags.cleanupEnabled &&
+          status.inventory.auditPending > 0 && (
+            <p className="mt-2 text-12 text-system-error-700">
+              Cleanup job is off. Pending keys will not be scheduled for
+              deletion.
+            </p>
+          )}
       </div>
       <div className="mt-3 flex min-h-0 min-w-0 flex-1 flex-col">
         {loadError || !status ? (
