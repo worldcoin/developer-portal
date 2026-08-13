@@ -32,6 +32,7 @@ jest.mock("@/lib/logger", () => ({
 }));
 
 import { logger } from "@/lib/logger";
+import type { FetchAdminRpManagerKeyMigrationQuery } from "@/scenes/Admin/rps/manager-key-migration/graphql/server/fetch-admin-rp-manager-key-migration.generated";
 import {
   fetchAdminRpManagerKeyMigration,
   mapMigrationInventory,
@@ -80,7 +81,7 @@ describe("admin RP manager key migration fetch", () => {
         audit_deletion_scheduled: 5,
         audit_deleted: "6",
         audit_deletion_overdue: 1,
-      }),
+      } as unknown as FetchAdminRpManagerKeyMigrationQuery["inventory"][number]),
     ).toEqual({
       remainingCronCandidates: 17,
       uniqueExcludedFromCron: 2,
@@ -133,7 +134,7 @@ describe("admin RP manager key migration fetch", () => {
           expected_deletion_at: null,
           total_count: 2,
         },
-      ]),
+      ] as unknown as FetchAdminRpManagerKeyMigrationQuery["queue"]),
     ).toEqual({
       remainingCronCandidates: [
         {

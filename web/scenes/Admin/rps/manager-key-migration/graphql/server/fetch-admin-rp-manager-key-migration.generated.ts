@@ -12,18 +12,18 @@ export type FetchAdminRpManagerKeyMigrationQuery = {
   __typename?: "query_root";
   inventory: Array<{
     __typename?: "admin_rp_manager_key_migration";
-    remaining_cron_candidates: number | string;
-    unique_excluded_from_cron: number | string;
-    on_shared_with_audit: number | string;
-    on_shared_without_audit: number | string;
-    unique_with_audit: number | string;
-    audit_pending: number | string;
-    audit_failed: number | string;
-    audit_blocked: number | string;
-    audit_ready_for_external_cleanup: number | string;
-    audit_deletion_scheduled: number | string;
-    audit_deleted: number | string;
-    audit_deletion_overdue: number | string;
+    remaining_cron_candidates: number;
+    unique_excluded_from_cron: number;
+    on_shared_with_audit: number;
+    on_shared_without_audit: number;
+    unique_with_audit: number;
+    audit_pending: number;
+    audit_failed: number;
+    audit_blocked: number;
+    audit_ready_for_external_cleanup: number;
+    audit_deletion_scheduled: number;
+    audit_deleted: number;
+    audit_deletion_overdue: number;
   }>;
   queue: Array<{
     __typename?: "admin_rp_manager_key_migration_queue";
@@ -35,7 +35,7 @@ export type FetchAdminRpManagerKeyMigrationQuery = {
     cleanup_status?: string | null;
     last_error_detail?: string | null;
     expected_deletion_at?: string | null;
-    total_count: number | string;
+    total_count: number;
   }>;
 };
 
