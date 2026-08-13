@@ -1,0 +1,28 @@
+# TODO: delete this file after the RP manager key migration completes.
+query FetchAdminRpManagerKeyMigration {
+  inventory: admin_rp_manager_key_migration {
+    remaining_cron_candidates
+    unique_excluded_from_cron
+    on_shared_with_audit
+    on_shared_without_audit
+    unique_with_audit
+    audit_pending
+    audit_failed
+    audit_blocked
+    audit_ready_for_external_cleanup
+    audit_deletion_scheduled
+    audit_deleted
+    audit_deletion_overdue
+  }
+  queue: admin_rp_manager_key_migration_queue {
+    kind
+    rp_id
+    app_id
+    app_name
+    updated_at
+    cleanup_status
+    last_error_detail
+    expected_deletion_at
+    total_count
+  }
+}
