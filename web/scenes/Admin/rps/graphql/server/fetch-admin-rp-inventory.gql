@@ -5,9 +5,8 @@ query FetchAdminRpInventory {
     self_managed_rps
     managed_with_key
     managed_without_key
-    distinct_manager_keys
-    shared_key_groups
-    rps_on_shared_keys
+    unique_manager_key_rps
+    shared_manager_key_rps
     status_pending
     status_registered
     status_failed

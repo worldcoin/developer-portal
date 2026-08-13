@@ -23,6 +23,7 @@ export type RpsSearchField =
   | "staging_status"
   | "status"
   | "team"
+  | "unique"
   | "updated";
 export type RpsSearchOperator = SearchOperator;
 export type ParsedRpsSearchToken = ParsedSearchToken<RpsSearchField>;
@@ -42,6 +43,12 @@ export const RPS_SEARCH_FIELDS: Array<SearchField & { label: string }> = [
     label: "Mode",
     type: "string",
     examples: ["mode:managed"],
+  },
+  {
+    field: "unique",
+    label: "Unique manager key",
+    type: "string",
+    examples: ["unique:true"],
   },
   {
     field: "status",
@@ -107,6 +114,8 @@ const FIELD_ALIASES: Record<string, RpsSearchField> = {
   status: "status",
   team: "team",
   team_id: "team",
+  unique: "unique",
+  is_unique_manager_key: "unique",
   updated: "updated",
   updated_at: "updated",
 };
