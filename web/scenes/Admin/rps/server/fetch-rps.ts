@@ -117,6 +117,24 @@ const createFieldWhere = (
     return noResultsWhere;
   }
 
+  if (token.field === "unique") {
+    if (token.value !== "true" && token.value !== "false") {
+      return noResultsWhere;
+    }
+
+    const isUnique = token.value === "true";
+
+    if (token.operator === "!=") {
+      return { is_unique_manager_key: { _eq: !isUnique } };
+    }
+
+    if (token.operator === ":" || token.operator === "=") {
+      return { is_unique_manager_key: { _eq: isUnique } };
+    }
+
+    return noResultsWhere;
+  }
+
   if (token.field === "status") {
     if (!RP_STATUSES.has(token.value)) {
       return noResultsWhere;
@@ -292,13 +310,11 @@ const toCount = (value: number | string | null | undefined): number => {
 };
 
 export type AdminRpInventory = {
-  distinctManagerKeys: number;
   managedRps: number;
-  managedWithKey: number;
   managedWithoutKey: number;
-  rpsOnSharedKeys: number;
   selfManagedRps: number;
-  sharedKeyGroups: number;
+  sharedManagerKeyRps: number;
+  uniqueManagerKeyRps: number;
   stagingStatus: {
     deactivated: number;
     failed: number;
@@ -318,13 +334,11 @@ export type AdminRpInventory = {
 export const mapAdminRpInventory = (
   inventory: FetchAdminRpInventoryQuery["admin_rp_inventory"][number],
 ): AdminRpInventory => ({
-  distinctManagerKeys: toCount(inventory.distinct_manager_keys),
   managedRps: toCount(inventory.managed_rps),
-  managedWithKey: toCount(inventory.managed_with_key),
   managedWithoutKey: toCount(inventory.managed_without_key),
-  rpsOnSharedKeys: toCount(inventory.rps_on_shared_keys),
   selfManagedRps: toCount(inventory.self_managed_rps),
-  sharedKeyGroups: toCount(inventory.shared_key_groups),
+  sharedManagerKeyRps: toCount(inventory.shared_manager_key_rps),
+  uniqueManagerKeyRps: toCount(inventory.unique_manager_key_rps),
   stagingStatus: {
     deactivated: toCount(inventory.staging_status_deactivated),
     failed: toCount(inventory.staging_status_failed),
