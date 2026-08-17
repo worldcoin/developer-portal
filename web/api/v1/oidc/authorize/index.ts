@@ -13,7 +13,11 @@ import {
 import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { encodeNullifierForStorage, verifyProof } from "@/api/helpers/verify";
+import {
+  canonicalizeProof,
+  encodeNullifierForStorage,
+  verifyProof,
+} from "@/api/helpers/verify";
 import { Nullifier_Constraint } from "@/graphql/graphql";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
@@ -216,10 +220,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Anchor: Check the proof hasn't been replayed
+    // Anchor: Check the proof hasn't been replayed.
+    // Key off the canonical proof rather than the raw request string: the same
+    // proof can be submitted in several byte-distinct encodings that all decode
+    // to identical field elements, so a raw-string key lets an already-used
+    // proof be re-encoded into a fresh lock. Canonicalizing also rejects
+    // undecodable proofs here instead of forwarding them to the sequencer.
     let hashedProof: string;
     try {
-      hashedProof = createHash("sha256").update(proof).digest("hex");
+      hashedProof = createHash("sha256")
+        .update(canonicalizeProof(proof))
+        .digest("hex");
     } catch (error) {
       return corsHandler(
         errorResponse({
@@ -234,9 +245,14 @@ export async function POST(req: NextRequest) {
       );
     }
     const proofKey = `oidc:proof:${hashedProof}`;
-    const isProofReplayed = await redis.get(proofKey);
 
-    if (isProofReplayed) {
+    // Claim the proof early to prevent duplicate submissions while we process
+    // it. SET NX makes the check and the claim one atomic round trip — a
+    // GET-then-SET lets two concurrent submissions of the same proof both read
+    // an empty key and both proceed.
+    const proofLockAcquired = await redis.set(proofKey, "1", "EX", 5400, "NX");
+
+    if (!proofLockAcquired) {
       return corsHandler(
         errorResponse({
           statusCode: 400,
@@ -249,9 +265,6 @@ export async function POST(req: NextRequest) {
         corsMethods,
       );
     }
-
-    // Lock the exact proof blob early to prevent duplicate submissions while we process it.
-    await redis.set(proofKey, "1", "EX", 5400);
 
     // For OIDC we should always hash the signal now.
     let signalHash: string;
