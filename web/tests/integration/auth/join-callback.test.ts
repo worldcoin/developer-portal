@@ -563,8 +563,17 @@ describe("test /join-callback", () => {
   // Regression test for HackerOne #3857870, retargeted at this handler now that
   // it owns invite consumption: a burst from the same user (double-click, retry,
   // second tab) must still yield exactly one membership. The DELETE inside
-  // accept_team_invite is the concurrency gate; losers observe the winner's
-  // committed membership and succeed idempotently rather than erroring.
+  // accept_team_invite is the concurrency gate.
+  //
+  // Deliberately does NOT assert that every request succeeds. Each request
+  // validates the invite before consuming it, so whether a given request ends up
+  // 200 or 400 depends on which side of the winner's commit its GetInviteById
+  // landed on: read the invite first and it reaches the function, which returns
+  // the winner's committed membership idempotently; read it after and the invite
+  // is already gone, which is a correct 400. That split is pure scheduling and
+  // varies between a fast local Hasura and CI. The invariant that actually
+  // matters — and the one this vulnerability class breaks — is that one invite
+  // yields at most one membership, and that nobody gets a 5xx.
   it("consumes a single-use invite exactly once under a concurrent burst", async () => {
     const invite_id = await insertInvite(TEAM_ONE, SEEDED_OTHER_TEAM_EMAIL);
 
@@ -579,12 +588,43 @@ describe("test /join-callback", () => {
       ),
     );
 
-    expect(responses.every((response) => response.status === 200)).toBe(true);
+    const statuses = responses.map((response) => response.status);
+
+    // At least one request joined the team, and no request errored out.
+    expect(statuses).toContain(200);
+    expect(
+      statuses.filter((status) => status !== 200 && status !== 400),
+    ).toEqual([]);
 
     expect(
       await countMembershipsByEmail(TEAM_ONE, SEEDED_OTHER_TEAM_EMAIL),
     ).toBe(1);
     expect(await countInvites(invite_id)).toBe(0);
+  });
+
+  // The other side of the burst above, made deterministic: once the invite is
+  // gone, a replay by the *same* user is refused at the lookup rather than
+  // producing a second membership. This is the branch CI happened to schedule
+  // and local runs usually don't.
+  it("returns 400 when the same user replays a consumed invite, without duplicating", async () => {
+    const invite_id = await insertInvite(TEAM_ONE, SEEDED_OTHER_TEAM_EMAIL);
+
+    (getSession as jest.Mock).mockResolvedValue({
+      user: { ...validSessionUser, email: SEEDED_OTHER_TEAM_EMAIL },
+    });
+
+    const first = await POST(makeRequest({ invite_id }));
+    expect(first.status).toEqual(200);
+
+    const replay = await POST(makeRequest({ invite_id }));
+    expect(replay.status).toEqual(400);
+    expect(await replay.json()).toEqual(
+      expect.objectContaining({ code: "invalid_invite" }),
+    );
+
+    expect(
+      await countMembershipsByEmail(TEAM_ONE, SEEDED_OTHER_TEAM_EMAIL),
+    ).toBe(1);
   });
 
   it("returns 400 when a different user replays an already-consumed invite", async () => {
