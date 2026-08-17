@@ -45,6 +45,16 @@ const generateCsp = () => {
 
   const csp = [
     { name: "default-src", values: ["'self'"] },
+    // Nobody may frame the portal. This is load-bearing, not hygiene: pages like
+    // /join-callback treat a button click as the user's explicit consent to a
+    // state change (accepting a team invite), and a framed page lets an attacker
+    // position that button under a decoy and harvest the click — the resulting
+    // POST comes from our own frame, so it is genuinely same-origin and sails
+    // past `api/helpers/csrf.ts`. The session cookie is `SameSite=Lax` so a
+    // *cross-site* frame gets no cookie, but a same-site sibling host (subdomain
+    // takeover, XSS on a neighbour) does. `frame-ancestors` is not a fetch
+    // directive, so it does not inherit from `default-src` and has to be listed.
+    { name: "frame-ancestors", values: ["'none'"] },
     {
       name: "script-src",
       values: [
@@ -228,6 +238,11 @@ const withSecurityHeaders = (
 ) => {
   response.headers.set("content-security-policy", csp);
   response.headers.set("Permissions-Policy", "clipboard-write=(self)");
+  // Belt-and-braces alongside the CSP's `frame-ancestors 'none'`, for anything
+  // that honours only the legacy header. The portal never frames its own pages —
+  // the one <iframe> we render embeds a third-party video, which is governed by
+  // `frame-src`, not by this.
+  response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("x-current-path", pathname);
 
   return response;
