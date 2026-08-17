@@ -1,4 +1,4 @@
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 import { urls } from "@/lib/urls";
 import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { Metadata } from "next";

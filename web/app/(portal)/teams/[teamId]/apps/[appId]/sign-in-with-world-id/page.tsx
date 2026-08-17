@@ -1,4 +1,4 @@
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 import { SignInWithWorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/SignInWithWorldId/page";
 import { Metadata } from "next";
 

@@ -1,4 +1,4 @@
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 import { ProfilePage } from "@/scenes/PortalV3/Profile/page";
 import { Metadata } from "next";
 

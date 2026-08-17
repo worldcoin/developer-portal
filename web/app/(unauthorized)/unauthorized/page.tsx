@@ -1,4 +1,4 @@
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 import { UnauthorizedPage } from "@/scenes/Unauthorized/page";
 import { Metadata } from "next";
 
