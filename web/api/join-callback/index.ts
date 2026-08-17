@@ -7,7 +7,9 @@ import { parse } from "next-useragent";
 import { headers as nextHeaders } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
+import { isSameOriginRequest } from "../helpers/csrf";
 import { errorResponse } from "../helpers/errors";
+import { findHasuraUser } from "../helpers/find-hasura-user";
 import { getAPIServiceGraphqlClient } from "../helpers/graphql";
 import { isEmailUser } from "../helpers/is-email-user";
 import { getAppUrlFromRequest } from "../helpers/utils";
@@ -39,7 +41,29 @@ const schema = yup
 
 export type JoinBody = yup.InferType<typeof schema>;
 
+const normalizeEmail = (email: string) => email.toLowerCase().trim();
+
+/**
+ * Consume a team invite for the currently authenticated user, onboarding them
+ * first if this is their initial sign-up.
+ *
+ * This is the *only* path that consumes an invite. It deliberately requires a
+ * same-origin POST: the session cookie is `SameSite=Lax`, so a bare GET (or a
+ * cross-site form post) is something an attacker can drive with one top-level
+ * navigation, and joining a team hands the team's owner read access to the
+ * member's `user` row. The caller is `/join-callback`, which only fires this off
+ * an explicit click (HackerOne #3943242).
+ */
 export const POST = async (req: NextRequest) => {
+  if (!(await isSameOriginRequest(req))) {
+    return errorResponse({
+      statusCode: 403,
+      code: "cross_origin_request",
+      detail: "This endpoint only accepts same-origin requests.",
+      req,
+    });
+  }
+
   const session = await auth0.getSession();
   const appUrl = await getAppUrlFromRequest(req);
 
@@ -68,45 +92,6 @@ export const POST = async (req: NextRequest) => {
 
   const { invite_id } = parsedParams;
 
-  // ANCHOR: Sending acceptance
-  let ironCladUserId: string | null = null;
-
-  const ironcladActivityApi = new IroncladActivityApi();
-  ironCladUserId = crypto.randomUUID();
-
-  try {
-    const url = new URL(urls.signUp(), appUrl);
-    const headersList = await nextHeaders();
-    let headers: Record<string, string> = {};
-
-    headersList.forEach((v, k) => {
-      headers[k] = v;
-    });
-
-    const { os } = parse(headersList.get("user-agent") ?? "");
-
-    await ironcladActivityApi.sendAcceptance(ironCladUserId, {
-      addr:
-        headersList.get("x-forwarded-for") ??
-        headersList.get("x-real-ip") ??
-        "",
-      pau: `${url.origin}/join-callback`,
-      pad: url.host,
-      pap: url.pathname,
-      hn: url.hostname,
-      bl: headersList.get("accept-language") ?? "",
-      os,
-    });
-  } catch (error) {
-    return errorResponse({
-      statusCode: 500,
-      code: "Failed to send acceptance",
-      detail: undefined,
-      attribute: null,
-      req,
-    });
-  }
-
   const client = await getAPIServiceGraphqlClient();
 
   // ANCHOR: Handle invites
@@ -116,33 +101,6 @@ export const POST = async (req: NextRequest) => {
     const { invite } = await getInviteByIdSdk(client).GetInviteById({
       id: invite_id,
     });
-
-    if (!invite || new Date(invite.expires_at) <= new Date()) {
-      return errorResponse({
-        statusCode: 400,
-        code: "invalid_invite",
-        req,
-      });
-    }
-
-    if (
-      auth0User.email_verified &&
-      auth0User.email &&
-      invite.email !== auth0User.email
-    ) {
-      logger.warn("Invite email does not match logged in email", {
-        team_id: invite.team.id,
-      });
-      return NextResponse.redirect(
-        new URL(
-          urls.unauthorized({
-            message: "Invite email does not match logged in email.",
-          }),
-          appUrl,
-        ).toString(),
-        307,
-      );
-    }
 
     inviteData = invite;
   } catch (error) {
@@ -154,44 +112,49 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  // ANCHOR: Insert user
-  let nullifier_hash: string | undefined = undefined;
-
-  if (!isEmailUser(auth0User)) {
-    const nullifier = auth0User.sub.split("|")[2];
-    nullifier_hash = nullifier;
+  if (!inviteData || new Date(inviteData.expires_at) <= new Date()) {
+    return errorResponse({
+      statusCode: 400,
+      code: "invalid_invite",
+      detail: "This invite is no longer valid. Ask for a new one.",
+      req,
+    });
   }
 
-  let insertedUser: InsertUserMutation["insert_user_one"] | null = null;
+  // Sign-in-with-World-ID sessions carry no email, so there is nothing to match
+  // against; the explicit click on the consent screen is what authorises the join.
+  if (
+    auth0User.email_verified &&
+    auth0User.email &&
+    normalizeEmail(inviteData.email) !== normalizeEmail(auth0User.email)
+  ) {
+    logger.warn("Invite email does not match logged in email", {
+      team_id: inviteData.team.id,
+    });
+
+    return errorResponse({
+      statusCode: 403,
+      code: "invite_email_mismatch",
+      detail:
+        "Invite email does not match logged in email. Please log out and try again.",
+      req,
+      team_id: inviteData.team.id,
+    });
+  }
+
+  // ANCHOR: Resolve or onboard the user
+  let existingUserId: string | null = null;
 
   try {
-    const { insert_user_one } = await getInsertUserSdk(client).InsertUser({
-      user_data: {
-        ironclad_id: ironCladUserId,
-        auth0Id: auth0User.sub,
-        name: auth0User.name ?? "",
-
-        ...(nullifier_hash ? { world_id_nullifier: nullifier_hash } : {}),
-
-        ...(auth0User.email_verified && auth0User.email
-          ? { email: auth0User.email }
-          : {}),
-
-        team_id: inviteData.team.id,
-      },
-    });
-
-    insertedUser = insert_user_one;
-
-    await captureEvent({
-      event: "signup_success",
-      distinctId: insert_user_one?.posthog_id ?? "",
-      properties: {
-        team_id: inviteData.team.id,
-        invited: true,
-      },
-    });
+    const existingUser = await findHasuraUser(client, auth0User);
+    existingUserId = existingUser?.id ?? null;
   } catch (error) {
+    logger.error("Error while fetching the Hasura user in join-callback.", {
+      error,
+      auth0Sub: auth0User.sub,
+      team_id: inviteData.team.id,
+    });
+
     return errorResponse({
       statusCode: 500,
       code: "server_error",
@@ -201,24 +164,111 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  let userId = existingUserId;
+
+  // Only a first-time sign-up records a terms acceptance and creates a row — a
+  // member who already has an account is just gaining one more membership.
+  if (!userId) {
+    const ironCladUserId = crypto.randomUUID();
+    const ironcladActivityApi = new IroncladActivityApi();
+
+    try {
+      const url = new URL(urls.signUp(), appUrl);
+      const headersList = await nextHeaders();
+
+      const { os } = parse(headersList.get("user-agent") ?? "");
+
+      await ironcladActivityApi.sendAcceptance(ironCladUserId, {
+        addr:
+          headersList.get("x-forwarded-for") ??
+          headersList.get("x-real-ip") ??
+          "",
+        pau: `${url.origin}/join-callback`,
+        pad: url.host,
+        pap: url.pathname,
+        hn: url.hostname,
+        bl: headersList.get("accept-language") ?? "",
+        os,
+      });
+    } catch (error) {
+      return errorResponse({
+        statusCode: 500,
+        code: "Failed to send acceptance",
+        detail: undefined,
+        attribute: null,
+        req,
+      });
+    }
+
+    // ANCHOR: Insert user
+    let nullifier_hash: string | undefined = undefined;
+
+    if (!isEmailUser(auth0User)) {
+      nullifier_hash = auth0User.sub.split("|")[2];
+    }
+
+    let insertedUser: InsertUserMutation["insert_user_one"] | null = null;
+
+    try {
+      const { insert_user_one } = await getInsertUserSdk(client).InsertUser({
+        user_data: {
+          ironclad_id: ironCladUserId,
+          auth0Id: auth0User.sub,
+          name: auth0User.name ?? "",
+
+          ...(nullifier_hash ? { world_id_nullifier: nullifier_hash } : {}),
+
+          ...(auth0User.email_verified && auth0User.email
+            ? { email: auth0User.email }
+            : {}),
+
+          team_id: inviteData.team.id,
+        },
+      });
+
+      insertedUser = insert_user_one;
+
+      await captureEvent({
+        event: "signup_success",
+        distinctId: insert_user_one?.posthog_id ?? "",
+        properties: {
+          team_id: inviteData.team.id,
+          invited: true,
+        },
+      });
+    } catch (error) {
+      return errorResponse({
+        statusCode: 500,
+        code: "server_error",
+        detail: "Failed to join team",
+        req,
+        team_id: inviteData.team.id,
+      });
+    }
+
+    if (!insertedUser?.id) {
+      return errorResponse({
+        statusCode: 500,
+        code: "server_error",
+        detail: "Failed to join team",
+        req,
+        team_id: inviteData.team.id,
+      });
+    }
+
+    userId = insertedUser.id;
+  }
+
   let acceptedMembership:
     | AcceptTeamInviteMutation["accept_team_invite"][number]
     | null = null;
 
   try {
-    if (!inviteData.team.id) {
-      throw new Error("Team id is null");
-    }
-
-    if (!insertedUser?.id) {
-      throw new Error("User id is null");
-    }
-
     const acceptInviteResult = await getAcceptTeamInviteSdk(
       client,
     ).AcceptTeamInvite({
       team_id: inviteData.team.id,
-      user_id: insertedUser.id,
+      user_id: userId,
       invite_id,
     });
 
@@ -234,9 +284,12 @@ export const POST = async (req: NextRequest) => {
   }
 
   if (!acceptedMembership) {
+    // The single-use invite was consumed by somebody else between the lookup
+    // above and this call. No membership was created.
     return errorResponse({
       statusCode: 400,
       code: "invalid_invite",
+      detail: "This invite has already been used. Ask for a new one.",
       req,
       team_id: inviteData.team.id,
     });
