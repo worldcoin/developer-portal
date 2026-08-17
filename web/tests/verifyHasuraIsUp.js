@@ -2,8 +2,13 @@ const path = require("path");
 
 require("dotenv").config({ path: path.join(__dirname, "..", ".env.test") });
 
-const POLL_INTERVAL = 2000; // 2 seconds
+const POLL_INTERVAL = 1000; // 1 second
 const MAX_WAIT = 120000; // 120 seconds
+
+// One successful probe only proves Hasura answered once. Require a short streak
+// of consecutive successes before handing off — see the note below on why a
+// single probe is not enough.
+const REQUIRED_CONSECUTIVE_OK = 3;
 
 const GRAPHQL_URL =
   process.env.NEXT_PUBLIC_GRAPHQL_API_URL ?? "http://localhost:8081/v1/graphql";
@@ -27,12 +32,25 @@ const ADMIN_SECRET = process.env.HASURA_GRAPHQL_ADMIN_SECRET ?? "secret!";
  * The loop below is fully awaited, prints its confirmation on the single success
  * path, and exits non-zero if the deadline passes.
  *
+ * It also requires `REQUIRED_CONSECUTIVE_OK` successes in a row rather than one.
+ * A single probe proved too weak: Hasura answers a first query and then briefly
+ * stalls while it finishes warming up, and the first suite to run fires ~13
+ * Hasura calls inside a couple of seconds (every test in `oidc/token.test.ts`
+ * opens with `testGetSignInApp()`), so one stall takes the whole file down with
+ * identical `SocketError: other side closed` errors. The GraphQL client's own
+ * transport retry only covers ~700ms of backoff, which is not enough to ride it
+ * out. A streak means we hand off only once Hasura has been stably serving.
+ *
  * Probing a real GraphQL query rather than `/healthz` is belt-and-braces. It is
  * not what was broken — with the `cli-migrations-v3` image, migrations are
  * applied before the HTTP server binds, so `/healthz` returning 200 already
  * implies the schema is loaded (measured: both flip to 200 in the same second on
  * a cold start). But this probes exactly what the suite depends on, so it stays
  * correct if that startup ordering ever changes.
+ *
+ * Output is deliberately plain ASCII: the previous success line started with an
+ * emoji and never made it through the GitHub Actions log pipeline, which made it
+ * impossible to tell from a failed run whether the gate had confirmed anything.
  */
 const probeGraphql = async () => {
   const response = await fetch(GRAPHQL_URL, {
@@ -60,19 +78,37 @@ const probeGraphql = async () => {
 };
 
 const waitForHasura = async () => {
-  const deadline = Date.now() + MAX_WAIT;
+  const startedAt = Date.now();
+  const deadline = startedAt + MAX_WAIT;
+
   let lastFailure = "no attempt made";
+  let attempts = 0;
+  let consecutiveOk = 0;
+
+  console.log("Checking if Hasura is up and migrations are ready....");
 
   while (Date.now() < deadline) {
-    console.log("Checking if Hasura is up and migrations are ready....");
+    attempts += 1;
 
     try {
       const failure = await probeGraphql();
 
       if (failure === null) {
-        console.log("✅ Hasura is ready");
+        consecutiveOk += 1;
 
-        return;
+        if (consecutiveOk >= REQUIRED_CONSECUTIVE_OK) {
+          const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+
+          console.log(
+            `[OK] Hasura is ready and serving (${consecutiveOk} consecutive probes, ${attempts} attempts, ${elapsed}s)`,
+          );
+
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+
+        continue;
       }
 
       lastFailure = failure;
@@ -82,13 +118,17 @@ const waitForHasura = async () => {
         error?.cause?.message ?? error?.message ?? String(error) ?? "unknown";
     }
 
-    console.log(`   not ready yet (${lastFailure}), retrying...`);
+    // Any failure restarts the streak — a stall midway through means Hasura is
+    // not yet stable enough to hand a whole test file to.
+    consecutiveOk = 0;
+
+    console.log(`  not ready yet (${lastFailure}), retrying...`);
 
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
   }
 
   throw new Error(
-    `Maximum wait time exceeded. Hasura was never ready. Last failure: ${lastFailure}`,
+    `Maximum wait time exceeded after ${attempts} attempts. Hasura was never stably ready. Last failure: ${lastFailure}`,
   );
 };
 
