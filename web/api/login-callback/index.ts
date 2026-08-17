@@ -159,16 +159,42 @@ export const loginCallback = async (req: NextRequest) => {
 
   const res = NextResponse.redirect(new URL(url, appUrl), 307);
 
-  // NOTE: User's internal ID & team_id are used to query Hasura in subsequent requests
-  await auth0.updateSession(req, res, {
-    ...session,
-    user: {
-      ...session.user,
-      hasura: {
-        ...user,
+  try {
+    // NOTE: User's internal ID & team_id are used to query Hasura in subsequent requests
+    await auth0.updateSession(req, res, {
+      ...session,
+      user: {
+        ...session.user,
+        hasura: {
+          ...user,
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    // Without these claims every protected page misreads the user's memberships,
+    // so continuing would land them somewhere wrong rather than nowhere. This is
+    // also the terminus of `join-callback`'s recovery path, so an unhandled throw
+    // here would turn a committed team join into a 500 the user can only retry
+    // into another 500. Fail to a controlled, non-looping page instead, and log
+    // it: a *deterministic* failure here (session too large for the cookie, say)
+    // is a real defect and needs to be visible rather than surfacing as a 5xx.
+    logger.error("Failed to write the session in login-callback.", {
+      error,
+      auth0Sub: auth0User.sub,
+      teamCount: user?.memberships?.length,
+    });
+
+    return NextResponse.redirect(
+      new URL(
+        urls.unauthorized({
+          message:
+            "We could not finish signing you in. Please try again, and contact support if it keeps happening.",
+        }),
+        appUrl,
+      ).toString(),
+      307,
+    );
+  }
 
   return res;
 };

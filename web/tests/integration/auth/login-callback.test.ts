@@ -399,6 +399,27 @@ describe("test /login-callback", () => {
     expect(membershipRows[0].count).toBe(0);
   });
 
+  // This handler is the terminus of join-callback's session-recovery path, so an
+  // unhandled throw here would turn a committed team join into a 500 that the
+  // user can only retry into another 500.
+  it("fails to a controlled page when the session write fails", async () => {
+    const mockReq = {
+      nextUrl: new URL("/login-callback", "http://localhost:3000"),
+    } as unknown as NextRequest;
+
+    (getSession as jest.Mock).mockResolvedValue({
+      user: validEmailSessionUser,
+    });
+    updateSession.mockRejectedValue(new Error("session cookie too large"));
+
+    const response = await loginCallback(mockReq);
+
+    expect(response.status).toEqual(307);
+    expect(response.headers.get("location")).toContain("/unauthorized");
+    // Not a redirect back into login, which would loop on a deterministic failure.
+    expect(response.headers.get("location")).not.toContain("/api/auth/login");
+  });
+
   // A bogus invite_id used to redirect to /api/auth/logout, so any cross-site
   // link force-logged-out any authenticated developer with no attacker account
   // required. The invite is no longer read here at all, so there is nothing to
