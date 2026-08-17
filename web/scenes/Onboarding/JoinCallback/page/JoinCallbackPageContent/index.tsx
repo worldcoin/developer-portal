@@ -29,6 +29,13 @@ export const JoinCallbackPageContent = (props: {
   const joinTeam = useCallback(async () => {
     setJoining(true);
 
+    let returnTo: string;
+    let reauthenticate = false;
+
+    // Only the request itself may report a join failure. Past the point where the
+    // server says it committed, the invite is gone and a retry would come back
+    // `invalid_invite`, so telling the user it failed would be both wrong and
+    // unactionable.
     try {
       const res = await fetch(urls.api.joinCallback(), {
         method: "POST",
@@ -45,12 +52,35 @@ export const JoinCallbackPageContent = (props: {
         return;
       }
 
-      await invalidateRef.current();
-      router.push(data.returnTo);
+      returnTo = data.returnTo;
+      reauthenticate = Boolean(data.reauthenticate);
     } catch (error) {
       toast.error("Failed to join team");
       setJoining(false);
+
+      return;
     }
+
+    // The join committed but the server could not refresh the session, so it is
+    // sending us back through the login pipeline to rebuild it. That target is an
+    // auth route, which the client-side router cannot navigate to — and a full
+    // load is what we want anyway, since the point is to replace the session.
+    if (reauthenticate) {
+      window.location.assign(returnTo);
+
+      return;
+    }
+
+    // Refreshing the client-side user is a convenience — the destination re-reads
+    // the session on the server — so a failure here must not turn a successful
+    // join into an error.
+    try {
+      await invalidateRef.current();
+    } catch (error) {
+      // Intentionally ignored; navigation below still lands the user correctly.
+    }
+
+    router.push(returnTo);
   }, [props.invite_id, router]);
 
   return (

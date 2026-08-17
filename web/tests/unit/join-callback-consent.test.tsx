@@ -158,6 +158,62 @@ describe("/join-callback consent screen", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
+  // Past the point where the server says it committed, the invite is gone and a
+  // retry returns invalid_invite — so a failure in the convenience refresh must
+  // not be reported as a failed join. `invalidate()` used to sit inside the same
+  // catch as the request.
+  it("still navigates when the session refresh fails after a committed join", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, { returnTo: "/teams/team_1" }),
+    );
+    invalidate.mockRejectedValue(new Error("profile fetch failed"));
+
+    renderConsent();
+    fireEvent.click(joinButton());
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/teams/team_1"));
+
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  // When the server could not refresh the session it sends the client back
+  // through the login pipeline. That is an auth route, which the client-side
+  // router cannot navigate to, so it needs a real page load.
+  it("hard-navigates when the server asks for reauthentication", async () => {
+    const assign = jest.fn();
+    const original = window.location;
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...original, assign },
+    });
+
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, {
+        returnTo: "/api/auth/login?returnTo=%2Fapi%2Fauth%2Flogin-callback",
+        reauthenticate: true,
+      }),
+    );
+
+    try {
+      renderConsent();
+      fireEvent.click(joinButton());
+
+      await waitFor(() =>
+        expect(assign).toHaveBeenCalledWith(
+          "/api/auth/login?returnTo=%2Fapi%2Fauth%2Flogin-callback",
+        ),
+      );
+
+      expect(push).not.toHaveBeenCalled();
+      expect(toast.error).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(window, "location", {
+        configurable: true,
+        value: original,
+      });
+    }
+  });
+
   it("ignores repeat clicks while a join is in flight", async () => {
     let release: (value: Response) => void = () => {};
     fetchMock.mockReturnValue(

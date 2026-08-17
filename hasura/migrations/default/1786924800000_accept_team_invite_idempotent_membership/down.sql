@@ -1,32 +1,25 @@
--- Restore the previous definition, which inserted unconditionally once it won
--- the invite delete.
-CREATE OR REPLACE FUNCTION public.accept_team_invite(
-  _invite_id TEXT,
-  _team_id TEXT,
-  _user_id TEXT
-)
-RETURNS SETOF public.membership
-LANGUAGE plpgsql
-VOLATILE
-AS $$
-DECLARE
-  _deleted_team_id TEXT;
-BEGIN
-  DELETE FROM public.invite
-  WHERE id = _invite_id
-  RETURNING team_id INTO _deleted_team_id;
-
-  IF FOUND THEN
-    RETURN QUERY
-    INSERT INTO public.membership (team_id, user_id, role)
-    VALUES (_deleted_team_id, _user_id, 'MEMBER')
-    RETURNING *;
-  ELSE
-    RETURN QUERY
-    SELECT *
-    FROM public.membership
-    WHERE team_id = _team_id AND user_id = _user_id
-    LIMIT 1;
-  END IF;
-END;
-$$;
+-- Rolling this migration back is deliberately a no-op.
+--
+-- The obvious rollback — restoring the previous body, which inserted a
+-- membership unconditionally once it won the invite DELETE — is not safe. There
+-- is no UNIQUE(team_id, user_id) on `membership`, so that body is what allowed a
+-- user already in the team to be joined twice, and allowed two distinct invites
+-- for the same (team, user) to each insert. Reinstating it during a rolling
+-- rollback, while instances of the new handler are still serving, would re-open
+-- both paths and write duplicate rows that outlive the rollback.
+--
+-- The function's signature is unchanged and the guarded body is behaviourally a
+-- superset for every caller — it still consumes the invite and still returns the
+-- membership — so the previous application version runs correctly against it.
+-- Keeping it in place is therefore the compatible rollback; reverting the schema
+-- is not required in order to revert the app.
+--
+-- The durable fix is a UNIQUE(team_id, user_id) constraint on `membership`, which
+-- needs existing duplicates de-duplicated first and so belongs in its own
+-- migration with a data audit.
+--
+-- A statement is required here: Hasura rejects a comment-only migration with
+-- `EmptyQuery`. Re-stating the comment keeps the reasoning in the database rather
+-- than duplicating the function body, which would then be free to drift.
+COMMENT ON FUNCTION public.accept_team_invite(TEXT, TEXT, TEXT) IS
+  'Atomically consumes a single-use team invite and joins the user. Serialized on (team_id, user_id) by an advisory lock and guarded against an existing membership, so one invite yields at most one membership. Do not revert to an unconditional INSERT while membership lacks UNIQUE(team_id, user_id) - see migration 1786924800000_accept_team_invite_idempotent_membership.';

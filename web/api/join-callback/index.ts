@@ -333,18 +333,28 @@ export const POST = async (req: NextRequest) => {
     });
   } catch (error) {
     // The invite is already consumed and the membership committed — the user IS
-    // in the team. Reporting a failure here would be a lie the user cannot act
-    // on: retrying finds the invite gone and returns `invalid_invite`. So report
-    // success, but send them to the team list rather than the team page, since
-    // their session does not yet carry the membership that the team route's role
-    // check authorises against. The next session refresh picks it up.
+    // in the team. Reporting a failure would be a lie they cannot act on, since
+    // retrying finds the invite gone and returns `invalid_invite`.
+    //
+    // But we cannot just navigate them onward either: every portal entry point
+    // reads memberships out of the session, and `/dashboard` logs out a session
+    // with no `hasura` claims at all (scenes/PortalV3/Dashboard/page), which is
+    // exactly the state a first-time joiner is left in here. So send them back
+    // through the login pipeline, which rebuilds the session from Hasura in
+    // `login-callback` — by now their user row and membership both exist, so it
+    // resolves to the team they just joined.
     logger.error("Joined the team but could not update the session.", {
       error,
       team_id: acceptedMembership.team_id,
       user_id: userId,
     });
 
-    return NextResponse.json({ returnTo: urls.teams({}) });
+    // `reauthenticate` tells the client this needs a real page load: the target
+    // is an auth route, which the client-side router cannot navigate to.
+    return NextResponse.json({
+      returnTo: urls.api.authLogin({ returnTo: urls.dashboard() }),
+      reauthenticate: true,
+    });
   }
 
   return res;

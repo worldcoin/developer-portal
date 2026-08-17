@@ -1,5 +1,6 @@
 import { POST } from "@/api/join-callback";
 import { Auth0User } from "@/lib/types";
+import { urls } from "@/lib/urls";
 import { auth0 } from "@/lib/auth0";
 import { NextRequest } from "next/server";
 
@@ -814,15 +815,33 @@ describe("test /join-callback", () => {
 
     expect(response.status).toEqual(200);
 
-    // Sent to the team list, not the team page: the stale session has no
-    // membership for the route's role check to authorise against.
-    expect(await response.json()).toEqual({ returnTo: "/teams" });
+    // Navigating onward with the stale session is not an option: every portal
+    // entry point reads memberships from it, and /dashboard logs out a session
+    // with no `hasura` claims — the exact state a first-time joiner is left in.
+    // So route back through login, which rebuilds the session from Hasura.
+    const body = await response.json();
+    expect(body.reauthenticate).toBe(true);
+    expect(body.returnTo).toBe(
+      urls.api.authLogin({ returnTo: urls.dashboard() }),
+    );
 
     // The join really did happen.
     expect(
       await countMembershipsByEmail(TEAM_ONE, SEEDED_OTHER_TEAM_EMAIL),
     ).toBe(1);
     expect(await countInvites(invite_id)).toBe(0);
+  });
+
+  it("does not claim reauthentication is needed on the happy path", async () => {
+    const invite_id = await insertInvite(TEAM_ONE, SEEDED_OTHER_TEAM_EMAIL);
+
+    (getSession as jest.Mock).mockResolvedValue({
+      user: { ...validSessionUser, email: SEEDED_OTHER_TEAM_EMAIL },
+    });
+
+    const body = await (await POST(makeRequest({ invite_id }))).json();
+
+    expect(body).toEqual({ returnTo: `/teams/${TEAM_ONE}` });
   });
 
   it("accept_team_invite consumes the invite but adds no row for an existing member", async () => {
