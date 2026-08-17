@@ -319,17 +319,33 @@ export const POST = async (req: NextRequest) => {
     returnTo: urls.teams({ team_id: acceptedMembership.team_id }),
   });
 
-  // Body-free request for the SDK (see toSessionRequest): the body was read above,
-  // and on Next 16 the SDK re-wraps + copies the request body, which would throw.
-  await auth0.updateSession(toSessionRequest(req), res, {
-    ...session,
-    user: {
-      ...session.user,
-      hasura: {
-        ...user,
+  try {
+    // Body-free request for the SDK (see toSessionRequest): the body was read above,
+    // and on Next 16 the SDK re-wraps + copies the request body, which would throw.
+    await auth0.updateSession(toSessionRequest(req), res, {
+      ...session,
+      user: {
+        ...session.user,
+        hasura: {
+          ...user,
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    // The invite is already consumed and the membership committed — the user IS
+    // in the team. Reporting a failure here would be a lie the user cannot act
+    // on: retrying finds the invite gone and returns `invalid_invite`. So report
+    // success, but send them to the team list rather than the team page, since
+    // their session does not yet carry the membership that the team route's role
+    // check authorises against. The next session refresh picks it up.
+    logger.error("Joined the team but could not update the session.", {
+      error,
+      team_id: acceptedMembership.team_id,
+      user_id: userId,
+    });
+
+    return NextResponse.json({ returnTo: urls.teams({}) });
+  }
 
   return res;
 };

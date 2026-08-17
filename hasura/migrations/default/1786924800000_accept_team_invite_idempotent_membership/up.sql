@@ -54,6 +54,16 @@ BEGIN
     RETURN;
   END IF;
 
+  -- The invite DELETE only serializes callers that share an invite id. Two
+  -- *different* invites for the same (team, user) lock different rows, so both
+  -- callers would clear the existence check below before either INSERT commits
+  -- and both would insert. That is reachable: invite_team_members compares the
+  -- raw stored email when deciding an address is already invited or already a
+  -- member, so case-variant invites for one person can coexist. Serialize on the
+  -- (team, user) pair itself. Transaction-scoped, so it is released on commit or
+  -- rollback, and it takes no table-level lock.
+  PERFORM pg_advisory_xact_lock(hashtext(_deleted_team_id), hashtext(_user_id));
+
   SELECT *
   INTO _existing
   FROM public.membership

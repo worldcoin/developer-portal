@@ -5,6 +5,7 @@ import { NextRequest } from "next/server";
 
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { gql } from "@apollo/client";
+import { Client } from "pg";
 import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 
 // TODO: Consider moving this to a generalized jest environment
@@ -699,6 +700,129 @@ describe("test /join-callback", () => {
       [TEAM_ONE, winner],
     )) as { rows: { count: number }[] };
     expect(countRows[0].count).toBe(1);
+  });
+
+  // The invite DELETE only serializes callers sharing an invite id. Two distinct
+  // invites for the same (team, user) lock different rows, so without the
+  // advisory lock on (team, user) both callers clear the existence check before
+  // either INSERT commits and the user ends up joined twice — membership has no
+  // UNIQUE(team_id, user_id). Reachable because invite_team_members compares the
+  // raw stored email, so case-variant invites for one person can coexist.
+  // Two held-open transactions rather than two concurrent POSTs: the handler
+  // completes each accept_team_invite call too fast for the windows to overlap on
+  // their own, so a Promise.all of requests passes with or without the lock and
+  // proves nothing. Driving the transactions directly makes the interleaving
+  // deterministic. Verified to fail with count = 2 when the
+  // `PERFORM pg_advisory_xact_lock` line is removed from the function.
+  it("serializes two distinct invites for the same user in the same team", async () => {
+    const member = "usr_a78f59e547fa5bd3d76bc1a1817c6d94"; // in TEAM_TWO, not TEAM_ONE
+    const holder = new Client();
+    const contender = new Client();
+    await holder.connect();
+    await contender.connect();
+
+    try {
+      const firstInvite = await insertInvite(TEAM_ONE, "race-a@example.com");
+      const secondInvite = await insertInvite(TEAM_ONE, "RACE-A@example.com");
+
+      await holder.query("BEGIN");
+      await contender.query("BEGIN");
+
+      // The holder consumes one invite and creates the membership, uncommitted.
+      await holder.query(
+        `SELECT team_id FROM public.accept_team_invite($1, $2, $3)`,
+        [firstInvite, TEAM_ONE, member],
+      );
+
+      // The contender consumes the *other* invite. Nothing in the invite rows
+      // makes it wait, so only the (team, user) advisory lock can.
+      const contenderQuery = contender.query(
+        `SELECT team_id FROM public.accept_team_invite($1, $2, $3)`,
+        [secondInvite, TEAM_ONE, member],
+      );
+
+      const blockedOnHolder = await Promise.race([
+        contenderQuery.then(() => false),
+        new Promise<boolean>((resolve) =>
+          setTimeout(() => resolve(true), 1000),
+        ),
+      ]);
+      expect(blockedOnHolder).toBe(true);
+
+      await holder.query("COMMIT");
+      await contenderQuery;
+      await contender.query("COMMIT");
+
+      const { rows } = (await integrationDBExecuteQuery(
+        `SELECT count(*)::int AS count FROM public.membership WHERE team_id = $1 AND user_id = $2`,
+        [TEAM_ONE, member],
+      )) as { rows: { count: number }[] };
+      expect(rows[0].count).toBe(1);
+
+      // Both single-use invites are consumed either way.
+      expect(await countInvites(firstInvite)).toBe(0);
+      expect(await countInvites(secondInvite)).toBe(0);
+    } finally {
+      await holder.end();
+      await contender.end();
+    }
+  });
+
+  it("accept_team_invite serializes two distinct invites for the same user", async () => {
+    const existingMember = "usr_a78f59e547fa5bd3d76bc1a1817c6d94"; // in TEAM_TWO, not TEAM_ONE
+
+    const firstInvite = await insertInvite(TEAM_ONE, "race-a@example.com");
+    const secondInvite = await insertInvite(TEAM_ONE, "race-b@example.com");
+
+    // Sequential here proves the guard; the handler test above covers the
+    // concurrent path. The second call must find the first call's membership.
+    await integrationDBExecuteQuery(
+      `SELECT team_id FROM public.accept_team_invite($1, $2, $3)`,
+      [firstInvite, TEAM_ONE, existingMember],
+    );
+    const second = await integrationDBExecuteQuery(
+      `SELECT team_id FROM public.accept_team_invite($1, $2, $3)`,
+      [secondInvite, TEAM_ONE, existingMember],
+    );
+
+    expect(second.rows).toHaveLength(1);
+
+    const { rows: countRows } = (await integrationDBExecuteQuery(
+      `SELECT count(*)::int AS count FROM public.membership WHERE team_id = $1 AND user_id = $2`,
+      [TEAM_ONE, existingMember],
+    )) as { rows: { count: number }[] };
+    expect(countRows[0].count).toBe(1);
+
+    // Both single-use invites are consumed either way.
+    expect(await countInvites(firstInvite)).toBe(0);
+    expect(await countInvites(secondInvite)).toBe(0);
+  });
+
+  // The membership commits before the session is updated. A failure there must
+  // not be reported as "failed to join" — the user IS in the team, and retrying
+  // finds the invite consumed and returns invalid_invite, so the error would be
+  // one the user cannot act on.
+  it("still reports success when the session update fails after joining", async () => {
+    const invite_id = await insertInvite(TEAM_ONE, SEEDED_OTHER_TEAM_EMAIL);
+
+    (getSession as jest.Mock).mockResolvedValue({
+      user: { ...validSessionUser, email: SEEDED_OTHER_TEAM_EMAIL },
+    });
+    updateSession.mockRejectedValue(new Error("cookie too large"));
+
+    const response = await POST(makeRequest({ invite_id }));
+
+    expect(response.status).toEqual(200);
+
+    // Sent to the team list, not the team page: the stale session has no
+    // membership for the route's role check to authorise against.
+    expect(await response.json()).toEqual({ returnTo: "/teams" });
+
+    // The join really did happen.
+    expect(
+      await countMembershipsByEmail(TEAM_ONE, SEEDED_OTHER_TEAM_EMAIL),
+    ).toBe(1);
+    expect(await countInvites(invite_id)).toBe(0);
   });
 
   it("accept_team_invite consumes the invite but adds no row for an existing member", async () => {
