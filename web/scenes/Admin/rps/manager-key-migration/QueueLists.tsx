@@ -19,8 +19,15 @@ const QueueItem = ({ item }: { item: AdminRpManagerKeyMigrationQueueItem }) => {
       className="flex min-w-0 items-center justify-between gap-2 px-2 py-1.5 outline-none hover:bg-grey-0 focus-visible:ring-2 focus-visible:ring-blue-500"
       href={`/admin/rps/${item.rpId}`}
     >
-      <span className="min-w-0 truncate font-mono text-12 font-medium text-grey-900">
-        {item.rpId}
+      <span className="min-w-0">
+        <span className="block truncate font-mono text-12 font-medium text-grey-900">
+          {item.rpId}
+        </span>
+        {(item.appName || item.appId) && (
+          <span className="block truncate text-11 text-grey-500">
+            {item.appName ?? item.appId}
+          </span>
+        )}
       </span>
       {detail && (
         <span

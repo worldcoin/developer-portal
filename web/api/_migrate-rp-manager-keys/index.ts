@@ -22,13 +22,32 @@ import { migrateRpManagersToSharedKey } from "../../scripts/migrate-rp-manager-t
 const GLOBAL_LOCK_KEY = "rp-manager-key-migration:run";
 const GLOBAL_LOCK_TTL_MS = 5 * 60 * 1000; // 5 min
 const FAILURE_COOLDOWN_MS = RP_MIGRATION_LOCK_TTL_MS;
-const CANDIDATE_BATCH_SIZE = 10;
+const MIGRATE_PER_RUN = 15;
+const CANDIDATE_FETCH_LIMIT = 20;
 
 type Candidate = {
   rp_id: string;
   app_id: string;
   manager_kms_key_id: string;
 };
+
+type AcquiredRpLock = Extract<
+  Awaited<ReturnType<typeof acquireRpMigrationLock>>,
+  { status: "acquired" }
+>;
+
+type LockedCandidate = {
+  candidate: Candidate;
+  rpLock: AcquiredRpLock;
+};
+
+function candidateIdentity(candidate: Candidate) {
+  return {
+    rp_id: candidate.rp_id,
+    app_id: candidate.app_id,
+    old_manager_kms_key_id: candidate.manager_kms_key_id,
+  };
+}
 
 type CandidateQueryResult = {
   rp_registration: Candidate[];
@@ -160,21 +179,21 @@ async function releaseGlobalLock(
 
 async function touchForCooldown(
   client: GraphQLClient,
-  rpId: string,
+  candidate: Candidate,
   attemptId: string,
 ): Promise<void> {
   const result = await client.request<
     TouchResult,
     { rp_id: string; updated_at: string }
   >(TOUCH_FAILED_CANDIDATE, {
-    rp_id: rpId,
+    rp_id: candidate.rp_id,
     updated_at: new Date().toISOString(),
   });
 
   if (result.update_rp_registration?.affected_rows !== 1) {
     logger.warn("Failed RP migration candidate changed before cooldown", {
       attempt_id: attemptId,
-      rp_id: rpId,
+      ...candidateIdentity(candidate),
     });
   }
 }
@@ -193,6 +212,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const lock = await acquireGlobalLock();
   if (lock.status === "busy") {
+    logger.info("RP manager key migration skipped, global lock held");
     return new NextResponse(null, { status: 204 });
   }
 
@@ -208,12 +228,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   let client: GraphQLClient | null = null;
-  let candidate: Candidate | null = null;
   let attemptId: string | null = null;
-  let rpLock: Awaited<ReturnType<typeof acquireRpMigrationLock>> | null = null;
+  const locked: LockedCandidate[] = [];
+  const retainRpIds = new Set<string>();
   let migrationInvocationStarted = false;
-  let keepRpLockForInFlightOp = false;
   let lockedCandidatesSkipped = 0;
+  const skippedLocked: Candidate[] = [];
   const startedAt = Date.now();
 
   try {
@@ -232,7 +252,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const candidates = await client.request<
       CandidateQueryResult,
       { before: string; limit: number }
-    >(GET_NEXT_CANDIDATES, { before, limit: CANDIDATE_BATCH_SIZE });
+    >(GET_NEXT_CANDIDATES, { before, limit: CANDIDATE_FETCH_LIMIT });
 
     if (candidates.rp_registration.length === 0) {
       return new NextResponse(null, { status: 204 });
@@ -241,16 +261,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     attemptId = randomUUID();
 
     for (const next of candidates.rp_registration) {
+      if (locked.length >= MIGRATE_PER_RUN) {
+        break;
+      }
+
       const lockAttempt = await acquireRpMigrationLock(next.rp_id);
       if (lockAttempt.status === "busy") {
         lockedCandidatesSkipped += 1;
+        skippedLocked.push(next);
         continue;
       }
       if (lockAttempt.status === "unavailable") {
         logger.error("Redis unavailable for RP manager migration per-RP lock", {
           error: lockAttempt.error,
           attempt_id: attemptId,
-          rp_id: next.rp_id,
+          ...candidateIdentity(next),
         });
 
         return NextResponse.json(
@@ -259,27 +284,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         );
       }
 
-      candidate = next;
-      rpLock = lockAttempt;
-      break;
+      locked.push({ candidate: next, rpLock: lockAttempt });
     }
 
-    if (!candidate || rpLock?.status !== "acquired") {
+    if (locked.length === 0) {
       logger.info("No unlocked RP manager migration candidate available", {
         attempt_id: attemptId,
         candidate_count: candidates.rp_registration.length,
         locked_candidates_skipped: lockedCandidatesSkipped,
+        skipped_locked: skippedLocked.map(candidateIdentity),
       });
 
       return new NextResponse(null, { status: 204 });
     }
 
-    logger.info("RP manager key migration attempt started", {
+    const rpIds = locked.map((item) => item.candidate.rp_id);
+
+    logger.info("RP manager key migration batch started", {
       attempt_id: attemptId,
-      rp_id: candidate.rp_id,
-      app_id: candidate.app_id,
-      old_manager_kms_key_id: candidate.manager_kms_key_id,
+      rp_ids: rpIds,
+      candidate_count: locked.length,
       locked_candidates_skipped: lockedCandidatesSkipped,
+      candidates: locked.map((item) => candidateIdentity(item.candidate)),
+      skipped_locked: skippedLocked.map(candidateIdentity),
     });
 
     const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
@@ -293,71 +320,137 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       stagingMirrorRegistry: stagingConfig
         ? { name: "staging", config: stagingConfig }
         : undefined,
-      rpIds: [candidate.rp_id],
+      rpIds,
       attemptId,
       pollIntervalMs: 2_000,
       confirmationTimeoutMs: 15_000,
+      concurrency: MIGRATE_PER_RUN,
     });
 
-    const result = report.results[0];
+    const resultsByRpId = new Map(
+      report.results.map((result) => [result.rpId, result]),
+    );
+    const responseItems: Array<{
+      rp_id: string;
+      outcome: string;
+      operation_hashes: Record<string, string>;
+    }> = [];
+    const resultLogs: Array<{
+      rp_id: string;
+      app_id: string;
+      old_manager_kms_key_id: string;
+      outcome: string;
+      operation_hashes: Record<string, string>;
+      skipped_registries: string[];
+      retain_rp_lock: boolean;
+      failure?: { stage: string; detail: string };
+    }> = [];
 
-    const settled =
-      result?.status === "migrated" || result?.status === "already_migrated";
+    for (const { candidate } of locked) {
+      const result = resultsByRpId.get(candidate.rp_id);
+      const settled =
+        result?.status === "migrated" || result?.status === "already_migrated";
+      const retainRpLock =
+        !settled && migrationMayHaveInFlightOperation(result);
 
-    keepRpLockForInFlightOp =
-      !settled && migrationMayHaveInFlightOperation(result);
+      if (retainRpLock) {
+        retainRpIds.add(candidate.rp_id);
+      }
 
-    if (!result || result.status === "failed") {
-      await touchForCooldown(client, candidate.rp_id, attemptId);
+      if (!result || result.status === "failed") {
+        await touchForCooldown(client, candidate, attemptId);
+      }
+
+      const outcome = result?.status ?? "ineligible";
+      const operationHashes = result?.operationHashes ?? {};
+
+      responseItems.push({
+        rp_id: candidate.rp_id,
+        outcome,
+        operation_hashes: operationHashes,
+      });
+      resultLogs.push({
+        ...candidateIdentity(candidate),
+        outcome,
+        operation_hashes: operationHashes,
+        skipped_registries: result?.skippedRegistries ?? [],
+        retain_rp_lock: retainRpLock,
+        ...(result?.status === "failed" ? { failure: result.failure } : {}),
+      });
     }
 
-    const outcome = result?.status ?? "ineligible";
-
-    logger.info("RP manager key migration attempt finished", {
+    const succeededRpIds = resultLogs
+      .filter(
+        (item) =>
+          item.outcome === "migrated" || item.outcome === "already_migrated",
+      )
+      .map((item) => item.rp_id);
+    const failedRpIds = resultLogs
+      .filter((item) => item.outcome === "failed")
+      .map((item) => item.rp_id);
+    const ineligibleRpIds = resultLogs
+      .filter((item) => item.outcome === "ineligible")
+      .map((item) => item.rp_id);
+    const batchOutcome =
+      failedRpIds.length + ineligibleRpIds.length === 0
+        ? "all_succeeded"
+        : succeededRpIds.length === 0
+          ? "all_failed"
+          : "partial_failure";
+    const batchLog = {
       attempt_id: attemptId,
-      rp_id: candidate.rp_id,
-      app_id: candidate.app_id,
-      old_manager_kms_key_id: candidate.manager_kms_key_id,
-      operation_hashes: result?.operationHashes ?? {},
-      skipped_registries: result?.skippedRegistries ?? [],
-      outcome,
-      failure: result?.status === "failed" ? result.failure : undefined,
+      batch_outcome: batchOutcome,
+      rp_ids: rpIds,
+      succeeded_rp_ids: succeededRpIds,
+      failed_rp_ids: failedRpIds,
+      ineligible_rp_ids: ineligibleRpIds,
+      candidate_count: locked.length,
+      succeeded_count: succeededRpIds.length,
+      failed_count: failedRpIds.length,
+      ineligible_count: ineligibleRpIds.length,
       locked_candidates_skipped: lockedCandidatesSkipped,
-      retain_rp_lock: keepRpLockForInFlightOp,
+      skipped_locked: skippedLocked.map(candidateIdentity),
+      retained_rp_locks: [...retainRpIds],
       duration_ms: Date.now() - startedAt,
-    });
+      results: resultLogs,
+    };
 
-    return NextResponse.json({
-      rp_id: candidate.rp_id,
-      outcome,
-      operation_hashes: result?.operationHashes ?? {},
-    });
+    if (batchOutcome === "all_succeeded") {
+      logger.info("RP manager key migration batch finished", batchLog);
+    } else if (batchOutcome === "partial_failure") {
+      logger.warn("RP manager key migration batch finished", batchLog);
+    } else {
+      logger.error("RP manager key migration batch finished", batchLog);
+    }
+
+    return NextResponse.json({ results: responseItems });
   } catch (error) {
     if (migrationInvocationStarted) {
-      keepRpLockForInFlightOp = true;
+      for (const { candidate } of locked) {
+        retainRpIds.add(candidate.rp_id);
+      }
     }
 
-    if (client && candidate) {
-      try {
-        await touchForCooldown(
-          client,
-          candidate.rp_id,
-          attemptId ?? randomUUID(),
-        );
-      } catch (cooldownError) {
-        logger.warn("Failed to apply RP migration cooldown", {
-          error: cooldownError,
-          attempt_id: attemptId,
-          rp_id: candidate.rp_id,
-        });
+    if (client) {
+      for (const { candidate } of locked) {
+        try {
+          await touchForCooldown(client, candidate, attemptId ?? randomUUID());
+        } catch (cooldownError) {
+          logger.warn("Failed to apply RP migration cooldown", {
+            error: cooldownError,
+            attempt_id: attemptId,
+            ...candidateIdentity(candidate),
+          });
+        }
       }
     }
 
     logger.error("Unexpected RP manager migration cron failure", {
       error,
       attempt_id: attemptId,
-      rp_id: candidate?.rp_id,
-      old_manager_kms_key_id: candidate?.manager_kms_key_id,
+      rp_ids: locked.map((item) => item.candidate.rp_id),
+      candidates: locked.map((item) => candidateIdentity(item.candidate)),
+      migration_invocation_started: migrationInvocationStarted,
       duration_ms: Date.now() - startedAt,
     });
 
@@ -366,17 +459,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 503 },
     );
   } finally {
-    if (
-      rpLock?.status === "acquired" &&
-      candidate &&
-      !keepRpLockForInFlightOp
-    ) {
-      await releaseRpMigrationLock(
-        rpLock.redis,
-        candidate.rp_id,
-        rpLock.owner,
-        attemptId,
-      );
+    for (const { candidate, rpLock } of locked) {
+      if (!retainRpIds.has(candidate.rp_id)) {
+        await releaseRpMigrationLock(
+          rpLock.redis,
+          candidate.rp_id,
+          rpLock.owner,
+          attemptId,
+        );
+      }
     }
     await releaseGlobalLock(lock.redis, lock.owner, attemptId);
   }
