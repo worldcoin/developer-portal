@@ -232,6 +232,14 @@ export async function POST(req: NextRequest) {
         .update(canonicalizeProof(proof))
         .digest("hex");
     } catch (error) {
+      // Canonicalization fails for a malformed proof, but it would also fail on
+      // a bug in the canonicalizer itself. Record the cause so the two are
+      // distinguishable — otherwise both surface only as a generic 400.
+      logger.warn("Could not canonicalize proof in OIDC authorize", {
+        error: error instanceof Error ? error.message : String(error),
+        app_id,
+      });
+
       return corsHandler(
         errorResponse({
           statusCode: 400,
