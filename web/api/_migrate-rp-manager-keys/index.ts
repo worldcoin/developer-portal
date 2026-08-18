@@ -198,6 +198,22 @@ async function touchForCooldown(
   }
 }
 
+async function applyCandidateCooldown(
+  client: GraphQLClient,
+  candidate: Candidate,
+  attemptId: string,
+): Promise<void> {
+  try {
+    await touchForCooldown(client, candidate, attemptId);
+  } catch (error) {
+    logger.warn("Failed to apply RP migration cooldown", {
+      error,
+      attempt_id: attemptId,
+      ...candidateIdentity(candidate),
+    });
+  }
+}
+
 // #endregion
 
 // #region Endpoint
@@ -357,10 +373,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         retainRpIds.add(candidate.rp_id);
       }
 
-      if (!result || result.status === "failed") {
-        await touchForCooldown(client, candidate, attemptId);
-      }
-
       const outcome = result?.status ?? "ineligible";
       const operationHashes = result?.operationHashes ?? {};
 
@@ -377,6 +389,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         retain_rp_lock: retainRpLock,
         ...(result?.status === "failed" ? { failure: result.failure } : {}),
       });
+    }
+
+    for (const { candidate } of locked) {
+      const result = resultsByRpId.get(candidate.rp_id);
+      if (!result || result.status === "failed") {
+        await applyCandidateCooldown(client, candidate, attemptId);
+      }
     }
 
     const succeededRpIds = resultLogs
@@ -433,15 +452,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (client) {
       for (const { candidate } of locked) {
-        try {
-          await touchForCooldown(client, candidate, attemptId ?? randomUUID());
-        } catch (cooldownError) {
-          logger.warn("Failed to apply RP migration cooldown", {
-            error: cooldownError,
-            attempt_id: attemptId,
-            ...candidateIdentity(candidate),
-          });
-        }
+        await applyCandidateCooldown(
+          client,
+          candidate,
+          attemptId ?? randomUUID(),
+        );
       }
     }
 

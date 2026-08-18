@@ -549,6 +549,104 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
     );
   });
 
+  it("does not retain settled RP locks when a cooldown write fails", async () => {
+    const failedRpId = "rp_aaaabbbbccccdddd";
+    const failedAppId = "app_aaaabbbbccccddddaaaabbbbccccdddd";
+    const otherFailedRpId = "rp_1111222233334444";
+    const otherFailedAppId = "app_11112222333344441111222233334444";
+    const failedLockKey = `rp-manager-key-migration:rp:${failedRpId}`;
+    const otherFailedLockKey = `rp-manager-key-migration:rp:${otherFailedRpId}`;
+
+    arrangeCandidates([
+      candidate,
+      {
+        rp_id: failedRpId,
+        app_id: failedAppId,
+        manager_kms_key_id: OLD_KEY,
+      },
+      {
+        rp_id: otherFailedRpId,
+        app_id: otherFailedAppId,
+        manager_kms_key_id: OLD_KEY,
+      },
+    ]);
+    migrateRpManagersToSharedKeyMock.mockResolvedValue({
+      candidateCount: 3,
+      results: [
+        successResult,
+        {
+          ...successResult,
+          rpId: failedRpId,
+          appId: failedAppId,
+          status: "failed" as const,
+          eligibleForCleanup: false,
+          operationHashes: {},
+          failure: { stage: "read_registry", detail: "RPC unavailable" },
+        },
+        {
+          ...successResult,
+          rpId: otherFailedRpId,
+          appId: otherFailedAppId,
+          status: "failed" as const,
+          eligibleForCleanup: false,
+          operationHashes: {},
+          failure: { stage: "read_registry", detail: "RPC unavailable" },
+        },
+      ],
+    });
+    graphqlRequestMock
+      .mockRejectedValueOnce(new Error("Hasura unavailable"))
+      .mockResolvedValueOnce({
+        update_rp_registration: { affected_rows: 1 },
+      });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      results: [
+        {
+          rp_id: RP_ID,
+          outcome: "migrated",
+          operation_hashes: { primary: "0xoperation" },
+        },
+        {
+          rp_id: failedRpId,
+          outcome: "failed",
+          operation_hashes: {},
+        },
+        {
+          rp_id: otherFailedRpId,
+          outcome: "failed",
+          operation_hashes: {},
+        },
+      ],
+    });
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBeNull();
+    await expect(global.RedisClient?.get(failedLockKey)).resolves.toBeNull();
+    await expect(
+      global.RedisClient?.get(otherFailedLockKey),
+    ).resolves.toBeNull();
+    expect(
+      graphqlRequestMock.mock.calls.slice(1).map((call) => call[1]),
+    ).toEqual([
+      expect.objectContaining({ rp_id: failedRpId }),
+      expect.objectContaining({ rp_id: otherFailedRpId }),
+    ]);
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      "Failed to apply RP migration cooldown",
+      expect.objectContaining({
+        rp_id: failedRpId,
+        app_id: failedAppId,
+        old_manager_kms_key_id: OLD_KEY,
+      }),
+    );
+    expect(mockLogger.error).not.toHaveBeenCalledWith(
+      "Unexpected RP manager migration cron failure",
+      expect.anything(),
+    );
+  });
+
   it("holds the per-RP lock for the duration of the migration and releases it", async () => {
     arrangeCandidate();
     migrateRpManagersToSharedKeyMock.mockImplementation(async () => {
