@@ -1,4 +1,4 @@
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 // The Q3 2026 wizard replaces the previous V3 configuration page; the old
 // scene stays in the tree untouched so reverting is a one-line import swap.
 import { ConfigurationWizardPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/page";
