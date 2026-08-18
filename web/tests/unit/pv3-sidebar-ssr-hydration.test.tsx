@@ -130,14 +130,8 @@ const activeLink = (root: ParentNode) =>
     (a) => a.getAttribute("data-active") === "true",
   )!;
 
-const activeSubLink = (root: ParentNode) =>
-  root.querySelector('[data-sidebar="menu-sub-button"][data-active="true"]')!;
-
 const pill = (root: ParentNode) =>
   root.querySelector('nav > span[aria-hidden="true"]')!;
-
-const subPill = (root: ParentNode) =>
-  root.querySelector('[data-sidebar="menu-sub-active-pill"]')!;
 // #endregion
 
 // The sheath must survive a hard refresh: the server HTML carries a static
@@ -177,11 +171,7 @@ it("hands the static SSR active card off to the measured pill at hydration", asy
   expect(activeLink(container).className).toContain(
     "data-[active=true]:bg-white",
   );
-  expect(activeSubLink(container).className).toContain(
-    "data-[active=true]:bg-white",
-  );
   expect(pill(container).classList.contains("hidden")).toBe(true);
-  expect(subPill(container).classList.contains("hidden")).toBe(true);
 
   await act(async () => {
     render(tree, { container, hydrate: true });
@@ -194,13 +184,8 @@ it("hands the static SSR active card off to the measured pill at hydration", asy
   expect(activeLink(container).className).not.toContain(
     "data-[active=true]:bg-white",
   );
-  expect(activeSubLink(container).className).not.toContain(
-    "data-[active=true]:bg-white",
-  );
   expect(pill(container).classList.contains("hidden")).toBe(false);
   expect(pill(container)).toHaveStyle({ width: "248px", height: "40px" });
-  expect(subPill(container).classList.contains("hidden")).toBe(false);
-  expect(subPill(container)).toHaveStyle({ width: "248px", height: "40px" });
 
   document.body.removeChild(container);
 });

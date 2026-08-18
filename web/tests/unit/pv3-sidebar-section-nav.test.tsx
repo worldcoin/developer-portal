@@ -53,7 +53,6 @@ import {
   SidebarAnimationShell,
   SidebarNav,
 } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
-import { SidebarSubNavigation } from "@/scenes/PortalV3/layout/Shell/SidebarSubNavigation";
 
 // #region Test Data
 const teamId = "team_1";
@@ -111,103 +110,12 @@ beforeEach(() => {
   });
 });
 
-// #region subnavigation active pill
-it("slides the subnavigation pill when the active href changes", () => {
-  const rect = (top: number, left: number, width: number, height: number) =>
-    ({
-      top,
-      left,
-      width,
-      height,
-      right: left + width,
-      bottom: top + height,
-      x: left,
-      y: top,
-      toJSON: () => ({}),
-    }) as DOMRect;
-  const getBoundingClientRect = jest
-    .spyOn(Element.prototype, "getBoundingClientRect")
-    .mockImplementation(function (this: Element) {
-      if (this.matches('[data-sidebar="menu-sub"]')) {
-        Object.defineProperty(this, "clientLeft", {
-          configurable: true,
-          value: 1,
-        });
-        return rect(100, 20, 180, 76);
-      }
-      if (this.textContent === "Actions") {
-        return rect(104, 32, 156, 36);
-      }
-      if (this.textContent === "Configuration") {
-        return rect(144, 32, 156, 36);
-      }
-      return rect(0, 0, 0, 0);
-    });
-  const items = (active: "actions" | "configuration") => [
-    {
-      label: "Actions",
-      href: "/world-id?tab=actions",
-      active: active === "actions",
-    },
-    {
-      label: "Configuration",
-      href: "/world-id?tab=configuration",
-      active: active === "configuration",
-    },
-  ];
-  const getNavigationHandler = () => () => {};
-  const view = render(
-    <SidebarSubNavigation
-      label="World ID navigation"
-      items={items("actions")}
-      getNavigationHandler={getNavigationHandler}
-    />,
-  );
-  const pill = view.container.querySelector(
-    '[data-sidebar="menu-sub-active-pill"]',
-  );
-
-  expect(pill).toHaveStyle({
-    transform: "translate(11px, 4px)",
-    width: "156px",
-    height: "36px",
-  });
-  expect(pill).not.toHaveClass("transition-[transform,width,height]");
-
-  view.rerender(
-    <SidebarSubNavigation
-      label="World ID navigation"
-      items={items("configuration")}
-      getNavigationHandler={getNavigationHandler}
-    />,
-  );
-
-  expect(pill).toHaveStyle({ transform: "translate(11px, 44px)" });
-  expect(pill).toHaveClass(
-    "transition-[transform,width,height]",
-    "duration-200",
-    "ease-out",
-    "motion-reduce:transition-none",
-  );
-  expect(link("Configuration")).toHaveAttribute("aria-current", "page");
-  expect(link("Actions")).not.toHaveAttribute("aria-current");
-
-  getBoundingClientRect.mockRestore();
-});
-// #endregion
-
 // #region navigation hierarchy
 describe("v3 SidebarNav [navigation hierarchy]", () => {
-  it("renders the app hierarchy with World ID expanded", () => {
+  it("renders app destinations as first-class tabs", () => {
     renderSidebar();
 
-    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id`);
-    expect(link("World ID")).toHaveAttribute("data-active", "true");
-    expect(isCurrent("World ID")).toBe(false);
-    expect(link("World ID").querySelectorAll("img")).toHaveLength(2);
-    expect(
-      screen.getByRole("list", { name: "World ID navigation" }),
-    ).toBeInTheDocument();
+    noLink("World ID");
     expect(isCurrent("Actions")).toBe(true);
     expect(link("Configuration")).toBeInTheDocument();
     expect(link("Configuration").querySelector("img")).toHaveAttribute(
@@ -221,22 +129,25 @@ describe("v3 SidebarNav [navigation hierarchy]", () => {
     );
     expect(link("Mini App")).toBeInTheDocument();
     noLink("Develop");
+    expect(link("Transactions")).toBeInTheDocument();
+    expect(link("Notifications")).toBeInTheDocument();
     expect(link("Team settings")).toHaveAttribute(
       "href",
       `/teams/${teamId}/settings?return_to=${encodeURIComponent(base)}`,
     );
-    const settingsChevron = link("Team settings").querySelector(
-      "svg.lucide-chevron-right",
-    );
-    expect(settingsChevron).toHaveClass("size-4");
-    expect(settingsChevron?.parentElement).toHaveClass("ml-auto");
+    expect(
+      link("Team settings").querySelector("svg.lucide-chevron-right"),
+    ).toHaveClass("size-[18px]", "text-portal-text");
+    noLink("Team Name");
+    noLink("Members");
+    noLink("API Keys");
   });
 });
 // #endregion
 
 // #region active section
 describe("v3 SidebarNav [active section]", () => {
-  it("maps canonical and compatibility routes to World ID children", () => {
+  it("maps canonical and compatibility routes to flat World ID tabs", () => {
     const cases = [
       { path: base, child: "Actions" },
       { path: `${base}/world-id`, child: "Actions" },
@@ -252,8 +163,6 @@ describe("v3 SidebarNav [active section]", () => {
     for (const { path, child } of cases) {
       usePathname.mockReturnValue(path);
       const { unmount } = renderSidebar();
-      expect(link("World ID")).toHaveAttribute("data-active", "true");
-      expect(isCurrent("World ID")).toBe(false);
       expect(isCurrent(child)).toBe(true);
       unmount();
     }
@@ -264,38 +173,23 @@ describe("v3 SidebarNav [active section]", () => {
     renderSidebar();
 
     expect(isCurrent("Get verified")).toBe(true);
-    expect(
-      screen.queryByRole("list", { name: "World ID navigation" }),
-    ).not.toBeInTheDocument();
     expect(useQueryMock).toHaveBeenLastCalledWith(
       { __mockDoc: "worldIdNavigation" },
-      expect.objectContaining({ skip: true }),
+      expect.objectContaining({ skip: false }),
     );
   });
 
-  it("expands Mini App children only on its routes and marks each child", () => {
-    const collapsed = renderSidebar();
-    noLink("Develop");
-    collapsed.unmount();
-
+  it("maps Mini App routes to their flat tabs", () => {
     for (const { path, child } of [
-      { path: `${base}/mini-app/develop`, child: "Develop" },
-      { path: `${base}/mini-app/permissions`, child: "Develop" },
+      { path: `${base}/mini-app/develop`, child: "Mini App" },
+      { path: `${base}/mini-app/permissions`, child: "Mini App" },
       { path: `${base}/mini-app/transactions`, child: "Transactions" },
       { path: `${base}/transactions`, child: "Transactions" },
       { path: `${base}/mini-app/notifications`, child: "Notifications" },
     ]) {
       usePathname.mockReturnValue(path);
       const { unmount } = renderSidebar();
-      expect(link("Mini App")).toHaveAttribute("data-active", "true");
-      expect(isCurrent("Mini App")).toBe(false);
       expect(isCurrent(child)).toBe(true);
-      expect(
-        screen.getByRole("list", { name: "Mini App navigation" }),
-      ).toHaveClass("mt-2");
-      expect(link("Develop").querySelector("svg")).toHaveClass(
-        "lucide-code-xml",
-      );
       expect(link("Transactions").querySelector("svg")).toHaveClass(
         "lucide-wallet-cards",
       );
@@ -308,8 +202,8 @@ describe("v3 SidebarNav [active section]", () => {
 });
 // #endregion
 
-// #region World ID subnavigation
-describe("v3 SidebarNav [World ID subnavigation]", () => {
+// #region World ID tabs
+describe("v3 SidebarNav [World ID tabs]", () => {
   beforeEach(() => {
     usePathname.mockReturnValue(`${base}/world-id`);
   });
@@ -387,7 +281,7 @@ describe("v3 SidebarNav [World ID subnavigation]", () => {
     expect(link("Actions")).toBeInTheDocument();
   });
 
-  it("routes child clicks optimistically and preserves modifier clicks", () => {
+  it("routes tab clicks optimistically and preserves modifier clicks", () => {
     renderSidebar();
 
     fireEvent.click(link("Configuration"), { metaKey: true });
@@ -402,7 +296,7 @@ describe("v3 SidebarNav [World ID subnavigation]", () => {
 
 // #region route-owned app context
 describe("v3 SidebarNav [route-owned app context]", () => {
-  it("shows the Settings back header and section navigation", () => {
+  it("shows the separate settings sidebar and returns to the app-level URL", () => {
     useParams.mockReturnValue({ teamId });
     usePathname.mockReturnValue(`/teams/${teamId}/settings`);
     useSearchParams.mockReturnValue(
@@ -421,7 +315,7 @@ describe("v3 SidebarNav [route-owned app context]", () => {
       "justify-center",
       "data-[active=false]:hover:bg-portal-border",
     );
-    expect(link("General")).toHaveAttribute(
+    expect(link("Team Name")).toHaveAttribute(
       "href",
       `/teams/${teamId}/settings?return_to=${encodeURIComponent(
         `${base}/configuration?view=review`,
@@ -437,6 +331,13 @@ describe("v3 SidebarNav [route-owned app context]", () => {
     noLink("World ID");
     noLink("Get verified");
     noLink("Mini App");
+
+    fireEvent.click(link("Settings"));
+    expect(routerPush).toHaveBeenCalledWith(
+      `${base}/configuration?view=review`,
+    );
+    expect(link("Settings")).toBeInTheDocument();
+    noLink("Actions");
   });
 
   it("shows API Keys only to owners and admins", () => {
@@ -450,10 +351,10 @@ describe("v3 SidebarNav [route-owned app context]", () => {
 
     renderSidebar([]);
     noLink("API Keys");
-    expect(isCurrent("General")).toBe(true);
+    expect(isCurrent("Team Name")).toBe(true);
   });
 
-  it("defaults the Settings back header to the dashboard for an unsafe return target", () => {
+  it("defaults the Settings back control to the dashboard for an unsafe return target", () => {
     useParams.mockReturnValue({ teamId });
     usePathname.mockReturnValue(`/teams/${teamId}/settings`);
     useSearchParams.mockReturnValue(
@@ -483,6 +384,23 @@ describe("v3 SidebarNav [route-owned app context]", () => {
     expect(routerPush).not.toHaveBeenCalled();
     fireEvent.click(link("Get verified"));
     expect(routerPush).toHaveBeenCalledWith(`${base}/configuration`);
+  });
+
+  it("opens Team settings with the current app URL as its return target", () => {
+    const appReturnTo = `${base}/world-id?tab=configuration`;
+    usePathname.mockReturnValue(`${base}/world-id`);
+    useSearchParams.mockReturnValue(
+      new URLSearchParams({ tab: "configuration" }),
+    );
+    renderSidebar();
+
+    fireEvent.click(link("Team settings"));
+
+    expect(routerPush).toHaveBeenCalledWith(
+      `/teams/${teamId}/settings?return_to=${encodeURIComponent(appReturnTo)}`,
+    );
+    expect(link("Configuration")).toBeInTheDocument();
+    noLink("Settings");
   });
 });
 // #endregion

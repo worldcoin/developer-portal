@@ -10,22 +10,20 @@ import {
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { GetWorldIdNavigationDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/navigation/graphql/client/get-world-id-navigation.generated";
 import { useQuery } from "@apollo/client/react";
-import { BadgeCheckIcon, HistoryIcon, ListChecksIcon } from "lucide-react";
+import { HistoryIcon, ListChecksIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import type { ReactNode } from "react";
+import type { MouseEventHandler } from "react";
 import { NavItem } from "./NavItem";
-import {
-  type GetSidebarNavigationHandler,
-  SidebarSubNavigation,
-} from "./SidebarSubNavigation";
 
-export const WorldIdNavItem = (props: {
+type GetSidebarNavigationHandler = (
+  href: string,
+) => MouseEventHandler<HTMLAnchorElement>;
+
+export const WorldIdNavItems = (props: {
   teamId: string;
   appId: string;
-  active: boolean;
   currentPathname: string;
   optimisticHref: string | null;
-  icon: ReactNode;
   getNavigationHandler: GetSidebarNavigationHandler;
 }) => {
   const ids = { team_id: props.teamId, app_id: props.appId };
@@ -41,7 +39,7 @@ export const WorldIdNavItem = (props: {
 
   const { data } = useQuery(GetWorldIdNavigationDocument, {
     variables: { app_id: props.appId },
-    skip: !props.active,
+    skip: false,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
   });
@@ -93,55 +91,43 @@ export const WorldIdNavItem = (props: {
     hasLegacyActions ||
     onLegacyActionsRoute ||
     (!hasResolvedApp && requestedTab === WORLD_ID_TABS.LegacyActions);
-
-  const items = [
-    ...(showActions
-      ? [
-          {
-            label: "Actions",
-            href: urls.worldIdTab({ ...ids, tab: WORLD_ID_TABS.Actions }),
-            active: actionsActive,
-            icon: <ListChecksIcon strokeWidth={1.5} className="size-4" />,
-          },
-        ]
-      : []),
-    {
-      label: "Configuration",
-      href: urls.worldIdTab({ ...ids, tab: WORLD_ID_TABS.Configuration }),
-      active: configurationActive,
-      icon: <Icon name="nav-configuration" className="size-4" />,
-    },
-    ...(showLegacyActions
-      ? [
-          {
-            label: "Legacy actions",
-            href: urls.worldIdTab({
-              ...ids,
-              tab: WORLD_ID_TABS.LegacyActions,
-            }),
-            active: legacyActionsActive,
-            icon: <HistoryIcon strokeWidth={1.5} className="size-4" />,
-          },
-        ]
-      : []),
-  ];
+  const actionsHref = urls.worldIdTab({ ...ids, tab: WORLD_ID_TABS.Actions });
+  const configurationHref = urls.worldIdTab({
+    ...ids,
+    tab: WORLD_ID_TABS.Configuration,
+  });
+  const legacyActionsHref = urls.worldIdTab({
+    ...ids,
+    tab: WORLD_ID_TABS.LegacyActions,
+  });
 
   return (
-    <NavItem
-      label="World ID"
-      href={worldIdHref}
-      active={props.active}
-      current={false}
-      onNavigate={props.getNavigationHandler(worldIdHref)}
-      icon={props.icon}
-    >
-      {props.active ? (
-        <SidebarSubNavigation
-          label="World ID navigation"
-          items={items}
-          getNavigationHandler={props.getNavigationHandler}
+    <>
+      {showActions ? (
+        <NavItem
+          label="Actions"
+          href={actionsHref}
+          active={actionsActive}
+          onNavigate={props.getNavigationHandler(actionsHref)}
+          icon={<ListChecksIcon strokeWidth={1.5} className="size-4" />}
         />
       ) : null}
-    </NavItem>
+      <NavItem
+        label="Configuration"
+        href={configurationHref}
+        active={configurationActive}
+        onNavigate={props.getNavigationHandler(configurationHref)}
+        icon={<Icon name="nav-configuration" className="size-4" />}
+      />
+      {showLegacyActions ? (
+        <NavItem
+          label="Legacy actions"
+          href={legacyActionsHref}
+          active={legacyActionsActive}
+          onNavigate={props.getNavigationHandler(legacyActionsHref)}
+          icon={<HistoryIcon strokeWidth={1.5} className="size-4" />}
+        />
+      ) : null}
+    </>
   );
 };
