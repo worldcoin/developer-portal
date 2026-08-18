@@ -1,13 +1,13 @@
 "use client";
 
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import posthog from "posthog-js";
@@ -27,6 +27,10 @@ const ANDROID_URL: string | null =
 /** TestFlight's own App Store page, for testers who don't have it yet. */
 const TESTFLIGHT_APP_STORE_URL: string | null =
   process.env.NEXT_PUBLIC_TESTFLIGHT_APP_STORE_URL || null;
+
+const ANDROID_FIRST_SIGN_IN_NOTE =
+  "If this is your first Play Store sign-in, accept all Google Play Terms of Service before continuing. Make sure the browser opening the test link and the Play Store use that same account; mismatched sessions can block the download.";
+const SANDBOX_SUPPORT_EMAIL = "sandbox.access@toolsforhumanity.org";
 
 type Platform = "ios" | "android";
 
@@ -51,9 +55,10 @@ const PLATFORMS: Record<
     label: "Android",
     url: ANDROID_URL,
     steps: [
-      "Request access for your Google account",
-      "Wait for your invite confirmation",
-      "Scan the QR code and install the build",
+      "On your Android device, confirm that the Google Play Store is signed in with the same Google account you requested access for.",
+      "If this is the first time that account has signed in to Google Play, allow time for Google's backend caches to recognize the new account before retrying.",
+      "Once the correct account is signed in and the Terms of Service are accepted, scan the QR code or open the internal testing link below, then install the build.",
+      "Still having trouble? Contact Sandbox Support:",
     ],
   },
 };
@@ -128,7 +133,7 @@ export const SandboxButton = (props: {
       });
 
       if (!response.ok) {
-        toast.error("Couldn't send your request — please try again.");
+        toast.error("Couldn't send your request. Please try again.");
         return;
       }
 
@@ -141,7 +146,7 @@ export const SandboxButton = (props: {
       setExistingRequest(data.request);
       setRequestEmail(data.request.email);
     } catch {
-      toast.error("Couldn't send your request — please try again.");
+      toast.error("Couldn't send your request. Please try again.");
     } finally {
       setRequestSending(false);
     }
@@ -165,7 +170,7 @@ export const SandboxButton = (props: {
         onClick={openDialog}
         aria-haspopup="dialog"
         className={clsx(
-          "group flex shrink-0 cursor-pointer items-center gap-x-3 rounded-[10px] border border-portal-border px-3 py-2 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
+          "group/sandbox flex shrink-0 items-center gap-x-3 rounded-[10px] px-3 py-2 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
           props.className,
         )}
       >
@@ -185,7 +190,7 @@ export const SandboxButton = (props: {
         </span>
         <span
           aria-hidden
-          className="-mr-[5px] font-world text-13 text-portal-subtle transition-transform duration-200 group-hover:translate-x-0.5"
+          className="-mr-[5px] font-world text-13 text-portal-subtle transition-transform duration-200 group-hover/sandbox:translate-x-0.5"
         >
           →
         </span>
@@ -228,7 +233,7 @@ export const SandboxButton = (props: {
                   aria-pressed={platform === p}
                   onClick={() => switchPlatform(p)}
                   className={clsx(
-                    "flex h-8 cursor-pointer items-center justify-center rounded-8 px-5 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-grey-300",
+                    "flex h-8 items-center justify-center rounded-8 px-5 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-grey-300",
                     platform === p
                       ? "bg-white text-grey-900 shadow-portal-card"
                       : "text-grey-500 hover:text-grey-700",
@@ -246,7 +251,8 @@ export const SandboxButton = (props: {
                 <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
                   The Android build is distributed as a Google Play internal
                   test. Your Google account email must be approved before the
-                  link works.
+                  link works. Make sure the email you provide is tied to a valid
+                  Google account.
                 </Typography>
 
                 <form
@@ -263,21 +269,21 @@ export const SandboxButton = (props: {
                     placeholder="google-account@gmail.com"
                     className="h-9 min-w-0 flex-1 rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300 disabled:bg-grey-100 disabled:text-grey-500"
                   />
-                  <DecoratedButton
+                  <InkButton
                     type="submit"
-                    variant="primary"
-                    disabled={existingRequest !== null || requestRefreshing}
-                    loading={requestSending}
+                    disabled={
+                      existingRequest !== null ||
+                      requestRefreshing ||
+                      requestSending
+                    }
                     className="h-9 shrink-0 px-4"
                   >
-                    <Typography variant={TYPOGRAPHY.M4}>
-                      {existingRequest?.accepted
-                        ? "Invite sent"
-                        : existingRequest
-                          ? "Request submitted"
-                          : "Request invite"}
-                    </Typography>
-                  </DecoratedButton>
+                    {existingRequest?.accepted
+                      ? "Invite sent"
+                      : existingRequest
+                        ? "Request submitted"
+                        : "Request invite"}
+                  </InkButton>
                 </form>
 
                 {existingRequest ? (
@@ -320,6 +326,17 @@ export const SandboxButton = (props: {
                       className="pt-0.5 text-grey-700"
                     >
                       {step}
+                      {platform === "android" && index === 0 ? (
+                        <span className="mt-3 block rounded-8 border border-system-warning-200 bg-system-warning-50 px-3 py-2 text-system-warning-700">
+                          <strong>Important:</strong>{" "}
+                          {ANDROID_FIRST_SIGN_IN_NOTE}
+                        </span>
+                      ) : null}
+                      {platform === "android" && index === 3 ? (
+                        <span className="mt-1 block w-fit font-medium whitespace-nowrap text-grey-900">
+                          {SANDBOX_SUPPORT_EMAIL}
+                        </span>
+                      ) : null}
                     </Typography>
                   </li>
                 ))}

@@ -1,24 +1,38 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
-import React from "react";
-jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
-  pickPortalVersion: async (v3: () => unknown) => v3(),
+
+// #region Mocks
+const redirectMock = jest.fn();
+jest.mock("next/navigation", () => ({
+  redirect: (...args: unknown[]) => redirectMock(...args),
 }));
-jest.mock("@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/page", () => ({
-  ActionsPage: () => <div data-testid="v2-actions" />,
-}));
-jest.mock("@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/page", () => ({
-  ActionsPage: () => <div data-testid="v3-actions" />,
-}));
+// #endregion
+
 import RoutePage from "../../app/(portal)/teams/[teamId]/apps/[appId]/actions/page";
-it("renders v3 actions", async () => {
-  render(
-    await RoutePage({
-      params: Promise.resolve({ teamId: "team_1", appId: "app_1" }),
-      searchParams: Promise.resolve({}),
-    }),
-  );
-  expect(screen.getByTestId("v3-actions")).toBeInTheDocument();
-  expect(screen.queryByTestId("v2-actions")).not.toBeInTheDocument();
+
+const props = (searchParams: Record<string, string> = {}) => ({
+  params: Promise.resolve({ teamId: "team_1", appId: "app_1" }),
+  searchParams: Promise.resolve(searchParams),
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+describe("/actions [legacy redirect]", () => {
+  it("redirects the retired list route to the canonical Legacy Actions tab", async () => {
+    await RoutePage(props());
+
+    expect(redirectMock).toHaveBeenCalledWith(
+      "/teams/team_1/apps/app_1/world-id?tab=legacy-actions",
+    );
+  });
+
+  it("preserves query parameters and overwrites a stale tab", async () => {
+    await RoutePage(props({ search: "vote", tab: "configuration" }));
+
+    expect(redirectMock).toHaveBeenCalledWith(
+      "/teams/team_1/apps/app_1/world-id?search=vote&tab=legacy-actions",
+    );
+  });
 });

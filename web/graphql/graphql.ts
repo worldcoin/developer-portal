@@ -39,6 +39,7 @@ export type Scalars = {
   rp_registration_status: { input: unknown; output: unknown };
   timestamp: { input: string; output: string };
   timestamptz: { input: string; output: string };
+  uuid: { input: unknown; output: unknown };
   violation_enum: { input: unknown; output: unknown };
 };
 
@@ -1806,13 +1807,11 @@ export type Admin_Dashboard_Queue_Order_By = {
 
 export type Admin_Rp_Inventory = {
   __typename?: "admin_rp_inventory";
-  distinct_manager_keys: Scalars["bigint"]["output"];
   managed_rps: Scalars["bigint"]["output"];
   managed_with_key: Scalars["bigint"]["output"];
   managed_without_key: Scalars["bigint"]["output"];
-  rps_on_shared_keys: Scalars["bigint"]["output"];
   self_managed_rps: Scalars["bigint"]["output"];
-  shared_key_groups: Scalars["bigint"]["output"];
+  shared_manager_key_rps: Scalars["bigint"]["output"];
   staging_status_deactivated: Scalars["bigint"]["output"];
   staging_status_failed: Scalars["bigint"]["output"];
   staging_status_null: Scalars["bigint"]["output"];
@@ -1823,6 +1822,7 @@ export type Admin_Rp_Inventory = {
   status_pending: Scalars["bigint"]["output"];
   status_registered: Scalars["bigint"]["output"];
   total_rps: Scalars["bigint"]["output"];
+  unique_manager_key_rps: Scalars["bigint"]["output"];
 };
 
 /** Boolean expression to filter rows from the logical model for "admin_rp_inventory". All fields are combined with a logical 'AND'. */
@@ -1830,13 +1830,11 @@ export type Admin_Rp_Inventory_Bool_Exp_Bool_Exp = {
   _and?: InputMaybe<Array<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>>;
   _not?: InputMaybe<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>;
   _or?: InputMaybe<Array<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>>;
-  distinct_manager_keys?: InputMaybe<Bigint_Comparison_Exp>;
   managed_rps?: InputMaybe<Bigint_Comparison_Exp>;
   managed_with_key?: InputMaybe<Bigint_Comparison_Exp>;
   managed_without_key?: InputMaybe<Bigint_Comparison_Exp>;
-  rps_on_shared_keys?: InputMaybe<Bigint_Comparison_Exp>;
   self_managed_rps?: InputMaybe<Bigint_Comparison_Exp>;
-  shared_key_groups?: InputMaybe<Bigint_Comparison_Exp>;
+  shared_manager_key_rps?: InputMaybe<Bigint_Comparison_Exp>;
   staging_status_deactivated?: InputMaybe<Bigint_Comparison_Exp>;
   staging_status_failed?: InputMaybe<Bigint_Comparison_Exp>;
   staging_status_null?: InputMaybe<Bigint_Comparison_Exp>;
@@ -1847,11 +1845,10 @@ export type Admin_Rp_Inventory_Bool_Exp_Bool_Exp = {
   status_pending?: InputMaybe<Bigint_Comparison_Exp>;
   status_registered?: InputMaybe<Bigint_Comparison_Exp>;
   total_rps?: InputMaybe<Bigint_Comparison_Exp>;
+  unique_manager_key_rps?: InputMaybe<Bigint_Comparison_Exp>;
 };
 
 export enum Admin_Rp_Inventory_Enum_Name {
-  /** column name */
-  DistinctManagerKeys = "distinct_manager_keys",
   /** column name */
   ManagedRps = "managed_rps",
   /** column name */
@@ -1859,11 +1856,9 @@ export enum Admin_Rp_Inventory_Enum_Name {
   /** column name */
   ManagedWithoutKey = "managed_without_key",
   /** column name */
-  RpsOnSharedKeys = "rps_on_shared_keys",
-  /** column name */
   SelfManagedRps = "self_managed_rps",
   /** column name */
-  SharedKeyGroups = "shared_key_groups",
+  SharedManagerKeyRps = "shared_manager_key_rps",
   /** column name */
   StagingStatusDeactivated = "staging_status_deactivated",
   /** column name */
@@ -1884,17 +1879,17 @@ export enum Admin_Rp_Inventory_Enum_Name {
   StatusRegistered = "status_registered",
   /** column name */
   TotalRps = "total_rps",
+  /** column name */
+  UniqueManagerKeyRps = "unique_manager_key_rps",
 }
 
 /** Ordering options when selecting data from "admin_rp_inventory". */
 export type Admin_Rp_Inventory_Order_By = {
-  distinct_manager_keys?: InputMaybe<Order_By>;
   managed_rps?: InputMaybe<Order_By>;
   managed_with_key?: InputMaybe<Order_By>;
   managed_without_key?: InputMaybe<Order_By>;
-  rps_on_shared_keys?: InputMaybe<Order_By>;
   self_managed_rps?: InputMaybe<Order_By>;
-  shared_key_groups?: InputMaybe<Order_By>;
+  shared_manager_key_rps?: InputMaybe<Order_By>;
   staging_status_deactivated?: InputMaybe<Order_By>;
   staging_status_failed?: InputMaybe<Order_By>;
   staging_status_null?: InputMaybe<Order_By>;
@@ -1905,6 +1900,152 @@ export type Admin_Rp_Inventory_Order_By = {
   status_pending?: InputMaybe<Order_By>;
   status_registered?: InputMaybe<Order_By>;
   total_rps?: InputMaybe<Order_By>;
+  unique_manager_key_rps?: InputMaybe<Order_By>;
+};
+
+export type Admin_Rp_Manager_Key_Migration = {
+  __typename?: "admin_rp_manager_key_migration";
+  audit_blocked: Scalars["bigint"]["output"];
+  audit_deleted: Scalars["bigint"]["output"];
+  audit_deletion_overdue: Scalars["bigint"]["output"];
+  audit_deletion_scheduled: Scalars["bigint"]["output"];
+  audit_failed: Scalars["bigint"]["output"];
+  audit_pending: Scalars["bigint"]["output"];
+  audit_ready_for_external_cleanup: Scalars["bigint"]["output"];
+  on_shared_with_audit: Scalars["bigint"]["output"];
+  on_shared_without_audit: Scalars["bigint"]["output"];
+  remaining_cron_candidates: Scalars["bigint"]["output"];
+  unique_excluded_from_cron: Scalars["bigint"]["output"];
+  unique_with_audit: Scalars["bigint"]["output"];
+};
+
+/** Boolean expression to filter rows from the logical model for "admin_rp_manager_key_migration". All fields are combined with a logical 'AND'. */
+export type Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp = {
+  _and?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp>>;
+  _not?: InputMaybe<Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp>;
+  _or?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp>>;
+  audit_blocked?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_deleted?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_deletion_overdue?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_deletion_scheduled?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_failed?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_pending?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_ready_for_external_cleanup?: InputMaybe<Bigint_Comparison_Exp>;
+  on_shared_with_audit?: InputMaybe<Bigint_Comparison_Exp>;
+  on_shared_without_audit?: InputMaybe<Bigint_Comparison_Exp>;
+  remaining_cron_candidates?: InputMaybe<Bigint_Comparison_Exp>;
+  unique_excluded_from_cron?: InputMaybe<Bigint_Comparison_Exp>;
+  unique_with_audit?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+export enum Admin_Rp_Manager_Key_Migration_Enum_Name {
+  /** column name */
+  AuditBlocked = "audit_blocked",
+  /** column name */
+  AuditDeleted = "audit_deleted",
+  /** column name */
+  AuditDeletionOverdue = "audit_deletion_overdue",
+  /** column name */
+  AuditDeletionScheduled = "audit_deletion_scheduled",
+  /** column name */
+  AuditFailed = "audit_failed",
+  /** column name */
+  AuditPending = "audit_pending",
+  /** column name */
+  AuditReadyForExternalCleanup = "audit_ready_for_external_cleanup",
+  /** column name */
+  OnSharedWithAudit = "on_shared_with_audit",
+  /** column name */
+  OnSharedWithoutAudit = "on_shared_without_audit",
+  /** column name */
+  RemainingCronCandidates = "remaining_cron_candidates",
+  /** column name */
+  UniqueExcludedFromCron = "unique_excluded_from_cron",
+  /** column name */
+  UniqueWithAudit = "unique_with_audit",
+}
+
+/** Ordering options when selecting data from "admin_rp_manager_key_migration". */
+export type Admin_Rp_Manager_Key_Migration_Order_By = {
+  audit_blocked?: InputMaybe<Order_By>;
+  audit_deleted?: InputMaybe<Order_By>;
+  audit_deletion_overdue?: InputMaybe<Order_By>;
+  audit_deletion_scheduled?: InputMaybe<Order_By>;
+  audit_failed?: InputMaybe<Order_By>;
+  audit_pending?: InputMaybe<Order_By>;
+  audit_ready_for_external_cleanup?: InputMaybe<Order_By>;
+  on_shared_with_audit?: InputMaybe<Order_By>;
+  on_shared_without_audit?: InputMaybe<Order_By>;
+  remaining_cron_candidates?: InputMaybe<Order_By>;
+  unique_excluded_from_cron?: InputMaybe<Order_By>;
+  unique_with_audit?: InputMaybe<Order_By>;
+};
+
+export type Admin_Rp_Manager_Key_Migration_Queue = {
+  __typename?: "admin_rp_manager_key_migration_queue";
+  app_id: Scalars["String"]["output"];
+  app_name?: Maybe<Scalars["String"]["output"]>;
+  cleanup_status?: Maybe<Scalars["String"]["output"]>;
+  expected_deletion_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  kind: Scalars["String"]["output"];
+  last_error_detail?: Maybe<Scalars["String"]["output"]>;
+  rp_id: Scalars["String"]["output"];
+  total_count: Scalars["bigint"]["output"];
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the logical model for "admin_rp_manager_key_migration_queue". All fields are combined with a logical 'AND'. */
+export type Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp = {
+  _and?: InputMaybe<
+    Array<Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp>
+  >;
+  _not?: InputMaybe<Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp>;
+  _or?: InputMaybe<
+    Array<Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp>
+  >;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  app_name?: InputMaybe<String_Comparison_Exp>;
+  cleanup_status?: InputMaybe<String_Comparison_Exp>;
+  expected_deletion_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  kind?: InputMaybe<String_Comparison_Exp>;
+  last_error_detail?: InputMaybe<String_Comparison_Exp>;
+  rp_id?: InputMaybe<String_Comparison_Exp>;
+  total_count?: InputMaybe<Bigint_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+export enum Admin_Rp_Manager_Key_Migration_Queue_Enum_Name {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  AppName = "app_name",
+  /** column name */
+  CleanupStatus = "cleanup_status",
+  /** column name */
+  ExpectedDeletionAt = "expected_deletion_at",
+  /** column name */
+  Kind = "kind",
+  /** column name */
+  LastErrorDetail = "last_error_detail",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  TotalCount = "total_count",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+/** Ordering options when selecting data from "admin_rp_manager_key_migration_queue". */
+export type Admin_Rp_Manager_Key_Migration_Queue_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  app_name?: InputMaybe<Order_By>;
+  cleanup_status?: InputMaybe<Order_By>;
+  expected_deletion_at?: InputMaybe<Order_By>;
+  kind?: InputMaybe<Order_By>;
+  last_error_detail?: InputMaybe<Order_By>;
+  rp_id?: InputMaybe<Order_By>;
+  total_count?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "api_key" */
@@ -6710,6 +6851,10 @@ export type Mutation_Root = {
   delete_role?: Maybe<Role_Mutation_Response>;
   /** delete single row from the table: "role" */
   delete_role_by_pk?: Maybe<Role>;
+  /** delete data from the table: "rp_manager_key_migration_audit" */
+  delete_rp_manager_key_migration_audit?: Maybe<Rp_Manager_Key_Migration_Audit_Mutation_Response>;
+  /** delete single row from the table: "rp_manager_key_migration_audit" */
+  delete_rp_manager_key_migration_audit_by_pk?: Maybe<Rp_Manager_Key_Migration_Audit>;
   /** delete data from the table: "rp_registration" */
   delete_rp_registration?: Maybe<Rp_Registration_Mutation_Response>;
   /** delete single row from the table: "rp_registration" */
@@ -6827,6 +6972,10 @@ export type Mutation_Root = {
   insert_role?: Maybe<Role_Mutation_Response>;
   /** insert a single row into the table: "role" */
   insert_role_one?: Maybe<Role>;
+  /** insert data into the table: "rp_manager_key_migration_audit" */
+  insert_rp_manager_key_migration_audit?: Maybe<Rp_Manager_Key_Migration_Audit_Mutation_Response>;
+  /** insert a single row into the table: "rp_manager_key_migration_audit" */
+  insert_rp_manager_key_migration_audit_one?: Maybe<Rp_Manager_Key_Migration_Audit>;
   /** insert data into the table: "rp_registration" */
   insert_rp_registration?: Maybe<Rp_Registration_Mutation_Response>;
   /** insert a single row into the table: "rp_registration" */
@@ -7036,6 +7185,14 @@ export type Mutation_Root = {
   update_role_by_pk?: Maybe<Role>;
   /** update multiples rows of table: "role" */
   update_role_many?: Maybe<Array<Maybe<Role_Mutation_Response>>>;
+  /** update data of the table: "rp_manager_key_migration_audit" */
+  update_rp_manager_key_migration_audit?: Maybe<Rp_Manager_Key_Migration_Audit_Mutation_Response>;
+  /** update single row of the table: "rp_manager_key_migration_audit" */
+  update_rp_manager_key_migration_audit_by_pk?: Maybe<Rp_Manager_Key_Migration_Audit>;
+  /** update multiples rows of table: "rp_manager_key_migration_audit" */
+  update_rp_manager_key_migration_audit_many?: Maybe<
+    Array<Maybe<Rp_Manager_Key_Migration_Audit_Mutation_Response>>
+  >;
   /** update data of the table: "rp_registration" */
   update_rp_registration?: Maybe<Rp_Registration_Mutation_Response>;
   /** update single row of the table: "rp_registration" */
@@ -7351,6 +7508,16 @@ export type Mutation_RootDelete_RoleArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Role_By_PkArgs = {
   value: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Rp_Manager_Key_Migration_AuditArgs = {
+  where: Rp_Manager_Key_Migration_Audit_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Rp_Manager_Key_Migration_Audit_By_PkArgs = {
+  rp_id: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -7696,6 +7863,18 @@ export type Mutation_RootInsert_RoleArgs = {
 export type Mutation_RootInsert_Role_OneArgs = {
   object: Role_Insert_Input;
   on_conflict?: InputMaybe<Role_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Rp_Manager_Key_Migration_AuditArgs = {
+  objects: Array<Rp_Manager_Key_Migration_Audit_Insert_Input>;
+  on_conflict?: InputMaybe<Rp_Manager_Key_Migration_Audit_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Rp_Manager_Key_Migration_Audit_OneArgs = {
+  object: Rp_Manager_Key_Migration_Audit_Insert_Input;
+  on_conflict?: InputMaybe<Rp_Manager_Key_Migration_Audit_On_Conflict>;
 };
 
 /** mutation root */
@@ -8280,6 +8459,35 @@ export type Mutation_RootUpdate_Role_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Role_ManyArgs = {
   updates: Array<Role_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Rp_Manager_Key_Migration_AuditArgs = {
+  _append?: InputMaybe<Rp_Manager_Key_Migration_Audit_Append_Input>;
+  _delete_at_path?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Key_Input>;
+  _inc?: InputMaybe<Rp_Manager_Key_Migration_Audit_Inc_Input>;
+  _prepend?: InputMaybe<Rp_Manager_Key_Migration_Audit_Prepend_Input>;
+  _set?: InputMaybe<Rp_Manager_Key_Migration_Audit_Set_Input>;
+  where: Rp_Manager_Key_Migration_Audit_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Rp_Manager_Key_Migration_Audit_By_PkArgs = {
+  _append?: InputMaybe<Rp_Manager_Key_Migration_Audit_Append_Input>;
+  _delete_at_path?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Key_Input>;
+  _inc?: InputMaybe<Rp_Manager_Key_Migration_Audit_Inc_Input>;
+  _prepend?: InputMaybe<Rp_Manager_Key_Migration_Audit_Prepend_Input>;
+  _set?: InputMaybe<Rp_Manager_Key_Migration_Audit_Set_Input>;
+  pk_columns: Rp_Manager_Key_Migration_Audit_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Rp_Manager_Key_Migration_Audit_ManyArgs = {
+  updates: Array<Rp_Manager_Key_Migration_Audit_Updates>;
 };
 
 /** mutation root */
@@ -9666,6 +9874,8 @@ export type Query_Root = {
   admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
   admin_dashboard_queues: Array<Admin_Dashboard_Queue>;
   admin_rp_inventory: Array<Admin_Rp_Inventory>;
+  admin_rp_manager_key_migration: Array<Admin_Rp_Manager_Key_Migration>;
+  admin_rp_manager_key_migration_queue: Array<Admin_Rp_Manager_Key_Migration_Queue>;
   /** fetch data from the table: "api_key" */
   api_key: Array<Api_Key>;
   /** fetch aggregated fields from the table: "api_key" */
@@ -9803,6 +10013,12 @@ export type Query_Root = {
   role_aggregate: Role_Aggregate;
   /** fetch data from the table: "role" using primary key columns */
   role_by_pk?: Maybe<Role>;
+  /** fetch data from the table: "rp_manager_key_migration_audit" */
+  rp_manager_key_migration_audit: Array<Rp_Manager_Key_Migration_Audit>;
+  /** fetch aggregated fields from the table: "rp_manager_key_migration_audit" */
+  rp_manager_key_migration_audit_aggregate: Rp_Manager_Key_Migration_Audit_Aggregate;
+  /** fetch data from the table: "rp_manager_key_migration_audit" using primary key columns */
+  rp_manager_key_migration_audit_by_pk?: Maybe<Rp_Manager_Key_Migration_Audit>;
   /** An array relationship */
   rp_registration: Array<Rp_Registration>;
   /** An aggregate relationship */
@@ -9931,6 +10147,24 @@ export type Query_RootAdmin_Rp_InventoryArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<Admin_Rp_Inventory_Order_By>>;
   where?: InputMaybe<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>;
+};
+
+export type Query_RootAdmin_Rp_Manager_Key_MigrationArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp>;
+};
+
+export type Query_RootAdmin_Rp_Manager_Key_Migration_QueueArgs = {
+  distinct_on?: InputMaybe<
+    Array<Admin_Rp_Manager_Key_Migration_Queue_Enum_Name>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Queue_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp>;
 };
 
 export type Query_RootApi_KeyArgs = {
@@ -10398,6 +10632,26 @@ export type Query_RootRole_AggregateArgs = {
 
 export type Query_RootRole_By_PkArgs = {
   value: Scalars["String"]["input"];
+};
+
+export type Query_RootRp_Manager_Key_Migration_AuditArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Order_By>>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+};
+
+export type Query_RootRp_Manager_Key_Migration_Audit_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Order_By>>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+};
+
+export type Query_RootRp_Manager_Key_Migration_Audit_By_PkArgs = {
+  rp_id: Scalars["String"]["input"];
 };
 
 export type Query_RootRp_RegistrationArgs = {
@@ -10874,6 +11128,475 @@ export type Rollup_App_Stats_Args = {
   _until?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
 
+/** columns and relationships of "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit = {
+  __typename?: "rp_manager_key_migration_audit";
+  app_id: Scalars["String"]["output"];
+  attempt_count: Scalars["Int"]["output"];
+  cleanup_attempt_count: Scalars["Int"]["output"];
+  cleanup_candidate: Scalars["Boolean"]["output"];
+  cleanup_status: Scalars["String"]["output"];
+  completed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  created_at: Scalars["timestamptz"]["output"];
+  deletion_scheduled_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  expected_deletion_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_attempt_id?: Maybe<Scalars["uuid"]["output"]>;
+  last_error_detail?: Maybe<Scalars["String"]["output"]>;
+  last_error_stage?: Maybe<Scalars["String"]["output"]>;
+  migration_status: Scalars["String"]["output"];
+  old_manager_kms_key_arn: Scalars["String"]["output"];
+  old_manager_kms_key_id: Scalars["String"]["output"];
+  operation_hashes: Scalars["jsonb"]["output"];
+  retry_after?: Maybe<Scalars["timestamptz"]["output"]>;
+  rp_id: Scalars["String"]["output"];
+  shared_manager_kms_key_id: Scalars["String"]["output"];
+  skipped_registries: Array<Scalars["String"]["output"]>;
+  updated_at: Scalars["timestamptz"]["output"];
+};
+
+/** columns and relationships of "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_AuditOperation_HashesArgs = {
+  path?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregated selection of "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Aggregate = {
+  __typename?: "rp_manager_key_migration_audit_aggregate";
+  aggregate?: Maybe<Rp_Manager_Key_Migration_Audit_Aggregate_Fields>;
+  nodes: Array<Rp_Manager_Key_Migration_Audit>;
+};
+
+/** aggregate fields of "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Aggregate_Fields = {
+  __typename?: "rp_manager_key_migration_audit_aggregate_fields";
+  avg?: Maybe<Rp_Manager_Key_Migration_Audit_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Rp_Manager_Key_Migration_Audit_Max_Fields>;
+  min?: Maybe<Rp_Manager_Key_Migration_Audit_Min_Fields>;
+  stddev?: Maybe<Rp_Manager_Key_Migration_Audit_Stddev_Fields>;
+  stddev_pop?: Maybe<Rp_Manager_Key_Migration_Audit_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Rp_Manager_Key_Migration_Audit_Stddev_Samp_Fields>;
+  sum?: Maybe<Rp_Manager_Key_Migration_Audit_Sum_Fields>;
+  var_pop?: Maybe<Rp_Manager_Key_Migration_Audit_Var_Pop_Fields>;
+  var_samp?: Maybe<Rp_Manager_Key_Migration_Audit_Var_Samp_Fields>;
+  variance?: Maybe<Rp_Manager_Key_Migration_Audit_Variance_Fields>;
+};
+
+/** aggregate fields of "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type Rp_Manager_Key_Migration_Audit_Append_Input = {
+  operation_hashes?: InputMaybe<Scalars["jsonb"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type Rp_Manager_Key_Migration_Audit_Avg_Fields = {
+  __typename?: "rp_manager_key_migration_audit_avg_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "rp_manager_key_migration_audit". All fields are combined with a logical 'AND'. */
+export type Rp_Manager_Key_Migration_Audit_Bool_Exp = {
+  _and?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Bool_Exp>>;
+  _not?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+  _or?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Bool_Exp>>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  attempt_count?: InputMaybe<Int_Comparison_Exp>;
+  cleanup_attempt_count?: InputMaybe<Int_Comparison_Exp>;
+  cleanup_candidate?: InputMaybe<Boolean_Comparison_Exp>;
+  cleanup_status?: InputMaybe<String_Comparison_Exp>;
+  completed_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  deletion_scheduled_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  expected_deletion_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  last_attempt_id?: InputMaybe<Uuid_Comparison_Exp>;
+  last_error_detail?: InputMaybe<String_Comparison_Exp>;
+  last_error_stage?: InputMaybe<String_Comparison_Exp>;
+  migration_status?: InputMaybe<String_Comparison_Exp>;
+  old_manager_kms_key_arn?: InputMaybe<String_Comparison_Exp>;
+  old_manager_kms_key_id?: InputMaybe<String_Comparison_Exp>;
+  operation_hashes?: InputMaybe<Jsonb_Comparison_Exp>;
+  retry_after?: InputMaybe<Timestamptz_Comparison_Exp>;
+  rp_id?: InputMaybe<String_Comparison_Exp>;
+  shared_manager_kms_key_id?: InputMaybe<String_Comparison_Exp>;
+  skipped_registries?: InputMaybe<String_Array_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "rp_manager_key_migration_audit" */
+export enum Rp_Manager_Key_Migration_Audit_Constraint {
+  /** unique or primary key constraint on columns "rp_id" */
+  RpManagerKeyMigrationAuditPkey = "rp_manager_key_migration_audit_pkey",
+}
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type Rp_Manager_Key_Migration_Audit_Delete_At_Path_Input = {
+  operation_hashes?: InputMaybe<Array<Scalars["String"]["input"]>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type Rp_Manager_Key_Migration_Audit_Delete_Elem_Input = {
+  operation_hashes?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type Rp_Manager_Key_Migration_Audit_Delete_Key_Input = {
+  operation_hashes?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** input type for incrementing numeric columns in table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Inc_Input = {
+  attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** input type for inserting data into table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Insert_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_candidate?: InputMaybe<Scalars["Boolean"]["input"]>;
+  cleanup_status?: InputMaybe<Scalars["String"]["input"]>;
+  completed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deletion_scheduled_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  expected_deletion_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_attempt_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  last_error_detail?: InputMaybe<Scalars["String"]["input"]>;
+  last_error_stage?: InputMaybe<Scalars["String"]["input"]>;
+  migration_status?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_arn?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  operation_hashes?: InputMaybe<Scalars["jsonb"]["input"]>;
+  retry_after?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  shared_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  skipped_registries?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Rp_Manager_Key_Migration_Audit_Max_Fields = {
+  __typename?: "rp_manager_key_migration_audit_max_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  cleanup_status?: Maybe<Scalars["String"]["output"]>;
+  completed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  deletion_scheduled_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  expected_deletion_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_attempt_id?: Maybe<Scalars["uuid"]["output"]>;
+  last_error_detail?: Maybe<Scalars["String"]["output"]>;
+  last_error_stage?: Maybe<Scalars["String"]["output"]>;
+  migration_status?: Maybe<Scalars["String"]["output"]>;
+  old_manager_kms_key_arn?: Maybe<Scalars["String"]["output"]>;
+  old_manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
+  retry_after?: Maybe<Scalars["timestamptz"]["output"]>;
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  shared_manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
+  skipped_registries?: Maybe<Array<Scalars["String"]["output"]>>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Rp_Manager_Key_Migration_Audit_Min_Fields = {
+  __typename?: "rp_manager_key_migration_audit_min_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  cleanup_status?: Maybe<Scalars["String"]["output"]>;
+  completed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  deletion_scheduled_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  expected_deletion_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_attempt_id?: Maybe<Scalars["uuid"]["output"]>;
+  last_error_detail?: Maybe<Scalars["String"]["output"]>;
+  last_error_stage?: Maybe<Scalars["String"]["output"]>;
+  migration_status?: Maybe<Scalars["String"]["output"]>;
+  old_manager_kms_key_arn?: Maybe<Scalars["String"]["output"]>;
+  old_manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
+  retry_after?: Maybe<Scalars["timestamptz"]["output"]>;
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  shared_manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
+  skipped_registries?: Maybe<Array<Scalars["String"]["output"]>>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** response of any mutation on the table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Mutation_Response = {
+  __typename?: "rp_manager_key_migration_audit_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Rp_Manager_Key_Migration_Audit>;
+};
+
+/** on_conflict condition type for table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_On_Conflict = {
+  constraint: Rp_Manager_Key_Migration_Audit_Constraint;
+  update_columns?: Array<Rp_Manager_Key_Migration_Audit_Update_Column>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "rp_manager_key_migration_audit". */
+export type Rp_Manager_Key_Migration_Audit_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  attempt_count?: InputMaybe<Order_By>;
+  cleanup_attempt_count?: InputMaybe<Order_By>;
+  cleanup_candidate?: InputMaybe<Order_By>;
+  cleanup_status?: InputMaybe<Order_By>;
+  completed_at?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  deletion_scheduled_at?: InputMaybe<Order_By>;
+  expected_deletion_at?: InputMaybe<Order_By>;
+  last_attempt_id?: InputMaybe<Order_By>;
+  last_error_detail?: InputMaybe<Order_By>;
+  last_error_stage?: InputMaybe<Order_By>;
+  migration_status?: InputMaybe<Order_By>;
+  old_manager_kms_key_arn?: InputMaybe<Order_By>;
+  old_manager_kms_key_id?: InputMaybe<Order_By>;
+  operation_hashes?: InputMaybe<Order_By>;
+  retry_after?: InputMaybe<Order_By>;
+  rp_id?: InputMaybe<Order_By>;
+  shared_manager_kms_key_id?: InputMaybe<Order_By>;
+  skipped_registries?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: rp_manager_key_migration_audit */
+export type Rp_Manager_Key_Migration_Audit_Pk_Columns_Input = {
+  rp_id: Scalars["String"]["input"];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type Rp_Manager_Key_Migration_Audit_Prepend_Input = {
+  operation_hashes?: InputMaybe<Scalars["jsonb"]["input"]>;
+};
+
+/** select columns of table "rp_manager_key_migration_audit" */
+export enum Rp_Manager_Key_Migration_Audit_Select_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  AttemptCount = "attempt_count",
+  /** column name */
+  CleanupAttemptCount = "cleanup_attempt_count",
+  /** column name */
+  CleanupCandidate = "cleanup_candidate",
+  /** column name */
+  CleanupStatus = "cleanup_status",
+  /** column name */
+  CompletedAt = "completed_at",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  DeletionScheduledAt = "deletion_scheduled_at",
+  /** column name */
+  ExpectedDeletionAt = "expected_deletion_at",
+  /** column name */
+  LastAttemptId = "last_attempt_id",
+  /** column name */
+  LastErrorDetail = "last_error_detail",
+  /** column name */
+  LastErrorStage = "last_error_stage",
+  /** column name */
+  MigrationStatus = "migration_status",
+  /** column name */
+  OldManagerKmsKeyArn = "old_manager_kms_key_arn",
+  /** column name */
+  OldManagerKmsKeyId = "old_manager_kms_key_id",
+  /** column name */
+  OperationHashes = "operation_hashes",
+  /** column name */
+  RetryAfter = "retry_after",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  SharedManagerKmsKeyId = "shared_manager_kms_key_id",
+  /** column name */
+  SkippedRegistries = "skipped_registries",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+/** input type for updating data in table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Set_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_candidate?: InputMaybe<Scalars["Boolean"]["input"]>;
+  cleanup_status?: InputMaybe<Scalars["String"]["input"]>;
+  completed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deletion_scheduled_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  expected_deletion_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_attempt_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  last_error_detail?: InputMaybe<Scalars["String"]["input"]>;
+  last_error_stage?: InputMaybe<Scalars["String"]["input"]>;
+  migration_status?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_arn?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  operation_hashes?: InputMaybe<Scalars["jsonb"]["input"]>;
+  retry_after?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  shared_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  skipped_registries?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Rp_Manager_Key_Migration_Audit_Stddev_Fields = {
+  __typename?: "rp_manager_key_migration_audit_stddev_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Rp_Manager_Key_Migration_Audit_Stddev_Pop_Fields = {
+  __typename?: "rp_manager_key_migration_audit_stddev_pop_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Rp_Manager_Key_Migration_Audit_Stddev_Samp_Fields = {
+  __typename?: "rp_manager_key_migration_audit_stddev_samp_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Rp_Manager_Key_Migration_Audit_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Rp_Manager_Key_Migration_Audit_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_candidate?: InputMaybe<Scalars["Boolean"]["input"]>;
+  cleanup_status?: InputMaybe<Scalars["String"]["input"]>;
+  completed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deletion_scheduled_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  expected_deletion_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_attempt_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  last_error_detail?: InputMaybe<Scalars["String"]["input"]>;
+  last_error_stage?: InputMaybe<Scalars["String"]["input"]>;
+  migration_status?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_arn?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  operation_hashes?: InputMaybe<Scalars["jsonb"]["input"]>;
+  retry_after?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  shared_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  skipped_registries?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Rp_Manager_Key_Migration_Audit_Sum_Fields = {
+  __typename?: "rp_manager_key_migration_audit_sum_fields";
+  attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** update columns of table "rp_manager_key_migration_audit" */
+export enum Rp_Manager_Key_Migration_Audit_Update_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  AttemptCount = "attempt_count",
+  /** column name */
+  CleanupAttemptCount = "cleanup_attempt_count",
+  /** column name */
+  CleanupCandidate = "cleanup_candidate",
+  /** column name */
+  CleanupStatus = "cleanup_status",
+  /** column name */
+  CompletedAt = "completed_at",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  DeletionScheduledAt = "deletion_scheduled_at",
+  /** column name */
+  ExpectedDeletionAt = "expected_deletion_at",
+  /** column name */
+  LastAttemptId = "last_attempt_id",
+  /** column name */
+  LastErrorDetail = "last_error_detail",
+  /** column name */
+  LastErrorStage = "last_error_stage",
+  /** column name */
+  MigrationStatus = "migration_status",
+  /** column name */
+  OldManagerKmsKeyArn = "old_manager_kms_key_arn",
+  /** column name */
+  OldManagerKmsKeyId = "old_manager_kms_key_id",
+  /** column name */
+  OperationHashes = "operation_hashes",
+  /** column name */
+  RetryAfter = "retry_after",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  SharedManagerKmsKeyId = "shared_manager_kms_key_id",
+  /** column name */
+  SkippedRegistries = "skipped_registries",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+export type Rp_Manager_Key_Migration_Audit_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<Rp_Manager_Key_Migration_Audit_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Key_Input>;
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Rp_Manager_Key_Migration_Audit_Inc_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<Rp_Manager_Key_Migration_Audit_Prepend_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Rp_Manager_Key_Migration_Audit_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Rp_Manager_Key_Migration_Audit_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Rp_Manager_Key_Migration_Audit_Var_Pop_Fields = {
+  __typename?: "rp_manager_key_migration_audit_var_pop_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Rp_Manager_Key_Migration_Audit_Var_Samp_Fields = {
+  __typename?: "rp_manager_key_migration_audit_var_samp_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Rp_Manager_Key_Migration_Audit_Variance_Fields = {
+  __typename?: "rp_manager_key_migration_audit_variance_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
 /** columns and relationships of "rp_registration" */
 export type Rp_Registration = {
   __typename?: "rp_registration";
@@ -10885,6 +11608,7 @@ export type Rp_Registration = {
   app: App;
   app_id: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
+  is_unique_manager_key: Scalars["Boolean"]["output"];
   manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
   mode: Scalars["rp_registration_mode"]["output"];
   operation_hash?: Maybe<Scalars["String"]["output"]>;
@@ -10922,7 +11646,23 @@ export type Rp_Registration_Aggregate = {
 };
 
 export type Rp_Registration_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Rp_Registration_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Rp_Registration_Aggregate_Bool_Exp_Bool_Or>;
   count?: InputMaybe<Rp_Registration_Aggregate_Bool_Exp_Count>;
+};
+
+export type Rp_Registration_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Rp_Registration_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Rp_Registration_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Rp_Registration_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
 };
 
 export type Rp_Registration_Aggregate_Bool_Exp_Count = {
@@ -10970,6 +11710,7 @@ export type Rp_Registration_Bool_Exp = {
   app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  is_unique_manager_key?: InputMaybe<Boolean_Comparison_Exp>;
   manager_kms_key_id?: InputMaybe<String_Comparison_Exp>;
   mode?: InputMaybe<Rp_Registration_Mode_Comparison_Exp>;
   operation_hash?: InputMaybe<String_Comparison_Exp>;
@@ -10995,6 +11736,7 @@ export type Rp_Registration_Insert_Input = {
   app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  is_unique_manager_key?: InputMaybe<Scalars["Boolean"]["input"]>;
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -11110,6 +11852,7 @@ export type Rp_Registration_Order_By = {
   app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
+  is_unique_manager_key?: InputMaybe<Order_By>;
   manager_kms_key_id?: InputMaybe<Order_By>;
   mode?: InputMaybe<Order_By>;
   operation_hash?: InputMaybe<Order_By>;
@@ -11133,6 +11876,8 @@ export enum Rp_Registration_Select_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
+  /** column name */
   ManagerKmsKeyId = "manager_kms_key_id",
   /** column name */
   Mode = "mode",
@@ -11152,10 +11897,23 @@ export enum Rp_Registration_Select_Column {
   UpdatedAt = "updated_at",
 }
 
+/** select "rp_registration_aggregate_bool_exp_bool_and_arguments_columns" columns of table "rp_registration" */
+export enum Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
+}
+
+/** select "rp_registration_aggregate_bool_exp_bool_or_arguments_columns" columns of table "rp_registration" */
+export enum Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
+}
+
 /** input type for updating data in table "rp_registration" */
 export type Rp_Registration_Set_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  is_unique_manager_key?: InputMaybe<Scalars["Boolean"]["input"]>;
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -11192,6 +11950,7 @@ export type Rp_Registration_Stream_Cursor_Input = {
 export type Rp_Registration_Stream_Cursor_Value_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  is_unique_manager_key?: InputMaybe<Scalars["Boolean"]["input"]>;
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -11209,6 +11968,8 @@ export enum Rp_Registration_Update_Column {
   AppId = "app_id",
   /** column name */
   CreatedAt = "created_at",
+  /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
   /** column name */
   ManagerKmsKeyId = "manager_kms_key_id",
   /** column name */
@@ -11526,6 +12287,8 @@ export type Subscription_Root = {
   admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
   admin_dashboard_queues: Array<Admin_Dashboard_Queue>;
   admin_rp_inventory: Array<Admin_Rp_Inventory>;
+  admin_rp_manager_key_migration: Array<Admin_Rp_Manager_Key_Migration>;
+  admin_rp_manager_key_migration_queue: Array<Admin_Rp_Manager_Key_Migration_Queue>;
   /** fetch data from the table: "api_key" */
   api_key: Array<Api_Key>;
   /** fetch aggregated fields from the table: "api_key" */
@@ -11702,6 +12465,14 @@ export type Subscription_Root = {
   role_by_pk?: Maybe<Role>;
   /** fetch data from the table in a streaming manner: "role" */
   role_stream: Array<Role>;
+  /** fetch data from the table: "rp_manager_key_migration_audit" */
+  rp_manager_key_migration_audit: Array<Rp_Manager_Key_Migration_Audit>;
+  /** fetch aggregated fields from the table: "rp_manager_key_migration_audit" */
+  rp_manager_key_migration_audit_aggregate: Rp_Manager_Key_Migration_Audit_Aggregate;
+  /** fetch data from the table: "rp_manager_key_migration_audit" using primary key columns */
+  rp_manager_key_migration_audit_by_pk?: Maybe<Rp_Manager_Key_Migration_Audit>;
+  /** fetch data from the table in a streaming manner: "rp_manager_key_migration_audit" */
+  rp_manager_key_migration_audit_stream: Array<Rp_Manager_Key_Migration_Audit>;
   /** An array relationship */
   rp_registration: Array<Rp_Registration>;
   /** An aggregate relationship */
@@ -11854,6 +12625,24 @@ export type Subscription_RootAdmin_Rp_InventoryArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<Admin_Rp_Inventory_Order_By>>;
   where?: InputMaybe<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>;
+};
+
+export type Subscription_RootAdmin_Rp_Manager_Key_MigrationArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp>;
+};
+
+export type Subscription_RootAdmin_Rp_Manager_Key_Migration_QueueArgs = {
+  distinct_on?: InputMaybe<
+    Array<Admin_Rp_Manager_Key_Migration_Queue_Enum_Name>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Queue_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp>;
 };
 
 export type Subscription_RootApi_KeyArgs = {
@@ -12435,6 +13224,32 @@ export type Subscription_RootRole_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Role_Stream_Cursor_Input>>;
   where?: InputMaybe<Role_Bool_Exp>;
+};
+
+export type Subscription_RootRp_Manager_Key_Migration_AuditArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Order_By>>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+};
+
+export type Subscription_RootRp_Manager_Key_Migration_Audit_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Order_By>>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+};
+
+export type Subscription_RootRp_Manager_Key_Migration_Audit_By_PkArgs = {
+  rp_id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootRp_Manager_Key_Migration_Audit_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Rp_Manager_Key_Migration_Audit_Stream_Cursor_Input>>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
 };
 
 export type Subscription_RootRp_RegistrationArgs = {
@@ -13236,6 +14051,19 @@ export type User_Updates = {
   _set?: InputMaybe<User_Set_Input>;
   /** filter the rows which have to be updated */
   where: User_Bool_Exp;
+};
+
+/** Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'. */
+export type Uuid_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["uuid"]["input"]>;
+  _gt?: InputMaybe<Scalars["uuid"]["input"]>;
+  _gte?: InputMaybe<Scalars["uuid"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["uuid"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["uuid"]["input"]>;
+  _lte?: InputMaybe<Scalars["uuid"]["input"]>;
+  _neq?: InputMaybe<Scalars["uuid"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["uuid"]["input"]>>;
 };
 
 /** Boolean expression to compare columns of type "violation_enum". All fields are combined with logical 'AND'. */

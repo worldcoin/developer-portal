@@ -1,7 +1,6 @@
-import { useAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useCroppedImageUpload, useImage } from "../../hook/use-image";
 import { ImageCropDialog } from "../../AppStore/ImageForm/ImageCropDialog";
 import { unverifiedImageAtom } from "../../layout/ImagesProvider";
@@ -22,22 +21,19 @@ type LogoImageUploadProps = {
 };
 
 /**
- * Headless logo upload: a hidden file input plus the shared crop dialog.
- * Selecting a square file uploads immediately; other aspect ratios open the
- * cropper first.
+ * Owns the logo upload pipeline: presigned S3 POST, the UpdateLogo mutation,
+ * unverified-image atom update, and the square-crop gate. Shared between
+ * the headless component below and the configuration wizard's designed drop
+ * zone so both surfaces persist through the exact same path.
  */
-export const LogoImageUpload = ({
+export const useLogoUpload = ({
   appId,
   appMetadataId,
   teamId,
-  open,
-  onClose,
-}: LogoImageUploadProps) => {
-  const [isSecondUpload, setIsSecondUpload] = useState(false);
+}: Pick<LogoImageUploadProps, "appId" | "appMetadataId" | "teamId">) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const setUnverifiedImages = useSetAtom(unverifiedImageAtom);
   const [updateLogoMutation] = useMutation(UpdateLogoDocument);
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const { getImage, uploadViaPresignedPost } = useImage();
 
   const uploadLogo = async (file: File): Promise<boolean> => {
@@ -50,11 +46,6 @@ export const LogoImageUpload = ({
 
       const imageUrl = await getImage(fileTypeEnding, appId, teamId, imageType);
 
-      setUnverifiedImages({
-        ...unverifiedImages,
-        logo_img_url: imageUrl,
-      });
-
       const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
 
       await updateLogoMutation({
@@ -62,17 +53,12 @@ export const LogoImageUpload = ({
           id: appMetadataId,
           fileName: `${imageType}.${saveFileType}`,
         },
-
-        refetchQueries: [FetchAppMetadataDocument],
       });
 
-      // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
-      // Will be fixed after the dev-portal update is done to avoid large backend changes for now.
-      if (isSecondUpload) {
-        window.location.reload();
-      } else {
-        setIsSecondUpload(true);
-      }
+      setUnverifiedImages((currentImages) => ({
+        ...currentImages,
+        logo_img_url: imageUrl,
+      }));
       return true;
     } catch (error) {
       console.error("Logo Upload Failed: ", error);
@@ -89,6 +75,36 @@ export const LogoImageUpload = ({
       targetHeight: 512,
       upload: uploadLogo,
     });
+
+  return {
+    isUploading,
+    uploadLogo,
+    cropCandidate,
+    clearCropCandidate,
+    handleFileSelected,
+  };
+};
+
+/**
+ * Headless logo upload: a hidden file input plus the shared crop dialog.
+ * Selecting a square file uploads immediately; other aspect ratios open the
+ * cropper first.
+ */
+export const LogoImageUpload = ({
+  appId,
+  appMetadataId,
+  teamId,
+  open,
+  onClose,
+}: LogoImageUploadProps) => {
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const {
+    isUploading,
+    uploadLogo,
+    cropCandidate,
+    clearCropCandidate,
+    handleFileSelected,
+  } = useLogoUpload({ appId, appMetadataId, teamId });
 
   useEffect(() => {
     if (!open) return;

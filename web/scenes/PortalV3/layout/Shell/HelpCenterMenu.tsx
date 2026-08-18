@@ -1,7 +1,16 @@
 "use client";
 
 import {
-  DISCORD_URL,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   DOCS_URL,
   FAQ_URL,
   TELEGRAM_DEVELOPERS_GROUP_URL,
@@ -11,14 +20,12 @@ import {
 } from "@/lib/constants";
 import { urls } from "@/lib/urls";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
-import { ReactNode } from "react";
-import { sidebarNavItemClassName } from "./NavItem";
+import { useState } from "react";
 
-const itemClass =
-  "flex h-11 w-full cursor-pointer items-center gap-3 rounded-8 px-3 font-world text-13 font-medium text-portal-text outline-hidden transition-colors data-highlighted:bg-grey-50";
+const itemClass = "h-10 cursor-pointer gap-3 text-portal-text focus:bg-grey-50";
+const labelClass = "px-2 py-1.5 text-portal-subtle";
 
 const HelpLink = (props: {
   href: string;
@@ -26,39 +33,27 @@ const HelpLink = (props: {
   icon: string;
   onSelect: () => void;
 }) => (
-  <DropdownMenu.Item asChild>
+  <DropdownMenuItem asChild className={itemClass}>
     <a
       href={props.href}
       target="_blank"
       rel="noreferrer"
-      className={itemClass}
       onClick={props.onSelect}
     >
       <Icon name={props.icon} className={`${opticalIconClassName} size-4`} />
       <span className="min-w-0 flex-1 truncate">{props.label}</span>
     </a>
-  </DropdownMenu.Item>
+  </DropdownMenuItem>
 );
 
-const Section = (props: { title: string; children: ReactNode }) => (
-  <section className="grid gap-1 px-2 py-2">
-    <p className="px-3 pt-2 pb-1 font-world text-12 font-medium text-portal-subtle">
-      {props.title}
-    </p>
-    {props.children}
-  </section>
-);
-
-const Separator = () => <div className="h-px bg-portal-border" />;
-
-/** Single home for documentation, support, community, and legal links. */
+/** Documentation, support, community, and legal links inside the user menu. */
 export const HelpCenterMenu = () => {
+  const [open, setOpen] = useState(false);
   const params = useParams<{
     teamId?: string;
     appId?: string;
     actionId?: string;
   }>();
-
   const track = (destination: string) => () => {
     posthog.capture("clicked_help", {
       helpLink: destination,
@@ -69,24 +64,27 @@ export const HelpCenterMenu = () => {
   };
 
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger
-        className={sidebarNavItemClassName()}
+    <DropdownMenuSub open={open} onOpenChange={setOpen}>
+      <DropdownMenuSubTrigger
         aria-label="Help center"
+        className={itemClass}
+        chevronClassName={`${opticalIconClassName} size-4`}
+        onPointerEnter={() => setOpen(true)}
       >
         <Icon name="nav-help" className={`${opticalIconClassName} size-4`} />
-        <span className="min-w-0 flex-1 truncate text-left">Help center</span>
-      </DropdownMenu.Trigger>
+        <span className="min-w-0 flex-1 truncate">Help center</span>
+      </DropdownMenuSubTrigger>
 
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          side="right"
-          align="end"
-          sideOffset={12}
+      <DropdownMenuPortal>
+        <DropdownMenuSubContent
+          sideOffset={8}
           collisionPadding={16}
-          className="z-50 max-h-(--radix-dropdown-menu-content-available-height) w-[300px] overflow-y-auto rounded-[12px] border border-portal-border bg-white shadow-[0_18px_30px_rgba(24,24,24,0.12)]"
+          className="w-72 border border-portal-border font-world"
         >
-          <Section title="Need help with your app?">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className={labelClass}>
+              Need help with your app?
+            </DropdownMenuLabel>
             <HelpLink
               href={DOCS_URL}
               label="Documentation"
@@ -111,11 +109,14 @@ export const HelpCenterMenu = () => {
               icon="profile-menu-status"
               onSelect={track("world_status")}
             />
-          </Section>
+          </DropdownMenuGroup>
 
-          <Separator />
+          <DropdownMenuSeparator className="my-2 bg-portal-border" />
 
-          <Section title="Community support">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className={labelClass}>
+              Community support
+            </DropdownMenuLabel>
             <HelpLink
               href={TELEGRAM_DEVELOPERS_GROUP_URL}
               label="Join our Telegram"
@@ -128,17 +129,14 @@ export const HelpCenterMenu = () => {
               icon="profile-menu-message"
               onSelect={track("telegram_mateo")}
             />
-            <HelpLink
-              href={DISCORD_URL}
-              label="Join our Discord"
-              icon="profile-menu-discord"
-              onSelect={track("discord")}
-            />
-          </Section>
+          </DropdownMenuGroup>
 
-          <Separator />
+          <DropdownMenuSeparator className="my-2 bg-portal-border" />
 
-          <Section title="References">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className={labelClass}>
+              References
+            </DropdownMenuLabel>
             <HelpLink
               href={urls.privacyStatement()}
               label="Privacy Policy"
@@ -151,9 +149,9 @@ export const HelpCenterMenu = () => {
               icon="profile-menu-terms"
               onSelect={track("terms_of_service")}
             />
-          </Section>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+          </DropdownMenuGroup>
+        </DropdownMenuSubContent>
+      </DropdownMenuPortal>
+    </DropdownMenuSub>
   );
 };

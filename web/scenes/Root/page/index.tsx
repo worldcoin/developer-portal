@@ -58,6 +58,5 @@ export const RootPage = async () => {
     return redirect(urls.createTeam());
   }
 
-  const team_id = membership[0].team_id;
-  return redirect(urls.apps({ team_id }));
+  return redirect(urls.dashboard());
 };

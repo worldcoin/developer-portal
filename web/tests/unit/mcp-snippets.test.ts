@@ -74,9 +74,6 @@ describe("mcp-snippets module", () => {
     expect(() =>
       require("@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys/ApiKeySecretFields"),
     ).not.toThrow();
-    expect(() =>
-      require("@/scenes/Portal/Teams/TeamId/Team/ApiKeys/page/ApiKeySecretFields"),
-    ).not.toThrow();
   });
 
   it("returns exactly the provider ids declared in PROVIDERS", () => {
@@ -221,10 +218,6 @@ describe("JSON provider snippets", () => {
 
   it.each([
     ["cursor", { mcpServers: { [SERVER_NAME]: { url: ENDPOINT, headers } } }],
-    [
-      "windsurf",
-      { mcpServers: { [SERVER_NAME]: { serverUrl: ENDPOINT, headers } } },
-    ],
     ["zed", { context_servers: { [SERVER_NAME]: { url: ENDPOINT, headers } } }],
   ])("keeps its own schema (%s)", (id, expected) => {
     const snippet = snippetsFor()[id as ProviderId];

@@ -2,13 +2,7 @@ const MCP_SERVER_NAME = "worldcoin-developer-portal";
 const MCP_API_KEY_ENV_VAR = "WORLD_DEVELOPER_API_KEY";
 const MCP_PATH = "/api/mcp";
 
-export type ProviderId =
-  | "codex"
-  | "claude"
-  | "cursor"
-  | "windsurf"
-  | "chatgpt"
-  | "zed";
+export type ProviderId = "codex" | "claude" | "cursor" | "chatgpt" | "zed";
 
 export type Provider = {
   id: ProviderId;
@@ -74,22 +68,6 @@ const getCursorJsonConfig = (apiKey: string, endpoint: string) =>
     2,
   );
 
-const getWindsurfJsonConfig = (apiKey: string, endpoint: string) =>
-  JSON.stringify(
-    {
-      mcpServers: {
-        [MCP_SERVER_NAME]: {
-          serverUrl: endpoint,
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
-        },
-      },
-    },
-    null,
-    2,
-  );
-
 const getChatGptConnectorConfig = (apiKey: string, endpoint: string) =>
   [
     `Name: World Developer Portal`,
@@ -119,7 +97,6 @@ export const getProviderSnippets = (
 ): Record<ProviderId, ProviderSnippet> => {
   const claudeJsonConfig = getClaudeJsonConfig(apiKey, endpoint);
   const cursorJsonConfig = getCursorJsonConfig(apiKey, endpoint);
-  const windsurfJsonConfig = getWindsurfJsonConfig(apiKey, endpoint);
   const chatGptConnectorConfig = getChatGptConnectorConfig(apiKey, endpoint);
   const zedJsonConfig = getZedJsonConfig(apiKey, endpoint);
 
@@ -142,10 +119,6 @@ export const getProviderSnippets = (
     cursor: {
       command: cursorJsonConfig,
       rawConfig: cursorJsonConfig,
-    },
-    windsurf: {
-      command: windsurfJsonConfig,
-      rawConfig: windsurfJsonConfig,
     },
     chatgpt: {
       command: chatGptConnectorConfig,
@@ -173,11 +146,6 @@ export const PROVIDERS: Provider[] = [
     id: "cursor",
     name: "Cursor",
     setupLabel: "Paste into .cursor/mcp.json",
-  },
-  {
-    id: "windsurf",
-    name: "Windsurf",
-    setupLabel: "Paste into MCP config",
   },
   {
     id: "chatgpt",

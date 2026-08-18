@@ -4,6 +4,7 @@ import {
   Controller,
   FieldArrayWithId,
   FieldErrors,
+  useFormContext,
 } from "react-hook-form";
 import { AppStoreFormValues } from "../../../FormSchema/types";
 import {
@@ -46,6 +47,9 @@ export const LocalisationsSection = ({
     selectedIndex,
     selectedField,
   } = useLanguageSelection(localisations);
+  // Not field.onChange: images persist through their own mutation, so their
+  // write-back must not dirty the form. See `isSelfPersisting` in use-autosave.
+  const { setValue } = useFormContext<AppStoreFormValues>();
 
   // fail-safe for empty state
   // en should always be defined
@@ -100,7 +104,13 @@ export const LocalisationsSection = ({
                   value={(field.value || []).filter((url): url is string =>
                     Boolean(url),
                   )}
-                  onChange={field.onChange}
+                  onChange={(urls) =>
+                    setValue(
+                      `localisations.${selectedIndex}.showcase_img_urls`,
+                      urls,
+                      { shouldDirty: false, shouldValidate: true },
+                    )
+                  }
                   disabled={!isEditable || !isEnoughPermissions}
                   appId={appId}
                   teamId={teamId}
@@ -128,7 +138,13 @@ export const LocalisationsSection = ({
               render={({ field, fieldState }) => (
                 <MetaTagImageField
                   value={field.value}
-                  onChange={field.onChange}
+                  onChange={(url) =>
+                    setValue(
+                      `localisations.${selectedIndex}.meta_tag_image_url`,
+                      url ?? "",
+                      { shouldDirty: false, shouldValidate: true },
+                    )
+                  }
                   disabled={!isEditable || !isEnoughPermissions}
                   appId={appId}
                   teamId={teamId}

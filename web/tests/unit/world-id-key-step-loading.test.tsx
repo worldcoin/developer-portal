@@ -1,19 +1,43 @@
 /** @jest-environment jsdom */
 
 import "@testing-library/jest-dom";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import React, { Suspense } from "react";
 
 let mockKeyStepReady = false;
 let mockPendingKeyStep: Promise<void>;
 let mockResolvePendingKeyStep: () => void;
+const registerRp = jest.fn();
+const refresh = jest.fn();
 
-function mockGenerateKeyStep() {
+function mockGenerateKeyStep(props: {
+  onContinue: (publicKey: string) => void;
+  loading?: boolean;
+  loadingLabel?: string;
+}) {
   if (!mockKeyStepReady) {
     throw mockPendingKeyStep;
   }
 
-  return <div data-testid="generate-key-step">Generate key step loaded</div>;
+  return (
+    <button
+      type="button"
+      data-testid="generate-key-step"
+      disabled={props.loading}
+      onClick={() =>
+        props.onContinue("0x1234567890abcdef1234567890abcdef12345678")
+      }
+    >
+      {props.loading ? props.loadingLabel : "Generate key step loaded"}
+    </button>
+  );
 }
 
 function mockExistingKeyStep() {
@@ -32,74 +56,49 @@ jest.mock("next/dynamic", () => ({
 }));
 
 jest.mock("@apollo/client/react", () => ({
-  useMutation: () => [jest.fn(), { loading: false }],
+  useMutation: () => [registerRp, { loading: false }],
 }));
 jest.mock("next/navigation", () => ({
   useParams: () => ({ teamId: "team_1" }),
-  useRouter: () => ({ refresh: jest.fn(), replace: jest.fn() }),
-}));
-jest.mock("posthog-js", () => ({
-  __esModule: true,
-  default: { capture: jest.fn() },
+  useRouter: () => ({ refresh, replace: jest.fn() }),
 }));
 jest.mock("react-toastify", () => ({
   toast: { error: jest.fn(), success: jest.fn() },
 }));
-jest.mock("@/lib/errors", () => ({ getGraphQLErrorCode: jest.fn() }));
-jest.mock("@/lib/use-refetch-queries", () => ({
-  useRefetchQueries: () => ({ refetch: jest.fn() }),
+// The PortalV3 dialog renders through FormDialog (modal flow).
+jest.mock("@/components/FormDialog", () => ({
+  FormDialog: ({
+    children,
+    open,
+    title,
+  }: React.PropsWithChildren<{ open: boolean; title: React.ReactNode }>) =>
+    open ? (
+      <div role="dialog">
+        <h2>{title}</h2>
+        {children}
+      </div>
+    ) : null,
+  formDialogErrorClassName: "",
+  formDialogInputClassName: "",
+  formDialogLabelClassName: "",
+  formDialogPrimaryActionClassName: "",
+  formDialogSecondaryActionClassName: "",
 }));
-jest.mock("@/scenes/common/layout/CreateAppDialog/server/v4/submit", () => ({
-  validateAndInsertAppServerSideV4: jest.fn(),
-}));
-
-jest.mock("@/components/Dialog", () => ({
-  Dialog: ({ children, open }: React.PropsWithChildren<{ open: boolean }>) =>
-    open ? <div role="dialog">{children}</div> : null,
-}));
-jest.mock("@/components/DialogPanel", () => ({
-  DialogPanel: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-}));
-jest.mock("@/components/LoggedUserNav", () => ({
-  LoggedUserNav: () => null,
-}));
-
-jest.mock(
-  "@/scenes/Portal/Teams/TeamId/Apps/AppId/EnableWorldId40/SelfManagedTransactionInfo/SelfManagedTransactionInfoContent",
-  () => ({ SelfManagedTransactionInfoContent: () => null }),
-);
-jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/EnableWorldId40/SelfManagedTransactionInfo/SelfManagedTransactionInfoContent",
-  () => ({ SelfManagedTransactionInfoContent: () => null }),
-);
-jest.mock(
-  "@/scenes/Portal/Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent",
-  () => ({ GenerateNewKeyContent: mockGenerateKeyStep }),
-);
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent",
   () => ({ GenerateNewKeyContent: mockGenerateKeyStep }),
-);
-jest.mock(
-  "@/scenes/Portal/Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent",
-  () => ({ UseExistingKeyContent: mockExistingKeyStep }),
 );
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent",
   () => ({ UseExistingKeyContent: mockExistingKeyStep }),
 );
 
-import { CreateAppDialogV4 as PortalDialog } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
-import { CreateAppDialogV4 as PortalV3Dialog } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
+import { RegisterRpDialog as PortalV3Dialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/EnableWorldId40/Dialog";
 
-const cases = [
-  ["Portal", "generate", PortalDialog],
-  ["Portal", "existing", PortalDialog],
-  ["PortalV3", "generate", PortalV3Dialog],
-  ["PortalV3", "existing", PortalV3Dialog],
-] as const;
+const cases = [["generate"], ["existing"]] as const;
 
 beforeEach(() => {
+  jest.clearAllMocks();
   mockKeyStepReady = false;
   mockPendingKeyStep = new Promise((resolve) => {
     mockResolvePendingKeyStep = () => {
@@ -110,21 +109,19 @@ beforeEach(() => {
 });
 
 it.each(cases)(
-  "%s keeps Configure visible while the %s key step suspends",
-  async (_portal, setup, DialogComponent) => {
+  "keeps Configure visible while the %s key step suspends",
+  async (setup) => {
     render(
       <Suspense fallback={<div data-testid="outer-loading" />}>
-        <DialogComponent
+        <PortalV3Dialog
           appId="app_00000000000000000000000000000000"
-          initialStep="enable-world-id-4-0"
           onClose={jest.fn()}
           open
         />
       </Suspense>,
     );
 
-    fireEvent.click(screen.getByTestId("button-enable-world-id-40-continue"));
-    await screen.findByText("Configure Signer Key");
+    await screen.findByText(/configure signer key/i);
 
     if (setup === "existing") {
       fireEvent.click(screen.getByTestId("radio-existing"));
@@ -138,7 +135,7 @@ it.each(cases)(
 
     const dialog = screen.getByRole("dialog");
     expect(
-      within(dialog).getByText("Configure Signer Key"),
+      within(dialog).getByText(/configure signer key/i),
     ).toBeInTheDocument();
     expect(
       within(dialog).getByRole("button", { name: "Loading signer key step" }),
@@ -154,7 +151,54 @@ it.each(cases)(
       await within(dialog).findByTestId(`${setup}-key-step`),
     ).toBeInTheDocument();
     expect(
-      within(dialog).queryByText("Configure Signer Key"),
+      within(dialog).queryByText(/configure signer key/i),
     ).not.toBeInTheDocument();
   },
 );
+
+it("PortalV3 registers the relying party in managed mode", async () => {
+  mockKeyStepReady = true;
+  registerRp.mockResolvedValue({
+    data: { register_rp: { rp_id: "rp_1234567890abcdef" } },
+  });
+  let resolveOverviewRefresh: () => void = () => {};
+  const onComplete = jest.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        resolveOverviewRefresh = resolve;
+      }),
+  );
+  const onClose = jest.fn();
+
+  render(
+    <PortalV3Dialog
+      appId="app_00000000000000000000000000000000"
+      onComplete={onComplete}
+      onClose={onClose}
+      open
+    />,
+  );
+
+  expect(screen.getByText("Configure signer key")).toBeInTheDocument();
+  expect(screen.queryByText("Enable World ID")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByTestId("button-configure-signer-key-continue"));
+  fireEvent.click(await screen.findByTestId("generate-key-step"));
+
+  await waitFor(() =>
+    expect(registerRp).toHaveBeenCalledWith({
+      variables: {
+        app_id: "app_00000000000000000000000000000000",
+        mode: "managed",
+        signer_address: "0x1234567890abcdef1234567890abcdef12345678",
+      },
+    }),
+  );
+  expect(onComplete).toHaveBeenCalledTimes(1);
+  expect(await screen.findByText("Finishing setup…")).toBeInTheDocument();
+  expect(refresh).not.toHaveBeenCalled();
+  expect(onClose).not.toHaveBeenCalled();
+
+  await act(async () => resolveOverviewRefresh());
+
+  await waitFor(() => expect(onClose).toHaveBeenCalledWith(false));
+});

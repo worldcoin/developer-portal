@@ -1,12 +1,13 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { createStore, Provider } from "jotai";
 import React from "react";
 
-// Control the apps query result per test.
+// #region Mocks
 const fetchApps = jest.fn();
 jest.mock("@apollo/client/react", () => ({
-  useQuery: () => fetchApps(),
+  useQuery: (...args: unknown[]) => fetchApps(...args),
 }));
 jest.mock(
   "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated",
@@ -15,41 +16,16 @@ jest.mock(
   }),
 );
 
-// Mirror open/close state without loading the real dialog.
-jest.mock("next/dynamic", () => ({
-  __esModule: true,
-  default:
-    () =>
-    ({
-      open,
-      onClose,
-    }: {
-      open: boolean;
-      onClose: (value: boolean) => void;
-    }) => (
-      <div data-testid="create-app-dialog" data-open={String(open)}>
-        <button type="button" onClick={() => onClose(false)}>
-          close-dialog
-        </button>
-      </div>
-    ),
+const mockOpenCreateAppDialog = jest.fn();
+jest.mock("@/scenes/common/layout/CreateAppDialog/useCreateAppDialog", () => ({
+  useCreateAppDialog: () => ({ open: mockOpenCreateAppDialog }),
 }));
 
-jest.mock("@radix-ui/react-dropdown-menu", () => ({
-  Root: ({ children }: React.PropsWithChildren) => <>{children}</>,
-  Trigger: ({ children, ...props }: React.ComponentProps<"button">) => (
-    <button {...props}>{children}</button>
-  ),
-  Portal: ({ children }: React.PropsWithChildren) => <>{children}</>,
-  Content: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-  Item: ({
-    children,
-    onSelect,
-    ...props
-  }: React.ComponentProps<"button"> & { onSelect?: () => void }) => (
-    <button role="menuitem" onClick={onSelect} {...props}>
-      {children}
-    </button>
+jest.mock("@/components/ui/popover", () => ({
+  Popover: ({ children }: React.PropsWithChildren) => <>{children}</>,
+  PopoverTrigger: ({ children }: React.PropsWithChildren) => <>{children}</>,
+  PopoverContent: ({ children }: React.PropsWithChildren) => (
+    <div>{children}</div>
   ),
 }));
 
@@ -57,121 +33,244 @@ jest.mock("@auth0/nextjs-auth0/client", () => ({
   useUser: () => ({ user: { name: "Ada" } }),
 }));
 
-// AppsDropdown only uses checkUserPermissions from this module, so mock just
-// that (loading real utils.ts pulls in idkit/ox, which needs TextEncoder).
 jest.mock("@/lib/utils", () => ({
   checkUserPermissions: () => true,
+  cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
 }));
 
-const push = jest.fn();
-// Mutable so a test can put an appId in the route (mock-prefixed name is
-// required for jest to allow the reference inside the factory).
 let mockParams: Record<string, string | undefined> = { teamId: "team_1" };
+let mockPathname = "/teams/team_1";
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push }),
   useParams: () => mockParams,
+  usePathname: () => mockPathname,
 }));
+// #endregion
 
 import { AppsDropdown } from "@/scenes/PortalV3/layout/Shell/AppsDropdown";
 
-// Items use role="menuitem", so this selects the dropdown trigger.
-const trigger = () => screen.getByRole("button");
+const trigger = () => screen.getByRole("button", { name: "Switch app" });
+const renderDropdown = (store = createStore()) =>
+  render(
+    <Provider store={store}>
+      <AppsDropdown />
+    </Provider>,
+  );
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockParams = { teamId: "team_1" };
+  mockPathname = "/teams/team_1";
 });
 
-// While the query is in flight the trigger is disabled — the dropdown never
-// flashes content before the app list is known.
+it("hides the app switcher and skips its query on team settings", () => {
+  mockPathname = "/teams/team_1/settings";
+  fetchApps.mockReturnValue({
+    data: undefined,
+    loading: false,
+    error: undefined,
+  });
+
+  renderDropdown();
+
+  expect(
+    screen.queryByRole("button", { name: "Switch app" }),
+  ).not.toBeInTheDocument();
+  expect(fetchApps).toHaveBeenCalledWith(
+    expect.anything(),
+    expect.objectContaining({ skip: true }),
+  );
+});
+
 it("disables the trigger while the apps query is loading", () => {
   fetchApps.mockReturnValue({
     data: undefined,
     loading: true,
     error: undefined,
   });
-  render(<AppsDropdown />);
+
+  renderDropdown();
+
   expect(trigger()).toBeDisabled();
 });
 
-// On error the trigger is disabled and no empty-state ("No apps, yet") leaks —
-// we don't present a misleading empty result when the query actually failed.
-it("disables the trigger when the apps query errors (no misleading empty state)", () => {
+it("disables the trigger on query errors without showing an empty state", () => {
   fetchApps.mockReturnValue({
     data: undefined,
     loading: false,
     error: new Error("network down"),
   });
-  render(<AppsDropdown />);
+
+  renderDropdown();
+
   expect(trigger()).toBeDisabled();
   expect(screen.queryByText("No apps, yet")).not.toBeInTheDocument();
 });
 
-// Once data resolves the trigger is interactive and shows the default
-// all-projects label (no specific app selected).
-it("enables the trigger with the default label once data has loaded", () => {
+it("enables the trigger with the default label after loading", () => {
   fetchApps.mockReturnValue({
     data: { app: [] },
     loading: false,
     error: undefined,
   });
-  render(<AppsDropdown />);
+
+  renderDropdown();
+
   expect(trigger()).toBeEnabled();
-  expect(trigger()).toHaveTextContent("All projects");
-  expect(trigger().className).not.toContain("focus-visible:ring");
-  expect(trigger()).toHaveClass("focus-visible:text-portal-muted");
+  expect(trigger()).toHaveTextContent("All apps");
+  expect(trigger()).toHaveClass("h-9", "px-3");
 });
 
-// When the route points at an app, the trigger reflects that app's name
-// instead of the default label.
-it("shows the current app and navigates directly when selected", () => {
+it("shows the route app and offers explicit app and overview destinations", () => {
   mockParams = { teamId: "team_1", appId: "app_1" };
   fetchApps.mockReturnValue({
     data: { app: [{ id: "app_1", app_metadata: [{ name: "My App" }] }] },
     loading: false,
     error: undefined,
   });
-  render(<AppsDropdown />);
+
+  renderDropdown();
+
+  expect(trigger()).toHaveTextContent("My App");
+  const appLink = screen.getByRole("link", { name: /My App/ });
+  expect(appLink).toHaveAttribute("href", "/teams/team_1/apps/app_1/world-id");
+  expect(appLink).toHaveClass("cursor-pointer");
+  expect(screen.getByRole("link", { name: "All apps" })).toHaveAttribute(
+    "href",
+    "/teams/team_1",
+  );
+});
+
+it("uses the same deterministic app color in the trigger and app row", () => {
+  mockParams = { teamId: "team_1", appId: "app_1" };
+  fetchApps.mockReturnValue({
+    data: { app: [{ id: "app_1", app_metadata: [{ name: "My App" }] }] },
+    loading: false,
+    error: undefined,
+  });
+
+  renderDropdown();
+
+  const initials = screen.getAllByText("M");
+  const backgroundClass = (initial: HTMLElement) =>
+    initial.parentElement?.className
+      .split(" ")
+      .find((className) => className.startsWith("bg-"));
+
+  expect(initials).toHaveLength(2);
+  expect(backgroundClass(initials[0])).toBe(backgroundClass(initials[1]));
+});
+
+it("uses only the route app as context on team-scoped routes", () => {
+  mockParams = { teamId: "team_1", appId: "app_1" };
+  fetchApps.mockReturnValue({
+    data: { app: [{ id: "app_1", app_metadata: [{ name: "My App" }] }] },
+    loading: false,
+    error: undefined,
+  });
+
+  const store = createStore();
+  const view = renderDropdown(store);
   expect(trigger()).toHaveTextContent("My App");
 
-  fireEvent.click(screen.getByRole("menuitem", { name: /My App/ }));
-  expect(push).toHaveBeenCalledWith("/teams/team_1/apps/app_1/world-id-4-0");
+  mockParams = { teamId: "team_1" };
+  view.rerender(
+    <Provider store={store}>
+      <AppsDropdown />
+    </Provider>,
+  );
+
+  expect(trigger()).toHaveTextContent("All apps");
+  expect(screen.getByRole("link", { name: "All apps" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
 });
 
-it("mounts the create-app dialog only after the create action is selected", async () => {
+it("filters all loaded apps without hiding the create action", () => {
+  fetchApps.mockReturnValue({
+    data: {
+      app: [
+        { id: "app_1", app_metadata: [{ name: "Alpha" }] },
+        { id: "app_2", app_metadata: [{ name: "Beta App" }] },
+        { id: "app_3", app_metadata: [{ name: "Gamma" }] },
+      ],
+    },
+    loading: false,
+    error: undefined,
+  });
+  renderDropdown();
+
+  fireEvent.change(screen.getByRole("searchbox", { name: "Find an app" }), {
+    target: { value: "BETA" },
+  });
+
+  expect(screen.getByRole("link", { name: /Beta App/ })).toBeVisible();
+  expect(screen.queryByRole("link", { name: /Alpha/ })).not.toBeInTheDocument();
+});
+
+it("shows a no-results state when the app search has no matches", () => {
+  fetchApps.mockReturnValue({
+    data: {
+      app: [{ id: "app_1", app_metadata: [{ name: "Alpha" }] }],
+    },
+    loading: false,
+    error: undefined,
+  });
+  renderDropdown();
+
+  fireEvent.change(screen.getByRole("searchbox", { name: "Find an app" }), {
+    target: { value: "missing" },
+  });
+
+  expect(screen.getByText("No apps found")).toBeVisible();
+});
+
+it("scrolls only the app list and shows a footer shadow while more apps remain", () => {
+  fetchApps.mockReturnValue({
+    data: {
+      app: Array.from({ length: 20 }, (_, index) => ({
+        id: `app_${index}`,
+        app_metadata: [{ name: `App ${index}` }],
+      })),
+    },
+    loading: false,
+    error: undefined,
+  });
+  renderDropdown();
+
+  const appList = screen.getByTestId("app-switcher-list");
+  const createAction = screen.getByRole("button", {
+    name: "Create new app",
+  });
+  const footer = screen.getByTestId("app-switcher-footer");
+
+  expect(appList).toHaveClass("overflow-y-auto", "no-scrollbar");
+  expect(appList).not.toContainElement(createAction);
+  expect(footer).toContainElement(createAction);
+
+  Object.defineProperties(appList, {
+    clientHeight: { configurable: true, value: 420 },
+    scrollHeight: { configurable: true, value: 800 },
+    scrollTop: { configurable: true, value: 0, writable: true },
+  });
+
+  fireEvent.scroll(appList);
+  expect(footer.className).toContain("shadow-[");
+
+  appList.scrollTop = 380;
+  fireEvent.scroll(appList);
+  expect(footer.className).not.toContain("shadow-[");
+});
+
+it("opens the shared create-app dialog from the create action", () => {
   fetchApps.mockReturnValue({
     data: { app: [] },
     loading: false,
     error: undefined,
   });
-  render(<AppsDropdown />);
+  renderDropdown();
 
-  expect(screen.queryByTestId("create-app-dialog")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Create new app" }));
 
-  fireEvent.click(screen.getByRole("menuitem", { name: "Create new app" }));
-
-  expect(await screen.findByTestId("create-app-dialog")).toBeInTheDocument();
-});
-
-// Closing hides the dialog without unmounting it.
-it("keeps the create-app dialog mounted (closed) after it is dismissed", async () => {
-  fetchApps.mockReturnValue({
-    data: { app: [] },
-    loading: false,
-    error: undefined,
-  });
-  render(<AppsDropdown />);
-
-  fireEvent.click(screen.getByRole("menuitem", { name: "Create new app" }));
-  expect(await screen.findByTestId("create-app-dialog")).toHaveAttribute(
-    "data-open",
-    "true",
-  );
-
-  fireEvent.click(screen.getByText("close-dialog"));
-
-  expect(screen.getByTestId("create-app-dialog")).toHaveAttribute(
-    "data-open",
-    "false",
-  );
+  expect(mockOpenCreateAppDialog).toHaveBeenCalledTimes(1);
 });

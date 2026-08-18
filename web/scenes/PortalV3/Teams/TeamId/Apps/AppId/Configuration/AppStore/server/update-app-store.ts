@@ -14,6 +14,7 @@ import {
   encodeDescription,
   extractImagePathWithExtensionFromActualUrl,
 } from "../utils";
+import type { LocalisationCacheRow } from "../types/AppStoreFormTypes";
 
 const schema = mainAppStoreFormSchema
   .concat(
@@ -24,13 +25,17 @@ const schema = mainAppStoreFormSchema
   .noUnknown();
 type Schema = yup.Asserts<typeof schema>;
 
+type UpdateAppStoreMetadataResult = FormActionResult & {
+  localisations?: LocalisationCacheRow[];
+};
+
 const formatEmailLink = (email: string): string => {
   return `mailto:${email}`;
 };
 
 export async function updateAppStoreMetadata(
   formData: Schema,
-): Promise<FormActionResult> {
+): Promise<UpdateAppStoreMetadataResult> {
   const path = (await getPathFromHeaders()) || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -121,14 +126,20 @@ export async function updateAppStoreMetadata(
           .filter(Boolean) as string[]) || [];
     }
 
+    // Deliberately carries no id: Postgres keeps assigning primary keys and
+    // the on_conflict upsert stays the sole way an existing row is matched.
     const localisationsToUpsert = parsedParams.localisations
-      .filter((l) => l.language !== "en")
+      .filter(
+        (l) =>
+          l.language !== "en" &&
+          parsedParams.supported_languages.includes(l.language),
+      )
       .map((l) => ({
         app_metadata_id: formData.app_metadata_id,
         locale: l.language,
-        name: l.name,
-        short_name: l.short_name,
-        world_app_description: l.world_app_description,
+        name: l.name ?? "",
+        short_name: l.short_name ?? "",
+        world_app_description: l.world_app_description ?? "",
         world_app_button_text: "", // backwards compat
         description: encodeDescription(l.description_overview ?? ""),
         meta_tag_image_url: extractImagePathWithExtensionFromActualUrl(
@@ -144,11 +155,18 @@ export async function updateAppStoreMetadata(
     const client = await getAPIServiceGraphqlClient();
     const updateAppStoreSdk = getUpdateAppStoreSdk(client);
 
-    await updateAppStoreSdk.UpdateAppStoreComplete({
-      app_metadata_id: formData.app_metadata_id,
-      app_metadata_input: appMetadataInput,
-      localisations_to_upsert: localisationsToUpsert,
-    });
+    const { insert_localisations } =
+      await updateAppStoreSdk.UpdateAppStoreComplete({
+        app_metadata_id: formData.app_metadata_id,
+        app_metadata_input: appMetadataInput,
+        localisations_to_upsert: localisationsToUpsert,
+      });
+
+    // Nothing in a server action passes through the browser's Apollo link, so
+    // the client patches the cache with these by hand. They are the persisted
+    // rows rather than an echo of the input, so the ids are real.
+    const savedLocalisations: LocalisationCacheRow[] =
+      insert_localisations?.returning ?? [];
 
     // delete any localisations that are no longer supported
     // this handles languages that were removed from supported_languages
@@ -161,6 +179,7 @@ export async function updateAppStoreMetadata(
     return {
       success: true,
       message: "app store information updated successfully",
+      localisations: savedLocalisations,
     };
   } catch (error) {
     return errorFormAction({

@@ -6,7 +6,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
 import { ComponentType } from "react";
-import { BasePixelStrip } from "../components/BasePixelStrip";
+import { LazyBasePixelStrip } from "../components/BasePixelStrip/lazy";
 import { DeveloperStories } from "../components/DeveloperStories";
 import { HoverVideo } from "../components/HoverVideo";
 import {
@@ -178,7 +178,10 @@ const FOOTER_LINK_COLUMNS: FooterLink[][] = [
   ],
   [
     { href: "https://world.org/ecosystem", label: "Ecosystem" },
-    { href: "https://world.org/community", label: "Community" },
+    {
+      href: "https://world.org/community-operator",
+      label: "Community Operators",
+    },
   ],
   [
     { href: "https://docs.world.org", label: "Documentation" },
@@ -192,7 +195,6 @@ const FOOTER_LINK_COLUMNS: FooterLink[][] = [
   ],
   [
     { href: "https://whitepaper.world.org", label: "Whitepaper" },
-    { href: "https://world.org/events", label: "Events" },
     { href: "https://world.org/brand", label: "Brand Guidelines" },
     { href: "https://status.world.org", label: "Status" },
   ],
@@ -205,7 +207,6 @@ const FOOTER_SOCIAL_LINKS: FooterLink[] = [
     href: "https://whatsapp.com/channel/0029VasfcwXA89MkWpeNDB41",
     label: "WhatsApp",
   },
-  { href: "https://discord.com/invite/worldcoin", label: "Discord" },
   { href: "https://t.me/worldnetworkofficial", label: "Telegram" },
   { href: "https://youtube.com/@worldnetworkofficial", label: "YouTube" },
   { href: "https://instagram.com/world", label: "Instagram" },
@@ -324,7 +325,7 @@ export const HomePage = async () => {
           </div>
 
           <div className="relative aspect-626/700 w-full overflow-hidden rounded-2xl bg-[#f9f9f8] lg:h-[700px] lg:w-[626px]">
-            <BasePixelStrip />
+            <LazyBasePixelStrip />
           </div>
         </div>
       </section>

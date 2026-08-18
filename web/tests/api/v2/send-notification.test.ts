@@ -207,6 +207,33 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
     expect(res.status).toBe(200);
   });
 
+  it("forwards Zoom Pulse template metadata to app-backend", async () => {
+    const mockReq = new NextRequest(
+      "http://localhost:3000/api/v2/minikit/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${validApiKey}`,
+        },
+        body: JSON.stringify({
+          ...v2RequestBody,
+          template_key: "pulse_zoom_deep_face",
+          template_args: { app_name: "Zoom", is_self: "yes" },
+        }),
+      },
+    );
+
+    const res = await POST(mockReq);
+
+    expect(res.status).toBe(200);
+    const [, options] = mockSignedFetcher.mock.calls[0] as any;
+    expect(JSON.parse(options.body)).toMatchObject({
+      templateKey: "pulse_zoom_deep_face",
+      templateArgs: { app_name: "Zoom", is_self: "yes" },
+    });
+  });
+
   it("prioritizes a verified Mini App over an external draft", async () => {
     GetAppMetadata.mockResolvedValue({
       app_metadata: [
@@ -329,6 +356,32 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     expect((await res.json()).detail).toBe(
       "Neither localisations nor title and message are specified",
     );
+  });
+
+  it("rejects incomplete Pulse template metadata", async () => {
+    mockSignedFetcher.mockClear();
+    const mockReq = new NextRequest(
+      "http://localhost:3000/api/v2/minikit/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${validApiKey}`,
+        },
+        body: JSON.stringify({
+          ...v2RequestBody,
+          template_key: "pulse_zoom_deep_face",
+        }),
+      },
+    );
+
+    const res = await POST(mockReq);
+
+    expect(res.status).toBe(400);
+    expect((await res.json()).detail).toBe(
+      "template_key and template_args must be provided together",
+    );
+    expect(mockSignedFetcher).not.toHaveBeenCalled();
   });
 
   it("returns 404 if api key not exists", async () => {

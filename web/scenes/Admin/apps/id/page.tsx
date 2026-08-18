@@ -5,6 +5,7 @@ import { AppStatus, type StatusVariant } from "@/components/AppStatus";
 import { StatusBadge } from "@/components/AdminDashboard/Teams/StatusBadge";
 import { TeamMetric } from "@/components/AdminDashboard/Teams/TeamMetric";
 import { UIModule } from "@/components/AdminDashboard/UIModule";
+import { AdminAppActionsSection } from "./ActionsSection";
 import { fetchAdminAppDetails } from "./server/fetch-app-details";
 
 type AdminAppPageProps = {
@@ -48,7 +49,7 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
   const workflowStatus = draftStatus ?? verifiedStatus;
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-auto/1fr gap-y-4">
+    <div className="grid min-h-0 grid-rows-auto/1fr gap-y-4 max-lg:h-auto lg:h-full">
       <UIModule className="p-5">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
           <div className="min-w-0">
@@ -82,7 +83,7 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
         </div>
       </UIModule>
 
-      <div className="grid h-full min-h-0 w-full grid-cols-1 gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
+      <div className="grid min-h-0 w-full grid-cols-1 gap-4 max-lg:h-auto lg:h-full lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
         <UIModule className="min-h-0 overflow-auto p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-16 font-semibold text-grey-900">Overview</h2>
@@ -203,6 +204,10 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
               )}
             </div>
           </section>
+          <AdminAppActionsSection
+            legacyActions={details.legacyActions}
+            worldId40Actions={details.worldId40Actions}
+          />
         </UIModule>
         <UIModule className="self-start p-5">
           <h2 className="text-16 font-semibold text-grey-900">Owning team</h2>

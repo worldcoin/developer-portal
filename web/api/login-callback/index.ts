@@ -325,7 +325,6 @@ export const loginCallback = async (req: NextRequest) => {
     }
   }
 
-  // If a user just accepted an invite, redirect them to that teams page.
   const teamId = team_id_from_invite ?? user?.memberships[0]?.team.id;
   let url: string = urls.profile();
   const rawReturnTo = req.nextUrl.searchParams.get("returnTo");
@@ -347,8 +346,12 @@ export const loginCallback = async (req: NextRequest) => {
     url = returnTo;
   }
 
-  if (!returnTo && teamId) {
-    url = urls.apps({ team_id: teamId });
+  if (!returnTo && team_id_from_invite) {
+    url = urls.teams({ team_id: team_id_from_invite });
+  }
+
+  if (!returnTo && !team_id_from_invite && teamId) {
+    url = urls.dashboard();
   }
 
   if (!returnTo && !teamId) {

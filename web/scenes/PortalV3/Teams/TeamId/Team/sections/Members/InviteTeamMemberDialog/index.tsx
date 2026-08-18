@@ -1,12 +1,11 @@
 "use client";
 
-import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
-import { UserAddIcon } from "@/components/Icons/UserAddIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import {
+  FormDialog,
+  formDialogPrimaryActionClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
@@ -26,8 +25,13 @@ export const InviteTeamMemberDialog = () => {
 
   const onClose = useCallback(() => {
     setIsOpened(false);
+  }, [setIsOpened]);
+
+  // Clear the chips only after the leave transition — clearing on close makes
+  // them vanish while the dialog is still fading out.
+  const afterLeave = useCallback(() => {
     setEmails([]);
-  }, [setEmails, setIsOpened]);
+  }, [setEmails]);
 
   const [inviteTeamMembers, { loading }] = useMutation(
     InviteTeamMembersDocument,
@@ -49,54 +53,46 @@ export const InviteTeamMemberDialog = () => {
   }, [emails, inviteTeamMembers, onClose, teamId]);
 
   return (
-    <Dialog open={isOpened} onClose={onClose}>
-      <DialogOverlay />
-
-      <DialogPanel className="grid justify-items-center gap-y-10 md:max-w-xl">
-        <div className="grid w-full justify-items-center gap-y-4">
-          <CircleIconContainer variant="info">
-            <UserAddIcon />
-          </CircleIconContainer>
-
-          <Typography
-            as="h3"
-            variant={TYPOGRAPHY.H6}
-            className="mt-4 text-center"
-          >
-            Invite new team members
-          </Typography>
-
-          <Typography as="p" variant={TYPOGRAPHY.R3} className="text-center">
-            Add multiple team members by separating them with a comma
-          </Typography>
-        </div>
+    <FormDialog
+      open={isOpened}
+      onClose={onClose}
+      afterLeave={afterLeave}
+      title="Invite new members"
+      closeLabel="Close invite members dialog"
+    >
+      <div className="grid w-full gap-y-6">
+        <p className="font-world text-14 leading-[1.5] text-portal-muted">
+          Add multiple team members by separating them with a comma.
+        </p>
 
         <EmailsInput
           placeholder="andy@example.com, lisa@example.com, etc."
           className="w-full"
         />
 
-        <div className="grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-4">
-          <DecoratedButton
-            className="order-2 md:order-1"
+        <div className="grid w-full gap-3 md:grid-cols-2">
+          <button
             type="button"
-            variant="secondary"
             onClick={onClose}
+            className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
           >
             Cancel
-          </DecoratedButton>
+          </button>
 
-          <DecoratedButton
+          <button
             type="button"
-            variant="primary"
-            disabled={loading}
+            disabled={loading || emails.length === 0}
             onClick={handleInvite}
-            className="order-1 whitespace-nowrap"
+            className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
           >
-            Send invite
-          </DecoratedButton>
+            {loading ? (
+              <SpinnerIcon className="size-5 animate-spin" />
+            ) : (
+              "Send invite"
+            )}
+          </button>
         </div>
-      </DialogPanel>
-    </Dialog>
+      </div>
+    </FormDialog>
   );
 };

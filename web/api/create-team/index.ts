@@ -89,14 +89,14 @@ export const POST = async (req: NextRequest) => {
     return handleError(req);
   }
 
-  const { team_name, hasUser } = parsedParams;
+  const { team_name } = parsedParams;
 
   const client = await getAPIServiceGraphqlClient();
 
-  // The `hasUser` flag in the body is derived from the session, which can be
-  // stale (e.g. session.user.hasura missing or out of date). Trust Hasura
-  // instead by looking up the user by auth0Id. Otherwise we hit a uniqueness
-  // violation on InsertUser when the user already exists.
+  // Ignore client `hasUser` (portal dialog hardcodes true). Decide solely from
+  // Hasura by auth0Id — otherwise a first-time signup can skip InsertUser,
+  // create an orphan team, and fail membership. Lookup also avoids InsertUser
+  // uniqueness violations when the user already exists.
   let existingUser: GetUserByAuth0IdQuery["user"][number] | null = null;
   try {
     const { user: foundUsers } = await getGetUserByAuth0IdSdk(
@@ -120,7 +120,7 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const effectiveHasUser = hasUser || Boolean(existingUser);
+  const effectiveHasUser = Boolean(existingUser);
 
   // ANCHOR: Sending acceptance
   let ironCladUserId: string | null = null;
@@ -294,7 +294,7 @@ export const POST = async (req: NextRequest) => {
 
   const user = insertedMembership.user;
 
-  const returnTo = urls[effectiveHasUser ? "teams" : "app"]({
+  const returnTo = urls.teams({
     team_id: insertedMembership.team_id,
   });
 

@@ -1,11 +1,5 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import React from "react";
-
-const pickPortalVersion = jest.fn();
-jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
-  pickPortalVersion: (...args: unknown[]) => pickPortalVersion(...args),
-}));
 
 const redirect = jest.fn();
 jest.mock("next/navigation", () => ({
@@ -18,9 +12,6 @@ jest.mock("@/lib/urls", () => ({
       `/teams/${team_id}/settings`,
   },
 }));
-jest.mock("@/scenes/Portal/Teams/TeamId/Team/Danger/page", () => ({
-  TeamDangerPage: () => <div data-testid="v2-team-danger" />,
-}));
 import RoutePage from "../../app/(portal)/teams/[teamId]/(team)/danger/page";
 
 const props = () => ({
@@ -29,8 +20,7 @@ const props = () => ({
 
 beforeEach(() => jest.clearAllMocks());
 
-it("redirects v3 team-danger to consolidated team settings", async () => {
-  pickPortalVersion.mockImplementation(async (v3: () => unknown) => v3());
+it("redirects the legacy team-danger route to consolidated team settings", async () => {
   await RoutePage(props());
   expect(redirect).toHaveBeenCalledWith("/teams/team_1/settings");
 });

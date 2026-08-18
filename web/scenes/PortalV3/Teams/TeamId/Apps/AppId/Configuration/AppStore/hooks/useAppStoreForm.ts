@@ -14,6 +14,7 @@ import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/Ap
 import { updateAppStoreMetadata } from "../server/update-app-store";
 import { AppMetadata, SupportType } from "../types/AppStoreFormTypes";
 import { getFirstFormError } from "../utils/form-error-utils";
+import { synchronizeLocalisationsCache } from "../utils/update-localisations-cache";
 import { useSupportType } from "./useSupportType";
 
 export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
@@ -142,6 +143,13 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       if (!result.success) {
         throw new Error(result.message);
+      }
+      if (result.localisations) {
+        synchronizeLocalisationsCache(
+          apolloClient.cache,
+          appMetadata.id,
+          result.localisations,
+        );
       }
       // Patch the Apollo cache locally instead of refetching. A network
       // round-trip would refresh every metadata consumer and look like a page

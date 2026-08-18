@@ -1,25 +1,24 @@
 "use client";
 
 import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog, DialogProps } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
+import { DialogProps } from "@/components/Dialog";
+import { FormDialog } from "@/components/FormDialog";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { Input } from "@/components/Input";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import { deleteAuth0Identity } from "@/scenes/common/Profile/DangerZone/DeleteAccountDialog/delete-auth0-identity";
+import { DeleteAccountDocument } from "@/scenes/common/Profile/DangerZone/DeleteAccountDialog/graphql/client/delete-account.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { useMutation } from "@apollo/client/react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { useMutation } from "@apollo/client/react";
-import { DeleteAccountDocument } from "@/scenes/common/Profile/DangerZone/DeleteAccountDialog/graphql/client/delete-account.generated";
 
 const DELETE_WORD = "DELETE";
+const actionClassName =
+  "inline-flex h-11 w-full items-center justify-center rounded-8 px-4 font-world text-13 leading-none font-medium whitespace-nowrap outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed";
 
 const schema = yup
   .object({
@@ -60,8 +59,9 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           user_id: user.hasura.id,
         },
       });
+      await deleteAuth0Identity();
       toast.success("Account Deleted!");
-      window.location.href = urls.api.authDeleteAccount();
+      window.location.href = urls.logout(window.location.origin);
     } catch (e) {
       console.error("Delete Account Dialog: ", e);
       toast.error("Error deleting account");
@@ -69,69 +69,82 @@ export const DeleteAccountDialog = (props: DialogProps) => {
   }, [deleteAccount, user?.hasura]);
 
   return (
-    <Dialog {...props} onClose={onClose}>
-      <DialogOverlay />
+    <FormDialog
+      open={Boolean(props.open)}
+      onClose={onClose}
+      closeLabel="Close delete account dialog"
+      title="Delete account"
+    >
+      <form onSubmit={handleSubmit(submit)} className="grid w-full gap-y-6">
+        <div className="grid justify-items-center gap-y-4">
+          <CircleIconContainer variant="error">
+            <AlertIcon />
+          </CircleIconContainer>
 
-      <DialogPanel className="grid gap-y-8 md:max-w-100">
-        <CircleIconContainer variant="error">
-          <AlertIcon />
-        </CircleIconContainer>
-
-        <div className="grid gap-y-4">
-          <Typography as="h3" variant={TYPOGRAPHY.H6} className="text-center">
-            Are you sure?
-          </Typography>
-
-          <Typography
-            variant={TYPOGRAPHY.R3}
-            className="text-center text-grey-500"
-          >
+          <p className="text-center font-world text-14 leading-[1.5] text-portal-muted">
             Your account will be deleted, along with all apps and data. You will
             be removed from teams.
-          </Typography>
+          </p>
 
-          <div className="grid grid-cols-auto/1fr items-center gap-x-1 justify-self-center rounded-lg bg-system-error-50 px-3 py-2 text-system-error-600">
-            <AlertIcon />
-
-            <Typography variant={TYPOGRAPHY.B4}>
+          <div className="flex items-center gap-x-2 rounded-8 bg-system-error-50 px-3 py-2 text-system-error-600">
+            <AlertIcon className="size-4 shrink-0" />
+            <span className="font-world text-13 leading-none font-medium">
               This action cannot be undone.
-            </Typography>
+            </span>
           </div>
         </div>
 
-        <form
-          onSubmit={handleSubmit(submit)}
-          className="mt-2 grid w-full gap-y-10"
-        >
-          <Input
-            register={register("confirmation")}
-            errors={errors.confirmation}
-            label="To delete, type DELETE below"
+        <div>
+          <label
+            htmlFor="delete-account-confirmation"
+            className="mb-2 block font-world text-13 leading-none font-medium text-portal-text"
+          >
+            To confirm, type DELETE below
+          </label>
+
+          <input
+            id="delete-account-confirmation"
+            {...register("confirmation")}
+            className="h-11 w-full rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200"
+            aria-invalid={Boolean(errors.confirmation)}
+            aria-describedby={
+              errors.confirmation
+                ? "delete-account-confirmation-error"
+                : undefined
+            }
+            autoComplete="off"
             autoFocus
           />
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <DecoratedButton
-              disabled={!isValid || isSubmitting}
-              type="submit"
-              variant="danger"
-              className="order-2 py-3 md:order-1"
+          {errors.confirmation?.message ? (
+            <p
+              id="delete-account-confirmation-error"
+              className="mt-2 font-world text-12 leading-[1.4] text-system-error-600"
             >
-              Delete profile
-            </DecoratedButton>
+              {errors.confirmation.message}
+            </p>
+          ) : null}
+        </div>
 
-            <DecoratedButton
-              type="button"
-              onClick={onClose}
-              variant="primary"
-              className="order-1 py-3 md:order-2"
-              disabled={isSubmitting}
-            >
-              Keep profile
-            </DecoratedButton>
-          </div>
-        </form>
-      </DialogPanel>
-    </Dialog>
+        <div className="grid gap-3 md:grid-cols-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className={`${actionClassName} border border-grey-200 bg-white text-portal-text enabled:hover:bg-grey-50 disabled:text-grey-300`}
+            disabled={isSubmitting}
+          >
+            Keep account
+          </button>
+
+          <button
+            disabled={!isValid || isSubmitting}
+            type="submit"
+            className={`${actionClassName} bg-system-error-600 text-white enabled:hover:bg-system-error-500 disabled:bg-grey-200 disabled:text-grey-400`}
+          >
+            Delete account
+          </button>
+        </div>
+      </form>
+    </FormDialog>
   );
 };

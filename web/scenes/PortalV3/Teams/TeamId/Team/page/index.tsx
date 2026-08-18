@@ -1,10 +1,12 @@
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Unauthorized } from "@/components/Unauthorized";
-import { Auth0SessionUser } from "@/lib/types";
+import { Role_Enum } from "@/graphql/graphql";
 import { auth0 } from "@/lib/auth0";
-import { TeamProfile } from "@/scenes/PortalV3/Teams/TeamId/Team/common/TeamProfile";
+import { Auth0SessionUser } from "@/lib/types";
+import { getSdk as getInitialAppSdk } from "@/scenes/PortalV3/Teams/TeamId/Team/page/graphql/server/apps.generated";
+import { AppsPageClient } from "@/scenes/PortalV3/Teams/TeamId/Apps/page/AppsPageClient";
 import { Apps } from "./Apps";
-import { Members } from "../sections/Members";
 
 type TeamIdPageProps = {
   params: Record<string, string> | null | undefined;
@@ -17,11 +19,11 @@ export const TeamIdPage = async (props: TeamIdPageProps) => {
   const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
 
-  const isTeamMember = user?.hasura?.memberships?.some(
+  const membership = user?.hasura?.memberships?.find(
     (membership) => membership.team?.id === teamId,
   );
 
-  if (!isTeamMember) {
+  if (!membership) {
     return (
       <SizingWrapper gridClassName="grow order-2" fullHeight>
         <Unauthorized message="You are not a member of this team" />
@@ -29,19 +31,23 @@ export const TeamIdPage = async (props: TeamIdPageProps) => {
     );
   }
 
+  const client = await getAPIServiceGraphqlClient();
+  const { app } = await getInitialAppSdk(client).InitialApp({ teamId });
+
+  // The team root owns both states: onboarding actions before the first app,
+  // then the app grid once the team has something to manage.
+  if (app.length === 0) {
+    return (
+      <AppsPageClient
+        teamId={teamId}
+        initialIsOwner={membership.role === Role_Enum.Owner}
+      />
+    );
+  }
+
   return (
-    <>
-      <SizingWrapper gridClassName="order-1">
-        <TeamProfile />
-      </SizingWrapper>
-
-      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
-        <Members teamId={teamId} />
-
-        <div className="order-5 max-md:hidden">
-          <Apps />
-        </div>
-      </SizingWrapper>
-    </>
+    <SizingWrapper className="flex flex-col gap-8 py-8">
+      <Apps />
+    </SizingWrapper>
   );
 };
