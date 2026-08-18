@@ -180,7 +180,7 @@ export const RpManagerKeyMigrationPanel = async () => {
         </h2>
         <p className="mt-0.5 text-12 text-grey-500">
           Unique key → shared key, then delete the old KMS key. The migrate job
-          runs every minute and attempts up to 15 RPs per tick.
+          runs once a day and attempts up to 15 RPs per tick.
         </p>
         {status && (
           <div className="mt-2 flex flex-wrap gap-1.5">
