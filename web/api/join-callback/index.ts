@@ -185,6 +185,10 @@ export const POST = async (req: NextRequest) => {
 
     inviteData = invite;
   } catch (error) {
+    logger.error("Error while fetching invite for join-callback.", {
+      error,
+      graphqlResponse: (error as { response?: unknown })?.response,
+    });
     return errorResponse({
       statusCode: 500,
       code: "server_error",

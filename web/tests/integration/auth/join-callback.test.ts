@@ -41,13 +41,6 @@ jest.mock("@/lib/auth0", () => ({
 const getSession = auth0.getSession as jest.Mock;
 const updateSession = auth0.updateSession as jest.Mock;
 
-jest.mock("../../../lib/logger", () => ({
-  logger: {
-    error: jest.fn(),
-    warn: jest.fn(),
-  },
-}));
-
 jest.mock("../../../lib/ironclad-activity-api", () => ({
   IroncladActivityApi: jest.fn().mockImplementation(() => ({
     sendAcceptance: jest.fn(() => Promise.resolve()),
@@ -195,18 +188,10 @@ describe("test /join-callback", () => {
     const response = await POST(
       createMockRequest({ invite_id: insertedInvite[0].id }),
     );
-    expect(response.status).not.toEqual(500);
-    const body = await response.json();
-
-    expect(body).not.toEqual(
-      expect.objectContaining({
-        code: "server_error",
-        detail: "Failed to send acceptance",
-        attribute: null,
-      }),
-    );
-
-    expect(response.status).toEqual(200);
+    expect({ status: response.status, body: await response.json() }).toEqual({
+      status: 200,
+      body: { returnTo: `/teams/${team_id}` },
+    });
   });
 
   it("should throw 400 if invite is expired", async () => {
@@ -230,6 +215,9 @@ describe("test /join-callback", () => {
       createMockRequest({ invite_id: insertedInvite[0].id }),
     );
     expect(response.status).toEqual(400);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({ code: "invalid_invite" }),
+    );
   });
 
   it("should throw 400 if there is no invite", async () => {
@@ -244,6 +232,9 @@ describe("test /join-callback", () => {
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     const response = await POST(createMockRequest({ invite_id: "123" }));
     expect(response.status).toEqual(400);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({ code: "invalid_invite" }),
+    );
   });
 
   it("should update session successfully", async () => {
