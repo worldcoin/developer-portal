@@ -363,13 +363,6 @@ export const SidebarNav = (props: {
                   icon={<SidebarGlyph name="nav-home-active" />}
                 />
                 <NavItem
-                  label="Verification"
-                  href={urls.configuration(ids)}
-                  active={verificationActive}
-                  onNavigate={beginNavigation(urls.configuration(ids))}
-                  icon={<SidebarGlyph name="nav-badge-check" />}
-                />
-                <NavItem
                   label="World ID Configuration"
                   href={urls.worldIdTab({
                     ...ids,
@@ -383,6 +376,13 @@ export const SidebarNav = (props: {
                     }),
                   )}
                   icon={<SidebarGlyph name="nav-credential" />}
+                />
+                <NavItem
+                  label="Verification"
+                  href={urls.configuration(ids)}
+                  active={verificationActive}
+                  onNavigate={beginNavigation(urls.configuration(ids))}
+                  icon={<SidebarGlyph name="nav-badge-check" />}
                 />
               </SidebarMenu>
             </SidebarGroupContent>

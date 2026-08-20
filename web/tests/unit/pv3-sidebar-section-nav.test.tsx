@@ -182,8 +182,8 @@ describe("v3 SidebarNav [Figma navigation contract]", () => {
       [
         "Projects",
         "Dashboard",
-        "Verification",
         "World ID Configuration",
+        "Verification",
         "Develop",
         "Transactions",
         "Notifications",
