@@ -185,13 +185,15 @@ export const urls = {
       invite_id?: string | null;
       returnTo?: string | null;
     }): string => {
-      // v4 mounts /api/auth/login via middleware; it honours a `returnTo` query
-      // param and redirects there after the Auth0 callback completes. We point
-      // that at the login-callback pipeline (Hasura sync + session enrichment),
-      // forwarding invite_id and the originally requested deep link.
+      // Auth0 drops nested query strings inside returnTo, so invite_id is also
+      // a top-level login-callback param.
+      const postLoginReturnTo = params?.invite_id
+        ? urls.join({ invite_id: params.invite_id })
+        : params?.returnTo;
+
       const returnTo = urls.api.loginCallback({
         invite_id: params?.invite_id,
-        returnTo: params?.returnTo,
+        returnTo: postLoginReturnTo,
       });
 
       const searchParams = new URLSearchParams({ returnTo });
