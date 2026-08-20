@@ -376,6 +376,68 @@ describe("test /join-callback", () => {
     expect(usersAfter[0].count).toBe(1);
   });
 
+  it("looks up an existing invitee by email ignoring case when auth0Id does not match", async () => {
+    const storedEmail = "Test1-Member@Team2.Example.com";
+    const auth0Email = "  TEST1-MEMBER@TEAM2.EXAMPLE.COM  ";
+    const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
+    const oldAuth0Id = "email|old-casing-sub";
+    const newAuth0Id = "email|new-casing-sub";
+
+    const { rows: existingUsers } = (await integrationDBExecuteQuery(
+      `UPDATE public."user"
+          SET email = $1, "auth0Id" = $2
+        WHERE email = $3
+        RETURNING id`,
+      [storedEmail, oldAuth0Id, "test1-member@team2.example.com"],
+    )) as { rows: { id: string }[] };
+    expect(existingUsers).toHaveLength(1);
+
+    const { rows: insertedInvite } = (await integrationDBExecuteQuery(
+      `INSERT INTO public.invite (team_id, expires_at, email)
+       VALUES ($1, '2030-01-01 00:00:00+00', $2)
+       RETURNING id`,
+      [team_id, "test1-member@team2.example.com"],
+    )) as { rows: { id: string }[] };
+
+    (getSession as jest.Mock).mockResolvedValue({
+      user: {
+        ...validSessionUser,
+        email: auth0Email,
+        sub: newAuth0Id,
+      },
+    });
+
+    const response = await POST(
+      createMockRequest({ invite_id: insertedInvite[0].id }),
+    );
+
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toEqual({ returnTo: `/teams/${team_id}` });
+    expect(IroncladActivityApi).not.toHaveBeenCalled();
+
+    const { rows: usersAfter } = (await integrationDBExecuteQuery(
+      `SELECT id, email, "auth0Id"
+         FROM public."user"
+        WHERE lower(email) = lower($1)`,
+      [storedEmail],
+    )) as { rows: { id: string; email: string; auth0Id: string }[] };
+    expect(usersAfter).toEqual([
+      {
+        id: existingUsers[0].id,
+        email: storedEmail,
+        auth0Id: oldAuth0Id,
+      },
+    ]);
+
+    const { rows: membershipRows } = (await integrationDBExecuteQuery(
+      `SELECT m.role
+         FROM public.membership m
+        WHERE m.team_id = $1 AND m.user_id = $2`,
+      [team_id, existingUsers[0].id],
+    )) as { rows: { role: string }[] };
+    expect(membershipRows).toEqual([{ role: "MEMBER" }]);
+  });
+
   it("adds membership for an existing World ID user", async () => {
     const inviteEmail = "invited-world-user@example.com";
     const team_id = "team_2222214f17eda7e0ededba7ded6b4222";

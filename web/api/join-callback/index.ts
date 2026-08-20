@@ -1,7 +1,10 @@
 import { isSameOriginRequest } from "@/api/helpers/csrf";
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { isEmailUser } from "@/api/helpers/is-email-user";
+import {
+  isEmailUser,
+  emailForInsensitiveLookup,
+} from "@/api/helpers/is-email-user";
 import { isPasswordUser } from "@/api/helpers/is-password-user";
 import { getAppUrlFromRequest } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -78,7 +81,9 @@ const findExistingPortalUser = async (
 
   const userData = await getFetchEmailUserSdk(client).FetchEmailUser({
     auth0Id: auth0User.sub,
-    email: auth0User.email,
+    email: auth0User.email
+      ? emailForInsensitiveLookup(auth0User.email)
+      : auth0User.email,
   });
 
   if (userData.userByAuth0Id.length > 0) {

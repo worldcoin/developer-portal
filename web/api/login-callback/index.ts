@@ -17,7 +17,10 @@ import {
 import { logger } from "@/lib/logger";
 import { Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { isEmailUser } from "../helpers/is-email-user";
+import {
+  isEmailUser,
+  emailForInsensitiveLookup,
+} from "../helpers/is-email-user";
 import { isPasswordUser } from "../helpers/is-password-user";
 import { getAppUrlFromRequest } from "../helpers/utils";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
@@ -117,7 +120,9 @@ export const loginCallback = async (req: NextRequest) => {
     try {
       const userData = await FetchUserByAuth0IdSdk(client).FetchEmailUser({
         auth0Id: auth0User.sub,
-        email: auth0User.email,
+        email: auth0User.email
+          ? emailForInsensitiveLookup(auth0User.email)
+          : auth0User.email,
       });
 
       if (userData.userByAuth0Id.length > 0) {
