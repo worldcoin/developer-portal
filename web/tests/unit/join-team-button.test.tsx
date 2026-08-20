@@ -140,6 +140,24 @@ describe("JoinTeamButton [logged-in]", () => {
     );
     expect(push).not.toHaveBeenCalled();
   });
+
+  it("stores intent and goes to Auth0 when the join POST is unauthorized", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ code: "unauthorized" }),
+    });
+
+    renderButton({ hasSession: true });
+    fireEvent.click(screen.getByRole("button", { name: "Join team" }));
+
+    await waitFor(() =>
+      expect(locationAssign).toHaveBeenCalledWith(LOGIN_HREF),
+    );
+    expect(peekInviteIntent(INVITE_A)).toBe(true);
+    expect(mockToastError).not.toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
+  });
 });
 // #endregion
 

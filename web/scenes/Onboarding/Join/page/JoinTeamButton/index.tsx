@@ -44,6 +44,12 @@ export const JoinTeamButton = (props: JoinTeamButtonProps) => {
         body: JSON.stringify({ invite_id: props.invite_id }),
       });
 
+      if (res.status === 401) {
+        setInviteIntent(props.invite_id);
+        window.location.assign(props.loginHref);
+        return;
+      }
+
       const data = (await res.json().catch(() => ({}))) as {
         returnTo?: unknown;
         detail?: unknown;
@@ -68,7 +74,7 @@ export const JoinTeamButton = (props: JoinTeamButtonProps) => {
       setLoading(false);
       setAutoJoining(false);
     }
-  }, [loading, props.invite_id, router]);
+  }, [loading, props.invite_id, props.loginHref, router]);
 
   useEffect(() => {
     if (!props.hasSession || startedAutoJoin.current) {
