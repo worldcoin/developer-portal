@@ -121,6 +121,29 @@ describe("JoinTeamButton [logged-in]", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith("/teams/team_1"));
   });
 
+  it("navigates after a successful join even if cache invalidation fails", async () => {
+    const consoleError = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ returnTo: "/teams/team_1" }),
+    });
+    const invalidateError = new Error("profile request failed");
+    invalidate.mockRejectedValueOnce(invalidateError);
+
+    renderButton({ hasSession: true });
+    fireEvent.click(screen.getByRole("button", { name: "Join team" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/teams/team_1"));
+    expect(mockToastError).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith(
+      "Failed to invalidate user cache after join",
+      invalidateError,
+    );
+    consoleError.mockRestore();
+  });
+
   it("toasts the API detail when the invite email does not match", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,

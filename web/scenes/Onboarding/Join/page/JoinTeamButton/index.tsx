@@ -64,7 +64,11 @@ export const JoinTeamButton = (props: JoinTeamButtonProps) => {
       }
 
       clearInviteIntent();
-      await invalidateRef.current();
+      try {
+        await invalidateRef.current();
+      } catch (error) {
+        console.error("Failed to invalidate user cache after join", error);
+      }
       router.push(data.returnTo);
     } catch (error) {
       toast.error(
