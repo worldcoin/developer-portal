@@ -1,4 +1,5 @@
 import {
+  getPortalAppContext,
   getPortalReturnTo,
   isTeamSettingsPath,
   resolvePortalReturnTo,
@@ -25,6 +26,21 @@ describe("Team settings return_to validation", () => {
   ])("rejects a non-portal return target: %p", (returnTo) => {
     expect(getPortalReturnTo(returnTo)).toBeNull();
     expect(resolvePortalReturnTo(returnTo)).toBe("/dashboard");
+  });
+
+  it("recovers app context only for a validated matching-team app route", () => {
+    expect(
+      getPortalAppContext(
+        "/teams/team_1/apps/app_1/configuration?view=review",
+        "team_1",
+      ),
+    ).toEqual({ teamId: "team_1", appId: "app_1" });
+    expect(
+      getPortalAppContext("/teams/team_2/apps/app_1/configuration", "team_1"),
+    ).toBeNull();
+    expect(
+      getPortalAppContext("/teams/team_1/apps/%E0%A4%A/configuration"),
+    ).toBeNull();
   });
 });
 // #endregion
