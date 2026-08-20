@@ -107,6 +107,7 @@ type PillPlacement = { box: PillBox; animate: boolean };
 type ActivePillOptions = {
   containerSelector: string;
   activeItemSelector: string;
+  animate: boolean;
 };
 
 /**
@@ -117,13 +118,14 @@ type ActivePillOptions = {
  * SidebarMenuButton), which follows the nav's optimistic active state — so the
  * slide starts on click, not when the route settles.
  *
- * The slide only plays when the ACTIVE ITEM changes (keyed by href). A
- * reposition of the same item snaps instead — post-hydration layout settles
- * on a cold load, or the nav restructuring around the item — because the
- * items themselves jump instantly, so an animated pill chasing them reads as
- * drift, not intent. This also covers first placement: the pill never slides
- * in from (0, 0), which is what lets the host remount it (via `key`) to force
- * an instant re-place when the nav's item set is rebuilt.
+ * The slide only plays when the ACTIVE ITEM changes (keyed by href) and the
+ * owning navigation leaves animation enabled. A reposition of the same item
+ * snaps instead — post-hydration layout settles on a cold load, or the nav
+ * restructuring around the item — because the items themselves jump
+ * instantly, so an animated pill chasing them reads as drift, not intent.
+ * This also covers first placement: the pill never slides in from (0, 0),
+ * which is what lets the host remount it (via `key`) to force an instant
+ * re-place when the nav's item set is rebuilt.
  *
  * The measuring effect deliberately has no dependency array: everything that
  * moves the items (active change or a permission-gated row appearing) is
@@ -163,7 +165,7 @@ const useActivePillPlacement = (options: ActivePillOptions) => {
     }
     const measure = () => {
       const key = activeItem.getAttribute("href") ?? activeItem.textContent;
-      const slide = key !== activeKeyRef.current;
+      const slide = options.animate && key !== activeKeyRef.current;
       activeKeyRef.current = key;
       // Deltas of client rects stay valid while the sidebar scrolls or slides
       // in from offcanvas, since the container and item move together.
@@ -220,10 +222,11 @@ const activePillStyle = (placement: PillPlacement | null) =>
       }
     : undefined;
 
-export const NavActivePill = () => {
+export const NavActivePill = (props: { animate?: boolean }) => {
   const { placement, setElementRef } = useActivePillPlacement({
     containerSelector: "nav",
     activeItemSelector: '[data-sidebar="menu-button"][data-active="true"]',
+    animate: props.animate ?? true,
   });
 
   // The span stays mounted even before placement (hidden): the effect above
@@ -248,6 +251,7 @@ export const SidebarSubNavigationActivePill = () => {
   const { placement, setElementRef } = useActivePillPlacement({
     containerSelector: '[data-sidebar="menu-sub"]',
     activeItemSelector: '[data-sidebar="menu-sub-button"][data-active="true"]',
+    animate: true,
   });
 
   return (

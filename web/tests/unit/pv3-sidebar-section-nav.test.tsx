@@ -52,6 +52,7 @@ import {
   SidebarAnimationShell,
   SidebarNav,
 } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
+import { NavActivePill } from "@/scenes/PortalV3/layout/Shell/NavItem";
 
 // #region Test Data
 const teamId = "team_1";
@@ -105,6 +106,71 @@ beforeEach(() => {
   });
 });
 
+// #region active pill animation compartments
+it("snaps from an app tab to Projects but slides within team navigation", () => {
+  const rect = (top: number, left: number, width: number, height: number) =>
+    ({
+      top,
+      left,
+      width,
+      height,
+      right: left + width,
+      bottom: top + height,
+      x: left,
+      y: top,
+      toJSON: () => ({}),
+    }) as DOMRect;
+  const getBoundingClientRect = jest
+    .spyOn(Element.prototype, "getBoundingClientRect")
+    .mockImplementation(function (this: Element) {
+      if (this.matches("nav")) return rect(100, 20, 204, 300);
+      if (this.getAttribute("href") === `/teams/${teamId}`) {
+        return rect(104, 20, 204, 36);
+      }
+      if (this.getAttribute("href")?.includes("/world-id")) {
+        return rect(160, 20, 204, 36);
+      }
+      return rect(216, 20, 204, 36);
+    });
+  const hrefs = {
+    app: `${base}/world-id?tab=actions`,
+    projects: `/teams/${teamId}`,
+    general: `/teams/${teamId}/settings`,
+  };
+  const Navigation = (props: {
+    active: keyof typeof hrefs;
+    animate?: boolean;
+  }) => (
+    <nav>
+      <NavActivePill animate={props.animate} />
+      {Object.entries(hrefs).map(([name, href]) => (
+        <a
+          key={name}
+          href={href}
+          data-sidebar="menu-button"
+          data-active={name === props.active ? "true" : "false"}
+        >
+          {name}
+        </a>
+      ))}
+    </nav>
+  );
+  const view = render(<Navigation active="app" />);
+  const pill = view.container.querySelector("nav > span")!;
+
+  view.rerender(<Navigation active="projects" animate={false} />);
+  expect(pill).not.toHaveClass("transition-[transform,width,height]");
+
+  view.rerender(<Navigation active="general" />);
+  expect(pill).toHaveClass("transition-[transform,width,height]");
+
+  view.rerender(<Navigation active="projects" />);
+  expect(pill).toHaveClass("transition-[transform,width,height]");
+
+  getBoundingClientRect.mockRestore();
+});
+// #endregion
+
 // #region Figma navigation contract
 describe("v3 SidebarNav [Figma navigation contract]", () => {
   it("renders the flat app sidebar in design order with exact icon assets", () => {
@@ -114,6 +180,7 @@ describe("v3 SidebarNav [Figma navigation contract]", () => {
     expect(screen.getByText("Team settings")).toBeInTheDocument();
     expect(screen.getAllByRole("link").map((item) => item.textContent)).toEqual(
       [
+        "Projects",
         "Dashboard",
         "Verification",
         "World ID Configuration",
@@ -127,6 +194,7 @@ describe("v3 SidebarNav [Figma navigation contract]", () => {
     );
 
     const icons: Record<string, string> = {
+      Projects: "view-grid-active",
       Dashboard: "nav-home-active",
       Verification: "nav-badge-check",
       "World ID Configuration": "nav-credential",
@@ -145,6 +213,8 @@ describe("v3 SidebarNav [Figma navigation contract]", () => {
     }
 
     expect(link("Dashboard")).toHaveClass("h-9", "rounded-8", "gap-3");
+    expect(link("Projects")).toHaveAttribute("href", `/teams/${teamId}`);
+    expect(isCurrent("Projects")).toBe(false);
     expect(link("Develop")).toHaveAttribute("href", `${base}/mini-app/develop`);
     noLink("World ID");
     noLink("Get verified");
@@ -206,6 +276,20 @@ describe("v3 SidebarNav [Figma navigation contract]", () => {
 
 // #region persistent app context
 describe("v3 SidebarNav [persistent app context]", () => {
+  it("highlights Projects on the canonical team page with the view-grid icon", () => {
+    useParams.mockReturnValue({ teamId });
+    usePathname.mockReturnValue(`/teams/${teamId}`);
+    renderSidebar();
+
+    expect(link("Projects")).toHaveAttribute("href", `/teams/${teamId}`);
+    expect(link("Projects").querySelector("img")).toHaveAttribute(
+      "src",
+      "/images/portal-v3/icons/view-grid-active.svg",
+    );
+    expect(isCurrent("Projects")).toBe(true);
+    expect(isCurrent("General")).toBe(false);
+  });
+
   it("keeps app and team rows mounted on team settings via validated return_to", () => {
     const returnTo = `${base}/configuration?view=review`;
     useParams.mockReturnValue({ teamId });
@@ -225,7 +309,7 @@ describe("v3 SidebarNav [persistent app context]", () => {
       "href",
       `/teams/${teamId}/settings?return_to=${encodeURIComponent(returnTo)}`,
     );
-    expect(screen.getAllByRole("link")).toHaveLength(9);
+    expect(screen.getAllByRole("link")).toHaveLength(10);
   });
 
   it("does not recover app scope from a cross-team return_to", () => {
@@ -241,6 +325,8 @@ describe("v3 SidebarNav [persistent app context]", () => {
     noLink("Dashboard");
     noLink("Develop");
     noLink("API Keys");
+    expect(link("Projects")).toBeInTheDocument();
+    expect(isCurrent("Projects")).toBe(false);
     expect(isCurrent("General")).toBe(true);
     expect(
       screen.getByRole("button", { name: /World ID Sandbox/i }),

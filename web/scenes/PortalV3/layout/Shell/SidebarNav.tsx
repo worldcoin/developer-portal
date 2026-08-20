@@ -104,6 +104,7 @@ const sidebarPreloadIcons = [
   "nav-settings-active",
   "nav-group",
   "nav-key",
+  "view-grid-active",
   "world-id-sandbox-app-icon",
 ] as const;
 
@@ -180,6 +181,7 @@ export const SidebarNav = (props: {
   const appId = routeAppId ?? routeContext?.appId ?? returnToContext?.appId;
   const ids = teamId && appId ? { team_id: teamId, app_id: appId } : undefined;
   const appBase = ids ? urls.app(ids) : undefined;
+  const teamOverviewHref = teamId ? urls.teams({ team_id: teamId }) : undefined;
 
   const committedQuery = committedSearchParams.toString();
   const committedHref = `${pathname}${committedQuery ? `?${committedQuery}` : ""}`;
@@ -254,7 +256,6 @@ export const SidebarNav = (props: {
     withinApp("/mini-app/transactions") || withinApp("/transactions");
   const notificationsActive =
     withinApp("/mini-app/notifications") || withinApp("/notifications");
-
   const canViewApiKeys = Boolean(
     teamId && props.apiKeyTeamIds?.includes(teamId),
   );
@@ -311,9 +312,37 @@ export const SidebarNav = (props: {
       aria-label="Primary navigation"
       className="relative flex min-h-0 flex-1 flex-col px-2 pt-4 pb-2.5"
     >
-      <NavActivePill key={`${teamId ?? "none"}:${appId ?? "team"}`} />
+      <NavActivePill
+        key={`${teamId ?? "none"}:${appId ?? "team"}`}
+        animate={
+          !(
+            optimisticHref &&
+            routeAppId &&
+            currentPathname === teamOverviewHref
+          )
+        }
+      />
 
       <div className="flex flex-col gap-4">
+        {teamOverviewHref ? (
+          <SidebarGroup className="p-0">
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-1">
+                <NavItem
+                  label="Projects"
+                  href={teamOverviewHref}
+                  active={
+                    currentPathname === teamOverviewHref ||
+                    currentPathname === `${teamOverviewHref}/apps`
+                  }
+                  onNavigate={beginNavigation(teamOverviewHref)}
+                  icon={<SidebarGlyph name="view-grid-active" />}
+                />
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
+
         {ids ? (
           <SidebarGroup className="p-0">
             <SidebarGroupContent>
