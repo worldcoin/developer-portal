@@ -1,6 +1,5 @@
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import Link from "next/link";
 import {
   useCallback,
@@ -56,7 +55,7 @@ export const NavItem = (props: {
 
   return (
     <SidebarMenuItem>
-      {/* The active surface (white card) is NavActivePill sliding behind the
+      {/* The active surface (white outlined row) is NavActivePill sliding behind the
           items; the item itself only changes text color when active. The
           bg-transparent overrides neutralize SidebarMenuButton's built-in
           data-active/hover sidebar-accent backgrounds, which would otherwise
@@ -66,9 +65,9 @@ export const NavItem = (props: {
         isActive={active}
         tooltip={label}
         className={cn(
-          "h-10 cursor-pointer rounded-[10px] px-3 font-world text-13 leading-none font-normal text-portal-muted transition-colors duration-200 ease-out hover:text-portal-text data-[active=false]:hover:bg-portal-border data-[active=true]:bg-transparent data-[active=true]:text-portal-text data-[active=true]:hover:bg-transparent",
+          "h-9 cursor-pointer gap-3 rounded-8 pr-4 pl-2.5 font-world text-13 leading-[1.2] font-[450] text-portal-ink transition-colors duration-200 ease-out hover:text-portal-ink data-[active=false]:hover:bg-portal-border data-[active=true]:bg-transparent data-[active=true]:text-portal-ink data-[active=true]:hover:bg-transparent",
           !hydrated &&
-            "data-[active=true]:border data-[active=true]:border-portal-border data-[active=true]:bg-white data-[active=true]:shadow-portal-card data-[active=true]:hover:bg-white",
+            "data-[active=true]:border data-[active=true]:border-portal-border data-[active=true]:bg-white data-[active=true]:hover:bg-white",
           className,
         )}
       >
@@ -80,11 +79,7 @@ export const NavItem = (props: {
           }
           className={dimmed ? "opacity-40" : undefined}
         >
-          {icon ? (
-            <span className={`${opticalIconClassName} text-current`}>
-              {icon}
-            </span>
-          ) : null}
+          {icon ? <span className="shrink-0 text-current">{icon}</span> : null}
           <span>{label}</span>
           {trailing ? (
             <span className="ml-auto shrink-0 group-data-[collapsible=icon]:hidden">
@@ -112,6 +107,7 @@ type PillPlacement = { box: PillBox; animate: boolean };
 type ActivePillOptions = {
   containerSelector: string;
   activeItemSelector: string;
+  animate: boolean;
 };
 
 /**
@@ -122,17 +118,18 @@ type ActivePillOptions = {
  * SidebarMenuButton), which follows the nav's optimistic active state — so the
  * slide starts on click, not when the route settles.
  *
- * The slide only plays when the ACTIVE ITEM changes (keyed by href). A
- * reposition of the same item snaps instead — post-hydration layout settles
- * on a cold load, or the nav restructuring around the item — because the
- * items themselves jump instantly, so an animated pill chasing them reads as
- * drift, not intent. This also covers first placement: the pill never slides
- * in from (0, 0), which is what lets the host remount it (via `key`) to force
- * an instant re-place when the nav's item set is rebuilt.
+ * The slide only plays when the ACTIVE ITEM changes (keyed by href) and the
+ * owning navigation leaves animation enabled. A reposition of the same item
+ * snaps instead — post-hydration layout settles on a cold load, or the nav
+ * restructuring around the item — because the items themselves jump
+ * instantly, so an animated pill chasing them reads as drift, not intent.
+ * This also covers first placement: the pill never slides in from (0, 0),
+ * which is what lets the host remount it (via `key`) to force an instant
+ * re-place when the nav's item set is rebuilt.
  *
  * The measuring effect deliberately has no dependency array: everything that
- * moves the items (active change, Mini App submenu expanding, Danger zone
- * appearing) is render-driven, and one rect read per render is negligible.
+ * moves the items (active change or a permission-gated row appearing) is
+ * render-driven, and one rect read per render is negligible.
  * The ResizeObserver covers non-render size changes of the active item.
  *
  * The pill finds its container through its own rendered node instead of a ref
@@ -168,7 +165,7 @@ const useActivePillPlacement = (options: ActivePillOptions) => {
     }
     const measure = () => {
       const key = activeItem.getAttribute("href") ?? activeItem.textContent;
-      const slide = key !== activeKeyRef.current;
+      const slide = options.animate && key !== activeKeyRef.current;
       activeKeyRef.current = key;
       // Deltas of client rects stay valid while the sidebar scrolls or slides
       // in from offcanvas, since the container and item move together.
@@ -201,7 +198,7 @@ const useActivePillPlacement = (options: ActivePillOptions) => {
     // changes that don't touch the active item's own box.
     observer.observe(container);
     // World Pro swapping in after first paint can reflow labels without
-    // resizing the h-10 items, so the observers stay silent — re-measure once
+    // resizing the fixed-height items, so the observers stay silent — re-measure once
     // fonts settle to keep the initial placement honest.
     let cancelled = false;
     document.fonts?.ready.then(() => {
@@ -225,10 +222,11 @@ const activePillStyle = (placement: PillPlacement | null) =>
       }
     : undefined;
 
-export const NavActivePill = () => {
+export const NavActivePill = (props: { animate?: boolean }) => {
   const { placement, setElementRef } = useActivePillPlacement({
     containerSelector: "nav",
     activeItemSelector: '[data-sidebar="menu-button"][data-active="true"]',
+    animate: props.animate ?? true,
   });
 
   // The span stays mounted even before placement (hidden): the effect above
@@ -239,7 +237,7 @@ export const NavActivePill = () => {
       ref={setElementRef}
       aria-hidden="true"
       className={cn(
-        "pointer-events-none absolute top-0 left-0 rounded-[10px] border border-portal-border bg-white shadow-portal-card",
+        "pointer-events-none absolute top-0 left-0 rounded-8 border border-portal-border bg-white",
         !placement && "hidden",
         placement?.animate &&
           "transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none",
@@ -253,6 +251,7 @@ export const SidebarSubNavigationActivePill = () => {
   const { placement, setElementRef } = useActivePillPlacement({
     containerSelector: '[data-sidebar="menu-sub"]',
     activeItemSelector: '[data-sidebar="menu-sub-button"][data-active="true"]',
+    animate: true,
   });
 
   return (
