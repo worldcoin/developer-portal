@@ -1,0 +1,21 @@
+mutation InsertSandboxAccessRequestIos(
+  $asc_email: String!
+  $portal_email: String!
+  $team_id: String!
+  $user_id: String!
+) {
+  insert_sandbox_access_request_ios_one(
+    object: {
+      asc_email: $asc_email
+      portal_email: $portal_email
+      team_id: $team_id
+      user_id: $user_id
+    }
+    on_conflict: {
+      constraint: unique_sandbox_access_request_ios_user_id
+      update_columns: []
+    }
+  ) {
+    id
+  }
+}

@@ -138,6 +138,36 @@ describe("internal dashboard detail permissions", () => {
     expect(deleteSection).not.toContain("role: service");
   });
 
+  it("limits iOS sandbox request writes to enrollment workflow fields", () => {
+    const metadata = readFileSync(
+      path.join(tablesPath, "public_sandbox_access_request_ios.yaml"),
+      "utf8",
+    );
+    const insertSection = metadata.slice(
+      metadata.indexOf("insert_permissions:"),
+      metadata.indexOf("select_permissions:"),
+    );
+    const updateSection = metadata.slice(
+      metadata.indexOf("update_permissions:"),
+      metadata.indexOf("delete_permissions:"),
+    );
+    const deleteSection = metadata.slice(
+      metadata.indexOf("delete_permissions:"),
+    );
+
+    expect(insertSection).toContain("- asc_email");
+    expect(insertSection).toContain("- portal_email");
+    expect(insertSection).toContain("- team_id");
+    expect(insertSection).toContain("- user_id");
+    expect(insertSection).not.toContain("- status");
+    expect(updateSection).toContain("- status");
+    expect(updateSection).not.toContain("- asc_email");
+    expect(updateSection).not.toContain("- portal_email");
+    expect(updateSection).not.toContain("role: service");
+    expect(deleteSection).toContain("_eq: pending");
+    expect(deleteSection).not.toContain("role: service");
+  });
+
   it("does not define elevated internal dashboard roles", () => {
     const inheritedRoles = readFileSync(
       path.join(tablesPath, "../../../inherited_roles.yaml"),

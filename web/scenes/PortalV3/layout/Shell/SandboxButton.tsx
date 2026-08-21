@@ -1,5 +1,6 @@
 "use client";
 
+import type { SandboxAccessRequestIosState } from "@/api/v2/sandbox-access-request-ios/server/fetch-sandbox-access-request-ios";
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
@@ -15,69 +16,52 @@ import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import { toast } from "react-toastify";
 
-// Distribution links for the sandbox builds. Values come from the deploy
-// config (world-id-deploy stacks/web/parameters.ts) and are inlined at build
-// time; an unset link degrades to the "coming soon" placeholder below.
-const IOS_TESTFLIGHT_URL: string | null =
-  process.env.NEXT_PUBLIC_IOS_TESTFLIGHT_URL || null;
 // Google Play internal test: works only for Google accounts already on the
 // internal-tester allowlist (managed in Play Console, outside this repo).
 const ANDROID_URL: string | null =
   process.env.NEXT_PUBLIC_ANDROID_INTERNAL_TEST_URL || null;
-/** TestFlight's own App Store page, for testers who don't have it yet. */
-const TESTFLIGHT_APP_STORE_URL: string | null =
-  process.env.NEXT_PUBLIC_TESTFLIGHT_APP_STORE_URL || null;
 
 const ANDROID_FIRST_SIGN_IN_NOTE =
   "If this is your first Play Store sign-in, accept all Google Play Terms of Service before continuing. Make sure the browser opening the test link and the Play Store use that same account; mismatched sessions can block the download.";
 const SANDBOX_SUPPORT_EMAIL = "sandbox.access@toolsforhumanity.org";
+const TESTFLIGHT_APP_STORE_URL =
+  "https://apps.apple.com/us/app/testflight/id899247664";
 
 type Platform = "ios" | "android";
 
-const PLATFORMS: Record<
-  Platform,
-  {
-    label: string;
-    url: string | null;
-    steps: readonly string[];
-  }
-> = {
-  ios: {
-    label: "iOS",
-    url: IOS_TESTFLIGHT_URL,
-    steps: [
-      "Open the camera on your iPhone",
-      "Scan the QR code",
-      "Join TestFlight and install the build",
-    ],
-  },
-  android: {
-    label: "Android",
-    url: ANDROID_URL,
-    steps: [
-      "On your Android device, confirm that the Google Play Store is signed in with the same Google account you requested access for.",
-      "If this is the first time that account has signed in to Google Play, allow time for Google's backend caches to recognize the new account before retrying.",
-      "Once the correct account is signed in and the Terms of Service are accepted, scan the QR code or open the internal testing link below, then install the build.",
-      "Still having trouble? Contact Sandbox Support:",
-    ],
-  },
+const PLATFORMS: Record<Platform, { label: string }> = {
+  ios: { label: "iOS" },
+  android: { label: "Android" },
 };
+
+const IOS_STEPS = [
+  "Install TestFlight on your iPhone.",
+  "Submit your Apple Account email for enrollment.",
+  "When you are approved, you will receive an email. World ID Sandbox will then appear in TestFlight.",
+] as const;
+
+const ANDROID_STEPS = [
+  "On your Android device, confirm that the Google Play Store is signed in with the same Google account you requested access for.",
+  "If this is the first time that account has signed in to Google Play, allow time for Google's backend caches to recognize the new account before retrying.",
+  "Once the correct account is signed in and the Terms of Service are accepted, scan the QR code or open the internal testing link below, then install the build.",
+  "Still having trouble? Contact Sandbox Support:",
+] as const;
 
 const PLATFORM_ORDER: readonly Platform[] = ["ios", "android"];
 
 /**
- * Sidebar entry point for the World ID sandbox: a modal with QR codes / store
- * links, plus an Android form that records a Play allowlist request
- * (sandbox_access_request). The caller's request is looked up on open so a
- * past submission renders as a persistent confirmation.
+ * Sidebar entry point for the World ID sandbox. Android requests Play allowlist
+ * access; iOS requests App Store Connect enrollment. Existing requests are
+ * refreshed when their platform is opened so confirmations persist.
  */
 export const SandboxButton = (props: {
   className?: string;
+  teamId?: string;
   initialRequest?: SandboxAccessRequestState | null;
+  initialIosRequest?: SandboxAccessRequestIosState | null;
 }) => {
   const [open, setOpen] = useState(false);
   const [platform, setPlatform] = useState<Platform>("ios");
-  const active = PLATFORMS[platform];
   const { user } = useUser() as Auth0SessionUser;
 
   const [requestEmail, setRequestEmail] = useState(
@@ -87,6 +71,15 @@ export const SandboxButton = (props: {
   const [requestRefreshing, setRequestRefreshing] = useState(false);
   const [existingRequest, setExistingRequest] =
     useState<SandboxAccessRequestState | null>(props.initialRequest ?? null);
+  const [iosRequestEmail, setIosRequestEmail] = useState(
+    props.initialIosRequest?.ascEmail ?? user?.email ?? "",
+  );
+  const [iosRequestSending, setIosRequestSending] = useState(false);
+  const [iosRequestRefreshing, setIosRequestRefreshing] = useState(false);
+  const [existingIosRequest, setExistingIosRequest] =
+    useState<SandboxAccessRequestIosState | null>(
+      props.initialIosRequest ?? null,
+    );
 
   useEffect(() => {
     if (props.initialRequest || !user?.email) return;
@@ -94,14 +87,26 @@ export const SandboxButton = (props: {
   }, [props.initialRequest, user?.email]);
 
   useEffect(() => {
-    if (!open) return;
+    if (props.initialIosRequest || !user?.email) return;
+    setIosRequestEmail((current) => current || user.email);
+  }, [props.initialIosRequest, user?.email]);
+
+  useEffect(() => {
+    if (!open || platform !== "android") return;
 
     let cancelled = false;
     (async () => {
       setRequestRefreshing(true);
       try {
         const response = await fetch("/api/v2/sandbox-access-request");
-        if (!response.ok) return;
+        if (!response.ok) {
+          if (!cancelled) {
+            toast.error(
+              "Couldn't refresh your Android request. Please try again.",
+            );
+          }
+          return;
+        }
         const data = await response.json();
         if (!cancelled) {
           setExistingRequest(data.request ?? null);
@@ -110,6 +115,11 @@ export const SandboxButton = (props: {
           }
         }
       } catch {
+        if (!cancelled) {
+          toast.error(
+            "Couldn't refresh your Android request. Please try again.",
+          );
+        }
       } finally {
         if (!cancelled) setRequestRefreshing(false);
       }
@@ -118,7 +128,42 @@ export const SandboxButton = (props: {
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, [open, platform]);
+
+  useEffect(() => {
+    if (!open || platform !== "ios") return;
+
+    let cancelled = false;
+    (async () => {
+      setIosRequestRefreshing(true);
+      try {
+        const response = await fetch("/api/v2/sandbox-access-request-ios");
+        if (!response.ok) {
+          if (!cancelled) {
+            toast.error("Couldn't refresh your iOS request. Please try again.");
+          }
+          return;
+        }
+        const data = await response.json();
+        if (!cancelled) {
+          setExistingIosRequest(data.request ?? null);
+          if (data.request?.ascEmail) {
+            setIosRequestEmail(data.request.ascEmail);
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          toast.error("Couldn't refresh your iOS request. Please try again.");
+        }
+      } finally {
+        if (!cancelled) setIosRequestRefreshing(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, platform]);
 
   const submitAccessRequest = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -149,6 +194,42 @@ export const SandboxButton = (props: {
       toast.error("Couldn't send your request. Please try again.");
     } finally {
       setRequestSending(false);
+    }
+  };
+
+  const submitIosAccessRequest = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (iosRequestSending || !iosRequestEmail || !user?.email || !props.teamId)
+      return;
+
+    setIosRequestSending(true);
+    try {
+      const response = await fetch("/api/v2/sandbox-access-request-ios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          asc_email: iosRequestEmail,
+          team_id: props.teamId,
+        }),
+      });
+
+      if (!response.ok) {
+        toast.error("Couldn't send your request. Please try again.");
+        return;
+      }
+
+      const data = await response.json();
+      if (!data.request) {
+        throw new Error("iOS request state missing from response");
+      }
+
+      posthog.capture("sandbox_access_requested", { platform: "ios" });
+      setExistingIosRequest(data.request);
+      setIosRequestEmail(data.request.ascEmail);
+    } catch {
+      toast.error("Couldn't send your request. Please try again.");
+    } finally {
+      setIosRequestSending(false);
     }
   };
 
@@ -246,7 +327,78 @@ export const SandboxButton = (props: {
               ))}
             </div>
 
-            {platform === "android" ? (
+            {platform === "ios" ? (
+              <div className="rounded-12 bg-grey-50 px-4 py-3">
+                <form
+                  className="flex flex-wrap items-center gap-2"
+                  onSubmit={submitIosAccessRequest}
+                >
+                  <input
+                    type="email"
+                    required
+                    disabled={
+                      existingIosRequest !== null || iosRequestRefreshing
+                    }
+                    value={iosRequestEmail}
+                    onChange={(event) => setIosRequestEmail(event.target.value)}
+                    aria-label="Apple Account email"
+                    placeholder="apple-account@example.com"
+                    className="h-9 min-w-0 flex-1 rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300 disabled:bg-grey-100 disabled:text-grey-500"
+                  />
+                  <InkButton
+                    type="submit"
+                    disabled={
+                      existingIosRequest !== null ||
+                      iosRequestRefreshing ||
+                      iosRequestSending ||
+                      !user?.email ||
+                      !props.teamId
+                    }
+                    className="h-9 shrink-0 px-4"
+                  >
+                    {existingIosRequest?.status === "approved"
+                      ? "Approved"
+                      : existingIosRequest?.status === "rejected"
+                        ? "Request rejected"
+                        : existingIosRequest
+                          ? "Request submitted"
+                          : "Submit email"}
+                  </InkButton>
+                </form>
+
+                {existingIosRequest ? (
+                  <Typography
+                    variant={TYPOGRAPHY.M4}
+                    className="mt-2 block text-grey-900"
+                  >
+                    {existingIosRequest.status === "approved" ? (
+                      <>
+                        {existingIosRequest.ascEmail} was approved. Check
+                        TestFlight for World ID Sandbox.
+                      </>
+                    ) : existingIosRequest.status === "rejected" ? (
+                      <>
+                        The enrollment request for {existingIosRequest.ascEmail}{" "}
+                        was rejected.
+                      </>
+                    ) : (
+                      <>
+                        Your enrollment request for{" "}
+                        {existingIosRequest.ascEmail} is pending.
+                      </>
+                    )}
+                  </Typography>
+                ) : !iosRequestRefreshing && !user?.email ? (
+                  <Typography
+                    variant={TYPOGRAPHY.M4}
+                    className="mt-2 block text-system-error-700"
+                  >
+                    An email-based portal account is required to request iOS
+                    enrollment.
+                  </Typography>
+                ) : null}
+              </div>
+            ) : (
               <div className="rounded-12 bg-grey-50 px-4 py-3">
                 <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
                   The Android build is distributed as a Google Play internal
@@ -305,11 +457,11 @@ export const SandboxButton = (props: {
                   </Typography>
                 ) : null}
               </div>
-            ) : null}
+            )}
 
-            <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:gap-12">
+            {platform === "ios" ? (
               <ol className="grid gap-y-5">
-                {active.steps.map((step, index) => (
+                {IOS_STEPS.map((step, index) => (
                   <li
                     key={step}
                     className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-x-3"
@@ -325,78 +477,108 @@ export const SandboxButton = (props: {
                       variant={TYPOGRAPHY.R4}
                       className="pt-0.5 text-grey-700"
                     >
-                      {step}
-                      {platform === "android" && index === 0 ? (
-                        <span className="mt-3 block rounded-8 border border-system-warning-200 bg-system-warning-50 px-3 py-2 text-system-warning-700">
-                          <strong>Important:</strong>{" "}
-                          {ANDROID_FIRST_SIGN_IN_NOTE}
-                        </span>
-                      ) : null}
-                      {platform === "android" && index === 3 ? (
-                        <span className="mt-1 block w-fit font-medium whitespace-nowrap text-grey-900">
-                          {SANDBOX_SUPPORT_EMAIL}
-                        </span>
-                      ) : null}
+                      {index === 0 ? (
+                        <>
+                          Install{" "}
+                          <a
+                            href={TESTFLIGHT_APP_STORE_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                          >
+                            TestFlight
+                          </a>{" "}
+                          on your iPhone.
+                        </>
+                      ) : (
+                        step
+                      )}
                     </Typography>
                   </li>
                 ))}
               </ol>
-
-              <div className="grid justify-items-center gap-y-3">
-                {active.url ? (
-                  <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-                    On the web?{" "}
-                    <a
-                      href={active.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() =>
-                        posthog.capture("sandbox_store_link_clicked", {
-                          platform,
-                        })
-                      }
-                      className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+            ) : (
+              <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:gap-12">
+                <ol className="grid gap-y-5">
+                  {ANDROID_STEPS.map((step, index) => (
+                    <li
+                      key={step}
+                      className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-x-3"
                     >
-                      Click here
-                    </a>
-                  </Typography>
-                ) : null}
-                <div className="w-full max-w-[236px] rounded-12 bg-grey-50 p-5">
-                  {active.url ? (
-                    <QRCode
-                      value={active.url}
-                      size={196}
-                      className="h-auto w-full"
-                      aria-label={`QR code to install the ${active.label} sandbox build`}
-                    />
-                  ) : (
-                    <div className="flex aspect-square w-full items-center justify-center rounded-8 border border-dashed border-grey-300">
+                      <Typography
+                        aria-hidden
+                        variant={TYPOGRAPHY.M5}
+                        className="flex size-6 items-center justify-center rounded-[10px] border border-grey-200 text-grey-700"
+                      >
+                        {index + 1}
+                      </Typography>
                       <Typography
                         variant={TYPOGRAPHY.R4}
-                        className="text-center text-grey-400"
+                        className="pt-0.5 text-grey-700"
                       >
-                        {active.label} build
-                        <br />
-                        coming soon
+                        {step}
+                        {index === 0 ? (
+                          <span className="mt-3 block rounded-8 border border-system-warning-200 bg-system-warning-50 px-3 py-2 text-system-warning-700">
+                            <strong>Important:</strong>{" "}
+                            {ANDROID_FIRST_SIGN_IN_NOTE}
+                          </span>
+                        ) : null}
+                        {index === 3 ? (
+                          <span className="mt-1 block w-fit font-medium whitespace-nowrap text-grey-900">
+                            {SANDBOX_SUPPORT_EMAIL}
+                          </span>
+                        ) : null}
                       </Typography>
-                    </div>
-                  )}
-                </div>
-                {platform === "ios" && TESTFLIGHT_APP_STORE_URL ? (
-                  <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-                    Installing World ID Sandbox requires{" "}
-                    <a
-                      href={TESTFLIGHT_APP_STORE_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                    </li>
+                  ))}
+                </ol>
+
+                <div className="grid justify-items-center gap-y-3">
+                  {ANDROID_URL ? (
+                    <Typography
+                      variant={TYPOGRAPHY.R5}
+                      className="text-grey-500"
                     >
-                      TestFlight
-                    </a>
-                  </Typography>
-                ) : null}
+                      On the web?{" "}
+                      <a
+                        href={ANDROID_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() =>
+                          posthog.capture("sandbox_store_link_clicked", {
+                            platform: "android",
+                          })
+                        }
+                        className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                      >
+                        Click here
+                      </a>
+                    </Typography>
+                  ) : null}
+                  <div className="w-full max-w-[236px] rounded-12 bg-grey-50 p-5">
+                    {ANDROID_URL ? (
+                      <QRCode
+                        value={ANDROID_URL}
+                        size={196}
+                        className="h-auto w-full"
+                        aria-label="QR code to install the Android sandbox build"
+                      />
+                    ) : (
+                      <div className="flex aspect-square w-full items-center justify-center rounded-8 border border-dashed border-grey-300">
+                        <Typography
+                          variant={TYPOGRAPHY.R4}
+                          className="text-center text-grey-400"
+                        >
+                          Android build
+                          <br />
+                          coming soon
+                        </Typography>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </DialogPanel>
       </Dialog>

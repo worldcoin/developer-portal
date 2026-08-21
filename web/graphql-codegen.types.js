@@ -21,6 +21,7 @@ module.exports = {
       numeric: "string",
       _text: "any",
       bigint: "number",
+      sandbox_access_request_ios_status: "'pending' | 'approved' | 'rejected'",
     },
   },
 
