@@ -1,0 +1,15 @@
+mutation UpdateSandboxRequestIosStatus(
+  $id: String!
+  $status: sandbox_access_request_ios_status!
+) {
+  update_sandbox_access_request_ios(
+    where: { id: { _eq: $id }, status: { _eq: pending } }
+    _set: { status: $status }
+  ) {
+    affected_rows
+    returning {
+      status
+      updated_at
+    }
+  }
+}

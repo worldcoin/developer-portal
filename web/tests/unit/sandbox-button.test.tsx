@@ -53,11 +53,33 @@ import { SandboxButton } from "@/scenes/PortalV3/layout/Shell/SandboxButton";
 // #endregion
 
 // #region Test Data
+const TEAM_ID = "team_1234567890abcdef1234567890abcdef";
+
 const mockLookup = (request: unknown) => {
+  global.fetch = jest
+    .fn()
+    .mockImplementation(async (input: RequestInfo | URL) => ({
+      ok: true,
+      json: async () => ({
+        success: true,
+        request:
+          String(input) === "/api/v2/sandbox-access-request-ios"
+            ? null
+            : request,
+      }),
+    })) as unknown as typeof fetch;
+};
+
+const mockIosLookup = (request: unknown) => {
   global.fetch = jest.fn().mockResolvedValue({
     ok: true,
     json: async () => ({ success: true, request }),
   }) as unknown as typeof fetch;
+};
+
+const openIosSection = () => {
+  render(<SandboxButton teamId={TEAM_ID} />);
+  fireEvent.click(screen.getByRole("button", { name: /World ID Sandbox/ }));
 };
 
 const openAndroidSection = () => {
@@ -129,21 +151,23 @@ describe("SandboxButton [android request confirmation]", () => {
   it("switches to the stored submitted state after a successful request", async () => {
     global.fetch = jest
       .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true, request: null }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          request: {
-            email: "dev@example.com",
-            accepted: false,
-            createdAt: "2026-07-23T00:00:00Z",
-          },
+      .mockImplementation(
+        async (input: RequestInfo | URL, init?: RequestInit) => ({
+          ok: true,
+          json: async () => ({
+            success: true,
+            request:
+              String(input) === "/api/v2/sandbox-access-request-ios" ||
+              init?.method !== "POST"
+                ? null
+                : {
+                    email: "dev@example.com",
+                    accepted: false,
+                    createdAt: "2026-07-23T00:00:00Z",
+                  },
+          }),
         }),
-      }) as unknown as typeof fetch;
+      ) as unknown as typeof fetch;
 
     openAndroidSection();
 
@@ -162,6 +186,141 @@ describe("SandboxButton [android request confirmation]", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: "dev@example.com" }),
+      },
+    );
+  });
+});
+// #endregion
+
+// #region iOS enrollment request
+describe("SandboxButton [iOS enrollment request]", () => {
+  it("shows the email form and public TestFlight install link", async () => {
+    mockIosLookup(null);
+
+    openIosSection();
+
+    const submitButton = await screen.findByRole("button", {
+      name: "Submit email",
+    });
+    await waitFor(() => expect(submitButton).toBeEnabled());
+    expect(
+      screen.getByRole("textbox", { name: "Apple Account email" }),
+    ).toHaveValue("dev@example.com");
+    expect(screen.getByRole("link", { name: "TestFlight" })).toHaveAttribute(
+      "href",
+      "https://apps.apple.com/us/app/testflight/id899247664",
+    );
+    expect(screen.getByRole("link", { name: "TestFlight" })).toHaveAttribute(
+      "target",
+      "_blank",
+    );
+    expect(
+      screen.getByText("Submit your Apple Account email for enrollment."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/World ID Sandbox will then appear in TestFlight/),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("qr-code")).not.toBeInTheDocument();
+  });
+
+  it("keeps a pending ASC email visible and immutable", async () => {
+    mockIosLookup({
+      ascEmail: "apple@example.com",
+      status: "pending",
+      createdAt: "2026-08-21T00:00:00Z",
+      updatedAt: "2026-08-21T00:00:00Z",
+    });
+
+    openIosSection();
+
+    expect(
+      await screen.findByText(
+        /enrollment request for apple@example.com is pending/,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: "Apple Account email" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Request submitted" }),
+    ).toBeDisabled();
+  });
+
+  it("shows approved state from the status enum", async () => {
+    mockIosLookup({
+      ascEmail: "apple@example.com",
+      status: "approved",
+      createdAt: "2026-08-21T00:00:00Z",
+      updatedAt: "2026-08-22T00:00:00Z",
+    });
+
+    openIosSection();
+
+    expect(
+      await screen.findByText(/was approved. Check TestFlight/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Approved" })).toBeDisabled();
+  });
+
+  it("shows rejected state from the status enum", async () => {
+    mockIosLookup({
+      ascEmail: "apple@example.com",
+      status: "rejected",
+      createdAt: "2026-08-21T00:00:00Z",
+      updatedAt: "2026-08-22T00:00:00Z",
+    });
+
+    openIosSection();
+
+    expect(await screen.findByText(/was rejected/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Request rejected" }),
+    ).toBeDisabled();
+  });
+
+  it("submits asc_email and switches to the stored state", async () => {
+    global.fetch = jest
+      .fn()
+      .mockImplementation(
+        async (_input: RequestInfo | URL, init?: RequestInit) => ({
+          ok: true,
+          json: async () => ({
+            success: true,
+            request:
+              init?.method === "POST"
+                ? {
+                    ascEmail: "apple@example.com",
+                    status: "pending",
+                    createdAt: "2026-08-21T00:00:00Z",
+                    updatedAt: "2026-08-21T00:00:00Z",
+                  }
+                : null,
+          }),
+        }),
+      ) as unknown as typeof fetch;
+
+    openIosSection();
+
+    const input = screen.getByRole("textbox", { name: "Apple Account email" });
+    const submitButton = await screen.findByRole("button", {
+      name: "Submit email",
+    });
+    await waitFor(() => expect(submitButton).toBeEnabled());
+    fireEvent.change(input, { target: { value: "apple@example.com" } });
+    fireEvent.click(submitButton);
+
+    expect(
+      await screen.findByRole("button", { name: "Request submitted" }),
+    ).toBeDisabled();
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "/api/v2/sandbox-access-request-ios",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          asc_email: "apple@example.com",
+          team_id: TEAM_ID,
+        }),
       },
     );
   });

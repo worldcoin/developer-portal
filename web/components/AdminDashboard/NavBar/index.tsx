@@ -10,10 +10,10 @@ export const NavBar = () => {
     <UIModule
       className={clsx(
         // Mobile: fixed bottom tab bar so document scroll is never trapped
-        "fixed bottom-4 left-1/2 z-40 w-fit -translate-x-1/2",
+        "fixed bottom-4 left-1/2 z-40 w-fit max-w-[calc(100vw-2rem)] -translate-x-1/2 overflow-x-auto",
 
         // Desktop: sidebar card in the grid column
-        "lg:relative lg:bottom-auto lg:left-auto lg:order-first lg:translate-x-0",
+        "lg:relative lg:bottom-auto lg:left-auto lg:order-first lg:max-w-none lg:translate-x-0 lg:overflow-visible",
         "lg:grid lg:h-[calc(100dvh-2rem)] lg:content-start lg:justify-items-start lg:gap-y-1",
         "lg:p-3",
 
@@ -79,6 +79,14 @@ export const NavBar = () => {
           href="/admin/sandbox-requests"
         >
           Sandbox
+        </NavBarItem>
+
+        <NavBarItem
+          iconName="clock"
+          iconClassName={iconClassName}
+          href="/admin/sandbox-requests-ios"
+        >
+          Sandbox / iOS
         </NavBarItem>
       </nav>
     </UIModule>

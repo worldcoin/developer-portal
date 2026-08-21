@@ -1,7 +1,10 @@
 table:
-  name: sandbox_access_request
+  name: sandbox_access_request_ios
   schema: public
 object_relationships:
+  - name: team
+    using:
+      foreign_key_constraint_on: team_id
   - name: user
     using:
       foreign_key_constraint_on: user_id
@@ -10,44 +13,46 @@ insert_permissions:
     permission:
       check: {}
       columns:
-        - google_email
+        - asc_email
+        - portal_email
+        - team_id
         - user_id
 select_permissions:
   - role: internal_dashboard_readonly
     permission:
       columns:
         - id
-        - google_email
         - user_id
-        - accepted
+        - portal_email
+        - asc_email
+        - team_id
+        - status
         - created_at
-        - processed_at
+        - updated_at
       filter: {}
       allow_aggregations: true
   - role: service
     permission:
       columns:
         - id
-        - google_email
         - user_id
-        - accepted
+        - portal_email
+        - asc_email
+        - team_id
+        - status
         - created_at
-        - processed_at
+        - updated_at
       filter: {}
 update_permissions:
-  # Marking a sandbox invite as sent is a low-stakes operational update, so
-  # every authenticated dashboard user may process these requests.
   - role: internal_dashboard_readonly
     permission:
       columns:
-        - accepted
-        - processed_at
+        - status
       filter: {}
       check: {}
 delete_permissions:
-  # Rejection deletes only pending requests so the developer can submit again.
   - role: internal_dashboard_readonly
     permission:
       filter:
-        accepted:
-          _eq: false
+        status:
+          _eq: pending

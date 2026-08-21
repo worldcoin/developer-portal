@@ -2,32 +2,34 @@ import { EmptyState } from "@/components/AdminDashboard/common/EmptyState";
 import { MobileAdminList } from "@/components/AdminDashboard/common/MobileAdminList";
 import { UIModule } from "@/components/AdminDashboard/UIModule";
 import clsx from "clsx";
-import { fetchSandboxAccessRequests } from "./server/fetch-sandbox-requests";
-import { SandboxRequestActions } from "./SandboxRequestActions";
+import { SandboxRequestIosActions } from "./SandboxRequestIosActions";
+import {
+  fetchSandboxAccessRequestsIos,
+  type SandboxAccessRequestIosStatus,
+} from "./server/fetch-sandbox-requests-ios";
 
 const formatDate = (isoDate: string) => isoDate.slice(0, 10);
 
-const StatusBadge = ({ accepted }: { accepted: boolean }) => (
+const statusClassNames: Record<SandboxAccessRequestIosStatus, string> = {
+  approved: "bg-system-success-50 text-system-success-700",
+  pending: "bg-system-warning-50 text-system-warning-700",
+  rejected: "bg-system-error-50 text-system-error-700",
+};
+
+const StatusBadge = ({ status }: { status: SandboxAccessRequestIosStatus }) => (
   <span
     className={clsx(
       "inline-flex rounded-full px-2.5 py-0.5 text-12 font-medium capitalize",
-      accepted
-        ? "bg-system-success-50 text-system-success-700"
-        : "bg-system-warning-50 text-system-warning-700",
+      statusClassNames[status],
     )}
   >
-    {accepted ? "approved" : "pending"}
+    {status}
   </span>
 );
 
-/**
- * Queue of World ID sandbox Android tester requests. Dashboard users approve a
- * request after granting access in Play Console; accepted is never
- * user-controlled.
- */
-export const AdminSandboxRequestsPage = async () => {
+export const AdminSandboxRequestsIosPage = async () => {
   const { requests, totalCount, pendingCount } =
-    await fetchSandboxAccessRequests();
+    await fetchSandboxAccessRequestsIos();
 
   return (
     <div className="grid min-h-0 grid-rows-auto/1fr gap-y-4 max-lg:h-auto lg:h-full">
@@ -35,11 +37,12 @@ export const AdminSandboxRequestsPage = async () => {
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
           <div className="min-w-0">
             <h1 className="text-24 font-semibold tracking-[-0.02em] text-grey-900">
-              Sandbox requests
+              Sandbox / iOS
             </h1>
             <p className="mt-2 max-w-2xl text-14 text-grey-500">
-              Android tester access requests for the World ID sandbox build.
-              Approve each request after granting access in Google Play Console.
+              App Store Connect enrollment requests for the World ID sandbox
+              build. Approve or reject after processing the request in App Store
+              Connect; email delivery is handled separately.
             </p>
           </div>
 
@@ -65,7 +68,7 @@ export const AdminSandboxRequestsPage = async () => {
 
       <UIModule className="min-h-0 min-w-0 overflow-auto p-4">
         {requests.length === 0 ? (
-          <EmptyState>No sandbox access requests yet</EmptyState>
+          <EmptyState>No iOS sandbox access requests yet</EmptyState>
         ) : (
           <>
             <MobileAdminList
@@ -78,58 +81,56 @@ export const AdminSandboxRequestsPage = async () => {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="truncate text-16 font-medium text-grey-900">
-                        {request.googleEmail}
+                        {request.ascEmail}
                       </div>
                       <div className="mt-1 truncate text-13 text-grey-700">
-                        {request.userId}
+                        {request.userName ?? request.userId}
                       </div>
-                      {request.userEmail && (
-                        <div className="mt-0.5 truncate text-12 text-grey-500">
-                          {request.userEmail}
-                        </div>
-                      )}
+                      <div className="mt-0.5 truncate text-12 text-grey-500">
+                        {request.portalEmail}
+                      </div>
+                      <div className="mt-0.5 truncate text-12 text-grey-500">
+                        {request.teamId}
+                      </div>
                     </div>
-                    <StatusBadge accepted={request.accepted} />
+                    <StatusBadge status={request.status} />
                   </div>
                   <dl className="mt-3 grid gap-2 text-14 min-[360px]:mt-4">
                     <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
-                      Requested
+                      First access
                     </dt>
                     <dd className="text-grey-700">
                       {formatDate(request.createdAt)}
                     </dd>
                     <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
-                      Processed
+                      Updated
                     </dt>
                     <dd className="text-grey-700">
-                      {request.processedAt
-                        ? formatDate(request.processedAt)
-                        : "—"}
+                      {formatDate(request.updatedAt)}
                     </dd>
                   </dl>
-                  <div className="mt-4">
-                    {request.accepted ? (
-                      <span className="text-13 text-grey-400">Approved</span>
-                    ) : (
-                      <SandboxRequestActions requestId={request.id} />
-                    )}
-                  </div>
+                  {request.status === "pending" ? (
+                    <div className="mt-4">
+                      <SandboxRequestIosActions requestId={request.id} />
+                    </div>
+                  ) : null}
                 </article>
               )}
             />
 
             <table
               className="hidden w-full border-collapse text-left text-14 lg:table"
-              aria-label="Sandbox access requests"
+              aria-label="iOS sandbox access requests"
             >
               <thead>
                 <tr className="border-b border-grey-200 text-11 font-medium tracking-wide text-grey-400 uppercase">
-                  <th className="px-3 py-2">Google email</th>
+                  <th className="px-3 py-2">ASC email</th>
+                  <th className="px-3 py-2">Portal email</th>
                   <th className="px-3 py-2">User</th>
-                  <th className="px-3 py-2">User email</th>
+                  <th className="px-3 py-2">Team</th>
                   <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Requested</th>
-                  <th className="px-3 py-2">Processed</th>
+                  <th className="px-3 py-2">First access</th>
+                  <th className="px-3 py-2">Updated</th>
                   <th className="px-3 py-2">Action</th>
                 </tr>
               </thead>
@@ -140,26 +141,29 @@ export const AdminSandboxRequestsPage = async () => {
                     className="border-b border-grey-100 text-grey-700"
                   >
                     <td className="px-3 py-2.5 font-medium text-grey-900">
-                      {request.googleEmail}
+                      {request.ascEmail}
                     </td>
-                    <td className="px-3 py-2.5">{request.userId}</td>
-                    <td className="px-3 py-2.5">{request.userEmail ?? "—"}</td>
+                    <td className="px-3 py-2.5">{request.portalEmail}</td>
                     <td className="px-3 py-2.5">
-                      <StatusBadge accepted={request.accepted} />
+                      {request.userName ?? request.userId}
+                    </td>
+                    <td className="px-3 py-2.5">{request.teamId}</td>
+                    <td className="px-3 py-2.5">
+                      <StatusBadge status={request.status} />
                     </td>
                     <td className="px-3 py-2.5">
                       {formatDate(request.createdAt)}
                     </td>
                     <td className="px-3 py-2.5">
-                      {request.processedAt
-                        ? formatDate(request.processedAt)
-                        : "—"}
+                      {formatDate(request.updatedAt)}
                     </td>
                     <td className="px-3 py-2.5">
-                      {request.accepted ? (
-                        <span className="text-grey-400">Approved</span>
+                      {request.status === "pending" ? (
+                        <SandboxRequestIosActions requestId={request.id} />
                       ) : (
-                        <SandboxRequestActions requestId={request.id} />
+                        <span className="text-grey-400 capitalize">
+                          {request.status}
+                        </span>
                       )}
                     </td>
                   </tr>

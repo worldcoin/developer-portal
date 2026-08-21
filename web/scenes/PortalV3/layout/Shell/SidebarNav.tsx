@@ -1,5 +1,6 @@
 "use client";
 
+import type { SandboxAccessRequestIosState } from "@/api/v2/sandbox-access-request-ios/server/fetch-sandbox-access-request-ios";
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
 import {
   SidebarGroup,
@@ -147,6 +148,7 @@ const sidebarPreloadIcons = [
 
 export const SidebarNav = (props: {
   initialSandboxRequest?: SandboxAccessRequestState | null;
+  initialSandboxRequestIos?: SandboxAccessRequestIosState | null;
   apiKeyTeamIds?: string[];
 }) => {
   preloadIcons(sidebarPreloadIcons);
@@ -372,12 +374,16 @@ export const SidebarNav = (props: {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mt-auto px-4 pt-3 pb-3 group-data-[collapsible=icon]:hidden">
-          <SandboxButton
-            className="-ml-1 w-[calc(100%_+_8px)]"
-            initialRequest={props.initialSandboxRequest}
-          />
-        </div>
+        {teamId ? (
+          <div className="mt-auto px-4 pt-3 pb-3 group-data-[collapsible=icon]:hidden">
+            <SandboxButton
+              className="-ml-1 w-[calc(100%_+_8px)]"
+              teamId={teamId}
+              initialRequest={props.initialSandboxRequest}
+              initialIosRequest={props.initialSandboxRequestIos}
+            />
+          </div>
+        ) : null}
       </nav>
     );
   }
@@ -478,12 +484,16 @@ export const SidebarNav = (props: {
         </SidebarGroup>
       ) : null}
 
-      <div className="mt-auto px-4 pt-3 pb-3 group-data-[collapsible=icon]:hidden">
-        <SandboxButton
-          className="-ml-1 w-[calc(100%_+_8px)]"
-          initialRequest={props.initialSandboxRequest}
-        />
-      </div>
+      {teamId ? (
+        <div className="mt-auto px-4 pt-3 pb-3 group-data-[collapsible=icon]:hidden">
+          <SandboxButton
+            className="-ml-1 w-[calc(100%_+_8px)]"
+            teamId={teamId}
+            initialRequest={props.initialSandboxRequest}
+            initialIosRequest={props.initialSandboxRequestIos}
+          />
+        </div>
+      ) : null}
     </nav>
   );
 };

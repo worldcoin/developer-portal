@@ -230,6 +230,9 @@ describe("v3 SidebarNav [navigation hierarchy]", () => {
     );
     expect(settingsChevron).toHaveClass("size-4");
     expect(settingsChevron?.parentElement).toHaveClass("ml-auto");
+    expect(
+      screen.getByRole("button", { name: /World ID Sandbox/i }),
+    ).toBeInTheDocument();
   });
 });
 // #endregion
@@ -472,8 +475,8 @@ describe("v3 SidebarNav [route-owned app context]", () => {
     noLink("Overview");
     noLink("Team settings");
     expect(
-      screen.getByRole("button", { name: /World ID Sandbox/i }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: /World ID Sandbox/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("navigates top-level links optimistically and preserves modifier clicks", () => {
