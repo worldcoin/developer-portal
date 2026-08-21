@@ -117,6 +117,25 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).not.toContain("- google_email");
     expect(permission).not.toContain("- user_id");
     expect(metadata).not.toContain("internal_dashboard_sandbox_writer");
+
+    const insertSection = metadata.slice(
+      metadata.indexOf("insert_permissions:"),
+      metadata.indexOf("select_permissions:"),
+    );
+    expect(insertSection).toContain("- google_email");
+    expect(insertSection).toContain("- user_id");
+    expect(insertSection).not.toContain("- accepted");
+    expect(insertSection).not.toContain("- processed_at");
+
+    const updateSection = metadata.slice(
+      updatePermissionsStart,
+      metadata.indexOf("delete_permissions:"),
+    );
+    const deleteSection = metadata.slice(
+      metadata.indexOf("delete_permissions:"),
+    );
+    expect(updateSection).not.toContain("role: service");
+    expect(deleteSection).not.toContain("role: service");
   });
 
   it("does not define elevated internal dashboard roles", () => {

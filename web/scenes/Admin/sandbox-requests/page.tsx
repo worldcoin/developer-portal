@@ -81,7 +81,7 @@ export const AdminSandboxRequestsPage = async () => {
                         {request.googleEmail}
                       </div>
                       <div className="mt-1 truncate text-13 text-grey-700">
-                        {request.userName ?? request.userId}
+                        {request.userId}
                       </div>
                       {request.userEmail && (
                         <div className="mt-0.5 truncate text-12 text-grey-500">
@@ -142,9 +142,7 @@ export const AdminSandboxRequestsPage = async () => {
                     <td className="px-3 py-2.5 font-medium text-grey-900">
                       {request.googleEmail}
                     </td>
-                    <td className="px-3 py-2.5">
-                      {request.userName ?? request.userId}
-                    </td>
+                    <td className="px-3 py-2.5">{request.userId}</td>
                     <td className="px-3 py-2.5">{request.userEmail ?? "—"}</td>
                     <td className="px-3 py-2.5">
                       <StatusBadge accepted={request.accepted} />

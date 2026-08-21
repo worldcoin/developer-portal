@@ -12,8 +12,6 @@ insert_permissions:
       columns:
         - google_email
         - user_id
-        - accepted
-        - processed_at
 select_permissions:
   - role: internal_dashboard_readonly
     permission:
@@ -46,14 +44,6 @@ update_permissions:
         - processed_at
       filter: {}
       check: {}
-  - role: service
-    permission:
-      columns:
-        - accepted
-        - processed_at
-        - google_email
-      filter: {}
-      check: {}
 delete_permissions:
   # Rejection deletes only pending requests so the developer can submit again.
   - role: internal_dashboard_readonly
@@ -61,6 +51,3 @@ delete_permissions:
       filter:
         accepted:
           _eq: false
-  - role: service
-    permission:
-      filter: {}
