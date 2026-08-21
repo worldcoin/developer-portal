@@ -334,10 +334,13 @@ export const WorldIdLayout = (props: {
       appEngine: app?.engine as EngineType | undefined,
       actions,
       actionsSearch,
+      hasRpRegistration,
       hasActiveRp,
+      isStaging: Boolean(app?.is_staging),
       shouldOpenCreateAction: openAction || (hasCreateIntent && hasActiveRp),
       consumeCreateAction,
       refreshOverview: refetchOverview,
+      waitForOverviewRefresh,
     }),
     [
       activeTab,
@@ -347,11 +350,14 @@ export const WorldIdLayout = (props: {
       consumeCreateAction,
       hasActiveRp,
       hasCreateIntent,
+      hasRpRegistration,
       openAction,
+      app?.is_staging,
       props.appId,
       props.canManageWorldId,
       props.teamId,
       refetchOverview,
+      waitForOverviewRefresh,
     ],
   );
 
