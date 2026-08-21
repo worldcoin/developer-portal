@@ -6,8 +6,11 @@ import { semaphoreProofParamsMock } from "tests/api/__mocks__/proof.mock";
 import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 import { testGetDefaultApp } from "../test-utils";
 
-// Mock the verifyProof function
+// Mock only verifyProof (the sequencer I/O call); keep every other export real
+// so pure helpers like canonicalizeNullifierHash / encodeNullifierForStorage
+// still work when the handler calls them.
 jest.mock("@/api/helpers/verify", () => ({
+  ...jest.requireActual("@/api/helpers/verify"),
   verifyProof: jest.fn().mockResolvedValue({ error: null }),
 }));
 
