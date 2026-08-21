@@ -99,8 +99,13 @@ select_permissions:
       filter: {}
   - role: user
     permission:
+      # This filter makes every column here readable by every *teammate*, not
+      # just the user themselves — Hasura cannot vary columns per filter branch.
+      # `auth0Id` is therefore deliberately absent: it is the Auth0 Management
+      # API subject for the account, no user-role query needs it (the portal gets
+      # its own from the session, which is populated service-role), and keeping it
+      # out limits what a membership bug can disclose.
       columns:
-        - auth0Id
         - created_at
         - email
         - id

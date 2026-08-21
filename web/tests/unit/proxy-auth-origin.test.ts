@@ -373,3 +373,60 @@ describe("proxy [internal dashboard host]", () => {
   });
 });
 // #endregion
+
+// #region Anti-framing (HackerOne #3943242 follow-up)
+// /join-callback treats a button click as the user's consent to accept a team
+// invite. If the page can be framed, an attacker positions that button under a
+// decoy and harvests the click — and because the POST then originates from our
+// own frame it is genuinely same-origin, so the CSRF guard on
+// /api/join-callback cannot tell the difference. The anti-framing headers are
+// therefore part of that fix, not general hygiene.
+describe("proxy [anti-framing headers]", () => {
+  beforeEach(() => {
+    auth0Middleware.mockResolvedValue(NextResponse.next());
+    auth0GetSession.mockResolvedValue({
+      user: { email: "member@example.com", hasura: { memberships: [] } },
+    });
+  });
+
+  it("forbids framing the invite consent page", async () => {
+    const res = await proxy(new NextRequest(`${CANONICAL}/join-callback`));
+
+    expect(res.headers.get("content-security-policy")).toContain(
+      "frame-ancestors 'none'",
+    );
+    expect(res.headers.get("X-Frame-Options")).toBe("DENY");
+  });
+
+  it("forbids framing other protected pages too", async () => {
+    const res = await proxy(new NextRequest(`${CANONICAL}/profile`));
+
+    expect(res.headers.get("content-security-policy")).toContain(
+      "frame-ancestors 'none'",
+    );
+    expect(res.headers.get("X-Frame-Options")).toBe("DENY");
+  });
+
+  it("forbids framing the admin dashboard", async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = DASHBOARD_HOST;
+    hasAdminAuthenticationEvidence.mockReturnValue(true);
+
+    const res = await proxy(new NextRequest(`https://${DASHBOARD_HOST}/admin`));
+
+    expect(res.headers.get("content-security-policy")).toContain(
+      "frame-ancestors 'none'",
+    );
+    expect(res.headers.get("X-Frame-Options")).toBe("DENY");
+  });
+
+  // frame-ancestors governs who may embed us; the third-party video we embed is
+  // governed by frame-src. Guard against someone "fixing" this by loosening it.
+  it("does not weaken frame-ancestors to allow same-origin framing", async () => {
+    const res = await proxy(new NextRequest(`${CANONICAL}/join-callback`));
+    const csp = res.headers.get("content-security-policy") ?? "";
+
+    expect(csp).not.toMatch(/frame-ancestors[^;]*'self'/);
+    expect(csp).not.toMatch(/frame-ancestors[^;]*\*/);
+  });
+});
+// #endregion

@@ -1,0 +1,9 @@
+query FetchJoinInvite($invite_id: String!) {
+  invite_by_pk(id: $invite_id) {
+    id
+    expires_at
+    team {
+      name
+    }
+  }
+}

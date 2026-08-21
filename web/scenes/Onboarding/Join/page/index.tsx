@@ -47,11 +47,13 @@ export const JoinPage = async (props: {
           </Typography>
         </div>
 
+        {/* Signing in comes first; the invite itself is accepted on the consent
+            screen afterwards, so this button must not read as the final step. */}
         <DecoratedButton
           href={urls.api.authLogin({ invite_id })}
           className="mt-2 py-3"
         >
-          <Typography variant={TYPOGRAPHY.M3}>Join team</Typography>
+          <Typography variant={TYPOGRAPHY.M3}>Continue</Typography>
         </DecoratedButton>
 
         <p className="text-center font-gta text-xs leading-[1.3] text-grey-500">
