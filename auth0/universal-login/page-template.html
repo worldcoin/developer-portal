@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="{{locale}}">
+  <head>
+    {%- auth0:head -%}
+    <title>{{ prompt.screen.texts.pageTitle }}</title>
+    <style>
+      #wld-mail-shortcuts {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 40px;
+        margin: 24px auto;
+        font-family: inherit;
+        font-size: 14px;
+      }
+      #wld-mail-shortcuts[hidden] {
+        display: none;
+      }
+      .wld-mail-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #454545;
+        text-decoration: none;
+      }
+      .wld-mail-link:hover span,
+      .wld-mail-link:focus span {
+        text-decoration: underline;
+      }
+      .wld-mail-link svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+      }
+    </style>
+  </head>
+  <body class="_widget-auto-layout">
+    {%- auth0:widget -%}
+    {%- assign wld_email_screens = "mfa-email-challenge,email-otp-challenge,login-passwordless-email-code,login-email-verification" | split: "," -%}
+    {%- if wld_email_screens contains prompt.screen.name -%}
+      <div id="wld-mail-shortcuts" hidden>
+        <a
+          id="wld-mail-gmail"
+          class="wld-mail-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open Gmail in a new tab"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="#EA4335"
+              d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"
+            />
+          </svg>
+          <span>Open Gmail</span>
+        </a>
+        <a
+          id="wld-mail-outlook"
+          class="wld-mail-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open Outlook in a new tab"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect width="24" height="24" rx="4" fill="#0078D4" />
+            <circle
+              cx="12"
+              cy="12"
+              r="6"
+              fill="none"
+              stroke="#ffffff"
+              stroke-width="3"
+            />
+          </svg>
+          <span>Open Outlook</span>
+        </a>
+      </div>
+      <script>
+        (function () {
+          "use strict";
+          try {
+            var root = document.getElementById("wld-mail-shortcuts");
+            if (!root) return;
+
+            // The address the code was sent to is always displayed on these
+            // screens; not finding one means we're somewhere unexpected, so
+            // stay hidden.
+            var scope = document.querySelector("main") || document.body;
+            var match = (scope.textContent || "").match(
+              /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/,
+            );
+            if (!match) return;
+
+            var email = match[0];
+            var firstLabel = email.split("@")[1].split(".")[0].toLowerCase();
+            var isGmail = firstLabel === "gmail" || firstLabel === "googlemail";
+            var isConsumerOutlook =
+              firstLabel === "outlook" ||
+              firstLabel === "hotmail" ||
+              firstLabel === "live" ||
+              firstLabel === "msn";
+
+            var gmailLink = document.getElementById("wld-mail-gmail");
+            var outlookLink = document.getElementById("wld-mail-outlook");
+
+            gmailLink.href =
+              "https://mail.google.com/mail/u/?authuser=" +
+              encodeURIComponent(email);
+            outlookLink.href = isConsumerOutlook
+              ? "https://outlook.live.com/mail/0/"
+              : "https://outlook.office.com/mail/";
+
+            // Known consumer domain: show only that provider. Anything else
+            // (work domains) could be hosted on either, so show both.
+            if (isGmail) outlookLink.remove();
+            if (isConsumerOutlook) gmailLink.remove();
+
+            root.hidden = false;
+
+            // Best effort: move the links directly under the login card
+            // (main > section) once the widget has hydrated. If the structure
+            // ever changes they stay at body level, which still renders.
+            window.addEventListener("load", function () {
+              setTimeout(function () {
+                try {
+                  var section = document.querySelector("main section");
+                  if (section) section.appendChild(root);
+                } catch (e) {
+                  /* keep body-level placement */
+                }
+              }, 300);
+            });
+          } catch (e) {
+            /* never break the login page */
+          }
+        })();
+      </script>
+    {%- endif -%}
+  </body>
+</html>
