@@ -48,6 +48,10 @@ beforeEach(() => {
   jest.resetAllMocks();
 });
 
+// This file runs 30s+ on CI runners; the first test to hit the route pays
+// its lazy-init cost and flakes across jest's 5s default.
+jest.setTimeout(30_000);
+
 describe("/api/v2/public/apps", () => {
   describe("country selection", () => {
     const mockAppsWithCountries = [
