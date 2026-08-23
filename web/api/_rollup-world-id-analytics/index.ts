@@ -1,108 +1,52 @@
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import {
+  getAPIServiceGraphqlClient,
+  type GraphqlFetchPolicy,
+} from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
-import { getSdk } from "./graphql/rollup-world-id-analytics.generated";
+import { getSdk as getEarliestNullifiersSdk } from "./graphql/get-earliest-nullifiers.generated";
+import { getSdk as getRollupSdk } from "./graphql/rollup-world-id-analytics.generated";
 
-// Dated (backfill/repair) calls: bounds chosen so one call always finishes
-// comfortably inside the HTTP request that carries it.
-const MAX_RANGE_DAYS = 92;
-const DEFAULT_CHUNK_DAYS = 10;
-const MAX_CHUNK_DAYS = 31;
+// Every tick rebuilds the trailing window, then advances the one-time history
+// backfill: a Redis cursor walks day chunks from the earliest raw row up to
+// yesterday, so completed chunks are never re-rolled. Once production logs
+// report the backfill complete, delete the catch-up half and keep the
+// trailing-window rollup only.
+const BACKFILL_CHUNK_DAYS = 10;
+const BACKFILL_CURSOR_KEY = "world-id-analytics:rollup:processed-through";
+const BACKFILL_CURSOR_TTL_SECONDS = 2 * 24 * 60 * 60;
+
+// Stop starting chunks well before the cron webhook's 840s timeout, leaving
+// headroom for the chunk already in flight plus the response.
+const TIME_BUDGET_MS = 12 * 60 * 1000;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-type DatedRequest = {
-  chunkDays: number;
-  fromDate: string;
-  toDate: string;
+// A chunk rebuilds up to ten UTC days of history; the default 15s abort would
+// give up client-side while the SQL still commits, stalling the cursor on a
+// chunk that keeps timing out.
+const rollupFetchPolicy: GraphqlFetchPolicy = {
+  clientName: "world_id_analytics_rollup",
+  retryBackoffsMs: [],
+  timeoutMs: 120_000,
 };
 
-type Chunk = { from_date: string; to_date: string };
-
-const parseUtcDate = (value: string) => {
-  const [year, month, day] = value.split("-").map(Number);
-  const parsed = new Date(Date.UTC(year, month - 1, day));
-  return parsed.toISOString().slice(0, 10) === value ? parsed : null;
+type BackfillStatus = {
+  chunks: number;
+  complete: boolean;
+  processed_through: string | null;
+  failed_range?: { from_date: string; to_date: string; error: string };
+  skipped?: "redis_unavailable";
 };
 
 const formatUtcDate = (date: Date) => date.toISOString().slice(0, 10);
 
-const splitIntoChunks = (request: DatedRequest): Chunk[] => {
-  const from = parseUtcDate(request.fromDate)!;
-  const to = parseUtcDate(request.toDate)!;
-  const chunks: Chunk[] = [];
-
-  for (
-    let start = from.getTime();
-    start <= to.getTime();
-    start += request.chunkDays * DAY_MS
-  ) {
-    const end = Math.min(
-      start + (request.chunkDays - 1) * DAY_MS,
-      to.getTime(),
-    );
-    chunks.push({
-      from_date: formatUtcDate(new Date(start)),
-      to_date: formatUtcDate(new Date(end)),
-    });
-  }
-  return chunks;
-};
-
-const badRequest = (message: string) =>
-  NextResponse.json({ success: false, error: message }, { status: 400 });
-
-const validateDatedRequest = (
-  body: Record<string, unknown>,
-): { error: NextResponse } | { request: DatedRequest } => {
-  const { from_date, to_date, chunk_days } = body;
-
-  if (typeof from_date !== "string" || typeof to_date !== "string") {
-    return { error: badRequest("from_date and to_date must both be set") };
-  }
-  if (!ISO_DATE.test(from_date) || !parseUtcDate(from_date)) {
-    return { error: badRequest("from_date must be a valid YYYY-MM-DD date") };
-  }
-  if (!ISO_DATE.test(to_date) || !parseUtcDate(to_date)) {
-    return { error: badRequest("to_date must be a valid YYYY-MM-DD date") };
-  }
-
-  const spanDays =
-    (parseUtcDate(to_date)!.getTime() - parseUtcDate(from_date)!.getTime()) /
-      DAY_MS +
-    1;
-  if (spanDays < 1) {
-    return { error: badRequest("from_date must not be after to_date") };
-  }
-  if (spanDays > MAX_RANGE_DAYS) {
-    return {
-      error: badRequest(
-        `range must be at most ${MAX_RANGE_DAYS} days per call; split it`,
-      ),
-    };
-  }
-
-  let chunkDays = DEFAULT_CHUNK_DAYS;
-  if (chunk_days !== undefined) {
-    if (
-      typeof chunk_days !== "number" ||
-      !Number.isInteger(chunk_days) ||
-      chunk_days < 1 ||
-      chunk_days > MAX_CHUNK_DAYS
-    ) {
-      return {
-        error: badRequest(
-          `chunk_days must be an integer between 1 and ${MAX_CHUNK_DAYS}`,
-        ),
-      };
-    }
-    chunkDays = chunk_days;
-  }
-
-  return { request: { chunkDays, fromDate: from_date, toDate: to_date } };
-};
+const addDays = (date: string, days: number) =>
+  formatUtcDate(
+    new Date(new Date(`${date}T00:00:00.000Z`).getTime() + days * DAY_MS),
+  );
 
 // The service JWT behind the client lives one minute, so every chunk gets a
 // fresh client rather than one client outliving its credential mid-loop.
@@ -110,8 +54,8 @@ const rollupWindow = async (variables: {
   from_date: string | null;
   to_date: string | null;
 }) => {
-  const client = await getAPIServiceGraphqlClient();
-  const result = await getSdk(client).RollupWorldIdAnalytics(variables);
+  const client = await getAPIServiceGraphqlClient(rollupFetchPolicy);
+  const result = await getRollupSdk(client).RollupWorldIdAnalytics(variables);
   const days = result.rollup_world_id_analytics;
   const total = days.reduce(
     (sum, day) => sum + BigInt(day.unique_count),
@@ -120,65 +64,135 @@ const rollupWindow = async (variables: {
   return { days: days.length, total: total.toString() };
 };
 
-const runDatedBackfill = async (request: DatedRequest) => {
-  const chunks = splitIntoChunks(request);
-  const failedRanges: Array<Chunk & { error: string }> = [];
+const earliestRawDate = async () => {
+  const client = await getAPIServiceGraphqlClient(rollupFetchPolicy);
+  const result = await getEarliestNullifiersSdk(client).GetEarliestNullifiers();
+  const candidates = [
+    result.nullifier[0]?.created_at,
+    result.nullifier_v4[0]?.created_at,
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .map((iso) => iso.slice(0, 10));
+  return candidates.sort()[0] ?? null;
+};
 
-  for (const chunk of chunks) {
+const advanceBackfill = async (
+  startedAtMs: number,
+): Promise<BackfillStatus> => {
+  const redis = global.RedisClient;
+  const yesterday = formatUtcDate(new Date(Date.now() - DAY_MS));
+
+  if (!redis) {
+    logger.warn("World ID analytics backfill skipped — Redis unavailable");
+    return {
+      chunks: 0,
+      complete: false,
+      processed_through: null,
+      skipped: "redis_unavailable",
+    };
+  }
+
+  const stored = await redis.get(BACKFILL_CURSOR_KEY);
+  let cursor: string;
+
+  if (stored !== null && ISO_DATE.test(stored)) {
+    cursor = stored;
+  } else {
+    const earliest = await earliestRawDate();
+    cursor = earliest === null ? yesterday : addDays(earliest, -1);
+    await redis.set(
+      BACKFILL_CURSOR_KEY,
+      cursor,
+      "EX",
+      BACKFILL_CURSOR_TTL_SECONDS,
+    );
+  }
+
+  let chunks = 0;
+  while (cursor < yesterday) {
+    if (Date.now() - startedAtMs >= TIME_BUDGET_MS) {
+      return { chunks, complete: false, processed_through: cursor };
+    }
+
+    const upper = addDays(cursor, BACKFILL_CHUNK_DAYS);
+    const chunk = {
+      from_date: addDays(cursor, 1),
+      to_date: upper < yesterday ? upper : yesterday,
+    };
+
     try {
       const rolled = await rollupWindow(chunk);
-      logger.info("Rolled up World ID analytics chunk", {
+      chunks += 1;
+      cursor = chunk.to_date;
+      await redis.set(
+        BACKFILL_CURSOR_KEY,
+        cursor,
+        "EX",
+        BACKFILL_CURSOR_TTL_SECONDS,
+      );
+      logger.info("Advanced World ID analytics backfill", {
         outcome: "chunk_advanced",
         ...chunk,
         ...rolled,
       });
     } catch (error) {
-      failedRanges.push({
+      logger.error("World ID analytics backfill chunk failed", {
         ...chunk,
-        error: error instanceof Error ? error.message : String(error),
+        error,
       });
-      logger.error("World ID analytics chunk failed", { ...chunk, error });
+      return {
+        chunks,
+        complete: false,
+        processed_through: cursor,
+        failed_range: {
+          ...chunk,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      };
     }
   }
 
-  return NextResponse.json({
-    success: failedRanges.length === 0,
-    chunks: chunks.length,
-    failed_ranges: failedRanges,
-  });
+  return { chunks, complete: true, processed_through: cursor };
 };
 
 export async function POST(request: NextRequest) {
   const auth = protectInternalEndpoint(request);
   if (!auth.isAuthenticated) return auth.errorResponse!;
 
-  const body: unknown = await request.json().catch(() => ({}));
-  const fields =
-    body && typeof body === "object" && !Array.isArray(body)
-      ? (body as Record<string, unknown>)
-      : {};
-
-  // Dated mode: operator-driven backfill/repair. Deliberately not behind the
-  // rollout flag so history can be built and re-verified before the recurring
-  // rollup is ever enabled; the internal secret still gates it.
-  if (fields.from_date !== undefined || fields.to_date !== undefined) {
-    const validated = validateDatedRequest(fields);
-    if ("error" in validated) return validated.error;
-    return runDatedBackfill(validated.request);
-  }
-
-  // Cron mode: rebuild the standard trailing window.
   if (process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED !== "true") {
     return NextResponse.json({ success: true, outcome: "disabled" });
   }
 
+  const startedAtMs = Date.now();
+
   try {
     const rolled = await rollupWindow({ from_date: null, to_date: null });
+    const backfill = await advanceBackfill(startedAtMs);
+
+    if (backfill.failed_range) {
+      return NextResponse.json(
+        {
+          success: false,
+          outcome: "advanced",
+          ...rolled,
+          backfill,
+          error: backfill.failed_range.error,
+        },
+        { status: 500 },
+      );
+    }
+
     logger.info("Rolled up World ID analytics", {
       outcome: "advanced",
       ...rolled,
+      backfill,
     });
-    return NextResponse.json({ success: true, outcome: "advanced", ...rolled });
+    return NextResponse.json({
+      success: true,
+      outcome: "advanced",
+      ...rolled,
+      backfill,
+    });
   } catch (error) {
     logger.error("Error rolling up World ID analytics", { error });
     return NextResponse.json(
