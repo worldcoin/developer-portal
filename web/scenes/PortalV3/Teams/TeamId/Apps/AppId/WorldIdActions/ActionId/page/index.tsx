@@ -17,6 +17,7 @@ import Skeleton from "react-loading-skeleton";
 import { DeleteAction } from "./DeleteAction";
 import { VerificationHistory } from "./VerificationHistory";
 import { UpdateActionV4Form } from "../Settings/UpdateActionV4Form";
+import { WorldIdAnalyticsGraph } from "../../../WorldId/common/WorldIdAnalyticsGraph";
 
 type Action = GetWorldIdActionDetailQuery["action_v4"][number];
 
@@ -111,6 +112,26 @@ export const WorldIdActionDetailPage = (props: {
               }
             />
             <TextField label="Short description" value="" loading />
+          </div>
+        )}
+
+        {action && (
+          <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
+            <WorldIdAnalyticsGraph
+              appId={appId}
+              environment="production"
+              scope={{ type: "action", source: "v4", actionId }}
+            />
+          </div>
+        )}
+        {!action && (
+          <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
+            <div className="flex flex-col gap-1">
+              <span className="font-world text-sm text-portal-muted">
+                Unique Verifications
+              </span>
+              <Skeleton width={80} height={28} />
+            </div>
           </div>
         )}
 
