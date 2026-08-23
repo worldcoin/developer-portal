@@ -7,12 +7,8 @@ import {
   resetFixture,
   seedFixture,
 } from "./fresh-stack-fixture";
-import { commandOutput, runSqlOperation } from "./run-sql-operation";
 
 const pool = new Pool();
-
-const runCreateNullifierIndex = () =>
-  runSqlOperation("create-nullifier-created-at-index.sql");
 
 const utcDate = (daysAgo: number) => {
   const now = new Date();
@@ -84,49 +80,9 @@ afterAll(async () => {
 
 jest.setTimeout(150_000);
 
-// #region Index script gate
-describe("World ID analytics [index operations script]", () => {
-  it("rejects an invalid same-named concurrent index", async () => {
-    const duplicateCreatedAt = daysAgoIso(7);
-    await insertV3Nullifier(pool, {
-      id: "nullifier_v3_invalid_index_one",
-      createdAt: duplicateCreatedAt,
-    });
-    await insertV3Nullifier(pool, {
-      id: "nullifier_v3_invalid_index_two",
-      createdAt: duplicateCreatedAt,
-    });
-    await pool.query("DROP INDEX CONCURRENTLY public.nullifier_created_at_idx");
-
-    try {
-      await expect(
-        pool.query(`
-          CREATE UNIQUE INDEX CONCURRENTLY nullifier_created_at_idx
-            ON public.nullifier (created_at)
-        `),
-      ).rejects.toThrow();
-
-      const result = runCreateNullifierIndex();
-      expect(result.status).not.toBe(0);
-      expect(commandOutput(result)).toContain(
-        "nullifier_created_at_idx is missing or invalid",
-      );
-    } finally {
-      await pool.query(
-        "DROP INDEX CONCURRENTLY IF EXISTS public.nullifier_created_at_idx",
-      );
-      await pool.query(`
-        CREATE INDEX CONCURRENTLY nullifier_created_at_idx
-          ON public.nullifier (created_at)
-      `);
-    }
-  });
-});
-// #endregion
-
 // #region Raw/rollup parity
 describe("World ID analytics [raw/rollup parity]", () => {
-  it("holds after the dated backfill plus a trailing-window rollup", async () => {
+  it("holds after backfill ranges plus a trailing-window rollup", async () => {
     await insertV4Nullifier(pool, {
       id: "nullifier_v4_parity_success",
       createdAt: daysAgoIso(7),
@@ -198,8 +154,9 @@ describe("World ID analytics [raw/rollup parity]", () => {
       "rollup_extra_or_mismatched",
     ]);
 
-    // The documented repair: re-POST (here: re-roll) the suspect range, no
-    // reset step. The rebuild both recounts and sweeps.
+    // The documented repair: re-roll the suspect range (in production, clear
+    // the backfill cursor and let the cron re-walk history). The rebuild both
+    // recounts and sweeps.
     await removeParitySabotage();
     await rollupRange(utcDate(10), utcDate(1));
 

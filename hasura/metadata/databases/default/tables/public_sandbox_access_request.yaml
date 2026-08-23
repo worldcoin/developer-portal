@@ -54,3 +54,13 @@ update_permissions:
         - google_email
       filter: {}
       check: {}
+delete_permissions:
+  # Rejection deletes only pending requests so the developer can submit again.
+  - role: internal_dashboard_readonly
+    permission:
+      filter:
+        accepted:
+          _eq: false
+  - role: service
+    permission:
+      filter: {}

@@ -23,6 +23,9 @@ export const urls = {
   miniAppPermissions: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/mini-app/permissions`,
 
+  miniAppDevelop: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app/develop`,
+
   miniAppTransactions: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/mini-app/transactions`,
 
@@ -126,9 +129,6 @@ export const urls = {
 
   teams: (params: { team_id?: string }): string =>
     params.team_id ? `/teams/${params.team_id}` : "/teams",
-
-  teamApiKeys: (params: { team_id: string }): string =>
-    `/teams/${params.team_id}/api-keys`,
 
   teamSettings: (params: {
     team_id: string;

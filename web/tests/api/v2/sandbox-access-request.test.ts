@@ -68,6 +68,7 @@ const authedSession = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+
   InsertSandboxAccessRequest.mockResolvedValue({
     insert_sandbox_access_request_one: {
       id: "sbxreq_abc123",
@@ -112,7 +113,7 @@ describe("/api/v2/sandbox-access-request", () => {
     expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
   });
 
-  it("records the request for the authenticated user", async () => {
+  it("records the request", async () => {
     getSession.mockResolvedValue(authedSession);
 
     const res = await POST(makeRequest(validBody));
@@ -132,7 +133,7 @@ describe("/api/v2/sandbox-access-request", () => {
     });
   });
 
-  it("returns the stored state without regressing a processed request", async () => {
+  it("returns the stored state on conflict without changing it", async () => {
     getSession.mockResolvedValue(authedSession);
     InsertSandboxAccessRequest.mockResolvedValue({
       insert_sandbox_access_request_one: null,

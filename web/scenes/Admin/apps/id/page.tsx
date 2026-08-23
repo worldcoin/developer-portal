@@ -5,6 +5,7 @@ import { AppStatus, type StatusVariant } from "@/components/AppStatus";
 import { StatusBadge } from "@/components/AdminDashboard/Teams/StatusBadge";
 import { TeamMetric } from "@/components/AdminDashboard/Teams/TeamMetric";
 import { UIModule } from "@/components/AdminDashboard/UIModule";
+import { AdminAppActionsSection } from "./ActionsSection";
 import { fetchAdminAppDetails } from "./server/fetch-app-details";
 
 type AdminAppPageProps = {
@@ -203,6 +204,10 @@ export const AdminAppPage = async ({ appId }: AdminAppPageProps) => {
               )}
             </div>
           </section>
+          <AdminAppActionsSection
+            legacyActions={details.legacyActions}
+            worldId40Actions={details.worldId40Actions}
+          />
         </UIModule>
         <UIModule className="self-start p-5">
           <h2 className="text-16 font-semibold text-grey-900">Owning team</h2>

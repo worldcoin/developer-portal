@@ -45,18 +45,13 @@ type DailyRow = {
   unique_count: string;
 };
 
-const callRollup = async (body?: {
-  chunk_days?: number;
-  from_date: string;
-  to_date: string;
-}) => {
+const callRollup = async () => {
   const response = await rollupWorldIdAnalytics(
     new NextRequest("http://localhost:3000/api/_rollup-world-id-analytics", {
       method: "POST",
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET as string,
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
     }),
   );
   const responseBody = await response.json();
@@ -68,11 +63,13 @@ const callRollup = async (body?: {
   return responseBody;
 };
 
-const expectDatedRollup = async (fromDate: string, toDate: string) => {
-  await expect(
-    callRollup({ from_date: fromDate, to_date: toDate }),
-  ).resolves.toEqual({ success: true, chunks: 1, failed_ranges: [] });
-};
+// Fixed historical ranges go straight to the SQL function the route's
+// backfill chunks call; the route itself only walks forward from its cursor.
+const rollupRange = (fromDate: string, toDate: string) =>
+  pool.query(
+    `SELECT * FROM public.rollup_world_id_analytics($1::date, $2::date)`,
+    [fromDate, toDate],
+  );
 
 const callEndpoint = async (input?: {
   actionIds?: string[];
@@ -224,6 +221,13 @@ beforeAll(async () => {
 beforeEach(async () => {
   getIsUserAllowedToReadApp.mockReset();
   getIsUserAllowedToReadApp.mockResolvedValue(true);
+  // Park the backfill cursor at yesterday so cron ticks exercise exactly the
+  // trailing-window semantics these tests pin, with no catch-up work.
+  await global.RedisClient!.flushall();
+  await global.RedisClient!.set(
+    "world-id-analytics:rollup:processed-through",
+    new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+  );
   await pool.query(`
     DO $$
     BEGIN
@@ -303,7 +307,7 @@ describe("World ID analytics [real dated backfill and endpoint]", () => {
       createdAt: "2026-01-10T03:00:00.000Z",
     });
 
-    await expectDatedRollup("2026-01-09", "2026-01-10");
+    await rollupRange("2026-01-09", "2026-01-10");
 
     expect(
       await getDailyRows(
@@ -373,7 +377,7 @@ describe("World ID analytics [real dated backfill and endpoint]", () => {
       id: "nullifier_v4_contract_endpoint",
       createdAt: "2026-01-12T12:00:00.000Z",
     });
-    await expectDatedRollup("2026-01-09", "2026-01-13");
+    await rollupRange("2026-01-09", "2026-01-13");
     await pool.query("SELECT pg_stat_statements_reset()");
 
     const response = await callEndpoint({
@@ -461,7 +465,7 @@ describe("World ID analytics [real dated backfill and endpoint]", () => {
       actionId: fixture.v4OnlyActionId,
       createdAt: "2026-01-05T12:00:00.000Z",
     });
-    await expectDatedRollup("2026-01-05", "2026-01-05");
+    await rollupRange("2026-01-05", "2026-01-05");
 
     const v3Only = await endpointBody({ appId: fixture.v3OnlyAppId });
     const v4Only = await endpointBody({ appId: fixture.v4OnlyAppId });
@@ -511,7 +515,7 @@ describe("World ID analytics [real dated backfill and endpoint]", () => {
     }
 
     const canonical = await readCanonicalSourceDaily(pool, fixture.teamId);
-    await expectDatedRollup("2026-01-08", "2026-01-09");
+    await rollupRange("2026-01-08", "2026-01-09");
     const rolled = await readRolledSourceDaily(pool, fixture.teamId);
 
     expect(rolled).toEqual(canonical);
@@ -605,13 +609,13 @@ describe("World ID analytics [real rebuild and catch-up]", () => {
       updatedAt: "2026-01-10T10:00:00.000Z",
       uses: 0,
     });
-    await expectDatedRollup("2026-01-10", "2026-01-10");
+    await rollupRange("2026-01-10", "2026-01-10");
     await pool.query(
       `UPDATE public.nullifier
           SET uses = 50, updated_at = '2026-06-01T10:00:00Z'
         WHERE id = 'nil_contract_mutable_fields'`,
     );
-    await expectDatedRollup("2026-01-10", "2026-01-10");
+    await rollupRange("2026-01-10", "2026-01-10");
 
     expect(
       await getDailyRows(
@@ -711,7 +715,7 @@ describe("World ID analytics [real rebuild and catch-up]", () => {
       });
     }
 
-    await expectDatedRollup("2026-01-20", "2026-01-25");
+    await rollupRange("2026-01-20", "2026-01-25");
 
     expect(
       (
@@ -875,14 +879,14 @@ describe("World ID analytics [real action deletion]", () => {
           createdAt: "2026-01-10T12:00:00.000Z",
         });
       }
-      await expectDatedRollup("2026-01-10", "2026-01-10");
+      await rollupRange("2026-01-10", "2026-01-10");
 
       await pool.query(
         `DELETE FROM public.${source === "v3" ? "action" : "action_v4"}
           WHERE id = $1`,
         [actionId],
       );
-      await expectDatedRollup("2026-01-10", "2026-01-10");
+      await rollupRange("2026-01-10", "2026-01-10");
 
       expect(
         (
@@ -904,16 +908,13 @@ describe("World ID analytics [real action deletion]", () => {
       id: "nil_contract_delete_race",
       createdAt: "2026-01-10T12:00:00.000Z",
     });
-    await expectDatedRollup("2026-01-10", "2026-01-10");
+    await rollupRange("2026-01-10", "2026-01-10");
     await installPauseTrigger();
     const blocker = await pool.connect();
     const deleteClient = await pool.connect();
     try {
       await blocker.query("SELECT pg_advisory_lock($1, $2)", barrierLock);
-      const rollup = callRollup({
-        from_date: "2026-01-10",
-        to_date: "2026-01-10",
-      });
+      const rollup = rollupRange("2026-01-10", "2026-01-10");
       await waitForAdvisoryWaiter(barrierLock);
 
       await deleteClient.query("SET statement_timeout = '10s'");
@@ -940,16 +941,13 @@ describe("World ID analytics [real action deletion]", () => {
       }
 
       await releaseBarrier(blocker);
-      await expect(rollup).resolves.toEqual({
-        success: true,
-        chunks: 1,
-        failed_ranges: [],
-      });
+      // The chunk itself succeeds; the deletion just parked behind it.
+      await rollup;
       await expect(deletion).resolves.toEqual({ ok: true, rows: 1 });
 
       // The cascade swept the chunk's freshly written rows with the action,
       // and a re-roll of the range stays empty.
-      await expectDatedRollup("2026-01-10", "2026-01-10");
+      await rollupRange("2026-01-10", "2026-01-10");
       expect(
         await getDailyRows(
           "action_legacy_stats_daily",

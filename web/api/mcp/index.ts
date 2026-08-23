@@ -41,17 +41,17 @@ import {
 } from "@/lib/categories";
 import { logger } from "@/lib/logger";
 import { getImageEndpoint } from "@/lib/utils";
-import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
-import { LocalisationData } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
+import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
+import { LocalisationData } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
 import {
   encodeDescription,
   getSupportType,
   parseDescription,
-} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
 import {
   getLocalisationFormValues,
   transformMailtoToRawEmail,
-} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils/dataTransforms";
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils/dataTransforms";
 import { getSdk as getReviewAppMetadataSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/server/fetch-review-app-metadata.generated";
 import { Wallet } from "ethers";
 import { GraphQLClient } from "graphql-request";

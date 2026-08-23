@@ -13,6 +13,12 @@ insert_permissions:
         - action_v4_id
         - nullifier
 select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - action_v4_id
+      filter: {}
+      allow_aggregations: true
   - role: service
     permission:
       columns:

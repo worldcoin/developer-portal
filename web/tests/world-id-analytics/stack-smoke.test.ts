@@ -48,7 +48,7 @@ describe("World ID analytics isolated fresh-stack harness", () => {
 
   it("provisions valid created_at indexes for both nullifier sources", async () => {
     // The migration deliberately builds neither index; the runner's
-    // out-of-band create-nullifier-created-at-index.sql step must.
+    // out-of-band step (manual in production) must.
     const result = await pool.query<{
       index_name: string;
       indisready: boolean;

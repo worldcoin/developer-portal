@@ -1,9 +1,9 @@
 "use client";
 
 import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 
 export const ErrorState = () => {
   const handleRetry = () => {
@@ -26,15 +26,9 @@ export const ErrorState = () => {
           the page.
         </Typography>
       </div>
-      <DecoratedButton
-        type="button"
-        variant="secondary"
-        className="h-fit max-w-full px-8"
-        color="primary"
-        onClick={handleRetry}
-      >
-        <Typography variant={TYPOGRAPHY.M3}>Try Again</Typography>
-      </DecoratedButton>
+      <InkButton type="button" onClick={handleRetry}>
+        Try Again
+      </InkButton>
     </div>
   );
 };

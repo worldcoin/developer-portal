@@ -8,7 +8,6 @@ import { auth0 } from "@/lib/auth0";
 import { InvalidConfigurationError } from "@auth0/nextjs-auth0/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { Role_Enum } from "./graphql/graphql";
-import { isPortalV3EnabledForEmail } from "./lib/feature-flags/portal-v3/flag";
 import { Auth0SessionUser } from "./lib/types";
 import { urls } from "./lib/urls";
 import { checkUserPermissions } from "./lib/utils";
@@ -16,7 +15,24 @@ import { checkUserPermissions } from "./lib/utils";
 const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_IMAGES_CDN_URL || "https://world-id-assets.com",
 );
-const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
+
+const getAssetsS3BucketOrigin = () => {
+  const bucket = process.env.ASSETS_S3_BUCKET_NAME?.trim();
+  if (!bucket) return undefined;
+
+  const endpoint = process.env.AWS_ENDPOINT_URL_S3?.trim();
+  if (endpoint) {
+    const endpointURL = new URL(endpoint);
+    endpointURL.hostname = `${bucket}.${endpointURL.hostname}`;
+    return endpointURL.origin;
+  }
+
+  const region = process.env.ASSETS_S3_REGION?.trim();
+  if (!region) return undefined;
+
+  return `https://${bucket}.s3.${region}.amazonaws.com`;
+};
+
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 // The portal is served from both worldcoin.org and world.org variants of the
 // same hostname. NEXT_PUBLIC_APP_URL is build-baked, so we mirror it onto the
@@ -25,6 +41,7 @@ const altAppUrl = siblingOrigin(appUrl);
 const isDev = process.env.NODE_ENV === "development";
 const generateCsp = () => {
   const nonce = crypto.randomUUID();
+  const s3BucketOrigin = getAssetsS3BucketOrigin();
 
   const csp = [
     { name: "default-src", values: ["'self'"] },
@@ -72,7 +89,7 @@ const generateCsp = () => {
         "https://bridge.worldcoin.org",
         "https://us.i.posthog.com",
         "https://us-assets.i.posthog.com",
-        ...(s3BucketUrl ? [s3BucketUrl] : []),
+        ...(s3BucketOrigin ? [s3BucketOrigin] : []),
         ...(appUrl ? [appUrl] : []),
         ...(altAppUrl ? [altAppUrl] : []),
       ],
@@ -84,7 +101,7 @@ const generateCsp = () => {
         "blob:", // Used to enforce image width and height
         "data:",
         "https://world.org",
-        ...(s3BucketUrl ? [s3BucketUrl] : []),
+        ...(s3BucketOrigin ? [s3BucketOrigin] : []),
         ...(cdnURLObject ? [cdnURLObject.hostname] : []),
         ...(appUrl ? [appUrl] : []),
         ...(altAppUrl ? [altAppUrl] : []),
@@ -137,10 +154,9 @@ const checkRouteRolesRestrictions = (
   }
 
   if (teamSettingsRoutes.some((route) => pathname.match(route))) {
-    // The V3 portal allows team members to access the team settings page, but the V2 portal does not. Therefore, we check if the user has access to the V3 portal and allow them to access the team settings page if they do.
-    const validRoles = isPortalV3EnabledForEmail(user?.email)
-      ? [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member]
-      : [Role_Enum.Owner];
+    // Team settings is member-accessible: the page itself scopes what each
+    // role can see/do.
+    const validRoles = [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member];
 
     if (!checkUserPermissions(user, teamId, validRoles)) {
       return restrictedRouteResponse();
@@ -367,6 +383,8 @@ export async function proxy(request: NextRequest) {
 
   // Auth SDK routes pass straight through: login/logout/callback/profile under
   // `/api/auth/*`, plus our custom login-callback / delete-account handlers.
+  // These carry their own request-origin checks — `delete-account` is POST-only
+  // and same-origin gated (`api/helpers/csrf.ts`) because nothing here does it.
   if (pathname.startsWith("/api/auth/")) {
     return authRes;
   }

@@ -38,8 +38,6 @@ export async function GET() {
 
 /**
  * Records an Android sandbox tester request in `sandbox_access_request`.
- * Dashboard operators work the pending rows and flip `accepted` only after
- * the invite has been sent.
  *
  * Authorization: the caller must have a Hasura user id.
  *

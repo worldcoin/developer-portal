@@ -65,13 +65,7 @@ jest.mock("next/navigation", () => ({
 jest.mock("react-toastify", () => ({
   toast: { error: jest.fn(), success: jest.fn() },
 }));
-jest.mock("@/lib/errors", () => ({ getGraphQLErrorCode: jest.fn() }));
-jest.mock("@/components/Dialog", () => ({
-  Dialog: ({ children, open }: React.PropsWithChildren<{ open: boolean }>) =>
-    open ? <div role="dialog">{children}</div> : null,
-}));
-// The PortalV3 dialog renders through FormDialog (modal flow); the Portal one
-// still uses the raw Dialog/DialogPanel takeover above.
+// The PortalV3 dialog renders through FormDialog (modal flow).
 jest.mock("@/components/FormDialog", () => ({
   FormDialog: ({
     children,
@@ -90,43 +84,18 @@ jest.mock("@/components/FormDialog", () => ({
   formDialogPrimaryActionClassName: "",
   formDialogSecondaryActionClassName: "",
 }));
-jest.mock("@/components/DialogPanel", () => ({
-  DialogPanel: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-}));
-jest.mock("@/components/LoggedUserNav", () => ({
-  LoggedUserNav: () => null,
-}));
-
-jest.mock(
-  "@/scenes/Portal/Teams/TeamId/Apps/AppId/EnableWorldId40/SelfManagedTransactionInfo/SelfManagedTransactionInfoContent",
-  () => ({ SelfManagedTransactionInfoContent: () => null }),
-);
-jest.mock(
-  "@/scenes/Portal/Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent",
-  () => ({ GenerateNewKeyContent: mockGenerateKeyStep }),
-);
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent",
   () => ({ GenerateNewKeyContent: mockGenerateKeyStep }),
-);
-jest.mock(
-  "@/scenes/Portal/Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent",
-  () => ({ UseExistingKeyContent: mockExistingKeyStep }),
 );
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent",
   () => ({ UseExistingKeyContent: mockExistingKeyStep }),
 );
 
-import { EnableWorldIdDialog as PortalDialog } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/EnableWorldId40/Dialog";
 import { RegisterRpDialog as PortalV3Dialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/EnableWorldId40/Dialog";
 
-const cases = [
-  ["Portal", "generate", PortalDialog, true],
-  ["Portal", "existing", PortalDialog, true],
-  ["PortalV3", "generate", PortalV3Dialog, false],
-  ["PortalV3", "existing", PortalV3Dialog, false],
-] as const;
+const cases = [["generate"], ["existing"]] as const;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -140,11 +109,11 @@ beforeEach(() => {
 });
 
 it.each(cases)(
-  "%s keeps Configure visible while the %s key step suspends",
-  async (_portal, setup, DialogComponent, hasEnableStep) => {
+  "keeps Configure visible while the %s key step suspends",
+  async (setup) => {
     render(
       <Suspense fallback={<div data-testid="outer-loading" />}>
-        <DialogComponent
+        <PortalV3Dialog
           appId="app_00000000000000000000000000000000"
           onClose={jest.fn()}
           open
@@ -152,10 +121,6 @@ it.each(cases)(
       </Suspense>,
     );
 
-    if (hasEnableStep) {
-      fireEvent.click(screen.getByTestId("button-enable-world-id-40-continue"));
-    }
-    // Title case in Portal, sentence case in the PortalV3 modal header.
     await screen.findByText(/configure signer key/i);
 
     if (setup === "existing") {

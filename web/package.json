@@ -56,7 +56,6 @@
     "next-useragent": "^2.8.0",
     "node-cache": "^5.1.2",
     "ox": "^0.14.0",
-    "playwright-qase-reporter": "^2.0.17",
     "posthog-js": "^1.166.1",
     "posthog-node": "^4.2.0",
     "qrcode": "^1.5.4",
@@ -124,6 +123,7 @@
     "tailwindcss": "^4.3.2",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
+    "tsx": "4.23.5",
     "typescript": "^5.6.3",
     "whatwg-fetch": "^3.6.20"
   },
@@ -173,7 +173,7 @@
     "test:integration:server": "docker compose -f ../docker-compose-test.yaml up --abort-on-container-exit",
     "test:world-id-analytics:fresh": "bash tests/world-id-analytics/run-fresh-stack.sh",
     "test:world-id-analytics:million": "bash tests/world-id-analytics/run-fresh-stack.sh --million",
-    "test:unit": "jest tests/unit lib/schema --maxWorkers=2",
+    "test:unit": "jest tests/unit tests/scripts lib/schema --maxWorkers=2",
     "typecheck": "tsc"
   },
   "version": "0.1.0"

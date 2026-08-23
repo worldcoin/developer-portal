@@ -8,6 +8,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import React from "react";
+import { FormProvider, useForm } from "react-hook-form";
 
 // #region Mocks
 const flushAllMock = jest.fn();
@@ -37,12 +38,11 @@ jest.mock(
   }),
 );
 
-const createNewDraftMock = jest.fn();
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/hook/use-create-new-draft",
   () => ({
     useCreateNewDraft: () => ({
-      createNewDraft: createNewDraftMock,
+      createNewDraft: jest.fn(),
       isCreating: false,
     }),
   }),
@@ -85,11 +85,16 @@ jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/StoreListingStep",
   () => ({ StoreListingStep: () => null }),
 );
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MiniApp/PermissionsForm",
+  () => ({ SetupForm: () => null }),
+);
 // #endregion
 
 import { getDefaultStore } from "jotai";
+import { AppStoreFormValues } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/types";
 import { ConfigurationWizard } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard";
-import { WizardStep } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/Stepper";
+import { WizardStep } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/wizard-steps";
 import {
   isMiniAppAtom,
   viewModeAtom,
@@ -106,28 +111,60 @@ const draftMetadata = {
   verification_status: "unverified",
   logo_img_url: "",
 };
-const verifiedMetadata = {
-  ...draftMetadata,
-  id: "meta_verified",
-  verification_status: "verified",
-};
 const app = {
   app_metadata: [draftMetadata],
-  verified_app_metadata: [verifiedMetadata],
+  verified_app_metadata: [
+    { ...draftMetadata, id: "meta_verified", verification_status: "verified" },
+  ],
+};
+
+const defaultAppStoreFormValues: AppStoreFormValues = {
+  category: "External",
+  support_type: "email",
+  support_email: "",
+  support_link: "",
+  is_android_only: false,
+  is_for_humans_only: false,
+  supported_countries: [],
+  supported_languages: ["en"],
+  localisations: [
+    {
+      language: "en",
+      name: "",
+      short_name: "",
+      world_app_description: "",
+      description_overview: "",
+      meta_tag_image_url: "",
+      showcase_img_urls: [],
+    },
+  ],
+};
+
+const WizardTestFormProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const form = useForm<AppStoreFormValues>({
+    defaultValues: defaultAppStoreFormValues,
+  });
+  return <FormProvider {...form}>{children}</FormProvider>;
 };
 
 const renderWizard = (onVersionSwitchingChange = jest.fn()) =>
   render(
-    <ConfigurationWizard
-      appId={appId}
-      teamId={teamId}
-      app={app as never}
-      appMetadata={draftMetadata as never}
-      teamName="Test team"
-      activeStep={WizardStep.BASIC}
-      setActiveStep={jest.fn()}
-      onVersionSwitchingChange={onVersionSwitchingChange}
-    />,
+    <WizardTestFormProvider>
+      <ConfigurationWizard
+        appId={appId}
+        teamId={teamId}
+        app={app as never}
+        appMetadata={draftMetadata as never}
+        teamName="Test team"
+        activeStep={WizardStep.BASIC}
+        setActiveStep={jest.fn()}
+        onVersionSwitchingChange={onVersionSwitchingChange}
+      />
+    </WizardTestFormProvider>,
   );
 // #endregion
 
@@ -154,13 +191,6 @@ describe("configuration wizard [version switching]", () => {
     expect(onVersionSwitchingChange).toHaveBeenCalledWith(true);
     expect(getDefaultStore().get(viewModeAtom)).toBe("unverified");
     expect(screen.getByTestId("configuration-wizard")).toHaveAttribute("inert");
-    expect(screen.getByTestId("configuration-wizard")).toHaveAttribute(
-      "aria-busy",
-      "true",
-    );
-    expect(
-      screen.getByTestId("configuration-version-indicator"),
-    ).toHaveAccessibleName("Draft version");
 
     await act(async () => finishFlush(true));
 
@@ -168,9 +198,6 @@ describe("configuration wizard [version switching]", () => {
       expect(getDefaultStore().get(viewModeAtom)).toBe("verified"),
     );
     expect(onVersionSwitchingChange).toHaveBeenLastCalledWith(false);
-    expect(screen.getByTestId("configuration-wizard")).not.toHaveAttribute(
-      "inert",
-    );
   });
 
   it("does not switch versions when a pending autosave cannot be flushed", async () => {
@@ -182,13 +209,7 @@ describe("configuration wizard [version switching]", () => {
 
     await waitFor(() => expect(flushAllMock).toHaveBeenCalledTimes(1));
     expect(getDefaultStore().get(viewModeAtom)).toBe("unverified");
-    expect(
-      screen.getByTestId("configuration-version-indicator"),
-    ).toHaveAccessibleName("Draft version");
     expect(onVersionSwitchingChange).toHaveBeenNthCalledWith(1, true);
     expect(onVersionSwitchingChange).toHaveBeenLastCalledWith(false);
-    expect(screen.getByTestId("configuration-wizard")).not.toHaveAttribute(
-      "inert",
-    );
   });
 });

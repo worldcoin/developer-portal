@@ -71,6 +71,17 @@ insert_permissions:
         - post_action_deep_link_ios
         - post_action_deep_link_android
 select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - action
+        - app_id
+        - created_at
+        - id
+        - name
+        - status
+      filter: {}
+      allow_aggregations: true
   - role: api_key
     permission:
       columns:

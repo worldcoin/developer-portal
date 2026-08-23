@@ -148,15 +148,11 @@
           type:
             scalar: bigint
             nullable: false
-        - name: distinct_manager_keys
+        - name: unique_manager_key_rps
           type:
             scalar: bigint
             nullable: false
-        - name: shared_key_groups
-          type:
-            scalar: bigint
-            nullable: false
-        - name: rps_on_shared_keys
+        - name: shared_manager_key_rps
           type:
             scalar: bigint
             nullable: false
@@ -205,9 +201,8 @@
               - self_managed_rps
               - managed_with_key
               - managed_without_key
-              - distinct_manager_keys
-              - shared_key_groups
-              - rps_on_shared_keys
+              - unique_manager_key_rps
+              - shared_manager_key_rps
               - status_pending
               - status_registered
               - status_failed
@@ -217,6 +212,127 @@
               - staging_status_failed
               - staging_status_deactivated
               - staging_status_null
+            filter: {}
+    # TODO: remove after the RP manager key migration completes
+    - name: admin_rp_manager_key_migration
+      fields:
+        - name: remaining_cron_candidates
+          type:
+            scalar: bigint
+            nullable: false
+        - name: unique_excluded_from_cron
+          type:
+            scalar: bigint
+            nullable: false
+        - name: on_shared_with_audit
+          type:
+            scalar: bigint
+            nullable: false
+        - name: on_shared_without_audit
+          type:
+            scalar: bigint
+            nullable: false
+        - name: unique_with_audit
+          type:
+            scalar: bigint
+            nullable: false
+        - name: audit_pending
+          type:
+            scalar: bigint
+            nullable: false
+        - name: audit_failed
+          type:
+            scalar: bigint
+            nullable: false
+        - name: audit_blocked
+          type:
+            scalar: bigint
+            nullable: false
+        - name: audit_ready_for_external_cleanup
+          type:
+            scalar: bigint
+            nullable: false
+        - name: audit_deletion_scheduled
+          type:
+            scalar: bigint
+            nullable: false
+        - name: audit_deleted
+          type:
+            scalar: bigint
+            nullable: false
+        - name: audit_deletion_overdue
+          type:
+            scalar: bigint
+            nullable: false
+      select_permissions:
+        - role: internal_dashboard_readonly
+          permission:
+            columns:
+              - remaining_cron_candidates
+              - unique_excluded_from_cron
+              - on_shared_with_audit
+              - on_shared_without_audit
+              - unique_with_audit
+              - audit_pending
+              - audit_failed
+              - audit_blocked
+              - audit_ready_for_external_cleanup
+              - audit_deletion_scheduled
+              - audit_deleted
+              - audit_deletion_overdue
+            filter: {}
+    # TODO: remove after the RP manager key migration completes
+    - name: admin_rp_manager_key_migration_queue
+      fields:
+        - name: kind
+          type:
+            scalar: varchar
+            nullable: false
+        - name: rp_id
+          type:
+            scalar: varchar
+            nullable: false
+        - name: app_id
+          type:
+            scalar: varchar
+            nullable: false
+        - name: app_name
+          type:
+            scalar: varchar
+            nullable: true
+        - name: updated_at
+          type:
+            scalar: timestamptz
+            nullable: true
+        - name: cleanup_status
+          type:
+            scalar: text
+            nullable: true
+        - name: last_error_detail
+          type:
+            scalar: text
+            nullable: true
+        - name: expected_deletion_at
+          type:
+            scalar: timestamptz
+            nullable: true
+        - name: total_count
+          type:
+            scalar: bigint
+            nullable: false
+      select_permissions:
+        - role: internal_dashboard_readonly
+          permission:
+            columns:
+              - kind
+              - rp_id
+              - app_id
+              - app_name
+              - updated_at
+              - cleanup_status
+              - last_error_detail
+              - expected_deletion_at
+              - total_count
             filter: {}
   native_queries:
     - root_field_name: admin_dashboard_inventory
@@ -276,14 +392,6 @@
     - root_field_name: admin_rp_inventory
       arguments: {}
       code: |
-        WITH key_counts AS (
-          SELECT
-            manager_kms_key_id,
-            COUNT(*)::bigint AS rp_count
-          FROM public.rp_registration
-          WHERE manager_kms_key_id IS NOT NULL
-          GROUP BY manager_kms_key_id
-        )
         SELECT
           COUNT(*)::bigint AS total_rps,
           COUNT(*) FILTER (WHERE mode = 'managed')::bigint AS managed_rps,
@@ -294,17 +402,16 @@
           COUNT(*) FILTER (
             WHERE mode = 'managed' AND manager_kms_key_id IS NULL
           )::bigint AS managed_without_key,
-          (
-            SELECT COUNT(*)::bigint FROM key_counts
-          ) AS distinct_manager_keys,
-          (
-            SELECT COUNT(*)::bigint FROM key_counts WHERE rp_count > 1
-          ) AS shared_key_groups,
-          (
-            SELECT COALESCE(SUM(rp_count), 0)::bigint
-            FROM key_counts
-            WHERE rp_count > 1
-          ) AS rps_on_shared_keys,
+          COUNT(*) FILTER (
+            WHERE mode = 'managed'
+              AND is_unique_manager_key = true
+              AND manager_kms_key_id IS NOT NULL
+          )::bigint AS unique_manager_key_rps,
+          COUNT(*) FILTER (
+            WHERE mode = 'managed'
+              AND is_unique_manager_key = false
+              AND manager_kms_key_id IS NOT NULL
+          )::bigint AS shared_manager_key_rps,
           COUNT(*) FILTER (WHERE status = 'pending')::bigint AS status_pending,
           COUNT(*) FILTER (WHERE status = 'registered')::bigint AS status_registered,
           COUNT(*) FILTER (WHERE status = 'failed')::bigint AS status_failed,
@@ -502,3 +609,171 @@
           NULL::timestamptz
         FROM users_without_teams
       returns: admin_dashboard_queue
+    # TODO: remove after the RP manager key migration completes
+    - root_field_name: admin_rp_manager_key_migration
+      arguments: {}
+      code: |
+        WITH cron_candidate AS (
+          SELECT r.rp_id
+          FROM public.rp_registration r
+          JOIN public.app a ON a.id = r.app_id
+          WHERE r.mode = 'managed'
+            AND r.status = 'registered'
+            AND r.signer_address IS NOT NULL
+            AND r.manager_kms_key_id IS NOT NULL
+            AND r.is_unique_manager_key
+            AND a.status = 'active'
+            AND NOT a.is_archived
+            AND a.deleted_at IS NULL
+        ),
+        unique_managed AS (
+          SELECT r.rp_id
+          FROM public.rp_registration r
+          WHERE r.mode = 'managed'
+            AND r.is_unique_manager_key
+            AND r.manager_kms_key_id IS NOT NULL
+        ),
+        shared_managed AS (
+          SELECT r.rp_id
+          FROM public.rp_registration r
+          WHERE r.mode = 'managed'
+            AND NOT r.is_unique_manager_key
+            AND r.manager_kms_key_id IS NOT NULL
+        ),
+        audit_counts AS (
+          SELECT
+            COUNT(*) FILTER (WHERE cleanup_status = 'pending')::bigint AS audit_pending,
+            COUNT(*) FILTER (WHERE cleanup_status = 'failed')::bigint AS audit_failed,
+            COUNT(*) FILTER (WHERE cleanup_status = 'blocked')::bigint AS audit_blocked,
+            COUNT(*) FILTER (
+              WHERE cleanup_status = 'ready_for_external_cleanup'
+            )::bigint AS audit_ready_for_external_cleanup,
+            COUNT(*) FILTER (
+              WHERE cleanup_status = 'deletion_scheduled'
+            )::bigint AS audit_deletion_scheduled,
+            COUNT(*) FILTER (WHERE cleanup_status = 'deleted')::bigint AS audit_deleted,
+            COUNT(*) FILTER (
+              WHERE cleanup_status = 'deletion_scheduled'
+                AND expected_deletion_at <= CURRENT_TIMESTAMP
+            )::bigint AS audit_deletion_overdue
+          FROM public.rp_manager_key_migration_audit
+        )
+        SELECT
+          (SELECT COUNT(*)::bigint FROM cron_candidate) AS remaining_cron_candidates,
+          (
+            SELECT COUNT(*)::bigint
+            FROM unique_managed u
+            WHERE NOT EXISTS (
+              SELECT 1 FROM cron_candidate c WHERE c.rp_id = u.rp_id
+            )
+          ) AS unique_excluded_from_cron,
+          (
+            SELECT COUNT(*)::bigint
+            FROM shared_managed s
+            WHERE EXISTS (
+              SELECT 1
+              FROM public.rp_manager_key_migration_audit m
+              WHERE m.rp_id = s.rp_id
+            )
+          ) AS on_shared_with_audit,
+          (
+            SELECT COUNT(*)::bigint
+            FROM shared_managed s
+            WHERE NOT EXISTS (
+              SELECT 1
+              FROM public.rp_manager_key_migration_audit m
+              WHERE m.rp_id = s.rp_id
+            )
+          ) AS on_shared_without_audit,
+          (
+            SELECT COUNT(*)::bigint
+            FROM public.rp_manager_key_migration_audit m
+            JOIN public.rp_registration r ON r.rp_id = m.rp_id
+            WHERE r.is_unique_manager_key
+          ) AS unique_with_audit,
+          audit_counts.audit_pending,
+          audit_counts.audit_failed,
+          audit_counts.audit_blocked,
+          audit_counts.audit_ready_for_external_cleanup,
+          audit_counts.audit_deletion_scheduled,
+          audit_counts.audit_deleted,
+          audit_counts.audit_deletion_overdue
+        FROM audit_counts
+      returns: admin_rp_manager_key_migration
+    # TODO: remove after the RP manager key migration completes
+    - root_field_name: admin_rp_manager_key_migration_queue
+      arguments: {}
+      code: |
+        WITH remaining_cron_candidate AS (
+          SELECT
+            'remaining_cron_candidate'::varchar AS kind,
+            r.rp_id,
+            r.app_id,
+            a.name AS app_name,
+            r.updated_at,
+            NULL::text AS cleanup_status,
+            NULL::text AS last_error_detail,
+            NULL::timestamptz AS expected_deletion_at,
+            COUNT(*) OVER() AS total_count
+          FROM public.rp_registration r
+          JOIN public.app a ON a.id = r.app_id
+          WHERE r.mode = 'managed'
+            AND r.status = 'registered'
+            AND r.signer_address IS NOT NULL
+            AND r.manager_kms_key_id IS NOT NULL
+            AND r.is_unique_manager_key
+            AND a.status = 'active'
+            AND NOT a.is_archived
+            AND a.deleted_at IS NULL
+          ORDER BY r.updated_at ASC, r.created_at ASC
+          LIMIT 20
+        ),
+        cleanup_needs_attention AS (
+          SELECT
+            'cleanup_needs_attention'::varchar AS kind,
+            m.rp_id,
+            m.app_id,
+            a.name AS app_name,
+            m.updated_at,
+            m.cleanup_status,
+            m.last_error_detail,
+            m.expected_deletion_at,
+            COUNT(*) OVER() AS total_count
+          FROM public.rp_manager_key_migration_audit m
+          LEFT JOIN public.app a ON a.id = m.app_id
+          WHERE m.cleanup_status IN (
+              'failed',
+              'blocked',
+              'ready_for_external_cleanup'
+            )
+            OR (
+              m.cleanup_status = 'deletion_scheduled'
+              AND m.expected_deletion_at <= CURRENT_TIMESTAMP
+            )
+          ORDER BY m.updated_at ASC, m.created_at ASC
+          LIMIT 20
+        )
+        SELECT
+          kind,
+          rp_id,
+          app_id,
+          app_name,
+          updated_at,
+          cleanup_status,
+          last_error_detail,
+          expected_deletion_at,
+          total_count
+        FROM remaining_cron_candidate
+        UNION ALL
+        SELECT
+          kind,
+          rp_id,
+          app_id,
+          app_name,
+          updated_at,
+          cleanup_status,
+          last_error_detail,
+          expected_deletion_at,
+          total_count
+        FROM cleanup_needs_attention
+      returns: admin_rp_manager_key_migration_queue

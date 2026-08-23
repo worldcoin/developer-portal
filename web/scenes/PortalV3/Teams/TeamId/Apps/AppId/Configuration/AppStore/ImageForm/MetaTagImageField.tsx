@@ -19,7 +19,7 @@ interface MetaTagImageFieldProps {
   appMetadataId?: string;
   supportedLanguages: string[];
   error?: string | null;
-  onAutosaveSuccess?: () => void;
+  onAutosaveSuccess?: (url: string | null) => void;
   onAutosaveError?: (error: any) => void;
   dropZoneClassName?: string;
   dropZoneContent?: React.ReactNode;
@@ -101,7 +101,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
           },
         });
         reportSaved();
-        onAutosaveSuccess?.();
+        onAutosaveSuccess?.(newUrl);
       } catch (error) {
         // The file is already on S3 and only the database write failed, so
         // retrying exactly this save can succeed.
