@@ -1,9 +1,8 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { act } from "react";
 import { ApiKeySecretFields } from "@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys/ApiKeySecretFields";
-import { ApiKeySecretFields as ApiKeySecretFieldsV2 } from "@/scenes/Portal/Teams/TeamId/Team/ApiKeys/page/ApiKeySecretFields";
 
 // #region Mocks
 const toastSuccess = jest.fn();
@@ -18,8 +17,6 @@ jest.mock("react-toastify", () => ({
 // #region Test Data
 const V3_COMPONENT =
   "@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys/ApiKeySecretFields";
-const V2_COMPONENT =
-  "@/scenes/Portal/Teams/TeamId/Team/ApiKeys/page/ApiKeySecretFields";
 
 const SHORT_KEY = "api_short";
 // Shape of a real key: "api_" + base64 of 88 bytes, padding stripped.
@@ -70,15 +67,6 @@ describe("ApiKeySecretFields [endpoint]", () => {
     expect(global.fetch).not.toHaveBeenCalled();
     expect(xhrOpen).not.toHaveBeenCalled();
   });
-
-  it("renders byte-identical snippets in both portals", () => {
-    const v3 = render(<ApiKeySecretFields apiKey={SHORT_KEY} />);
-    const v3Text = snippetText(v3.container);
-    cleanup();
-
-    const v2 = render(<ApiKeySecretFieldsV2 apiKey={SHORT_KEY} />);
-    expect(snippetText(v2.container)).toBe(v3Text);
-  });
 });
 // #endregion
 
@@ -122,9 +110,6 @@ describe("ApiKeySecretFields [providers]", () => {
 describe("ApiKeySecretFields [module boundary]", () => {
   it("keeps snippet generation in exactly one module", () => {
     expect(Object.keys(require(V3_COMPONENT)).sort()).toEqual([
-      "ApiKeySecretFields",
-    ]);
-    expect(Object.keys(require(V2_COMPONENT)).sort()).toEqual([
       "ApiKeySecretFields",
     ]);
     expect(

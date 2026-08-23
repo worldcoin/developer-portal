@@ -15,12 +15,41 @@ export const fetchAdminAppDetails = async (appId: string) => {
       return null;
     }
 
+    const {
+      actions,
+      rp_registration: rpRegistrations,
+      ...app
+    } = data.app_by_pk;
+    const legacyActions = actions.map((action) => ({
+      action: action.action,
+      createdAt: action.created_at,
+      id: action.id,
+      name: action.name,
+      status: action.status,
+      totalUses: Number(action.nullifiers_aggregate.aggregate?.sum?.uses ?? 0),
+      uniqueNullifiers: action.nullifiers_aggregate.aggregate?.count ?? 0,
+    }));
+    const worldId40Actions = rpRegistrations
+      .flatMap((registration) =>
+        registration.actions_v4.map((action) => ({
+          action: action.action,
+          createdAt: action.created_at,
+          environment: String(action.environment),
+          id: action.id,
+          recordedUniqueUses: action.nullifiers_aggregate.aggregate?.count ?? 0,
+          rpId: registration.rp_id,
+        })),
+      )
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+
     return {
-      app: data.app_by_pk,
+      app,
       draftMetadata: data.app_by_pk.draft_metadata[0] ?? null,
+      legacyActions,
       metadataVersions: data.metadata_versions,
       team: data.app_by_pk.team,
       verifiedMetadata: data.app_by_pk.verified_metadata[0] ?? null,
+      worldId40Actions,
     };
   } catch (error) {
     logger.error("Failed to fetch admin app details", { appId, error });

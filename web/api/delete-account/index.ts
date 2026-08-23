@@ -1,13 +1,32 @@
+import { isSameOriginRequest } from "@/api/helpers/csrf";
 import { errorResponse } from "@/api/helpers/errors";
-import { logger } from "@/lib/logger";
-import { urls } from "@/lib/urls";
 import { auth0 } from "@/lib/auth0";
+import { logger } from "@/lib/logger";
 import { ManagementClient } from "auth0";
-import { NextRequest } from "next/server";
-import { getAppUrlFromRequest } from "../helpers/utils";
+import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Irreversibly deletes the caller's Auth0 identity.
+ *
+ * Mounted on POST only, and rejects any request the browser reports as cross-site.
+ * The session cookie is `SameSite=Lax`, so a GET mount here would let any attacker
+ * page destroy a logged-in developer's identity with a single top-level navigation
+ * (`<a href>`, `window.open`, meta-refresh) — a valid session cookie alone does not
+ * prove the request came from our own UI. See `api/helpers/csrf.ts`.
+ *
+ * The caller deletes the Hasura user row first, POSTs here, then navigates to
+ * `/api/auth/logout` to clear the (still-valid, stateless) session cookie.
+ */
 export const deleteAccount = async (req: NextRequest) => {
-  const appUrl = await getAppUrlFromRequest(req);
+  if (!(await isSameOriginRequest(req))) {
+    return errorResponse({
+      statusCode: 403,
+      code: "cross_origin_request",
+      detail: "Account deletion must be initiated from the developer portal",
+      req,
+    });
+  }
+
   if (
     !process.env.AUTH0_CLIENT_ID ||
     !process.env.AUTH0_CLIENT_SECRET ||
@@ -58,5 +77,8 @@ export const deleteAccount = async (req: NextRequest) => {
     });
   }
 
-  return Response.redirect(new URL(urls.logout(), appUrl), 307);
+  // No redirect: the caller is a `fetch()`, and returning a 307 here would make it
+  // replay the POST against `/api/auth/logout`. The client navigates to logout
+  // itself, passing the host it is on so the sibling-domain return lands correctly.
+  return new NextResponse(null, { status: 204 });
 };

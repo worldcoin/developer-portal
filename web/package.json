@@ -56,7 +56,6 @@
     "next-useragent": "^2.8.0",
     "node-cache": "^5.1.2",
     "ox": "^0.14.0",
-    "playwright-qase-reporter": "^2.0.17",
     "posthog-js": "^1.166.1",
     "posthog-node": "^4.2.0",
     "qrcode": "^1.5.4",
@@ -173,7 +172,7 @@
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration --runInBand",
     "test:integration:server": "docker compose -f ../docker-compose-test.yaml up --abort-on-container-exit",
     "test:world-id-analytics:fresh": "bash tests/world-id-analytics/run-fresh-stack.sh",
-    "test:unit": "jest tests/unit lib/schema --maxWorkers=2",
+    "test:unit": "jest tests/unit tests/scripts lib/schema --maxWorkers=2",
     "typecheck": "tsc"
   },
   "version": "0.1.0"

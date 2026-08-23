@@ -108,8 +108,9 @@ const createMockRequest = (input: Record<string, unknown>) =>
   });
 // #endregion
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
+  await global.RedisClient?.flushall();
   process.env.INTERNAL_ENDPOINTS_SECRET = "internal-secret";
   process.env.NEXT_PUBLIC_APP_ENV = "test";
   mockGetRpRegistryConfig.mockReturnValue({
@@ -122,6 +123,9 @@ beforeEach(() => {
   });
   CheckUserInApp.mockResolvedValue({ team: [{ id: teamId }] });
   ClaimModeSwitchSlot.mockResolvedValue({
+    update_rp_registration: { affected_rows: 1 },
+  });
+  RevertModeSwitchStatus.mockResolvedValue({
     update_rp_registration: { affected_rows: 1 },
   });
   submitTransferManagerTransactionMock.mockResolvedValue("0xophash");
@@ -171,6 +175,79 @@ describe("/api/hasura/switch-to-self-managed [key deletion]", () => {
       operation_hash: "0xophash",
     });
     expect(scheduleKeyDeletion).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Manager key migration lock
+describe("/api/hasura/switch-to-self-managed [manager key migration lock]", () => {
+  it("reverts the claim and rejects when the migration lock is held", async () => {
+    await global.RedisClient?.set(
+      `rp-manager-key-migration:rp:${rpId}`,
+      "migration-owner",
+    );
+
+    const res = (await POST(
+      createMockRequest({
+        app_id: appId,
+        new_manager_address: newManagerAddress,
+      }),
+    ))!;
+    const body = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(body.extensions.code).toBe("operation_in_progress");
+    expect(ClaimModeSwitchSlot).toHaveBeenCalledTimes(1);
+    expect(RevertModeSwitchStatus).toHaveBeenCalledWith({ rp_id: rpId });
+    expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("reverts the claim and rejects when Redis is unavailable", async () => {
+    const redis = global.RedisClient;
+    global.RedisClient = undefined;
+
+    try {
+      const res = (await POST(
+        createMockRequest({
+          app_id: appId,
+          new_manager_address: newManagerAddress,
+        }),
+      ))!;
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body.extensions.code).toBe("operation_in_progress");
+      expect(ClaimModeSwitchSlot).toHaveBeenCalledTimes(1);
+      expect(RevertModeSwitchStatus).toHaveBeenCalledWith({ rp_id: rpId });
+      expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
+
+  it("reverts the claim and rejects when the migration lock read fails", async () => {
+    const redis = global.RedisClient;
+    global.RedisClient = {
+      get: () => Promise.reject(new Error("simulated Redis outage")),
+    } as unknown as typeof global.RedisClient;
+
+    try {
+      const res = (await POST(
+        createMockRequest({
+          app_id: appId,
+          new_manager_address: newManagerAddress,
+        }),
+      ))!;
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body.extensions.code).toBe("operation_in_progress");
+      expect(ClaimModeSwitchSlot).toHaveBeenCalledTimes(1);
+      expect(RevertModeSwitchStatus).toHaveBeenCalledWith({ rp_id: rpId });
+      expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
+    } finally {
+      global.RedisClient = redis;
+    }
   });
 });
 // #endregion

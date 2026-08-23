@@ -1,7 +1,5 @@
-import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
 import { urls } from "@/lib/urls";
-import { AppPermissionsPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/MiniApp/Permissions/page";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
@@ -14,14 +12,10 @@ export default async function Page(props: {
 }) {
   const params = await props.params;
 
-  return pickPortalVersion(
-    () =>
-      redirect(
-        urls.miniAppDevelop({
-          team_id: params.teamId,
-          app_id: params.appId,
-        }),
-      ),
-    () => <AppPermissionsPage params={Promise.resolve(params)} />,
+  return redirect(
+    urls.miniAppDevelop({
+      team_id: params.teamId,
+      app_id: params.appId,
+    }),
   );
 }

@@ -11,6 +11,35 @@ query FetchAdminAppDetails($appId: String!) {
       created_at
       deleted_at
     }
+    actions(order_by: { created_at: desc }) {
+      id
+      action
+      name
+      status
+      created_at
+      nullifiers_aggregate {
+        aggregate {
+          count
+          sum {
+            uses
+          }
+        }
+      }
+    }
+    rp_registration(order_by: { created_at: desc }) {
+      rp_id
+      actions_v4(order_by: { created_at: desc }) {
+        id
+        action
+        environment
+        created_at
+        nullifiers_aggregate {
+          aggregate {
+            count
+          }
+        }
+      }
+    }
     draft_metadata: app_metadata(
       where: { verification_status: { _neq: "verified" } }
       order_by: { updated_at: desc }

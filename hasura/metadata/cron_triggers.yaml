@@ -1,6 +1,6 @@
 - name: Cleanup notification logs
-  webhook: '{{NEXT_API_URL}}/delete-expired-notification-logs'
-  schedule: '*/15 * * * *'
+  webhook: "{{NEXT_API_URL}}/delete-expired-notification-logs"
+  schedule: "*/15 * * * *"
   include_in_metadata: true
   payload: {}
   retry_conf:
@@ -13,7 +13,7 @@
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: Delete notification logs that are at least 4 weeks old. Also deletes the corresponding notification_log_wallet_addresses
 - name: Delete expired auth codes
-  webhook: '{{NEXT_API_URL}}/_delete-expired-auth-codes'
+  webhook: "{{NEXT_API_URL}}/_delete-expired-auth-codes"
   schedule: 0 * * * *
   include_in_metadata: true
   payload: {}
@@ -27,7 +27,7 @@
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: ""
 - name: Delete expired jwks
-  webhook: '{{NEXT_API_URL}}/_delete-jwks'
+  webhook: "{{NEXT_API_URL}}/_delete-jwks"
   schedule: 0 * * * *
   include_in_metadata: true
   payload: {}
@@ -41,7 +41,7 @@
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: Schedules all expired JWKS for deletion by KMS
 - name: Rollup app stats
-  webhook: '{{NEXT_API_URL}}/_rollup-app-stats'
+  webhook: "{{NEXT_API_URL}}/_rollup-app-stats"
   schedule: 0 * * * *
   include_in_metadata: true
   payload: {}
@@ -69,8 +69,8 @@
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: Rebuild the trailing ~25h of v3 and v4 unique-nullifier daily analytics
 - name: Deactivate RPs for deleted apps
-  webhook: '{{NEXT_API_URL}}/_deactivate-deleted-app-rps'
-  schedule: '*/15 * * * *'
+  webhook: "{{NEXT_API_URL}}/_deactivate-deleted-app-rps"
+  schedule: "*/15 * * * *"
   include_in_metadata: true
   payload: {}
   retry_conf:
@@ -82,3 +82,31 @@
     - name: Authorization
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: Deactivate the managed RP signer on-chain for soft-deleted apps whose RP is still live (reconciles delete-time failures and backfills apps deleted before delete-time deactivation existed).
+- name: Migrate RP manager keys
+  webhook: "{{NEXT_API_URL}}/_migrate-rp-manager-keys"
+  schedule: "0 0 1 * *"
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 0
+    retry_interval_seconds: 10
+    timeout_seconds: 60
+    tolerance_seconds: 21600
+  headers:
+    - name: Authorization
+      value_from_env: INTERNAL_ENDPOINTS_SECRET
+  comment: Once monthly (1st of month). Migrates up to 15 eligible managed RPs when ENABLE_RP_MANAGER_KEY_MIGRATION is true.
+- name: Cleanup RP manager keys
+  webhook: "{{NEXT_API_URL}}/_cleanup-rp-manager-keys"
+  schedule: "*/15 * * * *"
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 0
+    retry_interval_seconds: 10
+    timeout_seconds: 60
+    tolerance_seconds: 21600
+  headers:
+    - name: Authorization
+      value_from_env: INTERNAL_ENDPOINTS_SECRET
+  comment: Schedule deletion of one leftover per-RP manager KMS key after shared-key migration. No-ops unless ENABLE_RP_MANAGER_KEY_CLEANUP is true.

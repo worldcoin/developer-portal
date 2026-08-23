@@ -15,6 +15,12 @@ export type UseAutosaveOptions<T extends FieldValues> = {
   enabled: boolean;
   debounceMs?: number;
   onStatus: (status: AutosaveStatus) => void;
+  /**
+   * Called with the exact form snapshot only after that edit has been saved
+   * and is still current. Consumers can use this for UI that must never
+   * acknowledge a change while it is merely waiting in the debounce window.
+   */
+  onSavedEdit?: (data: T) => void;
   onPendingChange?: (isPending: boolean) => void;
   /**
    * Returns true for fields persisted by someone other than this autosave —
@@ -123,11 +129,11 @@ export function useAutosave<T extends FieldValues>(
         if (controller.signal.aborted) throw new StaleSaveError();
 
         const fresh = f.getValues();
-        const stable =
+        const isSnapshotStillCurrent =
           JSON.stringify(fresh) === JSON.stringify(snapshot) &&
           controllerRef.current === controller;
 
-        if (stable) {
+        if (isSnapshotStillCurrent) {
           f.reset(snapshot, {
             keepValues: true,
             keepDirty: false,
@@ -135,12 +141,13 @@ export function useAutosave<T extends FieldValues>(
             keepTouched: true,
           });
           onStatus({ state: "saved", at: Date.now() });
+          optionsRef.current.onSavedEdit?.(snapshot);
         }
-        // When not stable the user typed during the save: a new debounce was
-        // scheduled by the watch subscription, so leave the status on "saving"
-        // until that next save settles. Emitting "saved" here would flash the
-        // indicator misleadingly for snapshot data the user has already moved
-        // past.
+        // When the snapshot is no longer current, the user typed during the
+        // save: a new debounce was scheduled by the watch subscription, so
+        // leave the status on "saving" until that next save settles. Emitting
+        // "saved" here would flash the indicator misleadingly for snapshot data
+        // the user has already moved past.
         return true;
       } catch (err) {
         if (

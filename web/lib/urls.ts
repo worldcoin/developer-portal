@@ -130,9 +130,6 @@ export const urls = {
   teams: (params: { team_id?: string }): string =>
     params.team_id ? `/teams/${params.team_id}` : "/teams",
 
-  teamApiKeys: (params: { team_id: string }): string =>
-    `/teams/${params.team_id}/api-keys`,
-
   teamSettings: (params: {
     team_id: string;
     return_to?: string;
