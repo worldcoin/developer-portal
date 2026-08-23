@@ -15,7 +15,6 @@ import { ActionsGrid } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/p
 import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
 import { WorldIdActionDetailPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page";
 import { ActionIdPage as PortalV3LegacyActionPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/page";
-import { ActionIdPage as PortalLegacyActionPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/page";
 import { makeAnalyticsResponse } from "../contracts/world-id-analytics-endpoint";
 
 // #region Mocks
@@ -400,10 +399,9 @@ describe("World ID v4 action detail [single aggregate]", () => {
 // #endregion
 
 // #region Active legacy v3 action details
-describe.each([
-  ["PortalV3", PortalV3LegacyActionPage],
-  ["Portal", PortalLegacyActionPage],
-])(
+// The Portal-v2 twin of this scene was deleted on main (#2253), so PortalV3
+// is the only active legacy action-detail surface.
+describe.each([["PortalV3", PortalV3LegacyActionPage]])(
   "%s legacy action detail [analytics replacement]",
   (_name, LegacyActionPage) => {
     it("replaces ActionStatsGraph while preserving the bounded verification feed", async () => {
