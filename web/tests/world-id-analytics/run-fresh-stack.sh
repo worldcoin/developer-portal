@@ -157,6 +157,13 @@ if [[ "${1:-}" == "--release-gate" ]]; then
   exit 0
 fi
 
+if [[ "${1:-}" == "--million" ]]; then
+  export WIA_ANALYTICS_MILLION=1
+  npx jest tests/world-id-analytics/stack-smoke.test.ts --runInBand
+  npx jest tests/world-id-analytics/million.test.ts --runInBand
+  exit 0
+fi
+
 npx jest \
   tests/world-id-analytics/stack-smoke.test.ts \
   tests/world-id-analytics/window-rollup.test.ts \
@@ -165,3 +172,4 @@ npx jest \
   tests/world-id-analytics/cron-and-rollout.test.ts \
   tests/world-id-analytics/end-to-end-release.test.ts \
   --runInBand
+npx jest tests/world-id-analytics/integration.test.ts --runInBand
