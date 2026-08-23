@@ -7,7 +7,8 @@
  *
  * Instead of AUTH0_MGMT_TOKEN you can pass AUTH0_MGMT_CLIENT_ID and
  * AUTH0_MGMT_CLIENT_SECRET for a machine-to-machine client authorized for the
- * Management API (scopes: read:branding, update:branding, read:custom_domains).
+ * Management API (scopes: read:branding, update:branding, read:custom_domains,
+ * plus delete:branding if you want the --delete rollback).
  *
  * --dry-run  validates credentials, checks custom domains, and backs up the
  *            current template without writing anything to the tenant.
@@ -111,8 +112,16 @@ async function backupCurrentTemplate() {
     return;
   }
   if (!res.ok) fail(`GET current template failed: ${res.status}`);
-  const body = await res.json().catch(() => null);
-  const current = body?.body ?? (await res.text());
+  // The endpoint returns raw text/html, or JSON {body: "..."} depending on
+  // the Accept negotiation — read the stream once and handle both.
+  const raw = await res.text();
+  let current = raw;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.body === "string") current = parsed.body;
+  } catch {
+    /* raw HTML */
+  }
   const file = join(
     here,
     `backup-${new Date().toISOString().replace(/[:.]/g, "-")}.html`,

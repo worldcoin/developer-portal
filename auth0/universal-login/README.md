@@ -42,7 +42,8 @@ the app. The deploy script checks and warns about this.
 ## Deploying
 
 Needs a Management API token (or M2M client) with `read:branding`,
-`update:branding`, and ideally `read:custom_domains`:
+`update:branding`, and ideally `read:custom_domains`; add `delete:branding`
+if you want the `--delete` rollback to work with the same credentials:
 
 ```bash
 AUTH0_DOMAIN=worldcoin-developer-portal.eu.auth0.com \
@@ -68,3 +69,7 @@ Auth0's default page, or re-deploy a backup by copying it over
   changes.
 - Brand icons are hand-drawn compact SVGs (a red Gmail "M", a blue Outlook
   tile). Swap in official brand assets if design wants exact marks.
+- Inline `<script>` in page templates runs on this tenant: the live Universal
+  Login response sends `content-security-policy: frame-ancestors 'none'` with
+  no `script-src` (verified 2026-08-23), and Auth0 documents no CSP nonce for
+  templates. If Auth0 ever ships a strict CSP for Universal Login, revisit.
