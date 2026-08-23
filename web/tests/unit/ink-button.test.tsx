@@ -47,4 +47,18 @@ describe("InkButton", () => {
       "disabled:hover:bg-grey-200",
     );
   });
+
+  it("prefixes the label with a spinner while loading", () => {
+    const { container } = render(
+      <InkButton type="button" loading>
+        Creating app…
+      </InkButton>,
+    );
+
+    const button = screen.getByRole("button", { name: "Creating app…" });
+
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
+    expect(container.querySelector("svg.animate-spin")).toBeInTheDocument();
+  });
 });

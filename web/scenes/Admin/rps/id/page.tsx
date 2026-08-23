@@ -14,6 +14,7 @@ import { TeamMetric } from "@/components/AdminDashboard/Teams/TeamMetric";
 import { UIModule } from "@/components/AdminDashboard/UIModule";
 
 import { fetchAdminRpDetails } from "./server/fetch-rp-details";
+import { RpManagerKeyMigrationAuditSection } from "../manager-key-migration/AuditSection";
 
 type AdminRpPageProps = {
   rpId: string;
@@ -65,7 +66,7 @@ export const AdminRpPage = async ({ rpId }: AdminRpPageProps) => {
       </UIModule>
 
       <div className="grid min-h-0 w-full grid-cols-1 gap-4 max-lg:h-auto lg:h-full lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
-        <UIModule className="min-h-0 overflow-auto p-5">
+        <UIModule className="min-h-0 min-w-0 overflow-auto p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-16 font-semibold text-grey-900">Overview</h2>
             <Link
@@ -94,28 +95,30 @@ export const AdminRpPage = async ({ rpId }: AdminRpPageProps) => {
                 <RpModeBadge mode={rp.mode as RpRegistrationMode} />
               </dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-grey-100 py-2">
+            <div className="grid min-w-0 gap-1 border-b border-grey-100 py-2">
               <dt className="text-grey-500">Signer address</dt>
-              <dd className="truncate font-mono text-13 font-medium text-grey-900">
+              <dd className="min-w-0 font-mono text-13 font-medium break-all text-grey-900">
                 {rp.signer_address ?? "—"}
               </dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-grey-100 py-2">
+            <div className="grid min-w-0 gap-1 border-b border-grey-100 py-2">
               <dt className="text-grey-500">Operation hash</dt>
-              <dd className="truncate font-mono text-13 font-medium text-grey-900">
+              <dd className="min-w-0 font-mono text-13 font-medium break-all text-grey-900">
                 {rp.operation_hash ?? "—"}
               </dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-grey-100 py-2">
+            <div className="grid min-w-0 gap-1 border-b border-grey-100 py-2">
               <dt className="text-grey-500">Staging operation hash</dt>
-              <dd className="truncate font-mono text-13 font-medium text-grey-900">
+              <dd className="min-w-0 font-mono text-13 font-medium break-all text-grey-900">
                 {rp.staging_operation_hash ?? "—"}
               </dd>
             </div>
           </dl>
+          {/* TODO: remove after the RP manager key migration completes */}
+          <RpManagerKeyMigrationAuditSection rpId={rp.rp_id} />
         </UIModule>
-        <div className="grid content-start gap-4">
-          <UIModule className="self-start p-5">
+        <div className="grid min-w-0 content-start gap-4 overflow-hidden">
+          <UIModule className="min-w-0 self-start overflow-hidden p-5">
             <h2 className="text-16 font-semibold text-grey-900">App</h2>
             <Link
               className="group mt-4 block min-w-0 rounded-8 outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
@@ -145,7 +148,7 @@ export const AdminRpPage = async ({ rpId }: AdminRpPageProps) => {
               </div>
             </dl>
           </UIModule>
-          <UIModule className="self-start p-5">
+          <UIModule className="min-w-0 self-start overflow-hidden p-5">
             <h2 className="text-16 font-semibold text-grey-900">Owning team</h2>
             <Link
               className="group mt-4 block min-w-0 rounded-8 outline-none focus-visible:ring-2 focus-visible:ring-blue-500"

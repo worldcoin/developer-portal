@@ -1,10 +1,13 @@
 import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
+import {
+  FormDialog,
+  formDialogErrorClassName,
+  formDialogInputClassName,
+  formDialogLabelClassName,
+  formDialogPrimaryActionClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
 import { KeyIcon } from "@/components/Icons/KeyIcon";
-import { Input } from "@/components/Input";
 import { Switcher } from "@/components/Switch";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -96,76 +99,92 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
   };
 
   return (
-    <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
-      <DialogOverlay />
-
-      <DialogPanel className="md:max-w-xl">
-        <div className="grid w-full grid-cols-1 justify-items-center gap-y-8">
+    <FormDialog
+      open={isOpen}
+      onClose={() => setIsOpen(false)}
+      dismissable={!updatingKey}
+      title="Edit API key"
+      closeLabel="Close edit API key dialog"
+    >
+      <div className="grid w-full gap-y-6">
+        <div className="grid justify-items-center">
           <CircleIconContainer variant={"info"}>
             <KeyIcon className="text-blue-500" />
           </CircleIconContainer>
+        </div>
 
-          <div className="grid w-full justify-items-center gap-y-4">
-            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
-              Edit API Key
-            </Typography>
+        <form className="grid w-full gap-y-6" onSubmit={handleSubmit(submit)}>
+          <div>
+            <label
+              htmlFor="edit-api-key-name"
+              className={formDialogLabelClassName}
+            >
+              Key name <span aria-hidden="true">*</span>
+            </label>
+            <input
+              id="edit-api-key-name"
+              {...register("name")}
+              className={formDialogInputClassName}
+              placeholder="Staging_key"
+              disabled={updatingKey}
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={
+                errors.name ? "edit-api-key-name-error" : undefined
+              }
+            />
+            {errors.name?.message ? (
+              <p
+                id="edit-api-key-name-error"
+                className={formDialogErrorClassName}
+              >
+                {errors.name.message}
+              </p>
+            ) : null}
           </div>
 
-          <form
-            className="grid w-full gap-y-10"
-            onSubmit={handleSubmit(submit)}
-          >
-            <Input
-              register={register("name")}
-              label="Key name"
-              required
-              errors={errors.name}
-              placeholder="Staging_key"
-            />
+          <Controller
+            control={control}
+            name="isActive"
+            render={({ field }) => (
+              <div className="grid grid-cols-auto/1fr items-start justify-items-start gap-x-4 rounded-xl border border-grey-200 p-4">
+                <Switcher
+                  setEnabled={field.onChange}
+                  enabled={field.value}
+                  disabled={updatingKey}
+                />
 
-            <Controller
-              control={control}
-              name="isActive"
-              render={({ field }) => (
-                <div className="grid grid-cols-auto/1fr items-start justify-items-start gap-x-4 rounded-xl border border-grey-200 p-4">
-                  <Switcher setEnabled={field.onChange} enabled={field.value} />
+                <div className="grid grid-cols-1 gap-y-1">
+                  <Typography variant={TYPOGRAPHY.R3}>
+                    Activate the API key
+                  </Typography>
 
-                  <div className="grid grid-cols-1 gap-y-1">
-                    <Typography variant={TYPOGRAPHY.R3}>
-                      Activate the API key
-                    </Typography>
-
-                    <Typography
-                      variant={TYPOGRAPHY.R4}
-                      className="text-grey-400"
-                    >
-                      Toggle to enable or disable this API key.
-                    </Typography>
-                  </div>
+                  <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
+                    Toggle to enable or disable this API key.
+                  </Typography>
                 </div>
-              )}
-            />
+              </div>
+            )}
+          />
 
-            <div className="grid w-full grid-cols-1 gap-x-4 gap-y-2 md:grid-cols-2">
-              <DecoratedButton
-                className="order-2 md:order-1"
-                type="button"
-                variant="secondary"
-                onClick={() => setIsOpen(false)}
-              >
-                Cancel
-              </DecoratedButton>
-
-              <DecoratedButton
-                className="order-1 whitespace-nowrap"
-                type="submit"
-              >
-                Save Changes
-              </DecoratedButton>
-            </div>
-          </form>
-        </div>
-      </DialogPanel>
-    </Dialog>
+          <div className="grid w-full gap-3 md:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              disabled={updatingKey}
+              className={`${formDialogSecondaryActionClassName} order-2 md:order-none`}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={updatingKey}
+              className={`${formDialogPrimaryActionClassName} order-1 md:order-none`}
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </FormDialog>
   );
 });

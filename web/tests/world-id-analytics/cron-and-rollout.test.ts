@@ -9,7 +9,7 @@ import {
   resetFixture,
   seedFixture,
 } from "./fresh-stack-fixture";
-import { requiredEnv } from "./run-sql-operation";
+import { requiredEnv } from "./harness-env";
 
 // #region Mocks
 // Only the log sink is mocked. The route, the GraphQL client, the service JWT,
@@ -148,6 +148,7 @@ beforeAll(() => {
 beforeEach(async () => {
   jest.clearAllMocks();
   delete process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED;
+  await global.RedisClient!.flushall();
   await removeChunkSabotage();
   await resetFixture(pool);
   await seedFixture(pool);
@@ -185,9 +186,11 @@ describe("World ID analytics [cron trigger]", () => {
     expect(trigger.headers).toEqual([
       { name: "Authorization", value_from_env: "INTERNAL_ENDPOINTS_SECRET" },
     ]);
-    // A missed tick must expire rather than pile up behind the next one.
+    // A missed tick must expire rather than pile up behind the next one, and
+    // the webhook budget must be long enough for real backfill progress.
     expect(trigger.retry_conf).toMatchObject({
       num_retries: 1,
+      timeout_seconds: 840,
       tolerance_seconds: 900,
     });
   });
@@ -308,6 +311,13 @@ describe("World ID analytics [cron mode]", () => {
       outcome: "advanced",
       days: 1,
       total: "2",
+      backfill: {
+        // Two-hours-ago rows may straddle a UTC midnight, so the bootstrap
+        // may or may not need one single-day chunk.
+        chunks: expect.any(Number),
+        complete: true,
+        processed_through: utcDate(1),
+      },
     });
     expect(await rolledCounts()).toEqual({
       legacy: [{ unique_count: "1" }],
@@ -343,64 +353,65 @@ describe("World ID analytics [cron mode]", () => {
 });
 // #endregion
 
-// #region Dated mode against the real database
-describe("World ID analytics [dated mode]", () => {
-  it("backfills a dated range with the rollout flag still off", async () => {
-    await insertV3Nullifier(pool, {
-      id: "nullifier_v3_dated_bypass",
-      createdAt: daysAgoNoon(10),
-    });
-    await insertV4Nullifier(pool, {
-      id: "nullifier_v4_dated_bypass",
-      createdAt: daysAgoNoon(10),
-    });
+// #region Backfill catch-up against the real database
+describe("World ID analytics [backfill catch-up]", () => {
+  const CURSOR_KEY = "world-id-analytics:rollup:processed-through";
 
-    const response = await POST(
-      request({ from_date: utcDate(10), to_date: utcDate(10) }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
-      success: true,
-      chunks: 1,
-      failed_ranges: [],
-    });
-    expect(await rolledCounts()).toEqual({
-      legacy: [{ unique_count: "1" }],
-      v4: [{ unique_count: "1" }],
-    });
-  });
-
-  it("covers a multi-chunk range end to end", async () => {
+  it("walks all history in chunks on the first tick and records the cursor", async () => {
     for (const daysAgo of [24, 14, 4]) {
       await insertV3Nullifier(pool, {
-        id: `nullifier_v3_multi_${daysAgo}`,
+        id: `nullifier_v3_backfill_${daysAgo}`,
         createdAt: daysAgoNoon(daysAgo),
       });
     }
+    process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED = "true";
 
-    const response = await POST(
-      request({
-        from_date: utcDate(24),
-        to_date: utcDate(0),
-        chunk_days: 10,
-      }),
-    );
+    const response = await POST(request({}));
+    const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
+    expect(body).toMatchObject({
       success: true,
-      chunks: 3,
-      failed_ranges: [],
+      outcome: "advanced",
+      backfill: {
+        chunks: 3,
+        complete: true,
+        processed_through: utcDate(1),
+      },
     });
     expect(await rolledLegacyDates()).toEqual([
       utcDate(24),
       utcDate(14),
       utcDate(4),
     ]);
+    expect(await global.RedisClient!.get(CURSOR_KEY)).toBe(utcDate(1));
+    const ttl = await global.RedisClient!.ttl(CURSOR_KEY);
+    expect(ttl).toBeGreaterThan(0);
+    expect(ttl).toBeLessThanOrEqual(2 * 24 * 60 * 60);
   });
 
-  it("reports a failed chunk, keeps the others, and heals on re-POST", async () => {
+  it("never re-rolls history behind the stored cursor", async () => {
+    await insertV3Nullifier(pool, {
+      id: "nullifier_v3_behind_cursor",
+      createdAt: daysAgoNoon(20),
+    });
+    await insertV3Nullifier(pool, {
+      id: "nullifier_v3_ahead_of_cursor",
+      createdAt: daysAgoNoon(8),
+    });
+    await global.RedisClient!.set(CURSOR_KEY, utcDate(10));
+    process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED = "true";
+
+    const response = await POST(request({}));
+
+    expect(await response.json()).toMatchObject({
+      backfill: { chunks: 1, complete: true, processed_through: utcDate(1) },
+    });
+    // The chunk resumed at the cursor, so the older day stays unrolled.
+    expect(await rolledLegacyDates()).toEqual([utcDate(8)]);
+  });
+
+  it("halts on a failing chunk, 500s, and the next tick heals", async () => {
     for (const daysAgo of [24, 14, 4]) {
       await insertV3Nullifier(pool, {
         id: `nullifier_v3_heal_${daysAgo}`,
@@ -425,58 +436,43 @@ describe("World ID analytics [dated mode]", () => {
       FOR EACH ROW
       EXECUTE FUNCTION public.contract_fail_v3_analytics_chunk();
     `);
+    process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED = "true";
 
-    const response = await POST(
-      request({
-        from_date: utcDate(24),
-        to_date: utcDate(0),
-        chunk_days: 10,
-      }),
-    );
+    const response = await POST(request({}));
     const body = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(body.success).toBe(false);
-    expect(body.chunks).toBe(3);
-    expect(body.failed_ranges).toEqual([
-      {
-        from_date: utcDate(14),
-        to_date: utcDate(5),
-        error: expect.any(String),
+    expect(response.status).toBe(500);
+    expect(body).toMatchObject({
+      success: false,
+      backfill: {
+        chunks: 1,
+        complete: false,
+        processed_through: utcDate(15),
+        failed_range: {
+          from_date: utcDate(14),
+          to_date: utcDate(5),
+          error: expect.any(String),
+        },
       },
-    ]);
-    // The failed chunk's transaction rolled back alone; its neighbors landed.
-    expect(await rolledLegacyDates()).toEqual([utcDate(24), utcDate(4)]);
+    });
+    // The failed chunk's transaction rolled back alone; the loop stopped so
+    // the cursor can never skip past a gap.
+    expect(await rolledLegacyDates()).toEqual([utcDate(24)]);
+    expect(await global.RedisClient!.get(CURSOR_KEY)).toBe(utcDate(15));
     expect(loggerError).toHaveBeenCalledTimes(1);
 
     await removeChunkSabotage();
-    const retry = await POST(
-      request({ from_date: utcDate(14), to_date: utcDate(5) }),
-    );
+    const retry = await POST(request({}));
 
-    expect(await retry.json()).toEqual({
+    expect(await retry.json()).toMatchObject({
       success: true,
-      chunks: 1,
-      failed_ranges: [],
+      backfill: { chunks: 2, complete: true, processed_through: utcDate(1) },
     });
     expect(await rolledLegacyDates()).toEqual([
       utcDate(24),
       utcDate(14),
       utcDate(4),
     ]);
-  });
-
-  it("rejects an over-wide range before touching the database", async () => {
-    const response = await POST(
-      request({ from_date: utcDate(100), to_date: utcDate(0) }),
-    );
-
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({
-      success: false,
-      error: "range must be at most 92 days per call; split it",
-    });
-    expect(await rolledRowCount()).toBe(0);
   });
 });
 // #endregion

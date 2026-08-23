@@ -8,7 +8,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
+import {
+  Icon,
+  opticalIconClassName,
+  preloadIcons,
+} from "@/scenes/PortalV3/common/Icon";
 import { SearchIcon } from "lucide-react";
 import Link from "next/link";
 import {
@@ -26,6 +30,16 @@ export type SwitcherItem = { id: string; name: string };
 
 export const switcherTriggerClassName =
   "h-9 min-w-0 cursor-pointer px-3 font-world text-13 leading-none font-medium";
+
+/**
+ * Static icons inside the lazily mounted switcher popover.
+ * Shared by team + app switchers; apps-empty-icon is apps-only.
+ */
+const searchableSwitcherPreloadIcons = [
+  "dropdown-plus", // create-action footer
+  "dropdown-check", // selected row
+  "apps-empty-icon", // AppsDropdown empty state
+] as const;
 
 const createActionClassName =
   "h-10 w-full justify-start gap-2 rounded-8 px-3 font-world text-13 font-medium text-portal-text hover:bg-grey-50 hover:text-portal-text";
@@ -60,6 +74,8 @@ export const SearchableSwitcher = <T extends SwitcherItem>(
   const [searchQuery, setSearchQuery] = useState("");
   const [showScrollHint, setShowScrollHint] = useState(false);
   const listRef = useRef<HTMLUListElement>(null);
+
+  preloadIcons(searchableSwitcherPreloadIcons);
 
   const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
   const filteredItems = useMemo(

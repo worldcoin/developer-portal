@@ -9,8 +9,25 @@
 // result so each caller (Hasura action vs JSON-RPC) can format its own
 // error envelope without parsing exception messages.
 
+import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
+import { getSdk as getDeleteRpSdk } from "@/api/hasura/register-rp/graphql/delete-rp-registration.generated";
+import { getSdk as getUpdateRpSdk } from "@/api/hasura/register-rp/graphql/update-rp-registration.generated";
+import { getSdk as getClaimRotationSdk } from "@/api/hasura/rotate-signer-key/graphql/claim-rotation-slot.generated";
+import { getSdk as getRpRegistrationSdk } from "@/api/hasura/rotate-signer-key/graphql/get-rp-registration.generated";
+import { getSdk as getRevertStatusSdk } from "@/api/hasura/rotate-signer-key/graphql/revert-rotation-status.generated";
+import { getSdk as getUpdateResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-rotation-result.generated";
+import { getSdk as getUpdateStagingResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-staging-rotation-result.generated";
+import { getSdk as getClaimToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/claim-toggle-slot.generated";
+import { getSdk as getResetStalePendingSdk } from "@/api/hasura/toggle-rp-active/graphql/reset-stale-pending-rp.generated";
+import { getSdk as getRevertToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/revert-toggle-status.generated";
+import { getSdk as getUpdateToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
-import { createManagerKey } from "@/api/helpers/kms-eth";
+import {
+  abortIfManagerKeyMigrationInFlight,
+  assertManagerKeySchemaReady,
+  resolveManagerKeyForDeactivation,
+  resolveManagerKeyForRegistration,
+} from "@/api/helpers/rp-manager-key-migration";
 import {
   submitRegisterRpTransaction,
   submitRotateSignerTransaction,
@@ -25,18 +42,6 @@ import {
 } from "@/api/helpers/rp-utils";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
-import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
-import { getSdk as getDeleteRpSdk } from "@/api/hasura/register-rp/graphql/delete-rp-registration.generated";
-import { getSdk as getUpdateRpSdk } from "@/api/hasura/register-rp/graphql/update-rp-registration.generated";
-import { getSdk as getClaimRotationSdk } from "@/api/hasura/rotate-signer-key/graphql/claim-rotation-slot.generated";
-import { getSdk as getRpRegistrationSdk } from "@/api/hasura/rotate-signer-key/graphql/get-rp-registration.generated";
-import { getSdk as getRevertStatusSdk } from "@/api/hasura/rotate-signer-key/graphql/revert-rotation-status.generated";
-import { getSdk as getUpdateResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-rotation-result.generated";
-import { getSdk as getUpdateStagingResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-staging-rotation-result.generated";
-import { getSdk as getClaimToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/claim-toggle-slot.generated";
-import { getSdk as getResetStalePendingSdk } from "@/api/hasura/toggle-rp-active/graphql/reset-stale-pending-rp.generated";
-import { getSdk as getRevertToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/revert-toggle-status.generated";
-import { getSdk as getUpdateToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
 import { logger } from "@/lib/logger";
@@ -126,6 +131,17 @@ export async function submitManagedRpRegistration({
 
   // Slot is now claimed; any failure between here and the final DB write
   // must release it so retries don't bounce off `already_registered`.
+
+  // TODO: remove after the RP manager key migration completes
+  if (!(await assertManagerKeySchemaReady(client, rpIdString, appId))) {
+    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    return {
+      ok: false,
+      code: "db_error",
+      detail: "Registration schema is not ready.",
+    };
+  }
+
   let kmsClient;
   try {
     kmsClient = await getKMSClient(primaryConfig.kmsRegion);
@@ -142,17 +158,17 @@ export async function submitManagedRpRegistration({
     };
   }
 
-  const managerKeyResult = await createManagerKey(kmsClient, rpIdString);
-  if (!managerKeyResult) {
+  // TODO: remove after the RP manager key migration completes
+  const managerKey = await resolveManagerKeyForRegistration({
+    kmsClient,
+    rpIdString,
+    appId,
+  });
+  if (!managerKey.ok) {
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
-    return {
-      ok: false,
-      code: "kms_error",
-      detail: "Failed to create manager key.",
-    };
+    return managerKey;
   }
-
-  const { keyId: managerKmsKeyId, address: managerAddress } = managerKeyResult;
+  const { managerKmsKeyId, managerAddress, isUniqueManagerKey } = managerKey;
 
   let operationHash: string;
   try {
@@ -168,7 +184,9 @@ export async function submitManagedRpRegistration({
       error,
       app_id: appId,
     });
-    await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    if (isUniqueManagerKey) {
+      await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    }
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
     return {
       ok: false,
@@ -220,6 +238,7 @@ export async function submitManagedRpRegistration({
     ).UpdateRpRegistration({
       rp_id: rpIdString,
       manager_kms_key_id: managerKmsKeyId,
+      is_unique_manager_key: isUniqueManagerKey,
       operation_hash: operationHash,
       staging_operation_hash: stagingOperationHash,
       staging_status: stagingStatus,
@@ -384,6 +403,20 @@ export async function submitManagedSignerRotation({
       });
     }
   };
+
+  // TODO: remove after the RP manager key migration completes
+  const migrationConflict = await abortIfManagerKeyMigrationInFlight({
+    rpId: rpIdString,
+    revert: revertStatus,
+    onConflict: () =>
+      ({
+        ok: false as const,
+        code: "rotation_in_progress" as const,
+        detail:
+          "Cannot rotate signer key. RP status is not 'registered' (rotation may already be in progress).",
+      }) satisfies ManagedRotationResult,
+  });
+  if (migrationConflict) return migrationConflict;
 
   // From here on the RP status is `pending`; any unhandled exception or
   // tagged failure must revert it so the user can retry. Otherwise a
@@ -629,7 +662,7 @@ export async function submitManagedRpDeactivation({
   if (registration.mode !== "managed" || !registration.manager_kms_key_id) {
     return { ok: true, outcome: "skipped", reason: "self_managed", rpIdString };
   }
-  const managerKmsKeyId = registration.manager_kms_key_id;
+  const dbManagerKmsKeyId = registration.manager_kms_key_id;
   const currentStatus = registration.status as RpRegistrationStatus;
   const currentStagingStatus =
     registration.staging_status as RpRegistrationStatus | null;
@@ -658,6 +691,7 @@ export async function submitManagedRpDeactivation({
   // note above. A failed read is retryable, so don't touch anything.
   let onChainInitialized: boolean;
   let onChainActive: boolean;
+  let primaryOnChainManager: string;
   try {
     const onChainRp = await getRpFromContract(
       rpId,
@@ -665,6 +699,7 @@ export async function submitManagedRpDeactivation({
     );
     onChainInitialized = onChainRp.initialized;
     onChainActive = onChainRp.active;
+    primaryOnChainManager = onChainRp.manager;
   } catch (error) {
     logger.error("Failed to read on-chain RP state for deactivation", {
       error,
@@ -690,6 +725,7 @@ export async function submitManagedRpDeactivation({
   // staging config while the row still has staging state) must not finalize.
   let stagingActive = false;
   let stagingReadOk = true;
+  let stagingOnChainManager: string | null = null;
   const isProduction = process.env.NEXT_PUBLIC_APP_ENV === "production";
   const stagingConfig = isProduction ? getStagingRpRegistryConfig() : null;
   if (stagingConfig) {
@@ -698,6 +734,7 @@ export async function submitManagedRpDeactivation({
         rpId,
         stagingConfig.contractAddress,
       );
+      stagingOnChainManager = stagingRp.manager;
       stagingActive = stagingRp.initialized && stagingRp.active;
     } catch (error) {
       stagingReadOk = false;
@@ -855,6 +892,20 @@ export async function submitManagedRpDeactivation({
     }
   };
 
+  // TODO: remove after the RP manager key migration completes
+  const migrationConflict = await abortIfManagerKeyMigrationInFlight({
+    rpId: rpIdString,
+    revert: revertStatus,
+    onConflict: () =>
+      ({
+        ok: true as const,
+        outcome: "skipped" as const,
+        reason: "concurrent" as const,
+        rpIdString,
+      }) satisfies ManagedDeactivationResult,
+  });
+  if (migrationConflict) return migrationConflict;
+
   let kmsClient;
   try {
     kmsClient = await getKMSClient(primaryConfig.kmsRegion);
@@ -873,6 +924,29 @@ export async function submitManagedRpDeactivation({
     };
   }
 
+  // TODO: remove after the RP manager key migration completes
+  const resolvedKeys = await resolveManagerKeyForDeactivation({
+    client,
+    kmsClient,
+    rpIdString,
+    dbManagerKmsKeyId,
+    primaryOnChainManager,
+    stagingOnChainManager,
+    primaryActive,
+    stagingActive,
+    stagingRegistryConfigured: stagingConfig !== null,
+  });
+  if (!resolvedKeys.ok) {
+    await revertStatus();
+    return {
+      ok: false,
+      code: "submission_error",
+      detail: resolvedKeys.detail,
+      rpIdString,
+    };
+  }
+  const { primaryManagerKmsKeyId, stagingManagerKmsKeyId } = resolvedKeys.keys;
+
   // Toggle each contract that is still active. `toggleActive` flips state, so we
   // must never toggle one that already reads inactive (that would re-enable it).
   // The primary toggle is the main event; staging is best-effort — unless it is
@@ -883,7 +957,7 @@ export async function submitManagedRpDeactivation({
     try {
       operationHash = await submitToggleRpActiveTransaction(primaryConfig, {
         rpId,
-        managerKmsKeyId,
+        managerKmsKeyId: primaryManagerKmsKeyId,
         kmsClient,
       });
     } catch (error) {
@@ -907,7 +981,7 @@ export async function submitManagedRpDeactivation({
     try {
       stagingOperationHash = await submitToggleRpActiveTransaction(
         stagingConfig,
-        { rpId, managerKmsKeyId, kmsClient },
+        { rpId, managerKmsKeyId: stagingManagerKmsKeyId, kmsClient },
       );
       logger.info("Staging RP deactivation submitted", {
         rpIdString,

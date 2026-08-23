@@ -12,13 +12,16 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { AppStoreForm } from "../AppStore/app-store";
+import { AppStoreFormValues } from "../AppStore/FormSchema/types";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
 import { AppStoreActions } from "../AppStoreActions";
 import { BasicInformationHandle } from "../BasicInformation";
 import { useCreateNewDraft } from "../hook/use-create-new-draft";
 import { isMiniAppAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { SaveStatusIndicator, useSaveStatusActions } from "../SaveStatus";
+import { SetupForm as MiniAppPermissionsForm } from "../../MiniApp/PermissionsForm";
 import { AvailabilityStep } from "./AvailabilityStep";
 import {
   BasicInformationStep,
@@ -28,12 +31,13 @@ import {
 import { LocalisedContentStep } from "./LocalisedContentStep";
 import { ReviewStep } from "./ReviewStep";
 import { StoreListingStep } from "./StoreListingStep";
+import { Stepper } from "./Stepper";
 import {
   getWizardStepForField,
   getWizardSteps,
-  Stepper,
+  getWizardStepStatuses,
   WizardStep,
-} from "./Stepper";
+} from "./wizard-steps";
 
 export const secondaryButtonClassName =
   "flex h-10 items-center justify-center rounded-[10px] bg-portal-canvas px-6 text-15 leading-[1.2] font-semibold text-portal-ink transition-colors hover:bg-portal-border disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-portal-canvas";
@@ -54,6 +58,18 @@ export const wizardActionBarClassName =
   "-mx-6 shrink-0 border-t border-portal-border bg-white px-6 py-3";
 export const wizardActionBarInnerClassName =
   "mx-auto flex w-full max-w-[626px] items-center gap-3";
+
+const cloneAppStoreFormValues = (
+  values: AppStoreFormValues,
+): AppStoreFormValues => ({
+  ...values,
+  supported_countries: [...values.supported_countries],
+  supported_languages: [...values.supported_languages],
+  localisations: values.localisations.map((localisation) => ({
+    ...localisation,
+    showcase_img_urls: [...(localisation.showcase_img_urls ?? [])],
+  })),
+});
 
 /**
  * Q3 2026 configuration wizard (Figma: Dev Portal Q3 2026). The designed
@@ -88,10 +104,36 @@ export const ConfigurationWizard = (props: {
   } = props;
   const basicInfoRef = useRef<BasicInformationHandle>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const appStoreForm = useFormContext<AppStoreFormValues>();
+  // Keep completion detached from RHF's live values. A step can acknowledge a
+  // new value only when the owning autosave (or self-persisting image mutation)
+  // publishes a successful snapshot below.
+  const [appStoreFieldSnapshot, setAppStoreFieldSnapshot] =
+    useState<AppStoreFormValues>(() =>
+      cloneAppStoreFormValues(appStoreForm.getValues()),
+    );
   const { user } = useUser() as Auth0SessionUser;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const saveStatusActions = useSaveStatusActions();
   const [isSwitchingVersion, setIsSwitchingVersion] = useState(false);
+  const [showReviewValidationErrors, setShowReviewValidationErrors] =
+    useState(false);
+  const handleSavedEdit = useCallback(
+    (
+      nextValues:
+        | AppStoreFormValues
+        | ((currentValues: AppStoreFormValues) => AppStoreFormValues),
+    ) => {
+      setAppStoreFieldSnapshot((currentValues) =>
+        cloneAppStoreFormValues(
+          typeof nextValues === "function"
+            ? nextValues(currentValues)
+            : nextValues,
+        ),
+      );
+    },
+    [],
+  );
 
   // Seed the optimistic mode atom from the row before using it for later
   // in-place mode changes. Until this row is synced, derive the first render
@@ -113,6 +155,41 @@ export const ConfigurationWizard = (props: {
     steps.findIndex((step) => step.id === activeStep),
   );
   const nextStep = steps[activeIndex + 1];
+  const resolvedLogoImageUrl = useResolvedLogoUrl(
+    appId,
+    appMetadata as AppMetadata,
+  );
+  const basicInformationFieldSnapshot = useMemo(
+    () => ({
+      name: appMetadata.name ?? "",
+      integration_url: appMetadata.integration_url ?? "",
+      app_website_url: appMetadata.app_website_url ?? "",
+    }),
+    [
+      appMetadata.app_website_url,
+      appMetadata.integration_url,
+      appMetadata.name,
+    ],
+  );
+  const wizardStepStatuses = useMemo(
+    () =>
+      getWizardStepStatuses({
+        isMiniApp,
+        basicInformationFieldSnapshot,
+        appStoreFieldSnapshot,
+        logoImageFieldSnapshot: appMetadata.logo_img_url,
+        contentCardImageFieldSnapshot: appMetadata.content_card_image_url,
+        showReviewValidationErrors,
+      }),
+    [
+      appMetadata.content_card_image_url,
+      appMetadata.logo_img_url,
+      isMiniApp,
+      appStoreFieldSnapshot,
+      basicInformationFieldSnapshot,
+      showReviewValidationErrors,
+    ],
+  );
 
   const handleStepChange = useCallback(
     (step: WizardStep) => {
@@ -124,7 +201,7 @@ export const ConfigurationWizard = (props: {
     [setActiveStep],
   );
 
-  // Switching to external drops the store-listing step; land somewhere valid.
+  // Switching to external drops the Mini App-only steps; land somewhere valid.
   useEffect(() => {
     if (!steps.some((step) => step.id === activeStep)) {
       handleStepChange(WizardStep.AVAILABILITY);
@@ -133,6 +210,7 @@ export const ConfigurationWizard = (props: {
 
   const handleValidationError = useCallback(
     (fieldPath?: string) => {
+      setShowReviewValidationErrors(true);
       const target = getWizardStepForField(isMiniApp, fieldPath);
       handleStepChange(
         steps.some((step) => step.id === target) ? target : WizardStep.BASIC,
@@ -199,8 +277,6 @@ export const ConfigurationWizard = (props: {
     setViewMode,
   ]);
 
-  const logoUrl = useResolvedLogoUrl(appId, appMetadata as AppMetadata);
-
   const stepWrapperClassName = (step: WizardStep, marginClassName: string) =>
     clsx("w-full", marginClassName, activeStep !== step && "hidden");
 
@@ -226,6 +302,7 @@ export const ConfigurationWizard = (props: {
         <Stepper
           steps={steps}
           activeIndex={activeIndex}
+          stepStatuses={wizardStepStatuses}
           onStepSelect={handleStepChange}
         />
         {/* Static cue for which version the form shows — not a control.
@@ -259,6 +336,7 @@ export const ConfigurationWizard = (props: {
           appId={appId}
           teamId={teamId}
           appMetadata={appMetadata as AppMetadata}
+          onSavedEdit={handleSavedEdit}
         >
           <div
             className={stepWrapperClassName(WizardStep.BASIC, "")}
@@ -316,6 +394,22 @@ export const ConfigurationWizard = (props: {
             <LocalisedContentStep isMiniApp={isMiniApp} />
           </div>
 
+          {isMiniApp && (
+            <div
+              className={stepWrapperClassName(
+                WizardStep.MINI_APP_PERMISSIONS,
+                "mx-auto mt-[76px] max-w-[626px]",
+              )}
+              aria-hidden={activeStep !== WizardStep.MINI_APP_PERMISSIONS}
+            >
+              <MiniAppPermissionsForm
+                appId={appId}
+                teamId={teamId}
+                appMetadata={appMetadata}
+              />
+            </div>
+          )}
+
           <div
             className={stepWrapperClassName(
               WizardStep.REVIEW,
@@ -326,7 +420,7 @@ export const ConfigurationWizard = (props: {
             <ReviewStep
               teamName={teamName}
               isMiniApp={isMiniApp}
-              logoUrl={logoUrl || undefined}
+              logoUrl={resolvedLogoImageUrl || undefined}
             />
           </div>
         </AppStoreForm>

@@ -2,12 +2,13 @@ import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.g
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient } from "@/api/helpers/kms";
+import { abortIfManagerKeyMigrationInFlight } from "@/api/helpers/rp-manager-key-migration";
+import { submitToggleRpActiveTransaction } from "@/api/helpers/rp-transactions";
 import {
   getRpRegistryConfig,
   getStagingRpRegistryConfig,
   parseRpId,
 } from "@/api/helpers/rp-utils";
-import { submitToggleRpActiveTransaction } from "@/api/helpers/rp-transactions";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -206,6 +207,24 @@ export const POST = async (req: NextRequest) => {
       });
     }
   };
+
+  // TODO: remove after the RP manager key migration completes
+  const migrationConflict = await abortIfManagerKeyMigrationInFlight({
+    rpId: rpIdString,
+    revert: revertStatus,
+    onConflict: () =>
+      errorHasuraQuery({
+        req,
+        detail:
+          "Cannot toggle RP. Another operation may already be in progress.",
+        code: "operation_in_progress",
+        app_id,
+      }),
+  });
+
+  if (migrationConflict) {
+    return migrationConflict;
+  }
 
   try {
     // STEP 6: Determine target active state from DB status

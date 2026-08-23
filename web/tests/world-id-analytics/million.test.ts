@@ -59,6 +59,11 @@ const runRollup = async () => {
       outcome: "advanced",
       days: expect.any(Number),
       total: expect.any(String),
+      backfill: {
+        chunks: expect.any(Number),
+        complete: true,
+        processed_through: utcDate(1),
+      },
     },
   });
   return elapsedMs;
@@ -77,10 +82,11 @@ const utcDate = (daysAgo: number) => {
     .slice(0, 10);
 };
 
-// The initial full-history backfill follows the production runbook: dated
-// POSTs to the same route the cron uses, chunked into bounded per-chunk
-// transactions (the 31-day seed spans several chunks).
-const runDatedBackfill = async () => {
+// The initial full-history backfill follows the production runbook: the
+// first enabled cron tick discovers the earliest raw row and walks the whole
+// 31-day seed in bounded per-chunk transactions behind the Redis cursor.
+const runInitialBackfill = async () => {
+  await global.RedisClient!.flushall();
   const started = performance.now();
   const response = await rollupWorldIdAnalytics(
     new NextRequest("http://localhost:3000/api/_rollup-world-id-analytics", {
@@ -88,19 +94,25 @@ const runDatedBackfill = async () => {
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET as string,
       },
-      body: JSON.stringify({
-        from_date: utcDate(31),
-        to_date: utcDate(0),
-        chunk_days: 10,
-      }),
     }),
   );
   const elapsedMs = performance.now() - started;
   const body = await response.json();
   expect({ status: response.status, body }).toEqual({
     status: 200,
-    body: { success: true, chunks: 4, failed_ranges: [] },
+    body: {
+      success: true,
+      outcome: "advanced",
+      days: expect.any(Number),
+      total: expect.any(String),
+      backfill: {
+        chunks: expect.any(Number),
+        complete: true,
+        processed_through: utcDate(1),
+      },
+    },
   });
+  expect(body.backfill.chunks).toBeGreaterThanOrEqual(3);
   return elapsedMs;
 };
 
@@ -479,7 +491,7 @@ afterAll(async () => {
         31,
       );
 
-      const backfillMs = await runDatedBackfill();
+      const backfillMs = await runInitialBackfill();
       const afterBackfill = await assertCanonicalParity();
       expect(afterBackfill).toEqual(initialCanonical);
       await assertEveryAppEnvironmentEndpoint(afterBackfill);

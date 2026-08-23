@@ -3,6 +3,7 @@
 import type { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
 import { teamNameSchema } from "@/lib/schema";
 import { TEAM_CREATED_TOAST_STORAGE_KEY } from "@/lib/team-created-toast";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -115,13 +116,14 @@ export const CreateTeamForm = () => {
         ) : null}
       </div>
 
-      <button
+      <InkButton
         type="submit"
-        disabled={!isValid || isPending}
-        className="inline-flex h-11 w-full items-center justify-center rounded-8 bg-portal-ink px-4 text-13 leading-none font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden enabled:hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400"
+        disabled={!isValid}
+        loading={isPending}
+        className="h-11 w-full"
       >
         {isPending ? "Creating team…" : "Create team"}
-      </button>
+      </InkButton>
     </form>
   );
 };

@@ -1,11 +1,10 @@
 import { Pool } from "pg";
 import { fixture, resetFixture, seedFixture } from "./fresh-stack-fixture";
-import { commandOutput, runSqlOperation } from "./run-sql-operation";
 
 const pool = new Pool();
 
-// Probe names, never the real indexes: the harness builds those at startup and
-// the backfill gate refuses to run without them.
+// Probe names, never the real indexes: the harness builds those at startup,
+// the same way the platform team builds them manually before the rollout.
 const CONCURRENT_PROBE = "nullifier_created_at_probe_idx";
 const MIGRATION_PROBE = "nullifier_created_at_migration_probe_idx";
 
@@ -210,15 +209,6 @@ describe("World ID analytics [created_at index build]", () => {
     );
 
     expect(rolled.rows).toEqual([{ unique_count: String(written.length) }]);
-  });
-
-  it("is safe to rerun after the harness already built both indexes", async () => {
-    const rerun = runSqlOperation("create-nullifier-created-at-index.sql");
-
-    expect({ error: rerun.error, status: rerun.status }).toEqual(
-      expect.objectContaining({ error: undefined, status: 0 }),
-    );
-    expect(commandOutput(rerun)).not.toContain("missing or invalid");
   });
 });
 // #endregion

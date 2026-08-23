@@ -1,11 +1,13 @@
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
-import { FloatingInput } from "@/components/FloatingInput";
+import {
+  FormDialog,
+  formDialogDangerActionClassName,
+  formDialogErrorClassName,
+  formDialogInputClassName,
+  formDialogLabelClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { ModalIcon } from "@/components/ModalIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -94,78 +96,84 @@ export const DeleteModal = (props: DeleteModalProps) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isValid },
   } = useForm<DeleteFormValues>({
     resolver: yupResolver(schema),
   });
 
   return (
-    <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
-      <DialogOverlay />
+    <FormDialog
+      open={openDeleteModal}
+      onClose={() => setOpenDeleteModal(false)}
+      afterLeave={() => reset()}
+      dismissable={!deletingApp}
+      title="Delete app"
+      closeLabel="Close delete app dialog"
+    >
+      <form
+        className="grid w-full gap-y-6"
+        onSubmit={handleSubmit(handleDeleteApp)}
+      >
+        <div className="grid justify-items-center gap-y-4">
+          <ModalIcon variant="error">
+            <AlertIcon className="size-7 text-white" />
+          </ModalIcon>
 
-      <DialogPanel className="grid gap-y-6 md:max-w-xl">
-        <ModalIcon variant="error">
-          <AlertIcon className="size-7 text-white" />
-        </ModalIcon>
-
-        <div className="grid w-full place-items-center gap-y-5">
-          <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
-            Do you want to delete this app?
-          </Typography>
-
-          <Typography
-            variant={TYPOGRAPHY.R3}
-            className="text-center text-grey-500"
-          >
+          <p className="text-center font-world text-14 leading-[1.5] text-portal-muted">
             The{" "}
-            <Typography
-              variant={TYPOGRAPHY.M3}
-              className="break-all text-grey-900"
-            >
+            <span className="font-medium break-all text-portal-text">
               {appName ?? ""}
-            </Typography>{" "}
+            </span>{" "}
             will be deleted, along with all of its actions, configurations and
             statistics.
-          </Typography>
+          </p>
         </div>
 
-        <form
-          className="grid w-full gap-y-7"
-          onSubmit={handleSubmit(handleDeleteApp)}
-        >
-          <FloatingInput
+        <div>
+          <label htmlFor="delete_app_name" className={formDialogLabelClassName}>
+            To verify, type Delete below
+          </label>
+          <input
             id="delete_app_name"
-            register={register("app_name")}
-            label={
-              <>
-                To verify, type{" "}
-                <span className="font-medium text-grey-900">Delete</span> below
-              </>
+            {...register("app_name")}
+            className={formDialogInputClassName}
+            disabled={deletingApp}
+            aria-invalid={Boolean(errors.app_name)}
+            aria-describedby={
+              errors.app_name ? "delete-app-confirmation-error" : undefined
             }
-            errors={errors.app_name}
+            autoComplete="off"
+            autoFocus
           />
-
-          <div className="grid w-full gap-4 md:grid-cols-2">
-            <DecoratedButton
-              type="button"
-              variant="secondary"
-              className="w-full py-3"
-              onClick={() => setOpenDeleteModal(false)}
+          {errors.app_name?.message ? (
+            <p
+              id="delete-app-confirmation-error"
+              className={formDialogErrorClassName}
             >
-              <Typography variant={TYPOGRAPHY.R3}>No</Typography>
-            </DecoratedButton>
+              {errors.app_name.message}
+            </p>
+          ) : null}
+        </div>
 
-            <DecoratedButton
-              type="submit"
-              variant="destructive"
-              className="w-full py-3"
-              disabled={!isValid}
-            >
-              <Typography variant={TYPOGRAPHY.R3}>Yes</Typography>
-            </DecoratedButton>
-          </div>
-        </form>
-      </DialogPanel>
-    </Dialog>
+        <div className="grid w-full gap-3 md:grid-cols-2">
+          <button
+            type="button"
+            className={formDialogSecondaryActionClassName}
+            onClick={() => setOpenDeleteModal(false)}
+            disabled={deletingApp}
+          >
+            No
+          </button>
+          <button
+            type="submit"
+            className={formDialogDangerActionClassName}
+            disabled={!isValid || deletingApp}
+          >
+            Yes
+          </button>
+        </div>
+      </form>
+    </FormDialog>
   );
 };

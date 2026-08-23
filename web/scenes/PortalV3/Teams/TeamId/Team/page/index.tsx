@@ -4,7 +4,7 @@ import { Unauthorized } from "@/components/Unauthorized";
 import { Role_Enum } from "@/graphql/graphql";
 import { auth0 } from "@/lib/auth0";
 import { Auth0SessionUser } from "@/lib/types";
-import { getSdk as getInitialAppSdk } from "@/scenes/Portal/Teams/TeamId/Apps/page/graphql/server/apps.generated";
+import { getSdk as getInitialAppSdk } from "@/scenes/PortalV3/Teams/TeamId/Team/page/graphql/server/apps.generated";
 import { AppsPageClient } from "@/scenes/PortalV3/Teams/TeamId/Apps/page/AppsPageClient";
 import { Apps } from "./Apps";
 

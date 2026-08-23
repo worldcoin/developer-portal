@@ -83,6 +83,19 @@ describe("admin RPs query mapping", () => {
     expect(createRpsWhere("status:bogus")).toEqual({ rp_id: { _in: [] } });
   });
 
+  it("filters managed RPs by unique vs shared manager key", () => {
+    expect(createRpsWhere("unique:true")).toEqual({
+      is_unique_manager_key: { _eq: true },
+    });
+    expect(createRpsWhere("unique:false")).toEqual({
+      is_unique_manager_key: { _eq: false },
+    });
+    expect(createRpsWhere("unique!=true")).toEqual({
+      is_unique_manager_key: { _eq: false },
+    });
+    expect(createRpsWhere("unique:maybe")).toEqual({ rp_id: { _in: [] } });
+  });
+
   it("applies inequality operators to mode and status enums", () => {
     expect(createRpsWhere("mode!=managed")).toEqual({
       mode: { _neq: "managed" },
@@ -171,13 +184,12 @@ describe("admin RPs query mapping", () => {
   it("maps inventory aggregate counts without exposing key identifiers", () => {
     expect(
       mapAdminRpInventory({
-        distinct_manager_keys: 3,
         managed_rps: 10,
         managed_with_key: 8,
         managed_without_key: 2,
-        rps_on_shared_keys: 4,
         self_managed_rps: 5,
-        shared_key_groups: 1,
+        shared_manager_key_rps: 7,
+        unique_manager_key_rps: 3,
         staging_status_deactivated: 0,
         staging_status_failed: 1,
         staging_status_null: 6,
@@ -190,13 +202,11 @@ describe("admin RPs query mapping", () => {
         total_rps: 15,
       }),
     ).toEqual({
-      distinctManagerKeys: 3,
       managedRps: 10,
-      managedWithKey: 8,
       managedWithoutKey: 2,
-      rpsOnSharedKeys: 4,
       selfManagedRps: 5,
-      sharedKeyGroups: 1,
+      sharedManagerKeyRps: 7,
+      uniqueManagerKeyRps: 3,
       stagingStatus: {
         deactivated: 0,
         failed: 1,

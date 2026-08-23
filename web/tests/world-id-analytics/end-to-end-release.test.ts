@@ -11,7 +11,7 @@ import {
   resetFixture,
   seedFixture,
 } from "./fresh-stack-fixture";
-import { requiredEnv } from "./run-sql-operation";
+import { requiredEnv } from "./harness-env";
 
 // #region Mocks
 // Only the log sink is mocked; route, GraphQL client, service JWT, Hasura and
@@ -106,6 +106,7 @@ beforeAll(() => {
 
 beforeEach(async () => {
   delete process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED;
+  await global.RedisClient!.flushall();
   await resetFixture(pool);
   await seedFixture(pool);
 });
@@ -179,25 +180,19 @@ describe("World ID analytics [release runbook end to end]", () => {
       createdAt: daysAgoNoon(30),
     });
 
-    // ── 3. Operator backfill: three ≤92-day POSTs cover the whole history.
-    for (const [fromDaysAgo, toDaysAgo, chunks] of [
-      [210, 120, 10],
-      [119, 30, 9],
-      [29, 0, 3],
-    ] as const) {
-      const response = await POST(
-        request({
-          from_date: utcDate(fromDaysAgo),
-          to_date: utcDate(toDaysAgo),
-          chunk_days: 10,
-        }),
-      );
-      expect(await response.json()).toEqual({
-        success: true,
-        chunks,
-        failed_ranges: [],
-      });
-    }
+    // ── 3. Flag on: the first cron tick discovers the earliest raw row and
+    // walks the whole history in chunks, no operator backfill involved.
+    process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED = "true";
+    const firstTick = await POST(request({}));
+    expect(await firstTick.json()).toMatchObject({
+      success: true,
+      outcome: "advanced",
+      backfill: {
+        chunks: 20,
+        complete: true,
+        processed_through: utcDate(1),
+      },
+    });
 
     // ── 4. Parity signs off the backfill: every complete UTC day matches a
     // recount of the raw tables in both directions.
@@ -231,10 +226,8 @@ describe("World ID analytics [release runbook end to end]", () => {
       { date_utc: utcDate(100), unique_count: "2" },
     ]);
 
-    // ── 6. Flag on: a real Hasura-delivered webhook drives the live tick
-    // through the actual route handler.
-    process.env.WORLD_ID_ANALYTICS_ROLLUP_ENABLED = "true";
-
+    // ── 6. A real Hasura-delivered webhook drives a live tick through the
+    // actual route handler.
     const deliveries: Array<{ body: any; status: number }> = [];
     let delivered: (() => void) | undefined;
     const firstDelivery = new Promise<void>((resolve) => {
