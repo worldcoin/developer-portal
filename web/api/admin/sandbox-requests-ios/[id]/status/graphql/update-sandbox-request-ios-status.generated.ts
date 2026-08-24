@@ -6,6 +6,7 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type UpdateSandboxRequestIosStatusMutationVariables = Types.Exact<{
   id: Types.Scalars["String"]["input"];
+  from_status: Types.Scalars["sandbox_access_request_ios_status"]["input"];
   status: Types.Scalars["sandbox_access_request_ios_status"]["input"];
 }>;
 
@@ -25,10 +26,11 @@ export type UpdateSandboxRequestIosStatusMutation = {
 export const UpdateSandboxRequestIosStatusDocument = gql`
   mutation UpdateSandboxRequestIosStatus(
     $id: String!
+    $from_status: sandbox_access_request_ios_status!
     $status: sandbox_access_request_ios_status!
   ) {
     update_sandbox_access_request_ios(
-      where: { id: { _eq: $id }, status: { _eq: pending } }
+      where: { id: { _eq: $id }, status: { _eq: $from_status } }
       _set: { status: $status }
     ) {
       affected_rows

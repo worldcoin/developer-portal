@@ -2,7 +2,7 @@ import {
   addSandboxBetaTester,
   AppStoreConnectRequestError,
   removeSandboxBetaTester,
-} from "@/api/helpers/app-store-connect/sandbox-beta-testers";
+} from "@/api/helpers/app-store-connect/beta-tester-handler";
 import {
   AppStoreConnectConfigurationError,
   getAppStoreConnectConfig,

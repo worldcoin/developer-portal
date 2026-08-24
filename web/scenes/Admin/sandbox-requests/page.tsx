@@ -80,14 +80,9 @@ export const AdminSandboxRequestsPage = async () => {
                       <div className="truncate text-16 font-medium text-grey-900">
                         {request.googleEmail}
                       </div>
-                      <div className="mt-1 truncate text-13 text-grey-700">
-                        {request.userId}
+                      <div className="mt-0.5 truncate text-12 text-grey-500">
+                        {request.userEmail ?? "—"}
                       </div>
-                      {request.userEmail && (
-                        <div className="mt-0.5 truncate text-12 text-grey-500">
-                          {request.userEmail}
-                        </div>
-                      )}
                     </div>
                     <StatusBadge accepted={request.accepted} />
                   </div>
@@ -125,7 +120,6 @@ export const AdminSandboxRequestsPage = async () => {
               <thead>
                 <tr className="border-b border-grey-200 text-11 font-medium tracking-wide text-grey-400 uppercase">
                   <th className="px-3 py-2">Google email</th>
-                  <th className="px-3 py-2">User</th>
                   <th className="px-3 py-2">User email</th>
                   <th className="px-3 py-2">Status</th>
                   <th className="px-3 py-2">Requested</th>
@@ -142,7 +136,6 @@ export const AdminSandboxRequestsPage = async () => {
                     <td className="px-3 py-2.5 font-medium text-grey-900">
                       {request.googleEmail}
                     </td>
-                    <td className="px-3 py-2.5">{request.userId}</td>
                     <td className="px-3 py-2.5">{request.userEmail ?? "—"}</td>
                     <td className="px-3 py-2.5">
                       <StatusBadge accepted={request.accepted} />

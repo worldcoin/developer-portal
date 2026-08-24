@@ -16,7 +16,7 @@ jest.mock("@/api/helpers/graphql", () => ({
   getInternalDashboardGraphqlClientForUser: jest.fn().mockResolvedValue({}),
 }));
 
-jest.mock("@/api/helpers/app-store-connect/sandbox-beta-testers", () => ({
+jest.mock("@/api/helpers/app-store-connect/beta-tester-handler", () => ({
   addSandboxBetaTester: (...args: unknown[]) => addSandboxBetaTester(...args),
   removeSandboxBetaTester: (...args: unknown[]) =>
     removeSandboxBetaTester(...args),
@@ -127,6 +127,7 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status", () => {
     });
     expect(UpdateSandboxRequestIosStatus).toHaveBeenCalledWith({
       id: REQUEST_ID,
+      from_status: "pending",
       status: "approved",
     });
     expect(addSandboxBetaTester).toHaveBeenCalledWith("tester@example.com");
@@ -157,6 +158,67 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status", () => {
     });
     expect(removeSandboxBetaTester).toHaveBeenCalledWith("tester@example.com");
     expect(addSandboxBetaTester).not.toHaveBeenCalled();
+    expect(UpdateSandboxRequestIosStatus).toHaveBeenCalledWith({
+      id: REQUEST_ID,
+      from_status: "pending",
+      status: "rejected",
+    });
+  });
+
+  it("removes the tester before revoking an approved request", async () => {
+    GetSandboxRequestIosForProcessing.mockResolvedValue({
+      sandbox_access_request_ios_by_pk: {
+        asc_email: "tester@example.com",
+        status: "approved",
+      },
+    });
+    UpdateSandboxRequestIosStatus.mockResolvedValue({
+      update_sandbox_access_request_ios: {
+        affected_rows: 1,
+        returning: [{ status: "rejected", updated_at: "2026-08-21T00:00:00Z" }],
+      },
+    });
+
+    const response = await POST(
+      createRequest({ status: "rejected" }),
+      createContext(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      success: true,
+      changed: true,
+      status: "rejected",
+    });
+    expect(removeSandboxBetaTester).toHaveBeenCalledWith("tester@example.com");
+    expect(addSandboxBetaTester).not.toHaveBeenCalled();
+    expect(UpdateSandboxRequestIosStatus).toHaveBeenCalledWith({
+      id: REQUEST_ID,
+      from_status: "approved",
+      status: "rejected",
+    });
+    expect(removeSandboxBetaTester.mock.invocationCallOrder[0]).toBeLessThan(
+      UpdateSandboxRequestIosStatus.mock.invocationCallOrder[0],
+    );
+  });
+
+  it("rejects approving an already-rejected request", async () => {
+    GetSandboxRequestIosForProcessing.mockResolvedValue({
+      sandbox_access_request_ios_by_pk: {
+        asc_email: "tester@example.com",
+        status: "rejected",
+      },
+    });
+
+    const response = await POST(createRequest(), createContext());
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: "Unsupported status transition",
+    });
+    expect(addSandboxBetaTester).not.toHaveBeenCalled();
+    expect(removeSandboxBetaTester).not.toHaveBeenCalled();
+    expect(UpdateSandboxRequestIosStatus).not.toHaveBeenCalled();
   });
 
   it("repairs Apple state for an already-final request", async () => {

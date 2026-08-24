@@ -2,7 +2,7 @@ import { getInternalDashboardGraphqlClientForUser } from "@/api/helpers/graphql"
 import {
   addSandboxBetaTester,
   removeSandboxBetaTester,
-} from "@/api/helpers/app-store-connect/sandbox-beta-testers";
+} from "@/api/helpers/app-store-connect/beta-tester-handler";
 import { authenticateAdminRequest } from "@/lib/admin-auth";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
@@ -17,6 +17,12 @@ const isSandboxRequestIosId = (id: string) =>
 
 const isFinalStatus = (status: string): status is FinalStatus =>
   status === "approved" || status === "rejected";
+
+const canTransition = (
+  from: string,
+  to: FinalStatus,
+): from is "pending" | "approved" =>
+  from === "pending" || (from === "approved" && to === "rejected");
 
 const syncSandboxBetaTester = (status: FinalStatus, email: string) =>
   status === "approved"
@@ -40,8 +46,9 @@ const readStatus = async (req: NextRequest): Promise<FinalStatus | null> => {
     : null;
 };
 
-/** Synchronizes TestFlight enrollment, then moves a pending request to its
- * final status. The database stays pending if App Store Connect fails. */
+/** Synchronizes TestFlight enrollment, then writes pending → approved/rejected
+ * or approved → rejected. The database stays unchanged if App Store Connect
+ * fails. */
 export async function POST(
   req: NextRequest,
   props: { params: Promise<{ id: string }> },
@@ -84,14 +91,18 @@ export async function POST(
     }
 
     processingStage = "app_store_connect";
-    if (isFinalStatus(sandboxRequest.status)) {
-      // Re-applying the authoritative final state makes a retry repair any
-      // earlier partial failure between Hasura and App Store Connect.
-      await syncSandboxBetaTester(
-        sandboxRequest.status,
-        sandboxRequest.asc_email,
-      );
+    if (sandboxRequest.status === status) {
+      // Re-applying the requested final state makes a retry repair any earlier
+      // partial failure between Hasura and App Store Connect.
+      await syncSandboxBetaTester(status, sandboxRequest.asc_email);
       return NextResponse.json({ success: true, changed: false });
+    }
+
+    if (!canTransition(sandboxRequest.status, status)) {
+      return NextResponse.json(
+        { error: "Unsupported status transition" },
+        { status: 400 },
+      );
     }
 
     await syncSandboxBetaTester(status, sandboxRequest.asc_email);
@@ -99,6 +110,7 @@ export async function POST(
     processingStage = "status_update";
     const result = await getSdk(client).UpdateSandboxRequestIosStatus({
       id,
+      from_status: sandboxRequest.status,
       status,
     });
     const update = result.update_sandbox_access_request_ios;

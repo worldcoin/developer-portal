@@ -106,11 +106,14 @@ export const AdminSandboxRequestsIosPage = async () => {
                       {formatDate(request.updatedAt)}
                     </dd>
                   </dl>
-                  {request.status === "pending" ? (
+                  {request.status === "rejected" ? null : (
                     <div className="mt-4">
-                      <SandboxRequestIosActions requestId={request.id} />
+                      <SandboxRequestIosActions
+                        requestId={request.id}
+                        status={request.status}
+                      />
                     </div>
-                  ) : null}
+                  )}
                 </article>
               )}
             />
@@ -151,12 +154,15 @@ export const AdminSandboxRequestsIosPage = async () => {
                       {formatDate(request.updatedAt)}
                     </td>
                     <td className="px-3 py-2.5">
-                      {request.status === "pending" ? (
-                        <SandboxRequestIosActions requestId={request.id} />
-                      ) : (
+                      {request.status === "rejected" ? (
                         <span className="text-grey-400 capitalize">
                           {request.status}
                         </span>
+                      ) : (
+                        <SandboxRequestIosActions
+                          requestId={request.id}
+                          status={request.status}
+                        />
                       )}
                     </td>
                   </tr>

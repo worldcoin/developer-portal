@@ -6,8 +6,12 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 
 type FinalStatus = "approved" | "rejected";
+type ActionableStatus = "pending" | "approved";
 
-export const SandboxRequestIosActions = (props: { requestId: string }) => {
+export const SandboxRequestIosActions = (props: {
+  requestId: string;
+  status: ActionableStatus;
+}) => {
   const router = useRouter();
   const [submitting, setSubmitting] = useState<FinalStatus | null>(null);
   const [completed, setCompleted] = useState(false);
@@ -39,6 +43,21 @@ export const SandboxRequestIosActions = (props: { requestId: string }) => {
       setSubmitting(null);
     }
   };
+
+  if (props.status === "approved") {
+    return (
+      <DecoratedButton
+        type="button"
+        variant="danger"
+        disabled={completed || submitting !== null}
+        loading={submitting === "rejected"}
+        onClick={() => void updateStatus("rejected")}
+        className="h-8 w-20 px-3 py-1.5 text-12 whitespace-nowrap"
+      >
+        Revoke
+      </DecoratedButton>
+    );
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
