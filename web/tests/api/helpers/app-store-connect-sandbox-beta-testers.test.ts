@@ -11,10 +11,10 @@ import { exportPKCS8, generateKeyPair } from "jose";
 
 // #region Test Data
 const ENV_KEYS = [
-  "ASC_KEY_ID",
-  "ASC_ISSUER_ID",
-  "ASC_PRIVATE_KEY",
-  "ASC_BETA_GROUP_ID",
+  "APP_STORE_CONNECT_API_KEY_ID",
+  "APP_STORE_CONNECT_ISSUER_ID",
+  "APP_STORE_CONNECT_API_KEY_CONTENT",
+  "APP_STORE_CONNECT_BETA_GROUP_ID",
 ] as const;
 const originalEnv = Object.fromEntries(
   ENV_KEYS.map((key) => [key, process.env[key]]),
@@ -43,14 +43,14 @@ const groupList = (ids: string[]) => ({
 
 beforeAll(async () => {
   const { privateKey } = await generateKeyPair("ES256");
-  process.env.ASC_PRIVATE_KEY = await exportPKCS8(privateKey);
+  process.env.APP_STORE_CONNECT_API_KEY_CONTENT = await exportPKCS8(privateKey);
 });
 
 beforeEach(() => {
   jest.clearAllMocks();
-  process.env.ASC_KEY_ID = "KEY123";
-  process.env.ASC_ISSUER_ID = "issuer-123";
-  process.env.ASC_BETA_GROUP_ID = "group-sandbox";
+  process.env.APP_STORE_CONNECT_API_KEY_ID = "KEY123";
+  process.env.APP_STORE_CONNECT_ISSUER_ID = "issuer-123";
+  process.env.APP_STORE_CONNECT_BETA_GROUP_ID = "group-sandbox";
   global.fetch = fetchMock as unknown as typeof fetch;
 });
 
@@ -68,10 +68,8 @@ afterAll(() => {
 // #region Configuration
 describe("App Store Connect configuration", () => {
   it("decodes escaped private-key newlines", () => {
-    process.env.ASC_PRIVATE_KEY = process.env.ASC_PRIVATE_KEY!.replace(
-      /\n/g,
-      "\\n",
-    );
+    process.env.APP_STORE_CONNECT_API_KEY_CONTENT =
+      process.env.APP_STORE_CONNECT_API_KEY_CONTENT!.replace(/\n/g, "\\n");
 
     expect(getAppStoreConnectConfig().privateKey).toContain(
       "\n-----END PRIVATE KEY-----",
@@ -79,10 +77,19 @@ describe("App Store Connect configuration", () => {
   });
 
   it("fails closed when a required key is missing", async () => {
-    delete process.env.ASC_ISSUER_ID;
+    delete process.env.APP_STORE_CONNECT_ISSUER_ID;
 
     await expect(addSandboxBetaTester("tester@example.com")).rejects.toThrow(
       AppStoreConnectConfigurationError,
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when deployment omits the sandbox beta group", async () => {
+    delete process.env.APP_STORE_CONNECT_BETA_GROUP_ID;
+
+    await expect(addSandboxBetaTester("tester@example.com")).rejects.toThrow(
+      "Missing App Store Connect configuration: APP_STORE_CONNECT_BETA_GROUP_ID",
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });

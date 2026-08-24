@@ -15,10 +15,10 @@ export class AppStoreConnectConfigurationError extends Error {
 }
 
 const REQUIRED_ENV_KEYS = [
-  "ASC_KEY_ID",
-  "ASC_ISSUER_ID",
-  "ASC_PRIVATE_KEY",
-  "ASC_BETA_GROUP_ID",
+  "APP_STORE_CONNECT_API_KEY_ID",
+  "APP_STORE_CONNECT_ISSUER_ID",
+  "APP_STORE_CONNECT_API_KEY_CONTENT",
+  "APP_STORE_CONNECT_BETA_GROUP_ID",
 ] as const;
 
 /** Reads and validates server-only App Store Connect configuration. */
@@ -32,20 +32,22 @@ export const getAppStoreConnectConfig = (
     );
   }
 
-  const privateKey = env.ASC_PRIVATE_KEY!.replace(/\\n/g, "\n").trim();
+  const privateKey = env
+    .APP_STORE_CONNECT_API_KEY_CONTENT!.replace(/\\n/g, "\n")
+    .trim();
   if (
     !privateKey.startsWith("-----BEGIN PRIVATE KEY-----") ||
     !privateKey.endsWith("-----END PRIVATE KEY-----")
   ) {
     throw new AppStoreConnectConfigurationError(
-      "ASC_PRIVATE_KEY must be a PKCS#8 PEM private key",
+      "APP_STORE_CONNECT_API_KEY_CONTENT must be a PKCS#8 PEM private key",
     );
   }
 
   return {
-    keyId: env.ASC_KEY_ID!.trim(),
-    issuerId: env.ASC_ISSUER_ID!.trim(),
+    keyId: env.APP_STORE_CONNECT_API_KEY_ID!.trim(),
+    issuerId: env.APP_STORE_CONNECT_ISSUER_ID!.trim(),
     privateKey,
-    betaGroupId: env.ASC_BETA_GROUP_ID!.trim(),
+    betaGroupId: env.APP_STORE_CONNECT_BETA_GROUP_ID!.trim(),
   };
 };
