@@ -16,11 +16,9 @@ export type FetchSandboxAccessRequestsIosQuery = {
     asc_email: string;
     portal_email: string;
     team_id: string;
-    user_id: string;
     status: "pending" | "approved" | "rejected";
     created_at: string;
     updated_at: string;
-    user: { __typename?: "user"; name: string };
   }>;
   total: {
     __typename?: "sandbox_access_request_ios_aggregate";
@@ -45,13 +43,9 @@ export const FetchSandboxAccessRequestsIosDocument = gql`
       asc_email
       portal_email
       team_id
-      user_id
       status
       created_at
       updated_at
-      user {
-        name
-      }
     }
     total: sandbox_access_request_ios_aggregate {
       aggregate {

@@ -2,9 +2,6 @@ table:
   name: sandbox_access_request_ios
   schema: public
 object_relationships:
-  - name: team
-    using:
-      foreign_key_constraint_on: team_id
   - name: user
     using:
       foreign_key_constraint_on: user_id

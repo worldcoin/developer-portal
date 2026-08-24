@@ -11,8 +11,6 @@ export type SandboxAccessRequestIosRow = {
   ascEmail: string;
   portalEmail: string;
   teamId: string;
-  userId: string;
-  userName: string | null;
   status: SandboxAccessRequestIosStatus;
   createdAt: string;
   updatedAt: string;
@@ -46,8 +44,6 @@ export const fetchSandboxAccessRequestsIos = async (): Promise<{
           ascEmail: request.asc_email,
           portalEmail: request.portal_email,
           teamId: request.team_id,
-          userId: request.user_id,
-          userName: request.user?.name ?? null,
           status: request.status,
           createdAt: request.created_at,
           updatedAt: request.updated_at,
