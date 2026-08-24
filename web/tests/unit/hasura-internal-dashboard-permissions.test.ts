@@ -177,6 +177,9 @@ describe("internal dashboard detail permissions", () => {
     expect(insertSection).toContain("- user_id");
     expect(insertSection).not.toContain("- status");
     expect(dashboardUpdatePermission).toContain("- status");
+    expect(dashboardUpdatePermission).toContain("- approved_at");
+    expect(dashboardUpdatePermission).toContain("- approved_by");
+    expect(dashboardUpdatePermission).toContain("- rejection_reason");
     expect(dashboardUpdatePermission).toContain("- revoked_at");
     expect(dashboardUpdatePermission).toContain("- revoked_by");
     expect(dashboardUpdatePermission).not.toContain("- asc_email");
@@ -247,6 +250,29 @@ describe("internal dashboard detail permissions", () => {
     expect(auditMigration).toContain('"revoked_by" IS NOT NULL');
     expect(auditMigration).toContain('"revoked_at" IS NULL');
     expect(auditMigration).toContain('"revoked_by" IS NULL');
+  });
+
+  it("tracks approval audit fields and constrains rejection reasons", () => {
+    const statusMigration = readFileSync(
+      path.join(
+        tablesPath,
+        "../../../../migrations/default/1787611298000_add_revoking_sandbox_ios_status/up.sql",
+      ),
+      "utf8",
+    );
+    const auditMigration = readFileSync(
+      path.join(
+        tablesPath,
+        "../../../../migrations/default/1787611299000_add_sandbox_ios_review_audit/up.sql",
+      ),
+      "utf8",
+    );
+
+    expect(statusMigration).toContain("ADD VALUE IF NOT EXISTS 'revoking'");
+    expect(auditMigration).toContain('"approved_at" IS NOT NULL');
+    expect(auditMigration).toContain('"approved_by" IS NOT NULL');
+    expect(auditMigration).toContain("\"status\" = 'rejected'");
+    expect(auditMigration).toContain('"rejection_reason" IS NULL');
   });
 
   it("does not define elevated internal dashboard roles", () => {

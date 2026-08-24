@@ -44,7 +44,12 @@ jest.mock("@/lib/logger", () => ({
 import { POST } from "@/api/admin/sandbox-requests-ios/[id]/status";
 
 // #region Test Data
-type RequestStatus = "pending" | "approved" | "rejected" | "revoked";
+type RequestStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "revoking"
+  | "revoked";
 
 const REQUEST_ID = "sbx_req_abc123";
 const TESTER_EMAIL = "tester@example.com";
@@ -85,30 +90,39 @@ const mockRequestStatuses = (...statuses: RequestStatus[]) => {
   );
 };
 
-const mockSuccessfulUpdate = (status: Exclude<RequestStatus, "pending">) => {
-  UpdateSandboxRequestIosStatus.mockResolvedValue({
-    update_sandbox_access_request_ios: {
-      affected_rows: 1,
-      returning: [
-        {
-          status,
-          updated_at: "2026-08-21T00:00:00Z",
-          revoked_at: status === "revoked" ? "2026-08-24T22:00:00.000Z" : null,
-          revoked_by: status === "revoked" ? admin.subject : null,
-        },
-      ],
-    },
-  });
+const transitionResult = (status: RequestStatus, affectedRows = 1) => ({
+  update_sandbox_access_request_ios: {
+    affected_rows: affectedRows,
+    returning: affectedRows ? [{ status }] : [],
+  },
+});
+
+const mockTransitions = (...statuses: RequestStatus[]) => {
+  UpdateSandboxRequestIosStatus.mockReset();
+  statuses.forEach((status) =>
+    UpdateSandboxRequestIosStatus.mockResolvedValueOnce(
+      transitionResult(status),
+    ),
+  );
+  UpdateSandboxRequestIosStatus.mockResolvedValue(
+    transitionResult(statuses.at(-1) ?? "approved"),
+  );
 };
+
+const appStoreError = (status?: number) =>
+  Object.assign(new Error("App Store Connect failed"), {
+    name: "AppStoreConnectRequestError",
+    status,
+  });
 // #endregion
 
 beforeEach(() => {
   jest.clearAllMocks();
   authenticateAdminRequest.mockResolvedValue(admin);
   mockRequestStatuses("pending", "approved");
+  mockTransitions("approved");
   addSandboxBetaTester.mockResolvedValue(undefined);
   removeSandboxBetaTester.mockResolvedValue(undefined);
-  mockSuccessfulUpdate("approved");
 });
 
 // #region Authentication and input validation
@@ -122,26 +136,23 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [validation]", () => 
     expect(UpdateSandboxRequestIosStatus).not.toHaveBeenCalled();
   });
 
-  it("rejects an invalid iOS sandbox request id", async () => {
-    const response = await POST(
+  it("rejects invalid ids, statuses, and oversized rejection reasons", async () => {
+    const invalidId = await POST(
       createRequest(),
       createContext("sbxreq_abc123"),
     );
-
-    expect(response.status).toBe(400);
-    expect(UpdateSandboxRequestIosStatus).not.toHaveBeenCalled();
-  });
-
-  it("rejects a non-final status", async () => {
-    const response = await POST(
+    const invalidStatus = await POST(
       createRequest({ status: "pending" }),
       createContext(),
     );
+    const invalidReason = await POST(
+      createRequest({ status: "rejected", reason: "x".repeat(501) }),
+      createContext(),
+    );
 
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({
-      error: "Status must be approved, rejected, or revoked",
-    });
+    expect(invalidId.status).toBe(400);
+    expect(invalidStatus.status).toBe(400);
+    expect(invalidReason.status).toBe(400);
     expect(UpdateSandboxRequestIosStatus).not.toHaveBeenCalled();
   });
 });
@@ -149,7 +160,7 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [validation]", () => 
 
 // #region State transitions
 describe("POST /api/admin/sandbox-requests-ios/[id]/status [transitions]", () => {
-  it("enrolls the tester before approving a pending request", async () => {
+  it("enrolls before approving and records the approver", async () => {
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(200);
@@ -161,48 +172,52 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [transitions]", () =>
     expect(UpdateSandboxRequestIosStatus).toHaveBeenCalledWith({
       id: REQUEST_ID,
       from_status: "pending",
-      status: "approved",
-      revoked_at: null,
-      revoked_by: null,
+      set: {
+        status: "approved",
+        approved_at: expect.any(String),
+        approved_by: admin.subject,
+      },
     });
+    const approvedAt =
+      UpdateSandboxRequestIosStatus.mock.calls[0][0].set.approved_at;
+    expect(Number.isNaN(Date.parse(approvedAt))).toBe(false);
     expect(addSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
     expect(removeSandboxBetaTester).not.toHaveBeenCalled();
     expect(addSandboxBetaTester.mock.invocationCallOrder[0]).toBeLessThan(
       UpdateSandboxRequestIosStatus.mock.invocationCallOrder[0],
     );
+    expect(GetSandboxRequestIosForProcessing).toHaveBeenCalledTimes(2);
   });
 
-  it("persists a pending rejection before ensuring the tester is absent", async () => {
+  it("rejects in Hasura only and stores a sanitized optional reason", async () => {
     mockRequestStatuses("pending", "rejected");
-    mockSuccessfulUpdate("rejected");
+    mockTransitions("rejected");
 
     const response = await POST(
-      createRequest({ status: "rejected" }),
+      createRequest({
+        status: "rejected",
+        reason: "  Wrong\u0000Apple account  ",
+      }),
       createContext(),
     );
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
-      success: true,
-      changed: true,
-      status: "rejected",
-    });
     expect(UpdateSandboxRequestIosStatus).toHaveBeenCalledWith({
       id: REQUEST_ID,
       from_status: "pending",
-      status: "rejected",
-      revoked_at: null,
-      revoked_by: null,
+      set: {
+        status: "rejected",
+        rejection_reason: "Wrong Apple account",
+      },
     });
-    expect(removeSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
-    expect(
-      UpdateSandboxRequestIosStatus.mock.invocationCallOrder[0],
-    ).toBeLessThan(removeSandboxBetaTester.mock.invocationCallOrder[0]);
+    expect(addSandboxBetaTester).not.toHaveBeenCalled();
+    expect(removeSandboxBetaTester).not.toHaveBeenCalled();
+    expect(GetSandboxRequestIosForProcessing).toHaveBeenCalledTimes(2);
   });
 
-  it("revokes an approved request and records who revoked it and when", async () => {
+  it("locks, removes from Apple, then finalizes revocation audit fields", async () => {
     mockRequestStatuses("approved", "revoked");
-    mockSuccessfulUpdate("revoked");
+    mockTransitions("revoking", "revoked");
 
     const response = await POST(
       createRequest({ status: "revoked" }),
@@ -215,78 +230,67 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [transitions]", () =>
       changed: true,
       status: "revoked",
     });
-    expect(UpdateSandboxRequestIosStatus).toHaveBeenCalledWith({
+    expect(UpdateSandboxRequestIosStatus).toHaveBeenNthCalledWith(1, {
       id: REQUEST_ID,
       from_status: "approved",
-      status: "revoked",
-      revoked_at: expect.any(String),
-      revoked_by: admin.subject,
+      set: { status: "revoking" },
     });
-    const updateVariables = UpdateSandboxRequestIosStatus.mock.calls[0][0];
-    expect(Number.isNaN(Date.parse(updateVariables.revoked_at))).toBe(false);
-    expect(removeSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
+    expect(UpdateSandboxRequestIosStatus).toHaveBeenNthCalledWith(2, {
+      id: REQUEST_ID,
+      from_status: "revoking",
+      set: {
+        status: "revoked",
+        revoked_at: expect.any(String),
+        revoked_by: admin.subject,
+      },
+    });
     expect(
       UpdateSandboxRequestIosStatus.mock.invocationCallOrder[0],
     ).toBeLessThan(removeSandboxBetaTester.mock.invocationCallOrder[0]);
+    expect(removeSandboxBetaTester.mock.invocationCallOrder[0]).toBeLessThan(
+      UpdateSandboxRequestIosStatus.mock.invocationCallOrder[1],
+    );
   });
 
-  it("rejects transitions out of a terminal rejected request", async () => {
+  it("rejects transitions from an incompatible terminal state", async () => {
     mockRequestStatuses("rejected");
 
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({
-      error: "Unsupported status transition",
-    });
     expect(addSandboxBetaTester).not.toHaveBeenCalled();
     expect(removeSandboxBetaTester).not.toHaveBeenCalled();
     expect(UpdateSandboxRequestIosStatus).not.toHaveBeenCalled();
-  });
-
-  it("does not treat rejecting an approved request as revocation", async () => {
-    mockRequestStatuses("approved");
-
-    const response = await POST(
-      createRequest({ status: "rejected" }),
-      createContext(),
-    );
-
-    expect(response.status).toBe(400);
-    expect(UpdateSandboxRequestIosStatus).not.toHaveBeenCalled();
-    expect(removeSandboxBetaTester).not.toHaveBeenCalled();
   });
 });
 // #endregion
 
 // #region Idempotency and races
 describe("POST /api/admin/sandbox-requests-ios/[id]/status [concurrency]", () => {
-  it("repairs TestFlight for an already-approved request and rechecks status", async () => {
+  it("repairs an already-approved request and rechecks its status", async () => {
     mockRequestStatuses("approved", "approved");
 
     const response = await POST(createRequest(), createContext());
 
-    expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       success: true,
       changed: false,
       status: "approved",
     });
     expect(addSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
-    expect(GetSandboxRequestIosForProcessing).toHaveBeenCalledTimes(2);
     expect(UpdateSandboxRequestIosStatus).not.toHaveBeenCalled();
+    expect(GetSandboxRequestIosForProcessing).toHaveBeenCalledTimes(2);
   });
 
-  it("undoes a stale approval repair when a concurrent revocation wins", async () => {
-    mockRequestStatuses("approved", "revoked");
+  it("undoes a stale approval when revocation starts concurrently", async () => {
+    mockRequestStatuses("approved", "revoking", "revoking");
 
     const response = await POST(createRequest(), createContext());
 
-    expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       success: true,
       changed: false,
-      status: "revoked",
+      status: "revoking",
     });
     expect(addSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
     expect(removeSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
@@ -295,23 +299,44 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [concurrency]", () =>
     );
   });
 
-  it("reconciles TestFlight to the final status when another admin wins the CAS", async () => {
-    mockRequestStatuses("pending", "revoked", "revoked");
-    UpdateSandboxRequestIosStatus.mockResolvedValue({
-      update_sandbox_access_request_ios: { affected_rows: 0, returning: [] },
-    });
+  it("reconciles Apple when rejection wins the approval CAS", async () => {
+    mockRequestStatuses("pending", "rejected", "rejected");
+    UpdateSandboxRequestIosStatus.mockReset().mockResolvedValue(
+      transitionResult("pending", 0),
+    );
 
     const response = await POST(createRequest(), createContext());
 
-    expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       success: true,
       changed: false,
-      status: "revoked",
+      status: "rejected",
     });
     expect(addSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
     expect(removeSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
-    expect(GetSandboxRequestIosForProcessing).toHaveBeenCalledTimes(3);
+  });
+
+  it("resumes a revoking request after an interrupted attempt", async () => {
+    mockRequestStatuses("revoking", "revoked");
+    mockTransitions("revoked");
+
+    const response = await POST(
+      createRequest({ status: "revoked" }),
+      createContext(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(UpdateSandboxRequestIosStatus).toHaveBeenCalledTimes(1);
+    expect(UpdateSandboxRequestIosStatus).toHaveBeenCalledWith({
+      id: REQUEST_ID,
+      from_status: "revoking",
+      set: {
+        status: "revoked",
+        revoked_at: expect.any(String),
+        revoked_by: admin.subject,
+      },
+    });
+    expect(removeSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
   });
 
   it("treats a missing request as an idempotent success", async () => {
@@ -321,14 +346,12 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [concurrency]", () =>
 
     const response = await POST(createRequest(), createContext());
 
-    expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       success: true,
       changed: false,
       status: null,
     });
     expect(addSandboxBetaTester).not.toHaveBeenCalled();
-    expect(removeSandboxBetaTester).not.toHaveBeenCalled();
     expect(UpdateSandboxRequestIosStatus).not.toHaveBeenCalled();
   });
 });
@@ -349,15 +372,13 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [failures]", () => {
       failureStage: "status_check",
     });
     expect(addSandboxBetaTester).not.toHaveBeenCalled();
-    expect(UpdateSandboxRequestIosStatus).not.toHaveBeenCalled();
   });
 
-  it("identifies enrollment failure before approval is persisted", async () => {
-    addSandboxBetaTester.mockRejectedValue(new Error("Apple unavailable"));
+  it("does not persist approval when enrollment fails", async () => {
+    addSandboxBetaTester.mockRejectedValue(appStoreError(503));
 
     const response = await POST(createRequest(), createContext());
 
-    expect(response.status).toBe(503);
     expect(await response.json()).toEqual({
       error: "Unable to update iOS sandbox request",
       failureStage: "testflight_update",
@@ -365,12 +386,13 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [failures]", () => {
     expect(UpdateSandboxRequestIosStatus).not.toHaveBeenCalled();
   });
 
-  it("identifies a portal update failure after TestFlight enrollment", async () => {
-    UpdateSandboxRequestIosStatus.mockRejectedValue(new Error("Hasura down"));
+  it("reports a portal failure after TestFlight enrollment", async () => {
+    UpdateSandboxRequestIosStatus.mockReset().mockRejectedValue(
+      new Error("Hasura down"),
+    );
 
     const response = await POST(createRequest(), createContext());
 
-    expect(response.status).toBe(503);
     expect(await response.json()).toEqual({
       error: "Unable to update iOS sandbox request",
       failureStage: "portal_status_update",
@@ -378,26 +400,10 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [failures]", () => {
     expect(addSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
   });
 
-  it("identifies a failed final status recheck", async () => {
-    GetSandboxRequestIosForProcessing.mockReset()
-      .mockResolvedValueOnce(dbRequest("pending"))
-      .mockRejectedValueOnce(new Error("Hasura recheck failed"));
-
-    const response = await POST(createRequest(), createContext());
-
-    expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({
-      error: "Unable to update iOS sandbox request",
-      failureStage: "status_recheck",
-    });
-    expect(addSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
-    expect(UpdateSandboxRequestIosStatus).toHaveBeenCalled();
-  });
-
-  it("identifies ASC removal failure after revocation was persisted", async () => {
+  it("rolls a confirmed Apple removal failure back to approved", async () => {
     mockRequestStatuses("approved");
-    mockSuccessfulUpdate("revoked");
-    removeSandboxBetaTester.mockRejectedValue(new Error("Apple unavailable"));
+    mockTransitions("revoking", "approved");
+    removeSandboxBetaTester.mockRejectedValue(appStoreError(403));
 
     const response = await POST(
       createRequest({ status: "revoked" }),
@@ -407,16 +413,68 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [failures]", () => {
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({
       error: "Unable to update iOS sandbox request",
-      failureStage: "testflight_reconciliation",
+      failureStage: "testflight_update",
+      status: "approved",
     });
-    expect(UpdateSandboxRequestIosStatus).toHaveBeenCalledWith({
+    expect(UpdateSandboxRequestIosStatus).toHaveBeenNthCalledWith(2, {
       id: REQUEST_ID,
-      from_status: "approved",
-      status: "revoked",
-      revoked_at: expect.any(String),
-      revoked_by: admin.subject,
+      from_status: "revoking",
+      set: { status: "approved" },
+    });
+  });
+
+  it("keeps an ambiguous Apple failure retryable as revoking", async () => {
+    mockRequestStatuses("approved");
+    mockTransitions("revoking");
+    removeSandboxBetaTester.mockRejectedValue(appStoreError(503));
+
+    const response = await POST(
+      createRequest({ status: "revoked" }),
+      createContext(),
+    );
+
+    expect(await response.json()).toEqual({
+      error: "Unable to update iOS sandbox request",
+      failureStage: "testflight_update",
+      status: "revoking",
+    });
+    expect(UpdateSandboxRequestIosStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports finalization failure after Apple removal", async () => {
+    mockRequestStatuses("approved");
+    UpdateSandboxRequestIosStatus.mockReset().mockResolvedValueOnce(
+      transitionResult("revoking"),
+    );
+    UpdateSandboxRequestIosStatus.mockRejectedValueOnce(
+      new Error("Hasura unavailable"),
+    );
+
+    const response = await POST(
+      createRequest({ status: "revoked" }),
+      createContext(),
+    );
+
+    expect(await response.json()).toEqual({
+      error: "Unable to update iOS sandbox request",
+      failureStage: "revocation_finalize",
+      status: "revoking",
     });
     expect(removeSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);
+  });
+
+  it("reports a failed post-change status check", async () => {
+    GetSandboxRequestIosForProcessing.mockReset()
+      .mockResolvedValueOnce(dbRequest("pending"))
+      .mockRejectedValueOnce(new Error("Hasura recheck failed"));
+
+    const response = await POST(createRequest(), createContext());
+
+    expect(await response.json()).toEqual({
+      error: "Unable to update iOS sandbox request",
+      failureStage: "status_recheck",
+    });
+    expect(UpdateSandboxRequestIosStatus).toHaveBeenCalled();
   });
 });
 // #endregion

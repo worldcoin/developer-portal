@@ -22,7 +22,7 @@ module.exports = {
       _text: "any",
       bigint: "number",
       sandbox_access_request_ios_status:
-        "'pending' | 'approved' | 'rejected' | 'revoked'",
+        "'pending' | 'approved' | 'rejected' | 'revoking' | 'revoked'",
     },
   },
 

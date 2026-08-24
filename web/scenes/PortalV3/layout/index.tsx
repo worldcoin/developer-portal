@@ -1,11 +1,4 @@
-import {
-  fetchSandboxAccessRequestIos,
-  type SandboxAccessRequestIosState,
-} from "@/api/v2/sandbox-access-request-ios/server/fetch-sandbox-access-request-ios";
-import {
-  fetchSandboxAccessRequest,
-  type SandboxAccessRequestState,
-} from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
+import { fetchSandboxAccessRequest } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
 import { Role_Enum } from "@/graphql/graphql";
 import { auth0 } from "@/lib/auth0";
 import { isWorldUser } from "@/lib/is-world-user";
@@ -34,32 +27,15 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
 
   const userId = user?.hasura?.id;
 
-  let sandboxRequestAndroid: SandboxAccessRequestState | null = null;
-  let sandboxRequestIos: SandboxAccessRequestIosState | null = null;
+  let sandboxRequest = null;
   if (userId) {
-    const [androidResult, iosResult] = await Promise.allSettled([
-      fetchSandboxAccessRequest(userId),
-      fetchSandboxAccessRequestIos(userId),
-    ]);
-
-    if (androidResult.status === "fulfilled") {
-      sandboxRequestAndroid = androidResult.value;
-    } else {
-      logger.warn(
-        "Failed to hydrate Android sandbox request in portal layout",
-        {
-          userId,
-          error: androidResult.reason,
-        },
-      );
-    }
-
-    if (iosResult.status === "fulfilled") {
-      sandboxRequestIos = iosResult.value;
-    } else {
-      logger.warn("Failed to hydrate iOS sandbox request in portal layout", {
+    try {
+      sandboxRequest = await fetchSandboxAccessRequest(userId);
+    } catch (error) {
+      // The sandbox tile should not make the whole portal unavailable.
+      logger.warn("Failed to hydrate sandbox access request in portal layout", {
         userId,
-        error: iosResult.reason,
+        error,
       });
     }
   }
@@ -72,8 +48,7 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
       }}
       teams={teams}
       apiKeyTeamIds={apiKeyTeamIds}
-      sandboxRequestAndroid={sandboxRequestAndroid}
-      sandboxRequestIos={sandboxRequestIos}
+      sandboxRequest={sandboxRequest}
     >
       {props.children}
     </PortalShell>

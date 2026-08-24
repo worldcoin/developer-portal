@@ -13,9 +13,7 @@ export type GetSandboxAccessRequestIosQuery = {
   sandbox_access_request_ios: Array<{
     __typename?: "sandbox_access_request_ios";
     asc_email: string;
-    status: "pending" | "approved" | "rejected" | "revoked";
-    created_at: string;
-    updated_at: string;
+    status: "pending" | "approved" | "rejected" | "revoking" | "revoked";
   }>;
 };
 
@@ -27,8 +25,6 @@ export const GetSandboxAccessRequestIosDocument = gql`
     ) {
       asc_email
       status
-      created_at
-      updated_at
     }
   }
 `;

@@ -1,6 +1,5 @@
 "use client";
 
-import type { SandboxAccessRequestIosState } from "@/api/v2/sandbox-access-request-ios/server/fetch-sandbox-access-request-ios";
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
 import {
   SidebarGroup,
@@ -147,8 +146,7 @@ const sidebarPreloadIcons = [
 ] as const;
 
 export const SidebarNav = (props: {
-  initialSandboxRequestAndroid?: SandboxAccessRequestState | null;
-  initialSandboxRequestIos?: SandboxAccessRequestIosState | null;
+  initialSandboxRequest?: SandboxAccessRequestState | null;
   apiKeyTeamIds?: string[];
 }) => {
   preloadIcons(sidebarPreloadIcons);
@@ -379,8 +377,7 @@ export const SidebarNav = (props: {
             <SandboxButton
               className="-ml-1 w-[calc(100%_+_8px)]"
               teamId={teamId}
-              initialRequest={props.initialSandboxRequestAndroid}
-              initialIosRequest={props.initialSandboxRequestIos}
+              initialRequest={props.initialSandboxRequest}
             />
           </div>
         ) : null}
@@ -489,8 +486,7 @@ export const SidebarNav = (props: {
           <SandboxButton
             className="-ml-1 w-[calc(100%_+_8px)]"
             teamId={teamId}
-            initialRequest={props.initialSandboxRequestAndroid}
-            initialIosRequest={props.initialSandboxRequestIos}
+            initialRequest={props.initialSandboxRequest}
           />
         </div>
       ) : null}

@@ -227,8 +227,6 @@ describe("SandboxButton [iOS enrollment request]", () => {
     mockIosLookup({
       ascEmail: "apple@example.com",
       status: "pending",
-      createdAt: "2026-08-21T00:00:00Z",
-      updatedAt: "2026-08-21T00:00:00Z",
     });
 
     openIosSection();
@@ -250,8 +248,6 @@ describe("SandboxButton [iOS enrollment request]", () => {
     mockIosLookup({
       ascEmail: "apple@example.com",
       status: "approved",
-      createdAt: "2026-08-21T00:00:00Z",
-      updatedAt: "2026-08-22T00:00:00Z",
     });
 
     openIosSection();
@@ -266,8 +262,6 @@ describe("SandboxButton [iOS enrollment request]", () => {
     mockIosLookup({
       ascEmail: "apple@example.com",
       status: "rejected",
-      createdAt: "2026-08-21T00:00:00Z",
-      updatedAt: "2026-08-22T00:00:00Z",
     });
 
     openIosSection();
@@ -282,8 +276,6 @@ describe("SandboxButton [iOS enrollment request]", () => {
     mockIosLookup({
       ascEmail: "apple@example.com",
       status: "revoked",
-      createdAt: "2026-08-21T00:00:00Z",
-      updatedAt: "2026-08-24T00:00:00Z",
     });
 
     openIosSection();
@@ -309,8 +301,6 @@ describe("SandboxButton [iOS enrollment request]", () => {
                 ? {
                     ascEmail: "apple@example.com",
                     status: "pending",
-                    createdAt: "2026-08-21T00:00:00Z",
-                    updatedAt: "2026-08-21T00:00:00Z",
                   }
                 : null,
           }),

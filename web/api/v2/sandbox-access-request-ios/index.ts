@@ -27,26 +27,19 @@ const normalizeEmail = (email: unknown) => {
 };
 
 const isAscEmailConflict = (error: unknown) => {
-  if (!error || typeof error !== "object" || !("response" in error)) {
-    return false;
-  }
-
-  const response = error.response;
-  if (!response || typeof response !== "object" || !("errors" in response)) {
-    return false;
-  }
-
-  if (!Array.isArray(response.errors)) {
-    return false;
-  }
-
-  return response.errors.some(
-    (graphqlError) =>
-      graphqlError &&
-      typeof graphqlError === "object" &&
-      "message" in graphqlError &&
-      typeof graphqlError.message === "string" &&
-      graphqlError.message.includes(ASC_EMAIL_UNIQUE_CONSTRAINT),
+  const errors = (
+    error as { response?: { errors?: unknown } } | null | undefined
+  )?.response?.errors;
+  return (
+    Array.isArray(errors) &&
+    errors.some(
+      (graphqlError) =>
+        graphqlError &&
+        typeof graphqlError === "object" &&
+        "message" in graphqlError &&
+        typeof graphqlError.message === "string" &&
+        graphqlError.message.includes(ASC_EMAIL_UNIQUE_CONSTRAINT),
+    )
   );
 };
 

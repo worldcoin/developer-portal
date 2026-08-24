@@ -8,16 +8,21 @@ export type SandboxAccessRequestIosStatus =
   | "pending"
   | "approved"
   | "rejected"
+  | "revoking"
   | "revoked";
 
 export type SandboxAccessRequestIosRow = {
   id: string;
   ascEmail: string;
   portalEmail: string;
+  userName: string | null;
   teamId: string;
+  teamName: string | null;
   status: SandboxAccessRequestIosStatus;
   createdAt: string;
-  updatedAt: string;
+  approvedAt: string | null;
+  approvedBy: string | null;
+  rejectionReason: string | null;
   revokedAt: string | null;
   revokedBy: string | null;
 };
@@ -28,6 +33,7 @@ const isSandboxAccessRequestIosStatus = (
   status === "pending" ||
   status === "approved" ||
   status === "rejected" ||
+  status === "revoking" ||
   status === "revoked";
 
 export const fetchSandboxAccessRequestsIos = async (): Promise<{
@@ -52,10 +58,14 @@ export const fetchSandboxAccessRequestsIos = async (): Promise<{
           id: request.id,
           ascEmail: request.asc_email,
           portalEmail: request.portal_email,
+          userName: request.user?.name ?? null,
           teamId: request.team_id,
+          teamName: request.team?.name ?? null,
           status: request.status,
           createdAt: request.created_at,
-          updatedAt: request.updated_at,
+          approvedAt: request.approved_at ?? null,
+          approvedBy: request.approved_by ?? null,
+          rejectionReason: request.rejection_reason ?? null,
           revokedAt: request.revoked_at ?? null,
           revokedBy: request.revoked_by ?? null,
         };

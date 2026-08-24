@@ -18,10 +18,12 @@ jest.mock("react-toastify", () => ({
 jest.mock("@/components/DecoratedButton", () => ({
   DecoratedButton: ({
     children,
-    loading: _loading,
+    loading,
     ...props
   }: React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) => (
-    <button {...props}>{children}</button>
+    <button data-loading={loading || undefined} {...props}>
+      {children}
+    </button>
   ),
 }));
 // #endregion
@@ -31,14 +33,9 @@ import { SandboxRequestIosActions } from "@/scenes/Admin/sandbox-requests-ios/Sa
 // #region Test Data
 const REQUEST_ID = "sbx_req_abc123";
 
-const mockResponse = (options: {
-  ok: boolean;
-  body: unknown;
-  status?: number;
-}) => {
+const mockResponse = (options: { ok: boolean; body: unknown }) => {
   global.fetch = jest.fn().mockResolvedValue({
     ok: options.ok,
-    status: options.status ?? (options.ok ? 200 : 503),
     json: jest.fn().mockResolvedValue(options.body),
   }) as unknown as typeof fetch;
 };
@@ -69,10 +66,13 @@ describe("SandboxRequestIosActions [failure feedback]", () => {
     expect(refresh).not.toHaveBeenCalled();
   });
 
-  it("sends an explicit revoked state and explains partial ASC failure", async () => {
+  it("keeps a confirmed failed revocation visually approved and retryable", async () => {
     mockResponse({
       ok: false,
-      body: { failureStage: "testflight_reconciliation" },
+      body: {
+        failureStage: "testflight_update",
+        status: "approved",
+      },
     });
     render(
       <SandboxRequestIosActions requestId={REQUEST_ID} status="approved" />,
@@ -82,33 +82,47 @@ describe("SandboxRequestIosActions [failure feedback]", () => {
 
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        "TestFlight reconciliation failed during the revocation. The portal status may already have changed; retry the action.",
+        "App Store Connect removal failed. Access still appears approved; retry the revocation.",
       ),
     );
-    expect(global.fetch).toHaveBeenCalledWith(
-      `/api/admin/sandbox-requests-ios/${REQUEST_ID}/status`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "revoked" }),
-      },
-    );
+    expect(screen.getByRole("button", { name: "Revoke" })).toBeEnabled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
-  it("explains when rejection fails before TestFlight is changed", async () => {
+  it("refreshes an ambiguous revocation so its retry action is exposed", async () => {
     mockResponse({
       ok: false,
-      body: { failureStage: "portal_status_update" },
+      body: {
+        failureStage: "testflight_update",
+        status: "revoking",
+      },
     });
     render(
-      <SandboxRequestIosActions requestId={REQUEST_ID} status="pending" />,
+      <SandboxRequestIosActions requestId={REQUEST_ID} status="approved" />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Reject" }));
+    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+  });
+
+  it("identifies a revocation finalization failure", async () => {
+    mockResponse({
+      ok: false,
+      body: {
+        failureStage: "revocation_finalize",
+        status: "revoking",
+      },
+    });
+    render(
+      <SandboxRequestIosActions requestId={REQUEST_ID} status="approved" />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
 
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        "The portal status update failed before the rejection reached TestFlight. No TestFlight change was made.",
+        "App Store Connect removal succeeded, but the portal could not finalize it. Retry the revocation.",
       ),
     );
   });
@@ -126,16 +140,119 @@ describe("SandboxRequestIosActions [failure feedback]", () => {
 
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        "The approval failed at an unknown stage. Refresh to check its current status before retrying.",
+        "The approval failed at an unknown stage. Refresh before retrying.",
       ),
     );
   });
 });
 // #endregion
 
-// #region Concurrent status feedback
-describe("SandboxRequestIosActions [concurrent changes]", () => {
-  it("alerts when another admin supersedes the requested action", async () => {
+// #region Rejection reason
+describe("SandboxRequestIosActions [rejection]", () => {
+  it("collects an optional reason before posting a rejection", async () => {
+    mockResponse({
+      ok: true,
+      body: { success: true, changed: true, status: "rejected" },
+    });
+    render(
+      <SandboxRequestIosActions requestId={REQUEST_ID} status="pending" />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Reject" }));
+    expect(global.fetch).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText("Rejection reason"), {
+      target: { value: "Use the Apple Account email" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith(
+        `/api/admin/sandbox-requests-ios/${REQUEST_ID}/status`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "rejected",
+            reason: "Use the Apple Account email",
+          }),
+        },
+      ),
+    );
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("explains that a failed rejection never reached App Store Connect", async () => {
+    mockResponse({
+      ok: false,
+      body: { failureStage: "portal_status_update" },
+    });
+    render(
+      <SandboxRequestIosActions requestId={REQUEST_ID} status="pending" />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Reject" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith(
+        "The rejection could not be saved. No App Store Connect change was attempted.",
+      ),
+    );
+  });
+});
+// #endregion
+
+// #region Interaction and concurrent status feedback
+describe("SandboxRequestIosActions [interaction]", () => {
+  it("shows pressed/loading feedback while revocation is running", async () => {
+    let resolveFetch:
+      | ((response: { ok: boolean; json: () => Promise<unknown> }) => void)
+      | undefined;
+    global.fetch = jest.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+    ) as unknown as typeof fetch;
+    render(
+      <SandboxRequestIosActions requestId={REQUEST_ID} status="approved" />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+
+    expect(screen.getByRole("button", { name: "Revoke" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Revoke" })).toHaveAttribute(
+      "data-loading",
+      "true",
+    );
+
+    resolveFetch?.({
+      ok: false,
+      json: async () => ({
+        failureStage: "testflight_update",
+        status: "approved",
+      }),
+    });
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Revoke" })).toBeEnabled(),
+    );
+  });
+
+  it("offers an explicit retry for a recovered revoking row", () => {
+    mockResponse({
+      ok: true,
+      body: { success: true, changed: true, status: "revoked" },
+    });
+
+    render(
+      <SandboxRequestIosActions requestId={REQUEST_ID} status="revoking" />,
+    );
+
+    expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
+  });
+
+  it("alerts and refreshes when another admin supersedes the action", async () => {
     mockResponse({
       ok: true,
       body: { success: true, changed: false, status: "revoked" },
@@ -148,13 +265,13 @@ describe("SandboxRequestIosActions [concurrent changes]", () => {
 
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        "The approval was superseded by another admin. The final status is revoked.",
+        "The approval was superseded. The current status is revoked.",
       ),
     );
     expect(refresh).toHaveBeenCalledTimes(1);
   });
 
-  it("alerts when the final state cannot be confirmed", async () => {
+  it("refreshes after a network failure because the outcome is unknown", async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error("network down"));
     render(
       <SandboxRequestIosActions requestId={REQUEST_ID} status="approved" />,
@@ -164,10 +281,10 @@ describe("SandboxRequestIosActions [concurrent changes]", () => {
 
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        "Couldn't confirm the revocation. Refresh to check its current status before retrying.",
+        "Couldn't confirm the revocation. Refresh before retrying.",
       ),
     );
-    expect(refresh).not.toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 });
 // #endregion

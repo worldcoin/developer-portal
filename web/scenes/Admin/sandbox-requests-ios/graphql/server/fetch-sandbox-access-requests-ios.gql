@@ -4,9 +4,17 @@ query FetchSandboxAccessRequestsIos {
     asc_email
     portal_email
     team_id
+    team {
+      name
+    }
+    user {
+      name
+    }
     status
     created_at
-    updated_at
+    approved_at
+    approved_by
+    rejection_reason
     revoked_at
     revoked_by
   }

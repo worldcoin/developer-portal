@@ -10,26 +10,28 @@ import {
 
 const formatDate = (isoDate: string) => isoDate.slice(0, 10);
 const formatTimestamp = (isoDate: string | null) =>
-  isoDate ? isoDate.replace("T", " ").replace(/\.\d{3}Z$/, " UTC") : "—";
+  isoDate ? isoDate.replace("T", " ").replace(/\.\d+Z$/, " UTC") : "—";
 
 const statusClassNames: Record<SandboxAccessRequestIosStatus, string> = {
   approved: "bg-system-success-50 text-system-success-700",
   pending: "bg-system-warning-50 text-system-warning-700",
   rejected: "bg-system-error-50 text-system-error-700",
+  revoking: "bg-system-success-50 text-system-success-700",
   revoked: "bg-grey-100 text-grey-700",
 };
 
 const isActionableStatus = (status: SandboxAccessRequestIosStatus) =>
-  status === "pending" || status === "approved";
+  status === "pending" || status === "approved" || status === "revoking";
 
 const StatusBadge = ({ status }: { status: SandboxAccessRequestIosStatus }) => (
   <span
+    title={status === "revoking" ? "Revocation needs retry" : undefined}
     className={clsx(
       "inline-flex rounded-full px-2.5 py-0.5 text-12 font-medium capitalize",
       statusClassNames[status],
     )}
   >
-    {status}
+    {status === "revoking" ? "approved" : status}
   </span>
 );
 
@@ -90,26 +92,20 @@ export const AdminSandboxRequestsIosPage = async () => {
                         {request.ascEmail}
                       </div>
                       <div className="mt-0.5 truncate text-12 text-grey-500">
-                        {request.portalEmail}
+                        {request.userName ?? request.portalEmail}
                       </div>
                       <div className="mt-0.5 truncate text-12 text-grey-500">
-                        {request.teamId}
+                        {request.teamName ?? request.teamId}
                       </div>
                     </div>
                     <StatusBadge status={request.status} />
                   </div>
                   <dl className="mt-3 grid gap-2 text-14 min-[360px]:mt-4">
                     <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
-                      First access
+                      Requested
                     </dt>
                     <dd className="text-grey-700">
                       {formatDate(request.createdAt)}
-                    </dd>
-                    <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
-                      Updated
-                    </dt>
-                    <dd className="text-grey-700">
-                      {formatDate(request.updatedAt)}
                     </dd>
                   </dl>
                   {isActionableStatus(request.status) ? (
@@ -121,6 +117,24 @@ export const AdminSandboxRequestsIosPage = async () => {
                     </div>
                   ) : null}
                   <dl className="mt-4 grid gap-2 text-14">
+                    <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
+                      Approved at
+                    </dt>
+                    <dd className="break-words text-grey-700">
+                      {formatTimestamp(request.approvedAt)}
+                    </dd>
+                    <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
+                      Approved by
+                    </dt>
+                    <dd className="break-words text-grey-700">
+                      {request.approvedBy ?? "—"}
+                    </dd>
+                    <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
+                      Rejection reason
+                    </dt>
+                    <dd className="break-words text-grey-700">
+                      {request.rejectionReason ?? "—"}
+                    </dd>
                     <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
                       Revoked at
                     </dt>
@@ -145,12 +159,14 @@ export const AdminSandboxRequestsIosPage = async () => {
               <thead>
                 <tr className="border-b border-grey-200 text-11 font-medium tracking-wide text-grey-400 uppercase">
                   <th className="px-3 py-2">ASC email</th>
-                  <th className="px-3 py-2">Portal email</th>
+                  <th className="px-3 py-2">Requester</th>
                   <th className="px-3 py-2">Team</th>
                   <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">First access</th>
-                  <th className="px-3 py-2">Updated</th>
+                  <th className="px-3 py-2">Requested</th>
                   <th className="px-3 py-2">Action</th>
+                  <th className="px-3 py-2">Approved at</th>
+                  <th className="px-3 py-2">Approved by</th>
+                  <th className="px-3 py-2">Rejection reason</th>
                   <th className="px-3 py-2">Revoked at</th>
                   <th className="px-3 py-2">Revoked by</th>
                 </tr>
@@ -164,16 +180,23 @@ export const AdminSandboxRequestsIosPage = async () => {
                     <td className="px-3 py-2.5 font-medium text-grey-900">
                       {request.ascEmail}
                     </td>
-                    <td className="px-3 py-2.5">{request.portalEmail}</td>
-                    <td className="px-3 py-2.5">{request.teamId}</td>
+                    <td className="px-3 py-2.5">
+                      <div>{request.userName ?? "—"}</div>
+                      <div className="text-12 text-grey-500">
+                        {request.portalEmail}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <div>{request.teamName ?? "—"}</div>
+                      <div className="text-12 text-grey-500">
+                        {request.teamId}
+                      </div>
+                    </td>
                     <td className="px-3 py-2.5">
                       <StatusBadge status={request.status} />
                     </td>
                     <td className="px-3 py-2.5">
                       {formatDate(request.createdAt)}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      {formatDate(request.updatedAt)}
                     </td>
                     <td className="px-3 py-2.5">
                       {isActionableStatus(request.status) ? (
@@ -186,6 +209,15 @@ export const AdminSandboxRequestsIosPage = async () => {
                           {request.status}
                         </span>
                       )}
+                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap">
+                      {formatTimestamp(request.approvedAt)}
+                    </td>
+                    <td className="max-w-64 px-3 py-2.5 break-words">
+                      {request.approvedBy ?? "—"}
+                    </td>
+                    <td className="max-w-64 px-3 py-2.5 break-words">
+                      {request.rejectionReason ?? "—"}
                     </td>
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       {formatTimestamp(request.revokedAt)}

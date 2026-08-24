@@ -28,7 +28,9 @@ select_permissions:
         - team_id
         - status
         - created_at
-        - updated_at
+        - approved_at
+        - approved_by
+        - rejection_reason
         - revoked_at
         - revoked_by
       filter: {}
@@ -38,18 +40,17 @@ select_permissions:
       columns:
         - id
         - user_id
-        - portal_email
         - asc_email
-        - team_id
         - status
-        - created_at
-        - updated_at
       filter: {}
 update_permissions:
   - role: internal_dashboard_readonly
     permission:
       columns:
         - status
+        - approved_at
+        - approved_by
+        - rejection_reason
         - revoked_at
         - revoked_by
       filter: {}

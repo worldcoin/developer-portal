@@ -58,7 +58,6 @@ export const SandboxButton = (props: {
   className?: string;
   teamId?: string;
   initialRequest?: SandboxAccessRequestState | null;
-  initialIosRequest?: SandboxAccessRequestIosState | null;
 }) => {
   const [open, setOpen] = useState(false);
   const [platform, setPlatform] = useState<Platform>("ios");
@@ -71,44 +70,49 @@ export const SandboxButton = (props: {
   const [requestRefreshing, setRequestRefreshing] = useState(false);
   const [existingRequest, setExistingRequest] =
     useState<SandboxAccessRequestState | null>(props.initialRequest ?? null);
-  const [iosRequestEmail, setIosRequestEmail] = useState(
-    props.initialIosRequest?.ascEmail ?? user?.email ?? "",
-  );
-  const [iosRequestSending, setIosRequestSending] = useState(false);
-  const [iosRequestRefreshing, setIosRequestRefreshing] = useState(false);
+  const [iosRequestEmail, setIosRequestEmail] = useState(user?.email ?? "");
   const [existingIosRequest, setExistingIosRequest] =
-    useState<SandboxAccessRequestIosState | null>(
-      props.initialIosRequest ?? null,
-    );
+    useState<SandboxAccessRequestIosState | null>(null);
 
   useEffect(() => {
-    if (props.initialRequest || !user?.email) return;
-    setRequestEmail((current) => current || user.email);
+    if (!user?.email) return;
+    if (!props.initialRequest) {
+      setRequestEmail((current) => current || user.email);
+    }
+    setIosRequestEmail((current) => current || user.email);
   }, [props.initialRequest, user?.email]);
 
   useEffect(() => {
-    if (props.initialIosRequest || !user?.email) return;
-    setIosRequestEmail((current) => current || user.email);
-  }, [props.initialIosRequest, user?.email]);
-
-  useEffect(() => {
-    if (!open || platform !== "android") return;
+    if (!open) return;
 
     let cancelled = false;
+    const isIos = platform === "ios";
+    const platformLabel = isIos ? "iOS" : "Android";
     (async () => {
       setRequestRefreshing(true);
       try {
-        const response = await fetch("/api/v2/sandbox-access-request");
+        const response = await fetch(
+          isIos
+            ? "/api/v2/sandbox-access-request-ios"
+            : "/api/v2/sandbox-access-request",
+        );
         if (!response.ok) {
           if (!cancelled) {
             toast.error(
-              "Couldn't refresh your Android request. Please try again.",
+              `Couldn't refresh your ${platformLabel} request. Please try again.`,
             );
           }
           return;
         }
         const data = await response.json();
-        if (!cancelled) {
+        if (cancelled) return;
+
+        if (isIos) {
+          setExistingIosRequest(data.request ?? null);
+          if (data.request?.ascEmail) {
+            setIosRequestEmail(data.request.ascEmail);
+          }
+        } else {
           setExistingRequest(data.request ?? null);
           if (data.request?.email) {
             setRequestEmail(data.request.email);
@@ -117,46 +121,11 @@ export const SandboxButton = (props: {
       } catch {
         if (!cancelled) {
           toast.error(
-            "Couldn't refresh your Android request. Please try again.",
+            `Couldn't refresh your ${platformLabel} request. Please try again.`,
           );
         }
       } finally {
         if (!cancelled) setRequestRefreshing(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [open, platform]);
-
-  useEffect(() => {
-    if (!open || platform !== "ios") return;
-
-    let cancelled = false;
-    (async () => {
-      setIosRequestRefreshing(true);
-      try {
-        const response = await fetch("/api/v2/sandbox-access-request-ios");
-        if (!response.ok) {
-          if (!cancelled) {
-            toast.error("Couldn't refresh your iOS request. Please try again.");
-          }
-          return;
-        }
-        const data = await response.json();
-        if (!cancelled) {
-          setExistingIosRequest(data.request ?? null);
-          if (data.request?.ascEmail) {
-            setIosRequestEmail(data.request.ascEmail);
-          }
-        }
-      } catch {
-        if (!cancelled) {
-          toast.error("Couldn't refresh your iOS request. Please try again.");
-        }
-      } finally {
-        if (!cancelled) setIosRequestRefreshing(false);
       }
     })();
 
@@ -199,10 +168,10 @@ export const SandboxButton = (props: {
 
   const submitIosAccessRequest = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (iosRequestSending || !iosRequestEmail || !user?.email || !props.teamId)
+    if (requestSending || !iosRequestEmail || !user?.email || !props.teamId)
       return;
 
-    setIosRequestSending(true);
+    setRequestSending(true);
     try {
       const response = await fetch("/api/v2/sandbox-access-request-ios", {
         method: "POST",
@@ -229,7 +198,7 @@ export const SandboxButton = (props: {
     } catch {
       toast.error("Couldn't send your request. Please try again.");
     } finally {
-      setIosRequestSending(false);
+      setRequestSending(false);
     }
   };
 
@@ -336,9 +305,7 @@ export const SandboxButton = (props: {
                   <input
                     type="email"
                     required
-                    disabled={
-                      existingIosRequest !== null || iosRequestRefreshing
-                    }
+                    disabled={existingIosRequest !== null || requestRefreshing}
                     value={iosRequestEmail}
                     onChange={(event) => setIosRequestEmail(event.target.value)}
                     aria-label="Apple Account email"
@@ -349,8 +316,8 @@ export const SandboxButton = (props: {
                     type="submit"
                     disabled={
                       existingIosRequest !== null ||
-                      iosRequestRefreshing ||
-                      iosRequestSending ||
+                      requestRefreshing ||
+                      requestSending ||
                       !user?.email ||
                       !props.teamId
                     }
@@ -395,7 +362,7 @@ export const SandboxButton = (props: {
                       </>
                     )}
                   </Typography>
-                ) : !iosRequestRefreshing && !user?.email ? (
+                ) : !requestRefreshing && !user?.email ? (
                   <Typography
                     variant={TYPOGRAPHY.M4}
                     className="mt-2 block text-system-error-700"

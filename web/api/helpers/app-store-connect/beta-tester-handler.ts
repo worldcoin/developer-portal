@@ -310,7 +310,9 @@ export const removeSandboxBetaTester = async (email: string): Promise<void> => {
     operation: "Remove App Store Connect beta tester from sandbox group",
     method: "DELETE",
     body: client.groupLinkage,
-    expectedStatuses: [202, 204],
+    // A concurrent retry may have already removed the relationship. In that
+    // case 404 means the desired absent state has also been reached.
+    expectedStatuses: [204, 404],
     idempotent: true,
   });
 };

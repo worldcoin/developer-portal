@@ -1,20 +1,15 @@
 mutation UpdateSandboxRequestIosStatus(
   $id: String!
   $from_status: sandbox_access_request_ios_status!
-  $status: sandbox_access_request_ios_status!
-  $revoked_at: timestamptz
-  $revoked_by: String
+  $set: sandbox_access_request_ios_set_input!
 ) {
   update_sandbox_access_request_ios(
     where: { id: { _eq: $id }, status: { _eq: $from_status } }
-    _set: { status: $status, revoked_at: $revoked_at, revoked_by: $revoked_by }
+    _set: $set
   ) {
     affected_rows
     returning {
       status
-      updated_at
-      revoked_at
-      revoked_by
     }
   }
 }

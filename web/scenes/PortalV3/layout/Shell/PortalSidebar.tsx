@@ -1,4 +1,3 @@
-import type { SandboxAccessRequestIosState } from "@/api/v2/sandbox-access-request-ios/server/fetch-sandbox-access-request-ios";
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
 import {
   Sidebar,
@@ -17,16 +16,9 @@ export const PortalSidebar = (props: {
   user: { name?: string | null; email?: string | null };
   teams: { id: string; name: string }[];
   apiKeyTeamIds?: string[];
-  sandboxRequestAndroid?: SandboxAccessRequestState | null;
-  sandboxRequestIos?: SandboxAccessRequestIosState | null;
+  sandboxRequest?: SandboxAccessRequestState | null;
 }) => {
-  const {
-    user,
-    teams,
-    apiKeyTeamIds = [],
-    sandboxRequestAndroid,
-    sandboxRequestIos,
-  } = props;
+  const { user, teams, apiKeyTeamIds = [], sandboxRequest } = props;
   const name = user.name ?? user.email ?? "Account";
 
   return (
@@ -37,8 +29,7 @@ export const PortalSidebar = (props: {
 
       <SidebarContent className="gap-0 pt-3">
         <SidebarNav
-          initialSandboxRequestAndroid={sandboxRequestAndroid}
-          initialSandboxRequestIos={sandboxRequestIos}
+          initialSandboxRequest={sandboxRequest}
           apiKeyTeamIds={apiKeyTeamIds}
         />
       </SidebarContent>

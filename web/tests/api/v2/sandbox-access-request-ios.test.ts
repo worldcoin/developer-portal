@@ -49,8 +49,6 @@ const authedSession = {
 const storedRequest = {
   asc_email: "asc@example.com",
   status: "pending",
-  created_at: "2026-08-21T00:00:00Z",
-  updated_at: "2026-08-21T00:00:00Z",
 };
 
 const makeRequest = (body: string) =>
@@ -143,8 +141,6 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
       request: {
         ascEmail: "asc@example.com",
         status: "pending",
-        createdAt: "2026-08-21T00:00:00Z",
-        updatedAt: "2026-08-21T00:00:00Z",
       },
     });
     expect(InsertSandboxAccessRequestIos).toHaveBeenCalledWith({
@@ -247,8 +243,6 @@ describe("GET /api/v2/sandbox-access-request-ios", () => {
       request: {
         ascEmail: "asc@example.com",
         status: "pending",
-        createdAt: "2026-08-21T00:00:00Z",
-        updatedAt: "2026-08-21T00:00:00Z",
       },
     });
   });
@@ -275,6 +269,20 @@ describe("GET /api/v2/sandbox-access-request-ios", () => {
     expect(await response.json()).toEqual({
       success: true,
       request: expect.objectContaining({ status: "revoked" }),
+    });
+  });
+
+  it("keeps the partner-facing state approved while revocation is unfinished", async () => {
+    GetSandboxAccessRequestIos.mockResolvedValue({
+      sandbox_access_request_ios: [{ ...storedRequest, status: "revoking" }],
+    });
+
+    const response = await GET();
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      success: true,
+      request: { ascEmail: "asc@example.com", status: "approved" },
     });
   });
 

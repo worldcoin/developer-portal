@@ -1,42 +1,44 @@
-import { getInternalDashboardGraphqlClientForUser } from "@/api/helpers/graphql";
 import {
   addSandboxBetaTester,
   removeSandboxBetaTester,
 } from "@/api/helpers/app-store-connect/beta-tester-handler";
+import { getInternalDashboardGraphqlClientForUser } from "@/api/helpers/graphql";
 import { authenticateAdminRequest } from "@/lib/admin-auth";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
-import { getSdk as getSandboxRequestIosForProcessingSdk } from "./graphql/get-sandbox-request-ios-for-processing.generated";
-import { getSdk } from "./graphql/update-sandbox-request-ios-status.generated";
+import { getSdk as getRequestSdk } from "./graphql/get-sandbox-request-ios-for-processing.generated";
+import { getSdk as getStatusSdk } from "./graphql/update-sandbox-request-ios-status.generated";
 
-const SANDBOX_REQUEST_IOS_ID_REGEX = /^sbx_req_[a-zA-Z0-9]+$/;
-type FinalStatus = "approved" | "rejected" | "revoked";
+const REQUEST_ID_PATTERN = /^sbx_req_[a-zA-Z0-9]+$/;
+const MAX_REJECTION_REASON_LENGTH = 500;
+
+type RequestedStatus = "approved" | "rejected" | "revoked";
+type StoredStatus = "pending" | RequestedStatus | "revoking";
 type ProcessingStage =
   | "status_check"
   | "testflight_update"
   | "portal_status_update"
+  | "revocation_lock"
+  | "revocation_finalize"
   | "status_recheck"
-  | "testflight_reconciliation";
+  | "testflight_reconciliation"
+  | "revocation_rollback";
 
-const isSandboxRequestIosId = (id: string) =>
-  id.length <= 100 && SANDBOX_REQUEST_IOS_ID_REGEX.test(id);
+type StatusCommand = {
+  status: RequestedStatus;
+  rejectionReason: string | null;
+};
 
-const isFinalStatus = (status: string): status is FinalStatus =>
-  status === "approved" || status === "rejected" || status === "revoked";
+const isStoredStatus = (value: unknown): value is StoredStatus =>
+  value === "pending" ||
+  value === "approved" ||
+  value === "rejected" ||
+  value === "revoking" ||
+  value === "revoked";
 
-const canTransition = (
-  from: string,
-  to: FinalStatus,
-): from is "pending" | "approved" =>
-  (from === "pending" && (to === "approved" || to === "rejected")) ||
-  (from === "approved" && to === "revoked");
-
-const syncSandboxBetaTester = (status: FinalStatus, email: string) =>
-  status === "approved"
-    ? addSandboxBetaTester(email)
-    : removeSandboxBetaTester(email);
-
-const readStatus = async (req: NextRequest): Promise<FinalStatus | null> => {
+const parseCommand = async (
+  req: NextRequest,
+): Promise<StatusCommand | null> => {
   let body: unknown;
   try {
     body = await req.json();
@@ -44,24 +46,43 @@ const readStatus = async (req: NextRequest): Promise<FinalStatus | null> => {
     return null;
   }
 
-  if (!body || typeof body !== "object" || !("status" in body)) {
+  if (!body || typeof body !== "object" || !("status" in body)) return null;
+  if (
+    body.status !== "approved" &&
+    body.status !== "rejected" &&
+    body.status !== "revoked"
+  ) {
     return null;
   }
 
-  return body.status === "approved" ||
-    body.status === "rejected" ||
-    body.status === "revoked"
-    ? body.status
-    : null;
+  const rawReason = "reason" in body ? body.reason : null;
+  if (rawReason !== null && typeof rawReason !== "string") return null;
+
+  const rejectionReason =
+    typeof rawReason === "string"
+      ? rawReason.replace(/[\u0000-\u001f\u007f]/g, " ").trim()
+      : "";
+  if (rejectionReason.length > MAX_REJECTION_REASON_LENGTH) return null;
+
+  return {
+    status: body.status,
+    rejectionReason:
+      body.status === "rejected" && rejectionReason ? rejectionReason : null,
+  };
 };
 
-/**
- * Approvals enroll in TestFlight before persisting `approved`, so a failed
- * enrollment never produces a false-positive approval. Rejections and
- * revocations persist their terminal state first, then remove the tester, so a
- * concurrent approval repair cannot re-enroll after revocation commits. Every
- * successful TestFlight call is followed by a status check and reconciliation.
- */
+const isUncertainAppStoreConnectFailure = (error: unknown) => {
+  if (
+    !(error instanceof Error) ||
+    error.name !== "AppStoreConnectRequestError"
+  ) {
+    return false;
+  }
+
+  const status = "status" in error ? error.status : undefined;
+  return typeof status !== "number" || status === 429 || status >= 500;
+};
+
 export async function POST(
   req: NextRequest,
   props: { params: Promise<{ id: string }> },
@@ -72,139 +93,220 @@ export async function POST(
   }
 
   const { id } = await props.params;
-  if (!isSandboxRequestIosId(id)) {
+  if (id.length > 100 || !REQUEST_ID_PATTERN.test(id)) {
     return NextResponse.json(
       { error: "Invalid iOS sandbox request id" },
       { status: 400 },
     );
   }
 
-  const status = await readStatus(req);
-  if (!status) {
+  const command = await parseCommand(req);
+  if (!command) {
     return NextResponse.json(
-      { error: "Status must be approved, rejected, or revoked" },
+      { error: "Invalid status or rejection reason" },
       { status: 400 },
     );
   }
 
   let processingStage: ProcessingStage = "status_check";
+  let failureStatus: StoredStatus | null | undefined;
 
   try {
     const client = await getInternalDashboardGraphqlClientForUser(admin);
-    const readCurrentRequest = async () => {
-      const lookup = await getSandboxRequestIosForProcessingSdk(
-        client,
-      ).GetSandboxRequestIosForProcessing({ id });
-      return lookup.sandbox_access_request_ios_by_pk;
-    };
-    const readCurrentFinalRequest = async () => {
-      const currentRequest = await readCurrentRequest();
-      const currentStatus = currentRequest?.status;
-      if (!currentRequest || !currentStatus || !isFinalStatus(currentStatus)) {
-        throw new Error(
-          "iOS sandbox status check did not resolve to a final state",
-        );
+    const requestSdk = getRequestSdk(client);
+    const statusSdk = getStatusSdk(client);
+
+    const readRequest = async () => {
+      const data = await requestSdk.GetSandboxRequestIosForProcessing({ id });
+      const request = data.sandbox_access_request_ios_by_pk;
+      if (request && !isStoredStatus(request.status)) {
+        throw new Error(`Unexpected iOS sandbox status: ${request.status}`);
       }
-      return { ...currentRequest, status: currentStatus };
-    };
-    const verifyAndReconcileTestFlight = async (appliedStatus: FinalStatus) => {
-      processingStage = "status_recheck";
-      const currentRequest = await readCurrentFinalRequest();
-
-      if (currentRequest.status !== appliedStatus) {
-        processingStage = "testflight_reconciliation";
-        await syncSandboxBetaTester(
-          currentRequest.status,
-          currentRequest.asc_email,
-        );
-      }
-
-      return currentRequest;
+      return request ? { ...request, status: request.status } : null;
     };
 
-    const sandboxRequest = await readCurrentRequest();
-
-    if (!sandboxRequest) {
-      return NextResponse.json({ success: true, changed: false, status: null });
-    }
-
-    if (sandboxRequest.status === status) {
-      // Re-applying the requested final state makes a retry repair any earlier
-      // partial failure between Hasura and App Store Connect. Recheck after the
-      // call in case an overlapping revocation made `revoked` authoritative.
-      processingStage = "testflight_reconciliation";
-      await syncSandboxBetaTester(status, sandboxRequest.asc_email);
-      const finalRequest = await verifyAndReconcileTestFlight(status);
-      return NextResponse.json({
-        success: true,
-        changed: false,
-        status: finalRequest.status,
+    const transition = async (
+      fromStatus: StoredStatus,
+      set: Record<string, string | null> & { status: StoredStatus },
+    ) => {
+      const data = await statusSdk.UpdateSandboxRequestIosStatus({
+        id,
+        from_status: fromStatus,
+        set,
       });
-    }
+      const update = data.update_sandbox_access_request_ios;
 
-    if (!canTransition(sandboxRequest.status, status)) {
-      return NextResponse.json(
+      if (!update || ![0, 1].includes(update.affected_rows)) {
+        throw new Error("iOS sandbox status update returned an invalid count");
+      }
+      if (
+        update.affected_rows === 1 &&
+        update.returning[0]?.status !== set.status
+      ) {
+        throw new Error("iOS sandbox status update returned an invalid state");
+      }
+
+      return update.affected_rows === 1;
+    };
+
+    // After any Apple mutation, repeatedly reread the database and repair Apple
+    // to the state that won. The loop is bounded to avoid retry storms.
+    const reconcileAfterApple = async (
+      email: string,
+      testerIsEnrolled: boolean,
+    ) => {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        processingStage = "status_recheck";
+        const current = await readRequest();
+        const shouldBeEnrolled = current?.status === "approved";
+        if (shouldBeEnrolled === testerIsEnrolled) return current;
+
+        processingStage = "testflight_reconciliation";
+        await (shouldBeEnrolled
+          ? addSandboxBetaTester(email)
+          : removeSandboxBetaTester(email));
+        testerIsEnrolled = shouldBeEnrolled;
+      }
+
+      throw new Error(
+        "iOS sandbox status did not stabilize after reconciliation",
+      );
+    };
+
+    const respond = (
+      changed: boolean,
+      request: Awaited<ReturnType<typeof readRequest>>,
+    ) =>
+      NextResponse.json({
+        success: true,
+        changed,
+        status: request?.status ?? null,
+      });
+    const unsupportedTransition = () =>
+      NextResponse.json(
         { error: "Unsupported status transition" },
         { status: 400 },
       );
-    }
 
-    if (status === "approved") {
-      processingStage = "testflight_update";
-      await syncSandboxBetaTester(status, sandboxRequest.asc_email);
-    }
+    const request = await readRequest();
+    if (!request) return respond(false, null);
 
-    processingStage = "portal_status_update";
-    const result = await getSdk(client).UpdateSandboxRequestIosStatus({
-      id,
-      from_status: sandboxRequest.status,
-      status,
-      revoked_at: status === "revoked" ? new Date().toISOString() : null,
-      revoked_by: status === "revoked" ? admin.subject : null,
-    });
-    const update = result.update_sandbox_access_request_ios;
+    if (command.status === "rejected") {
+      if (request.status === "rejected") return respond(false, request);
+      if (request.status !== "pending") {
+        return unsupportedTransition();
+      }
 
-    if (update?.affected_rows === 0) {
-      processingStage = "status_recheck";
-      const finalRequest = await readCurrentFinalRequest();
-
-      // A conflicting concurrent action may have changed TestFlight after our
-      // first call. Re-apply the state that actually won the database race.
-      processingStage = "testflight_reconciliation";
-      await syncSandboxBetaTester(finalRequest.status, finalRequest.asc_email);
-      const verifiedRequest = await verifyAndReconcileTestFlight(
-        finalRequest.status,
-      );
-
-      return NextResponse.json({
-        success: true,
-        changed: false,
-        status: verifiedRequest.status,
+      processingStage = "portal_status_update";
+      const changed = await transition("pending", {
+        status: "rejected",
+        rejection_reason: command.rejectionReason,
       });
+      processingStage = "status_recheck";
+      const finalRequest = await readRequest();
+      if (changed && finalRequest?.status === "pending") {
+        throw new Error("Rejected iOS sandbox request remained pending");
+      }
+      return respond(changed, finalRequest);
     }
 
-    if (update?.affected_rows !== 1 || update.returning[0]?.status !== status) {
-      throw new Error(
-        "iOS sandbox status update did not return exactly one expected row",
+    if (command.status === "approved") {
+      if (request.status !== "pending" && request.status !== "approved") {
+        return unsupportedTransition();
+      }
+
+      processingStage = "testflight_update";
+      await addSandboxBetaTester(request.asc_email);
+
+      let changed = false;
+      if (request.status === "pending") {
+        processingStage = "portal_status_update";
+        changed = await transition("pending", {
+          status: "approved",
+          approved_at: new Date().toISOString(),
+          approved_by: admin.subject,
+        });
+      }
+
+      const finalRequest = await reconcileAfterApple(request.asc_email, true);
+      if (!changed && finalRequest?.status === "pending") {
+        throw new Error("Approval lost its status update without a winner");
+      }
+      return respond(changed, finalRequest);
+    }
+
+    if (
+      request.status !== "approved" &&
+      request.status !== "revoking" &&
+      request.status !== "revoked"
+    ) {
+      return unsupportedTransition();
+    }
+
+    if (request.status === "revoked") {
+      processingStage = "testflight_reconciliation";
+      await removeSandboxBetaTester(request.asc_email);
+      return respond(
+        false,
+        await reconcileAfterApple(request.asc_email, false),
       );
     }
 
-    if (status !== "approved") {
-      processingStage = "testflight_reconciliation";
-      await syncSandboxBetaTester(status, sandboxRequest.asc_email);
+    if (request.status === "approved") {
+      processingStage = "revocation_lock";
+      const locked = await transition("approved", {
+        status: "revoking",
+      });
+
+      if (!locked) {
+        processingStage = "status_recheck";
+        const winner = await readRequest();
+        if (winner?.status !== "revoking" && winner?.status !== "revoked") {
+          return respond(false, winner);
+        }
+        if (winner.status === "revoked") {
+          processingStage = "testflight_reconciliation";
+          await removeSandboxBetaTester(request.asc_email);
+          return respond(
+            false,
+            await reconcileAfterApple(request.asc_email, false),
+          );
+        }
+      }
     }
 
-    const finalRequest = await verifyAndReconcileTestFlight(status);
+    processingStage = "testflight_update";
+    try {
+      await removeSandboxBetaTester(request.asc_email);
+    } catch (error) {
+      failureStatus = "revoking";
 
-    return NextResponse.json({
-      success: true,
-      changed: true,
-      status: finalRequest.status,
+      // A known 4xx/configuration failure means Apple did not accept the
+      // removal, so release the lock and keep the visible approved state.
+      // Timeouts/5xx are ambiguous and stay retryable as `revoking`.
+      if (!isUncertainAppStoreConnectFailure(error)) {
+        processingStage = "revocation_rollback";
+        if (await transition("revoking", { status: "approved" })) {
+          failureStatus = "approved";
+          processingStage = "testflight_update";
+        }
+      }
+      throw error;
+    }
+
+    failureStatus = "revoking";
+    processingStage = "revocation_finalize";
+    const finalized = await transition("revoking", {
+      status: "revoked",
+      revoked_at: new Date().toISOString(),
+      revoked_by: admin.subject,
     });
+    const finalRequest = await reconcileAfterApple(request.asc_email, false);
+    return respond(finalized, finalRequest);
   } catch (error) {
     logger.error("Failed to update iOS sandbox request status", {
       requestId: id,
-      requestedStatus: status,
+      requestedStatus: command.status,
       adminSubject: admin.subject,
       dependency:
         processingStage === "testflight_update" ||
@@ -219,6 +321,7 @@ export async function POST(
       {
         error: "Unable to update iOS sandbox request",
         failureStage: processingStage,
+        ...(failureStatus !== undefined ? { status: failureStatus } : {}),
       },
       { status: 503 },
     );

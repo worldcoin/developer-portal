@@ -1,4 +1,3 @@
-import type { SandboxAccessRequestIosState } from "@/api/v2/sandbox-access-request-ios/server/fetch-sandbox-access-request-ios";
 import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
 import {
   SidebarInset,
@@ -16,16 +15,14 @@ export const PortalShell = (props: {
   user: { name?: string | null; email?: string | null };
   teams?: { id: string; name: string }[];
   apiKeyTeamIds?: string[];
-  sandboxRequestAndroid?: SandboxAccessRequestState | null;
-  sandboxRequestIos?: SandboxAccessRequestIosState | null;
+  sandboxRequest?: SandboxAccessRequestState | null;
   children?: ReactNode;
 }) => {
   const {
     user,
     teams = [],
     apiKeyTeamIds = [],
-    sandboxRequestAndroid = null,
-    sandboxRequestIos = null,
+    sandboxRequest = null,
     children,
   } = props;
 
@@ -51,8 +48,7 @@ export const PortalShell = (props: {
             user={user}
             teams={teams}
             apiKeyTeamIds={apiKeyTeamIds}
-            sandboxRequestAndroid={sandboxRequestAndroid}
-            sandboxRequestIos={sandboxRequestIos}
+            sandboxRequest={sandboxRequest}
           />
 
           <SidebarInset className="min-h-[100dvh] min-w-0 bg-white">
