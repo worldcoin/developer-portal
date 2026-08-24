@@ -9,12 +9,18 @@ import {
 } from "./server/fetch-sandbox-requests-ios";
 
 const formatDate = (isoDate: string) => isoDate.slice(0, 10);
+const formatTimestamp = (isoDate: string | null) =>
+  isoDate ? isoDate.replace("T", " ").replace(/\.\d{3}Z$/, " UTC") : "—";
 
 const statusClassNames: Record<SandboxAccessRequestIosStatus, string> = {
   approved: "bg-system-success-50 text-system-success-700",
   pending: "bg-system-warning-50 text-system-warning-700",
   rejected: "bg-system-error-50 text-system-error-700",
+  revoked: "bg-grey-100 text-grey-700",
 };
+
+const isActionableStatus = (status: SandboxAccessRequestIosStatus) =>
+  status === "pending" || status === "approved";
 
 const StatusBadge = ({ status }: { status: SandboxAccessRequestIosStatus }) => (
   <span
@@ -41,8 +47,8 @@ export const AdminSandboxRequestsIosPage = async () => {
             </h1>
             <p className="mt-2 max-w-2xl text-14 text-grey-500">
               App Store Connect enrollment requests for the World ID sandbox
-              build. Approve or reject after processing the request in App Store
-              Connect; email delivery is handled separately.
+              build. Approval enrolls the tester in App Store Connect;
+              revocation removes the tester from the configured beta group.
             </p>
           </div>
 
@@ -106,14 +112,28 @@ export const AdminSandboxRequestsIosPage = async () => {
                       {formatDate(request.updatedAt)}
                     </dd>
                   </dl>
-                  {request.status === "rejected" ? null : (
+                  {isActionableStatus(request.status) ? (
                     <div className="mt-4">
                       <SandboxRequestIosActions
                         requestId={request.id}
                         status={request.status}
                       />
                     </div>
-                  )}
+                  ) : null}
+                  <dl className="mt-4 grid gap-2 text-14">
+                    <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
+                      Revoked at
+                    </dt>
+                    <dd className="break-words text-grey-700">
+                      {formatTimestamp(request.revokedAt)}
+                    </dd>
+                    <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
+                      Revoked by
+                    </dt>
+                    <dd className="break-words text-grey-700">
+                      {request.revokedBy ?? "—"}
+                    </dd>
+                  </dl>
                 </article>
               )}
             />
@@ -131,6 +151,8 @@ export const AdminSandboxRequestsIosPage = async () => {
                   <th className="px-3 py-2">First access</th>
                   <th className="px-3 py-2">Updated</th>
                   <th className="px-3 py-2">Action</th>
+                  <th className="px-3 py-2">Revoked at</th>
+                  <th className="px-3 py-2">Revoked by</th>
                 </tr>
               </thead>
               <tbody>
@@ -154,16 +176,22 @@ export const AdminSandboxRequestsIosPage = async () => {
                       {formatDate(request.updatedAt)}
                     </td>
                     <td className="px-3 py-2.5">
-                      {request.status === "rejected" ? (
-                        <span className="text-grey-400 capitalize">
-                          {request.status}
-                        </span>
-                      ) : (
+                      {isActionableStatus(request.status) ? (
                         <SandboxRequestIosActions
                           requestId={request.id}
                           status={request.status}
                         />
+                      ) : (
+                        <span className="text-grey-400 capitalize">
+                          {request.status}
+                        </span>
                       )}
+                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap">
+                      {formatTimestamp(request.revokedAt)}
+                    </td>
+                    <td className="max-w-64 px-3 py-2.5 break-words">
+                      {request.revokedBy ?? "—"}
                     </td>
                   </tr>
                 ))}

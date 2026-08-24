@@ -29,6 +29,8 @@ select_permissions:
         - status
         - created_at
         - updated_at
+        - revoked_at
+        - revoked_by
       filter: {}
       allow_aggregations: true
   - role: service
@@ -48,6 +50,8 @@ update_permissions:
     permission:
       columns:
         - status
+        - revoked_at
+        - revoked_by
       filter: {}
       check: {}
   # Hasura exposes `on_conflict` only when the caller also has update

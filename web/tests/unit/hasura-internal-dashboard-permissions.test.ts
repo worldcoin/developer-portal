@@ -177,6 +177,8 @@ describe("internal dashboard detail permissions", () => {
     expect(insertSection).toContain("- user_id");
     expect(insertSection).not.toContain("- status");
     expect(dashboardUpdatePermission).toContain("- status");
+    expect(dashboardUpdatePermission).toContain("- revoked_at");
+    expect(dashboardUpdatePermission).toContain("- revoked_by");
     expect(dashboardUpdatePermission).not.toContain("- asc_email");
     expect(dashboardUpdatePermission).not.toContain("- portal_email");
 
@@ -193,6 +195,17 @@ describe("internal dashboard detail permissions", () => {
     expect(deleteSection).not.toContain("role: service");
     expect(metadata).toContain("- name: team");
     expect(metadata).toContain("foreign_key_constraint_on: team_id");
+    expect(metadata).toContain("- revoked_at");
+    expect(metadata).toContain("- revoked_by");
+    const serviceSelectPermission = metadata.slice(
+      metadata.indexOf(
+        "  - role: service",
+        metadata.indexOf("select_permissions:"),
+      ),
+      metadata.indexOf("update_permissions:"),
+    );
+    expect(serviceSelectPermission).not.toContain("- revoked_at");
+    expect(serviceSelectPermission).not.toContain("- revoked_by");
   });
 
   it("keeps iOS beta-tester ownership unique by canonical ASC email", () => {
@@ -211,6 +224,29 @@ describe("internal dashboard detail permissions", () => {
     expect(migration).toContain(
       'CONSTRAINT "sandbox_access_request_ios_asc_email_is_canonical"',
     );
+  });
+
+  it("requires complete revocation audit fields for revoked iOS requests", () => {
+    const statusMigration = readFileSync(
+      path.join(
+        tablesPath,
+        "../../../../migrations/default/1787611296000_add_revoked_sandbox_ios_status/up.sql",
+      ),
+      "utf8",
+    );
+    const auditMigration = readFileSync(
+      path.join(
+        tablesPath,
+        "../../../../migrations/default/1787611297000_add_sandbox_ios_revocation_audit/up.sql",
+      ),
+      "utf8",
+    );
+
+    expect(statusMigration).toContain("ADD VALUE IF NOT EXISTS 'revoked'");
+    expect(auditMigration).toContain('"revoked_at" IS NOT NULL');
+    expect(auditMigration).toContain('"revoked_by" IS NOT NULL');
+    expect(auditMigration).toContain('"revoked_at" IS NULL');
+    expect(auditMigration).toContain('"revoked_by" IS NULL');
   });
 
   it("does not define elevated internal dashboard roles", () => {

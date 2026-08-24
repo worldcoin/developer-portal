@@ -358,11 +358,13 @@ export const SandboxButton = (props: {
                   >
                     {existingIosRequest?.status === "approved"
                       ? "Approved"
-                      : existingIosRequest?.status === "rejected"
-                        ? "Request rejected"
-                        : existingIosRequest
-                          ? "Request submitted"
-                          : "Submit email"}
+                      : existingIosRequest?.status === "revoked"
+                        ? "Access revoked"
+                        : existingIosRequest?.status === "rejected"
+                          ? "Request rejected"
+                          : existingIosRequest
+                            ? "Request submitted"
+                            : "Submit email"}
                   </InkButton>
                 </form>
 
@@ -375,6 +377,11 @@ export const SandboxButton = (props: {
                       <>
                         {existingIosRequest.ascEmail} was approved. Check
                         TestFlight for World ID Sandbox.
+                      </>
+                    ) : existingIosRequest.status === "revoked" ? (
+                      <>
+                        TestFlight access for {existingIosRequest.ascEmail} was
+                        revoked.
                       </>
                     ) : existingIosRequest.status === "rejected" ? (
                       <>

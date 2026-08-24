@@ -278,6 +278,24 @@ describe("SandboxButton [iOS enrollment request]", () => {
     ).toBeDisabled();
   });
 
+  it("shows revoked TestFlight access separately from rejection", async () => {
+    mockIosLookup({
+      ascEmail: "apple@example.com",
+      status: "revoked",
+      createdAt: "2026-08-21T00:00:00Z",
+      updatedAt: "2026-08-24T00:00:00Z",
+    });
+
+    openIosSection();
+
+    expect(
+      await screen.findByText(/TestFlight access.*was revoked/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Access revoked" }),
+    ).toBeDisabled();
+  });
+
   it("submits asc_email and switches to the stored state", async () => {
     global.fetch = jest
       .fn()

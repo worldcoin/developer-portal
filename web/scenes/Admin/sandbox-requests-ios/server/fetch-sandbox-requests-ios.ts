@@ -4,7 +4,11 @@ import { getInternalDashboardGraphqlClient } from "@/api/helpers/graphql";
 import { logger } from "@/lib/logger";
 import { getSdk } from "../graphql/server/fetch-sandbox-access-requests-ios.generated";
 
-export type SandboxAccessRequestIosStatus = "pending" | "approved" | "rejected";
+export type SandboxAccessRequestIosStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "revoked";
 
 export type SandboxAccessRequestIosRow = {
   id: string;
@@ -14,12 +18,17 @@ export type SandboxAccessRequestIosRow = {
   status: SandboxAccessRequestIosStatus;
   createdAt: string;
   updatedAt: string;
+  revokedAt: string | null;
+  revokedBy: string | null;
 };
 
 const isSandboxAccessRequestIosStatus = (
   status: unknown,
 ): status is SandboxAccessRequestIosStatus =>
-  status === "pending" || status === "approved" || status === "rejected";
+  status === "pending" ||
+  status === "approved" ||
+  status === "rejected" ||
+  status === "revoked";
 
 export const fetchSandboxAccessRequestsIos = async (): Promise<{
   requests: SandboxAccessRequestIosRow[];
@@ -47,6 +56,8 @@ export const fetchSandboxAccessRequestsIos = async (): Promise<{
           status: request.status,
           createdAt: request.created_at,
           updatedAt: request.updated_at,
+          revokedAt: request.revoked_at ?? null,
+          revokedBy: request.revoked_by ?? null,
         };
       }),
       totalCount: data.total.aggregate?.count ?? 0,

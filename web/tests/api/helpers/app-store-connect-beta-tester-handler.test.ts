@@ -229,5 +229,24 @@ describe("removeSandboxBetaTester", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("surfaces a 403 when the API key cannot remove testers from the group", async () => {
+    fetchMock
+      .mockResolvedValueOnce(response(200, testerList(["tester-1"])))
+      .mockResolvedValueOnce(response(200, groupList(["group-sandbox"])))
+      .mockResolvedValueOnce(
+        response(403, {
+          errors: [{ status: "403", code: "FORBIDDEN", title: "Forbidden" }],
+        }),
+      );
+
+    await expect(
+      removeSandboxBetaTester("tester@example.com"),
+    ).rejects.toMatchObject({
+      status: 403,
+      message: expect.stringContaining("HTTP 403"),
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
 });
 // #endregion

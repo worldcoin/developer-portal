@@ -10,19 +10,26 @@ import { getSdk as getSandboxRequestIosForProcessingSdk } from "./graphql/get-sa
 import { getSdk } from "./graphql/update-sandbox-request-ios-status.generated";
 
 const SANDBOX_REQUEST_IOS_ID_REGEX = /^sbx_req_[a-zA-Z0-9]+$/;
-type FinalStatus = "approved" | "rejected";
+type FinalStatus = "approved" | "rejected" | "revoked";
+type ProcessingStage =
+  | "status_check"
+  | "testflight_update"
+  | "portal_status_update"
+  | "status_recheck"
+  | "testflight_reconciliation";
 
 const isSandboxRequestIosId = (id: string) =>
   id.length <= 100 && SANDBOX_REQUEST_IOS_ID_REGEX.test(id);
 
 const isFinalStatus = (status: string): status is FinalStatus =>
-  status === "approved" || status === "rejected";
+  status === "approved" || status === "rejected" || status === "revoked";
 
 const canTransition = (
   from: string,
   to: FinalStatus,
 ): from is "pending" | "approved" =>
-  from === "pending" || (from === "approved" && to === "rejected");
+  (from === "pending" && (to === "approved" || to === "rejected")) ||
+  (from === "approved" && to === "revoked");
 
 const syncSandboxBetaTester = (status: FinalStatus, email: string) =>
   status === "approved"
@@ -41,14 +48,20 @@ const readStatus = async (req: NextRequest): Promise<FinalStatus | null> => {
     return null;
   }
 
-  return body.status === "approved" || body.status === "rejected"
+  return body.status === "approved" ||
+    body.status === "rejected" ||
+    body.status === "revoked"
     ? body.status
     : null;
 };
 
-/** Synchronizes TestFlight enrollment, then writes pending → approved/rejected
- * or approved → rejected. The database stays unchanged if App Store Connect
- * fails. */
+/**
+ * Approvals enroll in TestFlight before persisting `approved`, so a failed
+ * enrollment never produces a false-positive approval. Rejections and
+ * revocations persist their terminal state first, then remove the tester, so a
+ * concurrent approval repair cannot re-enroll after revocation commits. Every
+ * successful TestFlight call is followed by a status check and reconciliation.
+ */
 export async function POST(
   req: NextRequest,
   props: { params: Promise<{ id: string }> },
@@ -69,33 +82,64 @@ export async function POST(
   const status = await readStatus(req);
   if (!status) {
     return NextResponse.json(
-      { error: "Status must be approved or rejected" },
+      { error: "Status must be approved, rejected, or revoked" },
       { status: 400 },
     );
   }
 
-  let processingStage:
-    | "request_lookup"
-    | "app_store_connect"
-    | "status_update" = "request_lookup";
+  let processingStage: ProcessingStage = "status_check";
 
   try {
     const client = await getInternalDashboardGraphqlClientForUser(admin);
-    const lookup = await getSandboxRequestIosForProcessingSdk(
-      client,
-    ).GetSandboxRequestIosForProcessing({ id });
-    const sandboxRequest = lookup.sandbox_access_request_ios_by_pk;
+    const readCurrentRequest = async () => {
+      const lookup = await getSandboxRequestIosForProcessingSdk(
+        client,
+      ).GetSandboxRequestIosForProcessing({ id });
+      return lookup.sandbox_access_request_ios_by_pk;
+    };
+    const readCurrentFinalRequest = async () => {
+      const currentRequest = await readCurrentRequest();
+      const currentStatus = currentRequest?.status;
+      if (!currentRequest || !currentStatus || !isFinalStatus(currentStatus)) {
+        throw new Error(
+          "iOS sandbox status check did not resolve to a final state",
+        );
+      }
+      return { ...currentRequest, status: currentStatus };
+    };
+    const verifyAndReconcileTestFlight = async (appliedStatus: FinalStatus) => {
+      processingStage = "status_recheck";
+      const currentRequest = await readCurrentFinalRequest();
+
+      if (currentRequest.status !== appliedStatus) {
+        processingStage = "testflight_reconciliation";
+        await syncSandboxBetaTester(
+          currentRequest.status,
+          currentRequest.asc_email,
+        );
+      }
+
+      return currentRequest;
+    };
+
+    const sandboxRequest = await readCurrentRequest();
 
     if (!sandboxRequest) {
-      return NextResponse.json({ success: true, changed: false });
+      return NextResponse.json({ success: true, changed: false, status: null });
     }
 
-    processingStage = "app_store_connect";
     if (sandboxRequest.status === status) {
       // Re-applying the requested final state makes a retry repair any earlier
-      // partial failure between Hasura and App Store Connect.
+      // partial failure between Hasura and App Store Connect. Recheck after the
+      // call in case an overlapping revocation made `revoked` authoritative.
+      processingStage = "testflight_reconciliation";
       await syncSandboxBetaTester(status, sandboxRequest.asc_email);
-      return NextResponse.json({ success: true, changed: false });
+      const finalRequest = await verifyAndReconcileTestFlight(status);
+      return NextResponse.json({
+        success: true,
+        changed: false,
+        status: finalRequest.status,
+      });
     }
 
     if (!canTransition(sandboxRequest.status, status)) {
@@ -105,35 +149,38 @@ export async function POST(
       );
     }
 
-    await syncSandboxBetaTester(status, sandboxRequest.asc_email);
+    if (status === "approved") {
+      processingStage = "testflight_update";
+      await syncSandboxBetaTester(status, sandboxRequest.asc_email);
+    }
 
-    processingStage = "status_update";
+    processingStage = "portal_status_update";
     const result = await getSdk(client).UpdateSandboxRequestIosStatus({
       id,
       from_status: sandboxRequest.status,
       status,
+      revoked_at: status === "revoked" ? new Date().toISOString() : null,
+      revoked_by: status === "revoked" ? admin.subject : null,
     });
     const update = result.update_sandbox_access_request_ios;
 
     if (update?.affected_rows === 0) {
-      processingStage = "request_lookup";
-      const concurrentLookup = await getSandboxRequestIosForProcessingSdk(
-        client,
-      ).GetSandboxRequestIosForProcessing({ id });
-      const finalRequest = concurrentLookup.sandbox_access_request_ios_by_pk;
-
-      if (!finalRequest || !isFinalStatus(finalRequest.status)) {
-        throw new Error(
-          "Concurrent iOS sandbox status update did not resolve to a final state",
-        );
-      }
+      processingStage = "status_recheck";
+      const finalRequest = await readCurrentFinalRequest();
 
       // A conflicting concurrent action may have changed TestFlight after our
       // first call. Re-apply the state that actually won the database race.
-      processingStage = "app_store_connect";
+      processingStage = "testflight_reconciliation";
       await syncSandboxBetaTester(finalRequest.status, finalRequest.asc_email);
+      const verifiedRequest = await verifyAndReconcileTestFlight(
+        finalRequest.status,
+      );
 
-      return NextResponse.json({ success: true, changed: false });
+      return NextResponse.json({
+        success: true,
+        changed: false,
+        status: verifiedRequest.status,
+      });
     }
 
     if (update?.affected_rows !== 1 || update.returning[0]?.status !== status) {
@@ -142,14 +189,26 @@ export async function POST(
       );
     }
 
-    return NextResponse.json({ success: true, changed: true, status });
+    if (status !== "approved") {
+      processingStage = "testflight_reconciliation";
+      await syncSandboxBetaTester(status, sandboxRequest.asc_email);
+    }
+
+    const finalRequest = await verifyAndReconcileTestFlight(status);
+
+    return NextResponse.json({
+      success: true,
+      changed: true,
+      status: finalRequest.status,
+    });
   } catch (error) {
     logger.error("Failed to update iOS sandbox request status", {
       requestId: id,
       requestedStatus: status,
       adminSubject: admin.subject,
       dependency:
-        processingStage === "app_store_connect"
+        processingStage === "testflight_update" ||
+        processingStage === "testflight_reconciliation"
           ? "app_store_connect"
           : "hasura",
       processingStage,
@@ -157,7 +216,10 @@ export async function POST(
       error,
     });
     return NextResponse.json(
-      { error: "Unable to update iOS sandbox request" },
+      {
+        error: "Unable to update iOS sandbox request",
+        failureStage: processingStage,
+      },
       { status: 503 },
     );
   }

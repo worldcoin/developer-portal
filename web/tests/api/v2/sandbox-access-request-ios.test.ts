@@ -264,6 +264,20 @@ describe("GET /api/v2/sandbox-access-request-ios", () => {
     expect(await response.json()).toEqual({ success: true, request: null });
   });
 
+  it("returns revoked as a distinct terminal state", async () => {
+    GetSandboxAccessRequestIos.mockResolvedValue({
+      sandbox_access_request_ios: [{ ...storedRequest, status: "revoked" }],
+    });
+
+    const response = await GET();
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      success: true,
+      request: expect.objectContaining({ status: "revoked" }),
+    });
+  });
+
   it("returns 500 for an unexpected stored status", async () => {
     GetSandboxAccessRequestIos.mockResolvedValue({
       sandbox_access_request_ios: [{ ...storedRequest, status: "unknown" }],

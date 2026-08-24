@@ -8,6 +8,8 @@ export type UpdateSandboxRequestIosStatusMutationVariables = Types.Exact<{
   id: Types.Scalars["String"]["input"];
   from_status: Types.Scalars["sandbox_access_request_ios_status"]["input"];
   status: Types.Scalars["sandbox_access_request_ios_status"]["input"];
+  revoked_at?: Types.InputMaybe<Types.Scalars["timestamptz"]["input"]>;
+  revoked_by?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type UpdateSandboxRequestIosStatusMutation = {
@@ -17,8 +19,10 @@ export type UpdateSandboxRequestIosStatusMutation = {
     affected_rows: number;
     returning: Array<{
       __typename?: "sandbox_access_request_ios";
-      status: "pending" | "approved" | "rejected";
+      status: "pending" | "approved" | "rejected" | "revoked";
       updated_at: string;
+      revoked_at?: string | null;
+      revoked_by?: string | null;
     }>;
   } | null;
 };
@@ -28,15 +32,23 @@ export const UpdateSandboxRequestIosStatusDocument = gql`
     $id: String!
     $from_status: sandbox_access_request_ios_status!
     $status: sandbox_access_request_ios_status!
+    $revoked_at: timestamptz
+    $revoked_by: String
   ) {
     update_sandbox_access_request_ios(
       where: { id: { _eq: $id }, status: { _eq: $from_status } }
-      _set: { status: $status }
+      _set: {
+        status: $status
+        revoked_at: $revoked_at
+        revoked_by: $revoked_by
+      }
     ) {
       affected_rows
       returning {
         status
         updated_at
+        revoked_at
+        revoked_by
       }
     }
   }

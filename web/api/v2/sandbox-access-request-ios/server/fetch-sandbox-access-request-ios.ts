@@ -6,7 +6,11 @@ type APIServiceGraphqlClient = Awaited<
   ReturnType<typeof getAPIServiceGraphqlClient>
 >;
 
-export type SandboxAccessRequestIosStatus = "pending" | "approved" | "rejected";
+export type SandboxAccessRequestIosStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "revoked";
 
 export type SandboxAccessRequestIosState = {
   ascEmail: string;
@@ -18,7 +22,10 @@ export type SandboxAccessRequestIosState = {
 const isSandboxAccessRequestIosStatus = (
   status: unknown,
 ): status is SandboxAccessRequestIosStatus =>
-  status === "pending" || status === "approved" || status === "rejected";
+  status === "pending" ||
+  status === "approved" ||
+  status === "rejected" ||
+  status === "revoked";
 
 export const fetchSandboxAccessRequestIos = async (
   userId: string,
