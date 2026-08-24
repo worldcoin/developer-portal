@@ -83,9 +83,6 @@ export const AdminSandboxRequestsIosPage = async () => {
                       <div className="truncate text-16 font-medium text-grey-900">
                         {request.ascEmail}
                       </div>
-                      <div className="mt-1 truncate text-13 text-grey-700">
-                        {request.userName ?? request.userId}
-                      </div>
                       <div className="mt-0.5 truncate text-12 text-grey-500">
                         {request.portalEmail}
                       </div>
@@ -126,7 +123,6 @@ export const AdminSandboxRequestsIosPage = async () => {
                 <tr className="border-b border-grey-200 text-11 font-medium tracking-wide text-grey-400 uppercase">
                   <th className="px-3 py-2">ASC email</th>
                   <th className="px-3 py-2">Portal email</th>
-                  <th className="px-3 py-2">User</th>
                   <th className="px-3 py-2">Team</th>
                   <th className="px-3 py-2">Status</th>
                   <th className="px-3 py-2">First access</th>
@@ -144,9 +140,6 @@ export const AdminSandboxRequestsIosPage = async () => {
                       {request.ascEmail}
                     </td>
                     <td className="px-3 py-2.5">{request.portalEmail}</td>
-                    <td className="px-3 py-2.5">
-                      {request.userName ?? request.userId}
-                    </td>
                     <td className="px-3 py-2.5">{request.teamId}</td>
                     <td className="px-3 py-2.5">
                       <StatusBadge status={request.status} />
