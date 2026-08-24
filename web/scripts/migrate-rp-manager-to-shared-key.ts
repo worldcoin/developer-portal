@@ -15,6 +15,7 @@ import { logger } from "@/lib/logger";
 import type { KMSClient } from "@aws-sdk/client-kms";
 import { gql, type GraphQLClient } from "graphql-request";
 import { randomUUID } from "node:crypto";
+import { insertMigrationAuditRecord } from "./rp-manager-key-migration/insert-migration-audit-record";
 
 // #region Types
 
@@ -36,16 +37,19 @@ export type RpManagerMigrationInput = {
   attemptId?: string;
   pollIntervalMs?: number;
   confirmationTimeoutMs?: number;
+  concurrency?: number;
 };
 
 export type RpManagerMigrationFailureStage =
+  | "write_audit"
   | "load_old_key"
   | "read_registry"
   | "conflict"
   | "submit_transfer"
   | "wait_for_confirmation"
   | "verify_final_state"
-  | "update_database";
+  | "update_database"
+  | "unexpected";
 
 export type RpManagerMigrationItemResult = {
   rpId: string;
@@ -130,82 +134,13 @@ const MIGRATION_CANDIDATE_FIELDS = gql`
   }
 `;
 
-const GET_MIGRATION_CANDIDATES = gql`
-  ${MIGRATION_CANDIDATE_FIELDS}
-  query GetRpManagerMigrationCandidates {
-    rp_registration(
-      where: {
-        mode: { _eq: managed }
-        status: { _eq: registered }
-        signer_address: { _is_null: false }
-        manager_kms_key_id: { _is_null: false }
-        is_unique_manager_key: { _eq: true }
-        app: {
-          status: { _eq: "active" }
-          is_archived: { _eq: false }
-          deleted_at: { _is_null: true }
-        }
-      }
-      order_by: { created_at: asc }
-    ) {
-      ...RpManagerMigrationCandidate
-    }
-  }
-`;
-
-const GET_MIGRATION_CANDIDATES_BY_ID = gql`
-  ${MIGRATION_CANDIDATE_FIELDS}
-  query GetRpManagerMigrationCandidatesById($rp_ids: [String!]!) {
-    rp_registration(
-      where: {
-        rp_id: { _in: $rp_ids }
-        mode: { _eq: managed }
-        status: { _eq: registered }
-        signer_address: { _is_null: false }
-        manager_kms_key_id: { _is_null: false }
-        is_unique_manager_key: { _eq: true }
-        app: {
-          status: { _eq: "active" }
-          is_archived: { _eq: false }
-          deleted_at: { _is_null: true }
-        }
-      }
-      order_by: { created_at: asc }
-    ) {
-      ...RpManagerMigrationCandidate
-    }
-  }
-`;
-
-const FINALIZE_MIGRATION = gql`
-  mutation FinalizeRpManagerMigration(
-    $rp_id: String!
-    $old_manager_key_id: String!
-    $shared_manager_key_id: String!
-  ) {
-    update_rp_registration(
-      where: {
-        rp_id: { _eq: $rp_id }
-        mode: { _eq: managed }
-        manager_kms_key_id: { _eq: $old_manager_key_id }
-        is_unique_manager_key: { _eq: true }
-      }
-      _set: {
-        manager_kms_key_id: $shared_manager_key_id
-        is_unique_manager_key: false
-      }
-    ) {
-      affected_rows
-    }
-  }
-`;
-
 // #endregion
 
 // #region Validation and shared helpers
 
 const DEFAULT_POLL_INTERVAL_MS = 2_000;
 const DEFAULT_CONFIRMATION_TIMEOUT_MS = 120_000;
+const DEFAULT_CONCURRENCY = 1;
 
 function addressesEqual(left: string, right: string): boolean {
   return left.toLowerCase() === right.toLowerCase();
@@ -263,6 +198,39 @@ function assertValidInput(input: RpManagerMigrationInput): void {
   if ((input.confirmationTimeoutMs ?? DEFAULT_CONFIRMATION_TIMEOUT_MS) < 0) {
     throw new Error("confirmationTimeoutMs must not be negative");
   }
+
+  const concurrency = input.concurrency ?? DEFAULT_CONCURRENCY;
+  if (!Number.isInteger(concurrency) || concurrency < 1) {
+    throw new Error("concurrency must be an integer >= 1");
+  }
+}
+
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<R>,
+): Promise<R[]> {
+  if (items.length === 0) {
+    return [];
+  }
+
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+
+  async function worker(): Promise<void> {
+    while (true) {
+      const index = nextIndex;
+      nextIndex += 1;
+      if (index >= items.length) {
+        return;
+      }
+      results[index] = await mapper(items[index]);
+    }
+  }
+
+  const workerCount = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -280,8 +248,11 @@ function failedResult(
     attempt_id: candidate.attempt_id,
     rp_id: candidate.rp_id,
     app_id: candidate.app_id,
+    old_manager_kms_key_id: candidate.manager_kms_key_id,
     stage,
     detail,
+    operation_hashes: operationHashes,
+    skipped_registries: skippedRegistries,
   });
 
   return {
@@ -306,12 +277,53 @@ async function loadCandidates(
 
   const response = rpIds
     ? await graphqlClient.request<CandidateQueryResult, { rp_ids: string[] }>(
-        GET_MIGRATION_CANDIDATES_BY_ID,
+        gql`
+          ${MIGRATION_CANDIDATE_FIELDS}
+          query GetRpManagerMigrationCandidatesById($rp_ids: [String!]!) {
+            rp_registration(
+              where: {
+                rp_id: { _in: $rp_ids }
+                mode: { _eq: managed }
+                status: { _eq: registered }
+                signer_address: { _is_null: false }
+                manager_kms_key_id: { _is_null: false }
+                is_unique_manager_key: { _eq: true }
+                app: {
+                  status: { _eq: "active" }
+                  is_archived: { _eq: false }
+                  deleted_at: { _is_null: true }
+                }
+              }
+              order_by: { created_at: asc }
+            ) {
+              ...RpManagerMigrationCandidate
+            }
+          }
+        `,
         { rp_ids: [...new Set(rpIds)] },
       )
-    : await graphqlClient.request<CandidateQueryResult>(
-        GET_MIGRATION_CANDIDATES,
-      );
+    : await graphqlClient.request<CandidateQueryResult>(gql`
+        ${MIGRATION_CANDIDATE_FIELDS}
+        query GetRpManagerMigrationCandidates {
+          rp_registration(
+            where: {
+              mode: { _eq: managed }
+              status: { _eq: registered }
+              signer_address: { _is_null: false }
+              manager_kms_key_id: { _is_null: false }
+              is_unique_manager_key: { _eq: true }
+              app: {
+                status: { _eq: "active" }
+                is_archived: { _eq: false }
+                deleted_at: { _is_null: true }
+              }
+            }
+            order_by: { created_at: asc }
+          ) {
+            ...RpManagerMigrationCandidate
+          }
+        }
+      `);
 
   return response.rp_registration;
 }
@@ -408,6 +420,24 @@ async function migrateCandidate(
   }
 
   const rpId = parseRpId(candidate.rp_id);
+
+  try {
+    await insertMigrationAuditRecord({
+      graphqlClient: context.graphqlClient,
+      rpId: candidate.rp_id,
+      appId: candidate.app_id,
+      oldManagerKeyId: candidate.manager_kms_key_id,
+      sharedManagerKeyId: context.sharedManagerKeyId,
+      kmsRegion: context.primaryRegistry.config.kmsRegion,
+    });
+  } catch (error) {
+    return failedResult(
+      candidate,
+      operationHashes,
+      "write_audit",
+      errorMessage(error),
+    );
+  }
 
   let oldManagerAddress: string;
   try {
@@ -622,11 +652,35 @@ async function migrateCandidate(
         old_manager_key_id: string;
         shared_manager_key_id: string;
       }
-    >(FINALIZE_MIGRATION, {
-      rp_id: candidate.rp_id,
-      old_manager_key_id: candidate.manager_kms_key_id,
-      shared_manager_key_id: context.sharedManagerKeyId,
-    });
+    >(
+      gql`
+        mutation FinalizeRpManagerMigration(
+          $rp_id: String!
+          $old_manager_key_id: String!
+          $shared_manager_key_id: String!
+        ) {
+          update_rp_registration(
+            where: {
+              rp_id: { _eq: $rp_id }
+              mode: { _eq: managed }
+              manager_kms_key_id: { _eq: $old_manager_key_id }
+              is_unique_manager_key: { _eq: true }
+            }
+            _set: {
+              manager_kms_key_id: $shared_manager_key_id
+              is_unique_manager_key: false
+            }
+          ) {
+            affected_rows
+          }
+        }
+      `,
+      {
+        rp_id: candidate.rp_id,
+        old_manager_key_id: candidate.manager_kms_key_id,
+        shared_manager_key_id: context.sharedManagerKeyId,
+      },
+    );
 
     if (response.update_rp_registration?.affected_rows !== 1) {
       return failedResult(
@@ -654,7 +708,9 @@ async function migrateCandidate(
     attempt_id: candidate.attempt_id,
     rp_id: candidate.rp_id,
     app_id: candidate.app_id,
+    old_manager_kms_key_id: candidate.manager_kms_key_id,
     status,
+    operation_hashes: operationHashes,
     migrated_registries: Object.keys(operationHashes),
     skipped_registries: skippedRegistries,
   });
@@ -685,8 +741,9 @@ async function migrateCandidate(
  * If that configuration contains a staging mirror, the migration verifies and
  * migrates it too; historical RPs that genuinely predate the mirror may skip
  * it. The function never schedules old KMS keys for deletion. Run only one
- * instance at a time and prevent concurrent manager operations for the
- * selected RPs while it runs.
+ * invocation at a time. Candidates inside one invocation may migrate in
+ * parallel when concurrency > 1. Prevent concurrent manager operations for
+ * the selected RPs while it runs.
  */
 export async function migrateRpManagersToSharedKey(
   input: RpManagerMigrationInput,
@@ -695,6 +752,7 @@ export async function migrateRpManagersToSharedKey(
 
   const sharedManagerKeyId = input.sharedManagerKeyId.trim();
   const attemptId = input.attemptId ?? randomUUID();
+  const concurrency = input.concurrency ?? DEFAULT_CONCURRENCY;
   const sharedManagerAddress = await getEthAddressFromKMS(
     input.kmsClient,
     sharedManagerKeyId,
@@ -713,15 +771,18 @@ export async function migrateRpManagersToSharedKey(
       input.confirmationTimeoutMs ?? DEFAULT_CONFIRMATION_TIMEOUT_MS,
   };
 
-  const results: RpManagerMigrationItemResult[] = [];
-  for (const candidate of candidates) {
-    results.push(
-      await migrateCandidate(context, {
-        ...candidate,
-        attempt_id: attemptId,
-      }),
-    );
-  }
+  const results = await mapWithConcurrency(
+    candidates,
+    concurrency,
+    async (candidate) => {
+      const withAttempt = { ...candidate, attempt_id: attemptId };
+      try {
+        return await migrateCandidate(context, withAttempt);
+      } catch (error) {
+        return failedResult(withAttempt, {}, "unexpected", errorMessage(error));
+      }
+    },
+  );
 
   return {
     sharedManagerKeyId,

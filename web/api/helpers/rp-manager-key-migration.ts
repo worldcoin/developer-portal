@@ -157,7 +157,10 @@ export function migrationMayHaveInFlightOperation(
 ): boolean {
   if (!result || result.status !== "failed") return false;
   if (Object.keys(result.operationHashes ?? {}).length > 0) return true;
-  return result.failure?.stage === "submit_transfer";
+  return (
+    result.failure?.stage === "submit_transfer" ||
+    result.failure?.stage === "unexpected"
+  );
 }
 
 /**

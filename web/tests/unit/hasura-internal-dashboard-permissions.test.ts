@@ -58,6 +58,7 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).toContain("- signer_address");
     expect(permission).toContain("- operation_hash");
     expect(permission).toContain("- staging_operation_hash");
+    expect(permission).toContain("- is_unique_manager_key");
     expect(permission).toContain("allow_aggregations: true");
     expect(permission).not.toContain("- manager_kms_key_id");
   });
@@ -125,5 +126,29 @@ describe("internal dashboard detail permissions", () => {
     );
 
     expect(inheritedRoles.trim()).toBe("[]");
+  });
+});
+
+describe("admin RP inventory native query", () => {
+  it("counts unique and shared manager keys only when a KMS key exists", () => {
+    const databases = readFileSync(
+      path.join(tablesPath, "../../databases.yaml"),
+      "utf8",
+    );
+    const start = databases.indexOf("root_field_name: admin_rp_inventory");
+    const end = databases.indexOf("returns: admin_rp_inventory", start);
+    const sql = databases.slice(start, end);
+
+    const uniqueFilter = sql.match(
+      /COUNT\(\*\) FILTER \(\s*WHERE[\s\S]*?\)::bigint AS unique_manager_key_rps/,
+    )?.[0];
+    const sharedFilter = sql.match(
+      /COUNT\(\*\) FILTER \(\s*WHERE[\s\S]*?\)::bigint AS shared_manager_key_rps/,
+    )?.[0];
+
+    expect(uniqueFilter).toContain("is_unique_manager_key = true");
+    expect(uniqueFilter).toContain("manager_kms_key_id IS NOT NULL");
+    expect(sharedFilter).toContain("is_unique_manager_key = false");
+    expect(sharedFilter).toContain("manager_kms_key_id IS NOT NULL");
   });
 });
