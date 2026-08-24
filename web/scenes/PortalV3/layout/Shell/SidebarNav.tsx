@@ -147,7 +147,7 @@ const sidebarPreloadIcons = [
 ] as const;
 
 export const SidebarNav = (props: {
-  initialSandboxRequest?: SandboxAccessRequestState | null;
+  initialSandboxRequestAndroid?: SandboxAccessRequestState | null;
   initialSandboxRequestIos?: SandboxAccessRequestIosState | null;
   apiKeyTeamIds?: string[];
 }) => {
@@ -379,7 +379,7 @@ export const SidebarNav = (props: {
             <SandboxButton
               className="-ml-1 w-[calc(100%_+_8px)]"
               teamId={teamId}
-              initialRequest={props.initialSandboxRequest}
+              initialRequest={props.initialSandboxRequestAndroid}
               initialIosRequest={props.initialSandboxRequestIos}
             />
           </div>
@@ -489,7 +489,7 @@ export const SidebarNav = (props: {
           <SandboxButton
             className="-ml-1 w-[calc(100%_+_8px)]"
             teamId={teamId}
-            initialRequest={props.initialSandboxRequest}
+            initialRequest={props.initialSandboxRequestAndroid}
             initialIosRequest={props.initialSandboxRequestIos}
           />
         </div>

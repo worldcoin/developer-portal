@@ -7,18 +7,47 @@ import { getSdk as getInsertSandboxAccessRequestIosSdk } from "./graphql/insert-
 import { fetchSandboxAccessRequestIos } from "./server/fetch-sandbox-access-request-ios";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ASC_EMAIL_UNIQUE_CONSTRAINT =
+  "unique_sandbox_access_request_ios_asc_email";
 
 const normalizeEmail = (email: unknown) => {
   if (typeof email !== "string") {
     return null;
   }
 
-  const normalized = email.trim();
+  // App Store Connect treats tester email identity case-insensitively. Store
+  // one canonical representation so the database uniqueness constraint also
+  // protects against case-only duplicates owned by different portal users.
+  const normalized = email.trim().toLowerCase();
   return normalized.length > 0 &&
     normalized.length <= 254 &&
     EMAIL_REGEX.test(normalized)
     ? normalized
     : null;
+};
+
+const isAscEmailConflict = (error: unknown) => {
+  if (!error || typeof error !== "object" || !("response" in error)) {
+    return false;
+  }
+
+  const response = error.response;
+  if (!response || typeof response !== "object" || !("errors" in response)) {
+    return false;
+  }
+
+  if (!Array.isArray(response.errors)) {
+    return false;
+  }
+
+  return response.errors.some(
+    (graphqlError) =>
+      graphqlError &&
+      typeof graphqlError === "object" &&
+      "message" in graphqlError &&
+      typeof graphqlError.message === "string" &&
+      graphqlError.message.includes(ASC_EMAIL_UNIQUE_CONSTRAINT),
+  );
 };
 
 const getAuthenticatedUser = async () => {
@@ -116,6 +145,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, request });
   } catch (error) {
+    if (isAscEmailConflict(error)) {
+      logger.warn("iOS sandbox ASC email is already requested", {
+        userId: authenticatedUser.userId,
+        failureClass: "asc_email_conflict",
+      });
+      return NextResponse.json({ success: false }, { status: 409 });
+    }
+
     logger.error("Failed to record iOS sandbox access request", {
       userId: authenticatedUser.userId,
       error,

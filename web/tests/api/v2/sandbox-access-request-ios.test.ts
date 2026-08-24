@@ -134,7 +134,7 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
 
   it("stores the ASC email with session-owned identity and team fields", async () => {
     const response = await POST(
-      makeJsonRequest({ ...validBody, asc_email: "  asc@example.com  " }),
+      makeJsonRequest({ ...validBody, asc_email: "  ASC@Example.COM  " }),
     );
 
     expect(response.status).toBe(200);
@@ -190,6 +190,34 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
     GetSandboxAccessRequestIos.mockResolvedValue({
       sandbox_access_request_ios: [],
     });
+
+    const response = await POST(makeJsonRequest(validBody));
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ success: false });
+  });
+
+  it("returns 409 when another user already requested the ASC email", async () => {
+    InsertSandboxAccessRequestIos.mockRejectedValue({
+      response: {
+        errors: [
+          {
+            message:
+              'Uniqueness violation. duplicate key value violates unique constraint "unique_sandbox_access_request_ios_asc_email"',
+          },
+        ],
+      },
+    });
+
+    const response = await POST(makeJsonRequest(validBody));
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ success: false });
+    expect(GetSandboxAccessRequestIos).not.toHaveBeenCalled();
+  });
+
+  it("keeps unknown Hasura failures as server errors", async () => {
+    InsertSandboxAccessRequestIos.mockRejectedValue(new Error("hasura down"));
 
     const response = await POST(makeJsonRequest(validBody));
 

@@ -16,7 +16,7 @@ export const PortalShell = (props: {
   user: { name?: string | null; email?: string | null };
   teams?: { id: string; name: string }[];
   apiKeyTeamIds?: string[];
-  sandboxRequest?: SandboxAccessRequestState | null;
+  sandboxRequestAndroid?: SandboxAccessRequestState | null;
   sandboxRequestIos?: SandboxAccessRequestIosState | null;
   children?: ReactNode;
 }) => {
@@ -24,7 +24,7 @@ export const PortalShell = (props: {
     user,
     teams = [],
     apiKeyTeamIds = [],
-    sandboxRequest = null,
+    sandboxRequestAndroid = null,
     sandboxRequestIos = null,
     children,
   } = props;
@@ -51,7 +51,7 @@ export const PortalShell = (props: {
             user={user}
             teams={teams}
             apiKeyTeamIds={apiKeyTeamIds}
-            sandboxRequest={sandboxRequest}
+            sandboxRequestAndroid={sandboxRequestAndroid}
             sandboxRequestIos={sandboxRequestIos}
           />
 

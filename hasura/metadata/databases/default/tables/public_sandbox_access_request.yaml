@@ -44,6 +44,18 @@ update_permissions:
         - processed_at
       filter: {}
       check: {}
+  # Hasura exposes `on_conflict` only when the caller also has update
+  # permission. The service mutation uses `update_columns: []` strictly for
+  # idempotent insert-or-ignore behavior, so keep ordinary service updates
+  # unusable with a filter that cannot match this table's non-null primary key.
+  - role: service
+    permission:
+      columns:
+        - google_email
+      filter:
+        id:
+          _is_null: true
+      check: {}
 delete_permissions:
   # Rejection deletes only pending requests so the developer can submit again.
   - role: internal_dashboard_readonly

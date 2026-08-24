@@ -2,6 +2,9 @@ table:
   name: sandbox_access_request_ios
   schema: public
 object_relationships:
+  - name: team
+    using:
+      foreign_key_constraint_on: team_id
   - name: user
     using:
       foreign_key_constraint_on: user_id
@@ -46,6 +49,18 @@ update_permissions:
       columns:
         - status
       filter: {}
+      check: {}
+  # Hasura exposes `on_conflict` only when the caller also has update
+  # permission. The service mutation uses `update_columns: []` strictly for
+  # idempotent insert-or-ignore behavior, so keep ordinary service updates
+  # unusable with a filter that cannot match this table's non-null primary key.
+  - role: service
+    permission:
+      columns:
+        - asc_email
+      filter:
+        id:
+          _is_null: true
       check: {}
 delete_permissions:
   - role: internal_dashboard_readonly

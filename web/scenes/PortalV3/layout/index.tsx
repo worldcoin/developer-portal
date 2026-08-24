@@ -34,7 +34,7 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
 
   const userId = user?.hasura?.id;
 
-  let sandboxRequest: SandboxAccessRequestState | null = null;
+  let sandboxRequestAndroid: SandboxAccessRequestState | null = null;
   let sandboxRequestIos: SandboxAccessRequestIosState | null = null;
   if (userId) {
     const [androidResult, iosResult] = await Promise.allSettled([
@@ -43,7 +43,7 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
     ]);
 
     if (androidResult.status === "fulfilled") {
-      sandboxRequest = androidResult.value;
+      sandboxRequestAndroid = androidResult.value;
     } else {
       logger.warn(
         "Failed to hydrate Android sandbox request in portal layout",
@@ -72,7 +72,7 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
       }}
       teams={teams}
       apiKeyTeamIds={apiKeyTeamIds}
-      sandboxRequest={sandboxRequest}
+      sandboxRequestAndroid={sandboxRequestAndroid}
       sandboxRequestIos={sandboxRequestIos}
     >
       {props.children}

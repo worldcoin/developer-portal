@@ -34,7 +34,7 @@ jest.mock("@/scenes/PortalV3/layout/Shell", () => ({
     user: { name?: string | null };
     teams: { id: string }[];
     apiKeyTeamIds: string[];
-    sandboxRequest: { email: string } | null;
+    sandboxRequestAndroid: { email: string } | null;
     sandboxRequestIos: { ascEmail: string } | null;
     children: React.ReactNode;
   }) => (
@@ -42,7 +42,7 @@ jest.mock("@/scenes/PortalV3/layout/Shell", () => ({
       data-testid="shell"
       data-team-count={props.teams.length}
       data-api-key-team-ids={props.apiKeyTeamIds.join(",")}
-      data-sandbox-email={props.sandboxRequest?.email}
+      data-sandbox-email={props.sandboxRequestAndroid?.email}
       data-sandbox-ios-email={props.sandboxRequestIos?.ascEmail}
       data-user-name={props.user.name}
     >

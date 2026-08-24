@@ -17,14 +17,14 @@ export const PortalSidebar = (props: {
   user: { name?: string | null; email?: string | null };
   teams: { id: string; name: string }[];
   apiKeyTeamIds?: string[];
-  sandboxRequest?: SandboxAccessRequestState | null;
+  sandboxRequestAndroid?: SandboxAccessRequestState | null;
   sandboxRequestIos?: SandboxAccessRequestIosState | null;
 }) => {
   const {
     user,
     teams,
     apiKeyTeamIds = [],
-    sandboxRequest,
+    sandboxRequestAndroid,
     sandboxRequestIos,
   } = props;
   const name = user.name ?? user.email ?? "Account";
@@ -37,7 +37,7 @@ export const PortalSidebar = (props: {
 
       <SidebarContent className="gap-0 pt-3">
         <SidebarNav
-          initialSandboxRequest={sandboxRequest}
+          initialSandboxRequestAndroid={sandboxRequestAndroid}
           initialSandboxRequestIos={sandboxRequestIos}
           apiKeyTeamIds={apiKeyTeamIds}
         />

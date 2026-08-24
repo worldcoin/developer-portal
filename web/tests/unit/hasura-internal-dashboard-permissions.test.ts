@@ -131,10 +131,20 @@ describe("internal dashboard detail permissions", () => {
       updatePermissionsStart,
       metadata.indexOf("delete_permissions:"),
     );
+    const serviceUpdateStart = updateSection.indexOf("  - role: service");
+    const serviceUpdatePermission = updateSection.slice(serviceUpdateStart);
     const deleteSection = metadata.slice(
       metadata.indexOf("delete_permissions:"),
     );
-    expect(updateSection).not.toContain("role: service");
+
+    // The service role needs an update permission for Hasura to expose the
+    // no-op `on_conflict` used by the insert mutation. Its impossible primary
+    // key filter prevents the role from updating an existing request.
+    expect(serviceUpdateStart).toBeGreaterThan(-1);
+    expect(serviceUpdatePermission).toContain("- google_email");
+    expect(serviceUpdatePermission).not.toContain("- accepted");
+    expect(serviceUpdatePermission).not.toContain("- processed_at");
+    expect(serviceUpdatePermission).toContain("_is_null: true");
     expect(deleteSection).not.toContain("role: service");
   });
 
@@ -151,6 +161,12 @@ describe("internal dashboard detail permissions", () => {
       metadata.indexOf("update_permissions:"),
       metadata.indexOf("delete_permissions:"),
     );
+    const serviceUpdateStart = updateSection.indexOf("  - role: service");
+    const dashboardUpdatePermission = updateSection.slice(
+      0,
+      serviceUpdateStart,
+    );
+    const serviceUpdatePermission = updateSection.slice(serviceUpdateStart);
     const deleteSection = metadata.slice(
       metadata.indexOf("delete_permissions:"),
     );
@@ -160,12 +176,41 @@ describe("internal dashboard detail permissions", () => {
     expect(insertSection).toContain("- team_id");
     expect(insertSection).toContain("- user_id");
     expect(insertSection).not.toContain("- status");
-    expect(updateSection).toContain("- status");
-    expect(updateSection).not.toContain("- asc_email");
-    expect(updateSection).not.toContain("- portal_email");
-    expect(updateSection).not.toContain("role: service");
+    expect(dashboardUpdatePermission).toContain("- status");
+    expect(dashboardUpdatePermission).not.toContain("- asc_email");
+    expect(dashboardUpdatePermission).not.toContain("- portal_email");
+
+    // Keep the no-op upsert available without allowing the service role to
+    // change enrollment identity or workflow state on an existing request.
+    expect(serviceUpdateStart).toBeGreaterThan(-1);
+    expect(serviceUpdatePermission).toContain("- asc_email");
+    expect(serviceUpdatePermission).not.toContain("- status");
+    expect(serviceUpdatePermission).not.toContain("- portal_email");
+    expect(serviceUpdatePermission).not.toContain("- team_id");
+    expect(serviceUpdatePermission).not.toContain("- user_id");
+    expect(serviceUpdatePermission).toContain("_is_null: true");
     expect(deleteSection).toContain("_eq: pending");
     expect(deleteSection).not.toContain("role: service");
+    expect(metadata).toContain("- name: team");
+    expect(metadata).toContain("foreign_key_constraint_on: team_id");
+  });
+
+  it("keeps iOS beta-tester ownership unique by canonical ASC email", () => {
+    const migration = readFileSync(
+      path.join(
+        tablesPath,
+        "../../../../migrations/default/1787610172000_enforce_unique_sandbox_ios_asc_email/up.sql",
+      ),
+      "utf8",
+    );
+
+    expect(migration).toContain('lower(btrim("asc_email"))');
+    expect(migration).toContain(
+      'CONSTRAINT "unique_sandbox_access_request_ios_asc_email"',
+    );
+    expect(migration).toContain(
+      'CONSTRAINT "sandbox_access_request_ios_asc_email_is_canonical"',
+    );
   });
 
   it("does not define elevated internal dashboard roles", () => {
