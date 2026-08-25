@@ -185,15 +185,21 @@ describe("internal dashboard detail permissions", () => {
     expect(dashboardUpdatePermission).not.toContain("- asc_email");
     expect(dashboardUpdatePermission).not.toContain("- portal_email");
 
-    // Keep the no-op upsert available without allowing the service role to
-    // change enrollment identity or workflow state on an existing request.
+    // The service role's only update is the re-request upsert: it may reopen
+    // a rejected request as pending, but never touch ownership or the
+    // approval/revocation audit fields, and never rows in any other status.
     expect(serviceUpdateStart).toBeGreaterThan(-1);
     expect(serviceUpdatePermission).toContain("- asc_email");
-    expect(serviceUpdatePermission).not.toContain("- status");
-    expect(serviceUpdatePermission).not.toContain("- portal_email");
-    expect(serviceUpdatePermission).not.toContain("- team_id");
+    expect(serviceUpdatePermission).toContain("- portal_email");
+    expect(serviceUpdatePermission).toContain("- team_id");
+    expect(serviceUpdatePermission).toContain("- status");
+    expect(serviceUpdatePermission).toContain("- rejection_reason");
+    expect(serviceUpdatePermission).toContain("- created_at");
     expect(serviceUpdatePermission).not.toContain("- user_id");
-    expect(serviceUpdatePermission).toContain("_is_null: true");
+    expect(serviceUpdatePermission).not.toContain("- approved_at");
+    expect(serviceUpdatePermission).not.toContain("- revoked_at");
+    expect(serviceUpdatePermission).toContain("_eq: rejected");
+    expect(serviceUpdatePermission).toContain("_eq: pending");
     expect(deleteSection).toContain("_eq: pending");
     expect(deleteSection).not.toContain("role: service");
     expect(metadata).toContain("- name: team");

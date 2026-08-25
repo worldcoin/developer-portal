@@ -72,9 +72,11 @@ export async function GET() {
 }
 
 /**
- * Records one immutable App Store Connect enrollment request per portal user.
- * The caller supplies the ASC email and active team. Identity and portal email
- * always come from the authenticated session, and the team must belong to the
+ * Records one App Store Connect enrollment request per portal user. A rejected
+ * request is reopened in place as a fresh pending one; a request in any other
+ * status is immutable and a repeat POST returns it unchanged. The caller
+ * supplies the ASC email and active team. Identity and portal email always
+ * come from the authenticated session, and the team must belong to the
  * authenticated user.
  */
 export async function POST(req: NextRequest) {

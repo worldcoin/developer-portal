@@ -154,7 +154,7 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
     });
   });
 
-  it("returns the original immutable request on conflict", async () => {
+  it("returns the existing request unchanged when it is not rejected", async () => {
     InsertSandboxAccessRequestIos.mockResolvedValue({
       insert_sandbox_access_request_ios_one: null,
     });

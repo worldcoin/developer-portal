@@ -51,18 +51,25 @@ update_permissions:
         - revoked_at
       filter: {}
       check: {}
-  # Hasura exposes `on_conflict` only when the caller also has update
-  # permission. The service mutation uses `update_columns: []` strictly for
-  # idempotent insert-or-ignore behavior, so keep ordinary service updates
-  # unusable with a filter that cannot match this table's non-null primary key.
+  # The service role's only permitted update is the re-request upsert: reopen
+  # a rejected request as a fresh pending one (values come from the proposed
+  # insert row). Every other status stays immutable to the service role, and
+  # ownership plus approval/revocation audit fields are never updatable.
   - role: service
     permission:
       columns:
         - asc_email
+        - created_at
+        - portal_email
+        - rejection_reason
+        - status
+        - team_id
       filter:
-        id:
-          _is_null: true
-      check: {}
+        status:
+          _eq: rejected
+      check:
+        status:
+          _eq: pending
 delete_permissions:
   - role: internal_dashboard_readonly
     permission:

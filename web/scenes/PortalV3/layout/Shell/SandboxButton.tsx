@@ -166,6 +166,11 @@ export const SandboxButton = (props: {
     }
   };
 
+  // A rejected request stays editable so the user can fix the email (or plead
+  // their case again); every other existing request locks the form.
+  const iosRequestLocked =
+    existingIosRequest !== null && existingIosRequest.status !== "rejected";
+
   const submitIosAccessRequest = async (event: React.FormEvent) => {
     event.preventDefault();
     if (requestSending || !iosRequestEmail || !user?.email || !props.teamId)
@@ -305,7 +310,7 @@ export const SandboxButton = (props: {
                   <input
                     type="email"
                     required
-                    disabled={existingIosRequest !== null || requestRefreshing}
+                    disabled={iosRequestLocked || requestRefreshing}
                     value={iosRequestEmail}
                     onChange={(event) => setIosRequestEmail(event.target.value)}
                     aria-label="Apple Account email"
@@ -315,7 +320,7 @@ export const SandboxButton = (props: {
                   <InkButton
                     type="submit"
                     disabled={
-                      existingIosRequest !== null ||
+                      iosRequestLocked ||
                       requestRefreshing ||
                       requestSending ||
                       !user?.email ||
@@ -328,7 +333,7 @@ export const SandboxButton = (props: {
                       : existingIosRequest?.status === "revoked"
                         ? "Access revoked"
                         : existingIosRequest?.status === "rejected"
-                          ? "Request rejected"
+                          ? "Request again"
                           : existingIosRequest
                             ? "Request submitted"
                             : "Submit email"}
@@ -353,7 +358,8 @@ export const SandboxButton = (props: {
                     ) : existingIosRequest.status === "rejected" ? (
                       <>
                         The enrollment request for {existingIosRequest.ascEmail}{" "}
-                        was rejected.
+                        was rejected. You can update the email and submit a new
+                        request.
                       </>
                     ) : (
                       <>
