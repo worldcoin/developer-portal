@@ -55,7 +55,9 @@ jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsGrid",
   () => ({
     ActionsGrid: (props: {
+      actions?: unknown[];
       canCreate?: boolean;
+      emptyAction?: React.ReactNode;
       initialDialogOpen?: boolean;
       onActionsChanged?: () => void;
       onCreateActionConsumed?: () => void;
@@ -78,6 +80,7 @@ jest.mock(
           >
             consume-create
           </button>
+          {props.actions?.length ? null : props.emptyAction}
         </div>
       );
     },
@@ -150,6 +153,7 @@ const makeData = (
     rp?: boolean;
     banned?: boolean;
     legacy?: boolean;
+    actions?: boolean;
     app?: unknown[];
   } = {},
 ) => ({
@@ -177,7 +181,10 @@ const makeData = (
     },
   ],
   action: over.legacy ? [{ id: "a_1" }] : [],
-  action_v4: [{ id: "av_1", action: "vote", description: "Vote" }],
+  action_v4:
+    over.actions === false
+      ? []
+      : [{ id: "av_1", action: "vote", description: "Vote" }],
 });
 
 const el = (over?: Partial<React.ComponentProps<typeof WorldIdLayout>>) => (
@@ -423,6 +430,36 @@ describe("WorldIdLayout [optimistic status]", () => {
 
 // #region Setup to create handoff
 describe("WorldIdLayout [setup to create handoff]", () => {
+  it("offers registration on explicitly requested Actions without changing tabs", () => {
+    searchParams = new URLSearchParams("tab=actions");
+    setQuery({
+      data: makeData({ rp: false, actions: false }),
+      loading: false,
+    });
+    render(el());
+
+    expect(screen.getByTestId("actions-grid")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Register relying party" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("register-rp")).not.toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it("does not offer registration on Actions to a regular team member", () => {
+    searchParams = new URLSearchParams("tab=actions");
+    setQuery({
+      data: makeData({ rp: false, actions: false }),
+      loading: false,
+    });
+    render(el({ canManageWorldId: false }));
+
+    expect(screen.getByTestId("actions-grid")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Register relying party" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("keeps a consumed enable deep link on World ID configuration", () => {
     searchParams = new URLSearchParams("enableWorldId4=true");
     setQuery({ data: makeData(), loading: false });

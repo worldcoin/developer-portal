@@ -1,13 +1,17 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import {
+  evaluateOnChainTrust,
   isValidRpId,
   mapOnChainToDbStatus,
-  normalizeAddress,
+  type OnChainTrust,
   parseRpId,
   RpRegistrationStatus,
+  shouldFailUntrustedRegistration,
 } from "@/api/helpers/rp-utils";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
+import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getGetRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
@@ -17,10 +21,36 @@ import { getSdk as getUpdateStagingStatusSdk } from "./graphql/update-staging-st
 const CACHE_TTL_SECONDS = 3600;
 const CACHE_KEY_PREFIX = "rp_status:v2:";
 const PENDING_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const SIGNER_MISMATCH_LOG_KEY_PREFIX = "rp_signer_mismatch_logged:";
+const SIGNER_MISMATCH_LOG_TTL_SECONDS = 600; // 10 minutes
 
 interface DualStatus {
   production_status: string;
   staging_status: string | null;
+}
+
+/**
+ * Whether to emit the signer-mismatch warning for this rp_id now, at most once
+ * per SIGNER_MISMATCH_LOG_TTL_SECONDS. Fails open: with no Redis, or if Redis
+ * errors, we log — being noisy beats losing a takeover signal.
+ */
+async function shouldLogSignerMismatch(rpId: string): Promise<boolean> {
+  const redis = global.RedisClient;
+  if (!redis) {
+    return true;
+  }
+  try {
+    const claimed = await redis.set(
+      `${SIGNER_MISMATCH_LOG_KEY_PREFIX}${rpId}`,
+      "1",
+      "EX",
+      SIGNER_MISMATCH_LOG_TTL_SECONDS,
+      "NX",
+    );
+    return claimed === "OK";
+  } catch {
+    return true;
+  }
 }
 
 /**
@@ -110,9 +140,30 @@ export async function GET(
 
   const numericRpId = parseRpId(rpId);
 
+  // Address of the Portal's manager key for this row, resolved once and shared
+  // by the production and staging checks (the same manager key is used on both
+  // contracts). `null` here means "couldn't resolve", which evaluateOnChainTrust
+  // maps to `unknown` rather than `untrusted`.
+  // The region matters: manager keys are created in RP_REGISTRY_KMS_REGION, but
+  // getKMSClient defaults to AWS_REGION_NAME. If those differ, GetPublicKey fails
+  // for every managed row, every trust verdict becomes `unknown`, and no managed
+  // RP is ever promoted to `registered`.
+  const expectedManager = dbRecord.manager_kms_key_id
+    ? await resolveManagerAddress(
+        dbRecord.manager_kms_key_id,
+        process.env.RP_REGISTRY_KMS_REGION,
+      )
+    : null;
+
   // Fetch production on-chain state
   let productionStatus: string;
   let productionInitialized = false;
+  // How far the on-chain production reading can be trusted for this row — see
+  // evaluateOnChainTrust. Mirrors the staging check below: a managed RP is only
+  // promoted to its on-chain status when the on-chain manager AND signer are
+  // ours, so a foreign on-chain register() can't flip the row to `registered`
+  // and bind the app's branding to a foreign OPRF signer.
+  let productionTrust: OnChainTrust = "unknown";
   try {
     const onChainRp = await getRpFromContract(
       numericRpId,
@@ -121,10 +172,73 @@ export async function GET(
     productionInitialized = onChainRp.initialized;
 
     if (onChainRp.initialized) {
-      productionStatus = mapOnChainToDbStatus(
-        onChainRp.initialized,
-        onChainRp.active,
-      );
+      productionTrust = evaluateOnChainTrust({
+        mode: dbRecord.mode,
+        onChainManager: onChainRp.manager,
+        onChainSigner: onChainRp.signer,
+        expectedSigner: dbRecord.signer_address,
+        expectedManager,
+      });
+
+      if (productionTrust === "trusted") {
+        productionStatus = mapOnChainToDbStatus(
+          onChainRp.initialized,
+          onChainRp.active,
+        );
+      } else {
+        // Not provably ours. Preserve the DB status instead of promoting — for a
+        // managed RP this is an in-flight signer rotation, a foreign takeover of
+        // the rp_id, or (when `unknown`) an unresolvable manager key.
+        productionStatus = currentDbStatus;
+
+        // An already-`registered` row that reads `untrusted` is categorically
+        // worse than a pending one: proof-context and /api/v4/verify gate on the
+        // stored status, so the Portal is actively serving this app's verified
+        // branding over an OPRF signer we have just proven is not ours. It still
+        // is not safe to demote it from here — this is an unauthenticated
+        // polling endpoint, and if a cohort of rows has a stale
+        // manager_kms_key_id then auto-demoting would take World ID verification
+        // down for working apps on the strength of our own bad data. So the
+        // status is preserved and the condition is escalated instead, for a
+        // human to resolve out of band (the audit is: managed rows at
+        // `registered` whose on-chain manager/signer differ from the row's).
+        //
+        // The two logged signer values are the discriminator: a takeover
+        // mismatches BOTH manager and signer, whereas our own key drift leaves
+        // the on-chain signer still matching signer_address, because we set it.
+        const isServingUntrusted =
+          productionTrust === "untrusted" &&
+          currentDbStatus === RpRegistrationStatus.Registered;
+
+        // Throttled either way: this is a hot polling endpoint (pending statuses
+        // cache for 1s), so an unresolved mismatch would emit thousands of
+        // identical lines. One per rp_id per window keeps it a triage signal
+        // instead of log spam.
+        if (await shouldLogSignerMismatch(rpId)) {
+          const details = {
+            rpId,
+            trust: productionTrust,
+            mode: dbRecord.mode,
+            dbStatus: currentDbStatus,
+            expectedManager,
+            onChainManager: onChainRp.manager,
+            expectedSigner: dbRecord.signer_address,
+            onChainSigner: onChainRp.signer,
+          };
+
+          if (isServingUntrusted) {
+            logger.error(
+              "Registered RP is not Portal-owned on-chain; still serving stored status",
+              details,
+            );
+          } else {
+            logger.warn(
+              "On-chain RP is not provably Portal-owned; preserving DB status",
+              details,
+            );
+          }
+        }
+      }
     } else {
       // Not initialized on-chain — use DB status (tracks production)
       productionStatus = currentDbStatus;
@@ -147,13 +261,10 @@ export async function GET(
   let stagingStatus: string | null = null;
   let stagingInitialized = false;
   let stagingRpcSucceeded = false;
-  // Whether to treat on-chain as authoritative for staging. True when we
-  // have no DB signer to compare (self-managed mode), or when the on-chain
-  // signer matches the DB signer (rotation has settled). False during a
-  // rotation in flight, after a failed rotation, or while a retry is
-  // pending — in those cases the on-chain "registered" reading is
-  // misleading and we must preserve the DB staging_status.
-  let canTrustOnChainStaging = false;
+  // How far to trust the on-chain staging reading — see evaluateOnChainTrust.
+  // Preserves the DB staging_status during/after a signer rotation or a foreign
+  // takeover.
+  let stagingTrust: OnChainTrust = "unknown";
   if (stagingContractAddress) {
     try {
       const stagingOnChainRp = await getRpFromContract(
@@ -164,19 +275,28 @@ export async function GET(
       stagingInitialized = stagingOnChainRp.initialized;
 
       if (stagingOnChainRp.initialized) {
-        const expectedSigner = dbRecord.signer_address;
-        canTrustOnChainStaging =
-          !expectedSigner ||
-          normalizeAddress(stagingOnChainRp.signer).toLowerCase() ===
-            normalizeAddress(expectedSigner).toLowerCase();
+        stagingTrust = evaluateOnChainTrust({
+          mode: dbRecord.mode,
+          onChainManager: stagingOnChainRp.manager,
+          onChainSigner: stagingOnChainRp.signer,
+          expectedSigner: dbRecord.signer_address,
+          expectedManager,
+        });
 
         const onChainMappedStatus = mapOnChainToDbStatus(
           stagingOnChainRp.initialized,
           stagingOnChainRp.active,
         );
-        stagingStatus = canTrustOnChainStaging
-          ? onChainMappedStatus
-          : currentDbStagingStatus ?? onChainMappedStatus;
+        // Report the stored value when the reading is not provably ours, even
+        // when that value is null. Falling back to the on-chain mapping here
+        // would surface a squatter's staging registration as this app's
+        // `registered`, so a client would stop polling on someone else's success.
+        // The production branch above preserves currentDbStatus for the same
+        // reason; this is the same rule.
+        stagingStatus =
+          stagingTrust === "trusted"
+            ? onChainMappedStatus
+            : currentDbStagingStatus;
       } else {
         stagingStatus = RpRegistrationStatus.Pending;
       }
@@ -192,12 +312,27 @@ export async function GET(
 
   const ageMs = Date.now() - new Date(dbRecord.created_at).getTime();
   const isPastGracePeriod = ageMs > PENDING_TIMEOUT_MS;
+  // updated_at-based grace windows. updated_at is bumped by a fresh retry or an
+  // in-flight signer rotation, so both restart these clocks.
+  const updatedAgeMs = Date.now() - new Date(dbRecord.updated_at).getTime();
+  //  - staging timeout: same short grace as production.
+  const isPastGracePeriodSinceUpdate = updatedAgeMs > PENDING_TIMEOUT_MS;
+  //  - untrusted-initialized production timeout: a managed registration/rotation
+  //    UserOp stays includable on-chain for USER_OP_MAX_VALIDITY_MS, so an
+  //    unsettled op is only provably dead once that window plus the settlement
+  //    margin has elapsed. Failing sooner would race a rotation that can still
+  //    land, then cache `failed` for an hour over a trusted `registered`.
+  const isPastUserOpValidityWindow =
+    updatedAgeMs > USER_OP_MAX_VALIDITY_MS + PENDING_TIMEOUT_MS;
 
   // Sync DB status based on production contract only (never for deleted apps —
-  // see isAppDeleted above).
+  // see isAppDeleted above). Only when the on-chain reading is trusted (manager
+  // and signer are ours, or self-managed with no expected signer) — otherwise a
+  // foreign on-chain register() would clobber the row into `registered`.
   if (
     !isAppDeleted &&
     productionInitialized &&
+    productionTrust === "trusted" &&
     productionStatus !== currentDbStatus
   ) {
     try {
@@ -216,15 +351,15 @@ export async function GET(
   }
 
   // Sync staging status to DB when on-chain state differs. Only when we
-  // can trust on-chain (signer matches, or self-managed with no DB signer
-  // to compare against) — otherwise the on-chain "registered" reading
+  // can trust on-chain (manager and signer are ours, or self-managed with no DB
+  // signer to compare against) — otherwise the on-chain "registered" reading
   // would clobber a legit "pending"/"failed" that rotate-signer-key or
   // rp-retry persisted while a rotation is in flight or after a failure.
   if (
     !isAppDeleted &&
     stagingRpcSucceeded &&
     stagingInitialized &&
-    canTrustOnChainStaging &&
+    stagingTrust === "trusted" &&
     stagingStatus &&
     stagingStatus !== currentDbStagingStatus
   ) {
@@ -276,19 +411,77 @@ export async function GET(
     }
   }
 
+  // See shouldFailUntrustedRegistration for why this exists and why `unknown` is
+  // treated the way it is. Shared with the MCP status tool so the two readers of
+  // these rows cannot drift.
+  //
+  // NOTE: rp-retry also rejects rows without a manager key, so the retry button
+  // on such a row reports a clear error rather than recovering. Fully fixing that
+  // means persisting manager_kms_key_id BEFORE the on-chain submission, which
+  // needs a new mutation (UpdateRpRegistration requires a non-null
+  // operation_hash) and therefore a codegen run.
+  const {
+    shouldFail: shouldFailProduction,
+    missingManagerKey: isUnrecoverableMissingManagerKey,
+  } = shouldFailUntrustedRegistration({
+    trust: productionTrust,
+    dbStatus: currentDbStatus,
+    mode: dbRecord.mode,
+    managerKmsKeyId: dbRecord.manager_kms_key_id,
+    isInitializedOnChain: productionInitialized,
+    updatedAt: dbRecord.updated_at,
+    isAppDeleted,
+  });
+
+  if (shouldFailProduction) {
+    if (isUnrecoverableMissingManagerKey) {
+      // Alertable: a registration we paid for on-chain that the Portal can no
+      // longer manage, because the manager key was never recorded.
+      logger.error(
+        "Managed RP is initialized on-chain but has no manager key recorded",
+        {
+          rpId,
+          updatedAt: dbRecord.updated_at,
+          operation_hash: dbRecord.operation_hash ?? "null",
+        },
+      );
+    }
+
+    logger.warn(
+      "RP untrusted-initialized past grace — transitioning to failed",
+      {
+        rpId,
+        trust: productionTrust,
+        updatedAt: dbRecord.updated_at,
+        operation_hash: dbRecord.operation_hash ?? "null",
+      },
+    );
+
+    try {
+      await getUpdateRpStatusSdk(client).UpdateRpStatus({
+        rp_id: rpId,
+        status: RpRegistrationStatus.Failed,
+      });
+      productionStatus = RpRegistrationStatus.Failed;
+    } catch (error) {
+      logger.error("Failed to update untrusted-initialized RP status in DB", {
+        rpId,
+        error,
+      });
+    }
+  }
+
   // Staging timeout: if staging is not initialized after the grace period,
   // transition to failed so the user gets a retry button and polling stops.
   // Only apply when the RPC call succeeded — a transient RPC failure should
   // not permanently mark a healthy staging registration as failed.
-  // Use updated_at (not created_at) so a fresh staging retry resets the clock.
-  const stagingAgeMs = Date.now() - new Date(dbRecord.updated_at).getTime();
-  const isStagingPastGracePeriod = stagingAgeMs > PENDING_TIMEOUT_MS;
+  // Uses the updated_at clock so a fresh staging retry resets the grace period.
   if (
     !isAppDeleted &&
     stagingContractAddress &&
     stagingRpcSucceeded &&
     !stagingInitialized &&
-    isStagingPastGracePeriod &&
+    isPastGracePeriodSinceUpdate &&
     dbRecord.mode === "managed"
   ) {
     stagingStatus = RpRegistrationStatus.Failed;

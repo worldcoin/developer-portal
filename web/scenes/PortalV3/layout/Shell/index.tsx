@@ -33,8 +33,8 @@ export const PortalShell = (props: {
         className="min-h-[100dvh] bg-portal-canvas font-world"
         style={
           {
-            "--sidebar-width": "280px",
-            "--portal-header-height": "67px",
+            "--sidebar-width": "220px",
+            "--portal-header-height": "57px",
             "--sidebar": "var(--color-portal-canvas)",
             "--sidebar-foreground": "var(--color-portal-muted)",
             "--sidebar-accent": "var(--color-portal-border)",

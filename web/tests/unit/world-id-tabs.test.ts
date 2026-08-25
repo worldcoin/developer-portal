@@ -40,7 +40,7 @@ describe("resolveAvailableWorldIdTab", () => {
     ).toBe(WORLD_ID_TABS.Configuration);
   });
 
-  it("falls back when a requested tab is invalid or unavailable", () => {
+  it("keeps explicitly requested Actions without an RP and falls back from unavailable tabs", () => {
     expect(
       resolveAvailableWorldIdTab({
         ...availableDefaults,
@@ -53,7 +53,7 @@ describe("resolveAvailableWorldIdTab", () => {
         requestedTab: WORLD_ID_TABS.Actions,
         hasRpRegistration: false,
       }),
-    ).toBe(WORLD_ID_TABS.Configuration);
+    ).toBe(WORLD_ID_TABS.Actions);
     expect(
       resolveAvailableWorldIdTab({
         ...availableDefaults,

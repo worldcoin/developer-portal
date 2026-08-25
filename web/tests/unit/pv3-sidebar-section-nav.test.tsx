@@ -29,7 +29,6 @@ jest.mock(
   }),
 );
 
-// jsdom has no ResizeObserver; NavActivePill uses it to track the active item.
 global.ResizeObserver ??= class {
   observe() {}
   unobserve() {}
@@ -53,18 +52,14 @@ import {
   SidebarAnimationShell,
   SidebarNav,
 } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
-import { SidebarSubNavigation } from "@/scenes/PortalV3/layout/Shell/SidebarSubNavigation";
+import { NavActivePill } from "@/scenes/PortalV3/layout/Shell/NavItem";
 
 // #region Test Data
 const teamId = "team_1";
 const appId = "app_1";
 const base = `/teams/${teamId}/apps/${appId}`;
 
-const makeWorldIdNavigationData = (options?: {
-  rp?: boolean;
-  rpStatus?: string;
-  legacy?: boolean;
-}) => ({
+const makeWorldIdNavigationData = (options?: { rp?: boolean }) => ({
   app: [
     {
       id: appId,
@@ -74,12 +69,12 @@ const makeWorldIdNavigationData = (options?: {
           : [
               {
                 rp_id: "rp_0123456789abcdef",
-                status: options?.rpStatus ?? "registered",
+                status: "registered",
               },
             ],
     },
   ],
-  action: options?.legacy ? [{ id: "legacy_1" }] : [],
+  action: [],
 });
 
 const renderSidebar = (apiKeyTeamIds = [teamId]) =>
@@ -111,8 +106,8 @@ beforeEach(() => {
   });
 });
 
-// #region subnavigation active pill
-it("slides the subnavigation pill when the active href changes", () => {
+// #region active pill animation compartments
+it("snaps from an app tab to Projects but slides within team navigation", () => {
   const rect = (top: number, left: number, width: number, height: number) =>
     ({
       top,
@@ -128,213 +123,135 @@ it("slides the subnavigation pill when the active href changes", () => {
   const getBoundingClientRect = jest
     .spyOn(Element.prototype, "getBoundingClientRect")
     .mockImplementation(function (this: Element) {
-      if (this.matches('[data-sidebar="menu-sub"]')) {
-        Object.defineProperty(this, "clientLeft", {
-          configurable: true,
-          value: 1,
-        });
-        return rect(100, 20, 180, 76);
+      if (this.matches("nav")) return rect(100, 20, 204, 300);
+      if (this.getAttribute("href") === `/teams/${teamId}`) {
+        return rect(104, 20, 204, 36);
       }
-      if (this.textContent === "Actions") {
-        return rect(104, 32, 156, 36);
+      if (this.getAttribute("href")?.includes("/world-id")) {
+        return rect(160, 20, 204, 36);
       }
-      if (this.textContent === "Configuration") {
-        return rect(144, 32, 156, 36);
-      }
-      return rect(0, 0, 0, 0);
+      return rect(216, 20, 204, 36);
     });
-  const items = (active: "actions" | "configuration") => [
-    {
-      label: "Actions",
-      href: "/world-id?tab=actions",
-      active: active === "actions",
-    },
-    {
-      label: "Configuration",
-      href: "/world-id?tab=configuration",
-      active: active === "configuration",
-    },
-  ];
-  const getNavigationHandler = () => () => {};
-  const view = render(
-    <SidebarSubNavigation
-      label="World ID navigation"
-      items={items("actions")}
-      getNavigationHandler={getNavigationHandler}
-    />,
+  const hrefs = {
+    app: `${base}/world-id?tab=actions`,
+    projects: `/teams/${teamId}`,
+    general: `/teams/${teamId}/settings`,
+  };
+  const Navigation = (props: {
+    active: keyof typeof hrefs;
+    animate?: boolean;
+  }) => (
+    <nav>
+      <NavActivePill animate={props.animate} />
+      {Object.entries(hrefs).map(([name, href]) => (
+        <a
+          key={name}
+          href={href}
+          data-sidebar="menu-button"
+          data-active={name === props.active ? "true" : "false"}
+        >
+          {name}
+        </a>
+      ))}
+    </nav>
   );
-  const pill = view.container.querySelector(
-    '[data-sidebar="menu-sub-active-pill"]',
-  );
+  const view = render(<Navigation active="app" />);
+  const pill = view.container.querySelector("nav > span")!;
 
-  expect(pill).toHaveStyle({
-    transform: "translate(11px, 4px)",
-    width: "156px",
-    height: "36px",
-  });
+  view.rerender(<Navigation active="projects" animate={false} />);
   expect(pill).not.toHaveClass("transition-[transform,width,height]");
 
-  view.rerender(
-    <SidebarSubNavigation
-      label="World ID navigation"
-      items={items("configuration")}
-      getNavigationHandler={getNavigationHandler}
-    />,
-  );
+  view.rerender(<Navigation active="general" />);
+  expect(pill).toHaveClass("transition-[transform,width,height]");
 
-  expect(pill).toHaveStyle({ transform: "translate(11px, 44px)" });
-  expect(pill).toHaveClass(
-    "transition-[transform,width,height]",
-    "duration-200",
-    "ease-out",
-    "motion-reduce:transition-none",
-  );
-  expect(link("Configuration")).toHaveAttribute("aria-current", "page");
-  expect(link("Actions")).not.toHaveAttribute("aria-current");
+  view.rerender(<Navigation active="projects" />);
+  expect(pill).toHaveClass("transition-[transform,width,height]");
 
   getBoundingClientRect.mockRestore();
 });
 // #endregion
 
-// #region navigation hierarchy
-describe("v3 SidebarNav [navigation hierarchy]", () => {
-  it("renders the app hierarchy with World ID expanded", () => {
+// #region Figma navigation contract
+describe("v3 SidebarNav [Figma navigation contract]", () => {
+  it("renders the flat app sidebar in design order with exact icon assets", () => {
     renderSidebar();
 
-    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id`);
-    expect(link("World ID")).toHaveAttribute("data-active", "true");
-    expect(isCurrent("World ID")).toBe(false);
-    expect(link("World ID").querySelectorAll("img")).toHaveLength(2);
-    expect(
-      screen.getByRole("list", { name: "World ID navigation" }),
-    ).toBeInTheDocument();
-    expect(isCurrent("Actions")).toBe(true);
-    expect(link("Configuration")).toBeInTheDocument();
-    expect(link("Configuration").querySelector("img")).toHaveAttribute(
-      "src",
-      "/images/portal-v3/icons/nav-configuration.svg",
+    expect(screen.getByText("Mini App")).toBeInTheDocument();
+    expect(screen.getByText("Team settings")).toBeInTheDocument();
+    expect(screen.getAllByRole("link").map((item) => item.textContent)).toEqual(
+      [
+        "Projects",
+        "Dashboard",
+        "World ID Configuration",
+        "Verification",
+        "Develop",
+        "Transactions",
+        "Notifications",
+        "General",
+        "Members",
+        "API Keys",
+      ],
     );
-    noLink("Legacy actions");
-    expect(link("Get verified")).toBeInTheDocument();
-    expect(link("Get verified").querySelector("svg")).toHaveClass(
-      "lucide-badge-check",
-    );
-    expect(link("Mini App")).toBeInTheDocument();
-    noLink("Develop");
-    expect(link("Team settings")).toHaveAttribute(
-      "href",
-      `/teams/${teamId}/settings?return_to=${encodeURIComponent(base)}`,
-    );
-    const settingsChevron = link("Team settings").querySelector(
-      "svg.lucide-chevron-right",
-    );
-    expect(settingsChevron).toHaveClass("size-4");
-    expect(settingsChevron?.parentElement).toHaveClass("ml-auto");
-  });
-});
-// #endregion
 
-// #region active section
-describe("v3 SidebarNav [active section]", () => {
-  it("maps canonical and compatibility routes to World ID children", () => {
-    const cases = [
-      { path: base, child: "Actions" },
-      { path: `${base}/world-id`, child: "Actions" },
-      { path: `${base}/world-id-4-0`, child: "Configuration" },
-      { path: `${base}/world-id-actions`, child: "Actions" },
-      {
-        path: `${base}/world-id/legacy-actions`,
-        child: "Legacy actions",
-      },
-      { path: `${base}/actions`, child: "Legacy actions" },
-    ];
-
-    for (const { path, child } of cases) {
-      usePathname.mockReturnValue(path);
-      const { unmount } = renderSidebar();
-      expect(link("World ID")).toHaveAttribute("data-active", "true");
-      expect(isCurrent("World ID")).toBe(false);
-      expect(isCurrent(child)).toBe(true);
-      unmount();
+    const icons: Record<string, string> = {
+      Projects: "view-grid-active",
+      Dashboard: "nav-home-active",
+      Verification: "nav-badge-check",
+      "World ID Configuration": "nav-credential",
+      Develop: "nav-delivery-check",
+      Transactions: "nav-arrows-transfer",
+      Notifications: "nav-bell",
+      General: "nav-settings-active",
+      Members: "nav-group",
+      "API Keys": "nav-key",
+    };
+    for (const [label, icon] of Object.entries(icons)) {
+      expect(link(label).querySelector("img")).toHaveAttribute(
+        "src",
+        `/images/portal-v3/icons/${icon}.svg`,
+      );
     }
+
+    expect(link("Dashboard")).toHaveClass("h-9", "rounded-8", "gap-3");
+    expect(link("Projects")).toHaveAttribute("href", `/teams/${teamId}`);
+    expect(isCurrent("Projects")).toBe(false);
+    expect(link("Develop")).toHaveAttribute("href", `${base}/mini-app/develop`);
+    noLink("World ID");
+    noLink("Get verified");
   });
 
-  it("marks Get verified current on the app review route", () => {
-    usePathname.mockReturnValue(`${base}/configuration`);
+  it.each([
+    [base, "Dashboard"],
+    [`${base}/world-id`, "Dashboard"],
+    [`${base}/world-id?tab=actions`, "Dashboard"],
+    [`${base}/world-id-actions`, "Dashboard"],
+    [`${base}/actions`, "Dashboard"],
+    [`${base}/world-id-4-0`, "World ID Configuration"],
+    [`${base}/world-id?tab=configuration`, "World ID Configuration"],
+    [`${base}/configuration`, "Verification"],
+    [`${base}/mini-app`, "Develop"],
+    [`${base}/mini-app/permissions`, "Develop"],
+    [`${base}/mini-app/transactions`, "Transactions"],
+    [`${base}/mini-app/notifications`, "Notifications"],
+  ])("maps %s to %s", (href, activeLabel) => {
+    const [path, query = ""] = href.split("?");
+    usePathname.mockReturnValue(path);
+    useSearchParams.mockReturnValue(new URLSearchParams(query));
     renderSidebar();
 
-    expect(isCurrent("Get verified")).toBe(true);
-    expect(
-      screen.queryByRole("list", { name: "World ID navigation" }),
-    ).not.toBeInTheDocument();
-    expect(useQueryMock).toHaveBeenLastCalledWith(
-      { __mockDoc: "worldIdNavigation" },
-      expect.objectContaining({ skip: true }),
-    );
+    expect(isCurrent(activeLabel)).toBe(true);
   });
 
-  it("expands Mini App children only on its routes and marks each child", () => {
-    const collapsed = renderSidebar();
-    noLink("Develop");
-    collapsed.unmount();
-
-    for (const { path, child } of [
-      { path: `${base}/mini-app/develop`, child: "Develop" },
-      { path: `${base}/mini-app/permissions`, child: "Develop" },
-      { path: `${base}/mini-app/transactions`, child: "Transactions" },
-      { path: `${base}/transactions`, child: "Transactions" },
-      { path: `${base}/mini-app/notifications`, child: "Notifications" },
-    ]) {
-      usePathname.mockReturnValue(path);
-      const { unmount } = renderSidebar();
-      expect(link("Mini App")).toHaveAttribute("data-active", "true");
-      expect(isCurrent("Mini App")).toBe(false);
-      expect(isCurrent(child)).toBe(true);
-      expect(
-        screen.getByRole("list", { name: "Mini App navigation" }),
-      ).toHaveClass("mt-2");
-      expect(link("Develop").querySelector("svg")).toHaveClass(
-        "lucide-code-xml",
-      );
-      expect(link("Transactions").querySelector("svg")).toHaveClass(
-        "lucide-wallet-cards",
-      );
-      expect(link("Notifications").querySelector("svg")).toHaveClass(
-        "lucide-bell",
-      );
-      unmount();
-    }
-  });
-});
-// #endregion
-
-// #region World ID subnavigation
-describe("v3 SidebarNav [World ID subnavigation]", () => {
-  beforeEach(() => {
+  it("defaults the canonical route to World ID Configuration without an RP", () => {
     usePathname.mockReturnValue(`${base}/world-id`);
-  });
-
-  it("links every available section through the canonical World ID route", () => {
     useQueryMock.mockReturnValue({
-      data: makeWorldIdNavigationData({ legacy: true }),
+      data: makeWorldIdNavigationData({ rp: false }),
       loading: false,
     });
-    useSearchParams.mockReturnValue(new URLSearchParams("tab=legacy-actions"));
     renderSidebar();
 
-    expect(link("Actions")).toHaveAttribute(
-      "href",
-      `${base}/world-id?tab=actions`,
-    );
-    expect(link("Configuration")).toHaveAttribute(
-      "href",
-      `${base}/world-id?tab=configuration`,
-    );
-    expect(link("Legacy actions")).toHaveAttribute(
-      "href",
-      `${base}/world-id?tab=legacy-actions`,
-    );
-    expect(isCurrent("Legacy actions")).toBe(true);
+    expect(isCurrent("World ID Configuration")).toBe(true);
+    expect(link("Dashboard")).toBeInTheDocument();
     expect(useQueryMock).toHaveBeenCalledWith(
       { __mockDoc: "worldIdNavigation" },
       {
@@ -346,150 +263,107 @@ describe("v3 SidebarNav [World ID subnavigation]", () => {
     );
   });
 
-  it("defaults to Configuration and hides Actions without an RP", () => {
-    useQueryMock.mockReturnValue({
-      data: makeWorldIdNavigationData({ rp: false }),
-      loading: false,
-    });
-    renderSidebar();
-
-    expect(isCurrent("Configuration")).toBe(true);
-    noLink("Actions");
-    noLink("Legacy actions");
-  });
-
-  it("keeps Legacy actions available without an RP when the app has them", () => {
-    useQueryMock.mockReturnValue({
-      data: makeWorldIdNavigationData({ rp: false, legacy: true }),
-      loading: false,
-    });
-    useSearchParams.mockReturnValue(new URLSearchParams("tab=legacy-actions"));
-    renderSidebar();
-
-    noLink("Actions");
-    expect(isCurrent("Legacy actions")).toBe(true);
-  });
-
-  it("preserves an explicitly requested child while app data is loading", () => {
+  it("preserves an explicitly requested tab while app data is loading", () => {
+    usePathname.mockReturnValue(`${base}/world-id`);
+    useSearchParams.mockReturnValue(new URLSearchParams("tab=configuration"));
     useQueryMock.mockReturnValue({ data: undefined, loading: true });
-    useSearchParams.mockReturnValue(new URLSearchParams("tab=actions"));
     renderSidebar();
 
-    expect(isCurrent("Actions")).toBe(true);
-    expect(link("Configuration")).toBeInTheDocument();
-  });
-
-  it("matches the page setup intent when selecting the active child", () => {
-    useSearchParams.mockReturnValue(new URLSearchParams("enableWorldId4=true"));
-    renderSidebar();
-
-    expect(isCurrent("Configuration")).toBe(true);
-    expect(link("Actions")).toBeInTheDocument();
-  });
-
-  it("routes child clicks optimistically and preserves modifier clicks", () => {
-    renderSidebar();
-
-    fireEvent.click(link("Configuration"), { metaKey: true });
-    expect(routerPush).not.toHaveBeenCalled();
-    fireEvent.click(link("Configuration"));
-    expect(routerPush).toHaveBeenCalledWith(
-      `${base}/world-id?tab=configuration`,
-    );
+    expect(isCurrent("World ID Configuration")).toBe(true);
   });
 });
 // #endregion
 
-// #region route-owned app context
-describe("v3 SidebarNav [route-owned app context]", () => {
-  it("shows the Settings back header and section navigation", () => {
+// #region persistent app context
+describe("v3 SidebarNav [persistent app context]", () => {
+  it("highlights Projects on the canonical team page with the view-grid icon", () => {
+    useParams.mockReturnValue({ teamId });
+    usePathname.mockReturnValue(`/teams/${teamId}`);
+    renderSidebar();
+
+    expect(link("Projects")).toHaveAttribute("href", `/teams/${teamId}`);
+    expect(link("Projects").querySelector("img")).toHaveAttribute(
+      "src",
+      "/images/portal-v3/icons/view-grid-active.svg",
+    );
+    expect(isCurrent("Projects")).toBe(true);
+    expect(isCurrent("General")).toBe(false);
+  });
+
+  it("keeps app and team rows mounted on team settings via validated return_to", () => {
+    const returnTo = `${base}/configuration?view=review`;
+    useParams.mockReturnValue({ teamId });
+    usePathname.mockReturnValue(`/teams/${teamId}/settings`);
+    useSearchParams.mockReturnValue(
+      new URLSearchParams({ return_to: returnTo, tab: "members" }),
+    );
+    renderSidebar();
+
+    expect(link("Dashboard")).toHaveAttribute(
+      "href",
+      `${base}/world-id?tab=actions`,
+    );
+    expect(link("Develop")).toHaveAttribute("href", `${base}/mini-app/develop`);
+    expect(isCurrent("Members")).toBe(true);
+    expect(link("General")).toHaveAttribute(
+      "href",
+      `/teams/${teamId}/settings?return_to=${encodeURIComponent(returnTo)}`,
+    );
+    expect(screen.getAllByRole("link")).toHaveLength(10);
+  });
+
+  it("does not recover app scope from a cross-team return_to", () => {
     useParams.mockReturnValue({ teamId });
     usePathname.mockReturnValue(`/teams/${teamId}/settings`);
     useSearchParams.mockReturnValue(
       new URLSearchParams({
-        return_to: `${base}/configuration?view=review`,
-        tab: "members",
+        return_to: "/teams/team_2/apps/app_2/configuration",
       }),
     );
-    renderSidebar();
-
-    expect(link("Settings")).toHaveAttribute(
-      "href",
-      `${base}/configuration?view=review`,
-    );
-    expect(link("Settings")).toHaveClass(
-      "justify-center",
-      "data-[active=false]:hover:bg-portal-border",
-    );
-    expect(link("General")).toHaveAttribute(
-      "href",
-      `/teams/${teamId}/settings?return_to=${encodeURIComponent(
-        `${base}/configuration?view=review`,
-      )}`,
-    );
-    expect(isCurrent("Members")).toBe(true);
-    expect(link("API Keys")).toHaveAttribute(
-      "href",
-      expect.stringContaining("tab=api-keys"),
-    );
-    noLink("Overview");
-    noLink("Team settings");
-    noLink("World ID");
-    noLink("Get verified");
-    noLink("Mini App");
-  });
-
-  it("shows API Keys only to owners and admins", () => {
-    useParams.mockReturnValue({ teamId });
-    usePathname.mockReturnValue(`/teams/${teamId}/settings`);
-    useSearchParams.mockReturnValue(new URLSearchParams({ tab: "api-keys" }));
-
-    const permitted = renderSidebar([teamId]);
-    expect(isCurrent("API Keys")).toBe(true);
-    permitted.unmount();
-
     renderSidebar([]);
+
+    noLink("Dashboard");
+    noLink("Develop");
     noLink("API Keys");
+    expect(link("Projects")).toBeInTheDocument();
+    expect(isCurrent("Projects")).toBe(false);
     expect(isCurrent("General")).toBe(true);
-  });
-
-  it("defaults the Settings back header to the dashboard for an unsafe return target", () => {
-    useParams.mockReturnValue({ teamId });
-    usePathname.mockReturnValue(`/teams/${teamId}/settings`);
-    useSearchParams.mockReturnValue(
-      new URLSearchParams({ return_to: "https://evil.example" }),
-    );
-    renderSidebar();
-
-    expect(link("Settings")).toHaveAttribute("href", "/dashboard");
-  });
-
-  it("hides team-scoped links entirely without a teamId", () => {
-    useParams.mockReturnValue({});
-    usePathname.mockReturnValue("/profile");
-    renderSidebar();
-
-    noLink("Overview");
-    noLink("Team settings");
     expect(
       screen.getByRole("button", { name: /World ID Sandbox/i }),
     ).toBeInTheDocument();
   });
 
-  it("navigates top-level links optimistically and preserves modifier clicks", () => {
+  it("keeps API Keys permission-gated", () => {
+    const permitted = renderSidebar([teamId]);
+    expect(link("API Keys")).toBeInTheDocument();
+    permitted.unmount();
+
+    renderSidebar([]);
+    noLink("API Keys");
+  });
+
+  it("uses client navigation for plain clicks and preserves modifier clicks", () => {
     renderSidebar();
 
-    fireEvent.click(link("Get verified"), { metaKey: true });
+    fireEvent.click(link("Develop"), { metaKey: true });
     expect(routerPush).not.toHaveBeenCalled();
-    fireEvent.click(link("Get verified"));
-    expect(routerPush).toHaveBeenCalledWith(`${base}/configuration`);
+    fireEvent.click(link("Develop"));
+    expect(routerPush).toHaveBeenCalledWith(`${base}/mini-app/develop`);
+  });
+
+  it("shows only the sandbox action without team or app context", () => {
+    useParams.mockReturnValue({});
+    usePathname.mockReturnValue("/profile");
+    renderSidebar();
+
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
+    expect(
+      screen.getByRole("button", { name: /World ID Sandbox/i }),
+    ).toBeInTheDocument();
   });
 });
 // #endregion
 
-// On mobile the nav mounts INSIDE the sheet when it opens, so the
-// close-on-navigation effect must not fire for the mount itself — that would
-// instantly flatten the sidebar the trigger just opened.
 // #region mobile sheet behavior
 const SheetHarness = (props: { showNav: boolean }) => {
   const { openMobile, setOpenMobile } = useSidebar();
@@ -514,7 +388,7 @@ const sheetTree = (showNav: boolean) => (
   </TooltipProvider>
 );
 
-it("keeps the just-opened mobile sheet open on nav mount, closing only on route change", () => {
+it("keeps the just-opened mobile sheet open on mount and closes on route change", () => {
   const view = render(sheetTree(false));
   fireEvent.click(screen.getByRole("button", { name: "open-sheet" }));
 
