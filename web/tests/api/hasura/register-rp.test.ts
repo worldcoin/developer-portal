@@ -192,6 +192,48 @@ describe("/api/hasura/register-rp [staging app migration]", () => {
 });
 // #endregion
 
+// #region Signer validation
+describe("/api/hasura/register-rp [signer validation]", () => {
+  it("rejects the zero address as a managed signer", async () => {
+    // `isAddress` accepts it, but an RP whose signer is the zero address can
+    // never sign a proof request.
+    const res = (await POST(
+      createMockRequest({
+        app_id: appId,
+        mode: "managed",
+        signer_address: `0x${"0".repeat(40)}`,
+      }),
+    ))!;
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.extensions.code).toBe("invalid_request");
+    expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+  });
+
+  it("surfaces an rp_id_taken conflict from the managed pipeline", async () => {
+    submitManagedRpRegistrationMock.mockResolvedValueOnce({
+      ok: false,
+      code: "rp_id_taken",
+      detail:
+        "This app's RP ID is already registered on-chain by another party. Portal cannot manage it — contact support.",
+    });
+
+    const res = (await POST(
+      createMockRequest({
+        app_id: appId,
+        mode: "managed",
+        signer_address: signerAddress,
+      }),
+    ))!;
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.extensions.code).toBe("rp_id_taken");
+  });
+});
+// #endregion
+
 // #region Authorization (product guard — kept)
 describe("/api/hasura/register-rp [authorization]", () => {
   it("rejects registration when the user lacks ADMIN/OWNER on the team", async () => {
