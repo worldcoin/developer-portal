@@ -358,8 +358,8 @@ describe("v3 SidebarNav [persistent app context]", () => {
 
     expect(screen.queryAllByRole("link")).toHaveLength(0);
     expect(
-      screen.queryByRole("button", { name: /World ID Sandbox/i }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("button", { name: /World ID Sandbox/i }),
+    ).toBeInTheDocument();
   });
 });
 // #endregion

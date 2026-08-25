@@ -444,7 +444,7 @@ export const SidebarNav = (props: {
         ) : null}
       </div>
 
-      {!ids ? (
+      {!ids && !teamId ? (
         <div className="mt-auto pt-3 group-data-[collapsible=icon]:hidden">
           <SandboxButton
             className="-ml-1 w-[calc(100%_+_8px)]"
