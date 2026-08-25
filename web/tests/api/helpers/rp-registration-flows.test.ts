@@ -240,6 +240,18 @@ describe("submitManagedRpRegistration", () => {
     isStaging: false,
   };
 
+  // A first-time registration means the rp_id is still free on-chain. The
+  // top-level default models an already-registered RP for the rotation and
+  // deactivation suites, which the collision guard would reject as foreign.
+  beforeEach(() => {
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+      manager: `0x${"0".repeat(40)}`,
+      signer: `0x${"0".repeat(40)}`,
+    });
+  });
+
   it("persists the shared manager key without creating a dedicated key", async () => {
     process.env.ENABLE_SHARED_KEY_RP_REGISTRATION = "true";
     process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
@@ -252,9 +264,13 @@ describe("submitManagedRpRegistration", () => {
       operationHash: "0xregophash",
       status: "pending",
     });
+    // The registry's own KMS region is passed through, so a bare key ID expands
+    // to an ARN in the region the key actually lives in — and so this address
+    // matches the one resolveManagerAddress derives for the trust check.
     expect(getEthAddressFromKMS).toHaveBeenCalledWith(
       expect.anything(),
       sharedManagerKeyArn,
+      "us-east-1",
     );
     expect(createManagerKey).not.toHaveBeenCalled();
     expect(UpdateRpRegistration).toHaveBeenCalledWith({
@@ -1227,6 +1243,108 @@ describe("submitManagedSignerRotation [app-state guard]", () => {
       expect(ClaimRotationSlot).not.toHaveBeenCalled();
     },
   );
+});
+// #endregion
+
+// #region submitManagedRpRegistration rp_id collision guard
+describe("submitManagedRpRegistration [rp_id collision guard]", () => {
+  const signerAddress = "0x1111111111111111111111111111111111111111";
+
+  const register = () =>
+    submitManagedRpRegistration({
+      client,
+      appId,
+      signerAddress,
+      appName: "Test App",
+      isStaging: false,
+    });
+
+  it("registers when the rp_id is free on-chain", async () => {
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+      manager: `0x${"0".repeat(40)}`,
+      signer: `0x${"0".repeat(40)}`,
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true, operationHash: "0xregophash" });
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses to register an rp_id already claimed on-chain by a foreign party", async () => {
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0x00000000000000000000000000000000000000ff",
+      signer: "0x00000000000000000000000000000000000000ee",
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "rp_id_taken" });
+    // The guard runs before we spend a KMS manager key or submit a UserOp the
+    // contract would reject with IdAlreadyInUse...
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    // ...and releases the slot it claimed, so a later attempt is not answered
+    // with `already_registered` for a row that never registered anything.
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({
+      rp_id: expect.stringMatching(/^rp_/),
+    });
+  });
+
+  it("reports already_registered, not rp_id_taken, for an app the Portal already registered", async () => {
+    // A live managed RP reads as initialized on-chain exactly like a squatter's,
+    // so checking the chain before the DB claim would answer a repeat
+    // registration of a healthy app with a contact-support message.
+    ClaimRpRegistration.mockResolvedValue({
+      insert_rp_registration_one: null,
+    });
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: managerAddress,
+      signer: signerAddress,
+    });
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "already_registered" });
+    // The on-chain read is never reached for an app that already has a row.
+    expect(getRpFromContractMock).not.toHaveBeenCalled();
+  });
+
+  it("still reports rp_id_taken when releasing the slot fails", async () => {
+    // The read's non-fatal catch must not extend over the slot release: swallowing
+    // that failure would fall through to KMS and a UserOp for an rp_id already
+    // proven taken, which is the wedged row this check exists to prevent.
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0x00000000000000000000000000000000000000ff",
+      signer: "0x00000000000000000000000000000000000000ee",
+    });
+    DeleteRpRegistration.mockRejectedValue(new Error("db unavailable"));
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "rp_id_taken" });
+    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("registers anyway when the on-chain pre-check read fails", async () => {
+    // The pre-check is a UX guard, not the security boundary (status
+    // reconciliation is), so a transient RPC failure must not block onboarding.
+    getRpFromContractMock.mockRejectedValue(new Error("rpc timeout"));
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: true });
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+  });
 });
 // #endregion
 
