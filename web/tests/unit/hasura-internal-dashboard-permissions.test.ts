@@ -199,6 +199,7 @@ describe("internal dashboard detail permissions", () => {
     expect(serviceUpdatePermission).not.toContain("- approved_at");
     expect(serviceUpdatePermission).not.toContain("- revoked_at");
     expect(serviceUpdatePermission).toContain("_eq: rejected");
+    expect(serviceUpdatePermission).toContain("X-Hasura-User-Id");
     expect(serviceUpdatePermission).toContain("_eq: pending");
     expect(deleteSection).toContain("_eq: pending");
     expect(deleteSection).not.toContain("role: service");
