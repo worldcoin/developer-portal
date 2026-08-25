@@ -38,8 +38,20 @@ export type Scalars = {
   rp_registration_mode: { input: unknown; output: unknown };
   rp_registration_status: { input: unknown; output: unknown };
   sandbox_access_request_ios_status: {
-    input: "pending" | "approved" | "rejected" | "revoking" | "revoked";
-    output: "pending" | "approved" | "rejected" | "revoking" | "revoked";
+    input:
+      | "pending"
+      | "approving"
+      | "approved"
+      | "rejected"
+      | "revoking"
+      | "revoked";
+    output:
+      | "pending"
+      | "approving"
+      | "approved"
+      | "rejected"
+      | "revoking"
+      | "revoked";
   };
   timestamp: { input: string; output: string };
   timestamptz: { input: string; output: string };

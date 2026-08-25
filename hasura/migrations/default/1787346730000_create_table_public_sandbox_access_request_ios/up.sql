@@ -1,5 +1,6 @@
 CREATE TYPE "public"."sandbox_access_request_ios_status" AS ENUM (
     'pending',
+    'approving',
     'approved',
     'rejected',
     'revoking',
@@ -33,7 +34,7 @@ CREATE TABLE
                     AND "approved_at" IS NOT NULL
                 )
                 OR (
-                    "status" IN ('pending', 'rejected')
+                    "status" IN ('pending', 'approving', 'rejected')
                     AND "approved_at" IS NULL
                 )
             ),

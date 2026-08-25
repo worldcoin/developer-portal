@@ -227,6 +227,7 @@ describe("internal dashboard detail permissions", () => {
       "utf8",
     );
 
+    expect(migration).toContain("'approving'");
     expect(migration).toContain("'revoking'");
     expect(migration).toContain("'revoked'");
     expect(migration).toContain('lower(btrim("asc_email"))');
