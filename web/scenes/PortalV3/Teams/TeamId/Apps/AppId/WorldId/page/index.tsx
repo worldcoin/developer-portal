@@ -2,6 +2,7 @@
 
 import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { LegacyActionsPage } from "../LegacyActions/page";
+import { RegisterRpButton } from "../layout/RegisterRpButton";
 import { useWorldIdLayout } from "../layout/context";
 import { ActionsGrid } from "./ActionsGrid";
 
@@ -12,10 +13,13 @@ export const WorldIdActionsPage = () => {
     canManageWorldId,
     actions,
     actionsSearch,
+    hasRpRegistration,
     hasActiveRp,
+    isStaging,
     shouldOpenCreateAction,
     consumeCreateAction,
     refreshOverview,
+    waitForOverviewRefresh,
   } = useWorldIdLayout();
 
   return (
@@ -29,6 +33,15 @@ export const WorldIdActionsPage = () => {
         canManageWorldId
           ? "Finish registering your relying party to create actions."
           : "Ask a team owner or admin to create actions."
+      }
+      emptyAction={
+        canManageWorldId && !hasRpRegistration && !isStaging ? (
+          <RegisterRpButton
+            appId={appId}
+            className="h-9"
+            onRegistered={waitForOverviewRefresh}
+          />
+        ) : undefined
       }
       initialDialogOpen={shouldOpenCreateAction}
       onCreateActionConsumed={consumeCreateAction}
