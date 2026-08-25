@@ -5,6 +5,7 @@ query GetRpRegistration($rp_id: String!) {
     status
     mode
     signer_address
+    manager_kms_key_id
     created_at
     updated_at
     operation_hash
