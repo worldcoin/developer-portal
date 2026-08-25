@@ -117,6 +117,35 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).not.toContain("- google_email");
     expect(permission).not.toContain("- user_id");
     expect(metadata).not.toContain("internal_dashboard_sandbox_writer");
+
+    const insertSection = metadata.slice(
+      metadata.indexOf("insert_permissions:"),
+      metadata.indexOf("select_permissions:"),
+    );
+    expect(insertSection).toContain("- google_email");
+    expect(insertSection).toContain("- user_id");
+    expect(insertSection).not.toContain("- accepted");
+    expect(insertSection).not.toContain("- processed_at");
+
+    const updateSection = metadata.slice(
+      updatePermissionsStart,
+      metadata.indexOf("delete_permissions:"),
+    );
+    const serviceUpdateStart = updateSection.indexOf("  - role: service");
+    const serviceUpdatePermission = updateSection.slice(serviceUpdateStart);
+    const deleteSection = metadata.slice(
+      metadata.indexOf("delete_permissions:"),
+    );
+
+    // The service role needs an update permission for Hasura to expose the
+    // no-op `on_conflict` used by the insert mutation. Its impossible primary
+    // key filter prevents the role from updating an existing request.
+    expect(serviceUpdateStart).toBeGreaterThan(-1);
+    expect(serviceUpdatePermission).toContain("- google_email");
+    expect(serviceUpdatePermission).not.toContain("- accepted");
+    expect(serviceUpdatePermission).not.toContain("- processed_at");
+    expect(serviceUpdatePermission).toContain("_is_null: true");
+    expect(deleteSection).not.toContain("role: service");
   });
 
   it("does not define elevated internal dashboard roles", () => {
