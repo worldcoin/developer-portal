@@ -22,7 +22,7 @@ query FetchSandboxAccessRequestsIos {
     }
   }
   pending: sandbox_access_request_ios_aggregate(
-    where: { status: { _eq: pending } }
+    where: { status: { _in: [pending, approving] } }
   ) {
     aggregate {
       count

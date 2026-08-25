@@ -6,17 +6,16 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 
 type RequestedStatus = "approved" | "rejected" | "revoked";
-type ReturnedStatus = "pending" | RequestedStatus | "revoking";
-type ActionableStatus = "pending" | "approved" | "revoking";
+type ReturnedStatus = "pending" | "approving" | RequestedStatus | "revoking";
+type ActionableStatus = "pending" | "approving" | "approved" | "revoking";
 const FAILURE_STAGES = [
   "status_check",
+  "approval_claim",
+  "approval_finalize",
+  "rejection_update",
+  "revocation_claim",
   "testflight_update",
-  "portal_status_update",
-  "revocation_lock",
   "revocation_finalize",
-  "status_recheck",
-  "testflight_reconciliation",
-  "revocation_rollback",
 ] as const;
 type FailureStage = (typeof FAILURE_STAGES)[number];
 
@@ -39,6 +38,7 @@ const getReturnedStatus = (
   const status = readField(body, "status");
   if (status === null) return null;
   return status === "pending" ||
+    status === "approving" ||
     status === "approved" ||
     status === "rejected" ||
     status === "revoking" ||
@@ -62,24 +62,20 @@ const getFailureMessage = (
   switch (stage) {
     case "status_check":
       return `Couldn't check the portal before the ${action}. Nothing was changed.`;
+    case "approval_claim":
+      return "The portal could not start the approval. App Store Connect was not changed.";
+    case "approval_finalize":
+      return "TestFlight enrollment succeeded, but the portal could not finalize it. Retry the approval.";
+    case "rejection_update":
+      return "The rejection could not be saved. No App Store Connect change was attempted.";
+    case "revocation_claim":
+      return "The portal could not start the revocation. App Store Connect was not changed.";
     case "testflight_update":
       return status === "revoked"
-        ? "App Store Connect removal failed. Access still appears approved; retry the revocation."
-        : "App Store Connect enrollment failed. The approval was not saved.";
-    case "portal_status_update":
-      return status === "approved"
-        ? "TestFlight enrollment succeeded, but the portal approval failed. Retry to reconcile both systems."
-        : "The rejection could not be saved. No App Store Connect change was attempted.";
-    case "revocation_lock":
-      return "The portal could not start the revocation. App Store Connect was not changed.";
+        ? "App Store Connect removal failed. The revocation remains in progress; retry it."
+        : "App Store Connect enrollment failed. The approval remains in progress; retry it.";
     case "revocation_finalize":
       return "App Store Connect removal succeeded, but the portal could not finalize it. Retry the revocation.";
-    case "revocation_rollback":
-      return "App Store Connect removal failed and the portal could not release its retry lock. Retry the revocation.";
-    case "status_recheck":
-      return `The ${action} ran, but its final portal status could not be confirmed. Refresh before retrying.`;
-    case "testflight_reconciliation":
-      return `App Store Connect reconciliation failed during the ${action}. Refresh and retry.`;
     default:
       return `The ${action} failed at an unknown stage. Refresh before retrying.`;
   }
@@ -117,7 +113,7 @@ export const SandboxRequestIosActions = (props: {
 
       if (!response.ok) {
         toast.error(getFailureMessage(status, getFailureStage(body)));
-        if (returnedStatus === "revoking") router.refresh();
+        if (returnedStatus !== undefined) router.refresh();
         return;
       }
 
@@ -144,6 +140,21 @@ export const SandboxRequestIosActions = (props: {
 
   const buttonClassName =
     "h-8 w-20 px-3 py-1.5 text-12 whitespace-nowrap active:translate-y-px";
+
+  if (props.status === "approving") {
+    return (
+      <DecoratedButton
+        type="button"
+        variant="secondary"
+        disabled={completed || submitting !== null}
+        loading={submitting === "approved"}
+        onClick={() => void updateStatus("approved")}
+        className={buttonClassName}
+      >
+        Retry
+      </DecoratedButton>
+    );
+  }
 
   if (props.status === "approved" || props.status === "revoking") {
     return (
@@ -189,6 +200,7 @@ export const SandboxRequestIosActions = (props: {
             aria-label="Rejection reason"
             placeholder="Internal note (optional)"
             rows={3}
+            maxLength={500}
             value={rejectionReason}
             onChange={(event) => setRejectionReason(event.target.value)}
             className="w-full resize-y rounded-8 border border-grey-200 bg-white px-2 py-1.5 text-12 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300"

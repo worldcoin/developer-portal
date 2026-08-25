@@ -13,6 +13,7 @@ const formatTimestamp = (isoDate: string | null) =>
   isoDate ? isoDate.replace("T", " ").replace(/\.\d+Z$/, " UTC") : "—";
 
 const statusClassNames: Record<SandboxAccessRequestIosStatus, string> = {
+  approving: "bg-system-warning-50 text-system-warning-700",
   approved: "bg-system-success-50 text-system-success-700",
   pending: "bg-system-warning-50 text-system-warning-700",
   rejected: "bg-system-error-50 text-system-error-700",
@@ -21,17 +22,26 @@ const statusClassNames: Record<SandboxAccessRequestIosStatus, string> = {
 };
 
 const isActionableStatus = (status: SandboxAccessRequestIosStatus) =>
-  status === "pending" || status === "approved" || status === "revoking";
+  status === "pending" ||
+  status === "approving" ||
+  status === "approved" ||
+  status === "revoking";
 
 const StatusBadge = ({ status }: { status: SandboxAccessRequestIosStatus }) => (
   <span
-    title={status === "revoking" ? "Revocation needs retry" : undefined}
+    title={
+      status === "approving"
+        ? "Approval needs retry"
+        : status === "revoking"
+          ? "Revocation needs retry"
+          : undefined
+    }
     className={clsx(
       "inline-flex rounded-full px-2.5 py-0.5 text-12 font-medium capitalize",
       statusClassNames[status],
     )}
   >
-    {status === "revoking" ? "approved" : status}
+    {status}
   </span>
 );
 

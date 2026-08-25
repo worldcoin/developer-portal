@@ -6,6 +6,7 @@ import { getSdk } from "../graphql/server/fetch-sandbox-access-requests-ios.gene
 
 export type SandboxAccessRequestIosStatus =
   | "pending"
+  | "approving"
   | "approved"
   | "rejected"
   | "revoking"
@@ -29,6 +30,7 @@ const isSandboxAccessRequestIosStatus = (
   status: unknown,
 ): status is SandboxAccessRequestIosStatus =>
   status === "pending" ||
+  status === "approving" ||
   status === "approved" ||
   status === "rejected" ||
   status === "revoking" ||

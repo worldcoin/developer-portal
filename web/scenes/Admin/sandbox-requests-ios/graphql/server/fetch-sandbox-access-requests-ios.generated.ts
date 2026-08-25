@@ -16,7 +16,13 @@ export type FetchSandboxAccessRequestsIosQuery = {
     asc_email: string;
     portal_email: string;
     team_id: string;
-    status: "pending" | "approved" | "rejected" | "revoking" | "revoked";
+    status:
+      | "pending"
+      | "approving"
+      | "approved"
+      | "rejected"
+      | "revoking"
+      | "revoked";
     created_at: string;
     approved_at?: string | null;
     rejection_reason?: string | null;
@@ -65,7 +71,7 @@ export const FetchSandboxAccessRequestsIosDocument = gql`
       }
     }
     pending: sandbox_access_request_ios_aggregate(
-      where: { status: { _eq: pending } }
+      where: { status: { _in: [pending, approving] } }
     ) {
       aggregate {
         count

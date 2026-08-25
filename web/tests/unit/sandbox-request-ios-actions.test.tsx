@@ -60,13 +60,13 @@ describe("SandboxRequestIosActions [failure feedback]", () => {
 
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        "App Store Connect enrollment failed. The approval was not saved.",
+        "App Store Connect enrollment failed. The approval remains in progress; retry it.",
       ),
     );
     expect(refresh).not.toHaveBeenCalled();
   });
 
-  it("keeps a confirmed failed revocation visually approved and retryable", async () => {
+  it("refreshes a failed revocation to show the server state", async () => {
     mockResponse({
       ok: false,
       body: {
@@ -82,11 +82,11 @@ describe("SandboxRequestIosActions [failure feedback]", () => {
 
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        "App Store Connect removal failed. Access still appears approved; retry the revocation.",
+        "App Store Connect removal failed. The revocation remains in progress; retry it.",
       ),
     );
     expect(screen.getByRole("button", { name: "Revoke" })).toBeEnabled();
-    expect(refresh).not.toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 
   it("refreshes an ambiguous revocation so its retry action is exposed", async () => {
@@ -159,6 +159,10 @@ describe("SandboxRequestIosActions [rejection]", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Reject" }));
+    expect(screen.getByLabelText("Rejection reason")).toHaveAttribute(
+      "maxlength",
+      "500",
+    );
     expect(global.fetch).not.toHaveBeenCalled();
 
     fireEvent.change(screen.getByLabelText("Rejection reason"), {
@@ -185,7 +189,7 @@ describe("SandboxRequestIosActions [rejection]", () => {
   it("explains that a failed rejection never reached App Store Connect", async () => {
     mockResponse({
       ok: false,
-      body: { failureStage: "portal_status_update" },
+      body: { failureStage: "rejection_update" },
     });
     render(
       <SandboxRequestIosActions requestId={REQUEST_ID} status="pending" />,
@@ -250,6 +254,33 @@ describe("SandboxRequestIosActions [interaction]", () => {
     );
 
     expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
+  });
+
+  it("offers an explicit retry for an interrupted approval", () => {
+    mockResponse({
+      ok: true,
+      body: { success: true, changed: true, status: "approved" },
+    });
+
+    render(
+      <SandboxRequestIosActions requestId={REQUEST_ID} status="approving" />,
+    );
+
+    expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
+  });
+
+  it("refreshes after a concurrent transition reports the current state", async () => {
+    mockResponse({
+      ok: false,
+      body: { error: "Unsupported status transition", status: "rejected" },
+    });
+    render(
+      <SandboxRequestIosActions requestId={REQUEST_ID} status="pending" />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Approve" }));
+
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
   });
 
   it("alerts and refreshes when another admin supersedes the action", async () => {
