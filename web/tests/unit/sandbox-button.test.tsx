@@ -258,18 +258,56 @@ describe("SandboxButton [iOS enrollment request]", () => {
     expect(screen.getByRole("button", { name: "Approved" })).toBeDisabled();
   });
 
-  it("shows rejected state from the status enum", async () => {
-    mockIosLookup({
-      ascEmail: "apple@example.com",
-      status: "rejected",
-    });
+  it("lets a rejected user edit the email and request again", async () => {
+    global.fetch = jest
+      .fn()
+      .mockImplementation(
+        async (_input: RequestInfo | URL, init?: RequestInit) => ({
+          ok: true,
+          json: async () => ({
+            success: true,
+            request:
+              init?.method === "POST"
+                ? { ascEmail: "second@example.com", status: "pending" }
+                : { ascEmail: "apple@example.com", status: "rejected" },
+          }),
+        }),
+      ) as unknown as typeof fetch;
 
     openIosSection();
 
-    expect(await screen.findByText(/was rejected/)).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Request rejected" }),
+      await screen.findByText(/was rejected. You can update the email/),
+    ).toBeInTheDocument();
+    const input = screen.getByRole("textbox", { name: "Apple Account email" });
+    const resubmitButton = screen.getByRole("button", {
+      name: "Request again",
+    });
+    expect(input).toBeEnabled();
+    await waitFor(() => expect(resubmitButton).toBeEnabled());
+
+    fireEvent.change(input, { target: { value: "second@example.com" } });
+    fireEvent.click(resubmitButton);
+
+    expect(
+      await screen.findByText(
+        /enrollment request for second@example.com is pending/,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Request submitted" }),
     ).toBeDisabled();
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "/api/v2/sandbox-access-request-ios",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          asc_email: "second@example.com",
+          team_id: TEAM_ID,
+        }),
+      },
+    );
   });
 
   it("shows revoked TestFlight access separately from rejection", async () => {
