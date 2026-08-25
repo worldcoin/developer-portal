@@ -132,6 +132,7 @@ export const SandboxRequestIosActions = (props: {
       }
 
       setCompleted(true);
+      setShowRejectionReason(false);
       router.refresh();
     } catch {
       toast.error(`Couldn't confirm the ${action}. Refresh before retrying.`);
@@ -159,46 +160,8 @@ export const SandboxRequestIosActions = (props: {
     );
   }
 
-  if (showRejectionReason) {
-    return (
-      <div className="grid min-w-64 gap-2">
-        <textarea
-          autoFocus
-          aria-label="Rejection reason"
-          placeholder="Reason (optional)"
-          maxLength={500}
-          rows={2}
-          value={rejectionReason}
-          onChange={(event) => setRejectionReason(event.target.value)}
-          className="resize-none rounded-8 border border-grey-200 bg-white px-2 py-1.5 text-12 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300"
-        />
-        <div className="flex gap-2">
-          <DecoratedButton
-            type="button"
-            variant="danger"
-            disabled={completed || submitting !== null}
-            loading={submitting === "rejected"}
-            onClick={() => void updateStatus("rejected")}
-            className={buttonClassName}
-          >
-            Confirm
-          </DecoratedButton>
-          <DecoratedButton
-            type="button"
-            variant="secondary"
-            disabled={submitting !== null}
-            onClick={() => setShowRejectionReason(false)}
-            className={buttonClassName}
-          >
-            Cancel
-          </DecoratedButton>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="relative flex flex-wrap items-center gap-2">
       <DecoratedButton
         type="button"
         variant="secondary"
@@ -213,11 +176,46 @@ export const SandboxRequestIosActions = (props: {
         type="button"
         variant="danger"
         disabled={completed || submitting !== null}
-        onClick={() => setShowRejectionReason(true)}
+        onClick={() => setShowRejectionReason((open) => !open)}
         className={buttonClassName}
       >
         Reject
       </DecoratedButton>
+
+      {showRejectionReason && (
+        <div className="absolute top-full right-0 z-50 mt-2 grid w-72 max-w-[calc(100vw-1.5rem)] gap-2 rounded-12 border border-grey-200 bg-white p-3 shadow-lg">
+          <textarea
+            autoFocus
+            aria-label="Rejection reason"
+            placeholder="Internal note (optional)"
+            rows={3}
+            value={rejectionReason}
+            onChange={(event) => setRejectionReason(event.target.value)}
+            className="w-full resize-y rounded-8 border border-grey-200 bg-white px-2 py-1.5 text-12 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300"
+          />
+          <div className="flex justify-end gap-2">
+            <DecoratedButton
+              type="button"
+              variant="secondary"
+              disabled={submitting !== null}
+              onClick={() => setShowRejectionReason(false)}
+              className={buttonClassName}
+            >
+              Cancel
+            </DecoratedButton>
+            <DecoratedButton
+              type="button"
+              variant="danger"
+              disabled={completed || submitting !== null}
+              loading={submitting === "rejected"}
+              onClick={() => void updateStatus("rejected")}
+              className={buttonClassName}
+            >
+              Confirm
+            </DecoratedButton>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

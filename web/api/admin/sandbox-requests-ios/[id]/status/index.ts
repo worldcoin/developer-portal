@@ -10,19 +10,16 @@ import { getSdk as getRequestSdk } from "./graphql/get-sandbox-request-ios-for-p
 import { getSdk as getStatusSdk } from "./graphql/update-sandbox-request-ios-status.generated";
 
 const REQUEST_ID_PATTERN = /^sbx_req_[a-zA-Z0-9]+$/;
-const MAX_REJECTION_REASON_LENGTH = 500;
 
 type RequestedStatus = "approved" | "rejected" | "revoked";
+// `revoking` is no longer produced here, but rows written by the previous
+// implementation may still hold it, so it stays a legal starting state.
 type StoredStatus = "pending" | RequestedStatus | "revoking";
 type ProcessingStage =
   | "status_check"
   | "testflight_update"
   | "portal_status_update"
-  | "revocation_lock"
-  | "revocation_finalize"
-  | "status_recheck"
-  | "testflight_reconciliation"
-  | "revocation_rollback";
+  | "revocation_finalize";
 
 type StatusCommand = {
   status: RequestedStatus;
@@ -60,27 +57,14 @@ const parseCommand = async (
 
   const rejectionReason =
     typeof rawReason === "string"
-      ? rawReason.replace(/[\u0000-\u001f\u007f]/g, " ").trim()
+      ? rawReason.replace(/\p{Cc}/gu, " ").trim()
       : "";
-  if (rejectionReason.length > MAX_REJECTION_REASON_LENGTH) return null;
 
   return {
     status: body.status,
     rejectionReason:
       body.status === "rejected" && rejectionReason ? rejectionReason : null,
   };
-};
-
-const isUncertainAppStoreConnectFailure = (error: unknown) => {
-  if (
-    !(error instanceof Error) ||
-    error.name !== "AppStoreConnectRequestError"
-  ) {
-    return false;
-  }
-
-  const status = "status" in error ? error.status : undefined;
-  return typeof status !== "number" || status === 429 || status >= 500;
 };
 
 export async function POST(
@@ -109,7 +93,6 @@ export async function POST(
   }
 
   let processingStage: ProcessingStage = "status_check";
-  let failureStatus: StoredStatus | null | undefined;
 
   try {
     const client = await getInternalDashboardGraphqlClientForUser(admin);
@@ -122,66 +105,21 @@ export async function POST(
       if (request && !isStoredStatus(request.status)) {
         throw new Error(`Unexpected iOS sandbox status: ${request.status}`);
       }
-      return request ? { ...request, status: request.status } : null;
+      return request ?? null;
     };
 
-    const transition = async (
-      fromStatus: StoredStatus,
+    // Unconditional update by id (last-write-wins). Apple calls and status
+    // sets are idempotent, so a concurrent write self-heals on the next action
+    // rather than needing in-request compare-and-swap.
+    const setStatus = async (
       set: Record<string, string | null> & { status: StoredStatus },
     ) => {
-      const data = await statusSdk.UpdateSandboxRequestIosStatus({
-        id,
-        from_status: fromStatus,
-        set,
-      });
-      const update = data.update_sandbox_access_request_ios;
-
-      if (!update || ![0, 1].includes(update.affected_rows)) {
-        throw new Error("iOS sandbox status update returned an invalid count");
-      }
-      if (
-        update.affected_rows === 1 &&
-        update.returning[0]?.status !== set.status
-      ) {
-        throw new Error("iOS sandbox status update returned an invalid state");
-      }
-
-      return update.affected_rows === 1;
+      await statusSdk.UpdateSandboxRequestIosStatus({ id, set });
     };
 
-    // After any Apple mutation, repeatedly reread the database and repair Apple
-    // to the state that won. The loop is bounded to avoid retry storms.
-    const reconcileAfterApple = async (
-      email: string,
-      testerIsEnrolled: boolean,
-    ) => {
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        processingStage = "status_recheck";
-        const current = await readRequest();
-        const shouldBeEnrolled = current?.status === "approved";
-        if (shouldBeEnrolled === testerIsEnrolled) return current;
+    const respond = (changed: boolean, status: StoredStatus | null) =>
+      NextResponse.json({ success: true, changed, status });
 
-        processingStage = "testflight_reconciliation";
-        await (shouldBeEnrolled
-          ? addSandboxBetaTester(email)
-          : removeSandboxBetaTester(email));
-        testerIsEnrolled = shouldBeEnrolled;
-      }
-
-      throw new Error(
-        "iOS sandbox status did not stabilize after reconciliation",
-      );
-    };
-
-    const respond = (
-      changed: boolean,
-      request: Awaited<ReturnType<typeof readRequest>>,
-    ) =>
-      NextResponse.json({
-        success: true,
-        changed,
-        status: request?.status ?? null,
-      });
     const unsupportedTransition = () =>
       NextResponse.json(
         { error: "Unsupported status transition" },
@@ -192,22 +130,15 @@ export async function POST(
     if (!request) return respond(false, null);
 
     if (command.status === "rejected") {
-      if (request.status === "rejected") return respond(false, request);
-      if (request.status !== "pending") {
-        return unsupportedTransition();
-      }
+      if (request.status === "rejected") return respond(false, "rejected");
+      if (request.status !== "pending") return unsupportedTransition();
 
       processingStage = "portal_status_update";
-      const changed = await transition("pending", {
+      await setStatus({
         status: "rejected",
         rejection_reason: command.rejectionReason,
       });
-      processingStage = "status_recheck";
-      const finalRequest = await readRequest();
-      if (changed && finalRequest?.status === "pending") {
-        throw new Error("Rejected iOS sandbox request remained pending");
-      }
-      return respond(changed, finalRequest);
+      return respond(true, "rejected");
     }
 
     if (command.status === "approved") {
@@ -215,25 +146,21 @@ export async function POST(
         return unsupportedTransition();
       }
 
+      // Enroll first, then record. Idempotent, so re-approving just re-ensures
+      // TestFlight without a portal write.
       processingStage = "testflight_update";
       await addSandboxBetaTester(request.asc_email);
+      if (request.status === "approved") return respond(false, "approved");
 
-      let changed = false;
-      if (request.status === "pending") {
-        processingStage = "portal_status_update";
-        changed = await transition("pending", {
-          status: "approved",
-          approved_at: new Date().toISOString(),
-        });
-      }
-
-      const finalRequest = await reconcileAfterApple(request.asc_email, true);
-      if (!changed && finalRequest?.status === "pending") {
-        throw new Error("Approval lost its status update without a winner");
-      }
-      return respond(changed, finalRequest);
+      processingStage = "portal_status_update";
+      await setStatus({
+        status: "approved",
+        approved_at: new Date().toISOString(),
+      });
+      return respond(true, "approved");
     }
 
+    // command.status === "revoked"
     if (
       request.status !== "approved" &&
       request.status !== "revoking" &&
@@ -242,73 +169,26 @@ export async function POST(
       return unsupportedTransition();
     }
 
-    if (request.status === "revoked") {
-      processingStage = "testflight_reconciliation";
-      await removeSandboxBetaTester(request.asc_email);
-      return respond(
-        false,
-        await reconcileAfterApple(request.asc_email, false),
-      );
-    }
-
-    if (request.status === "approved") {
-      processingStage = "revocation_lock";
-      const locked = await transition("approved", {
-        status: "revoking",
-      });
-
-      if (!locked) {
-        processingStage = "status_recheck";
-        const winner = await readRequest();
-        if (winner?.status !== "revoking" && winner?.status !== "revoked") {
-          return respond(false, winner);
-        }
-        if (winner.status === "revoked") {
-          processingStage = "testflight_reconciliation";
-          await removeSandboxBetaTester(request.asc_email);
-          return respond(
-            false,
-            await reconcileAfterApple(request.asc_email, false),
-          );
-        }
-      }
-    }
-
+    // Remove from Apple first: if that fails the row stays approved (fail
+    // closed on the portal side while access is already gone), and a retry is
+    // safe because removal is idempotent.
     processingStage = "testflight_update";
-    try {
-      await removeSandboxBetaTester(request.asc_email);
-    } catch (error) {
-      failureStatus = "revoking";
+    await removeSandboxBetaTester(request.asc_email);
+    if (request.status === "revoked") return respond(false, "revoked");
 
-      // A known 4xx/configuration failure means Apple did not accept the
-      // removal, so release the lock and keep the visible approved state.
-      // Timeouts/5xx are ambiguous and stay retryable as `revoking`.
-      if (!isUncertainAppStoreConnectFailure(error)) {
-        processingStage = "revocation_rollback";
-        if (await transition("revoking", { status: "approved" })) {
-          failureStatus = "approved";
-          processingStage = "testflight_update";
-        }
-      }
-      throw error;
-    }
-
-    failureStatus = "revoking";
     processingStage = "revocation_finalize";
-    const finalized = await transition("revoking", {
+    await setStatus({
       status: "revoked",
       revoked_at: new Date().toISOString(),
     });
-    const finalRequest = await reconcileAfterApple(request.asc_email, false);
-    return respond(finalized, finalRequest);
+    return respond(true, "revoked");
   } catch (error) {
     logger.error("Failed to update iOS sandbox request status", {
       requestId: id,
       requestedStatus: command.status,
       adminSubject: admin.subject,
       dependency:
-        processingStage === "testflight_update" ||
-        processingStage === "testflight_reconciliation"
+        processingStage === "testflight_update"
           ? "app_store_connect"
           : "hasura",
       processingStage,
@@ -319,7 +199,6 @@ export async function POST(
       {
         error: "Unable to update iOS sandbox request",
         failureStage: processingStage,
-        ...(failureStatus !== undefined ? { status: failureStatus } : {}),
       },
       { status: 503 },
     );
