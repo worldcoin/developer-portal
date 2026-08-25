@@ -17,10 +17,8 @@ CREATE TABLE
         "created_at" timestamptz NOT NULL DEFAULT now (),
         "updated_at" timestamptz NOT NULL DEFAULT now (),
         "approved_at" timestamptz,
-        "approved_by" varchar,
         "rejection_reason" varchar(500),
         "revoked_at" timestamptz,
-        "revoked_by" varchar,
         PRIMARY KEY ("id"),
         FOREIGN KEY ("user_id") REFERENCES "public"."user" ("id") ON UPDATE restrict ON DELETE cascade,
         FOREIGN KEY ("team_id") REFERENCES "public"."team" ("id") ON UPDATE restrict ON DELETE cascade,
@@ -33,12 +31,10 @@ CREATE TABLE
                 (
                     "status" IN ('approved', 'revoking', 'revoked')
                     AND "approved_at" IS NOT NULL
-                    AND "approved_by" IS NOT NULL
                 )
                 OR (
                     "status" IN ('pending', 'rejected')
                     AND "approved_at" IS NULL
-                    AND "approved_by" IS NULL
                 )
             ),
         CONSTRAINT "sandbox_access_request_ios_rejection_reason"
@@ -48,12 +44,10 @@ CREATE TABLE
                 (
                     "status" = 'revoked'
                     AND "revoked_at" IS NOT NULL
-                    AND "revoked_by" IS NOT NULL
                 )
                 OR (
                     "status" <> 'revoked'
                     AND "revoked_at" IS NULL
-                    AND "revoked_by" IS NULL
                 )
             )
     );

@@ -301,9 +301,6 @@ export const removeSandboxBetaTester = async (email: string): Promise<void> => {
   const tester = await client.findTester(email);
   if (!tester) return;
 
-  const groupIds = await client.getTesterGroupIds(tester.id);
-  if (!groupIds.includes(client.config.betaGroupId)) return;
-
   await requestAppStoreConnect<never>({
     token: client.token,
     path: `/betaTesters/${encodeURIComponent(tester.id)}/relationships/betaGroups`,

@@ -13,10 +13,8 @@ query FetchSandboxAccessRequestsIos {
     status
     created_at
     approved_at
-    approved_by
     rejection_reason
     revoked_at
-    revoked_by
   }
   total: sandbox_access_request_ios_aggregate {
     aggregate {

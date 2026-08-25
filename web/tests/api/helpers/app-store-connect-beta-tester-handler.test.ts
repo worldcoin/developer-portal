@@ -207,12 +207,11 @@ describe("removeSandboxBetaTester", () => {
   it("removes an enrolled tester from only the sandbox group", async () => {
     fetchMock
       .mockResolvedValueOnce(response(200, testerList(["tester-1"])))
-      .mockResolvedValueOnce(response(200, groupList(["group-sandbox"])))
       .mockResolvedValueOnce(response(204));
 
     await removeSandboxBetaTester("tester@example.com");
 
-    const [url, init] = fetchMock.mock.calls[2] as [string, RequestInit];
+    const [url, init] = fetchMock.mock.calls[1] as [string, RequestInit];
     expect(url).toBe(
       "https://api.appstoreconnect.apple.com/v1/betaTesters/tester-1/relationships/betaGroups",
     );
@@ -233,7 +232,6 @@ describe("removeSandboxBetaTester", () => {
   it("treats an already-removed group relationship as success", async () => {
     fetchMock
       .mockResolvedValueOnce(response(200, testerList(["tester-1"])))
-      .mockResolvedValueOnce(response(200, groupList(["group-sandbox"])))
       .mockResolvedValueOnce(response(404));
 
     await expect(
@@ -244,7 +242,6 @@ describe("removeSandboxBetaTester", () => {
   it("surfaces a 403 when the API key cannot remove testers from the group", async () => {
     fetchMock
       .mockResolvedValueOnce(response(200, testerList(["tester-1"])))
-      .mockResolvedValueOnce(response(200, groupList(["group-sandbox"])))
       .mockResolvedValueOnce(
         response(403, {
           errors: [{ status: "403", code: "FORBIDDEN", title: "Forbidden" }],
@@ -257,7 +254,7 @@ describe("removeSandboxBetaTester", () => {
       status: 403,
       message: expect.stringContaining("HTTP 403"),
     });
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
 // #endregion

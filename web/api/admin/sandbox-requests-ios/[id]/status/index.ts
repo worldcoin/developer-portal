@@ -224,7 +224,6 @@ export async function POST(
         changed = await transition("pending", {
           status: "approved",
           approved_at: new Date().toISOString(),
-          approved_by: admin.subject,
         });
       }
 
@@ -299,7 +298,6 @@ export async function POST(
     const finalized = await transition("revoking", {
       status: "revoked",
       revoked_at: new Date().toISOString(),
-      revoked_by: admin.subject,
     });
     const finalRequest = await reconcileAfterApple(request.asc_email, false);
     return respond(finalized, finalRequest);

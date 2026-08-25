@@ -124,12 +124,6 @@ export const AdminSandboxRequestsIosPage = async () => {
                       {formatTimestamp(request.approvedAt)}
                     </dd>
                     <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
-                      Approved by
-                    </dt>
-                    <dd className="break-words text-grey-700">
-                      {request.approvedBy ?? "—"}
-                    </dd>
-                    <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
                       Rejection reason
                     </dt>
                     <dd className="break-words text-grey-700">
@@ -140,12 +134,6 @@ export const AdminSandboxRequestsIosPage = async () => {
                     </dt>
                     <dd className="break-words text-grey-700">
                       {formatTimestamp(request.revokedAt)}
-                    </dd>
-                    <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
-                      Revoked by
-                    </dt>
-                    <dd className="break-words text-grey-700">
-                      {request.revokedBy ?? "—"}
                     </dd>
                   </dl>
                 </article>
@@ -165,10 +153,8 @@ export const AdminSandboxRequestsIosPage = async () => {
                   <th className="px-3 py-2">Requested</th>
                   <th className="px-3 py-2">Action</th>
                   <th className="px-3 py-2">Approved at</th>
-                  <th className="px-3 py-2">Approved by</th>
                   <th className="px-3 py-2">Rejection reason</th>
                   <th className="px-3 py-2">Revoked at</th>
-                  <th className="px-3 py-2">Revoked by</th>
                 </tr>
               </thead>
               <tbody>
@@ -214,16 +200,10 @@ export const AdminSandboxRequestsIosPage = async () => {
                       {formatTimestamp(request.approvedAt)}
                     </td>
                     <td className="max-w-64 px-3 py-2.5 break-words">
-                      {request.approvedBy ?? "—"}
-                    </td>
-                    <td className="max-w-64 px-3 py-2.5 break-words">
                       {request.rejectionReason ?? "—"}
                     </td>
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       {formatTimestamp(request.revokedAt)}
-                    </td>
-                    <td className="max-w-64 px-3 py-2.5 break-words">
-                      {request.revokedBy ?? "—"}
                     </td>
                   </tr>
                 ))}

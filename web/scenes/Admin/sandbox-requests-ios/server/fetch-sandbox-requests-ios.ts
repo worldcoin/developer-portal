@@ -21,10 +21,8 @@ export type SandboxAccessRequestIosRow = {
   status: SandboxAccessRequestIosStatus;
   createdAt: string;
   approvedAt: string | null;
-  approvedBy: string | null;
   rejectionReason: string | null;
   revokedAt: string | null;
-  revokedBy: string | null;
 };
 
 const isSandboxAccessRequestIosStatus = (
@@ -64,10 +62,8 @@ export const fetchSandboxAccessRequestsIos = async (): Promise<{
           status: request.status,
           createdAt: request.created_at,
           approvedAt: request.approved_at ?? null,
-          approvedBy: request.approved_by ?? null,
           rejectionReason: request.rejection_reason ?? null,
           revokedAt: request.revoked_at ?? null,
-          revokedBy: request.revoked_by ?? null,
         };
       }),
       totalCount: data.total.aggregate?.count ?? 0,

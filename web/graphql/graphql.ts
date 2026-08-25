@@ -12194,14 +12194,12 @@ export type Sandbox_Access_Request_Insert_Input = {
 export type Sandbox_Access_Request_Ios = {
   __typename?: "sandbox_access_request_ios";
   approved_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  approved_by?: Maybe<Scalars["String"]["output"]>;
   asc_email: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
   id: Scalars["String"]["output"];
   portal_email: Scalars["String"]["output"];
   rejection_reason?: Maybe<Scalars["String"]["output"]>;
   revoked_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  revoked_by?: Maybe<Scalars["String"]["output"]>;
   status: Scalars["sandbox_access_request_ios_status"]["output"];
   /** An object relationship */
   team: Team;
@@ -12264,14 +12262,12 @@ export type Sandbox_Access_Request_Ios_Bool_Exp = {
   _not?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
   _or?: InputMaybe<Array<Sandbox_Access_Request_Ios_Bool_Exp>>;
   approved_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  approved_by?: InputMaybe<String_Comparison_Exp>;
   asc_email?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   portal_email?: InputMaybe<String_Comparison_Exp>;
   rejection_reason?: InputMaybe<String_Comparison_Exp>;
   revoked_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  revoked_by?: InputMaybe<String_Comparison_Exp>;
   status?: InputMaybe<Sandbox_Access_Request_Ios_Status_Comparison_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
@@ -12293,14 +12289,12 @@ export enum Sandbox_Access_Request_Ios_Constraint {
 /** input type for inserting data into table "sandbox_access_request_ios" */
 export type Sandbox_Access_Request_Ios_Insert_Input = {
   approved_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  approved_by?: InputMaybe<Scalars["String"]["input"]>;
   asc_email?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   portal_email?: InputMaybe<Scalars["String"]["input"]>;
   rejection_reason?: InputMaybe<Scalars["String"]["input"]>;
   revoked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  revoked_by?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
@@ -12313,14 +12307,12 @@ export type Sandbox_Access_Request_Ios_Insert_Input = {
 export type Sandbox_Access_Request_Ios_Max_Fields = {
   __typename?: "sandbox_access_request_ios_max_fields";
   approved_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  approved_by?: Maybe<Scalars["String"]["output"]>;
   asc_email?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   portal_email?: Maybe<Scalars["String"]["output"]>;
   rejection_reason?: Maybe<Scalars["String"]["output"]>;
   revoked_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  revoked_by?: Maybe<Scalars["String"]["output"]>;
   status?: Maybe<Scalars["sandbox_access_request_ios_status"]["output"]>;
   team_id?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
@@ -12330,14 +12322,12 @@ export type Sandbox_Access_Request_Ios_Max_Fields = {
 /** order by max() on columns of table "sandbox_access_request_ios" */
 export type Sandbox_Access_Request_Ios_Max_Order_By = {
   approved_at?: InputMaybe<Order_By>;
-  approved_by?: InputMaybe<Order_By>;
   asc_email?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   portal_email?: InputMaybe<Order_By>;
   rejection_reason?: InputMaybe<Order_By>;
   revoked_at?: InputMaybe<Order_By>;
-  revoked_by?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -12348,14 +12338,12 @@ export type Sandbox_Access_Request_Ios_Max_Order_By = {
 export type Sandbox_Access_Request_Ios_Min_Fields = {
   __typename?: "sandbox_access_request_ios_min_fields";
   approved_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  approved_by?: Maybe<Scalars["String"]["output"]>;
   asc_email?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   portal_email?: Maybe<Scalars["String"]["output"]>;
   rejection_reason?: Maybe<Scalars["String"]["output"]>;
   revoked_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  revoked_by?: Maybe<Scalars["String"]["output"]>;
   status?: Maybe<Scalars["sandbox_access_request_ios_status"]["output"]>;
   team_id?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
@@ -12365,14 +12353,12 @@ export type Sandbox_Access_Request_Ios_Min_Fields = {
 /** order by min() on columns of table "sandbox_access_request_ios" */
 export type Sandbox_Access_Request_Ios_Min_Order_By = {
   approved_at?: InputMaybe<Order_By>;
-  approved_by?: InputMaybe<Order_By>;
   asc_email?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   portal_email?: InputMaybe<Order_By>;
   rejection_reason?: InputMaybe<Order_By>;
   revoked_at?: InputMaybe<Order_By>;
-  revoked_by?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -12398,14 +12384,12 @@ export type Sandbox_Access_Request_Ios_On_Conflict = {
 /** Ordering options when selecting data from "sandbox_access_request_ios". */
 export type Sandbox_Access_Request_Ios_Order_By = {
   approved_at?: InputMaybe<Order_By>;
-  approved_by?: InputMaybe<Order_By>;
   asc_email?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   portal_email?: InputMaybe<Order_By>;
   rejection_reason?: InputMaybe<Order_By>;
   revoked_at?: InputMaybe<Order_By>;
-  revoked_by?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
@@ -12424,8 +12408,6 @@ export enum Sandbox_Access_Request_Ios_Select_Column {
   /** column name */
   ApprovedAt = "approved_at",
   /** column name */
-  ApprovedBy = "approved_by",
-  /** column name */
   AscEmail = "asc_email",
   /** column name */
   CreatedAt = "created_at",
@@ -12437,8 +12419,6 @@ export enum Sandbox_Access_Request_Ios_Select_Column {
   RejectionReason = "rejection_reason",
   /** column name */
   RevokedAt = "revoked_at",
-  /** column name */
-  RevokedBy = "revoked_by",
   /** column name */
   Status = "status",
   /** column name */
@@ -12452,14 +12432,12 @@ export enum Sandbox_Access_Request_Ios_Select_Column {
 /** input type for updating data in table "sandbox_access_request_ios" */
 export type Sandbox_Access_Request_Ios_Set_Input = {
   approved_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  approved_by?: InputMaybe<Scalars["String"]["input"]>;
   asc_email?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   portal_email?: InputMaybe<Scalars["String"]["input"]>;
   rejection_reason?: InputMaybe<Scalars["String"]["input"]>;
   revoked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  revoked_by?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -12494,14 +12472,12 @@ export type Sandbox_Access_Request_Ios_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Sandbox_Access_Request_Ios_Stream_Cursor_Value_Input = {
   approved_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  approved_by?: InputMaybe<Scalars["String"]["input"]>;
   asc_email?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   portal_email?: InputMaybe<Scalars["String"]["input"]>;
   rejection_reason?: InputMaybe<Scalars["String"]["input"]>;
   revoked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  revoked_by?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -12512,8 +12488,6 @@ export type Sandbox_Access_Request_Ios_Stream_Cursor_Value_Input = {
 export enum Sandbox_Access_Request_Ios_Update_Column {
   /** column name */
   ApprovedAt = "approved_at",
-  /** column name */
-  ApprovedBy = "approved_by",
   /** column name */
   AscEmail = "asc_email",
   /** column name */
@@ -12526,8 +12500,6 @@ export enum Sandbox_Access_Request_Ios_Update_Column {
   RejectionReason = "rejection_reason",
   /** column name */
   RevokedAt = "revoked_at",
-  /** column name */
-  RevokedBy = "revoked_by",
   /** column name */
   Status = "status",
   /** column name */

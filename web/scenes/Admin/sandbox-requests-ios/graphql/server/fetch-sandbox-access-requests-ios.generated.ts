@@ -19,10 +19,8 @@ export type FetchSandboxAccessRequestsIosQuery = {
     status: "pending" | "approved" | "rejected" | "revoking" | "revoked";
     created_at: string;
     approved_at?: string | null;
-    approved_by?: string | null;
     rejection_reason?: string | null;
     revoked_at?: string | null;
-    revoked_by?: string | null;
     team: { __typename?: "team"; name?: string | null };
     user: { __typename?: "user"; name: string };
   }>;
@@ -58,10 +56,8 @@ export const FetchSandboxAccessRequestsIosDocument = gql`
       status
       created_at
       approved_at
-      approved_by
       rejection_reason
       revoked_at
-      revoked_by
     }
     total: sandbox_access_request_ios_aggregate {
       aggregate {

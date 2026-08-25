@@ -160,7 +160,7 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [validation]", () => 
 
 // #region State transitions
 describe("POST /api/admin/sandbox-requests-ios/[id]/status [transitions]", () => {
-  it("enrolls before approving and records the approver", async () => {
+  it("enrolls before approving and records the approval time", async () => {
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(200);
@@ -175,7 +175,6 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [transitions]", () =>
       set: {
         status: "approved",
         approved_at: expect.any(String),
-        approved_by: admin.subject,
       },
     });
     const approvedAt =
@@ -215,7 +214,7 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [transitions]", () =>
     expect(GetSandboxRequestIosForProcessing).toHaveBeenCalledTimes(2);
   });
 
-  it("locks, removes from Apple, then finalizes revocation audit fields", async () => {
+  it("locks, removes from Apple, then records the revocation time", async () => {
     mockRequestStatuses("approved", "revoked");
     mockTransitions("revoking", "revoked");
 
@@ -241,7 +240,6 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [transitions]", () =>
       set: {
         status: "revoked",
         revoked_at: expect.any(String),
-        revoked_by: admin.subject,
       },
     });
     expect(
@@ -333,7 +331,6 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [concurrency]", () =>
       set: {
         status: "revoked",
         revoked_at: expect.any(String),
-        revoked_by: admin.subject,
       },
     });
     expect(removeSandboxBetaTester).toHaveBeenCalledWith(TESTER_EMAIL);

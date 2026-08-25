@@ -84935,18 +84935,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": null,
             "args": [],
@@ -85029,18 +85017,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -85538,18 +85514,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "String_comparison_exp",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": null,
             "type": {
@@ -85615,18 +85579,6 @@
             "type": {
               "kind": "INPUT_OBJECT",
               "name": "timestamptz_comparison_exp",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "String_comparison_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -85758,18 +85710,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": null,
             "type": {
@@ -85835,18 +85775,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -85948,18 +85876,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": null,
             "args": [],
@@ -86026,18 +85942,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -86116,18 +86020,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": null,
             "type": {
@@ -86189,18 +86081,6 @@
           },
           {
             "name": "revoked_at",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -86282,18 +86162,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": null,
             "args": [],
@@ -86360,18 +86228,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -86450,18 +86306,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": null,
             "type": {
@@ -86523,18 +86367,6 @@
           },
           {
             "name": "revoked_at",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -86731,18 +86563,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": null,
             "type": {
@@ -86804,18 +86624,6 @@
           },
           {
             "name": "revoked_at",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -86945,12 +86753,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": "column name",
             "isDeprecated": false,
@@ -86982,12 +86784,6 @@
           },
           {
             "name": "revoked_at",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -87038,18 +86834,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": null,
             "type": {
@@ -87115,18 +86899,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -87389,18 +87161,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": null,
             "type": {
@@ -87466,18 +87226,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -87552,12 +87300,6 @@
             "deprecationReason": null
           },
           {
-            "name": "approved_by",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "asc_email",
             "description": "column name",
             "isDeprecated": false,
@@ -87589,12 +87331,6 @@
           },
           {
             "name": "revoked_at",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "revoked_by",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

@@ -178,10 +178,10 @@ describe("internal dashboard detail permissions", () => {
     expect(insertSection).not.toContain("- status");
     expect(dashboardUpdatePermission).toContain("- status");
     expect(dashboardUpdatePermission).toContain("- approved_at");
-    expect(dashboardUpdatePermission).toContain("- approved_by");
     expect(dashboardUpdatePermission).toContain("- rejection_reason");
     expect(dashboardUpdatePermission).toContain("- revoked_at");
-    expect(dashboardUpdatePermission).toContain("- revoked_by");
+    expect(dashboardUpdatePermission).not.toContain("- approved_by");
+    expect(dashboardUpdatePermission).not.toContain("- revoked_by");
     expect(dashboardUpdatePermission).not.toContain("- asc_email");
     expect(dashboardUpdatePermission).not.toContain("- portal_email");
 
@@ -199,7 +199,8 @@ describe("internal dashboard detail permissions", () => {
     expect(metadata).toContain("- name: team");
     expect(metadata).toContain("foreign_key_constraint_on: team_id");
     expect(metadata).toContain("- revoked_at");
-    expect(metadata).toContain("- revoked_by");
+    expect(metadata).not.toContain("- approved_by");
+    expect(metadata).not.toContain("- revoked_by");
     const serviceSelectPermission = metadata.slice(
       metadata.indexOf(
         "  - role: service",
@@ -230,11 +231,10 @@ describe("internal dashboard detail permissions", () => {
       'CONSTRAINT "sandbox_access_request_ios_asc_email_is_canonical"',
     );
     expect(migration).toContain('"approved_at" IS NOT NULL');
-    expect(migration).toContain('"approved_by" IS NOT NULL');
     expect(migration).toContain('"revoked_at" IS NOT NULL');
-    expect(migration).toContain('"revoked_by" IS NOT NULL');
     expect(migration).toContain('"revoked_at" IS NULL');
-    expect(migration).toContain('"revoked_by" IS NULL');
+    expect(migration).not.toContain('"approved_by"');
+    expect(migration).not.toContain('"revoked_by"');
     expect(migration).toContain("\"status\" = 'rejected'");
     expect(migration).toContain('"rejection_reason" IS NULL');
   });
