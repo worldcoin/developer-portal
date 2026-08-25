@@ -95,6 +95,25 @@ beforeEach(() => {
 
 // #region Persistent request confirmation
 describe("SandboxButton [android request confirmation]", () => {
+  it("does not present team-scoped iOS enrollment without an active team", async () => {
+    mockLookup(null);
+
+    openAndroidSection();
+
+    expect(
+      screen.queryByRole("button", { name: "iOS" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Android" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    const inviteButton = await screen.findByRole("button", {
+      name: "Request invite",
+    });
+    await waitFor(() => expect(inviteButton).toBeEnabled());
+    expect(global.fetch).toHaveBeenCalledWith("/api/v2/sandbox-access-request");
+  });
+
   it("keeps the submitted email visible in the persistent pending state", async () => {
     mockLookup({
       email: "tester@gmail.com",

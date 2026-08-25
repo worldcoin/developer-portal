@@ -48,6 +48,7 @@ const ANDROID_STEPS = [
 ] as const;
 
 const PLATFORM_ORDER: readonly Platform[] = ["ios", "android"];
+const ANDROID_ONLY_PLATFORM_ORDER: readonly Platform[] = ["android"];
 
 /**
  * Sidebar entry point for the World ID sandbox. Android requests Play allowlist
@@ -60,7 +61,13 @@ export const SandboxButton = (props: {
   initialRequest?: SandboxAccessRequestState | null;
 }) => {
   const [open, setOpen] = useState(false);
-  const [platform, setPlatform] = useState<Platform>("ios");
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform>("ios");
+  // An iOS enrollment belongs to a team. Non-team routes can still expose the
+  // legacy Android request, but must not render an iOS form that cannot submit.
+  const platform: Platform = props.teamId ? selectedPlatform : "android";
+  const platformOrder = props.teamId
+    ? PLATFORM_ORDER
+    : ANDROID_ONLY_PLATFORM_ORDER;
   const { user } = useUser() as Auth0SessionUser;
 
   const [requestEmail, setRequestEmail] = useState(
@@ -215,7 +222,7 @@ export const SandboxButton = (props: {
   const switchPlatform = (next: Platform) => {
     if (next === platform) return;
     posthog.capture("sandbox_platform_switched", { platform: next });
-    setPlatform(next);
+    setSelectedPlatform(next);
   };
 
   return (
@@ -281,7 +288,7 @@ export const SandboxButton = (props: {
               aria-label="Platform"
               className="grid w-fit grid-cols-2 gap-1 rounded-[10px] bg-grey-100 p-1"
             >
-              {PLATFORM_ORDER.map((p) => (
+              {platformOrder.map((p) => (
                 <button
                   key={p}
                   type="button"
