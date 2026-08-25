@@ -19,7 +19,7 @@ const noopSubscribe = () => () => {};
  * correct active state straight from the URL (even before — or without —
  * client JS); the measured NavActivePill takes over once hydration completes.
  */
-export const useHydrated = () =>
+const useHydrated = () =>
   useSyncExternalStore(
     noopSubscribe,
     () => true,
@@ -30,26 +30,10 @@ export const NavItem = (props: {
   href: string;
   label: string;
   icon?: ReactNode;
-  trailing?: ReactNode;
   active?: boolean;
-  current?: boolean;
-  dimmed?: boolean;
-  className?: string;
-  children?: ReactNode;
   onNavigate?: MouseEventHandler<HTMLAnchorElement>;
 }) => {
-  const {
-    href,
-    label,
-    icon,
-    trailing,
-    active,
-    current,
-    dimmed,
-    className,
-    children,
-    onNavigate,
-  } = props;
+  const { href, label, icon, active, onNavigate } = props;
 
   const hydrated = useHydrated();
 
@@ -68,27 +52,17 @@ export const NavItem = (props: {
           "h-9 cursor-pointer gap-3 rounded-8 pr-4 pl-2.5 font-world text-13 leading-[1.2] font-[450] text-portal-ink transition-colors duration-200 ease-out hover:text-portal-ink data-[active=false]:hover:bg-portal-border data-[active=true]:bg-transparent data-[active=true]:text-portal-ink data-[active=true]:hover:bg-transparent",
           !hydrated &&
             "data-[active=true]:border data-[active=true]:border-portal-border data-[active=true]:bg-white data-[active=true]:hover:bg-white",
-          className,
         )}
       >
         <Link
           href={href}
           onClick={onNavigate}
-          aria-current={
-            current === false ? undefined : active ? "page" : undefined
-          }
-          className={dimmed ? "opacity-40" : undefined}
+          aria-current={active ? "page" : undefined}
         >
           {icon ? <span className="shrink-0 text-current">{icon}</span> : null}
           <span>{label}</span>
-          {trailing ? (
-            <span className="ml-auto shrink-0 group-data-[collapsible=icon]:hidden">
-              {trailing}
-            </span>
-          ) : null}
         </Link>
       </SidebarMenuButton>
-      {children}
     </SidebarMenuItem>
   );
 };
@@ -238,29 +212,6 @@ export const NavActivePill = (props: { animate?: boolean }) => {
       aria-hidden="true"
       className={cn(
         "pointer-events-none absolute top-0 left-0 rounded-8 border border-portal-border bg-white",
-        !placement && "hidden",
-        placement?.animate &&
-          "transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none",
-      )}
-      style={activePillStyle(placement)}
-    />
-  );
-};
-
-export const SidebarSubNavigationActivePill = () => {
-  const { placement, setElementRef } = useActivePillPlacement({
-    containerSelector: '[data-sidebar="menu-sub"]',
-    activeItemSelector: '[data-sidebar="menu-sub-button"][data-active="true"]',
-    animate: true,
-  });
-
-  return (
-    <li
-      ref={setElementRef}
-      aria-hidden="true"
-      data-sidebar="menu-sub-active-pill"
-      className={cn(
-        "pointer-events-none absolute top-0 left-0 rounded-md bg-white",
         !placement && "hidden",
         placement?.animate &&
           "transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none",
