@@ -1,18 +1,18 @@
 import { handleUniquenessProofVerification } from "@/api/v4/verify/uniqueness-proof/handler";
+import {
+  FACE_SEQUENCER_STAGING,
+  ORB_SEQUENCER,
+  ORB_SEQUENCER_STAGING,
+} from "@/lib/constants";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { NextRequest } from "next/server";
+import { semaphoreProofParamsMock } from "../../../__mocks__/proof.mock";
 
 // #region Mocks
 const FetchActionV4 = jest.fn();
-const mockProcessUniquenessProofV3 = jest.fn();
 
 jest.mock("@/api/v4/verify/graphql/fetch-action-v4.generated", () => ({
   getSdk: () => ({ FetchActionV4 }),
-}));
-
-jest.mock("@/api/v4/verify/uniqueness-proof/verify-v3", () => ({
-  processUniquenessProofV3: (...args: unknown[]) =>
-    mockProcessUniquenessProofV3(...args),
 }));
 
 jest.mock("@/lib/logger", () => ({
@@ -34,6 +34,14 @@ const rpId = "rp_0123456789abcdef";
 const mismatchDetail =
   'This proof was generated for the production environment, but this request uses staging. Set environment to "production" or generate a new staging proof.';
 
+const createSequencerResponse = (
+  ok: boolean,
+  body: Record<string, unknown>,
+) => ({
+  ok,
+  json: jest.fn().mockResolvedValue(body),
+});
+
 const request = new NextRequest("http://localhost/api/v4/verify", {
   method: "POST",
 });
@@ -42,27 +50,34 @@ const request = new NextRequest("http://localhost/api/v4/verify", {
 beforeEach(() => {
   jest.clearAllMocks();
   FetchActionV4.mockResolvedValue({ action_v4: [] });
+  global.fetch = jest.fn((url: string | URL) => {
+    const sequencerUrl = url.toString();
+
+    if (sequencerUrl.startsWith(ORB_SEQUENCER_STAGING)) {
+      return Promise.resolve(
+        createSequencerResponse(false, { errorId: "invalid_root" }),
+      );
+    }
+
+    if (sequencerUrl.startsWith(ORB_SEQUENCER)) {
+      return Promise.resolve(createSequencerResponse(true, { valid: true }));
+    }
+
+    if (sequencerUrl.startsWith(FACE_SEQUENCER_STAGING)) {
+      return Promise.resolve(
+        createSequencerResponse(false, {
+          errorId: "decompressing_proof_error",
+        }),
+      );
+    }
+
+    throw new Error(`Unexpected sequencer URL: ${sequencerUrl}`);
+  }) as unknown as typeof fetch;
 });
 
 // #region Environment mismatch response
 describe("handleUniquenessProofVerification [environment mismatch]", () => {
   it("returns environment_mismatch at the top level when any v3 proof has the wrong environment", async () => {
-    mockProcessUniquenessProofV3.mockResolvedValue([
-      {
-        identifier: LegacyVerificationLevel.Orb,
-        success: false,
-        code: "environment_mismatch",
-        detail: mismatchDetail,
-        attribute: "environment",
-      },
-      {
-        identifier: LegacyVerificationLevel.Face,
-        success: false,
-        code: "invalid_proof",
-        detail: "The provided proof is invalid.",
-      },
-    ]);
-
     const response = await handleUniquenessProofVerification(
       {} as never,
       rpId,
@@ -74,17 +89,17 @@ describe("handleUniquenessProofVerification [environment mismatch]", () => {
         responses: [
           {
             identifier: LegacyVerificationLevel.Orb,
-            signal_hash: "0x1",
-            merkle_root: "0x2",
-            nullifier: "0x3",
-            proof: "0x4",
+            signal_hash: semaphoreProofParamsMock.signal_hash,
+            merkle_root: semaphoreProofParamsMock.merkle_root,
+            nullifier: semaphoreProofParamsMock.nullifier_hash,
+            proof: semaphoreProofParamsMock.proof,
           },
           {
             identifier: LegacyVerificationLevel.Face,
-            signal_hash: "0x5",
-            merkle_root: "0x6",
-            nullifier: "0x7",
-            proof: "0x8",
+            signal_hash: semaphoreProofParamsMock.signal_hash,
+            merkle_root: semaphoreProofParamsMock.merkle_root,
+            nullifier: semaphoreProofParamsMock.nullifier_hash,
+            proof: semaphoreProofParamsMock.proof,
           },
         ],
       },
@@ -108,7 +123,8 @@ describe("handleUniquenessProofVerification [environment mismatch]", () => {
           identifier: LegacyVerificationLevel.Face,
           success: false,
           code: "invalid_proof",
-          detail: "The provided proof is invalid.",
+          detail:
+            "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
         },
       ],
     });

@@ -416,6 +416,22 @@ describe("verify helpers", () => {
       expect(result.error?.code).toBe("invalid_merkle_root");
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
+
+    it("requires an explicit valid result from the opposite environment", async () => {
+      const fetchMock = jest
+        .fn()
+        .mockResolvedValueOnce(mockResponse(false, { errorId: "invalid_root" }))
+        .mockResolvedValueOnce(mockResponse(true, { valid: "true" }));
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const result = await verifyProof(validVerifyParams, {
+        ...verificationOptions,
+        is_staging: true,
+      });
+
+      expect(result.error?.code).toBe("invalid_merkle_root");
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe("decodeToHexString", () => {

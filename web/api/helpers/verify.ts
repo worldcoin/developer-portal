@@ -433,7 +433,10 @@ export const verifyProof = async (
             },
           );
 
-          if (oppositeResponse.ok && (await oppositeResponse.json()).valid) {
+          if (
+            oppositeResponse.ok &&
+            (await oppositeResponse.json()).valid === true
+          ) {
             return {
               error: {
                 message: `This proof was generated for the ${proofEnvironment} environment, but this request uses ${verifyParams.is_staging ? "staging" : "production"}. Set environment to \"${proofEnvironment}\" or generate a new ${verifyParams.is_staging ? "staging" : "production"} proof.`,
