@@ -10,15 +10,17 @@ import { getSdk as getRequestSdk } from "./graphql/get-sandbox-request-ios-for-p
 import { getSdk as getStatusSdk } from "./graphql/update-sandbox-request-ios-status.generated";
 
 const REQUEST_ID_PATTERN = /^sbx_req_[a-zA-Z0-9]+$/;
+const MAX_REJECTION_REASON_LENGTH = 500;
 
 type RequestedStatus = "approved" | "rejected" | "revoked";
-// `revoking` is no longer produced here, but rows written by the previous
-// implementation may still hold it, so it stays a legal starting state.
-type StoredStatus = "pending" | RequestedStatus | "revoking";
+type StoredStatus = "pending" | "approving" | RequestedStatus | "revoking";
 type ProcessingStage =
   | "status_check"
+  | "approval_claim"
+  | "approval_finalize"
+  | "rejection_update"
+  | "revocation_claim"
   | "testflight_update"
-  | "portal_status_update"
   | "revocation_finalize";
 
 type StatusCommand = {
@@ -28,6 +30,7 @@ type StatusCommand = {
 
 const isStoredStatus = (value: unknown): value is StoredStatus =>
   value === "pending" ||
+  value === "approving" ||
   value === "approved" ||
   value === "rejected" ||
   value === "revoking" ||
@@ -59,6 +62,8 @@ const parseCommand = async (
     typeof rawReason === "string"
       ? rawReason.replace(/\p{Cc}/gu, " ").trim()
       : "";
+
+  if (rejectionReason.length > MAX_REJECTION_REASON_LENGTH) return null;
 
   return {
     status: body.status,
@@ -93,6 +98,7 @@ export async function POST(
   }
 
   let processingStage: ProcessingStage = "status_check";
+  let knownStatus: StoredStatus | null | undefined;
 
   try {
     const client = await getInternalDashboardGraphqlClientForUser(admin);
@@ -105,83 +111,126 @@ export async function POST(
       if (request && !isStoredStatus(request.status)) {
         throw new Error(`Unexpected iOS sandbox status: ${request.status}`);
       }
+      knownStatus = request?.status ?? null;
       return request ?? null;
     };
 
-    // Unconditional update by id (last-write-wins). Apple calls and status
-    // sets are idempotent, so a concurrent write self-heals on the next action
-    // rather than needing in-request compare-and-swap.
-    const setStatus = async (
+    const transition = async (
+      from: StoredStatus,
       set: Record<string, string | null> & { status: StoredStatus },
     ) => {
-      await statusSdk.UpdateSandboxRequestIosStatus({ id, set });
+      const data = await statusSdk.TransitionSandboxRequestIosStatus({
+        id,
+        from,
+        set,
+      });
+      const update = data.update_sandbox_access_request_ios;
+      if (!update) {
+        throw new Error("iOS sandbox status transition returned no result");
+      }
+      if (update.affected_rows === 0) return null;
+      if (update.affected_rows !== 1 || update.returning.length !== 1) {
+        throw new Error(
+          `iOS sandbox status transition affected ${update.affected_rows} rows`,
+        );
+      }
+
+      const request = update.returning[0];
+      if (!isStoredStatus(request.status)) {
+        throw new Error(`Unexpected iOS sandbox status: ${request.status}`);
+      }
+      knownStatus = request.status;
+      return request;
     };
 
     const respond = (changed: boolean, status: StoredStatus | null) =>
       NextResponse.json({ success: true, changed, status });
 
-    const unsupportedTransition = () =>
+    const unsupportedTransition = (status: StoredStatus) =>
       NextResponse.json(
-        { error: "Unsupported status transition" },
-        { status: 400 },
+        { error: "Unsupported status transition", status },
+        { status: 409 },
       );
 
-    const request = await readRequest();
-    if (!request) return respond(false, null);
-
     if (command.status === "rejected") {
-      if (request.status === "rejected") return respond(false, "rejected");
-      if (request.status !== "pending") return unsupportedTransition();
-
-      processingStage = "portal_status_update";
-      await setStatus({
+      processingStage = "rejection_update";
+      const rejected = await transition("pending", {
         status: "rejected",
         rejection_reason: command.rejectionReason,
       });
-      return respond(true, "rejected");
+      if (rejected) return respond(true, "rejected");
+
+      processingStage = "status_check";
+      const current = await readRequest();
+      if (!current) return respond(false, null);
+      return current.status === "rejected"
+        ? respond(false, "rejected")
+        : unsupportedTransition(current.status);
     }
 
     if (command.status === "approved") {
-      if (request.status !== "pending" && request.status !== "approved") {
-        return unsupportedTransition();
+      processingStage = "approval_claim";
+      let approval = await transition("pending", { status: "approving" });
+
+      if (!approval) {
+        processingStage = "status_check";
+        const current = await readRequest();
+        if (!current) return respond(false, null);
+        if (current.status === "approved") {
+          return respond(false, "approved");
+        }
+        if (current.status !== "approving") {
+          return unsupportedTransition(current.status);
+        }
+        approval = current;
       }
 
-      // Enroll first, then record. Idempotent, so re-approving just re-ensures
-      // TestFlight without a portal write.
       processingStage = "testflight_update";
-      await addSandboxBetaTester(request.asc_email);
-      if (request.status === "approved") return respond(false, "approved");
+      await addSandboxBetaTester(approval.asc_email);
 
-      processingStage = "portal_status_update";
-      await setStatus({
+      processingStage = "approval_finalize";
+      const approved = await transition("approving", {
         status: "approved",
         approved_at: new Date().toISOString(),
       });
-      return respond(true, "approved");
+      if (approved) return respond(true, "approved");
+
+      processingStage = "status_check";
+      const current = await readRequest();
+      if (current?.status === "approved") {
+        return respond(false, "approved");
+      }
+      throw new Error("iOS sandbox approval changed before finalization");
     }
 
-    // command.status === "revoked"
-    if (
-      request.status !== "approved" &&
-      request.status !== "revoking" &&
-      request.status !== "revoked"
-    ) {
-      return unsupportedTransition();
+    processingStage = "revocation_claim";
+    let revocation = await transition("approved", { status: "revoking" });
+
+    if (!revocation) {
+      processingStage = "status_check";
+      const current = await readRequest();
+      if (!current) return respond(false, null);
+      if (current.status === "revoked") return respond(false, "revoked");
+      if (current.status !== "revoking") {
+        return unsupportedTransition(current.status);
+      }
+      revocation = current;
     }
 
-    // Remove from Apple first: if that fails the row stays approved (fail
-    // closed on the portal side while access is already gone), and a retry is
-    // safe because removal is idempotent.
     processingStage = "testflight_update";
-    await removeSandboxBetaTester(request.asc_email);
-    if (request.status === "revoked") return respond(false, "revoked");
+    await removeSandboxBetaTester(revocation.asc_email);
 
     processingStage = "revocation_finalize";
-    await setStatus({
+    const revoked = await transition("revoking", {
       status: "revoked",
       revoked_at: new Date().toISOString(),
     });
-    return respond(true, "revoked");
+    if (revoked) return respond(true, "revoked");
+
+    processingStage = "status_check";
+    const current = await readRequest();
+    if (current?.status === "revoked") return respond(false, "revoked");
+    throw new Error("iOS sandbox revocation changed before finalization");
   } catch (error) {
     logger.error("Failed to update iOS sandbox request status", {
       requestId: id,
@@ -199,6 +248,7 @@ export async function POST(
       {
         error: "Unable to update iOS sandbox request",
         failureStage: processingStage,
+        ...(knownStatus !== undefined ? { status: knownStatus } : {}),
       },
       { status: 503 },
     );

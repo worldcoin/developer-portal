@@ -14,6 +14,7 @@ export type SandboxAccessRequestIosStatus =
 
 type StoredSandboxAccessRequestIosStatus =
   | SandboxAccessRequestIosStatus
+  | "approving"
   | "revoking";
 
 export type SandboxAccessRequestIosState = {
@@ -25,6 +26,7 @@ const isSandboxAccessRequestIosStatus = (
   status: unknown,
 ): status is StoredSandboxAccessRequestIosStatus =>
   status === "pending" ||
+  status === "approving" ||
   status === "approved" ||
   status === "rejected" ||
   status === "revoking" ||
@@ -50,8 +52,13 @@ export const fetchSandboxAccessRequestIos = async (
 
   return {
     ascEmail: request.asc_email,
-    // Revoking is an internal recovery lock. Access is not shown as revoked
-    // until App Store Connect confirms removal.
-    status: request.status === "revoking" ? "approved" : request.status,
+    // Processing states stay represented by their pre-operation public state
+    // until App Store Connect confirms the change.
+    status:
+      request.status === "revoking"
+        ? "approved"
+        : request.status === "approving"
+          ? "pending"
+          : request.status,
   };
 };

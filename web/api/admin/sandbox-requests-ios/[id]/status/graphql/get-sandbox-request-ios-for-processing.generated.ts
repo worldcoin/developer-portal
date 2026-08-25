@@ -13,7 +13,13 @@ export type GetSandboxRequestIosForProcessingQuery = {
   sandbox_access_request_ios_by_pk?: {
     __typename?: "sandbox_access_request_ios";
     asc_email: string;
-    status: "pending" | "approved" | "rejected" | "revoking" | "revoked";
+    status:
+      | "pending"
+      | "approving"
+      | "approved"
+      | "rejected"
+      | "revoking"
+      | "revoked";
   } | null;
 };
 

@@ -286,6 +286,20 @@ describe("GET /api/v2/sandbox-access-request-ios", () => {
     });
   });
 
+  it("keeps the partner-facing state pending while approval is unfinished", async () => {
+    GetSandboxAccessRequestIos.mockResolvedValue({
+      sandbox_access_request_ios: [{ ...storedRequest, status: "approving" }],
+    });
+
+    const response = await GET();
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      success: true,
+      request: { ascEmail: "asc@example.com", status: "pending" },
+    });
+  });
+
   it("returns 500 for an unexpected stored status", async () => {
     GetSandboxAccessRequestIos.mockResolvedValue({
       sandbox_access_request_ios: [{ ...storedRequest, status: "unknown" }],
