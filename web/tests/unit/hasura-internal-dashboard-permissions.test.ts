@@ -211,15 +211,17 @@ describe("internal dashboard detail permissions", () => {
     expect(serviceSelectPermission).not.toContain("- revoked_by");
   });
 
-  it("keeps iOS beta-tester ownership unique by canonical ASC email", () => {
+  it("creates the complete iOS access-request schema in one migration", () => {
     const migration = readFileSync(
       path.join(
         tablesPath,
-        "../../../../migrations/default/1787610172000_enforce_unique_sandbox_ios_asc_email/up.sql",
+        "../../../../migrations/default/1787346730000_create_table_public_sandbox_access_request_ios/up.sql",
       ),
       "utf8",
     );
 
+    expect(migration).toContain("'revoking'");
+    expect(migration).toContain("'revoked'");
     expect(migration).toContain('lower(btrim("asc_email"))');
     expect(migration).toContain(
       'CONSTRAINT "unique_sandbox_access_request_ios_asc_email"',
@@ -227,52 +229,14 @@ describe("internal dashboard detail permissions", () => {
     expect(migration).toContain(
       'CONSTRAINT "sandbox_access_request_ios_asc_email_is_canonical"',
     );
-  });
-
-  it("requires complete revocation audit fields for revoked iOS requests", () => {
-    const statusMigration = readFileSync(
-      path.join(
-        tablesPath,
-        "../../../../migrations/default/1787611296000_add_revoked_sandbox_ios_status/up.sql",
-      ),
-      "utf8",
-    );
-    const auditMigration = readFileSync(
-      path.join(
-        tablesPath,
-        "../../../../migrations/default/1787611297000_add_sandbox_ios_revocation_audit/up.sql",
-      ),
-      "utf8",
-    );
-
-    expect(statusMigration).toContain("ADD VALUE IF NOT EXISTS 'revoked'");
-    expect(auditMigration).toContain('"revoked_at" IS NOT NULL');
-    expect(auditMigration).toContain('"revoked_by" IS NOT NULL');
-    expect(auditMigration).toContain('"revoked_at" IS NULL');
-    expect(auditMigration).toContain('"revoked_by" IS NULL');
-  });
-
-  it("tracks approval audit fields and constrains rejection reasons", () => {
-    const statusMigration = readFileSync(
-      path.join(
-        tablesPath,
-        "../../../../migrations/default/1787611298000_add_revoking_sandbox_ios_status/up.sql",
-      ),
-      "utf8",
-    );
-    const auditMigration = readFileSync(
-      path.join(
-        tablesPath,
-        "../../../../migrations/default/1787611299000_add_sandbox_ios_review_audit/up.sql",
-      ),
-      "utf8",
-    );
-
-    expect(statusMigration).toContain("ADD VALUE IF NOT EXISTS 'revoking'");
-    expect(auditMigration).toContain('"approved_at" IS NOT NULL');
-    expect(auditMigration).toContain('"approved_by" IS NOT NULL');
-    expect(auditMigration).toContain("\"status\" = 'rejected'");
-    expect(auditMigration).toContain('"rejection_reason" IS NULL');
+    expect(migration).toContain('"approved_at" IS NOT NULL');
+    expect(migration).toContain('"approved_by" IS NOT NULL');
+    expect(migration).toContain('"revoked_at" IS NOT NULL');
+    expect(migration).toContain('"revoked_by" IS NOT NULL');
+    expect(migration).toContain('"revoked_at" IS NULL');
+    expect(migration).toContain('"revoked_by" IS NULL');
+    expect(migration).toContain("\"status\" = 'rejected'");
+    expect(migration).toContain('"rejection_reason" IS NULL');
   });
 
   it("does not define elevated internal dashboard roles", () => {
