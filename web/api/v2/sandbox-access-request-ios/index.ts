@@ -1,4 +1,4 @@
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getAPIServiceGraphqlClientForUser } from "@/api/helpers/graphql";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
@@ -120,7 +120,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const client = await getAPIServiceGraphqlClient();
+    const client = await getAPIServiceGraphqlClientForUser(
+      authenticatedUser.userId,
+    );
     await getInsertSandboxAccessRequestIosSdk(
       client,
     ).InsertSandboxAccessRequestIos({

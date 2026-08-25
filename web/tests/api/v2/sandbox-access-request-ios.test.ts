@@ -4,13 +4,18 @@ import { NextRequest } from "next/server";
 const getSession = jest.fn();
 const InsertSandboxAccessRequestIos = jest.fn();
 const GetSandboxAccessRequestIos = jest.fn();
+const getAPIServiceGraphqlClient = jest.fn();
+const getAPIServiceGraphqlClientForUser = jest.fn();
 
 jest.mock("@/lib/auth0", () => ({
   auth0: { getSession: () => getSession() },
 }));
 
 jest.mock("@/api/helpers/graphql", () => ({
-  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
+  getAPIServiceGraphqlClient: (...args: unknown[]) =>
+    getAPIServiceGraphqlClient(...args),
+  getAPIServiceGraphqlClientForUser: (...args: unknown[]) =>
+    getAPIServiceGraphqlClientForUser(...args),
 }));
 
 jest.mock(
@@ -64,6 +69,8 @@ const validBody = { asc_email: "asc@example.com", team_id: TEAM_ID };
 
 beforeEach(() => {
   jest.clearAllMocks();
+  getAPIServiceGraphqlClient.mockResolvedValue({});
+  getAPIServiceGraphqlClientForUser.mockResolvedValue({});
   getSession.mockResolvedValue(authedSession);
   InsertSandboxAccessRequestIos.mockResolvedValue({
     insert_sandbox_access_request_ios_one: { id: "sbx_req_abc123" },
@@ -143,6 +150,7 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
         status: "pending",
       },
     });
+    expect(getAPIServiceGraphqlClientForUser).toHaveBeenCalledWith(USER_ID);
     expect(InsertSandboxAccessRequestIos).toHaveBeenCalledWith({
       asc_email: "asc@example.com",
       portal_email: "portal@example.com",
@@ -245,6 +253,8 @@ describe("GET /api/v2/sandbox-access-request-ios", () => {
         status: "pending",
       },
     });
+    expect(getAPIServiceGraphqlClient).toHaveBeenCalled();
+    expect(getAPIServiceGraphqlClientForUser).not.toHaveBeenCalled();
   });
 
   it("returns request null when the caller has not submitted one", async () => {
