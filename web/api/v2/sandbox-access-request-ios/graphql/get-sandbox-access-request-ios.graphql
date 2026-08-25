@@ -1,0 +1,6 @@
+query GetSandboxAccessRequestIos($user_id: String!) {
+  sandbox_access_request_ios(where: { user_id: { _eq: $user_id } }, limit: 1) {
+    asc_email
+    status
+  }
+}
