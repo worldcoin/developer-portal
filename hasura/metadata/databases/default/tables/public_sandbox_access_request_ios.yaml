@@ -1,0 +1,78 @@
+table:
+  name: sandbox_access_request_ios
+  schema: public
+object_relationships:
+  - name: team
+    using:
+      foreign_key_constraint_on: team_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - asc_email
+        - portal_email
+        - team_id
+        - user_id
+select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - id
+        - user_id
+        - portal_email
+        - asc_email
+        - team_id
+        - status
+        - created_at
+        - approved_at
+        - rejection_reason
+        - revoked_at
+      filter: {}
+      allow_aggregations: true
+  - role: service
+    permission:
+      columns:
+        - id
+        - user_id
+        - asc_email
+        - status
+      filter: {}
+update_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - status
+        - approved_at
+        - rejection_reason
+        - revoked_at
+      filter: {}
+      check: {}
+  # The service role's only permitted update is the re-request upsert: reopen
+  # a rejected request as a fresh pending one (values come from the proposed
+  # insert row). Every other status stays immutable to the service role, and
+  # ownership plus approval/revocation audit fields are never updatable.
+  - role: service
+    permission:
+      columns:
+        - asc_email
+        - created_at
+        - portal_email
+        - rejection_reason
+        - status
+        - team_id
+      filter:
+        status:
+          _eq: rejected
+      check:
+        status:
+          _eq: pending
+delete_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      filter:
+        status:
+          _eq: pending
