@@ -1,0 +1,16 @@
+mutation TransitionSandboxRequestIosStatus(
+  $id: String!
+  $from: sandbox_access_request_ios_status!
+  $set: sandbox_access_request_ios_set_input!
+) {
+  update_sandbox_access_request_ios(
+    where: { id: { _eq: $id }, status: { _eq: $from } }
+    _set: $set
+  ) {
+    affected_rows
+    returning {
+      asc_email
+      status
+    }
+  }
+}
