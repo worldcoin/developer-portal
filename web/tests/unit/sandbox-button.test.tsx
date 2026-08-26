@@ -277,55 +277,27 @@ describe("SandboxButton [iOS enrollment request]", () => {
     expect(screen.getByRole("button", { name: "Approved" })).toBeDisabled();
   });
 
-  it("lets a rejected user edit the email and request again", async () => {
-    global.fetch = jest
-      .fn()
-      .mockImplementation(
-        async (_input: RequestInfo | URL, init?: RequestInit) => ({
-          ok: true,
-          json: async () => ({
-            success: true,
-            request:
-              init?.method === "POST"
-                ? { ascEmail: "second@example.com", status: "pending" }
-                : { ascEmail: "apple@example.com", status: "rejected" },
-          }),
-        }),
-      ) as unknown as typeof fetch;
+  it("shows a rejected request as terminal and disables resubmission", async () => {
+    mockIosLookup({
+      ascEmail: "apple@example.com",
+      status: "rejected",
+    });
 
     openIosSection();
 
     expect(
-      await screen.findByText(/was rejected. You can update the email/),
+      await screen.findByText(/enrollment request.*was rejected/),
     ).toBeInTheDocument();
     const input = screen.getByRole("textbox", { name: "Apple Account email" });
-    const resubmitButton = screen.getByRole("button", {
-      name: "Request again",
+    const rejectedButton = screen.getByRole("button", {
+      name: "Rejected",
     });
-    expect(input).toBeEnabled();
-    await waitFor(() => expect(resubmitButton).toBeEnabled());
-
-    fireEvent.change(input, { target: { value: "second@example.com" } });
-    fireEvent.click(resubmitButton);
-
-    expect(
-      await screen.findByText(
-        /enrollment request for second@example.com is pending/,
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Request submitted" }),
-    ).toBeDisabled();
-    expect(global.fetch).toHaveBeenLastCalledWith(
+    expect(input).toHaveValue("apple@example.com");
+    expect(input).toBeDisabled();
+    expect(rejectedButton).toBeDisabled();
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(
       "/api/v2/sandbox-access-request-ios",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          asc_email: "second@example.com",
-          team_id: TEAM_ID,
-        }),
-      },
     );
   });
 
