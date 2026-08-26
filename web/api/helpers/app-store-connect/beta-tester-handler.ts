@@ -183,6 +183,10 @@ const requireResourceList = <T extends ResourceLinkage>(
   return value;
 };
 
+const betaTesterLinkage = (testerId: string) => ({
+  data: [{ type: "betaTesters", id: testerId }],
+});
+
 const createClient = async () => {
   const config = getAppStoreConnectConfig();
   const token = await createToken(config);
@@ -286,10 +290,10 @@ export const addSandboxBetaTester = async (email: string): Promise<void> => {
 
   await requestAppStoreConnect<never>({
     token: client.token,
-    path: `/betaTesters/${encodeURIComponent(tester.id)}/relationships/betaGroups`,
+    path: `/betaGroups/${encodeURIComponent(client.config.betaGroupId)}/relationships/betaTesters`,
     operation: "Add App Store Connect beta tester to sandbox group",
     method: "POST",
-    body: client.groupLinkage,
+    body: betaTesterLinkage(tester.id),
     expectedStatuses: [204],
     idempotent: true,
   });
@@ -303,10 +307,10 @@ export const removeSandboxBetaTester = async (email: string): Promise<void> => {
 
   await requestAppStoreConnect<never>({
     token: client.token,
-    path: `/betaTesters/${encodeURIComponent(tester.id)}/relationships/betaGroups`,
+    path: `/betaGroups/${encodeURIComponent(client.config.betaGroupId)}/relationships/betaTesters`,
     operation: "Remove App Store Connect beta tester from sandbox group",
     method: "DELETE",
-    body: client.groupLinkage,
+    body: betaTesterLinkage(tester.id),
     // A concurrent retry may have already removed the relationship. In that
     // case 404 means the desired absent state has also been reached.
     expectedStatuses: [204, 404],

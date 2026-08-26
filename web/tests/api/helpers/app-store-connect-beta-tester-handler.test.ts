@@ -161,9 +161,12 @@ describe("addSandboxBetaTester", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
     const [url, init] = fetchMock.mock.calls[2] as [string, RequestInit];
     expect(url).toBe(
-      "https://api.appstoreconnect.apple.com/v1/betaTesters/tester-1/relationships/betaGroups",
+      "https://api.appstoreconnect.apple.com/v1/betaGroups/group-sandbox/relationships/betaTesters",
     );
     expect(init.method).toBe("POST");
+    expect(JSON.parse(String(init.body))).toEqual({
+      data: [{ type: "betaTesters", id: "tester-1" }],
+    });
   });
 
   it("recovers when another approval creates the tester concurrently", async () => {
@@ -232,11 +235,11 @@ describe("removeSandboxBetaTester", () => {
 
     const [url, init] = fetchMock.mock.calls[1] as [string, RequestInit];
     expect(url).toBe(
-      "https://api.appstoreconnect.apple.com/v1/betaTesters/tester-1/relationships/betaGroups",
+      "https://api.appstoreconnect.apple.com/v1/betaGroups/group-sandbox/relationships/betaTesters",
     );
     expect(init.method).toBe("DELETE");
     expect(JSON.parse(String(init.body))).toEqual({
-      data: [{ type: "betaGroups", id: "group-sandbox" }],
+      data: [{ type: "betaTesters", id: "tester-1" }],
     });
   });
 
