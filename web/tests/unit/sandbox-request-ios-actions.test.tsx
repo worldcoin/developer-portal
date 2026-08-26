@@ -33,9 +33,14 @@ import { SandboxRequestIosActions } from "@/scenes/Admin/sandbox-requests-ios/Sa
 // #region Test Data
 const REQUEST_ID = "sbx_req_abc123";
 
-const mockResponse = (options: { ok: boolean; body: unknown }) => {
+const mockResponse = (options: {
+  ok: boolean;
+  status?: number;
+  body: unknown;
+}) => {
   global.fetch = jest.fn().mockResolvedValue({
     ok: options.ok,
+    status: options.status ?? (options.ok ? 200 : 500),
     json: jest.fn().mockResolvedValue(options.body),
   }) as unknown as typeof fetch;
 };
@@ -307,6 +312,7 @@ describe("SandboxRequestIosActions [interaction]", () => {
   it("refreshes after a concurrent transition reports the current state", async () => {
     mockResponse({
       ok: false,
+      status: 409,
       body: { error: "Unsupported status transition", status: "rejected" },
     });
     render(
@@ -315,7 +321,12 @@ describe("SandboxRequestIosActions [interaction]", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Approve" }));
 
-    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith(
+        "The approval was superseded. The current status is rejected.",
+      ),
+    );
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 
   it("alerts and refreshes when another admin supersedes the action", async () => {

@@ -112,9 +112,17 @@ export const SandboxRequestIosActions = (props: {
       );
       const body: unknown = await response.json().catch(() => null);
       const returnedStatus = getReturnedStatus(body);
+      const wasSuperseded =
+        returnedStatus !== null &&
+        returnedStatus !== undefined &&
+        returnedStatus !== status;
 
       if (!response.ok) {
-        toast.error(getFailureMessage(status, getFailureStage(body)));
+        toast.error(
+          response.status === 409 && wasSuperseded
+            ? `The ${action} was superseded. The current status is ${returnedStatus}.`
+            : getFailureMessage(status, getFailureStage(body)),
+        );
         if (returnedStatus !== undefined) router.refresh();
         return;
       }
@@ -123,7 +131,7 @@ export const SandboxRequestIosActions = (props: {
         toast.error(
           `The request no longer exists, so the ${action} was not applied.`,
         );
-      } else if (returnedStatus && returnedStatus !== status) {
+      } else if (wasSuperseded) {
         toast.error(
           `The ${action} was superseded. The current status is ${returnedStatus}.`,
         );
