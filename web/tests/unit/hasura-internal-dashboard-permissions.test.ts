@@ -161,12 +161,7 @@ describe("internal dashboard detail permissions", () => {
       metadata.indexOf("update_permissions:"),
       metadata.indexOf("delete_permissions:"),
     );
-    const serviceUpdateStart = updateSection.indexOf("  - role: service");
-    const dashboardUpdatePermission = updateSection.slice(
-      0,
-      serviceUpdateStart,
-    );
-    const serviceUpdatePermission = updateSection.slice(serviceUpdateStart);
+    const dashboardUpdatePermission = updateSection;
     const deleteSection = metadata.slice(
       metadata.indexOf("delete_permissions:"),
     );
@@ -185,22 +180,9 @@ describe("internal dashboard detail permissions", () => {
     expect(dashboardUpdatePermission).not.toContain("- asc_email");
     expect(dashboardUpdatePermission).not.toContain("- portal_email");
 
-    // The service role's only update is the re-request upsert: it may reopen
-    // a rejected request as pending, but never touch ownership or the
-    // approval/revocation audit fields, and never rows in any other status.
-    expect(serviceUpdateStart).toBeGreaterThan(-1);
-    expect(serviceUpdatePermission).toContain("- asc_email");
-    expect(serviceUpdatePermission).toContain("- portal_email");
-    expect(serviceUpdatePermission).toContain("- team_id");
-    expect(serviceUpdatePermission).toContain("- status");
-    expect(serviceUpdatePermission).toContain("- rejection_reason");
-    expect(serviceUpdatePermission).toContain("- created_at");
-    expect(serviceUpdatePermission).not.toContain("- user_id");
-    expect(serviceUpdatePermission).not.toContain("- approved_at");
-    expect(serviceUpdatePermission).not.toContain("- revoked_at");
-    expect(serviceUpdatePermission).toContain("_eq: rejected");
-    expect(serviceUpdatePermission).toContain("X-Hasura-User-Id");
-    expect(serviceUpdatePermission).toContain("_eq: pending");
+    // Portal requests are insert-only. In particular, the service role cannot
+    // reopen a rejected row and erase an admin decision.
+    expect(updateSection).not.toContain("- role: service");
     expect(deleteSection).toContain("_eq: pending");
     expect(deleteSection).not.toContain("role: service");
     expect(metadata).toContain("- name: team");

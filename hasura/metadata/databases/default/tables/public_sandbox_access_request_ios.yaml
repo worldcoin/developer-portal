@@ -51,29 +51,6 @@ update_permissions:
         - revoked_at
       filter: {}
       check: {}
-  # The service role's only permitted update is the re-request upsert: reopen
-  # a rejected request as a fresh pending one (values come from the proposed
-  # insert row). The row must belong to the JWT's X-Hasura-User-Id so a
-  # service caller cannot bulk-reopen unrelated rejected requests. Every other
-  # status stays immutable to the service role, and ownership plus
-  # approval/revocation audit fields are never updatable.
-  - role: service
-    permission:
-      columns:
-        - asc_email
-        - created_at
-        - portal_email
-        - rejection_reason
-        - status
-        - team_id
-      filter:
-        status:
-          _eq: rejected
-        user_id:
-          _eq: X-Hasura-User-Id
-      check:
-        status:
-          _eq: pending
 delete_permissions:
   - role: internal_dashboard_readonly
     permission:

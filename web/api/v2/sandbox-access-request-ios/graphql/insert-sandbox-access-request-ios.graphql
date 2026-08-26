@@ -11,22 +11,6 @@ mutation InsertSandboxAccessRequestIos(
       team_id: $team_id
       user_id: $user_id
     }
-    # `update_columns` take their values from the proposed insert row, so a
-    # rejected request is reopened in place: status resets to its `pending`
-    # default, rejection_reason clears to NULL, and created_at becomes now().
-    # A conflicting row in any other status is left untouched.
-    on_conflict: {
-      constraint: unique_sandbox_access_request_ios_user_id
-      update_columns: [
-        asc_email
-        created_at
-        portal_email
-        rejection_reason
-        status
-        team_id
-      ]
-      where: { status: { _eq: "rejected" } }
-    }
   ) {
     id
   }

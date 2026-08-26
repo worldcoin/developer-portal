@@ -22,7 +22,6 @@ jest.mock("@/lib/admin-auth", () => ({
 }));
 jest.mock("@/api/helpers/jwts", () => ({
   generateServiceJWT: jest.fn(),
-  generateServiceJWTForUser: jest.fn(),
   generateAPIKeyJWT: jest.fn(),
   generateReviewerJWT: jest.fn(),
   generateInternalDashboardJWT: jest.fn(),
@@ -30,16 +29,12 @@ jest.mock("@/api/helpers/jwts", () => ({
 // #endregion
 
 import {
-  getAPIServiceGraphqlClientForUser,
   getInternalDashboardGraphqlClient,
   internalDashboardGraphqlFetchPolicy,
   isRetryableOperation,
   makeGraphqlFetchWithRetry,
 } from "@/api/helpers/graphql";
-import {
-  generateInternalDashboardJWT,
-  generateServiceJWTForUser,
-} from "@/api/helpers/jwts";
+import { generateInternalDashboardJWT } from "@/api/helpers/jwts";
 import { AdminHasuraRole } from "@/lib/admin-auth/types";
 import { logger } from "@/lib/logger";
 
@@ -305,32 +300,6 @@ describe("getInternalDashboardGraphqlClient", () => {
       "https://hasura.example/v1/graphql",
       expect.objectContaining({
         headers: { authorization: "Bearer dashboard-token" },
-      }),
-    );
-  });
-});
-
-describe("getAPIServiceGraphqlClientForUser", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    process.env.NEXT_PUBLIC_GRAPHQL_API_URL =
-      "https://hasura.example/v1/graphql";
-  });
-
-  it("creates a GraphQL client with a user-scoped service JWT", async () => {
-    (generateServiceJWTForUser as jest.Mock).mockResolvedValue(
-      "user-scoped-service-token",
-    );
-
-    await getAPIServiceGraphqlClientForUser("usr_1234567890abcdef");
-
-    expect(generateServiceJWTForUser).toHaveBeenCalledWith(
-      "usr_1234567890abcdef",
-    );
-    expect(mockGraphQLClient).toHaveBeenCalledWith(
-      "https://hasura.example/v1/graphql",
-      expect.objectContaining({
-        headers: { authorization: "Bearer user-scoped-service-token" },
       }),
     );
   });

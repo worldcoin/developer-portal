@@ -5,7 +5,6 @@ import {
   generateInternalDashboardJWT,
   generateReviewerJWT,
   generateServiceJWT,
-  generateServiceJWTForUser,
 } from "@/api/helpers/jwts";
 import type { AdminUser } from "@/lib/admin-auth";
 import { logger } from "@/lib/logger";
@@ -378,19 +377,6 @@ export const getAPIServiceGraphqlClient = async () => {
     ...sharedFetchConfig,
     headers: {
       authorization: `Bearer ${await generateServiceJWT()}`,
-    },
-  });
-};
-
-/**
- * Service-role GraphQL client whose JWT also carries `X-Hasura-User-Id`.
- * Use this only when a service permission filter reads that session variable.
- */
-export const getAPIServiceGraphqlClientForUser = async (userId: string) => {
-  return new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
-    ...sharedFetchConfig,
-    headers: {
-      authorization: `Bearer ${await generateServiceJWTForUser(userId)}`,
     },
   });
 };
