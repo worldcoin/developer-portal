@@ -123,25 +123,6 @@ export const generateServiceJWT = async (): Promise<string> => {
 };
 
 /**
- * Service JWT scoped to one portal user. Needed when a service-role
- * permission filter reads `X-Hasura-User-Id` (iOS sandbox re-request).
- */
-export const generateServiceJWTForUser = async (
-  userId: string,
-): Promise<string> => {
-  const payload = {
-    sub: "service_account",
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["service"],
-      "x-hasura-default-role": "service",
-      "x-hasura-user-id": userId,
-    },
-  };
-
-  return await _generateJWT(payload, "1m");
-};
-
-/**
  * Generates a 1-min JWT for the `reviewer` role (only for internal use from Next.js API)
  * @returns
  */

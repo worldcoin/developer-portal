@@ -1,4 +1,4 @@
-import { getAPIServiceGraphqlClientForUser } from "@/api/helpers/graphql";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
@@ -9,6 +9,7 @@ import { fetchSandboxAccessRequestIos } from "./server/fetch-sandbox-access-requ
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ASC_EMAIL_UNIQUE_CONSTRAINT =
   "unique_sandbox_access_request_ios_asc_email";
+const USER_ID_UNIQUE_CONSTRAINT = "unique_sandbox_access_request_ios_user_id";
 
 const normalizeEmail = (email: unknown) => {
   if (typeof email !== "string") {
@@ -26,7 +27,7 @@ const normalizeEmail = (email: unknown) => {
     : null;
 };
 
-const isAscEmailConflict = (error: unknown) => {
+const isConstraintConflict = (error: unknown, constraint: string) => {
   const errors = (
     error as { response?: { errors?: unknown } } | null | undefined
   )?.response?.errors;
@@ -38,10 +39,16 @@ const isAscEmailConflict = (error: unknown) => {
         typeof graphqlError === "object" &&
         "message" in graphqlError &&
         typeof graphqlError.message === "string" &&
-        graphqlError.message.includes(ASC_EMAIL_UNIQUE_CONSTRAINT),
+        graphqlError.message.includes(constraint),
     )
   );
 };
+
+const isAscEmailConflict = (error: unknown) =>
+  isConstraintConflict(error, ASC_EMAIL_UNIQUE_CONSTRAINT);
+
+const isUserIdConflict = (error: unknown) =>
+  isConstraintConflict(error, USER_ID_UNIQUE_CONSTRAINT);
 
 const getAuthenticatedUser = async () => {
   const session = await auth0.getSession();
@@ -72,12 +79,11 @@ export async function GET() {
 }
 
 /**
- * Records one App Store Connect enrollment request per portal user. A rejected
- * request is reopened in place as a fresh pending one; a request in any other
- * status is immutable and a repeat POST returns it unchanged. The caller
- * supplies the ASC email and active team. Identity and portal email always
- * come from the authenticated session, and the team must belong to the
- * authenticated user.
+ * Records one immutable App Store Connect enrollment request per portal user.
+ * A repeat POST returns the stored request without changing it, including
+ * after rejection. The caller supplies the ASC email and active team. Identity
+ * and portal email always come from the authenticated session, and the team
+ * must belong to the authenticated user.
  */
 export async function POST(req: NextRequest) {
   const authenticatedUser = await getAuthenticatedUser();
@@ -120,17 +126,41 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const client = await getAPIServiceGraphqlClientForUser(
-      authenticatedUser.userId,
-    );
-    await getInsertSandboxAccessRequestIosSdk(
-      client,
-    ).InsertSandboxAccessRequestIos({
-      asc_email: ascEmail,
-      portal_email: portalEmail,
-      team_id: teamId,
-      user_id: authenticatedUser.userId,
-    });
+    const client = await getAPIServiceGraphqlClient();
+    try {
+      await getInsertSandboxAccessRequestIosSdk(
+        client,
+      ).InsertSandboxAccessRequestIos({
+        asc_email: ascEmail,
+        portal_email: portalEmail,
+        team_id: teamId,
+        user_id: authenticatedUser.userId,
+      });
+    } catch (error) {
+      const userConflict = isUserIdConflict(error);
+      const emailConflict = isAscEmailConflict(error);
+      if (!userConflict && !emailConflict) throw error;
+
+      // A duplicate POST may have waited behind an admin transition. Read the
+      // committed row and return it; never turn a newly rejected row pending.
+      const existingRequest = await fetchSandboxAccessRequestIos(
+        authenticatedUser.userId,
+        client,
+      );
+      if (existingRequest) {
+        return NextResponse.json({ success: true, request: existingRequest });
+      }
+
+      if (emailConflict) {
+        logger.warn("iOS sandbox ASC email is already requested", {
+          userId: authenticatedUser.userId,
+          failureClass: "asc_email_conflict",
+        });
+        return NextResponse.json({ success: false }, { status: 409 });
+      }
+
+      throw error;
+    }
 
     const request = await fetchSandboxAccessRequestIos(
       authenticatedUser.userId,
@@ -142,14 +172,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, request });
   } catch (error) {
-    if (isAscEmailConflict(error)) {
-      logger.warn("iOS sandbox ASC email is already requested", {
-        userId: authenticatedUser.userId,
-        failureClass: "asc_email_conflict",
-      });
-      return NextResponse.json({ success: false }, { status: 409 });
-    }
-
     logger.error("Failed to record iOS sandbox access request", {
       userId: authenticatedUser.userId,
       error,

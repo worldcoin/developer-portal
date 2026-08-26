@@ -33,18 +33,6 @@ export const InsertSandboxAccessRequestIosDocument = gql`
         team_id: $team_id
         user_id: $user_id
       }
-      on_conflict: {
-        constraint: unique_sandbox_access_request_ios_user_id
-        update_columns: [
-          asc_email
-          created_at
-          portal_email
-          rejection_reason
-          status
-          team_id
-        ]
-        where: { status: { _eq: "rejected" } }
-      }
     ) {
       id
     }

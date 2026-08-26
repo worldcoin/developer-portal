@@ -5,7 +5,6 @@ const getSession = jest.fn();
 const InsertSandboxAccessRequestIos = jest.fn();
 const GetSandboxAccessRequestIos = jest.fn();
 const getAPIServiceGraphqlClient = jest.fn();
-const getAPIServiceGraphqlClientForUser = jest.fn();
 
 jest.mock("@/lib/auth0", () => ({
   auth0: { getSession: () => getSession() },
@@ -14,8 +13,6 @@ jest.mock("@/lib/auth0", () => ({
 jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: (...args: unknown[]) =>
     getAPIServiceGraphqlClient(...args),
-  getAPIServiceGraphqlClientForUser: (...args: unknown[]) =>
-    getAPIServiceGraphqlClientForUser(...args),
 }));
 
 jest.mock(
@@ -65,12 +62,20 @@ const makeRequest = (body: string) =>
 
 const makeJsonRequest = (body: unknown) => makeRequest(JSON.stringify(body));
 const validBody = { asc_email: "asc@example.com", team_id: TEAM_ID };
+const uniqueConstraintError = (constraint: string) => ({
+  response: {
+    errors: [
+      {
+        message: `Uniqueness violation. duplicate key value violates unique constraint "${constraint}"`,
+      },
+    ],
+  },
+});
 // #endregion
 
 beforeEach(() => {
   jest.clearAllMocks();
   getAPIServiceGraphqlClient.mockResolvedValue({});
-  getAPIServiceGraphqlClientForUser.mockResolvedValue({});
   getSession.mockResolvedValue(authedSession);
   InsertSandboxAccessRequestIos.mockResolvedValue({
     insert_sandbox_access_request_ios_one: { id: "sbx_req_abc123" },
@@ -150,7 +155,7 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
         status: "pending",
       },
     });
-    expect(getAPIServiceGraphqlClientForUser).toHaveBeenCalledWith(USER_ID);
+    expect(getAPIServiceGraphqlClient).toHaveBeenCalled();
     expect(InsertSandboxAccessRequestIos).toHaveBeenCalledWith({
       asc_email: "asc@example.com",
       portal_email: "portal@example.com",
@@ -162,10 +167,10 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
     });
   });
 
-  it("returns the existing request unchanged when it is not rejected", async () => {
-    InsertSandboxAccessRequestIos.mockResolvedValue({
-      insert_sandbox_access_request_ios_one: null,
-    });
+  it("returns an existing terminal request unchanged", async () => {
+    InsertSandboxAccessRequestIos.mockRejectedValue(
+      uniqueConstraintError("unique_sandbox_access_request_ios_user_id"),
+    );
     GetSandboxAccessRequestIos.mockResolvedValue({
       sandbox_access_request_ios: [
         {
@@ -190,6 +195,50 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
     });
   });
 
+  it("does not reopen a rejection committed while a duplicate POST waits", async () => {
+    let releaseInsert!: () => void;
+    let signalInsertStarted!: () => void;
+    const insertStarted = new Promise<void>((resolve) => {
+      signalInsertStarted = resolve;
+    });
+    const insertReleased = new Promise<void>((resolve) => {
+      releaseInsert = resolve;
+    });
+
+    InsertSandboxAccessRequestIos.mockImplementation(async () => {
+      signalInsertStarted();
+      await insertReleased;
+      throw uniqueConstraintError("unique_sandbox_access_request_ios_user_id");
+    });
+
+    const duplicatePost = POST(makeJsonRequest(validBody));
+    await insertStarted;
+
+    // Model the admin route committing pending -> rejected while PostgreSQL
+    // keeps the duplicate insert waiting on the same row.
+    GetSandboxAccessRequestIos.mockResolvedValue({
+      sandbox_access_request_ios: [
+        {
+          ...storedRequest,
+          status: "rejected",
+        },
+      ],
+    });
+    releaseInsert();
+
+    const response = await duplicatePost;
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      success: true,
+      request: {
+        ascEmail: "asc@example.com",
+        status: "rejected",
+      },
+    });
+    expect(InsertSandboxAccessRequestIos).toHaveBeenCalledTimes(1);
+  });
+
   it("returns 500 when Hasura does not persist a request", async () => {
     GetSandboxAccessRequestIos.mockResolvedValue({
       sandbox_access_request_ios: [],
@@ -202,22 +251,20 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
   });
 
   it("returns 409 when another user already requested the ASC email", async () => {
-    InsertSandboxAccessRequestIos.mockRejectedValue({
-      response: {
-        errors: [
-          {
-            message:
-              'Uniqueness violation. duplicate key value violates unique constraint "unique_sandbox_access_request_ios_asc_email"',
-          },
-        ],
-      },
+    InsertSandboxAccessRequestIos.mockRejectedValue(
+      uniqueConstraintError("unique_sandbox_access_request_ios_asc_email"),
+    );
+    GetSandboxAccessRequestIos.mockResolvedValue({
+      sandbox_access_request_ios: [],
     });
 
     const response = await POST(makeJsonRequest(validBody));
 
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({ success: false });
-    expect(GetSandboxAccessRequestIos).not.toHaveBeenCalled();
+    expect(GetSandboxAccessRequestIos).toHaveBeenCalledWith({
+      user_id: USER_ID,
+    });
   });
 
   it("keeps unknown Hasura failures as server errors", async () => {
@@ -254,7 +301,6 @@ describe("GET /api/v2/sandbox-access-request-ios", () => {
       },
     });
     expect(getAPIServiceGraphqlClient).toHaveBeenCalled();
-    expect(getAPIServiceGraphqlClientForUser).not.toHaveBeenCalled();
   });
 
   it("returns request null when the caller has not submitted one", async () => {
