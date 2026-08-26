@@ -137,6 +137,10 @@ export async function handleUniquenessProofVerification(
 
   // If no successful verifications, return 400 with all results
   if (!anySuccess) {
+    const firstEnvironmentMismatch = verificationResults.find(
+      (result) => result.code === "environment_mismatch",
+    );
+
     await captureEvent({
       event: "action_verify_v4_failed",
       distinctId: rpId,
@@ -157,8 +161,13 @@ export async function handleUniquenessProofVerification(
     return NextResponse.json<UniquenessProofErrorResponse>(
       {
         success: false,
-        code: "all_verifications_failed",
-        detail: "All proof verifications failed.",
+        code: firstEnvironmentMismatch
+          ? "environment_mismatch"
+          : "all_verifications_failed",
+        detail: firstEnvironmentMismatch
+          ? firstEnvironmentMismatch?.detail ||
+            "The proof was generated for a different environment."
+          : "All proof verifications failed.",
         results: verificationResults,
       },
       { status: 400 },
