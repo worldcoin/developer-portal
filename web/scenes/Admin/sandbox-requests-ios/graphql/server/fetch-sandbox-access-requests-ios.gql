@@ -1,0 +1,31 @@
+query FetchSandboxAccessRequestsIos {
+  sandbox_access_request_ios(order_by: { created_at: desc }) {
+    id
+    asc_email
+    portal_email
+    team_id
+    team {
+      name
+    }
+    user {
+      name
+    }
+    status
+    created_at
+    approved_at
+    rejection_reason
+    revoked_at
+  }
+  total: sandbox_access_request_ios_aggregate {
+    aggregate {
+      count
+    }
+  }
+  pending: sandbox_access_request_ios_aggregate(
+    where: { status: { _in: [pending, approving] } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
