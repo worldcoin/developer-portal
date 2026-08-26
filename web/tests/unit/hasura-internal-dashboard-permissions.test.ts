@@ -148,6 +148,87 @@ describe("internal dashboard detail permissions", () => {
     expect(deleteSection).not.toContain("role: service");
   });
 
+  it("limits iOS sandbox request writes to enrollment workflow fields", () => {
+    const metadata = readFileSync(
+      path.join(tablesPath, "public_sandbox_access_request_ios.yaml"),
+      "utf8",
+    );
+    const insertSection = metadata.slice(
+      metadata.indexOf("insert_permissions:"),
+      metadata.indexOf("select_permissions:"),
+    );
+    const updateSection = metadata.slice(
+      metadata.indexOf("update_permissions:"),
+      metadata.indexOf("delete_permissions:"),
+    );
+    const dashboardUpdatePermission = updateSection;
+    const deleteSection = metadata.slice(
+      metadata.indexOf("delete_permissions:"),
+    );
+
+    expect(insertSection).toContain("- asc_email");
+    expect(insertSection).toContain("- portal_email");
+    expect(insertSection).toContain("- team_id");
+    expect(insertSection).toContain("- user_id");
+    expect(insertSection).not.toContain("- status");
+    expect(dashboardUpdatePermission).toContain("- status");
+    expect(dashboardUpdatePermission).toContain("- approved_at");
+    expect(dashboardUpdatePermission).toContain("- rejection_reason");
+    expect(dashboardUpdatePermission).toContain("- revoked_at");
+    expect(dashboardUpdatePermission).not.toContain("- approved_by");
+    expect(dashboardUpdatePermission).not.toContain("- revoked_by");
+    expect(dashboardUpdatePermission).not.toContain("- asc_email");
+    expect(dashboardUpdatePermission).not.toContain("- portal_email");
+
+    // Portal requests are insert-only. In particular, the service role cannot
+    // reopen a rejected row and erase an admin decision.
+    expect(updateSection).not.toContain("- role: service");
+    expect(deleteSection).toContain("_eq: pending");
+    expect(deleteSection).not.toContain("role: service");
+    expect(metadata).toContain("- name: team");
+    expect(metadata).toContain("foreign_key_constraint_on: team_id");
+    expect(metadata).toContain("- revoked_at");
+    expect(metadata).not.toContain("- approved_by");
+    expect(metadata).not.toContain("- revoked_by");
+    const serviceSelectPermission = metadata.slice(
+      metadata.indexOf(
+        "  - role: service",
+        metadata.indexOf("select_permissions:"),
+      ),
+      metadata.indexOf("update_permissions:"),
+    );
+    expect(serviceSelectPermission).not.toContain("- revoked_at");
+    expect(serviceSelectPermission).not.toContain("- revoked_by");
+  });
+
+  it("creates the complete iOS access-request schema in one migration", () => {
+    const migration = readFileSync(
+      path.join(
+        tablesPath,
+        "../../../../migrations/default/1787346730000_create_table_public_sandbox_access_request_ios/up.sql",
+      ),
+      "utf8",
+    );
+
+    expect(migration).toContain("'approving'");
+    expect(migration).toContain("'revoking'");
+    expect(migration).toContain("'revoked'");
+    expect(migration).toContain('lower(btrim("asc_email"))');
+    expect(migration).toContain(
+      'CONSTRAINT "unique_sandbox_access_request_ios_asc_email"',
+    );
+    expect(migration).toContain(
+      'CONSTRAINT "sandbox_access_request_ios_asc_email_is_canonical"',
+    );
+    expect(migration).toContain('"approved_at" IS NOT NULL');
+    expect(migration).toContain('"revoked_at" IS NOT NULL');
+    expect(migration).toContain('"revoked_at" IS NULL');
+    expect(migration).not.toContain('"approved_by"');
+    expect(migration).not.toContain('"revoked_by"');
+    expect(migration).toContain("\"status\" = 'rejected'");
+    expect(migration).toContain('"rejection_reason" IS NULL');
+  });
+
   it("does not define elevated internal dashboard roles", () => {
     const inheritedRoles = readFileSync(
       path.join(tablesPath, "../../../inherited_roles.yaml"),

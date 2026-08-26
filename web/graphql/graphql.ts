@@ -37,6 +37,22 @@ export type Scalars = {
   review_status_enum: { input: unknown; output: unknown };
   rp_registration_mode: { input: unknown; output: unknown };
   rp_registration_status: { input: unknown; output: unknown };
+  sandbox_access_request_ios_status: {
+    input:
+      | "pending"
+      | "approving"
+      | "approved"
+      | "rejected"
+      | "revoking"
+      | "revoked";
+    output:
+      | "pending"
+      | "approving"
+      | "approved"
+      | "rejected"
+      | "revoking"
+      | "revoked";
+  };
   timestamp: { input: string; output: string };
   timestamptz: { input: string; output: string };
   uuid: { input: unknown; output: unknown };
@@ -6863,6 +6879,10 @@ export type Mutation_Root = {
   delete_sandbox_access_request?: Maybe<Sandbox_Access_Request_Mutation_Response>;
   /** delete single row from the table: "sandbox_access_request" */
   delete_sandbox_access_request_by_pk?: Maybe<Sandbox_Access_Request>;
+  /** delete data from the table: "sandbox_access_request_ios" */
+  delete_sandbox_access_request_ios?: Maybe<Sandbox_Access_Request_Ios_Mutation_Response>;
+  /** delete single row from the table: "sandbox_access_request_ios" */
+  delete_sandbox_access_request_ios_by_pk?: Maybe<Sandbox_Access_Request_Ios>;
   /** delete data from the table: "team" */
   delete_team?: Maybe<Team_Mutation_Response>;
   /** delete single row from the table: "team" */
@@ -6982,6 +7002,10 @@ export type Mutation_Root = {
   insert_rp_registration_one?: Maybe<Rp_Registration>;
   /** insert data into the table: "sandbox_access_request" */
   insert_sandbox_access_request?: Maybe<Sandbox_Access_Request_Mutation_Response>;
+  /** insert data into the table: "sandbox_access_request_ios" */
+  insert_sandbox_access_request_ios?: Maybe<Sandbox_Access_Request_Ios_Mutation_Response>;
+  /** insert a single row into the table: "sandbox_access_request_ios" */
+  insert_sandbox_access_request_ios_one?: Maybe<Sandbox_Access_Request_Ios>;
   /** insert a single row into the table: "sandbox_access_request" */
   insert_sandbox_access_request_one?: Maybe<Sandbox_Access_Request>;
   /** insert data into the table: "team" */
@@ -7205,6 +7229,14 @@ export type Mutation_Root = {
   update_sandbox_access_request?: Maybe<Sandbox_Access_Request_Mutation_Response>;
   /** update single row of the table: "sandbox_access_request" */
   update_sandbox_access_request_by_pk?: Maybe<Sandbox_Access_Request>;
+  /** update data of the table: "sandbox_access_request_ios" */
+  update_sandbox_access_request_ios?: Maybe<Sandbox_Access_Request_Ios_Mutation_Response>;
+  /** update single row of the table: "sandbox_access_request_ios" */
+  update_sandbox_access_request_ios_by_pk?: Maybe<Sandbox_Access_Request_Ios>;
+  /** update multiples rows of table: "sandbox_access_request_ios" */
+  update_sandbox_access_request_ios_many?: Maybe<
+    Array<Maybe<Sandbox_Access_Request_Ios_Mutation_Response>>
+  >;
   /** update multiples rows of table: "sandbox_access_request" */
   update_sandbox_access_request_many?: Maybe<
     Array<Maybe<Sandbox_Access_Request_Mutation_Response>>
@@ -7537,6 +7569,16 @@ export type Mutation_RootDelete_Sandbox_Access_RequestArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_Sandbox_Access_Request_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Sandbox_Access_Request_IosArgs = {
+  where: Sandbox_Access_Request_Ios_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Sandbox_Access_Request_Ios_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
@@ -7893,6 +7935,18 @@ export type Mutation_RootInsert_Rp_Registration_OneArgs = {
 export type Mutation_RootInsert_Sandbox_Access_RequestArgs = {
   objects: Array<Sandbox_Access_Request_Insert_Input>;
   on_conflict?: InputMaybe<Sandbox_Access_Request_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Sandbox_Access_Request_IosArgs = {
+  objects: Array<Sandbox_Access_Request_Ios_Insert_Input>;
+  on_conflict?: InputMaybe<Sandbox_Access_Request_Ios_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Sandbox_Access_Request_Ios_OneArgs = {
+  object: Sandbox_Access_Request_Ios_Insert_Input;
+  on_conflict?: InputMaybe<Sandbox_Access_Request_Ios_On_Conflict>;
 };
 
 /** mutation root */
@@ -8517,6 +8571,23 @@ export type Mutation_RootUpdate_Sandbox_Access_RequestArgs = {
 export type Mutation_RootUpdate_Sandbox_Access_Request_By_PkArgs = {
   _set?: InputMaybe<Sandbox_Access_Request_Set_Input>;
   pk_columns: Sandbox_Access_Request_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Sandbox_Access_Request_IosArgs = {
+  _set?: InputMaybe<Sandbox_Access_Request_Ios_Set_Input>;
+  where: Sandbox_Access_Request_Ios_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Sandbox_Access_Request_Ios_By_PkArgs = {
+  _set?: InputMaybe<Sandbox_Access_Request_Ios_Set_Input>;
+  pk_columns: Sandbox_Access_Request_Ios_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Sandbox_Access_Request_Ios_ManyArgs = {
+  updates: Array<Sandbox_Access_Request_Ios_Updates>;
 };
 
 /** mutation root */
@@ -10031,6 +10102,12 @@ export type Query_Root = {
   sandbox_access_request_aggregate: Sandbox_Access_Request_Aggregate;
   /** fetch data from the table: "sandbox_access_request" using primary key columns */
   sandbox_access_request_by_pk?: Maybe<Sandbox_Access_Request>;
+  /** fetch data from the table: "sandbox_access_request_ios" */
+  sandbox_access_request_ios: Array<Sandbox_Access_Request_Ios>;
+  /** fetch aggregated fields from the table: "sandbox_access_request_ios" */
+  sandbox_access_request_ios_aggregate: Sandbox_Access_Request_Ios_Aggregate;
+  /** fetch data from the table: "sandbox_access_request_ios" using primary key columns */
+  sandbox_access_request_ios_by_pk?: Maybe<Sandbox_Access_Request_Ios>;
   /** fetch data from the table: "team" */
   team: Array<Team>;
   /** fetch aggregated fields from the table: "team" */
@@ -10691,6 +10768,26 @@ export type Query_RootSandbox_Access_Request_AggregateArgs = {
 };
 
 export type Query_RootSandbox_Access_Request_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Query_RootSandbox_Access_Request_IosArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+export type Query_RootSandbox_Access_Request_Ios_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+export type Query_RootSandbox_Access_Request_Ios_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
@@ -12105,6 +12202,333 @@ export type Sandbox_Access_Request_Insert_Input = {
   user_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** columns and relationships of "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios = {
+  __typename?: "sandbox_access_request_ios";
+  approved_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  asc_email: Scalars["String"]["output"];
+  created_at: Scalars["timestamptz"]["output"];
+  id: Scalars["String"]["output"];
+  portal_email: Scalars["String"]["output"];
+  rejection_reason?: Maybe<Scalars["String"]["output"]>;
+  revoked_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  status: Scalars["sandbox_access_request_ios_status"]["output"];
+  /** An object relationship */
+  team: Team;
+  team_id: Scalars["String"]["output"];
+  updated_at: Scalars["timestamptz"]["output"];
+  /** An object relationship */
+  user: User;
+  user_id: Scalars["String"]["output"];
+};
+
+/** aggregated selection of "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Aggregate = {
+  __typename?: "sandbox_access_request_ios_aggregate";
+  aggregate?: Maybe<Sandbox_Access_Request_Ios_Aggregate_Fields>;
+  nodes: Array<Sandbox_Access_Request_Ios>;
+};
+
+export type Sandbox_Access_Request_Ios_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Sandbox_Access_Request_Ios_Aggregate_Bool_Exp_Count>;
+};
+
+export type Sandbox_Access_Request_Ios_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Aggregate_Fields = {
+  __typename?: "sandbox_access_request_ios_aggregate_fields";
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Sandbox_Access_Request_Ios_Max_Fields>;
+  min?: Maybe<Sandbox_Access_Request_Ios_Min_Fields>;
+};
+
+/** aggregate fields of "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Sandbox_Access_Request_Ios_Max_Order_By>;
+  min?: InputMaybe<Sandbox_Access_Request_Ios_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Arr_Rel_Insert_Input = {
+  data: Array<Sandbox_Access_Request_Ios_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Sandbox_Access_Request_Ios_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "sandbox_access_request_ios". All fields are combined with a logical 'AND'. */
+export type Sandbox_Access_Request_Ios_Bool_Exp = {
+  _and?: InputMaybe<Array<Sandbox_Access_Request_Ios_Bool_Exp>>;
+  _not?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+  _or?: InputMaybe<Array<Sandbox_Access_Request_Ios_Bool_Exp>>;
+  approved_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  asc_email?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  portal_email?: InputMaybe<String_Comparison_Exp>;
+  rejection_reason?: InputMaybe<String_Comparison_Exp>;
+  revoked_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  status?: InputMaybe<Sandbox_Access_Request_Ios_Status_Comparison_Exp>;
+  team?: InputMaybe<Team_Bool_Exp>;
+  team_id?: InputMaybe<String_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user?: InputMaybe<User_Bool_Exp>;
+  user_id?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "sandbox_access_request_ios" */
+export enum Sandbox_Access_Request_Ios_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  SandboxAccessRequestIosPkey = "sandbox_access_request_ios_pkey",
+  /** unique or primary key constraint on columns "asc_email" */
+  UniqueSandboxAccessRequestIosAscEmail = "unique_sandbox_access_request_ios_asc_email",
+  /** unique or primary key constraint on columns "user_id" */
+  UniqueSandboxAccessRequestIosUserId = "unique_sandbox_access_request_ios_user_id",
+}
+
+/** input type for inserting data into table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Insert_Input = {
+  approved_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  asc_email?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  portal_email?: InputMaybe<Scalars["String"]["input"]>;
+  rejection_reason?: InputMaybe<Scalars["String"]["input"]>;
+  revoked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  status?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
+  team_id?: InputMaybe<Scalars["String"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  user?: InputMaybe<User_Obj_Rel_Insert_Input>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Sandbox_Access_Request_Ios_Max_Fields = {
+  __typename?: "sandbox_access_request_ios_max_fields";
+  approved_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  asc_email?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  portal_email?: Maybe<Scalars["String"]["output"]>;
+  rejection_reason?: Maybe<Scalars["String"]["output"]>;
+  revoked_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  status?: Maybe<Scalars["sandbox_access_request_ios_status"]["output"]>;
+  team_id?: Maybe<Scalars["String"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  user_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by max() on columns of table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Max_Order_By = {
+  approved_at?: InputMaybe<Order_By>;
+  asc_email?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  portal_email?: InputMaybe<Order_By>;
+  rejection_reason?: InputMaybe<Order_By>;
+  revoked_at?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Sandbox_Access_Request_Ios_Min_Fields = {
+  __typename?: "sandbox_access_request_ios_min_fields";
+  approved_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  asc_email?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  portal_email?: Maybe<Scalars["String"]["output"]>;
+  rejection_reason?: Maybe<Scalars["String"]["output"]>;
+  revoked_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  status?: Maybe<Scalars["sandbox_access_request_ios_status"]["output"]>;
+  team_id?: Maybe<Scalars["String"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  user_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Min_Order_By = {
+  approved_at?: InputMaybe<Order_By>;
+  asc_email?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  portal_email?: InputMaybe<Order_By>;
+  rejection_reason?: InputMaybe<Order_By>;
+  revoked_at?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Mutation_Response = {
+  __typename?: "sandbox_access_request_ios_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Sandbox_Access_Request_Ios>;
+};
+
+/** on_conflict condition type for table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_On_Conflict = {
+  constraint: Sandbox_Access_Request_Ios_Constraint;
+  update_columns?: Array<Sandbox_Access_Request_Ios_Update_Column>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "sandbox_access_request_ios". */
+export type Sandbox_Access_Request_Ios_Order_By = {
+  approved_at?: InputMaybe<Order_By>;
+  asc_email?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  portal_email?: InputMaybe<Order_By>;
+  rejection_reason?: InputMaybe<Order_By>;
+  revoked_at?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+  team?: InputMaybe<Team_Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user?: InputMaybe<User_Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: sandbox_access_request_ios */
+export type Sandbox_Access_Request_Ios_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** select columns of table "sandbox_access_request_ios" */
+export enum Sandbox_Access_Request_Ios_Select_Column {
+  /** column name */
+  ApprovedAt = "approved_at",
+  /** column name */
+  AscEmail = "asc_email",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  PortalEmail = "portal_email",
+  /** column name */
+  RejectionReason = "rejection_reason",
+  /** column name */
+  RevokedAt = "revoked_at",
+  /** column name */
+  Status = "status",
+  /** column name */
+  TeamId = "team_id",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  UserId = "user_id",
+}
+
+/** input type for updating data in table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Set_Input = {
+  approved_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  asc_email?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  portal_email?: InputMaybe<Scalars["String"]["input"]>;
+  rejection_reason?: InputMaybe<Scalars["String"]["input"]>;
+  revoked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  status?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  team_id?: InputMaybe<Scalars["String"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** Boolean expression to compare columns of type "sandbox_access_request_ios_status". All fields are combined with logical 'AND'. */
+export type Sandbox_Access_Request_Ios_Status_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _gt?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _gte?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _in?: InputMaybe<
+    Array<Scalars["sandbox_access_request_ios_status"]["input"]>
+  >;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _lte?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _neq?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _nin?: InputMaybe<
+    Array<Scalars["sandbox_access_request_ios_status"]["input"]>
+  >;
+};
+
+/** Streaming cursor of the table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Sandbox_Access_Request_Ios_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Sandbox_Access_Request_Ios_Stream_Cursor_Value_Input = {
+  approved_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  asc_email?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  portal_email?: InputMaybe<Scalars["String"]["input"]>;
+  rejection_reason?: InputMaybe<Scalars["String"]["input"]>;
+  revoked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  status?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  team_id?: InputMaybe<Scalars["String"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** update columns of table "sandbox_access_request_ios" */
+export enum Sandbox_Access_Request_Ios_Update_Column {
+  /** column name */
+  ApprovedAt = "approved_at",
+  /** column name */
+  AscEmail = "asc_email",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  PortalEmail = "portal_email",
+  /** column name */
+  RejectionReason = "rejection_reason",
+  /** column name */
+  RevokedAt = "revoked_at",
+  /** column name */
+  Status = "status",
+  /** column name */
+  TeamId = "team_id",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  UserId = "user_id",
+}
+
+export type Sandbox_Access_Request_Ios_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Sandbox_Access_Request_Ios_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Sandbox_Access_Request_Ios_Bool_Exp;
+};
+
 /** aggregate max on columns */
 export type Sandbox_Access_Request_Max_Fields = {
   __typename?: "sandbox_access_request_max_fields";
@@ -12487,6 +12911,14 @@ export type Subscription_Root = {
   sandbox_access_request_aggregate: Sandbox_Access_Request_Aggregate;
   /** fetch data from the table: "sandbox_access_request" using primary key columns */
   sandbox_access_request_by_pk?: Maybe<Sandbox_Access_Request>;
+  /** fetch data from the table: "sandbox_access_request_ios" */
+  sandbox_access_request_ios: Array<Sandbox_Access_Request_Ios>;
+  /** fetch aggregated fields from the table: "sandbox_access_request_ios" */
+  sandbox_access_request_ios_aggregate: Sandbox_Access_Request_Ios_Aggregate;
+  /** fetch data from the table: "sandbox_access_request_ios" using primary key columns */
+  sandbox_access_request_ios_by_pk?: Maybe<Sandbox_Access_Request_Ios>;
+  /** fetch data from the table in a streaming manner: "sandbox_access_request_ios" */
+  sandbox_access_request_ios_stream: Array<Sandbox_Access_Request_Ios>;
   /** fetch data from the table in a streaming manner: "sandbox_access_request" */
   sandbox_access_request_stream: Array<Sandbox_Access_Request>;
   /** fetch data from the table: "team" */
@@ -13298,6 +13730,32 @@ export type Subscription_RootSandbox_Access_Request_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
+export type Subscription_RootSandbox_Access_Request_IosArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+export type Subscription_RootSandbox_Access_Request_Ios_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+export type Subscription_RootSandbox_Access_Request_Ios_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootSandbox_Access_Request_Ios_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Sandbox_Access_Request_Ios_Stream_Cursor_Input>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
 export type Subscription_RootSandbox_Access_Request_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Sandbox_Access_Request_Stream_Cursor_Input>>;
@@ -13754,6 +14212,10 @@ export type User = {
   sandbox_access_requests: Array<Sandbox_Access_Request>;
   /** An aggregate relationship */
   sandbox_access_requests_aggregate: Sandbox_Access_Request_Aggregate;
+  /** An array relationship */
+  sandbox_access_requests_ios: Array<Sandbox_Access_Request_Ios>;
+  /** An aggregate relationship */
+  sandbox_access_requests_ios_aggregate: Sandbox_Access_Request_Ios_Aggregate;
   /** An object relationship */
   team?: Maybe<Team>;
   team_id?: Maybe<Scalars["String"]["output"]>;
@@ -13797,6 +14259,24 @@ export type UserSandbox_Access_Requests_AggregateArgs = {
   where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
 };
 
+/** columns and relationships of "user" */
+export type UserSandbox_Access_Requests_IosArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+/** columns and relationships of "user" */
+export type UserSandbox_Access_Requests_Ios_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
 /** aggregated selection of "user" */
 export type User_Aggregate = {
   __typename?: "user_aggregate";
@@ -13836,6 +14316,8 @@ export type User_Bool_Exp = {
   posthog_id?: InputMaybe<String_Comparison_Exp>;
   sandbox_access_requests?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
   sandbox_access_requests_aggregate?: InputMaybe<Sandbox_Access_Request_Aggregate_Bool_Exp>;
+  sandbox_access_requests_ios?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+  sandbox_access_requests_ios_aggregate?: InputMaybe<Sandbox_Access_Request_Ios_Aggregate_Bool_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -13867,6 +14349,7 @@ export type User_Insert_Input = {
   name?: InputMaybe<Scalars["String"]["input"]>;
   posthog_id?: InputMaybe<Scalars["String"]["input"]>;
   sandbox_access_requests?: InputMaybe<Sandbox_Access_Request_Arr_Rel_Insert_Input>;
+  sandbox_access_requests_ios?: InputMaybe<Sandbox_Access_Request_Ios_Arr_Rel_Insert_Input>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -13939,6 +14422,7 @@ export type User_Order_By = {
   name?: InputMaybe<Order_By>;
   posthog_id?: InputMaybe<Order_By>;
   sandbox_access_requests_aggregate?: InputMaybe<Sandbox_Access_Request_Aggregate_Order_By>;
+  sandbox_access_requests_ios_aggregate?: InputMaybe<Sandbox_Access_Request_Ios_Aggregate_Order_By>;
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
