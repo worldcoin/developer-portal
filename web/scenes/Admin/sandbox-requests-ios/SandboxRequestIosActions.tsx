@@ -87,9 +87,11 @@ export const SandboxRequestIosActions = (props: {
 }) => {
   const router = useRouter();
   const [submitting, setSubmitting] = useState<RequestedStatus | null>(null);
-  const [completed, setCompleted] = useState(false);
+  const [completedForStatus, setCompletedForStatus] =
+    useState<ActionableStatus | null>(null);
   const [showRejectionReason, setShowRejectionReason] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const completed = completedForStatus === props.status;
 
   const updateStatus = async (status: RequestedStatus) => {
     if (submitting || completed) return;
@@ -127,7 +129,7 @@ export const SandboxRequestIosActions = (props: {
         );
       }
 
-      setCompleted(true);
+      setCompletedForStatus(props.status);
       setShowRejectionReason(false);
       router.refresh();
     } catch {

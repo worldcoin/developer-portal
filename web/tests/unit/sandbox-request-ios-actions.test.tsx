@@ -269,6 +269,41 @@ describe("SandboxRequestIosActions [interaction]", () => {
     expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
   });
 
+  it("enables the next action after the refreshed status arrives", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          success: true,
+          changed: true,
+          status: "approved",
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          success: true,
+          changed: true,
+          status: "revoked",
+        }),
+      }) as unknown as typeof fetch;
+    const { rerender } = render(
+      <SandboxRequestIosActions requestId={REQUEST_ID} status="pending" />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <SandboxRequestIosActions requestId={REQUEST_ID} status="approved" />,
+    );
+    expect(screen.getByRole("button", { name: "Revoke" })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
+  });
+
   it("refreshes after a concurrent transition reports the current state", async () => {
     mockResponse({
       ok: false,
