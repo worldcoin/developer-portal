@@ -32,6 +32,19 @@ const permissionSection = (metadata: string, sectionName: string) => {
     : metadata.slice(start, start + sectionName.length + 1 + nextSection);
 };
 
+const rolePermission = (
+  metadata: string,
+  sectionName: string,
+  role: string,
+) => {
+  const section = permissionSection(metadata, sectionName);
+  const start = section.indexOf(`  - role: ${role}`);
+  if (start === -1) return "";
+
+  const end = section.indexOf("\n  - role:", start + 1);
+  return end === -1 ? section.slice(start) : section.slice(start, end);
+};
+
 describe("review workflow migration", () => {
   const migration = readOptional(migrationPath);
 
@@ -90,6 +103,21 @@ describe("review workflow migration", () => {
       'CREATE UNIQUE INDEX "app_review_submission_one_active_metadata"',
     );
     expect(migration).toContain("WHERE \"status\" IN ('pending', 'in_review')");
+    expect(migration).toContain('"app_metadata_id" varchar NOT NULL');
+    expect(migration).not.toContain('FOREIGN KEY ("app_metadata_id")');
+    expect(migration).not.toContain("ON DELETE cascade");
+    expect(migration).not.toContain("ON DELETE set null");
+    expect(migration).toContain(
+      'FOREIGN KEY ("app_id") REFERENCES "public"."app" ("id")\n        ON UPDATE restrict ON DELETE restrict',
+    );
+    expect(migration).toContain(
+      'FOREIGN KEY ("team_id") REFERENCES "public"."team" ("id")\n        ON UPDATE restrict ON DELETE restrict',
+    );
+    expect(
+      migration.match(
+        /REFERENCES "public"\."app_review_submission" \("id"\)\n        ON UPDATE restrict ON DELETE restrict/g,
+      ),
+    ).toHaveLength(2);
   });
 
   it("backfills only eligible production listing reviews idempotently", () => {
@@ -108,7 +136,7 @@ describe("review workflow migration", () => {
     expect(migration).toContain("jsonb_agg");
     expect(migration).toContain('app."team_id"');
     expect(migration).toContain('metadata."is_developer_allow_listing"');
-    expect(migration).toContain('metadata."changelog"');
+    expect(migration).toContain("COALESCE(metadata.\"changelog\", '')");
   });
 
   it("drops dependent outbox and event tables before submissions", () => {
@@ -140,6 +168,13 @@ describe("review workflow Hasura metadata", () => {
     expect(tables).toContain("public_app_review_notification.yaml");
     expect(app).toContain("- name: review_submissions");
     expect(appMetadata).toContain("- name: review_submissions");
+    expect(appMetadata).toContain("manual_configuration:");
+    expect(appMetadata).toContain("id: app_metadata_id");
+
+    const submission = readTable("app_review_submission");
+    expect(submission).toContain("- name: app_metadata");
+    expect(submission).toContain("manual_configuration:");
+    expect(submission).toContain("app_metadata_id: id");
   });
 
   it.each([
@@ -195,7 +230,11 @@ describe("review workflow Hasura metadata", () => {
     "gives dashboard readers required %s fields and no writes",
     (table, columns) => {
       const metadata = readTable(table as string);
-      const selects = permissionSection(metadata, "select_permissions");
+      const selects = rolePermission(
+        metadata,
+        "select_permissions",
+        "internal_dashboard_readonly",
+      );
 
       expect(selects).toContain("role: internal_dashboard_readonly");
       for (const column of columns as string[]) {
@@ -208,33 +247,46 @@ describe("review workflow Hasura metadata", () => {
         "update_permissions",
         "delete_permissions",
       ]) {
-        expect(permissionSection(metadata, mutation)).not.toContain(
-          "role: internal_dashboard_readonly",
-        );
+        expect(
+          rolePermission(metadata, mutation, "internal_dashboard_readonly"),
+        ).toBe("");
       }
     },
   );
 
+  it("does not leak service-only submission fields into dashboard reads", () => {
+    const metadata = readTable("app_review_submission");
+    const dashboard = rolePermission(
+      metadata,
+      "select_permissions",
+      "internal_dashboard_readonly",
+    );
+    const service = rolePermission(metadata, "select_permissions", "service");
+
+    expect(dashboard).not.toContain("- claim_token");
+    expect(dashboard).not.toContain("- claimed_by_subject");
+    expect(dashboard).not.toContain("- decided_by_subject");
+    expect(service).toContain("- claim_token");
+    expect(service).toContain("- claimed_by_subject");
+    expect(service).toContain("- decided_by_subject");
+  });
+
   it("keeps events append-only even for the service role", () => {
     const metadata = readTable("app_review_event");
 
-    expect(permissionSection(metadata, "insert_permissions")).toContain(
-      "role: service",
+    expect(rolePermission(metadata, "insert_permissions", "service")).not.toBe(
+      "",
     );
-    expect(permissionSection(metadata, "select_permissions")).toContain(
-      "role: service",
+    expect(rolePermission(metadata, "select_permissions", "service")).not.toBe(
+      "",
     );
-    expect(permissionSection(metadata, "update_permissions")).not.toContain(
-      "role: service",
-    );
-    expect(permissionSection(metadata, "delete_permissions")).not.toContain(
-      "role: service",
-    );
+    expect(rolePermission(metadata, "update_permissions", "service")).toBe("");
+    expect(rolePermission(metadata, "delete_permissions", "service")).toBe("");
   });
 
   it("limits notification mutations to delivery state for the service role", () => {
     const metadata = readTable("app_review_notification");
-    const updates = permissionSection(metadata, "update_permissions");
+    const updates = rolePermission(metadata, "update_permissions", "service");
 
     expect(updates).toContain("role: service");
     for (const column of [
@@ -253,8 +305,6 @@ describe("review workflow Hasura metadata", () => {
     expect(updates).not.toContain("- notification_type");
     expect(updates).not.toContain("- channel");
     expect(updates).not.toContain("- payload");
-    expect(permissionSection(metadata, "delete_permissions")).not.toContain(
-      "role: service",
-    );
+    expect(rolePermission(metadata, "delete_permissions", "service")).toBe("");
   });
 });

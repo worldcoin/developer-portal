@@ -7,7 +7,13 @@ object_relationships:
       foreign_key_constraint_on: app_id
   - name: app_metadata
     using:
-      foreign_key_constraint_on: app_metadata_id
+      manual_configuration:
+        column_mapping:
+          app_metadata_id: id
+        insertion_order: null
+        remote_table:
+          name: app_metadata
+          schema: public
   - name: team
     using:
       foreign_key_constraint_on: team_id

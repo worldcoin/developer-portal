@@ -15,9 +15,11 @@ array_relationships:
           schema: public
   - name: review_submissions
     using:
-      foreign_key_constraint_on:
-        column: app_metadata_id
-        table:
+      manual_configuration:
+        column_mapping:
+          id: app_metadata_id
+        insertion_order: null
+        remote_table:
           name: app_review_submission
           schema: public
 computed_fields:

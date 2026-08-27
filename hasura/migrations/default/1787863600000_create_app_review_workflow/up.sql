@@ -1,6 +1,6 @@
 CREATE TABLE "public"."app_review_submission" (
     "id" uuid NOT NULL DEFAULT gen_random_uuid (),
-    "app_metadata_id" varchar,
+    "app_metadata_id" varchar NOT NULL,
     "app_id" varchar NOT NULL,
     "team_id" varchar NOT NULL,
     "attempt" integer NOT NULL DEFAULT 1,
@@ -31,10 +31,8 @@ CREATE TABLE "public"."app_review_submission" (
     "created_at" timestamptz NOT NULL DEFAULT now (),
     "updated_at" timestamptz NOT NULL DEFAULT now (),
     PRIMARY KEY ("id"),
-    FOREIGN KEY ("app_metadata_id") REFERENCES "public"."app_metadata" ("id")
-        ON UPDATE restrict ON DELETE set null,
     FOREIGN KEY ("app_id") REFERENCES "public"."app" ("id")
-        ON UPDATE restrict ON DELETE cascade,
+        ON UPDATE restrict ON DELETE restrict,
     FOREIGN KEY ("team_id") REFERENCES "public"."team" ("id")
         ON UPDATE restrict ON DELETE restrict,
     CONSTRAINT "app_review_submission_metadata_attempt_unique"
@@ -92,6 +90,8 @@ CREATE TABLE "public"."app_review_submission" (
 
 COMMENT ON COLUMN "public"."app_review_submission"."status" IS
 'Reviewer workflow status: pending, in_review, changes_requested, approved, or withdrawn.';
+COMMENT ON COLUMN "public"."app_review_submission"."app_metadata_id" IS
+'Immutable submitted metadata identifier. It intentionally has no foreign key so replacing an old metadata row cannot erase review history.';
 
 CREATE UNIQUE INDEX "app_review_submission_one_active_metadata"
 ON "public"."app_review_submission" ("app_metadata_id")
@@ -117,7 +117,7 @@ CREATE TABLE "public"."app_review_event" (
     PRIMARY KEY ("id"),
     FOREIGN KEY ("submission_id")
         REFERENCES "public"."app_review_submission" ("id")
-        ON UPDATE restrict ON DELETE cascade,
+        ON UPDATE restrict ON DELETE restrict,
     CONSTRAINT "app_review_event_type_check"
         CHECK (
             "event_type" IN (
@@ -175,7 +175,7 @@ CREATE TABLE "public"."app_review_notification" (
     PRIMARY KEY ("id"),
     FOREIGN KEY ("submission_id")
         REFERENCES "public"."app_review_submission" ("id")
-        ON UPDATE restrict ON DELETE cascade,
+        ON UPDATE restrict ON DELETE restrict,
     CONSTRAINT "app_review_notification_dedupe_key_unique" UNIQUE ("dedupe_key"),
     CONSTRAINT "app_review_notification_type_check"
         CHECK (
@@ -251,7 +251,7 @@ SELECT
         ELSE 'world_ecosystem'
     END,
     metadata."is_developer_allow_listing",
-    metadata."changelog",
+    COALESCE(metadata."changelog", ''),
     metadata."updated_at",
     metadata."updated_at",
     to_jsonb(metadata),
