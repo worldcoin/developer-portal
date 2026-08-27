@@ -8,7 +8,7 @@ import {
   type ListObjectsV2Output,
 } from "@aws-sdk/client-s3";
 
-const DEFAULT_TOTALS_PREFIX = "totals/";
+const DEFAULT_TOTALS_PREFIX = "total/";
 const TABLE_FILE_NAME_PATTERN =
   /^data_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})\.csv$/;
 const LIST_TIMEOUT_MS = 5_000;
