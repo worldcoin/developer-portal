@@ -286,6 +286,7 @@ describe("getInternalDashboardGraphqlClient", () => {
     const user = {
       email: "reader@example.com",
       subject: "reader-subject",
+      accessLevel: "read",
       role: AdminHasuraRole.Readonly,
     };
     mockRequireAdminUser.mockResolvedValue(user);

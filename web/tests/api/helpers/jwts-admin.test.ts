@@ -1,6 +1,6 @@
 jest.mock("server-only", () => ({}));
 
-import { AdminHasuraRole } from "@/lib/admin-auth/types";
+import { AdminHasuraRole, DashboardAccessLevel } from "@/lib/admin-auth/types";
 import { jwtVerify } from "jose";
 
 const ORIGINAL_ENV = { ...process.env };
@@ -28,6 +28,7 @@ describe("generateInternalDashboardJWT", () => {
     const token = await generateInternalDashboardJWT({
       email: "reader@example.com",
       subject: "reader-subject",
+      accessLevel: DashboardAccessLevel.Read,
       role: AdminHasuraRole.Readonly,
     });
 

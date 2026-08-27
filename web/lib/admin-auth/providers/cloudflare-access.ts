@@ -70,6 +70,11 @@ const parseGroupIdentifiers = (value: unknown): string[] => {
 
 type GroupToAccessLevel = Record<string, DashboardAccessLevel>;
 
+const accessLevelPriority = {
+  [DashboardAccessLevel.Read]: 0,
+  [DashboardAccessLevel.Review]: 1,
+} satisfies Record<DashboardAccessLevel, number>;
+
 const parseGroupToAccessLevel = (): GroupToAccessLevel | null => {
   const rawMapping = process.env.CF_GROUP_TO_ACCESS_LEVEL;
 
@@ -119,15 +124,22 @@ const resolveCloudflareAccessLevel = (
     return null;
   }
 
+  let highestAccessLevel: DashboardAccessLevel | null = null;
+
   for (const group of groupIdentifiers) {
     const accessLevel = groupToAccessLevel[group];
 
-    if (accessLevel) {
-      return accessLevel;
+    if (
+      accessLevel &&
+      (!highestAccessLevel ||
+        accessLevelPriority[accessLevel] >
+          accessLevelPriority[highestAccessLevel])
+    ) {
+      highestAccessLevel = accessLevel;
     }
   }
 
-  return null;
+  return highestAccessLevel;
 };
 
 // The Access JWT carries no groups by default. They appear — under the

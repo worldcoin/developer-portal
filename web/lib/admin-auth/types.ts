@@ -8,6 +8,7 @@ export enum AdminHasuraRole {
  */
 export enum DashboardAccessLevel {
   Read = "read",
+  Review = "review",
 }
 
 export const isDashboardAccessLevel = (
@@ -26,6 +27,7 @@ export type AdminAuthResult = {
 export type AdminUser = {
   email: string;
   subject: string;
+  accessLevel: DashboardAccessLevel;
   role: AdminHasuraRole;
 };
 

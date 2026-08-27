@@ -31,10 +31,15 @@ jest.mock("next/navigation", () => ({
 import {
   AdminHasuraRole,
   authenticateAdminRequest,
+  canReviewApps,
+  DashboardAccessLevel,
   hasAdminAuthenticationEvidence,
+  isAdminReviewerPortalEnabled,
   requireAdminUser,
+  requireReviewerUser,
   resolveAdminAuthProvider,
 } from "@/lib/admin-auth";
+import type { AdminUser } from "@/lib/admin-auth";
 import { cloudflareAccessAdminAuthProvider } from "@/lib/admin-auth/providers/cloudflare-access";
 import { devAdminAuthProvider } from "@/lib/admin-auth/providers/dev";
 import { logger } from "@/lib/logger";
@@ -135,6 +140,7 @@ beforeEach(() => {
   delete process.env.ADMIN_AUTH_PROVIDER;
   delete process.env.ADMIN_AUTH_DEV_EMAIL;
   delete process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL;
+  delete process.env.ADMIN_REVIEWER_PORTAL_ENABLED;
   delete process.env.CF_ACCESS_TEAM_DOMAIN;
   delete process.env.CF_ACCESS_AUD;
   delete process.env.CF_GROUP_TO_ACCESS_LEVEL;
@@ -397,6 +403,27 @@ describe("cloudflare-access provider", () => {
         algorithms: ["RS256"],
       },
     );
+  });
+
+  it("resolves review access when a user belongs to both read and review groups", async () => {
+    cloudflareEnv();
+    process.env.CF_GROUP_TO_ACCESS_LEVEL = JSON.stringify({
+      "example-readers": "read",
+      "example-reviewers": "review",
+    });
+    jwtVerify.mockResolvedValue({
+      payload: {
+        email: "reviewer@example.com",
+        sub: "reviewer-1",
+        groups: ["example-readers", "example-reviewers"],
+      },
+    });
+
+    const user = await cloudflareAccessAdminAuthProvider.authenticate(
+      new Headers({ "cf-access-jwt-assertion": "valid-token" }),
+    );
+
+    expect(user).toMatchObject({ accessLevel: "review" });
   });
 
   it("returns no access for an unsupported configured access level", async () => {
@@ -728,6 +755,23 @@ describe("authenticateAdminRequest", () => {
     expect(user).toEqual({
       email: "dev@example.com",
       subject: "dev:dev@example.com",
+      accessLevel: "read",
+      role: AdminHasuraRole.Readonly,
+    });
+  });
+
+  it("keeps reviewer dashboard sessions on the readonly Hasura role", async () => {
+    process.env.ADMIN_AUTH_PROVIDER = "dev";
+    process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL = "review";
+
+    await expect(
+      authenticateAdminRequest(
+        new Headers({ "x-admin-auth-debug-user": "reviewer@example.com" }),
+      ),
+    ).resolves.toEqual({
+      email: "reviewer@example.com",
+      subject: "dev:reviewer@example.com",
+      accessLevel: DashboardAccessLevel.Review,
       role: AdminHasuraRole.Readonly,
     });
   });
@@ -754,8 +798,56 @@ describe("requireAdminUser", () => {
     await expect(requireAdminUser()).resolves.toEqual({
       email: "dev@example.com",
       subject: "dev:dev@example.com",
+      accessLevel: "read",
       role: AdminHasuraRole.Readonly,
     });
+  });
+});
+// #endregion
+
+// #region Reviewer portal feature flag
+describe("isAdminReviewerPortalEnabled", () => {
+  it('enables the reviewer portal only when explicitly set to "true"', () => {
+    expect(isAdminReviewerPortalEnabled()).toBe(false);
+
+    process.env.ADMIN_REVIEWER_PORTAL_ENABLED = "TRUE";
+    expect(isAdminReviewerPortalEnabled()).toBe(false);
+
+    process.env.ADMIN_REVIEWER_PORTAL_ENABLED = "true";
+    expect(isAdminReviewerPortalEnabled()).toBe(true);
+  });
+});
+// #endregion
+
+// #region Reviewer access
+describe("reviewer access", () => {
+  const reviewerUser: AdminUser = {
+    email: "reviewer@example.com",
+    subject: "reviewer-1",
+    accessLevel: DashboardAccessLevel.Review,
+    role: AdminHasuraRole.Readonly,
+  };
+  const readerUser: AdminUser = {
+    email: "reader@example.com",
+    subject: "reader-1",
+    accessLevel: DashboardAccessLevel.Read,
+    role: AdminHasuraRole.Readonly,
+  };
+
+  it("permits review access only for reviewer users", () => {
+    expect(canReviewApps(reviewerUser)).toBe(true);
+    expect(canReviewApps(readerUser)).toBe(false);
+  });
+
+  it("redirects readers away from reviewer-only pages", async () => {
+    process.env.ADMIN_AUTH_PROVIDER = "dev";
+    process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL = "read";
+    headersMock.mockResolvedValue(
+      new Headers({ "x-admin-auth-debug-user": "reader@example.com" }),
+    );
+
+    await expect(requireReviewerUser()).rejects.toThrow(redirectError);
+    expect(redirectMock).toHaveBeenCalledWith("/unauthorized");
   });
 });
 // #endregion

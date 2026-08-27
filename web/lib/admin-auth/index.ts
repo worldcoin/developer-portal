@@ -57,6 +57,7 @@ export const hasAdminAuthenticationEvidence = (
 
 const roleByAccessLevel = {
   [DashboardAccessLevel.Read]: AdminHasuraRole.Readonly,
+  [DashboardAccessLevel.Review]: AdminHasuraRole.Readonly,
 } satisfies Record<DashboardAccessLevel, AdminHasuraRole>;
 
 /**
@@ -81,6 +82,7 @@ export const authenticateAdminRequest = async (
   return {
     email: result.email,
     subject: result.subject,
+    accessLevel: result.accessLevel,
     role: roleByAccessLevel[result.accessLevel],
   };
 };
@@ -106,6 +108,22 @@ export const requireAdminUser = async (): Promise<AdminUser> => {
   const user = await getAdminUser();
 
   if (!user) {
+    redirect("/unauthorized");
+  }
+
+  return user;
+};
+
+export const canReviewApps = (user: AdminUser): boolean =>
+  user.accessLevel === DashboardAccessLevel.Review;
+
+export const isAdminReviewerPortalEnabled = (): boolean =>
+  process.env.ADMIN_REVIEWER_PORTAL_ENABLED === "true";
+
+export const requireReviewerUser = async (): Promise<AdminUser> => {
+  const user = await requireAdminUser();
+
+  if (!canReviewApps(user)) {
     redirect("/unauthorized");
   }
 
