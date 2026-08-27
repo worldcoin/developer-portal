@@ -2,7 +2,8 @@ import "server-only";
 
 import { appIdRegex } from "@/lib/schema";
 import { logger } from "@/lib/logger";
-import { parse } from "csv-parse/sync";
+import { pickTotalsRow, type TotalsRow } from "@/lib/selfie-check-analytics";
+import { parse, type Info } from "csv-parse/sync";
 import {
   downloadTotalsCsv,
   findLatestTotalsObject,
@@ -15,19 +16,14 @@ const NON_NEGATIVE_NUMBER_PATTERN =
   /^(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
 const MAX_COLUMNS = 100;
 const MAX_FIELD_CHARACTERS = 4_096;
-const MAX_TOTAL_ROWS = 250_000;
+const MAX_ROWS = 250_000;
 const MAX_RECORD_BYTES = 1024 * 1024;
 const SNAPSHOT_CHECK_INTERVAL_MS = 60 * 60 * 1000;
 const REFRESH_FAILURE_RETRY_MS = 60_000;
 
-export type TableRow = Readonly<{
-  appId: string;
-  metrics: Readonly<Record<string, number | null>>;
-}>;
-
 export type ParsedTable = Readonly<{
   headers: readonly string[];
-  records: ReadonlyMap<string, TableRow>;
+  records: ReadonlyMap<string, TotalsRow>;
 }>;
 
 export type TableSnapshot = ParsedTable &
@@ -50,10 +46,10 @@ type CachedTable = ParsedTable & {
   source: TableObjectDescriptor;
 };
 
-export class TableCsvValidationError extends Error {
+export class TableValidationEroor extends Error {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
-    this.name = "TableCsvValidationError";
+    this.name = "TableValidationEroor";
   }
 }
 
@@ -72,21 +68,21 @@ const parseMetricValue = ({
   if (value === "") return null;
 
   if (!NON_NEGATIVE_NUMBER_PATTERN.test(value)) {
-    throw new TableCsvValidationError(
-      `Totals CSV row ${rowNumber}, column ${column} is not a non-negative number.`,
+    throw new TableValidationEroor(
+      `Table row ${rowNumber}, column ${column} is not a non-negative number.`,
     );
   }
 
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) {
-    throw new TableCsvValidationError(
-      `Totals CSV row ${rowNumber}, column ${column} is not finite.`,
+    throw new TableValidationEroor(
+      `Table row ${rowNumber}, column ${column} is not finite.`,
     );
   }
 
   if (Number.isInteger(parsed) && !Number.isSafeInteger(parsed)) {
-    throw new TableCsvValidationError(
-      `Totals CSV row ${rowNumber}, column ${column} exceeds JavaScript's safe integer range.`,
+    throw new TableValidationEroor(
+      `Table row ${rowNumber}, column ${column} exceeds JavaScript's safe integer range.`,
     );
   }
 
@@ -95,12 +91,12 @@ const parseMetricValue = ({
 
 const validateHeaders = (rawHeaders: string[]) => {
   if (rawHeaders.length === 0) {
-    throw new TableCsvValidationError("Totals CSV has no header row.");
+    throw new TableValidationEroor("Table has no header row.");
   }
 
   if (rawHeaders.length > MAX_COLUMNS) {
-    throw new TableCsvValidationError(
-      `Totals CSV has ${rawHeaders.length} columns; maximum is ${MAX_COLUMNS}.`,
+    throw new TableValidationEroor(
+      `Table has ${rawHeaders.length} columns; maximum is ${MAX_COLUMNS}.`,
     );
   }
 
@@ -109,14 +105,14 @@ const validateHeaders = (rawHeaders: string[]) => {
 
   for (const header of headers) {
     if (!HEADER_PATTERN.test(header)) {
-      throw new TableCsvValidationError(
-        `Totals CSV contains an invalid header: ${JSON.stringify(header)}.`,
+      throw new TableValidationEroor(
+        `Table contains an invalid header: ${JSON.stringify(header)}.`,
       );
     }
 
     if (seen.has(header)) {
-      throw new TableCsvValidationError(
-        `Totals CSV contains a duplicate header: ${header}.`,
+      throw new TableValidationEroor(
+        `Table contains a duplicate header: ${header}.`,
       );
     }
     seen.add(header);
@@ -124,93 +120,103 @@ const validateHeaders = (rawHeaders: string[]) => {
 
   const appIdColumn = APP_ID_COLUMNS.find((column) => seen.has(column));
   if (!appIdColumn) {
-    throw new TableCsvValidationError(
-      `Totals CSV must contain one of: ${APP_ID_COLUMNS.join(", ")}.`,
+    throw new TableValidationEroor(
+      `Table must contain one of: ${APP_ID_COLUMNS.join(", ")}.`,
     );
   }
 
   return { appIdColumn, headers };
 };
 
-/** Parses a metrics table CSV and indexes unique rows by app ID. */
-export const parseMetricsTable = (csv: string): ParsedTable => {
-  let csvRecords: string[][];
+type CsvRecord = Readonly<{
+  info: Info;
+  record: Readonly<Record<string, string>>;
+}>;
+
+/** Parses a totals table CSV and indexes its unique rows by app ID. */
+export const parseTable = (csv: string): ParsedTable => {
+  let headers: string[] | undefined;
+  let appIdColumn: (typeof APP_ID_COLUMNS)[number] | undefined;
+  let csvRecords: CsvRecord[];
 
   try {
-    csvRecords = parse(csv, {
+    csvRecords = parse<CsvRecord>(csv, {
       bom: true,
+      columns: (rawHeaders) => {
+        const validated = validateHeaders(rawHeaders);
+        headers = validated.headers;
+        appIdColumn = validated.appIdColumn;
+        return headers;
+      },
+      info: true,
       max_record_size: MAX_RECORD_BYTES,
       relax_column_count: false,
       skip_empty_lines: true,
       trim: true,
-    }) as string[][];
+    });
   } catch (error) {
-    throw new TableCsvValidationError("Unable to parse totals CSV.", {
+    if (error instanceof TableValidationEroor) throw error;
+    throw new TableValidationEroor("Unable to parse table CSV.", {
       cause: error,
     });
   }
 
-  const [rawHeaders, ...dataRows] = csvRecords;
-  if (!rawHeaders) {
-    throw new TableCsvValidationError("Totals CSV has no header row.");
+  if (!headers || !appIdColumn) {
+    throw new TableValidationEroor("Table has no header row.");
   }
 
-  const { appIdColumn, headers } = validateHeaders(rawHeaders);
-  if (dataRows.length > MAX_TOTAL_ROWS) {
-    throw new TableCsvValidationError(
-      `Totals CSV has ${dataRows.length} rows; maximum is ${MAX_TOTAL_ROWS}.`,
+  if (csvRecords.length > MAX_ROWS) {
+    throw new TableValidationEroor(
+      `Table has ${csvRecords.length} rows; maximum is ${MAX_ROWS}.`,
     );
   }
 
-  const appIdIndex = headers.indexOf(appIdColumn);
-  const records = new Map<string, TableRow>();
+  const records = new Map<string, TotalsRow>();
 
-  dataRows.forEach((record, rowIndex) => {
-    if (record.length !== headers.length) {
-      throw new TableCsvValidationError(
-        `Totals CSV row ${rowIndex + 2} has ${record.length} fields; expected ${headers.length}.`,
-      );
-    }
-
-    const metrics: Record<string, number | null> = {};
-    headers.forEach((header, columnIndex) => {
-      const value = record[columnIndex] ?? "";
+  for (const { info, record } of csvRecords) {
+    const fields: Record<string, number | null> = {};
+    headers.forEach((header) => {
+      const value = record[header] ?? "";
       if (value.length > MAX_FIELD_CHARACTERS) {
-        throw new TableCsvValidationError(
-          `Totals CSV row ${rowIndex + 2}, column ${header} exceeds ` +
+        throw new TableValidationEroor(
+          `Table row ${info.lines}, column ${header} exceeds ` +
             `${MAX_FIELD_CHARACTERS} characters.`,
         );
       }
       if (header !== appIdColumn) {
-        metrics[normalizeMetricName(header)] = parseMetricValue({
+        fields[normalizeMetricName(header)] = parseMetricValue({
           column: header,
-          rowNumber: rowIndex + 2,
+          rowNumber: info.lines,
           value,
         });
       }
     });
 
-    const appId = record[appIdIndex] ?? "";
+    const appId = record[appIdColumn] ?? "";
     if (!appIdRegex.test(appId)) {
-      throw new TableCsvValidationError(
-        `Totals CSV row ${rowIndex + 2} has an invalid app ID.`,
+      throw new TableValidationEroor(
+        `Table row ${info.lines} has an invalid app ID.`,
       );
     }
 
     if (records.has(appId)) {
-      throw new TableCsvValidationError(
-        `Totals CSV contains a duplicate app ID: ${appId}.`,
+      // Totals has exactly one aggregate row per app. Daily rows need their
+      // own keying/aggregation policy: rates and cumulative values cannot be
+      // safely combined by this generic numeric parser.
+      throw new TableValidationEroor(
+        `Table contains a duplicate app ID: ${appId}.`,
       );
     }
 
-    records.set(
-      appId,
-      Object.freeze({
-        appId,
-        metrics: Object.freeze(metrics),
-      }),
-    );
-  });
+    const row = pickTotalsRow({ appId, ...fields });
+    if (!row) {
+      throw new TableValidationEroor(
+        `Table row ${info.lines} is missing a required totals column.`,
+      );
+    }
+
+    records.set(appId, Object.freeze(row));
+  }
 
   return {
     headers: Object.freeze(headers),
@@ -257,7 +263,7 @@ const refreshTableSnapshot = async (): Promise<TableSnapshot> => {
     }
 
     const downloaded = await downloadTotalsCsv(latestObject);
-    const parsed = parseMetricsTable(downloaded.csv);
+    const parsed = parseTable(downloaded.csv);
     const loadedAtMs = Date.now();
 
     // Replace the cache only after the complete new table has downloaded and
