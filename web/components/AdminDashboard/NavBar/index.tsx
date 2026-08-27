@@ -5,7 +5,11 @@ import { NavBarItem } from "./NavBarItem";
 
 const iconClassName = clsx("size-6", "lg:size-4", "3xl:size-5", "4xl:size-7");
 
-export const NavBar = () => {
+export const NavBar = ({
+  showReviewer = false,
+}: {
+  showReviewer?: boolean;
+}) => {
   return (
     <UIModule
       className={clsx(
@@ -56,6 +60,16 @@ export const NavBar = () => {
         >
           Apps
         </NavBarItem>
+
+        {showReviewer ? (
+          <NavBarItem
+            iconName="nav-configuration"
+            iconClassName={iconClassName}
+            href="/admin/reviewer"
+          >
+            Reviewer
+          </NavBarItem>
+        ) : null}
 
         <NavBarItem
           iconName="nav-world-id"

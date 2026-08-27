@@ -75,11 +75,22 @@ select_permissions:
     permission:
       columns:
         - action
+        - app_flow_on_complete
         - app_id
         - created_at
+        - creation_mode
+        - description
         - id
+        - kiosk_enabled
+        - max_accounts_per_user
+        - max_verifications
         - name
+        - post_action_deep_link_android
+        - post_action_deep_link_ios
+        - privacy_policy_uri
         - status
+        - terms_uri
+        - webhook_uri
       filter: {}
       allow_aggregations: true
   - role: api_key

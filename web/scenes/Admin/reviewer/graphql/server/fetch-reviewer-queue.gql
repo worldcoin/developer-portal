@@ -1,0 +1,33 @@
+query FetchReviewerQueue(
+  $limit: Int!
+  $offset: Int!
+  $where: app_review_submission_bool_exp!
+) {
+  app_review_submission(
+    limit: $limit
+    offset: $offset
+    where: $where
+    order_by: [{ submitted_at: asc }, { id: asc }]
+  ) {
+    id
+    app_id
+    app_metadata_id
+    app_mode
+    attempt
+    changelog
+    claimed_by_email
+    claim_expires_at
+    listing_target
+    metadata_snapshot
+    review_version
+    status
+    submitted_at
+    app {
+      name
+    }
+    team {
+      id
+      name
+    }
+  }
+}

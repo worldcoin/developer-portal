@@ -65,3 +65,24 @@ export const authenticateReviewerApiRequest = async (
 
   return { ok: true, user };
 };
+
+export const authenticateReviewerReadApiRequest = async (
+  req: NextRequest,
+): Promise<ReviewerApiAuthResult> => {
+  if (!isAdminReviewerPortalEnabled()) {
+    return {
+      ok: false,
+      response: reviewerApiJson({ error: "Not found" }, { status: 404 }),
+    };
+  }
+
+  const user = await authenticateAdminRequest(req.headers);
+  if (!user) {
+    return {
+      ok: false,
+      response: reviewerApiJson({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  return { ok: true, user };
+};

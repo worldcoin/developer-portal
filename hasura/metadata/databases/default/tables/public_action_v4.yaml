@@ -28,6 +28,7 @@ select_permissions:
       columns:
         - action
         - created_at
+        - description
         - environment
         - id
         - rp_id

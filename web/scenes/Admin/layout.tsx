@@ -3,9 +3,12 @@ import { NavBar } from "@/components/AdminDashboard/NavBar";
 import { NavProvider } from "@/components/AdminDashboard/NavProvider";
 import { ProfileBadge } from "@/components/AdminDashboard/ProfileBadge";
 import { Search } from "@/components/AdminDashboard/Search";
+import { isAdminReviewerPortalEnabled } from "@/lib/admin-auth";
 import clsx from "clsx";
 
 export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+  const showReviewer = isAdminReviewerPortalEnabled();
+
   return (
     <NavProvider>
       {/* NOTE: accessibility skip link, hidden until focused via keyboard */}
@@ -67,7 +70,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           </main>
         </div>
 
-        <NavBar />
+        <NavBar showReviewer={showReviewer} />
       </div>
     </NavProvider>
   );

@@ -1,0 +1,83 @@
+query FetchReviewerSubmission($reviewId: uuid!) {
+  app_review_submission_by_pk(id: $reviewId) {
+    id
+    app_id
+    app_metadata_id
+    app_mode
+    attempt
+    changelog
+    checklist
+    checklist_version
+    claimed_at
+    claimed_by_email
+    claim_expires_at
+    completed_at
+    decided_at
+    decided_by_email
+    decision_summary
+    listing_consent
+    listing_target
+    localizations_snapshot
+    metadata_snapshot
+    metadata_updated_at
+    review_version
+    status
+    submitted_at
+    app {
+      name
+      actions(order_by: { created_at: desc }) {
+        id
+        action
+        app_flow_on_complete
+        creation_mode
+        description
+        kiosk_enabled
+        max_accounts_per_user
+        max_verifications
+        name
+        post_action_deep_link_android
+        post_action_deep_link_ios
+        privacy_policy_uri
+        status
+        terms_uri
+        webhook_uri
+      }
+      rp_registration(order_by: { created_at: desc }) {
+        rp_id
+        mode
+        signer_address
+        staging_status
+        status
+        actions_v4(order_by: { created_at: desc }) {
+          id
+          action
+          description
+          environment
+        }
+      }
+    }
+    team {
+      id
+      name
+    }
+    events(order_by: [{ event_sequence: desc }, { id: desc }]) {
+      id
+      event_type
+      event_sequence
+      actor_email
+      created_at
+      payload
+      review_version
+    }
+    notifications(order_by: [{ created_at: desc }, { id: desc }]) {
+      id
+      attempt_count
+      channel
+      created_at
+      last_error
+      notification_type
+      recipient
+      status
+    }
+  }
+}

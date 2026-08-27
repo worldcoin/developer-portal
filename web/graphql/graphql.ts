@@ -4450,17 +4450,98 @@ export type App_Report_Updates = {
   where: App_Report_Bool_Exp;
 };
 
+export type App_Review_Event = {
+  __typename?: "app_review_event";
+  actor_email?: Maybe<Scalars["String"]["output"]>;
+  created_at: Scalars["timestamptz"]["output"];
+  event_sequence: Scalars["bigint"]["output"];
+  event_type: Scalars["String"]["output"];
+  id: Scalars["uuid"]["output"];
+  payload: Scalars["jsonb"]["output"];
+  review_version?: Maybe<Scalars["Int"]["output"]>;
+};
+
+export type App_Review_Event_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  event_sequence?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+export type App_Review_Notification = {
+  __typename?: "app_review_notification";
+  attempt_count: Scalars["Int"]["output"];
+  channel: Scalars["String"]["output"];
+  created_at: Scalars["timestamptz"]["output"];
+  id: Scalars["uuid"]["output"];
+  last_error?: Maybe<Scalars["String"]["output"]>;
+  notification_type: Scalars["String"]["output"];
+  recipient?: Maybe<Scalars["String"]["output"]>;
+  status: Scalars["String"]["output"];
+};
+
+export type App_Review_Notification_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
 export type App_Review_Submission = {
   __typename?: "app_review_submission";
+  app: App;
+  app_id: Scalars["String"]["output"];
   app_metadata_id: Scalars["String"]["output"];
+  app_mode: Scalars["String"]["output"];
   attempt: Scalars["Int"]["output"];
+  changelog: Scalars["String"]["output"];
   checklist: Scalars["jsonb"]["output"];
   checklist_version?: Maybe<Scalars["String"]["output"]>;
   claim_expires_at?: Maybe<Scalars["timestamptz"]["output"]>;
   claim_token?: Maybe<Scalars["uuid"]["output"]>;
+  claimed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  claimed_by_email?: Maybe<Scalars["String"]["output"]>;
+  completed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  created_at: Scalars["timestamptz"]["output"];
+  decided_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  decided_by_email?: Maybe<Scalars["String"]["output"]>;
+  decision_summary?: Maybe<Scalars["String"]["output"]>;
+  events: Array<App_Review_Event>;
   id: Scalars["uuid"]["output"];
+  listing_consent: Scalars["Boolean"]["output"];
+  listing_target: Scalars["String"]["output"];
+  localizations_snapshot: Scalars["jsonb"]["output"];
+  metadata_snapshot: Scalars["jsonb"]["output"];
+  metadata_updated_at: Scalars["timestamptz"]["output"];
+  notifications: Array<App_Review_Notification>;
   review_version: Scalars["Int"]["output"];
   status: Scalars["String"]["output"];
+  submitted_at: Scalars["timestamptz"]["output"];
+  team: Team;
+  team_id: Scalars["String"]["output"];
+  updated_at: Scalars["timestamptz"]["output"];
+};
+
+export type App_Review_SubmissionEventsArgs = {
+  order_by?: InputMaybe<Array<App_Review_Event_Order_By>>;
+};
+
+export type App_Review_SubmissionNotificationsArgs = {
+  order_by?: InputMaybe<Array<App_Review_Notification_Order_By>>;
+};
+
+export type App_Review_Submission_Bool_Exp = {
+  _and?: InputMaybe<Array<App_Review_Submission_Bool_Exp>>;
+  _or?: InputMaybe<Array<App_Review_Submission_Bool_Exp>>;
+  app_mode?: InputMaybe<String_Comparison_Exp>;
+  claim_expires_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  claimed_by_email?: InputMaybe<String_Comparison_Exp>;
+  status?: InputMaybe<String_Comparison_Exp>;
+  submitted_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  team?: InputMaybe<Team_Bool_Exp>;
+  team_id?: InputMaybe<String_Comparison_Exp>;
+};
+
+export type App_Review_Submission_Order_By = {
+  id?: InputMaybe<Order_By>;
+  submitted_at?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "app_reviews" */
@@ -10048,6 +10129,8 @@ export type Query_Root = {
   app_report_appeal_by_pk?: Maybe<App_Report_Appeal>;
   /** fetch data from the table: "app_report" using primary key columns */
   app_report_by_pk?: Maybe<App_Report>;
+  app_review_submission: Array<App_Review_Submission>;
+  app_review_submission_by_pk?: Maybe<App_Review_Submission>;
   /** fetch data from the table: "app_reviews" */
   app_reviews: Array<App_Reviews>;
   /** fetch aggregated fields from the table: "app_reviews" */
@@ -10443,6 +10526,17 @@ export type Query_RootApp_Report_Appeal_By_PkArgs = {
 
 export type Query_RootApp_Report_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootApp_Review_SubmissionArgs = {
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Review_Submission_Order_By>>;
+  where?: InputMaybe<App_Review_Submission_Bool_Exp>;
+};
+
+export type Query_RootApp_Review_Submission_By_PkArgs = {
+  id: Scalars["uuid"]["input"];
 };
 
 export type Query_RootApp_ReviewsArgs = {

@@ -1,0 +1,264 @@
+const mockFetchQueue = jest.fn();
+const mockFetchSubmission = jest.fn();
+const mockFetchLiveMetadata = jest.fn();
+
+jest.mock("server-only", () => ({}));
+jest.mock("@/api/helpers/graphql", () => ({
+  getInternalDashboardGraphqlClient: jest.fn().mockResolvedValue({}),
+}));
+jest.mock("@/api/helpers/reviewer-live-metadata", () => ({
+  fetchReviewerLiveMetadata: (...args: unknown[]) =>
+    mockFetchLiveMetadata(...args),
+}));
+jest.mock(
+  "@/scenes/Admin/reviewer/graphql/server/fetch-reviewer-queue.generated",
+  () => ({ getSdk: () => ({ FetchReviewerQueue: mockFetchQueue }) }),
+);
+jest.mock(
+  "@/scenes/Admin/reviewer/graphql/server/fetch-reviewer-submission.generated",
+  () => ({ getSdk: () => ({ FetchReviewerSubmission: mockFetchSubmission }) }),
+);
+
+import {
+  fetchReviewerQueue,
+  fetchReviewerSubmission,
+} from "@/scenes/Admin/reviewer/server/fetch-reviewer-data";
+
+describe("reviewer dashboard reads", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFetchLiveMetadata.mockResolvedValue(null);
+  });
+
+  it("maps the FIFO queue without any claim token", async () => {
+    mockFetchQueue.mockResolvedValue({
+      app_review_submission: [
+        {
+          id: "00000000-0000-4000-8000-000000000001",
+          app_id: "app_1",
+          app_metadata_id: "metadata_1",
+          app_mode: "mini-app",
+          attempt: 1,
+          changelog: "First release",
+          claimed_by_email: null,
+          claim_expires_at: null,
+          listing_target: "mini_app_store",
+          review_version: 1,
+          status: "pending",
+          submitted_at: "2026-08-20T12:00:00.000Z",
+          app: { name: "Mini one" },
+          team: { id: "team_1", name: "Alpha" },
+        },
+      ],
+    });
+
+    await expect(
+      fetchReviewerQueue({
+        filters: {
+          age: "all",
+          assignee: "",
+          mode: "all",
+          page: 1,
+          status: "pending",
+          team: "",
+        },
+        reviewerEmail: "reviewer@example.com",
+        now: new Date("2026-08-27T12:00:00.000Z"),
+      }),
+    ).resolves.toEqual({
+      hasNextPage: false,
+      submissions: [
+        expect.objectContaining({
+          appId: "app_1",
+          appName: "Mini one",
+          status: "pending",
+          teamName: "Alpha",
+        }),
+      ],
+    });
+    expect(mockFetchQueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        limit: 51,
+        offset: 0,
+        where: {
+          _and: [
+            {
+              _or: [
+                { status: { _eq: "pending" } },
+                {
+                  _and: [
+                    { status: { _eq: "in_review" } },
+                    {
+                      claim_expires_at: {
+                        _lte: "2026-08-27T12:00:00.000Z",
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    );
+  });
+
+  it("maps canonical snapshots, live metadata, World ID config, events, and notifications", async () => {
+    mockFetchLiveMetadata.mockResolvedValue({
+      id: "live_metadata_1",
+      is_reviewer_world_app_approved: true,
+      name: "Live app",
+      localisations: [{ locale: "es", name: "Aplicacion publicada" }],
+    });
+    mockFetchSubmission.mockResolvedValue({
+      app_review_submission_by_pk: {
+        id: "00000000-0000-4000-8000-000000000001",
+        app_id: "app_1",
+        app_metadata_id: "metadata_1",
+        app_mode: "external",
+        attempt: 2,
+        changelog: "Updated copy",
+        checklist: { items: [], internalNotes: "" },
+        checklist_version: "2026-08-27.1",
+        claimed_at: null,
+        claimed_by_email: null,
+        claim_expires_at: null,
+        completed_at: null,
+        decided_at: null,
+        decided_by_email: null,
+        decision_summary: null,
+        listing_consent: true,
+        listing_target: "world_ecosystem",
+        localizations_snapshot: [{ locale: "es", name: "Aplicacion" }],
+        metadata_snapshot: {
+          name: "Draft app",
+          integration_url: "https://example.com",
+        },
+        metadata_updated_at: "2026-08-20T12:00:00.000Z",
+        review_version: 3,
+        status: "in_review",
+        submitted_at: "2026-08-20T12:00:00.000Z",
+        app: {
+          name: "Source app",
+          actions: [
+            {
+              id: "action_1",
+              action: "verify",
+              name: "Verify",
+              status: "active",
+            },
+          ],
+          rp_registration: [
+            {
+              rp_id: "rp_1",
+              actions_v4: [
+                { id: "v4_1", action: "signin", environment: "production" },
+              ],
+            },
+          ],
+          verified_metadata: [
+            {
+              is_reviewer_world_app_approved: true,
+              name: "Live app",
+              localisations: [{ locale: "es", name: "Aplicacion publicada" }],
+            },
+          ],
+        },
+        team: { id: "team_1", name: "Alpha" },
+        events: [
+          {
+            id: "event_1",
+            event_type: "submitted",
+            event_sequence: 1,
+            actor_email: "dev@example.com",
+            created_at: "2026-08-20T12:00:00.000Z",
+            payload: {},
+            review_version: 1,
+          },
+        ],
+        notifications: [
+          {
+            id: "notification_1",
+            attempt_count: 0,
+            channel: "slack",
+            created_at: "2026-08-20T12:00:00.000Z",
+            last_error: null,
+            notification_type: "submission_received",
+            recipient: null,
+            status: "pending",
+          },
+        ],
+      },
+    });
+
+    await expect(
+      fetchReviewerSubmission("00000000-0000-4000-8000-000000000001"),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        liveMetadata: expect.objectContaining({ name: "Live app" }),
+        liveLocalizations: [expect.objectContaining({ locale: "es" })],
+        worldIdConfiguration: {
+          legacyActions: [expect.objectContaining({ id: "action_1" })],
+          registrations: [
+            expect.objectContaining({
+              rpId: "rp_1",
+              actions: [expect.objectContaining({ id: "v4_1" })],
+            }),
+          ],
+        },
+      }),
+    );
+    expect(mockFetchLiveMetadata).toHaveBeenCalledWith("app_1");
+  });
+
+  it("does not present a verification-only metadata row as a live listing", async () => {
+    mockFetchSubmission.mockResolvedValue({
+      app_review_submission_by_pk: {
+        id: "00000000-0000-4000-8000-000000000001",
+        app_id: "app_1",
+        app_metadata_id: "metadata_1",
+        app_mode: "external",
+        attempt: 1,
+        changelog: "First listing",
+        checklist: {},
+        checklist_version: null,
+        claimed_at: null,
+        claimed_by_email: null,
+        claim_expires_at: null,
+        completed_at: null,
+        decided_at: null,
+        decided_by_email: null,
+        decision_summary: null,
+        listing_consent: true,
+        listing_target: "world_ecosystem",
+        localizations_snapshot: [],
+        metadata_snapshot: { name: "Listing candidate" },
+        metadata_updated_at: "2026-08-20T12:00:00.000Z",
+        review_version: 1,
+        status: "pending",
+        submitted_at: "2026-08-20T12:00:00.000Z",
+        app: {
+          name: "Source app",
+          actions: [],
+          rp_registration: [],
+          verified_metadata: [
+            {
+              is_reviewer_world_app_approved: false,
+              name: "Verification only",
+              localisations: [],
+            },
+          ],
+        },
+        team: { id: "team_1", name: "Alpha" },
+        events: [],
+        notifications: [],
+      },
+    });
+
+    const submission = await fetchReviewerSubmission(
+      "00000000-0000-4000-8000-000000000001",
+    );
+    expect(submission?.liveMetadata).toBeNull();
+    expect(submission?.liveLocalizations).toEqual([]);
+  });
+});

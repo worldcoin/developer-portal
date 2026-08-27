@@ -1,11 +1,84 @@
 # Temporary local schema supplement for Task 4's tracked functions. Replace it
 # with a live staging introspection snapshot during Task 9 verification.
 extend type app_review_submission {
+  app_id: String!
+  team_id: String!
+  app_mode: String!
+  listing_target: String!
+  listing_consent: Boolean!
+  changelog: String!
+  submitted_at: timestamptz!
+  metadata_updated_at: timestamptz!
   review_version: Int!
   claim_token: uuid
+  claimed_by_email: String
+  claimed_at: timestamptz
   claim_expires_at: timestamptz
   checklist_version: String
   checklist: jsonb!
+  metadata_snapshot: jsonb!
+  localizations_snapshot: jsonb!
+  decision_summary: String
+  decided_by_email: String
+  decided_at: timestamptz
+  completed_at: timestamptz
+  created_at: timestamptz!
+  updated_at: timestamptz!
+  app: app!
+  team: team!
+  events(order_by: [app_review_event_order_by!]): [app_review_event!]!
+  notifications(
+    order_by: [app_review_notification_order_by!]
+  ): [app_review_notification!]!
+}
+
+type app_review_event {
+  id: uuid!
+  event_type: String!
+  actor_email: String
+  review_version: Int
+  payload: jsonb!
+  created_at: timestamptz!
+  event_sequence: bigint!
+}
+
+input app_review_event_order_by {
+  event_sequence: order_by
+  created_at: order_by
+  id: order_by
+}
+
+type app_review_notification {
+  id: uuid!
+  notification_type: String!
+  channel: String!
+  status: String!
+  recipient: String
+  attempt_count: Int!
+  last_error: String
+  created_at: timestamptz!
+}
+
+input app_review_notification_order_by {
+  created_at: order_by
+  id: order_by
+}
+
+input app_review_submission_order_by {
+  submitted_at: order_by
+  id: order_by
+}
+
+input app_review_submission_bool_exp {
+  _and: [app_review_submission_bool_exp!]
+  _or: [app_review_submission_bool_exp!]
+  app_mode: String_comparison_exp
+  claim_expires_at: timestamptz_comparison_exp
+  claimed_by_email: String_comparison_exp
+  status: String_comparison_exp
+  submitted_at: timestamptz_comparison_exp
+  team: team_bool_exp
+  team_id: String_comparison_exp
 }
 
 input reviewer_claim_app_review_submission_args {
@@ -54,4 +127,14 @@ extend type mutation_root {
   reviewer_save_app_review_checklist(
     args: reviewer_save_app_review_checklist_args!
   ): [app_review_submission!]!
+}
+
+extend type query_root {
+  app_review_submission(
+    limit: Int
+    offset: Int
+    order_by: [app_review_submission_order_by!]
+    where: app_review_submission_bool_exp
+  ): [app_review_submission!]!
+  app_review_submission_by_pk(id: uuid!): app_review_submission
 }
