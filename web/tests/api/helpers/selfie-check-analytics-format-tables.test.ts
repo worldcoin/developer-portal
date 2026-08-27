@@ -40,6 +40,7 @@ const source = (
   key,
   etag,
   identity: `${key}:${etag}`,
+  dataAsOf: new Date(lastModified),
   lastModified: new Date(lastModified),
   sizeBytes: 100,
 });

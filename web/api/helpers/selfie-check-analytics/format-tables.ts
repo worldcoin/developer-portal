@@ -39,6 +39,7 @@ export type TableSnapshot = ParsedTable &
       etag?: string;
       identity: string;
       key: string;
+      dataAsOf: string;
       lastModified: string;
       sizeBytes: number;
     }>;
@@ -234,6 +235,7 @@ const toPublicTableSnapshot = (table: CachedTable): TableSnapshot => ({
     etag: table.source.etag,
     identity: table.source.identity,
     key: table.source.key,
+    dataAsOf: table.source.dataAsOf.toISOString(),
     lastModified: table.source.lastModified.toISOString(),
     sizeBytes: table.source.sizeBytes,
   },

@@ -8,7 +8,9 @@ import {
   type ListObjectsV2Output,
 } from "@aws-sdk/client-s3";
 
-const DEFAULT_TOTALS_PREFIX = "total/";
+const DEFAULT_TOTALS_PREFIX = "totals/";
+const TABLE_FILE_NAME_PATTERN =
+  /^data_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})\.csv$/;
 const LIST_TIMEOUT_MS = 5_000;
 const GET_TIMEOUT_MS = 10_000;
 const MAX_LIST_PAGES = 10;
@@ -23,6 +25,7 @@ export type TableObjectDescriptor = {
   key: string;
   etag?: string;
   identity: string;
+  dataAsOf: Date;
   lastModified: Date;
   sizeBytes: number;
 };
@@ -78,49 +81,89 @@ const getAnalyticsS3Client = (region: string) => {
   return client;
 };
 
-const isUsableCsvObject = (
-  object: ListedObject,
-): object is ListedObject & {
-  Key: string;
-  LastModified: Date;
-  Size: number;
-} =>
-  Boolean(
-    object.Key?.endsWith(".csv") &&
-      object.LastModified &&
-      typeof object.Size === "number" &&
-      object.Size > 0,
-  );
-
-const isNewerObject = (candidate: ListedObject, current?: ListedObject) => {
-  if (!candidate.LastModified) return false;
-  if (!current?.LastModified) return true;
-
-  const timestampDifference =
-    candidate.LastModified.getTime() - current.LastModified.getTime();
-
-  if (timestampDifference !== 0) return timestampDifference > 0;
-
-  return Boolean(
-    candidate.Key &&
-      current.Key &&
-      candidate.Key.localeCompare(current.Key) > 0,
-  );
-};
-
-const buildObjectDescriptor = ({
-  bucket,
-  region,
-  object,
-}: {
-  bucket: string;
-  region: string;
+type TableObjectCandidate = {
+  dataAsOf: Date;
   object: ListedObject & {
     Key: string;
     LastModified: Date;
     Size: number;
   };
+};
+
+/** Validates the filename shape and extracts its UTC dataset timestamp. */
+const parseDataAsOfFromKey = (key: string, prefix: string): Date | null => {
+  if (!key.startsWith(prefix)) return null;
+
+  const fileName = key.slice(prefix.length);
+  const match = TABLE_FILE_NAME_PATTERN.exec(fileName);
+  if (!match) return null;
+
+  const [, year, month, day, hour, minute, second] = match;
+  const isoTimestamp = `${year}-${month}-${day}T${hour}:${minute}:${second}.000Z`;
+  const dataAsOf = new Date(isoTimestamp);
+
+  // Date parsing may normalize impossible values such as February 30. Only
+  // accept the filename when every component round-trips unchanged.
+  if (
+    Number.isNaN(dataAsOf.getTime()) ||
+    dataAsOf.toISOString() !== isoTimestamp
+  ) {
+    return null;
+  }
+
+  return dataAsOf;
+};
+
+const toTableObjectCandidate = (
+  object: ListedObject,
+  prefix: string,
+): TableObjectCandidate | null => {
+  const dataAsOf = object.Key ? parseDataAsOfFromKey(object.Key, prefix) : null;
+
+  if (
+    !dataAsOf ||
+    !object.Key ||
+    !object.LastModified ||
+    typeof object.Size !== "number" ||
+    object.Size <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    dataAsOf,
+    object: object as ListedObject & {
+      Key: string;
+      LastModified: Date;
+      Size: number;
+    },
+  };
+};
+
+const isNewerObject = (
+  candidate: TableObjectCandidate,
+  current?: TableObjectCandidate,
+) => {
+  if (!current) return true;
+
+  const timestampDifference =
+    candidate.dataAsOf.getTime() - current.dataAsOf.getTime();
+
+  if (timestampDifference !== 0) return timestampDifference > 0;
+
+  return candidate.object.Key.localeCompare(current.object.Key) > 0;
+};
+
+const buildObjectDescriptor = ({
+  bucket,
+  region,
+  candidate,
+}: {
+  bucket: string;
+  region: string;
+  candidate: TableObjectCandidate;
 }): TableObjectDescriptor => {
+  const { dataAsOf, object } = candidate;
   const revision =
     object.ETag ?? `${object.LastModified.toISOString()}:${object.Size}`;
 
@@ -130,13 +173,14 @@ const buildObjectDescriptor = ({
     key: object.Key,
     etag: object.ETag,
     identity: `${object.Key}:${revision}`,
+    dataAsOf,
     lastModified: object.LastModified,
     sizeBytes: object.Size,
   };
 };
 
 /**
- * Finds the most recently modified, non-empty CSV under the totals prefix.
+ * Finds the non-empty totals CSV with the newest timestamped filename.
  *
  * S3 lists keys lexicographically rather than by modification time, so every
  * returned page must be inspected. The page cap makes retention mistakes fail
@@ -148,7 +192,7 @@ export const findLatestTotalsObject =
     const client = getAnalyticsS3Client(region);
 
     let continuationToken: string | undefined;
-    let latest: ListedObject | undefined;
+    let latest: TableObjectCandidate | undefined;
     let pageCount = 0;
 
     do {
@@ -178,8 +222,9 @@ export const findLatestTotalsObject =
       }
 
       for (const object of page.Contents ?? []) {
-        if (isUsableCsvObject(object) && isNewerObject(object, latest)) {
-          latest = object;
+        const candidate = toTableObjectCandidate(object, totalsPrefix);
+        if (candidate && isNewerObject(candidate, latest)) {
+          latest = candidate;
         }
       }
 
@@ -195,13 +240,13 @@ export const findLatestTotalsObject =
         : undefined;
     } while (continuationToken);
 
-    if (!latest || !isUsableCsvObject(latest)) {
+    if (!latest) {
       throw new Error(
-        `No non-empty totals CSV found: bucket=${bucket}, prefix=${totalsPrefix}`,
+        `No non-empty timestamped totals CSV found: bucket=${bucket}, prefix=${totalsPrefix}`,
       );
     }
 
-    return buildObjectDescriptor({ bucket, region, object: latest });
+    return buildObjectDescriptor({ bucket, region, candidate: latest });
   };
 
 const readBodyWithinLimit = async (

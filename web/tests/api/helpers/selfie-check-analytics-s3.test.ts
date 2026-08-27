@@ -47,9 +47,10 @@ const descriptor = (
 ): TableObjectDescriptor => ({
   bucket,
   region,
-  key: "total/2026-08-26T21:00:00Z.csv",
+  key: "totals/data_20260826_210000.csv",
   etag: '"etag-list"',
-  identity: 'total/2026-08-26T21:00:00Z.csv:"etag-list"',
+  identity: 'totals/data_20260826_210000.csv:"etag-list"',
+  dataAsOf: new Date("2026-08-26T21:00:00.000Z"),
   lastModified: new Date("2026-08-26T21:01:00.000Z"),
   sizeBytes: 100,
   ...overrides,
@@ -60,7 +61,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   process.env.SELFIE_CHECK_ANALYTICS_S3_BUCKET_NAME = bucket;
   process.env.SELFIE_CHECK_ANALYTICS_S3_REGION = region;
-  process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX = "total/";
+  process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX = "totals/";
 });
 
 afterAll(() => {
@@ -81,19 +82,21 @@ describe("findLatestTotalsObject", () => {
       .mockResolvedValueOnce({
         Contents: [
           {
-            Key: "total/readme.txt",
+            Key: "totals/readme.txt",
             LastModified: new Date("2026-08-26T23:00:00.000Z"),
             Size: 10,
           },
           {
-            Key: "total/empty.csv",
+            Key: "totals/data_20260826_225211.csv",
             LastModified: new Date("2026-08-26T22:00:00.000Z"),
             Size: 0,
           },
           {
-            Key: "total/older.csv",
+            Key: "totals/data_20260826_235231.csv",
             ETag: '"older"',
-            LastModified: new Date("2026-08-26T20:00:00.000Z"),
+            // This was uploaded later than the newest dataset. Selection must
+            // use the filename's dataset time, not S3 LastModified.
+            LastModified: new Date("2026-08-27T03:00:00.000Z"),
             Size: 50,
           },
         ],
@@ -103,9 +106,9 @@ describe("findLatestTotalsObject", () => {
       .mockResolvedValueOnce({
         Contents: [
           {
-            Key: "total/latest.csv",
+            Key: "totals/data_20260827_015233.csv",
             ETag: '"latest"',
-            LastModified: new Date("2026-08-26T21:00:00.000Z"),
+            LastModified: new Date("2026-08-27T02:00:00.000Z"),
             Size: 75,
           },
         ],
@@ -115,10 +118,11 @@ describe("findLatestTotalsObject", () => {
     await expect(findLatestTotalsObject()).resolves.toEqual({
       bucket,
       region,
-      key: "total/latest.csv",
+      key: "totals/data_20260827_015233.csv",
       etag: '"latest"',
-      identity: 'total/latest.csv:"latest"',
-      lastModified: new Date("2026-08-26T21:00:00.000Z"),
+      identity: 'totals/data_20260827_015233.csv:"latest"',
+      dataAsOf: new Date("2026-08-27T01:52:33.000Z"),
+      lastModified: new Date("2026-08-27T02:00:00.000Z"),
       sizeBytes: 75,
     });
 
@@ -127,34 +131,66 @@ describe("findLatestTotalsObject", () => {
       command: "ListObjectsV2",
       input: {
         Bucket: bucket,
-        Prefix: "total/",
+        Prefix: "totals/",
         ContinuationToken: "page-2",
       },
     });
   });
 
-  it("uses the object key as a deterministic tie-breaker", async () => {
-    const timestamp = new Date("2026-08-26T21:00:00.000Z");
+  it("ignores filenames with invalid timestamps", async () => {
     s3SendMock.mockResolvedValueOnce({
       Contents: [
-        { Key: "total/a.csv", LastModified: timestamp, Size: 10 },
-        { Key: "total/b.csv", LastModified: timestamp, Size: 10 },
+        {
+          Key: "totals/data_20261399_256199.csv",
+          LastModified: new Date("2026-08-27T03:00:00.000Z"),
+          Size: 10,
+        },
       ],
     });
 
-    const result = await findLatestTotalsObject();
-
-    expect(result.key).toBe("total/b.csv");
+    await expect(findLatestTotalsObject()).rejects.toThrow(
+      "No non-empty timestamped totals CSV found",
+    );
   });
 
   it("fails explicitly when no usable totals CSV exists", async () => {
     s3SendMock.mockResolvedValueOnce({
-      Contents: [{ Key: "total/empty.csv", Size: 0 }],
+      Contents: [
+        {
+          Key: "totals/data_20260827_015233.csv",
+          LastModified: new Date("2026-08-27T02:00:00.000Z"),
+          Size: 0,
+        },
+      ],
     });
 
     await expect(findLatestTotalsObject()).rejects.toThrow(
-      "No non-empty totals CSV found",
+      "No non-empty timestamped totals CSV found",
     );
+  });
+
+  it("uses the totals directory as the default prefix", async () => {
+    delete process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX;
+    s3SendMock.mockResolvedValueOnce({
+      Contents: [
+        {
+          Key: "totals/data_20260827_015233.csv",
+          LastModified: new Date("2026-08-27T02:00:00.000Z"),
+          Size: 10,
+        },
+      ],
+    });
+
+    await findLatestTotalsObject();
+
+    expect(s3SendMock.mock.calls[0][0]).toEqual({
+      command: "ListObjectsV2",
+      input: {
+        Bucket: bucket,
+        Prefix: "totals/",
+        ContinuationToken: undefined,
+      },
+    });
   });
 
   it("fails when a truncated response omits its continuation token", async () => {
@@ -181,7 +217,7 @@ describe("findLatestTotalsObject", () => {
     s3SendMock.mockRejectedValueOnce(new Error("AccessDenied"));
 
     await expect(findLatestTotalsObject()).rejects.toThrow(
-      `Failed to list S3 totals objects: bucket=${bucket}, prefix=total/`,
+      `Failed to list S3 totals objects: bucket=${bucket}, prefix=totals/`,
     );
   });
 });
@@ -204,7 +240,7 @@ describe("downloadTotalsCsv", () => {
       command: "GetObject",
       input: {
         Bucket: bucket,
-        Key: "total/2026-08-26T21:00:00Z.csv",
+        Key: "totals/data_20260826_210000.csv",
         IfMatch: '"etag-list"',
       },
     });
@@ -212,7 +248,7 @@ describe("downloadTotalsCsv", () => {
     expect(result.object).toEqual(
       expect.objectContaining({
         etag: '"etag-get"',
-        identity: 'total/2026-08-26T21:00:00Z.csv:"etag-get"',
+        identity: 'totals/data_20260826_210000.csv:"etag-get"',
         sizeBytes: Buffer.byteLength(body),
       }),
     );
@@ -258,7 +294,7 @@ describe("downloadTotalsCsv", () => {
     s3SendMock.mockRejectedValueOnce(new Error("NoSuchKey"));
 
     await expect(downloadTotalsCsv(descriptor())).rejects.toThrow(
-      `Failed to download S3 totals object: bucket=${bucket}, key=total/2026-08-26T21:00:00Z.csv`,
+      `Failed to download S3 totals object: bucket=${bucket}, key=totals/data_20260826_210000.csv`,
     );
   });
 });
