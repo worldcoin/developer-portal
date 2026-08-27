@@ -1,0 +1,105 @@
+mutation ClaimReviewSubmission(
+  $submission_id: uuid!
+  $expected_review_version: Int!
+  $actor_subject: String!
+  $actor_email: String!
+) {
+  reviewer_claim_app_review_submission(
+    args: {
+      p_submission_id: $submission_id
+      p_expected_review_version: $expected_review_version
+      p_actor_subject: $actor_subject
+      p_actor_email: $actor_email
+    }
+  ) {
+    id
+    status
+    review_version
+    claim_token
+    claim_expires_at
+    checklist_version
+    checklist
+  }
+}
+
+mutation HeartbeatReviewSubmission(
+  $submission_id: uuid!
+  $claim_token: uuid!
+  $expected_review_version: Int!
+  $actor_subject: String!
+  $actor_email: String!
+) {
+  reviewer_heartbeat_app_review_submission(
+    args: {
+      p_submission_id: $submission_id
+      p_claim_token: $claim_token
+      p_expected_review_version: $expected_review_version
+      p_actor_subject: $actor_subject
+      p_actor_email: $actor_email
+    }
+  ) {
+    id
+    status
+    review_version
+    claim_token
+    claim_expires_at
+    checklist_version
+    checklist
+  }
+}
+
+mutation ReleaseReviewSubmission(
+  $submission_id: uuid!
+  $claim_token: uuid!
+  $expected_review_version: Int!
+  $actor_subject: String!
+  $actor_email: String!
+) {
+  reviewer_release_app_review_submission(
+    args: {
+      p_submission_id: $submission_id
+      p_claim_token: $claim_token
+      p_expected_review_version: $expected_review_version
+      p_actor_subject: $actor_subject
+      p_actor_email: $actor_email
+    }
+  ) {
+    id
+    status
+    review_version
+    claim_token
+    claim_expires_at
+    checklist_version
+    checklist
+  }
+}
+
+mutation SaveReviewChecklist(
+  $submission_id: uuid!
+  $claim_token: uuid!
+  $expected_review_version: Int!
+  $checklist_version: String!
+  $checklist: jsonb!
+  $actor_subject: String!
+  $actor_email: String!
+) {
+  reviewer_save_app_review_checklist(
+    args: {
+      p_submission_id: $submission_id
+      p_claim_token: $claim_token
+      p_expected_review_version: $expected_review_version
+      p_checklist_version: $checklist_version
+      p_checklist: $checklist
+      p_actor_subject: $actor_subject
+      p_actor_email: $actor_email
+    }
+  ) {
+    id
+    status
+    review_version
+    claim_token
+    claim_expires_at
+    checklist_version
+    checklist
+  }
+}

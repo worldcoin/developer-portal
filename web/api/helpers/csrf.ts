@@ -12,6 +12,41 @@ const toOrigin = (value: string | undefined): string | undefined => {
   }
 };
 
+const effectiveRequestOrigin = (req: NextRequest): string | null => {
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const rawHost =
+    forwardedHost?.split(",")[0]?.trim() || req.headers.get("host");
+  const forwardedProtocol = req.headers.get("x-forwarded-proto");
+  const protocol =
+    forwardedProtocol?.split(",")[0]?.trim().toLowerCase() ||
+    req.nextUrl.protocol.slice(0, -1).toLowerCase();
+
+  if (!rawHost || (protocol !== "http" && protocol !== "https")) return null;
+
+  try {
+    return new URL(`${protocol}://${rawHost}`).origin.toLowerCase();
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Strict Origin/Host comparison for privileged JSON APIs. The proxy-normalized
+ * first forwarded host is authoritative when present.
+ */
+export const isOriginSameAsEffectiveHost = (req: NextRequest): boolean => {
+  const origin = req.headers.get("origin");
+  const effectiveOrigin = effectiveRequestOrigin(req);
+
+  if (!origin || !effectiveOrigin) return false;
+
+  try {
+    return new URL(origin).origin.toLowerCase() === effectiveOrigin;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Cross-site request guard for cookie-authenticated, state-changing endpoints.
  *

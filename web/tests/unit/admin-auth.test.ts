@@ -182,10 +182,13 @@ describe("admin API route guardrail", () => {
     );
 
     const unguardedRouteFiles = adminApiRouteFiles
-      .filter(
-        (routeFile) =>
-          !readFileSync(routeFile, "utf8").includes("authenticateAdminRequest"),
-      )
+      .filter((routeFile) => {
+        const contents = readFileSync(routeFile, "utf8");
+        return (
+          !contents.includes("authenticateAdminRequest") &&
+          !contents.includes("authenticateReviewerApiRequest")
+        );
+      })
       .map((routeFile) => relative(process.cwd(), routeFile));
 
     expect(unguardedRouteFiles).toEqual([]);

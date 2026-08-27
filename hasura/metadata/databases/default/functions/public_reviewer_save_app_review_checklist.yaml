@@ -1,0 +1,8 @@
+function:
+  name: reviewer_save_app_review_checklist
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: service

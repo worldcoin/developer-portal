@@ -4454,7 +4454,12 @@ export type App_Review_Submission = {
   __typename?: "app_review_submission";
   app_metadata_id: Scalars["String"]["output"];
   attempt: Scalars["Int"]["output"];
+  checklist: Scalars["jsonb"]["output"];
+  checklist_version?: Maybe<Scalars["String"]["output"]>;
+  claim_expires_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  claim_token?: Maybe<Scalars["uuid"]["output"]>;
   id: Scalars["uuid"]["output"];
+  review_version: Scalars["Int"]["output"];
   status: Scalars["String"]["output"];
 };
 
@@ -7048,6 +7053,10 @@ export type Mutation_Root = {
   reset_client_secret?: Maybe<ResetClientOutput>;
   /** Retry RP registration sync for a specific environment */
   retry_rp?: Maybe<RetryRpOutput>;
+  reviewer_claim_app_review_submission: Array<App_Review_Submission>;
+  reviewer_heartbeat_app_review_submission: Array<App_Review_Submission>;
+  reviewer_release_app_review_submission: Array<App_Review_Submission>;
+  reviewer_save_app_review_checklist: Array<App_Review_Submission>;
   /** execute VOLATILE function "rollup_app_stats" which returns "app_stats" */
   rollup_app_stats: Array<App_Stats>;
   /** Rotate the signer key for an RP (Relying Party) */
@@ -8043,6 +8052,26 @@ export type Mutation_RootReset_Client_SecretArgs = {
 export type Mutation_RootRetry_RpArgs = {
   environment: Scalars["String"]["input"];
   rp_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootReviewer_Claim_App_Review_SubmissionArgs = {
+  args: Reviewer_Claim_App_Review_Submission_Args;
+};
+
+/** mutation root */
+export type Mutation_RootReviewer_Heartbeat_App_Review_SubmissionArgs = {
+  args: Reviewer_Heartbeat_App_Review_Submission_Args;
+};
+
+/** mutation root */
+export type Mutation_RootReviewer_Release_App_Review_SubmissionArgs = {
+  args: Reviewer_Release_App_Review_Submission_Args;
+};
+
+/** mutation root */
+export type Mutation_RootReviewer_Save_App_Review_ChecklistArgs = {
+  args: Reviewer_Save_App_Review_Checklist_Args;
 };
 
 /** mutation root */
@@ -11097,6 +11126,39 @@ export type Review_Status_Enum_Comparison_Exp = {
   _lte?: InputMaybe<Scalars["review_status_enum"]["input"]>;
   _neq?: InputMaybe<Scalars["review_status_enum"]["input"]>;
   _nin?: InputMaybe<Array<Scalars["review_status_enum"]["input"]>>;
+};
+
+export type Reviewer_Claim_App_Review_Submission_Args = {
+  p_actor_email: Scalars["String"]["input"];
+  p_actor_subject: Scalars["String"]["input"];
+  p_expected_review_version: Scalars["Int"]["input"];
+  p_submission_id: Scalars["uuid"]["input"];
+};
+
+export type Reviewer_Heartbeat_App_Review_Submission_Args = {
+  p_actor_email: Scalars["String"]["input"];
+  p_actor_subject: Scalars["String"]["input"];
+  p_claim_token: Scalars["uuid"]["input"];
+  p_expected_review_version: Scalars["Int"]["input"];
+  p_submission_id: Scalars["uuid"]["input"];
+};
+
+export type Reviewer_Release_App_Review_Submission_Args = {
+  p_actor_email: Scalars["String"]["input"];
+  p_actor_subject: Scalars["String"]["input"];
+  p_claim_token: Scalars["uuid"]["input"];
+  p_expected_review_version: Scalars["Int"]["input"];
+  p_submission_id: Scalars["uuid"]["input"];
+};
+
+export type Reviewer_Save_App_Review_Checklist_Args = {
+  p_actor_email: Scalars["String"]["input"];
+  p_actor_subject: Scalars["String"]["input"];
+  p_checklist: Scalars["jsonb"]["input"];
+  p_checklist_version: Scalars["String"]["input"];
+  p_claim_token: Scalars["uuid"]["input"];
+  p_expected_review_version: Scalars["Int"]["input"];
+  p_submission_id: Scalars["uuid"]["input"];
 };
 
 /** columns and relationships of "role" */
