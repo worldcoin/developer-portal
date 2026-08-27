@@ -6,7 +6,7 @@ import { parse } from "csv-parse/sync";
 import {
   downloadTotalsCsv,
   findLatestTotalsObject,
-  type TotalsObjectDescriptor,
+  type TableObjectDescriptor,
 } from "./s3";
 
 const APP_ID_COLUMNS = ["PARTNER_APP_ID", "APP_ID"] as const;
@@ -20,17 +20,17 @@ const MAX_RECORD_BYTES = 1024 * 1024;
 const SNAPSHOT_CHECK_INTERVAL_MS = 60 * 60 * 1000;
 const REFRESH_FAILURE_RETRY_MS = 60_000;
 
-export type TotalsRow = Readonly<{
+export type TableRow = Readonly<{
   appId: string;
   metrics: Readonly<Record<string, number | null>>;
 }>;
 
-export type ParsedTotalsCsv = Readonly<{
+export type ParsedTable = Readonly<{
   headers: readonly string[];
-  rowsByAppId: ReadonlyMap<string, TotalsRow>;
+  records: ReadonlyMap<string, TableRow>;
 }>;
 
-export type TotalsSnapshot = ParsedTotalsCsv &
+export type TableSnapshot = ParsedTable &
   Readonly<{
     isFallback: boolean;
     loadedAt: string;
@@ -44,15 +44,15 @@ export type TotalsSnapshot = ParsedTotalsCsv &
     }>;
   }>;
 
-type CachedTotalsSnapshot = ParsedTotalsCsv & {
+type CachedTable = ParsedTable & {
   loadedAtMs: number;
-  source: TotalsObjectDescriptor;
+  source: TableObjectDescriptor;
 };
 
-export class TotalsCsvValidationError extends Error {
+export class TableCsvValidationError extends Error {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
-    this.name = "TotalsCsvValidationError";
+    this.name = "TableCsvValidationError";
   }
 }
 
@@ -71,20 +71,20 @@ const parseMetricValue = ({
   if (value === "") return null;
 
   if (!NON_NEGATIVE_NUMBER_PATTERN.test(value)) {
-    throw new TotalsCsvValidationError(
+    throw new TableCsvValidationError(
       `Totals CSV row ${rowNumber}, column ${column} is not a non-negative number.`,
     );
   }
 
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) {
-    throw new TotalsCsvValidationError(
+    throw new TableCsvValidationError(
       `Totals CSV row ${rowNumber}, column ${column} is not finite.`,
     );
   }
 
   if (Number.isInteger(parsed) && !Number.isSafeInteger(parsed)) {
-    throw new TotalsCsvValidationError(
+    throw new TableCsvValidationError(
       `Totals CSV row ${rowNumber}, column ${column} exceeds JavaScript's safe integer range.`,
     );
   }
@@ -94,11 +94,11 @@ const parseMetricValue = ({
 
 const validateHeaders = (rawHeaders: string[]) => {
   if (rawHeaders.length === 0) {
-    throw new TotalsCsvValidationError("Totals CSV has no header row.");
+    throw new TableCsvValidationError("Totals CSV has no header row.");
   }
 
   if (rawHeaders.length > MAX_COLUMNS) {
-    throw new TotalsCsvValidationError(
+    throw new TableCsvValidationError(
       `Totals CSV has ${rawHeaders.length} columns; maximum is ${MAX_COLUMNS}.`,
     );
   }
@@ -108,13 +108,13 @@ const validateHeaders = (rawHeaders: string[]) => {
 
   for (const header of headers) {
     if (!HEADER_PATTERN.test(header)) {
-      throw new TotalsCsvValidationError(
+      throw new TableCsvValidationError(
         `Totals CSV contains an invalid header: ${JSON.stringify(header)}.`,
       );
     }
 
     if (seen.has(header)) {
-      throw new TotalsCsvValidationError(
+      throw new TableCsvValidationError(
         `Totals CSV contains a duplicate header: ${header}.`,
       );
     }
@@ -123,7 +123,7 @@ const validateHeaders = (rawHeaders: string[]) => {
 
   const appIdColumn = APP_ID_COLUMNS.find((column) => seen.has(column));
   if (!appIdColumn) {
-    throw new TotalsCsvValidationError(
+    throw new TableCsvValidationError(
       `Totals CSV must contain one of: ${APP_ID_COLUMNS.join(", ")}.`,
     );
   }
@@ -131,12 +131,12 @@ const validateHeaders = (rawHeaders: string[]) => {
   return { appIdColumn, headers };
 };
 
-/** Parses the complete totals snapshot and indexes its unique app rows. */
-export const parseTotalsCsv = (csv: string): ParsedTotalsCsv => {
-  let records: string[][];
+/** Parses a metrics table CSV and indexes unique rows by app ID. */
+export const parseMetricsTable = (csv: string): ParsedTable => {
+  let csvRecords: string[][];
 
   try {
-    records = parse(csv, {
+    csvRecords = parse(csv, {
       bom: true,
       max_record_size: MAX_RECORD_BYTES,
       relax_column_count: false,
@@ -144,29 +144,29 @@ export const parseTotalsCsv = (csv: string): ParsedTotalsCsv => {
       trim: true,
     }) as string[][];
   } catch (error) {
-    throw new TotalsCsvValidationError("Unable to parse totals CSV.", {
+    throw new TableCsvValidationError("Unable to parse totals CSV.", {
       cause: error,
     });
   }
 
-  const [rawHeaders, ...dataRows] = records;
+  const [rawHeaders, ...dataRows] = csvRecords;
   if (!rawHeaders) {
-    throw new TotalsCsvValidationError("Totals CSV has no header row.");
+    throw new TableCsvValidationError("Totals CSV has no header row.");
   }
 
   const { appIdColumn, headers } = validateHeaders(rawHeaders);
   if (dataRows.length > MAX_TOTAL_ROWS) {
-    throw new TotalsCsvValidationError(
+    throw new TableCsvValidationError(
       `Totals CSV has ${dataRows.length} rows; maximum is ${MAX_TOTAL_ROWS}.`,
     );
   }
 
   const appIdIndex = headers.indexOf(appIdColumn);
-  const rowsByAppId = new Map<string, TotalsRow>();
+  const records = new Map<string, TableRow>();
 
   dataRows.forEach((record, rowIndex) => {
     if (record.length !== headers.length) {
-      throw new TotalsCsvValidationError(
+      throw new TableCsvValidationError(
         `Totals CSV row ${rowIndex + 2} has ${record.length} fields; expected ${headers.length}.`,
       );
     }
@@ -175,7 +175,7 @@ export const parseTotalsCsv = (csv: string): ParsedTotalsCsv => {
     headers.forEach((header, columnIndex) => {
       const value = record[columnIndex] ?? "";
       if (value.length > MAX_FIELD_CHARACTERS) {
-        throw new TotalsCsvValidationError(
+        throw new TableCsvValidationError(
           `Totals CSV row ${rowIndex + 2}, column ${header} exceeds ` +
             `${MAX_FIELD_CHARACTERS} characters.`,
         );
@@ -191,18 +191,18 @@ export const parseTotalsCsv = (csv: string): ParsedTotalsCsv => {
 
     const appId = record[appIdIndex] ?? "";
     if (!appIdRegex.test(appId)) {
-      throw new TotalsCsvValidationError(
+      throw new TableCsvValidationError(
         `Totals CSV row ${rowIndex + 2} has an invalid app ID.`,
       );
     }
 
-    if (rowsByAppId.has(appId)) {
-      throw new TotalsCsvValidationError(
+    if (records.has(appId)) {
+      throw new TableCsvValidationError(
         `Totals CSV contains a duplicate app ID: ${appId}.`,
       );
     }
 
-    rowsByAppId.set(
+    records.set(
       appId,
       Object.freeze({
         appId,
@@ -213,54 +213,54 @@ export const parseTotalsCsv = (csv: string): ParsedTotalsCsv => {
 
   return {
     headers: Object.freeze(headers),
-    rowsByAppId,
+    records,
   };
 };
 
-let cachedSnapshot: CachedTotalsSnapshot | null = null;
-let pendingRefresh: Promise<TotalsSnapshot> | null = null;
+let cachedTable: CachedTable | null = null;
+let pendingRefresh: Promise<TableSnapshot> | null = null;
 let nextSnapshotCheckAt = 0;
 let lastSnapshotCheckAt = 0;
 let lastRefreshFailed = false;
 let lastRefreshError: unknown = null;
 
-const toPublicSnapshot = (snapshot: CachedTotalsSnapshot): TotalsSnapshot => ({
-  headers: snapshot.headers,
-  rowsByAppId: snapshot.rowsByAppId,
+const toPublicTableSnapshot = (table: CachedTable): TableSnapshot => ({
+  headers: table.headers,
+  records: table.records,
   isFallback: lastRefreshFailed,
-  loadedAt: new Date(snapshot.loadedAtMs).toISOString(),
+  loadedAt: new Date(table.loadedAtMs).toISOString(),
   lastCheckedAt: new Date(lastSnapshotCheckAt).toISOString(),
   source: {
-    etag: snapshot.source.etag,
-    identity: snapshot.source.identity,
-    key: snapshot.source.key,
-    lastModified: snapshot.source.lastModified.toISOString(),
-    sizeBytes: snapshot.source.sizeBytes,
+    etag: table.source.etag,
+    identity: table.source.identity,
+    key: table.source.key,
+    lastModified: table.source.lastModified.toISOString(),
+    sizeBytes: table.source.sizeBytes,
   },
 });
 
-const refreshTotalsSnapshot = async (): Promise<TotalsSnapshot> => {
+const refreshTableSnapshot = async (): Promise<TableSnapshot> => {
   const checkStartedAt = Date.now();
 
   try {
     const latestObject = await findLatestTotalsObject();
 
-    if (cachedSnapshot?.source.identity === latestObject.identity) {
-      cachedSnapshot = { ...cachedSnapshot, source: latestObject };
+    if (cachedTable?.source.identity === latestObject.identity) {
+      cachedTable = { ...cachedTable, source: latestObject };
       lastSnapshotCheckAt = Date.now();
       nextSnapshotCheckAt = lastSnapshotCheckAt + SNAPSHOT_CHECK_INTERVAL_MS;
       lastRefreshFailed = false;
       lastRefreshError = null;
-      return toPublicSnapshot(cachedSnapshot);
+      return toPublicTableSnapshot(cachedTable);
     }
 
     const downloaded = await downloadTotalsCsv(latestObject);
-    const parsed = parseTotalsCsv(downloaded.csv);
+    const parsed = parseMetricsTable(downloaded.csv);
     const loadedAtMs = Date.now();
 
-    // Replace the cache only after the complete new snapshot has downloaded and
+    // Replace the cache only after the complete new table has downloaded and
     // passed validation. Concurrent readers keep the previous verified map.
-    cachedSnapshot = {
+    cachedTable = {
       ...parsed,
       loadedAtMs,
       source: downloaded.object,
@@ -269,14 +269,14 @@ const refreshTotalsSnapshot = async (): Promise<TotalsSnapshot> => {
     nextSnapshotCheckAt = loadedAtMs + SNAPSHOT_CHECK_INTERVAL_MS;
     lastRefreshFailed = false;
     lastRefreshError = null;
-    return toPublicSnapshot(cachedSnapshot);
+    return toPublicTableSnapshot(cachedTable);
   } catch (error) {
     lastSnapshotCheckAt = Date.now();
     nextSnapshotCheckAt = lastSnapshotCheckAt + REFRESH_FAILURE_RETRY_MS;
     lastRefreshFailed = true;
     lastRefreshError = error;
 
-    if (!cachedSnapshot) throw error;
+    if (!cachedTable) throw error;
 
     logger.warn(
       "Failed to refresh selfie-check analytics totals; serving the last verified snapshot",
@@ -286,29 +286,29 @@ const refreshTotalsSnapshot = async (): Promise<TotalsSnapshot> => {
         failureClass:
           error instanceof Error ? error.name : "UnknownRefreshError",
         refreshDurationMs: Date.now() - checkStartedAt,
-        sourceKey: cachedSnapshot.source.key,
+        sourceKey: cachedTable.source.key,
         error,
       },
     );
 
-    return toPublicSnapshot(cachedSnapshot);
+    return toPublicTableSnapshot(cachedTable);
   }
 };
 
 /**
- * Returns the latest verified totals map.
+ * Returns the latest verified metrics table.
  *
  * An hourly discovery TTL avoids listing S3 on every request, while pendingRefresh
  * deduplicates concurrent refreshes within an ECS process. A failed refresh
  * never replaces valid cached data.
  */
-export const loadLatestTotalsSnapshot = async ({
+export const loadLatestTableSnapshot = async ({
   forceRefresh = false,
 }: {
   forceRefresh?: boolean;
-} = {}): Promise<TotalsSnapshot> => {
+} = {}): Promise<TableSnapshot> => {
   if (
-    !cachedSnapshot &&
+    !cachedTable &&
     !forceRefresh &&
     lastRefreshError &&
     Date.now() < nextSnapshotCheckAt
@@ -316,13 +316,13 @@ export const loadLatestTotalsSnapshot = async ({
     throw lastRefreshError;
   }
 
-  if (cachedSnapshot && !forceRefresh && Date.now() < nextSnapshotCheckAt) {
-    return toPublicSnapshot(cachedSnapshot);
+  if (cachedTable && !forceRefresh && Date.now() < nextSnapshotCheckAt) {
+    return toPublicTableSnapshot(cachedTable);
   }
 
   if (pendingRefresh) return pendingRefresh;
 
-  pendingRefresh = refreshTotalsSnapshot().finally(() => {
+  pendingRefresh = refreshTableSnapshot().finally(() => {
     pendingRefresh = null;
   });
 
@@ -330,8 +330,8 @@ export const loadLatestTotalsSnapshot = async ({
 };
 
 /** Clears process-local state, primarily for tests and explicit invalidation. */
-export const clearTotalsSnapshotCache = () => {
-  cachedSnapshot = null;
+export const clearTableCache = () => {
+  cachedTable = null;
   pendingRefresh = null;
   nextSnapshotCheckAt = 0;
   lastSnapshotCheckAt = 0;

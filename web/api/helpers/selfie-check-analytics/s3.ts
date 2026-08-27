@@ -17,7 +17,7 @@ const MAX_TOTALS_CSV_BYTES = 25 * 1024 * 1024;
 type ListedObject = NonNullable<ListObjectsV2Output["Contents"]>[number];
 type GetObjectBody = NonNullable<GetObjectCommandOutput["Body"]>;
 
-export type TotalsObjectDescriptor = {
+export type TableObjectDescriptor = {
   bucket: string;
   region: string;
   key: string;
@@ -27,9 +27,9 @@ export type TotalsObjectDescriptor = {
   sizeBytes: number;
 };
 
-export type DownloadedTotalsCsv = {
+export type DownloadedTableCsv = {
   csv: string;
-  object: TotalsObjectDescriptor;
+  object: TableObjectDescriptor;
 };
 
 export class AnalyticsS3ConfigurationError extends Error {
@@ -120,7 +120,7 @@ const buildObjectDescriptor = ({
     LastModified: Date;
     Size: number;
   };
-}): TotalsObjectDescriptor => {
+}): TableObjectDescriptor => {
   const revision =
     object.ETag ?? `${object.LastModified.toISOString()}:${object.Size}`;
 
@@ -143,7 +143,7 @@ const buildObjectDescriptor = ({
  * explicitly instead of turning a request into unbounded listing work.
  */
 export const findLatestTotalsObject =
-  async (): Promise<TotalsObjectDescriptor> => {
+  async (): Promise<TableObjectDescriptor> => {
     const { bucket, region, totalsPrefix } = getAnalyticsS3Config();
     const client = getAnalyticsS3Client(region);
 
@@ -233,8 +233,8 @@ const readBodyWithinLimit = async (
 
 /** Downloads a previously discovered totals object with a bounded body size. */
 export const downloadTotalsCsv = async (
-  descriptor: TotalsObjectDescriptor,
-): Promise<DownloadedTotalsCsv> => {
+  descriptor: TableObjectDescriptor,
+): Promise<DownloadedTableCsv> => {
   if (descriptor.sizeBytes > MAX_TOTALS_CSV_BYTES) {
     throw new AnalyticsS3ObjectTooLargeError(
       `Totals CSV exceeds the ${MAX_TOTALS_CSV_BYTES}-byte limit: ` +
