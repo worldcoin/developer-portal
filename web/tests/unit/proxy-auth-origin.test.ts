@@ -279,6 +279,27 @@ describe("proxy [admin pages]", () => {
     expect(hasAdminAuthenticationEvidence).toHaveBeenCalledWith(req.headers);
   });
 
+  it("normalizes dashboard forwarded headers before passing an admin API request", async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = DASHBOARD_HOST;
+    hasAdminAuthenticationEvidence.mockReturnValue(true);
+    const req = new NextRequest(`${CANONICAL}/api/admin/me`, {
+      headers: {
+        "x-forwarded-host": `${DASHBOARD_HOST}:80, attacker.example`,
+        "x-forwarded-proto": "http, https",
+      },
+    });
+
+    const res = await proxy(req);
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("x-middleware-request-x-forwarded-host")).toBe(
+      DASHBOARD_HOST,
+    );
+    expect(res.headers.get("x-middleware-request-x-forwarded-proto")).toBe(
+      "https",
+    );
+  });
+
   it("rejects admin paths outside the configured dashboard host", async () => {
     process.env.INTERNAL_DASHBOARD_HOST = DASHBOARD_HOST;
     hasAdminAuthenticationEvidence.mockReturnValue(true);

@@ -12,31 +12,37 @@ const toOrigin = (value: string | undefined): string | undefined => {
   }
 };
 
-const effectiveRequestOrigin = (req: NextRequest): string | null => {
-  const forwardedHost = req.headers.get("x-forwarded-host");
-  const rawHost =
-    forwardedHost?.split(",")[0]?.trim() || req.headers.get("host");
-  const forwardedProtocol = req.headers.get("x-forwarded-proto");
-  const protocol =
-    forwardedProtocol?.split(",")[0]?.trim().toLowerCase() ||
-    req.nextUrl.protocol.slice(0, -1).toLowerCase();
-
-  if (!rawHost || (protocol !== "http" && protocol !== "https")) return null;
-
+const reviewerRequestOrigin = (req: NextRequest): string | null => {
+  const dashboardHost = process.env.INTERNAL_DASHBOARD_HOST?.trim();
   try {
-    return new URL(`${protocol}://${rawHost}`).origin.toLowerCase();
+    if (dashboardHost) {
+      if (dashboardHost.includes(",") || dashboardHost.includes("://")) {
+        return null;
+      }
+      return new URL(`https://${dashboardHost}`).origin.toLowerCase();
+    }
+
+    if (
+      process.env.NODE_ENV !== "development" &&
+      process.env.NODE_ENV !== "test"
+    ) {
+      return null;
+    }
+
+    return req.nextUrl.origin.toLowerCase();
   } catch {
     return null;
   }
 };
 
 /**
- * Strict Origin/Host comparison for privileged JSON APIs. The proxy-normalized
- * first forwarded host is authoritative when present.
+ * Strict Origin comparison for privileged JSON APIs. Staging/production use
+ * the configured HTTPS dashboard host, ignoring caller-controlled forwarding
+ * headers. Local development falls back to the parsed request URL.
  */
 export const isOriginSameAsEffectiveHost = (req: NextRequest): boolean => {
   const origin = req.headers.get("origin");
-  const effectiveOrigin = effectiveRequestOrigin(req);
+  const effectiveOrigin = reviewerRequestOrigin(req);
 
   if (!origin || !effectiveOrigin) return false;
 

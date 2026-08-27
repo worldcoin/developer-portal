@@ -2,6 +2,9 @@ import { NextRequest } from "next/server";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_GRAPHQL_INT = 2_147_483_647;
+const MAX_REQUEST_JSON_BYTES = 256 * 1024;
+const MAX_CHECKLIST_ITEMS = 200;
 
 type ClaimedWriteBody = {
   claimToken: string;
@@ -34,7 +37,10 @@ const hasOnlyKeys = (
 ) => Object.keys(value).every((key) => expectedKeys.includes(key));
 
 const isPositiveInteger = (value: unknown): value is number =>
-  Number.isSafeInteger(value) && typeof value === "number" && value > 0;
+  Number.isSafeInteger(value) &&
+  typeof value === "number" &&
+  value > 0 &&
+  value <= MAX_GRAPHQL_INT;
 
 const isBoundedString = (
   value: unknown,
@@ -50,8 +56,25 @@ export const isUuid = (value: string): boolean => UUID_PATTERN.test(value);
 const readJsonObject = async (
   req: NextRequest,
 ): Promise<Record<string, unknown> | null> => {
+  const contentLength = req.headers.get("content-length");
+  if (contentLength !== null) {
+    if (!/^\d+$/.test(contentLength)) return null;
+
+    const declaredBytes = Number(contentLength);
+    if (
+      !Number.isSafeInteger(declaredBytes) ||
+      declaredBytes > MAX_REQUEST_JSON_BYTES
+    ) {
+      return null;
+    }
+  }
+
   try {
-    const value: unknown = await req.json();
+    const bytes = await req.arrayBuffer();
+    if (bytes.byteLength > MAX_REQUEST_JSON_BYTES) return null;
+
+    const json = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    const value: unknown = JSON.parse(json);
     return isRecord(value) ? value : null;
   } catch {
     return null;
@@ -100,6 +123,7 @@ const readChecklist = (value: unknown): ReviewChecklist | null => {
     !isRecord(value) ||
     !hasOnlyKeys(value, ["items", "internalNotes"]) ||
     !Array.isArray(value.items) ||
+    value.items.length > MAX_CHECKLIST_ITEMS ||
     !isBoundedString(value.internalNotes, 20_000)
   ) {
     return null;

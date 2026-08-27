@@ -276,6 +276,18 @@ const createAdminUnauthorizedResponse = (request: NextRequest) => {
   return NextResponse.redirect(new URL("/unauthorized", request.url));
 };
 
+const createAdminApiResponse = (request: NextRequest) => {
+  const requestHeaders = new Headers(request.headers);
+  const dashboardHost = process.env.INTERNAL_DASHBOARD_HOST;
+
+  if (dashboardHost) {
+    requestHeaders.set("x-forwarded-host", normalizeHost(dashboardHost));
+    requestHeaders.set("x-forwarded-proto", "https");
+  }
+
+  return NextResponse.next({ request: { headers: requestHeaders } });
+};
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -308,7 +320,7 @@ export async function proxy(request: NextRequest) {
       return createSecurityHeadersResponse(request, pathname);
     }
 
-    return NextResponse.next();
+    return createAdminApiResponse(request);
   }
 
   if (pathname === "/") {

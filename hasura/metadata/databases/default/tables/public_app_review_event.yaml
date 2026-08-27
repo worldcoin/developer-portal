@@ -24,6 +24,7 @@ select_permissions:
         - actor_subject
         - created_at
         - event_type
+        - event_sequence
         - id
         - payload
         - review_version
@@ -37,6 +38,7 @@ select_permissions:
         - actor_subject
         - created_at
         - event_type
+        - event_sequence
         - id
         - payload
         - review_version

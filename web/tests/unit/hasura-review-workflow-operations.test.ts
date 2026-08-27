@@ -14,6 +14,10 @@ const functionsPath = path.join(
   repoRoot,
   "hasura/metadata/databases/default/functions",
 );
+const eventMetadataPath = path.join(
+  repoRoot,
+  "hasura/metadata/databases/default/tables/public_app_review_event.yaml",
+);
 
 const readOptional = (filename: string) =>
   existsSync(filename) ? readFileSync(filename, "utf8") : "";
@@ -93,6 +97,34 @@ describe("reviewer workflow database operations", () => {
     expect(migration).toContain("'checklist', saved_submission.checklist");
   });
 
+  it("adds a server-generated unique event sequence for durable history ordering", () => {
+    const eventMetadata = readOptional(eventMetadataPath);
+
+    expect(migration).toContain(
+      'ADD COLUMN "event_sequence" bigint GENERATED ALWAYS AS IDENTITY',
+    );
+    expect(migration).toContain(
+      'CREATE UNIQUE INDEX "app_review_event_event_sequence_unique"',
+    );
+    expect(eventMetadata.match(/- event_sequence/g)).toHaveLength(2);
+
+    const insertPermissions = eventMetadata.slice(
+      eventMetadata.indexOf("insert_permissions:"),
+      eventMetadata.indexOf("select_permissions:"),
+    );
+    expect(insertPermissions).not.toContain("- event_sequence");
+    expect(eventMetadata).not.toContain("update_permissions:");
+    expect(eventMetadata).not.toContain("delete_permissions:");
+  });
+
+  it("inserts expiration before replacement claim for sequence ordering", () => {
+    const expiration = migration.indexOf("'claim_expired'");
+    const replacementClaim = migration.indexOf("'claimed'", expiration);
+
+    expect(expiration).toBeGreaterThan(-1);
+    expect(replacementClaim).toBeGreaterThan(expiration);
+  });
+
   it("tracks all operations as service-only Hasura mutations", () => {
     const functions = readOptional(path.join(functionsPath, "functions.yaml"));
 
@@ -124,5 +156,9 @@ describe("reviewer workflow database operations", () => {
     ]) {
       expect(downMigration).toContain(`DROP FUNCTION public.${functionName}`);
     }
+    expect(downMigration).toContain(
+      'DROP INDEX "public"."app_review_event_event_sequence_unique"',
+    );
+    expect(downMigration).toContain('DROP COLUMN "event_sequence"');
   });
 });

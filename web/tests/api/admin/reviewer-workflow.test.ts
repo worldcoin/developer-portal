@@ -114,6 +114,7 @@ const workflowRow = (overrides: Record<string, unknown> = {}) => ({
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.ADMIN_REVIEWER_PORTAL_ENABLED = "true";
+  delete process.env.INTERNAL_DASHBOARD_HOST;
   authenticateAdminRequest.mockResolvedValue(ADMIN);
   ClaimReviewSubmission.mockResolvedValue({
     reviewer_claim_app_review_submission: [workflowRow()],
@@ -217,7 +218,7 @@ describe("reviewer workflow admin write boundary", () => {
     expect(ClaimReviewSubmission).not.toHaveBeenCalled();
   });
 
-  it("accepts the first effective forwarded host", async () => {
+  it("uses the parsed request origin for local fallback, not forwarded headers", async () => {
     const response = await invoke(
       claim,
       "claim",
@@ -225,11 +226,68 @@ describe("reviewer workflow admin write boundary", () => {
       { expectedReviewVersion: 7 },
       {
         host: "proxy.internal",
-        "x-forwarded-host": "review.example.com, proxy.internal",
+        "x-forwarded-host": "attacker.example, proxy.internal",
+        "x-forwarded-proto": "http, https",
       },
     );
 
     expect(response.status).toBe(200);
+  });
+
+  it("uses the configured HTTPS dashboard origin despite TLS termination headers", async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = "review.example.com";
+
+    const response = await invoke(
+      claim,
+      "claim",
+      "POST",
+      { expectedReviewVersion: 7 },
+      {
+        host: "proxy.internal",
+        "x-forwarded-host": "attacker.example, proxy.internal",
+        "x-forwarded-proto": "http, https",
+        origin: "https://review.example.com",
+      },
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  it("does not let forwarded values authorize another Origin", async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = "review.example.com";
+
+    const response = await invoke(
+      claim,
+      "claim",
+      "POST",
+      { expectedReviewVersion: 7 },
+      {
+        "x-forwarded-host": "attacker.example, review.example.com",
+        "x-forwarded-proto": "https, http",
+        origin: "https://attacker.example",
+      },
+    );
+
+    expect(response.status).toBe(403);
+    expect(ClaimReviewSubmission).not.toHaveBeenCalled();
+  });
+
+  it("normalizes the configured default HTTPS port but rejects a nondefault port", async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = "review.example.com:443";
+
+    const defaultPort = await invoke(claim, "claim", "POST", {
+      expectedReviewVersion: 7,
+    });
+    const nondefaultPort = await invoke(
+      claim,
+      "claim",
+      "POST",
+      { expectedReviewVersion: 7 },
+      { origin: "https://review.example.com:8443" },
+    );
+
+    expect(defaultPort.status).toBe(200);
+    expect(nondefaultPort.status).toBe(403);
   });
 
   it("requires an application/json media type", async () => {
@@ -273,6 +331,26 @@ describe("POST /api/admin/reviewer/submissions/[id]/claim", () => {
       actor_subject: ADMIN.subject,
       actor_email: ADMIN.email,
     });
+  });
+
+  it("accepts the maximum GraphQL Int review version", async () => {
+    const response = await invoke(claim, "claim", "POST", {
+      expectedReviewVersion: 2_147_483_647,
+    });
+
+    expect(response.status).toBe(200);
+    expect(ClaimReviewSubmission).toHaveBeenCalledWith(
+      expect.objectContaining({ expected_review_version: 2_147_483_647 }),
+    );
+  });
+
+  it("rejects a review version above the GraphQL Int range", async () => {
+    const response = await invoke(claim, "claim", "POST", {
+      expectedReviewVersion: 2_147_483_648,
+    });
+
+    expect(response.status).toBe(400);
+    expect(ClaimReviewSubmission).not.toHaveBeenCalled();
   });
 
   it("rejects an invalid review id and unknown or invalid body fields", async () => {
@@ -494,6 +572,62 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
     );
 
     expect(response.status).toBe(409);
+  });
+
+  it("rejects more than 200 checklist items", async () => {
+    const response = await invoke(saveChecklist, "checklist", "PUT", {
+      ...checklistBody,
+      checklist: {
+        ...checklistBody.checklist,
+        items: Array.from({ length: 201 }, (_, index) => ({
+          id: `item-${index}`,
+          status: "pass",
+          evidence: "ok",
+        })),
+      },
+    });
+
+    expect(response.status).toBe(400);
+    expect(SaveReviewChecklist).not.toHaveBeenCalled();
+  });
+
+  it("rejects an actual UTF-8 JSON body larger than 256 KiB", async () => {
+    const request = createRequest(
+      `/api/admin/reviewer/submissions/${REVIEW_ID}/checklist`,
+      "PUT",
+      {
+        ...checklistBody,
+        checklist: {
+          ...checklistBody.checklist,
+          items: Array.from({ length: 27 }, (_, index) => ({
+            id: `item-${index}`,
+            status: "pass",
+            evidence: "é".repeat(5_000),
+          })),
+        },
+      },
+    );
+    request.headers.delete("content-length");
+
+    expect(request.headers.get("content-length")).toBeNull();
+
+    const response = await saveChecklist(request, context());
+
+    expect(response.status).toBe(400);
+    expect(SaveReviewChecklist).not.toHaveBeenCalled();
+  });
+
+  it("rejects an oversized declared Content-Length before mutation", async () => {
+    const response = await invoke(
+      saveChecklist,
+      "checklist",
+      "PUT",
+      checklistBody,
+      { "content-length": String(256 * 1024 + 1) },
+    );
+
+    expect(response.status).toBe(400);
+    expect(SaveReviewChecklist).not.toHaveBeenCalled();
   });
 
   it("does not log a checklist claim token retained by a GraphQL error", async () => {

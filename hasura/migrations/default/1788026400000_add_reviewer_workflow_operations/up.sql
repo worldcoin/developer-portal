@@ -1,3 +1,12 @@
+ALTER TABLE "public"."app_review_event"
+ADD COLUMN "event_sequence" bigint GENERATED ALWAYS AS IDENTITY;
+
+CREATE UNIQUE INDEX "app_review_event_event_sequence_unique"
+ON "public"."app_review_event" ("event_sequence");
+
+COMMENT ON COLUMN "public"."app_review_event"."event_sequence" IS
+'Server-generated monotonic ordering key for immutable review history.';
+
 CREATE OR REPLACE FUNCTION public.reviewer_claim_app_review_submission(
     p_submission_id uuid,
     p_expected_review_version integer,
