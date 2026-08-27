@@ -4,7 +4,6 @@ import { logger } from "@/lib/logger";
 
 const SELFIE_CHECK_ANALYTICS_APPS_PARAMETER =
   "whitelisted-apps/selfie-check-analytics";
-const ALLOWLIST_CACHE_TTL_SECONDS = 60;
 
 const normalizeAppIds = (value: unknown): string[] | null => {
   if (Array.isArray(value)) {
@@ -44,7 +43,6 @@ export const isSelfieCheckAnalyticsEnabledForApp = async (
     value = await parameterStore.getParameter<unknown>(
       SELFIE_CHECK_ANALYTICS_APPS_PARAMETER,
       [],
-      ALLOWLIST_CACHE_TTL_SECONDS,
     );
   } catch (error) {
     logger.warn(
