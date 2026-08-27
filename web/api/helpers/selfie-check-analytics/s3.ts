@@ -8,13 +8,15 @@ import {
   type ListObjectsV2Output,
 } from "@aws-sdk/client-s3";
 
-const DEFAULT_TOTALS_PREFIX = "total/";
+export const TABLE_PREFIXES = ["total/", "daily/"] as const;
+export type TablePrefix = (typeof TABLE_PREFIXES)[number];
+
 const TABLE_FILE_NAME_PATTERN =
   /^data_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})\.csv$/;
 const LIST_TIMEOUT_MS = 5_000;
 const GET_TIMEOUT_MS = 10_000;
 const MAX_LIST_PAGES = 10;
-const MAX_TOTALS_CSV_BYTES = 25 * 1024 * 1024;
+const MAX_CSV_BYTES = 25 * 1024 * 1024;
 
 type ListedObject = NonNullable<ListObjectsV2Output["Contents"]>[number];
 type GetObjectBody = NonNullable<GetObjectCommandOutput["Body"]>;
@@ -52,8 +54,6 @@ export class AnalyticsS3ObjectTooLargeError extends Error {
 const getAnalyticsS3Config = () => {
   const bucket = process.env.SELFIE_CHECK_ANALYTICS_S3_BUCKET_NAME;
   const region = process.env.SELFIE_CHECK_ANALYTICS_S3_REGION;
-  const totalsPrefix =
-    process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX ?? DEFAULT_TOTALS_PREFIX;
 
   if (!bucket) {
     throw new AnalyticsS3ConfigurationError(
@@ -67,7 +67,7 @@ const getAnalyticsS3Config = () => {
     );
   }
 
-  return { bucket, region, totalsPrefix };
+  return { bucket, region };
 };
 
 const clientsByRegion = new Map<string, S3Client>();
@@ -180,74 +180,76 @@ const buildObjectDescriptor = ({
 };
 
 /**
- * Finds the non-empty totals CSV with the newest timestamped filename.
+ * Finds the newest non-empty timestamped CSV under `total/` or `daily/`.
  *
+ * Bucket and region come from env. Prefix is the only call-site variable.
  * S3 lists keys lexicographically rather than by modification time, so every
  * returned page must be inspected. The page cap makes retention mistakes fail
  * explicitly instead of turning a request into unbounded listing work.
  */
-export const findLatestTotalsObject =
-  async (): Promise<TableObjectDescriptor> => {
-    const { bucket, region, totalsPrefix } = getAnalyticsS3Config();
-    const client = getAnalyticsS3Client(region);
+export const listCsv = async (
+  prefix: TablePrefix,
+): Promise<TableObjectDescriptor> => {
+  const { bucket, region } = getAnalyticsS3Config();
+  const client = getAnalyticsS3Client(region);
 
-    let continuationToken: string | undefined;
-    let latest: TableObjectCandidate | undefined;
-    let pageCount = 0;
+  let continuationToken: string | undefined;
+  let latest: TableObjectCandidate | undefined;
+  let pageCount = 0;
 
-    do {
-      pageCount += 1;
-      if (pageCount > MAX_LIST_PAGES) {
-        throw new Error(
-          `S3 totals prefix exceeded the ${MAX_LIST_PAGES}-page listing limit: ` +
-            `bucket=${bucket}, prefix=${totalsPrefix}`,
-        );
-      }
-
-      let page: ListObjectsV2Output;
-      try {
-        page = await client.send(
-          new ListObjectsV2Command({
-            Bucket: bucket,
-            Prefix: totalsPrefix,
-            ContinuationToken: continuationToken,
-          }),
-          { abortSignal: AbortSignal.timeout(LIST_TIMEOUT_MS) },
-        );
-      } catch (error) {
-        throw new Error(
-          `Failed to list S3 totals objects: bucket=${bucket}, prefix=${totalsPrefix}`,
-          { cause: error },
-        );
-      }
-
-      for (const object of page.Contents ?? []) {
-        const candidate = toTableObjectCandidate(object, totalsPrefix);
-        if (candidate && isNewerObject(candidate, latest)) {
-          latest = candidate;
-        }
-      }
-
-      if (page.IsTruncated && !page.NextContinuationToken) {
-        throw new Error(
-          `S3 returned a truncated totals listing without a continuation token: ` +
-            `bucket=${bucket}, prefix=${totalsPrefix}`,
-        );
-      }
-
-      continuationToken = page.IsTruncated
-        ? page.NextContinuationToken
-        : undefined;
-    } while (continuationToken);
-
-    if (!latest) {
+  do {
+    pageCount += 1;
+    if (pageCount > MAX_LIST_PAGES) {
       throw new Error(
-        `No non-empty timestamped totals CSV found: bucket=${bucket}, prefix=${totalsPrefix}`,
+        `S3 prefix exceeded the ${MAX_LIST_PAGES}-page listing limit: ` +
+          `bucket=${bucket}, prefix=${prefix}`,
       );
     }
 
-    return buildObjectDescriptor({ bucket, region, candidate: latest });
-  };
+    let page: ListObjectsV2Output;
+    try {
+      page = await client.send(
+        new ListObjectsV2Command({
+          Bucket: bucket,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+        }),
+        { abortSignal: AbortSignal.timeout(LIST_TIMEOUT_MS) },
+      );
+    } catch (error) {
+      throw new Error(
+        `Failed to list S3 CSV objects: bucket=${bucket}, prefix=${prefix}`,
+        { cause: error },
+      );
+    }
+
+    for (const object of page.Contents ?? []) {
+      const candidate = toTableObjectCandidate(object, prefix);
+      if (candidate && isNewerObject(candidate, latest)) {
+        latest = candidate;
+      }
+    }
+
+    if (page.IsTruncated && !page.NextContinuationToken) {
+      throw new Error(
+        `S3 returned a truncated listing without a continuation token: ` +
+          `bucket=${bucket}, prefix=${prefix}`,
+      );
+    }
+
+    continuationToken = page.IsTruncated
+      ? page.NextContinuationToken
+      : undefined;
+  } while (continuationToken);
+
+  if (!latest) {
+    throw new Error(
+      `No non-empty timestamped CSV found: bucket=${bucket}, prefix=${prefix}`,
+    );
+  }
+
+  return buildObjectDescriptor({ bucket, region, candidate: latest });
+};
 
 const readBodyWithinLimit = async (
   body: GetObjectBody,
@@ -266,7 +268,7 @@ const readBodyWithinLimit = async (
     if (totalBytes > maxBytes) {
       stream.destroy?.();
       throw new AnalyticsS3ObjectTooLargeError(
-        `Totals CSV exceeded the ${maxBytes}-byte download limit.`,
+        `CSV exceeded the ${maxBytes}-byte download limit.`,
       );
     }
 
@@ -276,13 +278,13 @@ const readBodyWithinLimit = async (
   return Buffer.concat(chunks, totalBytes);
 };
 
-/** Downloads a previously discovered totals object with a bounded body size. */
-export const downloadTotalsCsv = async (
+/** Downloads a previously listed CSV object with a bounded body size. */
+export const downloadCsv = async (
   descriptor: TableObjectDescriptor,
 ): Promise<DownloadedTableCsv> => {
-  if (descriptor.sizeBytes > MAX_TOTALS_CSV_BYTES) {
+  if (descriptor.sizeBytes > MAX_CSV_BYTES) {
     throw new AnalyticsS3ObjectTooLargeError(
-      `Totals CSV exceeds the ${MAX_TOTALS_CSV_BYTES}-byte limit: ` +
+      `CSV exceeds the ${MAX_CSV_BYTES}-byte limit: ` +
         `key=${descriptor.key}, bytes=${descriptor.sizeBytes}`,
     );
   }
@@ -303,32 +305,32 @@ export const downloadTotalsCsv = async (
     );
   } catch (error) {
     throw new Error(
-      `Failed to download S3 totals object: bucket=${descriptor.bucket}, key=${descriptor.key}`,
+      `Failed to download S3 object: bucket=${descriptor.bucket}, key=${descriptor.key}`,
       { cause: error },
     );
   }
 
   if (!response.Body) {
     throw new Error(
-      `S3 totals object has no body: bucket=${descriptor.bucket}, key=${descriptor.key}`,
+      `S3 object has no body: bucket=${descriptor.bucket}, key=${descriptor.key}`,
     );
   }
 
   if (
     typeof response.ContentLength === "number" &&
-    response.ContentLength > MAX_TOTALS_CSV_BYTES
+    response.ContentLength > MAX_CSV_BYTES
   ) {
     (response.Body as { destroy?: () => void }).destroy?.();
     throw new AnalyticsS3ObjectTooLargeError(
-      `Downloaded totals CSV exceeds the ${MAX_TOTALS_CSV_BYTES}-byte limit: ` +
+      `Downloaded CSV exceeds the ${MAX_CSV_BYTES}-byte limit: ` +
         `key=${descriptor.key}, bytes=${response.ContentLength}`,
     );
   }
 
-  const body = await readBodyWithinLimit(response.Body, MAX_TOTALS_CSV_BYTES);
+  const body = await readBodyWithinLimit(response.Body, MAX_CSV_BYTES);
   if (body.byteLength === 0) {
     throw new Error(
-      `Downloaded totals CSV is empty: bucket=${descriptor.bucket}, key=${descriptor.key}`,
+      `Downloaded CSV is empty: bucket=${descriptor.bucket}, key=${descriptor.key}`,
     );
   }
 
@@ -336,7 +338,7 @@ export const downloadTotalsCsv = async (
   try {
     csv = new TextDecoder("utf-8", { fatal: true }).decode(body);
   } catch (error) {
-    throw new Error(`Totals CSV is not valid UTF-8: key=${descriptor.key}`, {
+    throw new Error(`CSV is not valid UTF-8: key=${descriptor.key}`, {
       cause: error,
     });
   }
