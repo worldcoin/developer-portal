@@ -1,29 +1,31 @@
-/* eslint-disable import/no-relative-parent-imports -- auto generated file */
+/* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type InviteQueryVariables = Types.Exact<{
-  id: Types.Scalars["String"]["input"];
+export type FetchJoinInviteQueryVariables = Types.Exact<{
+  invite_id: Types.Scalars["String"]["input"];
 }>;
 
-export type InviteQuery = {
+export type FetchJoinInviteQuery = {
   __typename?: "query_root";
-  invite: Array<{
+  invite_by_pk?: {
     __typename?: "invite";
-    team_id: string;
-    email: string;
+    id: string;
     expires_at: string;
-  }>;
+    team: { __typename?: "team"; name?: string | null };
+  } | null;
 };
 
-export const InviteDocument = gql`
-  query Invite($id: String!) {
-    invite(where: { id: { _eq: $id } }) {
-      team_id
-      email
+export const FetchJoinInviteDocument = gql`
+  query FetchJoinInvite($invite_id: String!) {
+    invite_by_pk(id: $invite_id) {
+      id
       expires_at
+      team {
+        name
+      }
     }
   }
 `;
@@ -47,17 +49,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    Invite(
-      variables: InviteQueryVariables,
+    FetchJoinInvite(
+      variables: FetchJoinInviteQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<InviteQuery> {
+    ): Promise<FetchJoinInviteQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<InviteQuery>(InviteDocument, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "Invite",
+          client.request<FetchJoinInviteQuery>(
+            FetchJoinInviteDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "FetchJoinInvite",
         "query",
         variables,
       );

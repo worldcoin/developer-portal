@@ -105,7 +105,6 @@ describe("user role", () => {
           id
           email
           name
-          auth0Id
           memberships {
             id
             team {
@@ -138,5 +137,36 @@ describe("user role", () => {
     });
 
     expect(response.data.user).toEqual([]);
+  });
+
+  // The `user` role's select filter is `self OR any teammate`, and Hasura cannot
+  // vary columns per filter branch — so every column granted here is readable by
+  // every teammate. `auth0Id` is the Auth0 Management API subject for the
+  // account and no user-role query needs it (the portal reads its own from the
+  // session, populated service-role), so it must stay off the role entirely.
+  test("can't select auth0Id at all, not even for itself", async () => {
+    const { rows: memberships } = (await integrationDBExecuteQuery(
+      `SELECT user_id FROM "public"."membership" LIMIT 1`,
+    )) as { rows: Array<{ user_id: string }> };
+
+    const query = gql`
+      query FetchOwnAuth0Id($id: String!) {
+        user(where: { id: { _eq: $id } }) {
+          id
+          auth0Id
+        }
+      }
+    `;
+
+    const client = await getAPIUserClient({
+      user_id: memberships[0].user_id,
+    });
+
+    await expect(
+      client.query<any>({
+        query,
+        variables: { id: memberships[0].user_id },
+      }),
+    ).rejects.toThrow(/auth0Id/);
   });
 });
