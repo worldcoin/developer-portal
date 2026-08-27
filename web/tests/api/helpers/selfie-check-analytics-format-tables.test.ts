@@ -23,7 +23,7 @@ import {
   loadLatestTableSnapshot,
   parseMetricsTable,
   TableCsvValidationError,
-} from "@/api/helpers/selfie-check-analytics/format-metrics-tables";
+} from "@/api/helpers/selfie-check-analytics/format-tables";
 import { logger } from "@/lib/logger";
 
 // #region Test Data
