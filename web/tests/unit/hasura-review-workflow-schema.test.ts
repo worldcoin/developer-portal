@@ -10,6 +10,14 @@ const downMigrationPath = path.join(
   repoRoot,
   "hasura/migrations/default/1787863600000_create_app_review_workflow/down.sql",
 );
+const submissionOperationMigrationPath = path.join(
+  repoRoot,
+  "hasura/migrations/default/1787940000000_capture_listing_review_submissions/up.sql",
+);
+const functionsPath = path.join(
+  repoRoot,
+  "hasura/metadata/databases/default/functions",
+);
 const tablesPath = path.join(
   repoRoot,
   "hasura/metadata/databases/default/tables",
@@ -154,6 +162,104 @@ describe("review workflow migration", () => {
     expect(notificationDrop).toBeGreaterThan(-1);
     expect(eventDrop).toBeGreaterThan(notificationDrop);
     expect(submissionDrop).toBeGreaterThan(eventDrop);
+  });
+});
+
+describe("listing review submission database operations", () => {
+  const migration = readOptional(submissionOperationMigrationPath);
+
+  it("captures metadata state, a monotonic attempt, event, and outbox atomically", () => {
+    expect(migration).toContain(
+      "CREATE OR REPLACE FUNCTION public.capture_listing_review_submission",
+    );
+    expect(migration.match(/SECURITY INVOKER/g)).toHaveLength(2);
+    expect(migration).toMatch(/FROM public\.app_metadata[\s\S]*FOR UPDATE/);
+    expect(migration).toContain("pg_advisory_xact_lock");
+    expect(migration).toContain("p_expected_metadata_updated_at");
+    expect(migration).toContain("p_expected_localizations_snapshot");
+    expect(migration).toContain("metadata.updated_at IS DISTINCT FROM");
+    expect(migration).toContain("localizations_snapshot IS DISTINCT FROM");
+    expect(migration).toMatch(
+      /COALESCE\(MAX\(previous_submission\.attempt\), 0\) \+ 1/,
+    );
+    expect(migration).toContain("to_jsonb(metadata)");
+    expect(migration).toContain("jsonb_agg");
+    expect(migration).toContain(
+      "ORDER BY localization.locale, localization.id",
+    );
+    expect(migration).toContain("verification_status = 'awaiting_review'");
+    expect(migration).toContain("review_message = ''");
+    expect(migration).toContain("reviewed_by = ''");
+    expect(migration).toContain("verified_at = NULL");
+    expect(migration).toContain("is_reviewer_app_store_approved = false");
+    expect(migration).toContain("is_reviewer_world_app_approved = false");
+    expect(migration).toContain("INSERT INTO public.app_review_submission");
+    expect(migration).toContain("INSERT INTO public.app_review_event");
+    expect(migration).toContain("'submitted'");
+    expect(migration).toContain("INSERT INTO public.app_review_notification");
+    expect(migration).toContain("'submission_received'");
+    expect(migration).toContain("'slack'");
+    expect(migration).toContain("ON CONFLICT (dedupe_key) DO NOTHING");
+  });
+
+  it("guards listing eligibility inside the transaction", () => {
+    expect(migration).toContain("app.is_staging");
+    expect(migration).toContain(
+      "metadata.app_mode NOT IN ('mini-app', 'external')",
+    );
+    expect(migration).toContain("p_listing_consent IS NOT TRUE");
+    expect(migration).toContain(
+      "metadata.verification_status IS DISTINCT FROM 'unverified'",
+    );
+    expect(migration).toContain("app.deleted_at IS NOT NULL");
+  });
+
+  it("withdraws only the exact active attempt and appends history", () => {
+    expect(migration).toContain(
+      "CREATE OR REPLACE FUNCTION public.withdraw_listing_review_submission",
+    );
+    expect(migration).toContain(
+      "candidate.app_metadata_id = p_app_metadata_id",
+    );
+    expect(migration).toContain("candidate.status IN ('pending', 'in_review')");
+    expect(migration).toContain("status = 'withdrawn'");
+    expect(migration).toContain("event_type");
+    expect(migration).toContain("'withdrawn'");
+    expect(migration).not.toContain("DELETE FROM public.app_review_submission");
+  });
+
+  it("refuses to withdraw a verified metadata row before changing it", () => {
+    expect(migration).toContain(
+      "metadata.verification_status IS DISTINCT FROM 'awaiting_review'",
+    );
+    expect(migration).toMatch(
+      /metadata\.verification_status IS DISTINCT FROM 'awaiting_review'[\s\S]*UPDATE public\.app_metadata/,
+    );
+  });
+
+  it("tracks both operations as service-only Hasura mutations", () => {
+    const functions = readOptional(path.join(functionsPath, "functions.yaml"));
+    const capture = readOptional(
+      path.join(functionsPath, "public_capture_listing_review_submission.yaml"),
+    );
+    const withdraw = readOptional(
+      path.join(
+        functionsPath,
+        "public_withdraw_listing_review_submission.yaml",
+      ),
+    );
+
+    expect(functions).toContain(
+      "public_capture_listing_review_submission.yaml",
+    );
+    expect(functions).toContain(
+      "public_withdraw_listing_review_submission.yaml",
+    );
+    for (const metadata of [capture, withdraw]) {
+      expect(metadata).toContain("exposed_as: mutation");
+      expect(metadata).toContain("- role: service");
+      expect(metadata).not.toContain("internal_dashboard_readonly");
+    }
   });
 });
 

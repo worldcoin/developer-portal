@@ -66,6 +66,7 @@ export const AppStoreActions = ({
         open={showSubmitAppModal}
         setOpen={setShowSubmitAppModal}
         appMetadataId={appMetadata.id}
+        appMode={appMetadata.app_mode}
         canSubmitAppStore={hasRequiredImagesForAppStore}
         teamId={teamId}
         appId={appId}

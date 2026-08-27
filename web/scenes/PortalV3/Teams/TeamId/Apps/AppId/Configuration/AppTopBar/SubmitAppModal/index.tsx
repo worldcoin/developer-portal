@@ -23,6 +23,7 @@ import { submitAppForReviewFormServerSide } from "../server/submit";
 import { SubmitSuccessToast } from "../SubmitSuccessToast";
 import { useMutation } from "@apollo/client/react";
 import { ValidateLocalisationDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/SubmitAppModal/graphql/client/validate-localisations.generated";
+import { getListingDestinationName } from "./listing-copy";
 
 const schema = yup
   .object({
@@ -37,6 +38,7 @@ type SubmitAppModalProps = {
   teamId: string;
   appId: string;
   appMetadataId: string;
+  appMode: string;
   canSubmitAppStore: boolean;
   isDeveloperAllowListing: boolean;
   onSubmitted?: () => void;
@@ -53,6 +55,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     canSubmitAppStore,
     isDeveloperAllowListing,
     appMetadataId,
+    appMode,
     onSubmitted,
   } = props;
 
@@ -81,6 +84,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   });
 
   const isAllowListing = watch("is_developer_allow_listing");
+  const listingName = getListingDestinationName(appMode);
 
   const submit = useCallback(
     async (values: SubmitAppFormValues) => {
@@ -105,7 +109,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
 
       if (values.is_developer_allow_listing && !canSubmitAppStore) {
         toast.error(
-          "Featured and showcase images are required for listing in Mini Apps",
+          `Featured and showcase images are required for listing in the ${listingName}`,
         );
         return;
       }
@@ -154,6 +158,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     [
       appId,
       appMetadataId,
+      listingName,
       canSubmitAppStore,
       refetchAppMetadata,
       onSubmitted,
@@ -189,7 +194,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
                       variant={TYPOGRAPHY.M3}
                       className="text-grey-900"
                     >
-                      Display in the Worldcoin App Store
+                      List in the {listingName}
                     </Typography>
                     <span className="rounded-full bg-grey-100 px-2 py-0.5 text-xs text-grey-500">
                       Optional
@@ -199,8 +204,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
                     variant={TYPOGRAPHY.R4}
                     className="mt-1 text-grey-500"
                   >
-                    If approved, your app can be featured in the Worldcoin App
-                    Store
+                    If approved, your app can appear in the {listingName}
                   </Typography>
                 </div>
                 <Toggle
@@ -219,7 +223,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
                   variant={TYPOGRAPHY.R4}
                   className="text-system-warning-600"
                 >
-                  Your app will be removed from the Worldcoin App Store
+                  Your app will be removed from the {listingName}
                 </Typography>
               </div>
             )}

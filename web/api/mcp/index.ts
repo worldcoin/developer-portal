@@ -1,4 +1,8 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import {
+  AppReviewSubmissionError,
+  submitAppForReviewOperation,
+} from "@/api/helpers/app-review-submission";
 import { logPortalEvent } from "@/api/helpers/portal-events";
 import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import {
@@ -20,7 +24,6 @@ import { verifyHashedSecret } from "@/api/helpers/utils";
 import { getSdk as getMcpAppContextSdk } from "@/api/mcp/graphql/app-context.generated";
 import { getSdk as getMcpAuthenticateTeamSdk } from "@/api/mcp/graphql/authenticate-team.generated";
 import { getSdk as getMcpCreateAppSdk } from "@/api/mcp/graphql/create-app.generated";
-import { getSdk as getMcpSubmitAppForReviewSdk } from "@/api/mcp/graphql/submit-app-for-review.generated";
 import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.generated";
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
 import { getSdk as getMcpUpsertActionV4Sdk } from "@/api/mcp/graphql/upsert-action-v4.generated";
@@ -45,18 +48,10 @@ import {
 } from "@/lib/categories";
 import { logger } from "@/lib/logger";
 import { getImageEndpoint } from "@/lib/utils";
-import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
-import { LocalisationData } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
 import {
   encodeDescription,
-  getSupportType,
   parseDescription,
 } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
-import {
-  getLocalisationFormValues,
-  transformMailtoToRawEmail,
-} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils/dataTransforms";
-import { getSdk as getReviewAppMetadataSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/server/fetch-review-app-metadata.generated";
 import { Wallet } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
@@ -1557,69 +1552,35 @@ const tools = {
     if (metadata.verification_status !== "unverified") {
       throw new McpError("Only unverified apps can be submitted.", -32004);
     }
-
-    const reviewData = await getReviewAppMetadataSdk(
-      ctx.client,
-    ).FetchAppMetadataById({ app_metadata_id: metadata.id });
-    const reviewMetadata = reviewData.app_metadata[0];
-    if (!reviewMetadata) {
-      throw new McpError(
-        "App metadata not found or not in unverified state.",
-        -32004,
-      );
-    }
-
-    const localisations = getLocalisationFormValues(
-      reviewMetadata,
-      reviewData.localisations as LocalisationData,
-    );
-    const supportLinkOrEmail = reviewMetadata.support_link;
-    const supportType = getSupportType(supportLinkOrEmail);
-    const supportLink = supportType === "link" ? supportLinkOrEmail : "";
-    const rawSupportEmail =
-      supportType === "email"
-        ? transformMailtoToRawEmail(supportLinkOrEmail)
-        : "";
-
-    try {
-      await mainAppStoreFormReviewSubmitSchema.validate(
-        {
-          ...reviewMetadata,
-          support_type: supportType,
-          support_link: supportLink,
-          support_email: rawSupportEmail,
-          localisations,
-        },
-        {
-          abortEarly: false,
-          strict: true,
-          stripUnknown: true,
-          context: { isMiniApp: reviewMetadata.app_mode === "mini-app" },
-        },
-      );
-    } catch (error) {
-      if (error instanceof yup.ValidationError) {
-        throw new McpError(
-          "App metadata is incomplete and cannot be submitted for review.",
-          -32602,
-          error.errors,
-        );
-      }
-      throw error;
-    }
-
     const isDeveloperAllowListing =
       args.is_developer_allow_listing ??
       metadata.is_developer_allow_listing ??
       false;
 
-    const data = await getMcpSubmitAppForReviewSdk(
-      ctx.client,
-    ).McpSubmitAppForReview({
-      app_metadata_id: metadata.id,
-      is_developer_allow_listing: isDeveloperAllowListing,
-      changelog: args.changelog,
-    });
+    let submissionResult;
+    try {
+      submissionResult = await submitAppForReviewOperation({
+        client: ctx.client,
+        appMetadataId: metadata.id,
+        expectedAppId: args.app_id,
+        expectedTeamId: ctx.teamId,
+        changelog: args.changelog,
+        listingConsent: isDeveloperAllowListing,
+        actor: {
+          subject: `mcp-api-key:${ctx.apiKeyId}`,
+          email: null,
+        },
+      });
+    } catch (error) {
+      if (error instanceof AppReviewSubmissionError) {
+        throw new McpError(
+          "App metadata is incomplete and cannot be submitted for review.",
+          error.kind === "not_found" ? -32004 : -32602,
+          error.details ?? [error.message],
+        );
+      }
+      throw error;
+    }
 
     logPortalEvent({
       event: "app_submission",
@@ -1631,7 +1592,7 @@ const tools = {
       },
     });
 
-    return content({ app_metadata: data.update_app_metadata_by_pk });
+    return content({ app_metadata: submissionResult.appMetadata });
   },
 } satisfies Record<string, (input: unknown, ctx: ToolContext) => Promise<any>>;
 

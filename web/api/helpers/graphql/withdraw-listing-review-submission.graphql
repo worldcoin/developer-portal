@@ -1,0 +1,16 @@
+mutation WithdrawListingReviewSubmission(
+  $app_metadata_id: String!
+  $actor_subject: String
+  $actor_email: String
+) {
+  withdraw_listing_review_submission(
+    args: {
+      p_app_metadata_id: $app_metadata_id
+      p_actor_subject: $actor_subject
+      p_actor_email: $actor_email
+    }
+  ) {
+    id
+    status
+  }
+}

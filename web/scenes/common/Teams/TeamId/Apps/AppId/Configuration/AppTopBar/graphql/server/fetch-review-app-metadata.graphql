@@ -10,6 +10,7 @@ query FetchAppMetadataById($app_metadata_id: String!) {
   ) {
     id
     app_id
+    updated_at
     name
     short_name
     logo_img_url
@@ -18,6 +19,7 @@ query FetchAppMetadataById($app_metadata_id: String!) {
     world_app_description
     description
     category
+    integration_url
     app_website_url
     support_link
     supported_countries
@@ -28,16 +30,27 @@ query FetchAppMetadataById($app_metadata_id: String!) {
     verification_status
     content_card_image_url
     app {
+      id
+      team_id
       is_staging
     }
   }
-  localisations(where: { app_metadata_id: { _eq: $app_metadata_id } }) {
+  localisations(
+    where: { app_metadata_id: { _eq: $app_metadata_id } }
+    order_by: [{ locale: asc }, { id: asc }]
+  ) {
+    id
+    app_metadata_id
     locale
     name
     short_name
+    world_app_button_text
     world_app_description
     description
+    hero_image_url
     meta_tag_image_url
     showcase_img_urls
+    created_at
+    updated_at
   }
 }

@@ -4450,6 +4450,14 @@ export type App_Report_Updates = {
   where: App_Report_Bool_Exp;
 };
 
+export type App_Review_Submission = {
+  __typename?: "app_review_submission";
+  app_metadata_id: Scalars["String"]["output"];
+  attempt: Scalars["Int"]["output"];
+  id: Scalars["uuid"]["output"];
+  status: Scalars["String"]["output"];
+};
+
 /** columns and relationships of "app_reviews" */
 export type App_Reviews = {
   __typename?: "app_reviews";
@@ -5696,6 +5704,16 @@ export type Cache_Updates = {
   where: Cache_Bool_Exp;
 };
 
+export type Capture_Listing_Review_Submission_Args = {
+  p_app_metadata_id: Scalars["String"]["input"];
+  p_changelog: Scalars["String"]["input"];
+  p_expected_localizations_snapshot: Scalars["jsonb"]["input"];
+  p_expected_metadata_updated_at: Scalars["timestamptz"]["input"];
+  p_listing_consent: Scalars["Boolean"]["input"];
+  p_submitted_by_email?: InputMaybe<Scalars["String"]["input"]>;
+  p_submitted_by_subject?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 /** ordering argument of a cursor */
 export enum Cursor_Ordering {
   /** ascending ordering of the cursor */
@@ -6762,6 +6780,7 @@ export type Mutation_Root = {
   accept_team_invite: Array<Membership>;
   /** Bans app by app_id */
   ban_app: BanAppOutput;
+  capture_listing_review_submission: Array<App_Review_Submission>;
   /** Closes the report with a decision */
   change_app_report_status?: Maybe<ChangeAppReportStatusOutput>;
   /** Creates an app report */
@@ -7256,6 +7275,7 @@ export type Mutation_Root = {
   validate_localisation?: Maybe<ValidateLocalisationOutput>;
   /** Verify an App */
   verify_app?: Maybe<VerifyAppOutput>;
+  withdraw_listing_review_submission: Array<App_Review_Submission>;
 };
 
 /** mutation root */
@@ -7271,6 +7291,11 @@ export type Mutation_RootAccept_Team_InviteArgs = {
 /** mutation root */
 export type Mutation_RootBan_AppArgs = {
   app_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootCapture_Listing_Review_SubmissionArgs = {
+  args: Capture_Listing_Review_Submission_Args;
 };
 
 /** mutation root */
@@ -8641,6 +8666,11 @@ export type Mutation_RootVerify_AppArgs = {
   is_reviewer_app_store_approved: Scalars["Boolean"]["input"];
   is_reviewer_world_app_approved: Scalars["Boolean"]["input"];
   reviewer_name: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootWithdraw_Listing_Review_SubmissionArgs = {
+  args: Withdraw_Listing_Review_Submission_Args;
 };
 
 /** columns and relationships of "notification_log" */
@@ -14561,4 +14591,10 @@ export type Violation_Enum_Comparison_Exp = {
   _lte?: InputMaybe<Scalars["violation_enum"]["input"]>;
   _neq?: InputMaybe<Scalars["violation_enum"]["input"]>;
   _nin?: InputMaybe<Array<Scalars["violation_enum"]["input"]>>;
+};
+
+export type Withdraw_Listing_Review_Submission_Args = {
+  p_actor_email?: InputMaybe<Scalars["String"]["input"]>;
+  p_actor_subject?: InputMaybe<Scalars["String"]["input"]>;
+  p_app_metadata_id: Scalars["String"]["input"];
 };

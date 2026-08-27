@@ -1,0 +1,8 @@
+function:
+  name: capture_listing_review_submission
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: service

@@ -14,6 +14,7 @@ export type FetchAppMetadataByIdQuery = {
     __typename?: "app_metadata";
     id: string;
     app_id: string;
+    updated_at: string;
     name: string;
     short_name: string;
     logo_img_url: string;
@@ -22,6 +23,7 @@ export type FetchAppMetadataByIdQuery = {
     world_app_description: string;
     description: string;
     category: string;
+    integration_url: string;
     app_website_url: string;
     support_link: string;
     supported_countries?: Array<string> | null;
@@ -31,17 +33,28 @@ export type FetchAppMetadataByIdQuery = {
     app_mode: string;
     verification_status: string;
     content_card_image_url: string;
-    app: { __typename?: "app"; is_staging: boolean };
+    app: {
+      __typename?: "app";
+      id: string;
+      team_id: string;
+      is_staging: boolean;
+    };
   }>;
   localisations: Array<{
     __typename?: "localisations";
+    id: string;
+    app_metadata_id: string;
     locale: string;
     name: string;
     short_name: string;
+    world_app_button_text: string;
     world_app_description: string;
     description: string;
+    hero_image_url: string;
     meta_tag_image_url: string;
     showcase_img_urls?: Array<string> | null;
+    created_at: string;
+    updated_at: string;
   }>;
 };
 
@@ -58,6 +71,7 @@ export const FetchAppMetadataByIdDocument = gql`
     ) {
       id
       app_id
+      updated_at
       name
       short_name
       logo_img_url
@@ -66,6 +80,7 @@ export const FetchAppMetadataByIdDocument = gql`
       world_app_description
       description
       category
+      integration_url
       app_website_url
       support_link
       supported_countries
@@ -76,17 +91,28 @@ export const FetchAppMetadataByIdDocument = gql`
       verification_status
       content_card_image_url
       app {
+        id
+        team_id
         is_staging
       }
     }
-    localisations(where: { app_metadata_id: { _eq: $app_metadata_id } }) {
+    localisations(
+      where: { app_metadata_id: { _eq: $app_metadata_id } }
+      order_by: [{ locale: asc }, { id: asc }]
+    ) {
+      id
+      app_metadata_id
       locale
       name
       short_name
+      world_app_button_text
       world_app_description
       description
+      hero_image_url
       meta_tag_image_url
       showcase_img_urls
+      created_at
+      updated_at
     }
   }
 `;

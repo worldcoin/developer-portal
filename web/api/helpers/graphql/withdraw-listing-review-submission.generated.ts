@@ -4,41 +4,36 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type McpSubmitAppForReviewMutationVariables = Types.Exact<{
+export type WithdrawListingReviewSubmissionMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"]["input"];
-  is_developer_allow_listing: Types.Scalars["Boolean"]["input"];
-  changelog: Types.Scalars["String"]["input"];
+  actor_subject?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  actor_email?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
-export type McpSubmitAppForReviewMutation = {
+export type WithdrawListingReviewSubmissionMutation = {
   __typename?: "mutation_root";
-  update_app_metadata_by_pk?: {
-    __typename?: "app_metadata";
-    id: string;
-    app_id: string;
-    verification_status: string;
-    is_developer_allow_listing: boolean;
-  } | null;
+  withdraw_listing_review_submission: Array<{
+    __typename?: "app_review_submission";
+    id: unknown;
+    status: string;
+  }>;
 };
 
-export const McpSubmitAppForReviewDocument = gql`
-  mutation McpSubmitAppForReview(
+export const WithdrawListingReviewSubmissionDocument = gql`
+  mutation WithdrawListingReviewSubmission(
     $app_metadata_id: String!
-    $is_developer_allow_listing: Boolean!
-    $changelog: String!
+    $actor_subject: String
+    $actor_email: String
   ) {
-    update_app_metadata_by_pk(
-      pk_columns: { id: $app_metadata_id }
-      _set: {
-        verification_status: "awaiting_review"
-        is_developer_allow_listing: $is_developer_allow_listing
-        changelog: $changelog
+    withdraw_listing_review_submission(
+      args: {
+        p_app_metadata_id: $app_metadata_id
+        p_actor_subject: $actor_subject
+        p_actor_email: $actor_email
       }
     ) {
       id
-      app_id
-      verification_status
-      is_developer_allow_listing
+      status
     }
   }
 `;
@@ -62,18 +57,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    McpSubmitAppForReview(
-      variables: McpSubmitAppForReviewMutationVariables,
+    WithdrawListingReviewSubmission(
+      variables: WithdrawListingReviewSubmissionMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<McpSubmitAppForReviewMutation> {
+    ): Promise<WithdrawListingReviewSubmissionMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<McpSubmitAppForReviewMutation>(
-            McpSubmitAppForReviewDocument,
+          client.request<WithdrawListingReviewSubmissionMutation>(
+            WithdrawListingReviewSubmissionDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "McpSubmitAppForReview",
+        "WithdrawListingReviewSubmission",
         "mutation",
         variables,
       );

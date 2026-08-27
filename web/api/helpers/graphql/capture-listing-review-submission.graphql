@@ -1,0 +1,26 @@
+mutation CaptureListingReviewSubmission(
+  $app_metadata_id: String!
+  $changelog: String!
+  $submitted_by_subject: String
+  $submitted_by_email: String
+  $listing_consent: Boolean!
+  $expected_metadata_updated_at: timestamptz!
+  $expected_localizations_snapshot: jsonb!
+) {
+  capture_listing_review_submission(
+    args: {
+      p_app_metadata_id: $app_metadata_id
+      p_changelog: $changelog
+      p_submitted_by_subject: $submitted_by_subject
+      p_submitted_by_email: $submitted_by_email
+      p_listing_consent: $listing_consent
+      p_expected_metadata_updated_at: $expected_metadata_updated_at
+      p_expected_localizations_snapshot: $expected_localizations_snapshot
+    }
+  ) {
+    id
+    app_metadata_id
+    attempt
+    status
+  }
+}

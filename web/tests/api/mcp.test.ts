@@ -177,6 +177,7 @@ const reviewMetadata = {
   description:
     '{"description_overview":"An overview that is long enough to satisfy the schema.","description_how_it_works":"","description_connect":""}',
   category: "Other",
+  integration_url: "https://example.com/mini-app",
   app_website_url: "https://example.com",
   support_link: "mailto:support@example.com",
   supported_countries: ["us"],
@@ -186,7 +187,8 @@ const reviewMetadata = {
   app_mode: "mini-app",
   verification_status: "unverified",
   content_card_image_url: "card.png",
-  app: { is_staging: false },
+  updated_at: "2026-08-27T20:00:00.000Z",
+  app: { id: appId, team_id: teamId, is_staging: false },
 };
 const reviewLocalisations: Array<Record<string, unknown>> = [];
 let currentAppContextResponse = appContextResponse;
@@ -253,6 +255,7 @@ const callTool = (name: string, args: Record<string, unknown>) =>
 
 beforeEach(async () => {
   jest.clearAllMocks();
+  delete process.env.ADMIN_REVIEWER_PORTAL_ENABLED;
   // Reset the in-memory rate-limit counters between tests so one suite's
   // upload bursts don't bleed into the next one.
   await (global.RedisClient as { flushall: () => Promise<unknown> }).flushall();
@@ -387,7 +390,7 @@ beforeEach(async () => {
         },
       };
     }
-    if (operationName.includes("McpSubmitAppForReview")) {
+    if (operationName === "SubmitApp") {
       return {
         update_app_metadata_by_pk: {
           id: variables.app_metadata_id,
@@ -1928,7 +1931,7 @@ describe("/api/mcp", () => {
           localisations: reviewLocalisations,
         };
       }
-      if (operationName.includes("McpSubmitAppForReview")) {
+      if (operationName === "SubmitApp") {
         Object.assign(metadataState, {
           verification_status: "awaiting_review",
           is_developer_allow_listing: variables.is_developer_allow_listing,
@@ -2068,6 +2071,123 @@ describe("/api/mcp", () => {
       "portal_app_submission",
       expect.objectContaining({ actor: "mcp", app_id: appId, team_id: teamId }),
     );
+  });
+
+  it("uses the shared atomic listing operation when the reviewer gate is enabled", async () => {
+    process.env.ADMIN_REVIEWER_PORTAL_ENABLED = "true";
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const name = getOperationName(query);
+
+      if (name === "McpAuthenticateTeam") {
+        return {
+          api_key_by_pk: {
+            id: apiKeyId,
+            api_key: hashedSecret.hashed_secret,
+            is_active: true,
+            team_id: teamId,
+          },
+        };
+      }
+      if (name === "McpAppContext") return currentAppContextResponse;
+      if (name === "FetchAppMetadataById") {
+        return {
+          app_metadata: [reviewMetadata],
+          localisations: reviewLocalisations,
+        };
+      }
+      if (name === "CaptureListingReviewSubmission") {
+        return {
+          capture_listing_review_submission: [
+            {
+              id: "00000000-0000-0000-0000-000000000001",
+              app_metadata_id: "meta_123",
+              attempt: 2,
+              status: "pending",
+            },
+          ],
+        };
+      }
+      throw new Error(`Unexpected query: ${name} ${JSON.stringify(variables)}`);
+    });
+
+    const res = await POST(
+      callTool("submit_app_for_review", {
+        app_id: appId,
+        confirm_submission: true,
+        is_developer_allow_listing: true,
+        changelog: "Submitted through MCP for listing review.",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error).toBeUndefined();
+    const captureCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "CaptureListingReviewSubmission",
+    );
+    expect(captureCall?.[1]).toEqual({
+      app_metadata_id: "meta_123",
+      changelog: "Submitted through MCP for listing review.",
+      submitted_by_subject: `mcp-api-key:${apiKeyId}`,
+      submitted_by_email: null,
+      listing_consent: true,
+      expected_metadata_updated_at: reviewMetadata.updated_at,
+      expected_localizations_snapshot: reviewLocalisations,
+    });
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "SubmitApp",
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps consent-free native verification on the legacy MCP mutation", async () => {
+    process.env.ADMIN_REVIEWER_PORTAL_ENABLED = "true";
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [
+            {
+              ...appContextResponse.app[0].app_metadata[0],
+              app_mode: "native",
+            },
+          ],
+        },
+      ],
+    };
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      if (getOperationName(query) === "FetchAppMetadataById") {
+        return {
+          app_metadata: [{ ...reviewMetadata, app_mode: "native" }],
+          localisations: reviewLocalisations,
+        };
+      }
+      return baseImpl(query, variables);
+    });
+
+    const res = await POST(
+      callTool("submit_app_for_review", {
+        app_id: appId,
+        confirm_submission: true,
+        is_developer_allow_listing: false,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).error).toBeUndefined();
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "SubmitApp",
+      ),
+    ).toBe(true);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) =>
+          getOperationName(query) === "CaptureListingReviewSubmission",
+      ),
+    ).toBe(false);
   });
 
   it("rejects review submission when metadata is incomplete", async () => {
@@ -2219,7 +2339,7 @@ describe("/api/mcp", () => {
 
     expect(res.status).toBe(200);
     const submitCall = requestMock.mock.calls.find(
-      ([query]) => getOperationName(query) === "McpSubmitAppForReview",
+      ([query]) => getOperationName(query) === "SubmitApp",
     );
     expect(submitCall?.[1]).toEqual(
       expect.objectContaining({ is_developer_allow_listing: true }),
