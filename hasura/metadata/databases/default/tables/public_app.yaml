@@ -29,6 +29,13 @@ array_relationships:
         table:
           name: rp_registration
           schema: public
+  - name: review_submissions
+    using:
+      foreign_key_constraint_on:
+        column: app_id
+        table:
+          name: app_review_submission
+          schema: public
 insert_permissions:
   - role: qa
     permission:

@@ -1,0 +1,76 @@
+table:
+  name: app_review_notification
+  schema: public
+object_relationships:
+  - name: submission
+    using:
+      foreign_key_constraint_on: submission_id
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - channel
+        - dedupe_key
+        - next_attempt_at
+        - notification_type
+        - payload
+        - recipient
+        - submission_id
+select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - attempt_count
+        - channel
+        - created_at
+        - delivered_at
+        - id
+        - last_attempt_at
+        - last_error
+        - next_attempt_at
+        - notification_type
+        - recipient
+        - provider_message_id
+        - status
+        - submission_id
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: service
+    permission:
+      columns:
+        - attempt_count
+        - channel
+        - created_at
+        - dedupe_key
+        - delivered_at
+        - id
+        - last_attempt_at
+        - last_error
+        - locked_at
+        - locked_by
+        - next_attempt_at
+        - notification_type
+        - payload
+        - provider_message_id
+        - recipient
+        - status
+        - submission_id
+        - updated_at
+      filter: {}
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - attempt_count
+        - delivered_at
+        - last_attempt_at
+        - last_error
+        - locked_at
+        - locked_by
+        - next_attempt_at
+        - provider_message_id
+        - status
+      filter: {}
+      check: {}

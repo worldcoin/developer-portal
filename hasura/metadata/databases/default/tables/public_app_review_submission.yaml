@@ -1,0 +1,136 @@
+table:
+  name: app_review_submission
+  schema: public
+object_relationships:
+  - name: app
+    using:
+      foreign_key_constraint_on: app_id
+  - name: app_metadata
+    using:
+      foreign_key_constraint_on: app_metadata_id
+  - name: team
+    using:
+      foreign_key_constraint_on: team_id
+array_relationships:
+  - name: events
+    using:
+      foreign_key_constraint_on:
+        column: submission_id
+        table:
+          name: app_review_event
+          schema: public
+  - name: notifications
+    using:
+      foreign_key_constraint_on:
+        column: submission_id
+        table:
+          name: app_review_notification
+          schema: public
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - app_id
+        - app_metadata_id
+        - app_mode
+        - attempt
+        - changelog
+        - checklist
+        - checklist_version
+        - listing_consent
+        - listing_target
+        - localizations_snapshot
+        - metadata_snapshot
+        - metadata_updated_at
+        - submitted_at
+        - submitted_by_email
+        - submitted_by_subject
+        - team_id
+select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - app_id
+        - app_metadata_id
+        - app_mode
+        - attempt
+        - changelog
+        - checklist
+        - checklist_version
+        - claim_expires_at
+        - claimed_at
+        - claimed_by_email
+        - completed_at
+        - created_at
+        - decided_at
+        - decided_by_email
+        - decision_summary
+        - id
+        - listing_consent
+        - listing_target
+        - localizations_snapshot
+        - metadata_snapshot
+        - metadata_updated_at
+        - review_version
+        - status
+        - submitted_at
+        - team_id
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: service
+    permission:
+      columns:
+        - app_id
+        - app_metadata_id
+        - app_mode
+        - attempt
+        - changelog
+        - checklist
+        - checklist_version
+        - claim_expires_at
+        - claim_token
+        - claimed_at
+        - claimed_by_email
+        - claimed_by_subject
+        - completed_at
+        - created_at
+        - decided_at
+        - decided_by_email
+        - decided_by_subject
+        - decision_summary
+        - id
+        - listing_consent
+        - listing_target
+        - localizations_snapshot
+        - metadata_snapshot
+        - metadata_updated_at
+        - review_version
+        - status
+        - submitted_at
+        - submitted_by_email
+        - submitted_by_subject
+        - team_id
+        - updated_at
+      filter: {}
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - checklist
+        - checklist_version
+        - claim_expires_at
+        - claim_token
+        - claimed_at
+        - claimed_by_email
+        - claimed_by_subject
+        - completed_at
+        - decided_at
+        - decided_by_email
+        - decided_by_subject
+        - decision_summary
+        - review_version
+        - status
+      filter: {}
+      check: {}

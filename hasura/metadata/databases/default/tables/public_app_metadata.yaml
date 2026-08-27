@@ -13,6 +13,13 @@ array_relationships:
         table:
           name: localisations
           schema: public
+  - name: review_submissions
+    using:
+      foreign_key_constraint_on:
+        column: app_metadata_id
+        table:
+          name: app_review_submission
+          schema: public
 computed_fields:
   - name: app_rating
     definition:
