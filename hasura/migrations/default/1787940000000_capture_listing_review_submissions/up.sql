@@ -38,7 +38,8 @@ BEGIN
     SELECT candidate.*
     INTO app
     FROM public.app AS candidate
-    WHERE candidate.id = metadata.app_id;
+    WHERE candidate.id = metadata.app_id
+    FOR UPDATE;
 
     IF NOT FOUND OR app.deleted_at IS NOT NULL THEN
         RAISE EXCEPTION 'App not found.';
@@ -68,18 +69,26 @@ BEGIN
 
     SELECT COALESCE(
         jsonb_agg(
-            to_jsonb(localization)
-            ORDER BY localization.locale, localization.id
+            to_jsonb(locked_localization)
+            ORDER BY locked_localization.locale, locked_localization.id
         ),
         '[]'::jsonb
     )
     INTO localizations_snapshot
-    FROM public.localisations AS localization
-    WHERE localization.app_metadata_id = p_app_metadata_id;
+    FROM (
+        SELECT localization.*
+        FROM public.localisations AS localization
+        WHERE localization.app_metadata_id = p_app_metadata_id
+        ORDER BY localization.locale, localization.id
+        FOR UPDATE
+    ) AS locked_localization;
 
     -- The caller validates the complete metadata/localization shape using the
-    -- portal schemas. Reject a stale validation result after taking the row
-    -- lock so the transaction snapshots exactly the state that was validated.
+    -- portal schemas. Existing localization rows remain locked against updates
+    -- and deletes until commit.
+    -- The parent metadata row lock blocks new localization inserts through
+    -- the child foreign-key key-share check.
+    -- Reject a stale validation result while all of those locks are held.
     IF metadata.updated_at IS DISTINCT FROM p_expected_metadata_updated_at THEN
         RAISE EXCEPTION 'App metadata changed during submission. Please retry.';
     END IF;
@@ -221,13 +230,20 @@ BEGIN
         RAISE EXCEPTION 'App metadata not found.';
     END IF;
 
-    IF metadata.verification_status IS DISTINCT FROM 'awaiting_review' THEN
-        RAISE EXCEPTION 'Only app metadata awaiting review can be withdrawn.';
+    IF metadata.verification_status IS NULL
+       OR metadata.verification_status NOT IN ('awaiting_review', 'changes_requested') THEN
+        RAISE EXCEPTION 'Only app metadata awaiting review or changes requested can be withdrawn.';
     END IF;
 
     UPDATE public.app_metadata
     SET verification_status = 'unverified'
     WHERE id = p_app_metadata_id;
+
+    -- A changes-requested attempt is already terminal. Reopen the draft while
+    -- preserving its immutable submission and event history unchanged.
+    IF metadata.verification_status = 'changes_requested' THEN
+        RETURN;
+    END IF;
 
     SELECT candidate.*
     INTO submission
@@ -244,6 +260,7 @@ BEGIN
 
     UPDATE public.app_review_submission
     SET status = 'withdrawn',
+        review_version = review_version + 1,
         claim_token = NULL,
         claimed_by_subject = NULL,
         claimed_by_email = NULL,

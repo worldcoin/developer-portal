@@ -167,6 +167,11 @@ describe("review workflow migration", () => {
 
 describe("listing review submission database operations", () => {
   const migration = readOptional(submissionOperationMigrationPath);
+  const withdrawOperation = migration.slice(
+    migration.indexOf(
+      "CREATE OR REPLACE FUNCTION public.withdraw_listing_review_submission",
+    ),
+  );
 
   it("captures metadata state, a monotonic attempt, event, and outbox atomically", () => {
     expect(migration).toContain(
@@ -202,6 +207,18 @@ describe("listing review submission database operations", () => {
     expect(migration).toContain("ON CONFLICT (dedupe_key) DO NOTHING");
   });
 
+  it("locks the app and every existing localization through capture commit", () => {
+    expect(migration).toMatch(
+      /SELECT candidate\.\*\s+INTO app\s+FROM public\.app AS candidate\s+WHERE candidate\.id = metadata\.app_id\s+FOR UPDATE;/,
+    );
+    expect(migration).toMatch(
+      /FROM \(\s+SELECT localization\.\*[\s\S]*?FROM public\.localisations AS localization[\s\S]*?WHERE localization\.app_metadata_id = p_app_metadata_id[\s\S]*?FOR UPDATE\s+\) AS locked_localization/,
+    );
+    expect(migration).toContain(
+      "The parent metadata row lock blocks new localization inserts",
+    );
+  });
+
   it("guards listing eligibility inside the transaction", () => {
     expect(migration).toContain("app.is_staging");
     expect(migration).toContain(
@@ -215,25 +232,37 @@ describe("listing review submission database operations", () => {
   });
 
   it("withdraws only the exact active attempt and appends history", () => {
-    expect(migration).toContain(
+    expect(withdrawOperation).toContain(
       "CREATE OR REPLACE FUNCTION public.withdraw_listing_review_submission",
     );
-    expect(migration).toContain(
+    expect(withdrawOperation).toContain(
       "candidate.app_metadata_id = p_app_metadata_id",
     );
-    expect(migration).toContain("candidate.status IN ('pending', 'in_review')");
-    expect(migration).toContain("status = 'withdrawn'");
-    expect(migration).toContain("event_type");
-    expect(migration).toContain("'withdrawn'");
-    expect(migration).not.toContain("DELETE FROM public.app_review_submission");
+    expect(withdrawOperation).toContain(
+      "candidate.status IN ('pending', 'in_review')",
+    );
+    expect(withdrawOperation).toMatch(
+      /SET status = 'withdrawn',[\s\S]*review_version = review_version \+ 1,[\s\S]*RETURNING \* INTO submission;[\s\S]*submission\.review_version/,
+    );
+    expect(withdrawOperation).toContain("event_type");
+    expect(withdrawOperation).toContain("'withdrawn'");
+    expect(withdrawOperation).not.toContain(
+      "DELETE FROM public.app_review_submission",
+    );
   });
 
-  it("refuses to withdraw a verified metadata row before changing it", () => {
-    expect(migration).toContain(
-      "metadata.verification_status IS DISTINCT FROM 'awaiting_review'",
+  it("recovers changes-requested metadata without changing terminal review history", () => {
+    expect(withdrawOperation).toContain(
+      "metadata.verification_status NOT IN ('awaiting_review', 'changes_requested')",
     );
-    expect(migration).toMatch(
-      /metadata\.verification_status IS DISTINCT FROM 'awaiting_review'[\s\S]*UPDATE public\.app_metadata/,
+    expect(withdrawOperation).toMatch(
+      /UPDATE public\.app_metadata[\s\S]*verification_status = 'unverified'[\s\S]*IF metadata\.verification_status = 'changes_requested' THEN\s+RETURN;\s+END IF;[\s\S]*SELECT candidate\.\*[\s\S]*INTO submission/,
+    );
+  });
+
+  it("refuses to withdraw verified metadata before changing it", () => {
+    expect(withdrawOperation).toMatch(
+      /metadata\.verification_status IS NULL\s+OR metadata\.verification_status NOT IN \('awaiting_review', 'changes_requested'\)[\s\S]*RAISE EXCEPTION[\s\S]*UPDATE public\.app_metadata/,
     );
   });
 
