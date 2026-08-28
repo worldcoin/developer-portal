@@ -8,10 +8,7 @@ const prettier = require("prettier");
 
 /** @type {import('@graphql-codegen/cli').CodegenConfig} */
 module.exports = {
-  schema: [
-    "graphql/graphql.schema.json",
-    "graphql/reviewer-workflow-schema.graphql",
-  ],
+  schema: "graphql/graphql.schema.json",
   ignoreNoDocuments: true,
   config: {
     defaultScalarType: "unknown",
