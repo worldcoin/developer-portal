@@ -130,6 +130,7 @@ CREATE TABLE "public"."app_review_event" (
                 'changes_requested',
                 'approved',
                 'withdrawn',
+                'draft_reopened',
                 'notification_attempted',
                 'notification_delivered',
                 'notification_failed',

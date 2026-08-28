@@ -102,6 +102,7 @@ describe("review workflow migration", () => {
     expect(migration).toContain("'changes_requested'");
     expect(migration).toContain("'approved'");
     expect(migration).toContain("'withdrawn'");
+    expect(migration).toContain("'draft_reopened'");
     expect(migration).not.toContain("'rejected'");
     expect(migration).toContain("'mini-app'");
     expect(migration).toContain("'external'");
@@ -262,7 +263,7 @@ describe("listing review submission database operations", () => {
       "metadata.verification_status NOT IN ('awaiting_review', 'changes_requested')",
     );
     expect(withdrawOperation).toMatch(
-      /UPDATE public\.app_metadata[\s\S]*verification_status = 'unverified'[\s\S]*IF metadata\.verification_status = 'changes_requested' THEN\s+RETURN;\s+END IF;[\s\S]*SELECT candidate\.\*[\s\S]*INTO submission/,
+      /UPDATE public\.app_metadata[\s\S]*verification_status = 'unverified'[\s\S]*IF metadata\.verification_status = 'changes_requested' THEN[\s\S]*candidate\.status = 'changes_requested'[\s\S]*'draft_reopened'[\s\S]*p_actor_subject[\s\S]*RETURN;\s+END IF;[\s\S]*SELECT candidate\.\*[\s\S]*INTO submission/,
     );
   });
 

@@ -240,8 +240,39 @@ BEGIN
     WHERE id = p_app_metadata_id;
 
     -- A changes-requested attempt is already terminal. Reopen the draft while
-    -- preserving its immutable submission and event history unchanged.
+    -- preserving that decision and attribute the transition in its history.
     IF metadata.verification_status = 'changes_requested' THEN
+        SELECT candidate.*
+        INTO submission
+        FROM public.app_review_submission AS candidate
+        WHERE candidate.app_metadata_id = p_app_metadata_id
+          AND candidate.status = 'changes_requested'
+        ORDER BY candidate.attempt DESC
+        LIMIT 1
+        FOR UPDATE;
+
+        IF FOUND THEN
+            INSERT INTO public.app_review_event (
+                submission_id,
+                event_type,
+                actor_subject,
+                actor_email,
+                review_version,
+                payload
+            )
+            VALUES (
+                submission.id,
+                'draft_reopened',
+                p_actor_subject,
+                p_actor_email,
+                submission.review_version,
+                jsonb_build_object(
+                    'metadata_status_from', 'changes_requested',
+                    'metadata_status_to', 'unverified'
+                )
+            );
+        END IF;
+
         RETURN;
     END IF;
 
