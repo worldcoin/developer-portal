@@ -8,7 +8,10 @@ import {
   workflowConflictResponse,
   workflowSuccessResponse,
 } from "@/api/admin/reviewer/response";
-import { claimReviewSubmission } from "@/api/helpers/reviewer-workflow";
+import {
+  claimReviewSubmission,
+  reconcileClaimReviewSubmission,
+} from "@/api/helpers/reviewer-workflow";
 import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
@@ -31,10 +34,31 @@ export async function POST(
       body.expectedReviewVersion,
       auth.user,
     );
-    return submission
-      ? workflowSuccessResponse(submission)
+    if (submission) return workflowSuccessResponse(submission);
+
+    const recovered = await reconcileClaimReviewSubmission({
+      submissionId: id,
+      expectedReviewVersion: body.expectedReviewVersion,
+      actor: auth.user,
+    });
+    return recovered
+      ? workflowSuccessResponse(recovered)
       : workflowConflictResponse();
   } catch (error) {
+    try {
+      const recovered = await reconcileClaimReviewSubmission({
+        submissionId: id,
+        expectedReviewVersion: body.expectedReviewVersion,
+        actor: auth.user,
+      });
+      if (recovered) return workflowSuccessResponse(recovered);
+    } catch (reconciliationError) {
+      logger.error("Failed to reconcile review claim outcome", {
+        reviewId: id,
+        actorSubject: auth.user.subject,
+        ...sanitizedWorkflowError(reconciliationError),
+      });
+    }
     logger.error("Failed to claim review submission", {
       reviewId: id,
       actorSubject: auth.user.subject,

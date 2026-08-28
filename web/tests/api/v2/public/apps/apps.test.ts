@@ -433,6 +433,14 @@ describe("/api/v2/public/apps", () => {
           offset: 1,
           where: expect.objectContaining({
             _and: expect.arrayContaining([
+              expect.objectContaining({
+                app: {
+                  _and: expect.arrayContaining([
+                    { status: { _eq: "active" } },
+                    { is_archived: { _eq: false } },
+                  ]),
+                },
+              }),
               expect.objectContaining({ app_mode: { _eq: "external" } }),
               expect.objectContaining({
                 is_developer_allow_listing: { _eq: true },

@@ -10,6 +10,7 @@ import {
   processContentCardImage,
   processLogoImage,
 } from "@/api/helpers/image-processing";
+import { readReviewerSubmissionAssetSnapshot } from "@/api/helpers/reviewer-submission-assets";
 
 const SAFE_ID = /^[A-Za-z0-9_-]+$/;
 const SAFE_IMAGE_FILENAME = /^[A-Za-z0-9_-]+\.(?:png|jpe?g)$/i;
@@ -119,6 +120,7 @@ export const prepareReviewerDecisionAssets = async ({
   appId,
   appMetadataId,
   operationId,
+  assetSnapshot,
   metadataSnapshot,
   localizationsSnapshot,
   registerPreparedPlan,
@@ -127,6 +129,7 @@ export const prepareReviewerDecisionAssets = async ({
   appId: string;
   appMetadataId: string;
   operationId: string;
+  assetSnapshot: unknown;
   metadataSnapshot: unknown;
   localizationsSnapshot: unknown;
   registerPreparedPlan: (keys: string[]) => Promise<void>;
@@ -183,6 +186,18 @@ export const prepareReviewerDecisionAssets = async ({
 
   const { s3Client, bucketName } = resolveStore(storeOverride);
   const sourcePrefix = `unverified/${appId}/`;
+  const immutableSources = readReviewerSubmissionAssetSnapshot({
+    appId,
+    appMetadataId,
+    value: assetSnapshot,
+  });
+  const immutableSource = (sourceKey: string) => {
+    const key = immutableSources.objects[sourceKey];
+    if (!key) {
+      throw new Error("Reviewer submission asset snapshot is incomplete.");
+    }
+    return key;
+  };
   const destinationPrefix = `verified/${appId}/`;
   const basename = `review_${appMetadataId}_${operationId}`;
   const preparedKeys: string[] = [];
@@ -200,7 +215,7 @@ export const prepareReviewerDecisionAssets = async ({
     processLogoImage(
       s3Client,
       bucketName,
-      `${sourcePrefix}${logo}`,
+      immutableSource(`${sourcePrefix}${logo}`),
       destinationPrefix,
       logoName,
       400,
@@ -228,7 +243,10 @@ export const prepareReviewerDecisionAssets = async ({
   let metaTagImageUrl = "";
   if (metaTag) {
     metaTagImageUrl = `${basename}_meta${normalizedExtension(metaTag)}`;
-    copy(`${sourcePrefix}${metaTag}`, `${destinationPrefix}${metaTagImageUrl}`);
+    copy(
+      immutableSource(`${sourcePrefix}${metaTag}`),
+      `${destinationPrefix}${metaTagImageUrl}`,
+    );
   }
 
   let contentCardImageUrl = "";
@@ -240,7 +258,7 @@ export const prepareReviewerDecisionAssets = async ({
       processContentCardImage(
         s3Client,
         bucketName,
-        `${sourcePrefix}${contentCard}`,
+        immutableSource(`${sourcePrefix}${contentCard}`),
         destinationKey,
         extension(contentCard),
       ),
@@ -250,7 +268,10 @@ export const prepareReviewerDecisionAssets = async ({
   const showcaseImgUrls =
     showcases?.map((source, index) => {
       const filename = `${basename}_showcase_${index + 1}${normalizedExtension(source)}`;
-      copy(`${sourcePrefix}${source}`, `${destinationPrefix}${filename}`);
+      copy(
+        immutableSource(`${sourcePrefix}${source}`),
+        `${destinationPrefix}${filename}`,
+      );
       return filename;
     }) ?? null;
 
@@ -266,7 +287,7 @@ export const prepareReviewerDecisionAssets = async ({
         localization.metaTag,
       )}`;
       copy(
-        `${localizedSourcePrefix}${localization.metaTag}`,
+        immutableSource(`${localizedSourcePrefix}${localization.metaTag}`),
         `${localizedPrefix}${update.metaTagImageUrl}`,
       );
     }
@@ -274,7 +295,7 @@ export const prepareReviewerDecisionAssets = async ({
       update.showcaseImgUrls = localization.showcases.map((source, index) => {
         const filename = `${localizedBasename}_showcase_${index + 1}${normalizedExtension(source)}`;
         copy(
-          `${localizedSourcePrefix}${source}`,
+          immutableSource(`${localizedSourcePrefix}${source}`),
           `${localizedPrefix}${filename}`,
         );
         return filename;

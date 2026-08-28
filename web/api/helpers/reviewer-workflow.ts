@@ -10,6 +10,7 @@ import type { StoredReviewChecklist } from "@/api/admin/reviewer/request-schema"
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import type { AdminUser } from "@/lib/admin-auth";
 import "server-only";
+import { isDeepStrictEqual } from "node:util";
 
 export type ReviewerWorkflowSubmission = {
   id: string;
@@ -29,6 +30,12 @@ type WorkflowRow = {
   claim_expires_at?: string | null;
   checklist_version?: string | null;
   checklist: Record<string, unknown>;
+  events?: Array<{
+    event_type?: string | null;
+    actor_subject?: string | null;
+    review_version?: number | null;
+    payload?: Record<string, unknown> | null;
+  }>;
 };
 
 export const mapReviewerWorkflowSubmission = (
@@ -65,6 +72,135 @@ export const fetchReviewChecklistContext = async (
     appMode: row.app_mode,
     checklistVersion: row.checklist_version ?? null,
   };
+};
+
+const fetchReviewWorkflowOutcome = async (submissionId: string) => {
+  const result = await (
+    await sdk()
+  ).FetchReviewWorkflowOutcome({ submission_id: submissionId });
+  return result.app_review_submission_by_pk ?? null;
+};
+
+const findExactWorkflowEvent = (
+  row: Awaited<ReturnType<typeof fetchReviewWorkflowOutcome>>,
+  {
+    actorSubject,
+    expectedReviewVersion,
+    eventType,
+  }: {
+    actorSubject: string;
+    expectedReviewVersion: number;
+    eventType: string;
+  },
+) =>
+  row?.events?.find(
+    (event) =>
+      event.event_type === eventType &&
+      event.actor_subject === actorSubject &&
+      event.review_version === expectedReviewVersion + 1,
+  );
+
+const isRecoveredActiveClaim = (
+  row: Awaited<ReturnType<typeof fetchReviewWorkflowOutcome>>,
+  {
+    actorSubject,
+    expectedReviewVersion,
+    claimToken,
+    eventType,
+  }: {
+    actorSubject: string;
+    expectedReviewVersion: number;
+    claimToken?: string;
+    eventType: "claimed" | "claim_heartbeat" | "checklist_updated";
+  },
+) => {
+  const expiresAt = row?.claim_expires_at
+    ? Date.parse(row.claim_expires_at)
+    : Number.NaN;
+  return Boolean(
+    row &&
+      row.status === "in_review" &&
+      row.review_version === expectedReviewVersion + 1 &&
+      row.claim_token &&
+      Number.isFinite(expiresAt) &&
+      expiresAt > Date.now() &&
+      row.claimed_by_subject === actorSubject &&
+      (!claimToken || String(row.claim_token) === claimToken) &&
+      findExactWorkflowEvent(row, {
+        actorSubject,
+        expectedReviewVersion,
+        eventType,
+      }),
+  );
+};
+
+export const reconcileClaimReviewSubmission = async ({
+  submissionId,
+  expectedReviewVersion,
+  actor,
+}: {
+  submissionId: string;
+  expectedReviewVersion: number;
+  actor: AdminUser;
+}) => {
+  const row = await fetchReviewWorkflowOutcome(submissionId);
+  return isRecoveredActiveClaim(row, {
+    actorSubject: actor.subject,
+    expectedReviewVersion,
+    eventType: "claimed",
+  })
+    ? mapReviewerWorkflowSubmission(row!)
+    : null;
+};
+
+export const reconcileHeartbeatReviewSubmission = async (
+  input: ClaimedWrite,
+) => {
+  const row = await fetchReviewWorkflowOutcome(input.submissionId);
+  return isRecoveredActiveClaim(row, {
+    actorSubject: input.actor.subject,
+    expectedReviewVersion: input.expectedReviewVersion,
+    claimToken: input.claimToken,
+    eventType: "claim_heartbeat",
+  })
+    ? mapReviewerWorkflowSubmission(row!)
+    : null;
+};
+
+export const reconcileReleaseReviewSubmission = async (input: ClaimedWrite) => {
+  const row = await fetchReviewWorkflowOutcome(input.submissionId);
+  const releaseEvent = findExactWorkflowEvent(row, {
+    actorSubject: input.actor.subject,
+    expectedReviewVersion: input.expectedReviewVersion,
+    eventType: "claim_released",
+  });
+  return row?.status === "pending" &&
+    row.review_version === input.expectedReviewVersion + 1 &&
+    row.claim_token == null &&
+    row.claimed_by_subject == null &&
+    releaseEvent?.actor_subject === input.actor.subject &&
+    releaseEvent.review_version === row.review_version
+    ? mapReviewerWorkflowSubmission(row)
+    : null;
+};
+
+export const reconcileChecklistReviewSubmission = async (
+  input: ClaimedWrite & {
+    checklistVersion: string;
+    checklist: StoredReviewChecklist;
+  },
+) => {
+  const row = await fetchReviewWorkflowOutcome(input.submissionId);
+  return isRecoveredActiveClaim(row, {
+    actorSubject: input.actor.subject,
+    expectedReviewVersion: input.expectedReviewVersion,
+    claimToken: input.claimToken,
+    eventType: "checklist_updated",
+  }) &&
+    row!.checklist_version === input.checklistVersion &&
+    isDeepStrictEqual(row!.checklist, input.checklist)
+    ? mapReviewerWorkflowSubmission(row!)
+    : null;
 };
 
 export const claimReviewSubmission = async (

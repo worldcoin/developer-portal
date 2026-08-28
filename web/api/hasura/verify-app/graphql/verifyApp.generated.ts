@@ -5,56 +5,64 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type VerifyAppMutationVariables = Types.Exact<{
-  idToVerify: Types.Scalars["String"]["input"];
-  idToDelete: Types.Scalars["String"]["input"];
-  verified_data_changes?: Types.InputMaybe<Types.App_Metadata_Set_Input>;
-  localisation_updates:
-    | Array<Types.Localisations_Updates>
-    | Types.Localisations_Updates;
   app_id: Types.Scalars["String"]["input"];
-  app_updates?: Types.InputMaybe<Types.App_Set_Input>;
+  id_to_verify: Types.Scalars["String"]["input"];
+  operation_id: Types.Scalars["uuid"]["input"];
+  expected_metadata_updated_at: Types.Scalars["timestamptz"]["input"];
+  expected_prior_verified_id?: Types.InputMaybe<
+    Types.Scalars["String"]["input"]
+  >;
+  expected_prior_verified_updated_at?: Types.InputMaybe<
+    Types.Scalars["timestamptz"]["input"]
+  >;
+  expected_localization_versions: Types.Scalars["jsonb"]["input"];
+  reviewer_name: Types.Scalars["String"]["input"];
+  is_reviewer_app_store_approved: Types.Scalars["Boolean"]["input"];
+  is_reviewer_world_app_approved: Types.Scalars["Boolean"]["input"];
+  metadata_assets: Types.Scalars["jsonb"]["input"];
+  localization_assets: Types.Scalars["jsonb"]["input"];
 }>;
 
 export type VerifyAppMutation = {
   __typename?: "mutation_root";
-  delete_app_metadata_by_pk?: {
+  legacy_verify_app_metadata: Array<{
     __typename?: "app_metadata";
     id: string;
-  } | null;
-  update_app_metadata_by_pk?: {
-    __typename?: "app_metadata";
-    id: string;
-  } | null;
-  update_app_by_pk?: { __typename?: "app"; id: string } | null;
-  update_localisations_many?: Array<{
-    __typename?: "localisations_mutation_response";
-    affected_rows: number;
-  } | null> | null;
+  }>;
 };
 
 export const VerifyAppDocument = gql`
   mutation verifyApp(
-    $idToVerify: String!
-    $idToDelete: String!
-    $verified_data_changes: app_metadata_set_input
-    $localisation_updates: [localisations_updates!]!
     $app_id: String!
-    $app_updates: app_set_input
+    $id_to_verify: String!
+    $operation_id: uuid!
+    $expected_metadata_updated_at: timestamptz!
+    $expected_prior_verified_id: String
+    $expected_prior_verified_updated_at: timestamptz
+    $expected_localization_versions: jsonb!
+    $reviewer_name: String!
+    $is_reviewer_app_store_approved: Boolean!
+    $is_reviewer_world_app_approved: Boolean!
+    $metadata_assets: jsonb!
+    $localization_assets: jsonb!
   ) {
-    delete_app_metadata_by_pk(id: $idToDelete) {
-      id
-    }
-    update_app_metadata_by_pk(
-      pk_columns: { id: $idToVerify }
-      _set: $verified_data_changes
+    legacy_verify_app_metadata(
+      args: {
+        p_app_id: $app_id
+        p_app_metadata_id: $id_to_verify
+        p_operation_id: $operation_id
+        p_expected_metadata_updated_at: $expected_metadata_updated_at
+        p_expected_prior_verified_id: $expected_prior_verified_id
+        p_expected_prior_verified_updated_at: $expected_prior_verified_updated_at
+        p_expected_localization_versions: $expected_localization_versions
+        p_reviewer_name: $reviewer_name
+        p_is_reviewer_app_store_approved: $is_reviewer_app_store_approved
+        p_is_reviewer_world_app_approved: $is_reviewer_world_app_approved
+        p_metadata_assets: $metadata_assets
+        p_localization_assets: $localization_assets
+      }
     ) {
       id
-    }
-    update_app_by_pk(pk_columns: { id: $app_id }, _set: $app_updates) {
-      id
-    }
-    update_localisations_many(updates: $localisation_updates) {
-      affected_rows
     }
   }
 `;

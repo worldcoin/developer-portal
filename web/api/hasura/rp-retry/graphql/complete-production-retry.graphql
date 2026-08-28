@@ -1,0 +1,17 @@
+mutation CompleteProductionRetry($rp_id: String!, $operation_hash: String!) {
+  update_rp_registration(
+    where: {
+      rp_id: { _eq: $rp_id }
+      status: { _eq: pending }
+      review_configuration_change_kind: { _eq: "registration_retry" }
+    }
+    _set: { operation_hash: $operation_hash }
+  ) {
+    affected_rows
+    returning {
+      rp_id
+      status
+      operation_hash
+    }
+  }
+}

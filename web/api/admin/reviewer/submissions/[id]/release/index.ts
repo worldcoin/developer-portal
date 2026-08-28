@@ -11,7 +11,10 @@ import {
   workflowConflictResponse,
   workflowSuccessResponse,
 } from "@/api/admin/reviewer/response";
-import { releaseReviewSubmission } from "@/api/helpers/reviewer-workflow";
+import {
+  reconcileReleaseReviewSubmission,
+  releaseReviewSubmission,
+} from "@/api/helpers/reviewer-workflow";
 import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
@@ -29,16 +32,35 @@ export async function POST(
   if (!body) return invalidBodyResponse();
 
   try {
-    const submission = await releaseReviewSubmission({
+    const input = {
       submissionId: id,
       claimToken: body.claimToken,
       expectedReviewVersion: body.expectedReviewVersion,
       actor: auth.user,
-    });
-    return submission
-      ? workflowSuccessResponse(submission)
+    };
+    const submission = await releaseReviewSubmission(input);
+    if (submission) return workflowSuccessResponse(submission);
+
+    const recovered = await reconcileReleaseReviewSubmission(input);
+    return recovered
+      ? workflowSuccessResponse(recovered)
       : workflowConflictResponse();
   } catch (error) {
+    try {
+      const recovered = await reconcileReleaseReviewSubmission({
+        submissionId: id,
+        claimToken: body.claimToken,
+        expectedReviewVersion: body.expectedReviewVersion,
+        actor: auth.user,
+      });
+      if (recovered) return workflowSuccessResponse(recovered);
+    } catch (reconciliationError) {
+      logger.error("Failed to reconcile review release outcome", {
+        reviewId: id,
+        actorSubject: auth.user.subject,
+        ...sanitizedWorkflowError(reconciliationError),
+      });
+    }
     logger.error("Failed to release review submission", {
       reviewId: id,
       actorSubject: auth.user.subject,

@@ -1,4 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getSdk as getReopenChangesRequestedReviewDraftSdk } from "@/api/helpers/graphql/reopen-changes-requested-review-draft.generated";
 import {
   AppReviewSubmissionError,
   submitAppForReviewOperation,
@@ -575,6 +576,78 @@ const requireApp = async (
   return app;
 };
 
+const reopenChangesRequestedMetadata = async (
+  ctx: ToolContext,
+  appId: string,
+  metadata: McpEditableAppMetadata,
+): Promise<McpEditableAppMetadata> => {
+  if (metadata.verification_status !== "changes_requested") return metadata;
+
+  let result;
+  try {
+    result = await getReopenChangesRequestedReviewDraftSdk(
+      ctx.client,
+    ).ReopenChangesRequestedReviewDraft({
+      app_metadata_id: metadata.id,
+      expected_verification_status: "changes_requested",
+      expected_metadata_updated_at: metadata.updated_at,
+      actor_subject: `mcp-api-key:${ctx.apiKeyId}`,
+      actor_email: null,
+    });
+  } catch (error) {
+    // A transport can fail after Postgres commits. Confirm the exact draft was
+    // reopened before surfacing an error so an MCP-only developer is not told
+    // the edit failed when it is already safe to continue.
+    try {
+      const refreshed = await requireApp(ctx.client, ctx.teamId, appId);
+      const reopened = refreshed.app_metadata.find(
+        (candidate) =>
+          candidate.id === metadata.id &&
+          candidate.verification_status === "unverified",
+      );
+      if (reopened) return reopened;
+    } catch {
+      // Preserve the original mutation error when its outcome is ambiguous.
+    }
+    throw error;
+  }
+
+  const reopened = result.reopen_changes_requested_review_draft[0];
+  if (!reopened) {
+    throw new McpError(
+      "The changes-requested draft changed after it was loaded. Refresh and retry.",
+      -32004,
+    );
+  }
+
+  return { ...metadata, ...reopened };
+};
+
+const patchEditableMetadata = async (
+  ctx: ToolContext,
+  metadata: McpEditableAppMetadata,
+  set: Record<string, unknown>,
+): Promise<McpEditableAppMetadata> => {
+  const data = await getMcpUpdateAppMetadataSdk(
+    ctx.client,
+  ).McpUpdateAppMetadata({
+    app_metadata_id: metadata.id,
+    expected_verification_status: metadata.verification_status,
+    expected_metadata_updated_at: metadata.updated_at,
+    set,
+    actor_subject: `mcp-api-key:${ctx.apiKeyId}`,
+    actor_email: null,
+  });
+  const updated = data.update_app_metadata_by_pk[0];
+  if (!updated) {
+    throw new McpError(
+      "The editable draft changed after it was loaded. Refresh and retry.",
+      -32004,
+    );
+  }
+  return updated;
+};
+
 const fileNameForDraft = (
   fileName: string | null | undefined,
   basename: string,
@@ -615,6 +688,40 @@ const imagePatchForUploadedDraft = (
   }
 
   return { [mapping.field]: fileName } as McpDraftImagePatch;
+};
+
+const metadataReferencesUploadedImage = (
+  metadata: McpEditableAppMetadata,
+  mapping: (typeof MCP_APP_IMAGE_MAP)[McpAppImageType],
+  fileName: string,
+) => {
+  if ("arrayIndex" in mapping) {
+    return metadata.showcase_img_urls?.[mapping.arrayIndex] === fileName;
+  }
+  return (metadata as Record<string, unknown>)[mapping.field] === fileName;
+};
+
+const reconcileUploadedImageCommit = async (
+  ctx: ToolContext,
+  appId: string,
+  mapping: (typeof MCP_APP_IMAGE_MAP)[McpAppImageType],
+  fileName: string,
+): Promise<
+  | { outcome: "committed"; metadata: McpEditableAppMetadata }
+  | { outcome: "not_committed" }
+  | { outcome: "unknown" }
+> => {
+  try {
+    const refreshed = await requireApp(ctx.client, ctx.teamId, appId);
+    const committed = refreshed.app_metadata.find((candidate) =>
+      metadataReferencesUploadedImage(candidate, mapping, fileName),
+    );
+    return committed
+      ? { outcome: "committed", metadata: committed }
+      : { outcome: "not_committed" };
+  } catch {
+    return { outcome: "unknown" };
+  }
 };
 
 const createDraftFromVerifiedMetadata = async (
@@ -702,8 +809,8 @@ const createDraftFromVerifiedMetadata = async (
     ...draftValues,
     localisations: localisationData.length ? { data: localisationData } : null,
   });
-  const draftId = data.insert_app_metadata_one?.id;
-  if (!draftId) {
+  const createdDraft = data.insert_app_metadata_one;
+  if (!createdDraft) {
     throw new McpError("Failed to create an editable app draft.", -32603);
   }
 
@@ -714,15 +821,16 @@ const createDraftFromVerifiedMetadata = async (
     app_id: appId,
     metadata: {
       source_app_metadata_id: verified.id,
-      draft_app_metadata_id: draftId,
+      draft_app_metadata_id: createdDraft.id,
     },
   });
 
   return {
-    id: draftId,
+    id: createdDraft.id,
+    updated_at: createdDraft.updated_at,
     ...draftValues,
     showcase_img_urls: showcaseValue,
-  } as McpEditableAppMetadata;
+  };
 };
 
 const syncWorldIdRegistrationStatus = async (
@@ -1220,7 +1328,12 @@ const tools = {
     const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
     let metadata = app.app_metadata[0] ?? null;
     const verifiedMetadata = app.verified_app_metadata?.[0];
-    if (metadata && metadata.verification_status !== "unverified") {
+    if (
+      metadata &&
+      !["unverified", "changes_requested"].includes(
+        metadata.verification_status,
+      )
+    ) {
       throw new McpError("Only unverified app metadata can be edited.", -32004);
     }
     if (!metadata && !verifiedMetadata) {
@@ -1324,15 +1437,10 @@ const tools = {
       draftCreated = true;
     }
 
-    const data = await getMcpUpdateAppMetadataSdk(
-      ctx.client,
-    ).McpUpdateAppMetadata({
-      app_metadata_id: metadata.id,
-      set,
-    });
+    const updatedMetadata = await patchEditableMetadata(ctx, metadata, set);
 
     return content({
-      app_metadata: data.update_app_metadata_by_pk,
+      app_metadata: updatedMetadata,
       draft_created: draftCreated,
     });
   },
@@ -1342,7 +1450,12 @@ const tools = {
     const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
     let metadata = app.app_metadata[0] ?? null;
     const verifiedMetadata = app.verified_app_metadata?.[0];
-    if (metadata && metadata.verification_status !== "unverified") {
+    if (
+      metadata &&
+      !["unverified", "changes_requested"].includes(
+        metadata.verification_status,
+      )
+    ) {
       throw new McpError("Only unverified app metadata can be edited.", -32004);
     }
     if (!metadata && !verifiedMetadata) {
@@ -1433,22 +1546,37 @@ const tools = {
           imagePatchForUploadedDraft(verifiedMetadata!, mapping, fileName),
         );
       } catch (error) {
-        await tryDeleteAppImage(objectKey);
-        logger.error(
-          "MCP app image uploaded to S3 but draft creation failed.",
-          {
-            error,
-            app_id: args.app_id,
-            team_id: ctx.teamId,
-            image_type: args.image_type,
-            object_key: objectKey,
-          },
+        const reconciliation = await reconcileUploadedImageCommit(
+          ctx,
+          args.app_id,
+          mapping,
+          fileName,
         );
-        throw new McpError(
-          "Image was uploaded but draft creation failed. The S3 object was rolled back; retry the same call.",
-          -32603,
-          { committed: false, file_name: fileName },
-        );
+        if (reconciliation.outcome === "committed") {
+          metadata = reconciliation.metadata;
+        } else {
+          if (reconciliation.outcome === "not_committed") {
+            await tryDeleteAppImage(objectKey);
+          }
+          logger.error(
+            "MCP app image uploaded to S3 but draft creation failed.",
+            {
+              error,
+              app_id: args.app_id,
+              team_id: ctx.teamId,
+              image_type: args.image_type,
+              object_key: objectKey,
+              outcome: reconciliation.outcome,
+            },
+          );
+          throw new McpError(
+            reconciliation.outcome === "not_committed"
+              ? "Image was uploaded but draft creation failed. The S3 object was rolled back; retry the same call."
+              : "Image upload outcome is unknown. Refresh the app before retrying.",
+            -32603,
+            { committed: false, file_name: fileName },
+          );
+        }
       }
 
       return content({
@@ -1466,56 +1594,48 @@ const tools = {
     }
 
     let set: Record<string, unknown>;
-    let priorReferencedFileName: string | undefined;
     if ("arrayIndex" in mapping) {
       const current = (metadata.showcase_img_urls ?? []) as string[];
-      const slot = current[mapping.arrayIndex];
-      priorReferencedFileName = typeof slot === "string" ? slot : undefined;
       const next = [...current];
       while (next.length < mapping.arrayIndex + 1) next.push("");
       next[mapping.arrayIndex] = fileName;
       set = { showcase_img_urls: next };
     } else {
-      const raw = (metadata as Record<string, unknown>)[mapping.field];
-      priorReferencedFileName = typeof raw === "string" ? raw : undefined;
       set = { [mapping.field]: fileName };
     }
 
-    // S3 upload already succeeded above. The deterministic object key means
-    // a replace-upload may have just overwritten an asset that the existing
-    // metadata field already references; in that case deleting on failure
-    // would leave the existing reference dangling. The prior bytes are gone
-    // either way, so the safer rollback is to keep the new bytes in place
-    // (effectively partial success — the asset is updated even though the
-    // patch failed) and let the caller retry. When the prior metadata
-    // referenced something else (or nothing), we DELETE the orphan we just
-    // wrote. Retries are idempotent (same key, same bytes).
-    let data;
+    let updatedMetadata;
     try {
-      data = await getMcpUpdateAppMetadataSdk(ctx.client).McpUpdateAppMetadata({
-        app_metadata_id: metadata.id,
-        set,
-      });
+      updatedMetadata = await patchEditableMetadata(ctx, metadata, set);
     } catch (error) {
-      const wouldOrphanReference = priorReferencedFileName === fileName;
-      if (!wouldOrphanReference) {
-        await tryDeleteAppImage(objectKey);
-      }
-      logger.error("MCP app image uploaded to S3 but metadata patch failed.", {
-        error,
-        app_id: args.app_id,
-        team_id: ctx.teamId,
-        image_type: args.image_type,
-        object_key: objectKey,
-        cleanup_skipped: wouldOrphanReference,
-      });
-      throw new McpError(
-        wouldOrphanReference
-          ? "Image was uploaded but the metadata update failed. The existing reference was preserved; retry the same call."
-          : "Image was uploaded but the metadata update failed. The S3 object was rolled back; retry the same call.",
-        -32603,
-        { committed: false, file_name: fileName },
+      const reconciliation = await reconcileUploadedImageCommit(
+        ctx,
+        args.app_id,
+        mapping,
+        fileName,
       );
+      if (reconciliation.outcome === "committed") {
+        updatedMetadata = reconciliation.metadata;
+      } else {
+        if (reconciliation.outcome === "not_committed") {
+          await tryDeleteAppImage(objectKey);
+        }
+        logger.error("MCP app image uploaded but metadata patch failed.", {
+          error,
+          app_id: args.app_id,
+          team_id: ctx.teamId,
+          image_type: args.image_type,
+          object_key: objectKey,
+          outcome: reconciliation.outcome,
+        });
+        throw new McpError(
+          reconciliation.outcome === "not_committed"
+            ? "Image was uploaded but the metadata update failed. The S3 object was rolled back; retry the same call."
+            : "Image upload outcome is unknown. Refresh the app before retrying.",
+          -32603,
+          { committed: false, file_name: fileName },
+        );
+      }
     }
 
     return content({
@@ -1528,7 +1648,7 @@ const tools = {
       size_bytes: sizeBytes,
       content_type: contentType,
       draft_created: false,
-      app_metadata: data.update_app_metadata_by_pk,
+      app_metadata: updatedMetadata,
     });
   },
 
@@ -1542,13 +1662,14 @@ const tools = {
       );
     }
 
-    const metadata = app.app_metadata[0];
+    let metadata = app.app_metadata[0];
     if (!metadata) {
       throw new McpError(
         "No editable draft exists. Update Mini App metadata or upload an app image first to create a draft.",
         -32004,
       );
     }
+    metadata = await reopenChangesRequestedMetadata(ctx, args.app_id, metadata);
     if (metadata.verification_status !== "unverified") {
       throw new McpError("Only unverified apps can be submitted.", -32004);
     }

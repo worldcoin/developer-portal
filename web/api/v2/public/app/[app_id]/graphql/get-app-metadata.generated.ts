@@ -47,6 +47,10 @@ export type GetAppMetadataQuery = {
     is_android_only: boolean;
     is_for_humans_only: boolean;
     should_uninstall_on_delist: boolean;
+    review_submissions: Array<{
+      __typename?: "app_review_submission";
+      asset_snapshot?: any | null;
+    }>;
     localisations: Array<{
       __typename?: "localisations";
       name: string;
@@ -107,6 +111,13 @@ export const GetAppMetadataDocument = gql`
       is_android_only
       is_for_humans_only
       should_uninstall_on_delist
+      review_submissions(
+        where: { status: { _in: ["pending", "in_review"] } }
+        order_by: { attempt: desc }
+        limit: 1
+      ) {
+        asset_snapshot
+      }
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text

@@ -33,6 +33,9 @@ query FetchAppMetadataById($app_metadata_id: String!) {
       id
       team_id
       is_staging
+      is_banned
+      status
+      is_archived
     }
   }
   localisations(

@@ -4,35 +4,29 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpdateProductionRetryMutationVariables = Types.Exact<{
+export type RevertProductionRetryMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
-  operation_hash: Types.Scalars["String"]["input"];
-  status: Types.Scalars["rp_registration_status"]["input"];
 }>;
 
-export type UpdateProductionRetryMutation = {
+export type RevertProductionRetryMutation = {
   __typename?: "mutation_root";
-  update_rp_registration_by_pk?: {
-    __typename?: "rp_registration";
-    rp_id: string;
-    status: unknown;
-    operation_hash?: string | null;
+  update_rp_registration?: {
+    __typename?: "rp_registration_mutation_response";
+    affected_rows: number;
   } | null;
 };
 
-export const UpdateProductionRetryDocument = gql`
-  mutation UpdateProductionRetry(
-    $rp_id: String!
-    $operation_hash: String!
-    $status: rp_registration_status!
-  ) {
-    update_rp_registration_by_pk(
-      pk_columns: { rp_id: $rp_id }
-      _set: { operation_hash: $operation_hash, status: $status }
+export const RevertProductionRetryDocument = gql`
+  mutation RevertProductionRetry($rp_id: String!) {
+    update_rp_registration(
+      where: {
+        rp_id: { _eq: $rp_id }
+        status: { _eq: pending }
+        review_configuration_change_kind: { _eq: "registration_retry" }
+      }
+      _set: { status: failed }
     ) {
-      rp_id
-      status
-      operation_hash
+      affected_rows
     }
   }
 `;
@@ -56,18 +50,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpdateProductionRetry(
-      variables: UpdateProductionRetryMutationVariables,
+    RevertProductionRetry(
+      variables: RevertProductionRetryMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpdateProductionRetryMutation> {
+    ): Promise<RevertProductionRetryMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateProductionRetryMutation>(
-            UpdateProductionRetryDocument,
+          client.request<RevertProductionRetryMutation>(
+            RevertProductionRetryDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpdateProductionRetry",
+        "RevertProductionRetry",
         "mutation",
         variables,
       );

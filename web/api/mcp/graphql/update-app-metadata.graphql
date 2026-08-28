@@ -1,10 +1,24 @@
 mutation McpUpdateAppMetadata(
   $app_metadata_id: String!
-  $set: app_metadata_set_input!
+  $expected_verification_status: String!
+  $expected_metadata_updated_at: timestamptz!
+  $set: jsonb!
+  $actor_subject: String!
+  $actor_email: String
 ) {
-  update_app_metadata_by_pk(pk_columns: { id: $app_metadata_id }, _set: $set) {
+  update_app_metadata_by_pk: mcp_patch_editable_app_metadata(
+    args: {
+      p_app_metadata_id: $app_metadata_id
+      p_expected_verification_status: $expected_verification_status
+      p_expected_metadata_updated_at: $expected_metadata_updated_at
+      p_patch: $set
+      p_actor_subject: $actor_subject
+      p_actor_email: $actor_email
+    }
+  ) {
     id
     app_id
+    updated_at
     name
     short_name
     app_mode

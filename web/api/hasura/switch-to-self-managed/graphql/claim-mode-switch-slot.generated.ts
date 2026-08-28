@@ -27,7 +27,7 @@ export const ClaimModeSwitchSlotDocument = gql`
   mutation ClaimModeSwitchSlot($rp_id: String!) {
     update_rp_registration(
       where: { rp_id: { _eq: $rp_id }, status: { _eq: registered } }
-      _set: { status: pending }
+      _set: { status: pending, review_configuration_change_kind: "mode_switch" }
     ) {
       affected_rows
       returning {

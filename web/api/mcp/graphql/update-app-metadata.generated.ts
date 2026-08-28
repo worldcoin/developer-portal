@@ -6,15 +6,20 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type McpUpdateAppMetadataMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"]["input"];
-  set: Types.App_Metadata_Set_Input;
+  expected_verification_status: Types.Scalars["String"]["input"];
+  expected_metadata_updated_at: Types.Scalars["timestamptz"]["input"];
+  set: Types.Scalars["jsonb"]["input"];
+  actor_subject: Types.Scalars["String"]["input"];
+  actor_email?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type McpUpdateAppMetadataMutation = {
   __typename?: "mutation_root";
-  update_app_metadata_by_pk?: {
+  update_app_metadata_by_pk: Array<{
     __typename?: "app_metadata";
     id: string;
     app_id: string;
+    updated_at: string;
     name: string;
     short_name: string;
     app_mode: string;
@@ -44,20 +49,31 @@ export type McpUpdateAppMetadataMutation = {
     can_use_attestation: boolean;
     is_allowed_unlimited_notifications?: boolean | null;
     max_notifications_per_day?: number | null;
-  } | null;
+  }>;
 };
 
 export const McpUpdateAppMetadataDocument = gql`
   mutation McpUpdateAppMetadata(
     $app_metadata_id: String!
-    $set: app_metadata_set_input!
+    $expected_verification_status: String!
+    $expected_metadata_updated_at: timestamptz!
+    $set: jsonb!
+    $actor_subject: String!
+    $actor_email: String
   ) {
-    update_app_metadata_by_pk(
-      pk_columns: { id: $app_metadata_id }
-      _set: $set
+    update_app_metadata_by_pk: mcp_patch_editable_app_metadata(
+      args: {
+        p_app_metadata_id: $app_metadata_id
+        p_expected_verification_status: $expected_verification_status
+        p_expected_metadata_updated_at: $expected_metadata_updated_at
+        p_patch: $set
+        p_actor_subject: $actor_subject
+        p_actor_email: $actor_email
+      }
     ) {
       id
       app_id
+      updated_at
       name
       short_name
       app_mode

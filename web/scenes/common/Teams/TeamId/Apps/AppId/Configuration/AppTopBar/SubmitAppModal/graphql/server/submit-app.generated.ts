@@ -16,6 +16,8 @@ export type SubmitAppMutation = {
   update_app_metadata_by_pk?: {
     __typename?: "app_metadata";
     id: string;
+    updated_at: string;
+    verification_status: string;
   } | null;
 };
 
@@ -35,6 +37,8 @@ export const SubmitAppDocument = gql`
       }
     ) {
       id
+      updated_at
+      verification_status
     }
   }
 `;

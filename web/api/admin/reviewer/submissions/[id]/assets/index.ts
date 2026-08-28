@@ -1,7 +1,7 @@
 import { isUuid } from "@/api/admin/reviewer/request-schema";
 import { reviewerApiJson } from "@/api/admin/reviewer/response";
 import { logger } from "@/lib/logger";
-import { fetchReviewerSubmission } from "@/scenes/Admin/reviewer/server/fetch-reviewer-data";
+import { fetchReviewerSubmissionAssetContext } from "@/scenes/Admin/reviewer/server/fetch-reviewer-data";
 import { signReviewerSubmissionAssets } from "@/scenes/Admin/reviewer/server/sign-reviewer-assets";
 import { NextRequest } from "next/server";
 
@@ -19,7 +19,7 @@ export const GET = async (
     return reviewerApiJson({ error: "Invalid review id" }, { status: 400 });
   }
 
-  const submission = await fetchReviewerSubmission(id);
+  const submission = await fetchReviewerSubmissionAssetContext(id);
   if (!submission) {
     return reviewerApiJson({ error: "Review not found" }, { status: 404 });
   }
@@ -27,6 +27,8 @@ export const GET = async (
   try {
     const assets = await signReviewerSubmissionAssets({
       appId: submission.appId,
+      appMetadataId: submission.appMetadataId,
+      assetSnapshot: submission.assetSnapshot,
       metadataSnapshot: submission.metadataSnapshot,
       localizationsSnapshot: submission.localizationsSnapshot,
     });

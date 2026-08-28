@@ -1,4 +1,6 @@
 import { protectInternalEndpoint } from "@/api/helpers/utils";
+import { settleLegacyVerificationAssets } from "@/api/helpers/legacy-verification-asset-settlement";
+import { repairReviewerAssetSnapshots } from "@/api/helpers/reviewer-asset-snapshot-repair";
 import { deliverReviewNotification } from "@/api/helpers/reviewer-notification-delivery";
 import {
   claimReviewNotifications,
@@ -130,6 +132,11 @@ export async function POST(request: NextRequest) {
     );
     const count = (outcome: DeliveryCount) =>
       outcomes.filter((candidate) => candidate === outcome).length;
+    const assetSnapshots = await repairReviewerAssetSnapshots({ limit: 10 });
+    const legacyVerificationAssets = await settleLegacyVerificationAssets({
+      workerId,
+      limit: 10,
+    });
     return NextResponse.json({
       success: true,
       claimed: claimed.length,
@@ -138,6 +145,8 @@ export async function POST(request: NextRequest) {
       failed: count("failed") + count("deadLetter"),
       deadLetter: count("deadLetter"),
       finalizationPending: count("finalizationPending"),
+      assetSnapshots,
+      legacyVerificationAssets,
     });
   } catch {
     logger.error("Reviewer notification worker failed before delivery", {

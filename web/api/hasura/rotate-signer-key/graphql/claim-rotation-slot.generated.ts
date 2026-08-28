@@ -36,7 +36,10 @@ export const ClaimRotationSlotDocument = gql`
           deleted_at: { _is_null: true }
         }
       }
-      _set: { status: pending }
+      _set: {
+        status: pending
+        review_configuration_change_kind: "signer_rotation"
+      }
     ) {
       affected_rows
       returning {

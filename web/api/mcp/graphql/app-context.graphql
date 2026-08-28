@@ -36,6 +36,7 @@ query McpAppContext($team_id: String!, $app_id: String!) {
       world_app_description
       world_app_button_text
       verification_status
+      updated_at
       is_developer_allow_listing
       supported_countries
       supported_languages

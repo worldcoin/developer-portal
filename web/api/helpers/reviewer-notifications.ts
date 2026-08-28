@@ -4,6 +4,7 @@ import {
 } from "@/api/admin/reviewer/graphql/reviewer-workflow.generated";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import type { AdminUser } from "@/lib/admin-auth";
+import { gql } from "graphql-request";
 import "server-only";
 
 type ClaimedRow = {
@@ -46,6 +47,127 @@ const mapNotification = (row: ClaimedRow): ClaimedReviewNotification => ({
 });
 
 const sdk = async () => getSdk(await getAPIServiceGraphqlClient());
+
+const beginSlackSubmissionDeliveryDocument = gql`
+  mutation BeginSlackSubmissionDelivery(
+    $notification_id: uuid!
+    $worker_id: String!
+    $fence_token: uuid!
+  ) {
+    reviewer_begin_app_review_submission_slack_delivery(
+      args: {
+        p_notification_id: $notification_id
+        p_worker_id: $worker_id
+        p_fence_token: $fence_token
+      }
+    ) {
+      id
+    }
+  }
+`;
+
+export const beginSlackSubmissionDelivery = async ({
+  notificationId,
+  workerId,
+  fenceToken,
+}: {
+  notificationId: string;
+  workerId: string;
+  fenceToken: string;
+}) => {
+  const client = await getAPIServiceGraphqlClient();
+  const result = await client.request<{
+    reviewer_begin_app_review_submission_slack_delivery: Array<{ id: string }>;
+  }>(beginSlackSubmissionDeliveryDocument, {
+    notification_id: notificationId,
+    worker_id: workerId,
+    fence_token: fenceToken,
+  });
+  return (
+    result.reviewer_begin_app_review_submission_slack_delivery[0]?.id ===
+    notificationId
+  );
+};
+
+const reconcileReviewAssetCleanupDocument = gql`
+  mutation ReconcilePreparedReviewAssetCleanup(
+    $notification_id: uuid!
+    $submission_id: uuid!
+    $decision_fingerprint: String!
+    $operation_id: String!
+    $expected_review_version: Int!
+    $app_metadata_id: String!
+    $asset_keys: jsonb!
+    $worker_id: String!
+  ) {
+    reviewer_reconcile_app_review_asset_cleanup(
+      args: {
+        p_notification_id: $notification_id
+        p_submission_id: $submission_id
+        p_decision_fingerprint: $decision_fingerprint
+        p_operation_id: $operation_id
+        p_expected_review_version: $expected_review_version
+        p_app_metadata_id: $app_metadata_id
+        p_asset_keys: $asset_keys
+        p_worker_id: $worker_id
+      }
+    ) {
+      id
+      payload
+    }
+  }
+`;
+
+export type ReviewAssetCleanupSettlementState =
+  | "pending"
+  | "committed"
+  | "aborted";
+
+export const reconcilePreparedReviewAssetCleanup = async ({
+  notificationId,
+  submissionId,
+  decisionFingerprint,
+  operationId,
+  expectedReviewVersion,
+  appMetadataId,
+  assetKeys,
+  workerId,
+}: {
+  notificationId: string;
+  submissionId: string;
+  decisionFingerprint: string;
+  operationId: string;
+  expectedReviewVersion: number;
+  appMetadataId: string;
+  assetKeys: string[];
+  workerId: string;
+}): Promise<ReviewAssetCleanupSettlementState | null> => {
+  const client = await getAPIServiceGraphqlClient();
+  const result = await client.request<{
+    reviewer_reconcile_app_review_asset_cleanup: Array<{
+      id: string;
+      payload: unknown;
+    }>;
+  }>(reconcileReviewAssetCleanupDocument, {
+    notification_id: notificationId,
+    submission_id: submissionId,
+    decision_fingerprint: decisionFingerprint,
+    operation_id: operationId,
+    expected_review_version: expectedReviewVersion,
+    app_metadata_id: appMetadataId,
+    asset_keys: assetKeys,
+    worker_id: workerId,
+  });
+  const payload =
+    result.reviewer_reconcile_app_review_asset_cleanup[0]?.payload;
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return null;
+  }
+  const state = (payload as Record<string, unknown>).settlement_state;
+  return state === "pending" || state === "committed" || state === "aborted"
+    ? state
+    : null;
+};
 
 export const claimReviewNotifications = async ({
   workerId,
@@ -167,26 +289,63 @@ export const completeReviewNotification = async ({
 
 export const retryReviewNotification = async ({
   notificationId,
+  operationId,
   actor,
 }: {
   notificationId: string;
+  operationId: string;
   actor: AdminUser;
 }) => {
   const result = await (
     await sdk()
   ).RetryReviewNotification({
     notification_id: notificationId,
+    operation_id: operationId,
     actor_subject: actor.subject,
     actor_email: actor.email,
   });
   const row = result.reviewer_retry_app_review_notification[0];
-  return row
-    ? {
-        id: String(row.id),
-        status: row.status,
-        attemptCount: row.attempt_count,
-        nextAttemptAt: row.next_attempt_at,
-        deliveredAt: row.delivered_at ?? null,
-      }
+  return row ? mapRetryNotification(row) : null;
+};
+
+const mapRetryNotification = (row: {
+  id: unknown;
+  status: string;
+  attempt_count: number;
+  next_attempt_at: string;
+  delivered_at?: string | null;
+}) => ({
+  id: String(row.id),
+  status: row.status,
+  attemptCount: row.attempt_count,
+  nextAttemptAt: row.next_attempt_at,
+  deliveredAt: row.delivered_at ?? null,
+});
+
+export const reconcileRetryReviewNotification = async ({
+  notificationId,
+  operationId,
+  actor,
+}: {
+  notificationId: string;
+  operationId: string;
+  actor: AdminUser;
+}) => {
+  const result = await (
+    await sdk()
+  ).FetchReviewNotificationRetryOutcome({
+    notification_id: notificationId,
+    actor_subject: actor.subject,
+    event_payload: {
+      notification_id: notificationId,
+      operation_id: operationId,
+    },
+  });
+  const notification = result.app_review_notification_by_pk;
+  const event = result.app_review_event[0];
+  return notification &&
+    event &&
+    String(event.submission_id) === String(notification.submission_id)
+    ? mapRetryNotification(notification)
     : null;
 };

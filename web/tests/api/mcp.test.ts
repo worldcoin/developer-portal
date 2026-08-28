@@ -32,6 +32,8 @@ jest.mock("../../api/helpers/rp-manager", () => ({
 
 jest.mock("@aws-sdk/client-s3", () => ({
   S3Client: jest.fn().mockImplementation(() => ({ send: s3SendMock })),
+  CopyObjectCommand: jest.fn().mockImplementation((args) => ({ ...args })),
+  DeleteObjectsCommand: jest.fn().mockImplementation((args) => ({ ...args })),
   PutObjectCommand: jest.fn().mockImplementation((args) => ({ ...args })),
   DeleteObjectCommand: jest
     .fn()
@@ -126,6 +128,11 @@ const validApiKey = `api_${Buffer.from(`${apiKeyId}:${hashedSecret.secret}`)
 
 const appId = "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a";
 const rpId = generateRpIdString(appId);
+const uniqueUploadFilename = (basename: string, extension: string) =>
+  new RegExp(
+    `^${basename}_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\.${extension}$`,
+    "i",
+  );
 
 const appContextResponse = {
   app: [
@@ -188,7 +195,14 @@ const reviewMetadata = {
   verification_status: "unverified",
   content_card_image_url: "card.png",
   updated_at: "2026-08-27T20:00:00.000Z",
-  app: { id: appId, team_id: teamId, is_staging: false },
+  app: {
+    id: appId,
+    team_id: teamId,
+    is_staging: false,
+    is_banned: false,
+    status: "active",
+    is_archived: false,
+  },
 };
 const reviewLocalisations: Array<Record<string, unknown>> = [];
 let currentAppContextResponse = appContextResponse;
@@ -352,6 +366,7 @@ beforeEach(async () => {
       return {
         insert_app_metadata_one: {
           id: "meta_draft",
+          updated_at: "2026-08-27T19:30:00.000Z",
         },
       };
     }
@@ -382,12 +397,15 @@ beforeEach(async () => {
     }
     if (operationName.includes("McpUpdateAppMetadata")) {
       return {
-        update_app_metadata_by_pk: {
-          id: variables.app_metadata_id,
-          app_id: appId,
-          ...variables.set,
-          verification_status: "unverified",
-        },
+        update_app_metadata_by_pk: [
+          {
+            id: variables.app_metadata_id,
+            app_id: appId,
+            ...variables.set,
+            verification_status: "unverified",
+            updated_at: reviewMetadata.updated_at,
+          },
+        ],
       };
     }
     if (operationName === "SubmitApp") {
@@ -398,6 +416,18 @@ beforeEach(async () => {
           verification_status: "awaiting_review",
           is_developer_allow_listing: variables.is_developer_allow_listing,
         },
+      };
+    }
+    if (operationName === "CaptureListingReviewSubmission") {
+      return {
+        capture_listing_review_submission: [
+          {
+            id: "00000000-0000-0000-0000-000000000001",
+            app_metadata_id: variables.app_metadata_id,
+            attempt: 1,
+            status: "pending",
+          },
+        ],
       };
     }
     if (operationName.includes("UpdateRpStatus")) {
@@ -1298,14 +1328,16 @@ describe("/api/mcp", () => {
 
     expect(res.status).toBe(200);
     const payload = JSON.parse((await res.json()).result.content[0].text);
-    expect(payload.file_name).toBe("logo_img.png");
-    expect(payload.s3_key).toBe(`unverified/${appId}/logo_img.png`);
+    expect(payload.file_name).toMatch(uniqueUploadFilename("logo_img", "png"));
+    expect(payload.s3_key).toBe(`unverified/${appId}/${payload.file_name}`);
     expect(s3SendMock).toHaveBeenCalledTimes(1);
 
     const updateCall = requestMock.mock.calls.find(
       ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
     );
-    expect(updateCall?.[1].set).toEqual({ logo_img_url: "logo_img.png" });
+    expect(updateCall?.[1].set).toEqual({
+      logo_img_url: payload.file_name,
+    });
   });
 
   it("uploads a base64 image and detects format from magic bytes", async () => {
@@ -1321,7 +1353,9 @@ describe("/api/mcp", () => {
 
     expect(res.status).toBe(200);
     const payload = JSON.parse((await res.json()).result.content[0].text);
-    expect(payload.file_name).toBe("content_card_image.jpg");
+    expect(payload.file_name).toMatch(
+      uniqueUploadFilename("content_card_image", "jpg"),
+    );
     expect(payload.content_type).toBe("image/jpeg");
     expect(httpsRequestMock).not.toHaveBeenCalled();
 
@@ -1329,7 +1363,7 @@ describe("/api/mcp", () => {
       ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
     );
     expect(updateCall?.[1].set).toEqual({
-      content_card_image_url: "content_card_image.jpg",
+      content_card_image_url: payload.file_name,
     });
   });
 
@@ -1388,13 +1422,17 @@ describe("/api/mcp", () => {
     const payload = JSON.parse((await validRes.json()).result.content[0].text);
     expect(payload.draft_created).toBe(true);
     expect(payload.app_metadata.id).toBe("meta_draft");
-    expect(payload.app_metadata.logo_img_url).toBe("logo_img.png");
+    expect(payload.app_metadata.logo_img_url).toMatch(
+      uniqueUploadFilename("logo_img", "png"),
+    );
     expect(s3SendMock).toHaveBeenCalledTimes(1);
 
     const createDraftCall = requestMock.mock.calls.find(
       ([query]) => getOperationName(query) === "CreateDraft",
     );
-    expect(createDraftCall?.[1].logo_img_url).toBe("logo_img.png");
+    expect(createDraftCall?.[1].logo_img_url).toBe(
+      payload.app_metadata.logo_img_url,
+    );
     expect(
       requestMock.mock.calls.some(
         ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
@@ -1437,9 +1475,10 @@ describe("/api/mcp", () => {
     const updateCall = requestMock.mock.calls.find(
       ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
     );
-    expect(updateCall?.[1].set).toEqual({
-      showcase_img_urls: ["showcase_img_1.png", "showcase_img_2.png"],
-    });
+    expect(updateCall?.[1].set.showcase_img_urls).toEqual([
+      "showcase_img_1.png",
+      expect.stringMatching(uniqueUploadFilename("showcase_img_2", "png")),
+    ]);
   });
 
   it("rejects images that exceed the 500KB cap", async () => {
@@ -1671,19 +1710,120 @@ describe("/api/mcp", () => {
     expect(body.error.data).toEqual(
       expect.objectContaining({
         committed: false,
-        file_name: "logo_img.png",
+        file_name: expect.stringMatching(
+          uniqueUploadFilename("logo_img", "png"),
+        ),
       }),
     );
     // First call: PutObject. Second call: DeleteObject (best-effort cleanup).
     expect(s3SendMock).toHaveBeenCalledTimes(2);
   });
 
-  it("skips the S3 rollback delete when the metadata field already references the same filename", async () => {
-    // The deterministic object key (e.g. logo_img.png) means a replace-
-    // upload PUT overwrites the existing asset before the metadata patch
-    // runs. If the patch then fails AND the field already pointed at this
-    // exact filename, deleting the object would leave a dangling reference
-    // to a now-missing asset. The cleanup must be suppressed in that case.
+  it("keeps a committed image when the metadata mutation response is lost", async () => {
+    let metadataState = {
+      ...appContextResponse.app[0].app_metadata[0],
+      updated_at: "2026-08-27T20:00:00.000Z",
+    };
+    let contextReads = 0;
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const name = getOperationName(query);
+      if (name === "McpAppContext") {
+        contextReads += 1;
+        return {
+          app: [
+            {
+              ...appContextResponse.app[0],
+              app_metadata: [metadataState],
+            },
+          ],
+        };
+      }
+      if (name === "McpUpdateAppMetadata") {
+        metadataState = {
+          ...metadataState,
+          ...variables.set,
+          updated_at: "2026-08-27T20:00:01.000Z",
+        };
+        throw new Error("connection reset after commit");
+      }
+      return baseImpl(query, variables);
+    });
+
+    const imageBase64 = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]).toString("base64");
+    const response = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        image_base64: imageBase64,
+      }),
+    );
+    const body = await response.json();
+    const payload = JSON.parse(body.result.content[0].text);
+
+    expect(body.error).toBeUndefined();
+    expect(contextReads).toBe(2);
+    expect(payload.committed).toBe(true);
+    expect(payload.file_name).toBe(metadataState.logo_img_url);
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a committed first-draft image when the insert response is lost", async () => {
+    const initialContext = appContextWithVerifiedMetadata();
+    let currentDraft: Record<string, any> | null = null;
+    let contextReads = 0;
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const name = getOperationName(query);
+      if (name === "McpAppContext") {
+        contextReads += 1;
+        return {
+          app: [
+            {
+              ...initialContext.app[0],
+              app_metadata: currentDraft ? [currentDraft] : [],
+            },
+          ],
+        };
+      }
+      if (name === "CreateDraft") {
+        currentDraft = {
+          id: "meta_committed_draft",
+          app_id: appId,
+          verification_status: "unverified",
+          updated_at: "2026-08-27T20:00:01.000Z",
+          ...variables,
+        };
+        throw new Error("connection reset after commit");
+      }
+      return baseImpl(query, variables);
+    });
+
+    const imageBase64 = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]).toString("base64");
+    const response = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        image_base64: imageBase64,
+      }),
+    );
+    const body = await response.json();
+    const payload = JSON.parse(body.result.content[0].text);
+
+    expect(body.error).toBeUndefined();
+    expect(contextReads).toBe(2);
+    expect(payload.draft_created).toBe(true);
+    expect(payload.file_name).toBe(
+      (currentDraft as Record<string, unknown> | null)?.logo_img_url,
+    );
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses a unique object so failed replacement cleanup cannot delete the existing image", async () => {
     currentAppContextResponse = {
       app: [
         {
@@ -1729,14 +1869,201 @@ describe("/api/mcp", () => {
     expect(body.error.data).toEqual(
       expect.objectContaining({
         committed: false,
-        file_name: "logo_img.png",
+        file_name: expect.stringMatching(
+          uniqueUploadFilename("logo_img", "png"),
+        ),
       }),
     );
-    expect(body.error.message).toMatch(/existing reference was preserved/i);
-    // PutObject only — DeleteObject was suppressed because the existing
-    // metadata reference matched the deterministic filename, so deleting
-    // would have orphaned the still-referenced field.
-    expect(s3SendMock).toHaveBeenCalledTimes(1);
+    expect(body.error.message).toMatch(/rolled back/i);
+    expect(s3SendMock).toHaveBeenCalledTimes(2);
+    const putKey = s3SendMock.mock.calls[0][0].Key;
+    const deletedKey = s3SendMock.mock.calls[1][0].delete.Key;
+    expect(putKey).toBe(deletedKey);
+    expect(deletedKey).not.toBe(`unverified/${appId}/logo_img.png`);
+  });
+
+  it("never deletes the winning object when concurrent edits race on one draft", async () => {
+    const initialMetadata = {
+      ...appContextResponse.app[0].app_metadata[0],
+      updated_at: "2026-08-27T20:00:00.000Z",
+    };
+    let currentMetadata = initialMetadata;
+    let initialContextReads = 0;
+    let releaseInitialReads!: () => void;
+    const bothLoaded = new Promise<void>((resolve) => {
+      releaseInitialReads = resolve;
+    });
+    let patchCalls = 0;
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const name = getOperationName(query);
+      if (name === "McpAppContext") {
+        initialContextReads += 1;
+        if (initialContextReads <= 2) {
+          if (initialContextReads === 2) releaseInitialReads();
+          await bothLoaded;
+          return {
+            app: [
+              {
+                ...appContextResponse.app[0],
+                app_metadata: [initialMetadata],
+              },
+            ],
+          };
+        }
+        return {
+          app: [
+            {
+              ...appContextResponse.app[0],
+              app_metadata: [currentMetadata],
+            },
+          ],
+        };
+      }
+      if (name === "McpUpdateAppMetadata") {
+        patchCalls += 1;
+        if (patchCalls === 1) {
+          currentMetadata = {
+            ...initialMetadata,
+            ...variables.set,
+            updated_at: "2026-08-27T20:00:01.000Z",
+          };
+          return { update_app_metadata_by_pk: [currentMetadata] };
+        }
+        return { update_app_metadata_by_pk: [] };
+      }
+      return baseImpl(query, variables);
+    });
+
+    const imageBase64 = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]).toString("base64");
+    const responses = await Promise.all([
+      POST(
+        callTool("upload_app_image", {
+          app_id: appId,
+          image_type: "logo",
+          image_base64: imageBase64,
+        }),
+      ),
+      POST(
+        callTool("upload_app_image", {
+          app_id: appId,
+          image_type: "logo",
+          image_base64: imageBase64,
+        }),
+      ),
+    ]);
+    const bodies = await Promise.all(
+      responses.map((response) => response.json()),
+    );
+    const success = bodies.find((body) => body.result);
+    const failure = bodies.find((body) => body.error);
+    expect(success).toBeDefined();
+    expect(failure?.error.code).toBe(-32603);
+    const winning = JSON.parse(success.result.content[0].text);
+
+    const putKeys = s3SendMock.mock.calls
+      .map(([command]) => command)
+      .filter((command) => !command.delete)
+      .map((command) => command.Key);
+    const deletedKeys = s3SendMock.mock.calls
+      .map(([command]) => command)
+      .filter((command) => command.delete)
+      .map((command) => command.delete.Key);
+    expect(new Set(putKeys).size).toBe(2);
+    expect(deletedKeys).toHaveLength(1);
+    expect(deletedKeys).not.toContain(winning.s3_key);
+    expect(currentMetadata.logo_img_url).toBe(winning.file_name);
+  });
+
+  it("never deletes the winning object when concurrent uploads create the first draft", async () => {
+    const initialContext = appContextWithVerifiedMetadata();
+    let currentDraft: Record<string, any> | null = null;
+    let initialContextReads = 0;
+    let releaseInitialReads!: () => void;
+    const bothLoaded = new Promise<void>((resolve) => {
+      releaseInitialReads = resolve;
+    });
+    let createCalls = 0;
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const name = getOperationName(query);
+      if (name === "McpAppContext") {
+        initialContextReads += 1;
+        if (initialContextReads <= 2) {
+          if (initialContextReads === 2) releaseInitialReads();
+          await bothLoaded;
+          return initialContext;
+        }
+        return {
+          app: [
+            {
+              ...initialContext.app[0],
+              app_metadata: currentDraft ? [currentDraft] : [],
+            },
+          ],
+        };
+      }
+      if (name === "CreateDraft") {
+        createCalls += 1;
+        if (createCalls === 1) {
+          const committedDraft = {
+            id: "meta_concurrent_draft",
+            app_id: appId,
+            verification_status: "unverified",
+            updated_at: "2026-08-27T20:00:01.000Z",
+            ...variables,
+          };
+          currentDraft = committedDraft;
+          return {
+            insert_app_metadata_one: {
+              id: committedDraft.id,
+              updated_at: committedDraft.updated_at,
+            },
+          };
+        }
+        throw new Error("active draft already exists");
+      }
+      return baseImpl(query, variables);
+    });
+
+    const imageBase64 = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]).toString("base64");
+    const responses = await Promise.all([
+      POST(
+        callTool("upload_app_image", {
+          app_id: appId,
+          image_type: "logo",
+          image_base64: imageBase64,
+        }),
+      ),
+      POST(
+        callTool("upload_app_image", {
+          app_id: appId,
+          image_type: "logo",
+          image_base64: imageBase64,
+        }),
+      ),
+    ]);
+    const bodies = await Promise.all(
+      responses.map((response) => response.json()),
+    );
+    const success = bodies.find((body) => body.result);
+    const failure = bodies.find((body) => body.error);
+    expect(success).toBeDefined();
+    expect(failure?.error.code).toBe(-32603);
+    const winning = JSON.parse(success.result.content[0].text);
+    const deletedKeys = s3SendMock.mock.calls
+      .map(([command]) => command)
+      .filter((command) => command.delete)
+      .map((command) => command.delete.Key);
+    expect(deletedKeys).toHaveLength(1);
+    expect(deletedKeys).not.toContain(winning.s3_key);
+    expect((currentDraft as Record<string, unknown> | null)?.logo_img_url).toBe(
+      winning.file_name,
+    );
   });
 
   it("times out a stalled source_url fetch", async () => {
@@ -1860,11 +2187,13 @@ describe("/api/mcp", () => {
 
     expect(res.status).toBe(200);
     const payload = JSON.parse((await res.json()).result.content[0].text);
-    expect(payload.s3_key).toBe(`unverified/${appId}/logo_img.png`);
+    expect(payload.s3_key).toBe(`unverified/${appId}/${payload.file_name}`);
     const updateCall = requestMock.mock.calls.find(
       ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
     );
-    expect(updateCall?.[1].set).toEqual({ logo_img_url: "logo_img.png" });
+    expect(updateCall?.[1].set).toEqual({
+      logo_img_url: payload.file_name,
+    });
   });
 
   it("rejects when neither source_url nor image_base64 is provided", async () => {
@@ -1918,11 +2247,13 @@ describe("/api/mcp", () => {
       if (operationName.includes("McpUpdateAppMetadata")) {
         Object.assign(metadataState, variables.set);
         return {
-          update_app_metadata_by_pk: {
-            ...metadataState,
-            id: variables.app_metadata_id,
-            app_id: appId,
-          },
+          update_app_metadata_by_pk: [
+            {
+              ...metadataState,
+              id: variables.app_metadata_id,
+              app_id: appId,
+            },
+          ],
         };
       }
       if (operationName.includes("FetchAppMetadataById")) {
@@ -1999,9 +2330,15 @@ describe("/api/mcp", () => {
       expect((await uploadRes.json()).error).toBeUndefined();
     }
 
-    expect(metadataState.logo_img_url).toBe("logo_img.png");
-    expect(metadataState.content_card_image_url).toBe("content_card_image.png");
-    expect(metadataState.showcase_img_urls).toEqual(["showcase_img_1.png"]);
+    expect(metadataState.logo_img_url).toMatch(
+      uniqueUploadFilename("logo_img", "png"),
+    );
+    expect(metadataState.content_card_image_url).toMatch(
+      uniqueUploadFilename("content_card_image", "png"),
+    );
+    expect(metadataState.showcase_img_urls).toEqual([
+      expect.stringMatching(uniqueUploadFilename("showcase_img_1", "png")),
+    ]);
 
     const submitRes = await POST(
       callTool("submit_app_for_review", {
@@ -2052,6 +2389,351 @@ describe("/api/mcp", () => {
     expect(body.error.message).toBe(
       "Only unverified app metadata can be edited.",
     );
+  });
+
+  it("atomically edits, reopens, and resubmits a changes-requested draft", async () => {
+    const metadataState = {
+      ...reviewMetadata,
+      verification_status: "changes_requested",
+      is_developer_allow_listing: true,
+    };
+    const observedUpdatedAt = metadataState.updated_at;
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [metadataState],
+        },
+      ],
+    };
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const name = getOperationName(query);
+      if (name === "McpAppContext") return currentAppContextResponse;
+      if (name === "McpUpdateAppMetadata") {
+        Object.assign(metadataState, variables.set);
+        metadataState.verification_status = "unverified";
+        return {
+          update_app_metadata_by_pk: [
+            {
+              ...metadataState,
+              app_id: appId,
+            },
+          ],
+        };
+      }
+      if (name === "FetchAppMetadataById") {
+        return {
+          app_metadata: [metadataState],
+          localisations: reviewLocalisations,
+        };
+      }
+      return baseImpl(query, variables);
+    });
+
+    const configureResponse = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        short_name: "Fixed",
+      }),
+    );
+    expect((await configureResponse.json()).error).toBeUndefined();
+    expect(metadataState.verification_status).toBe("unverified");
+    expect(metadataState.short_name).toBe("Fixed");
+
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1]).toEqual({
+      app_metadata_id: metadataState.id,
+      expected_verification_status: "changes_requested",
+      expected_metadata_updated_at: observedUpdatedAt,
+      set: { short_name: "Fixed" },
+      actor_subject: `mcp-api-key:${apiKeyId}`,
+      actor_email: null,
+    });
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) =>
+          getOperationName(query) === "ReopenChangesRequestedReviewDraft",
+      ),
+    ).toBe(false);
+
+    const submitResponse = await POST(
+      callTool("submit_app_for_review", {
+        app_id: appId,
+        confirm_submission: true,
+        is_developer_allow_listing: true,
+        changelog: "Addressed reviewer feedback.",
+      }),
+    );
+    expect((await submitResponse.json()).error).toBeUndefined();
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) =>
+          getOperationName(query) === "CaptureListingReviewSubmission",
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps changes-requested state when configure has no edit", async () => {
+    const metadataState = {
+      ...reviewMetadata,
+      verification_status: "changes_requested",
+      is_developer_allow_listing: true,
+    };
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [metadataState],
+        },
+      ],
+    };
+
+    const response = await POST(
+      callTool("configure_mini_app", { app_id: appId }),
+    );
+    const body = await response.json();
+
+    expect(body.error).toMatchObject({ code: -32602 });
+    expect(metadataState.verification_status).toBe("changes_requested");
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+      ),
+    ).toBe(false);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) =>
+          getOperationName(query) === "ReopenChangesRequestedReviewDraft",
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps changes-requested state when an image fails validation", async () => {
+    const metadataState = {
+      ...reviewMetadata,
+      verification_status: "changes_requested",
+      is_developer_allow_listing: true,
+    };
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [metadataState],
+        },
+      ],
+    };
+
+    const response = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        image_base64: Buffer.from("not an image").toString("base64"),
+      }),
+    );
+    const body = await response.json();
+
+    expect(body.error).toMatchObject({ code: -32602 });
+    expect(metadataState.verification_status).toBe("changes_requested");
+    expect(s3SendMock).not.toHaveBeenCalled();
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+      ),
+    ).toBe(false);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) =>
+          getOperationName(query) === "ReopenChangesRequestedReviewDraft",
+      ),
+    ).toBe(false);
+  });
+
+  it("rolls back an uploaded image when atomic reopen-and-edit loses its CAS", async () => {
+    const metadataState = {
+      ...reviewMetadata,
+      verification_status: "changes_requested",
+      is_developer_allow_listing: true,
+    };
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [metadataState],
+        },
+      ],
+    };
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: pngBytes,
+    });
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      if (getOperationName(query) === "McpUpdateAppMetadata") {
+        return { update_app_metadata_by_pk: [] };
+      }
+      return baseImpl(query, variables);
+    });
+
+    const response = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+    const body = await response.json();
+
+    expect(body.error).toMatchObject({ code: -32603 });
+    expect(metadataState.verification_status).toBe("changes_requested");
+    expect(s3SendMock).toHaveBeenCalledTimes(2);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) =>
+          getOperationName(query) === "ReopenChangesRequestedReviewDraft",
+      ),
+    ).toBe(false);
+  });
+
+  it("reopens and resubmits after a World ID-only reviewer fix", async () => {
+    const metadataState = {
+      ...reviewMetadata,
+      verification_status: "changes_requested",
+      is_developer_allow_listing: true,
+    };
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [metadataState],
+        },
+      ],
+    };
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const name = getOperationName(query);
+      if (name === "McpAppContext") return currentAppContextResponse;
+      if (name === "ReopenChangesRequestedReviewDraft") {
+        metadataState.verification_status = "unverified";
+        return {
+          reopen_changes_requested_review_draft: [
+            {
+              id: metadataState.id,
+              verification_status: "unverified",
+              updated_at: metadataState.updated_at,
+            },
+          ],
+        };
+      }
+      if (name === "FetchAppMetadataById") {
+        return {
+          app_metadata: [metadataState],
+          localisations: reviewLocalisations,
+        };
+      }
+      return baseImpl(query, variables);
+    });
+
+    const actionResponse = await POST(
+      callTool("create_world_id_action", {
+        app_id: appId,
+        action: "reviewer-fix",
+        description: "Action requested by the reviewer",
+      }),
+    );
+    expect((await actionResponse.json()).error).toBeUndefined();
+    expect(metadataState.verification_status).toBe("changes_requested");
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) =>
+          getOperationName(query) === "ReopenChangesRequestedReviewDraft",
+      ),
+    ).toBe(false);
+
+    const submitResponse = await POST(
+      callTool("submit_app_for_review", {
+        app_id: appId,
+        confirm_submission: true,
+        is_developer_allow_listing: true,
+        changelog: "Added the requested World ID action.",
+      }),
+    );
+    expect((await submitResponse.json()).error).toBeUndefined();
+    const operations = requestMock.mock.calls.map(([query]) =>
+      getOperationName(query),
+    );
+    expect(
+      operations.indexOf("ReopenChangesRequestedReviewDraft"),
+    ).toBeLessThan(operations.indexOf("CaptureListingReviewSubmission"));
+  });
+
+  it("does not withdraw a concurrently resubmitted draft from stale changes-requested context", async () => {
+    const staleMetadata = {
+      ...reviewMetadata,
+      verification_status: "changes_requested",
+      updated_at: "2026-08-27T20:00:00.000Z",
+      is_developer_allow_listing: true,
+    };
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [staleMetadata],
+        },
+      ],
+    };
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const name = getOperationName(query);
+      if (name === "McpAppContext") return currentAppContextResponse;
+      if (name === "McpUpdateAppMetadata") {
+        expect(variables).toEqual({
+          app_metadata_id: staleMetadata.id,
+          expected_verification_status: "changes_requested",
+          expected_metadata_updated_at: staleMetadata.updated_at,
+          set: { short_name: "Stale overwrite" },
+          actor_subject: `mcp-api-key:${apiKeyId}`,
+          actor_email: null,
+        });
+        staleMetadata.verification_status = "awaiting_review";
+        staleMetadata.updated_at = "2026-08-27T20:01:00.000Z";
+        return { update_app_metadata_by_pk: [] };
+      }
+      return baseImpl(query, variables);
+    });
+
+    const response = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        short_name: "Stale overwrite",
+      }),
+    );
+    const body = await response.json();
+
+    expect(body.error).toMatchObject({
+      code: -32004,
+      message:
+        "The editable draft changed after it was loaded. Refresh and retry.",
+    });
+    expect(staleMetadata.verification_status).toBe("awaiting_review");
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) =>
+          getOperationName(query) === "ReopenChangesRequestedReviewDraft",
+      ),
+    ).toBe(false);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) =>
+          getOperationName(query) === "WithdrawListingReviewSubmission",
+      ),
+    ).toBe(false);
   });
 
   it("submits an app for review only with explicit confirmation", async () => {
@@ -2125,18 +2807,66 @@ describe("/api/mcp", () => {
     const captureCall = requestMock.mock.calls.find(
       ([query]) => getOperationName(query) === "CaptureListingReviewSubmission",
     );
-    expect(captureCall?.[1]).toEqual({
-      app_metadata_id: "meta_123",
-      changelog: "Submitted through MCP for listing review.",
-      submitted_by_subject: `mcp-api-key:${apiKeyId}`,
-      submitted_by_email: null,
-      listing_consent: true,
-      expected_metadata_updated_at: reviewMetadata.updated_at,
-      expected_localizations_snapshot: reviewLocalisations,
-    });
+    expect(captureCall?.[1]).toEqual(
+      expect.objectContaining({
+        app_metadata_id: "meta_123",
+        changelog: "Submitted through MCP for listing review.",
+        submitted_by_subject: `mcp-api-key:${apiKeyId}`,
+        submitted_by_email: null,
+        listing_consent: true,
+        expected_metadata_updated_at: reviewMetadata.updated_at,
+        expected_localizations_snapshot: reviewLocalisations,
+        asset_snapshot: expect.objectContaining({
+          version: 1,
+          prefix: expect.stringMatching(
+            new RegExp(`^review-submissions/${appId}/meta_123/[a-f0-9]{32}/$`),
+          ),
+        }),
+      }),
+    );
     expect(
       requestMock.mock.calls.some(
         ([query]) => getOperationName(query) === "SubmitApp",
+      ),
+    ).toBe(false);
+  });
+
+  it("rejects an external listing URL with embedded credentials", async () => {
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      if (getOperationName(query) === "FetchAppMetadataById") {
+        return {
+          app_metadata: [
+            {
+              ...reviewMetadata,
+              app_mode: "external",
+              integration_url: "https://reviewer:secret@example.com/app",
+            },
+          ],
+          localisations: reviewLocalisations,
+        };
+      }
+      return baseImpl(query, variables);
+    });
+
+    const res = await POST(
+      callTool("submit_app_for_review", {
+        app_id: appId,
+        confirm_submission: true,
+        is_developer_allow_listing: true,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.data).toContain(
+      "Integration URL must not include credentials",
+    );
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) =>
+          getOperationName(query) === "CaptureListingReviewSubmission",
       ),
     ).toBe(false);
   });
@@ -2338,12 +3068,17 @@ describe("/api/mcp", () => {
     );
 
     expect(res.status).toBe(200);
-    const submitCall = requestMock.mock.calls.find(
-      ([query]) => getOperationName(query) === "SubmitApp",
+    const captureCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "CaptureListingReviewSubmission",
     );
-    expect(submitCall?.[1]).toEqual(
-      expect.objectContaining({ is_developer_allow_listing: true }),
+    expect(captureCall?.[1]).toEqual(
+      expect.objectContaining({ listing_consent: true }),
     );
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "SubmitApp",
+      ),
+    ).toBe(false);
   });
 });
 

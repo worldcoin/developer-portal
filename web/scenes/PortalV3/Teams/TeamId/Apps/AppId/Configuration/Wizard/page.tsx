@@ -118,6 +118,8 @@ export const ConfigurationWizardPage = ({
   const isRejected = appMetadata?.verification_status === "changes_requested";
   const { removeFromReview } = useRemoveFromReview({
     metadataId: appMetadata?.id,
+    metadataUpdatedAt: appMetadata?.updated_at,
+    verificationStatus: appMetadata?.verification_status,
   });
 
   if (!loading && (error || !app)) {

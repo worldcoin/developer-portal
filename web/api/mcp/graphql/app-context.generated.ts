@@ -39,6 +39,7 @@ export type McpAppContextQuery = {
       world_app_description: string;
       world_app_button_text: string;
       verification_status: string;
+      updated_at: string;
       is_developer_allow_listing: boolean;
       supported_countries?: Array<string> | null;
       supported_languages?: Array<string> | null;
@@ -136,6 +137,7 @@ export const McpAppContextDocument = gql`
         world_app_description
         world_app_button_text
         verification_status
+        updated_at
         is_developer_allow_listing
         supported_countries
         supported_languages

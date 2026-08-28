@@ -127,6 +127,23 @@ export const readEmptyJsonBody = async (req: NextRequest): Promise<boolean> => {
   return Boolean(body && Object.keys(body).length === 0);
 };
 
+export const readRetryBody = async (
+  req: NextRequest,
+): Promise<{ operationId: string } | null> => {
+  const body = await readJsonObject(req);
+
+  if (
+    !body ||
+    !hasOnlyKeys(body, ["operationId"]) ||
+    typeof body.operationId !== "string" ||
+    !isUuid(body.operationId)
+  ) {
+    return null;
+  }
+
+  return { operationId: body.operationId };
+};
+
 export const readClaimedWriteBody = async (
   req: NextRequest,
 ): Promise<ClaimedWriteBody | null> => {

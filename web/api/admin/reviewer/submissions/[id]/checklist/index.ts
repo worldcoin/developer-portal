@@ -13,6 +13,7 @@ import {
 } from "@/api/admin/reviewer/response";
 import {
   fetchReviewChecklistContext,
+  reconcileChecklistReviewSubmission,
   saveReviewChecklist,
 } from "@/api/helpers/reviewer-workflow";
 import { logger } from "@/lib/logger";
@@ -36,6 +37,10 @@ export async function PUT(
 
   const body = await readChecklistWriteBody(req);
   if (!body) return invalidBodyResponse();
+
+  let reconciliationInput:
+    | Parameters<typeof reconcileChecklistReviewSubmission>[0]
+    | null = null;
 
   try {
     const context = await fetchReviewChecklistContext(id);
@@ -70,18 +75,36 @@ export async function PUT(
     );
     if (!definitionSnapshot) return workflowConflictResponse();
 
-    const submission = await saveReviewChecklist({
+    reconciliationInput = {
       submissionId: id,
       claimToken: body.claimToken,
       expectedReviewVersion: body.expectedReviewVersion,
       checklistVersion: body.checklistVersion,
       checklist: { ...body.checklist, definitionSnapshot },
       actor: auth.user,
-    });
-    return submission
-      ? workflowSuccessResponse(submission)
+    };
+    const submission = await saveReviewChecklist(reconciliationInput);
+    if (submission) return workflowSuccessResponse(submission);
+
+    const recovered =
+      await reconcileChecklistReviewSubmission(reconciliationInput);
+    return recovered
+      ? workflowSuccessResponse(recovered)
       : workflowConflictResponse();
   } catch (error) {
+    if (reconciliationInput) {
+      try {
+        const recovered =
+          await reconcileChecklistReviewSubmission(reconciliationInput);
+        if (recovered) return workflowSuccessResponse(recovered);
+      } catch (reconciliationError) {
+        logger.error("Failed to reconcile review checklist outcome", {
+          reviewId: id,
+          actorSubject: auth.user.subject,
+          ...sanitizedWorkflowError(reconciliationError),
+        });
+      }
+    }
     logger.error("Failed to save review checklist", {
       reviewId: id,
       actorSubject: auth.user.subject,

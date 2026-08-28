@@ -18,6 +18,32 @@ export type FetchReviewChecklistContextQuery = {
   } | null;
 };
 
+export type FetchReviewWorkflowOutcomeQueryVariables = Types.Exact<{
+  submission_id: Types.Scalars["uuid"]["input"];
+}>;
+
+export type FetchReviewWorkflowOutcomeQuery = {
+  __typename?: "query_root";
+  app_review_submission_by_pk?: {
+    __typename?: "app_review_submission";
+    id: unknown;
+    status: string;
+    review_version: number;
+    claim_token?: unknown | null;
+    claim_expires_at?: string | null;
+    claimed_by_subject?: string | null;
+    checklist_version?: string | null;
+    checklist: any;
+    events: Array<{
+      __typename?: "app_review_event";
+      event_type: string;
+      actor_subject?: string | null;
+      review_version?: number | null;
+      payload: any;
+    }>;
+  } | null;
+};
+
 export type FetchReviewDecisionContextQueryVariables = Types.Exact<{
   submission_id: Types.Scalars["uuid"]["input"];
 }>;
@@ -41,6 +67,7 @@ export type FetchReviewDecisionContextQuery = {
     listing_target: string;
     listing_consent: boolean;
     metadata_updated_at: string;
+    asset_snapshot?: any | null;
     metadata_snapshot: any;
     localizations_snapshot: any;
     decision_fingerprint?: string | null;
@@ -54,12 +81,16 @@ export type FetchReviewDecisionContextQuery = {
       verification_status: string;
       app_mode: string;
       is_developer_allow_listing: boolean;
+      integration_url: string;
     } | null;
     app: {
       __typename?: "app";
       id: string;
       is_staging: boolean;
+      is_banned: boolean;
       deleted_at?: string | null;
+      status: string;
+      is_archived: boolean;
       first_verified_at?: string | null;
       app_metadata: Array<{
         __typename?: "app_metadata";
@@ -209,8 +240,29 @@ export type CompleteReviewNotificationMutation = {
   }>;
 };
 
+export type ReconcileReviewAssetCleanupMutationVariables = Types.Exact<{
+  notification_id: Types.Scalars["uuid"]["input"];
+  submission_id: Types.Scalars["uuid"]["input"];
+  decision_fingerprint: Types.Scalars["String"]["input"];
+  operation_id: Types.Scalars["String"]["input"];
+  expected_review_version: Types.Scalars["Int"]["input"];
+  app_metadata_id: Types.Scalars["String"]["input"];
+  asset_keys: Types.Scalars["jsonb"]["input"];
+  worker_id: Types.Scalars["String"]["input"];
+}>;
+
+export type ReconcileReviewAssetCleanupMutation = {
+  __typename?: "mutation_root";
+  reviewer_reconcile_app_review_asset_cleanup: Array<{
+    __typename?: "app_review_notification";
+    id: unknown;
+    payload: any;
+  }>;
+};
+
 export type RetryReviewNotificationMutationVariables = Types.Exact<{
   notification_id: Types.Scalars["uuid"]["input"];
+  operation_id: Types.Scalars["uuid"]["input"];
   actor_subject: Types.Scalars["String"]["input"];
   actor_email: Types.Scalars["String"]["input"];
 }>;
@@ -224,6 +276,29 @@ export type RetryReviewNotificationMutation = {
     attempt_count: number;
     next_attempt_at: string;
     delivered_at?: string | null;
+  }>;
+};
+
+export type FetchReviewNotificationRetryOutcomeQueryVariables = Types.Exact<{
+  notification_id: Types.Scalars["uuid"]["input"];
+  actor_subject: Types.Scalars["String"]["input"];
+  event_payload: Types.Scalars["jsonb"]["input"];
+}>;
+
+export type FetchReviewNotificationRetryOutcomeQuery = {
+  __typename?: "query_root";
+  app_review_notification_by_pk?: {
+    __typename?: "app_review_notification";
+    id: unknown;
+    submission_id: unknown;
+    status: string;
+    attempt_count: number;
+    next_attempt_at: string;
+    delivered_at?: string | null;
+  } | null;
+  app_review_event: Array<{
+    __typename?: "app_review_event";
+    submission_id: unknown;
   }>;
 };
 
@@ -404,6 +479,39 @@ export const FetchReviewChecklistContextDocument = gql`
     }
   }
 `;
+export const FetchReviewWorkflowOutcomeDocument = gql`
+  query FetchReviewWorkflowOutcome($submission_id: uuid!) {
+    app_review_submission_by_pk(id: $submission_id) {
+      id
+      status
+      review_version
+      claim_token
+      claim_expires_at
+      claimed_by_subject
+      checklist_version
+      checklist
+      events(
+        where: {
+          event_type: {
+            _in: [
+              "claimed"
+              "claim_heartbeat"
+              "claim_released"
+              "checklist_updated"
+            ]
+          }
+        }
+        order_by: { event_sequence: desc }
+        limit: 8
+      ) {
+        event_type
+        actor_subject
+        review_version
+        payload
+      }
+    }
+  }
+`;
 export const FetchReviewDecisionContextDocument = gql`
   query FetchReviewDecisionContext($submission_id: uuid!) {
     app_review_submission_by_pk(id: $submission_id) {
@@ -422,6 +530,7 @@ export const FetchReviewDecisionContextDocument = gql`
       listing_target
       listing_consent
       metadata_updated_at
+      asset_snapshot
       metadata_snapshot
       localizations_snapshot
       decision_fingerprint
@@ -434,11 +543,15 @@ export const FetchReviewDecisionContextDocument = gql`
         verification_status
         app_mode
         is_developer_allow_listing
+        integration_url
       }
       app {
         id
         is_staging
+        is_banned
         deleted_at
+        status
+        is_archived
         first_verified_at
         app_metadata(where: { verification_status: { _eq: "verified" } }) {
           id
@@ -581,15 +694,45 @@ export const CompleteReviewNotificationDocument = gql`
     }
   }
 `;
+export const ReconcileReviewAssetCleanupDocument = gql`
+  mutation ReconcileReviewAssetCleanup(
+    $notification_id: uuid!
+    $submission_id: uuid!
+    $decision_fingerprint: String!
+    $operation_id: String!
+    $expected_review_version: Int!
+    $app_metadata_id: String!
+    $asset_keys: jsonb!
+    $worker_id: String!
+  ) {
+    reviewer_reconcile_app_review_asset_cleanup(
+      args: {
+        p_notification_id: $notification_id
+        p_submission_id: $submission_id
+        p_decision_fingerprint: $decision_fingerprint
+        p_operation_id: $operation_id
+        p_expected_review_version: $expected_review_version
+        p_app_metadata_id: $app_metadata_id
+        p_asset_keys: $asset_keys
+        p_worker_id: $worker_id
+      }
+    ) {
+      id
+      payload
+    }
+  }
+`;
 export const RetryReviewNotificationDocument = gql`
   mutation RetryReviewNotification(
     $notification_id: uuid!
+    $operation_id: uuid!
     $actor_subject: String!
     $actor_email: String!
   ) {
     reviewer_retry_app_review_notification(
       args: {
         p_notification_id: $notification_id
+        p_operation_id: $operation_id
         p_actor_subject: $actor_subject
         p_actor_email: $actor_email
       }
@@ -599,6 +742,33 @@ export const RetryReviewNotificationDocument = gql`
       attempt_count
       next_attempt_at
       delivered_at
+    }
+  }
+`;
+export const FetchReviewNotificationRetryOutcomeDocument = gql`
+  query FetchReviewNotificationRetryOutcome(
+    $notification_id: uuid!
+    $actor_subject: String!
+    $event_payload: jsonb!
+  ) {
+    app_review_notification_by_pk(id: $notification_id) {
+      id
+      submission_id
+      status
+      attempt_count
+      next_attempt_at
+      delivered_at
+    }
+    app_review_event(
+      limit: 1
+      order_by: { event_sequence: desc }
+      where: {
+        event_type: { _eq: "notification_retry_requested" }
+        actor_subject: { _eq: $actor_subject }
+        payload: { _contains: $event_payload }
+      }
+    ) {
+      submission_id
     }
   }
 `;
@@ -856,6 +1026,22 @@ export function getSdk(
         variables,
       );
     },
+    FetchReviewWorkflowOutcome(
+      variables: FetchReviewWorkflowOutcomeQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<FetchReviewWorkflowOutcomeQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<FetchReviewWorkflowOutcomeQuery>(
+            FetchReviewWorkflowOutcomeDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "FetchReviewWorkflowOutcome",
+        "query",
+        variables,
+      );
+    },
     FetchReviewDecisionContext(
       variables: FetchReviewDecisionContextQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
@@ -952,6 +1138,22 @@ export function getSdk(
         variables,
       );
     },
+    ReconcileReviewAssetCleanup(
+      variables: ReconcileReviewAssetCleanupMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<ReconcileReviewAssetCleanupMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<ReconcileReviewAssetCleanupMutation>(
+            ReconcileReviewAssetCleanupDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "ReconcileReviewAssetCleanup",
+        "mutation",
+        variables,
+      );
+    },
     RetryReviewNotification(
       variables: RetryReviewNotificationMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
@@ -965,6 +1167,22 @@ export function getSdk(
           ),
         "RetryReviewNotification",
         "mutation",
+        variables,
+      );
+    },
+    FetchReviewNotificationRetryOutcome(
+      variables: FetchReviewNotificationRetryOutcomeQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<FetchReviewNotificationRetryOutcomeQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<FetchReviewNotificationRetryOutcomeQuery>(
+            FetchReviewNotificationRetryOutcomeDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "FetchReviewNotificationRetryOutcome",
+        "query",
         variables,
       );
     },

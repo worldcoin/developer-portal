@@ -10,6 +10,7 @@ import {
 import { lookup } from "node:dns/promises";
 import { request as httpsRequest, type RequestOptions } from "node:https";
 import { isIP } from "node:net";
+import { randomUUID } from "node:crypto";
 
 // Image-type identifier the dashboard / Hasura action / MCP all share. The
 // values match the basenames the dashboard uses on disk so the existing image
@@ -149,7 +150,10 @@ export const uploadAppImage = async ({
   const client = new S3Client({ region });
   const ext = contentType === "image/png" ? "png" : "jpg";
   const mapping = MCP_APP_IMAGE_MAP[imageType];
-  const fileName = `${mapping.basename}.${ext}`;
+  // MCP uploads use an operation-unique object. A deterministic key lets a
+  // losing concurrent request delete or overwrite the winning request's
+  // bytes during compensation.
+  const fileName = `${mapping.basename}_${randomUUID()}.${ext}`;
   const objectKey = buildAppImageObjectKey({ appId, fileName, locale });
 
   await client.send(

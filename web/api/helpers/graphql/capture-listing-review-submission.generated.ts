@@ -12,6 +12,7 @@ export type CaptureListingReviewSubmissionMutationVariables = Types.Exact<{
   listing_consent: Types.Scalars["Boolean"]["input"];
   expected_metadata_updated_at: Types.Scalars["timestamptz"]["input"];
   expected_localizations_snapshot: Types.Scalars["jsonb"]["input"];
+  asset_snapshot: Types.Scalars["jsonb"]["input"];
 }>;
 
 export type CaptureListingReviewSubmissionMutation = {
@@ -22,6 +23,27 @@ export type CaptureListingReviewSubmissionMutation = {
     app_metadata_id: string;
     attempt: number;
     status: string;
+    review_version: number;
+    metadata_updated_at: string;
+  }>;
+};
+
+export type ReconcileListingReviewSubmissionCaptureMutationVariables =
+  Types.Exact<{
+    app_metadata_id: Types.Scalars["String"]["input"];
+    asset_snapshot: Types.Scalars["jsonb"]["input"];
+  }>;
+
+export type ReconcileListingReviewSubmissionCaptureMutation = {
+  __typename?: "mutation_root";
+  reconcile_listing_review_submission_capture: Array<{
+    __typename?: "app_review_submission";
+    id: unknown;
+    app_metadata_id: string;
+    attempt: number;
+    status: string;
+    review_version: number;
+    metadata_updated_at: string;
   }>;
 };
 
@@ -34,6 +56,7 @@ export const CaptureListingReviewSubmissionDocument = gql`
     $listing_consent: Boolean!
     $expected_metadata_updated_at: timestamptz!
     $expected_localizations_snapshot: jsonb!
+    $asset_snapshot: jsonb!
   ) {
     capture_listing_review_submission(
       args: {
@@ -44,12 +67,35 @@ export const CaptureListingReviewSubmissionDocument = gql`
         p_listing_consent: $listing_consent
         p_expected_metadata_updated_at: $expected_metadata_updated_at
         p_expected_localizations_snapshot: $expected_localizations_snapshot
+        p_asset_snapshot: $asset_snapshot
       }
     ) {
       id
       app_metadata_id
       attempt
       status
+      review_version
+      metadata_updated_at
+    }
+  }
+`;
+export const ReconcileListingReviewSubmissionCaptureDocument = gql`
+  mutation ReconcileListingReviewSubmissionCapture(
+    $app_metadata_id: String!
+    $asset_snapshot: jsonb!
+  ) {
+    reconcile_listing_review_submission_capture(
+      args: {
+        p_app_metadata_id: $app_metadata_id
+        p_asset_snapshot: $asset_snapshot
+      }
+    ) {
+      id
+      app_metadata_id
+      attempt
+      status
+      review_version
+      metadata_updated_at
     }
   }
 `;
@@ -85,6 +131,22 @@ export function getSdk(
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
         "CaptureListingReviewSubmission",
+        "mutation",
+        variables,
+      );
+    },
+    ReconcileListingReviewSubmissionCapture(
+      variables: ReconcileListingReviewSubmissionCaptureMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<ReconcileListingReviewSubmissionCaptureMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<ReconcileListingReviewSubmissionCaptureMutation>(
+            ReconcileListingReviewSubmissionCaptureDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "ReconcileListingReviewSubmissionCapture",
         "mutation",
         variables,
       );

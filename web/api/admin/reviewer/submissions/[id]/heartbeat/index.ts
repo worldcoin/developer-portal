@@ -11,7 +11,10 @@ import {
   workflowConflictResponse,
   workflowSuccessResponse,
 } from "@/api/admin/reviewer/response";
-import { heartbeatReviewSubmission } from "@/api/helpers/reviewer-workflow";
+import {
+  heartbeatReviewSubmission,
+  reconcileHeartbeatReviewSubmission,
+} from "@/api/helpers/reviewer-workflow";
 import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
@@ -29,16 +32,35 @@ export async function POST(
   if (!body) return invalidBodyResponse();
 
   try {
-    const submission = await heartbeatReviewSubmission({
+    const input = {
       submissionId: id,
       claimToken: body.claimToken,
       expectedReviewVersion: body.expectedReviewVersion,
       actor: auth.user,
-    });
-    return submission
-      ? workflowSuccessResponse(submission)
+    };
+    const submission = await heartbeatReviewSubmission(input);
+    if (submission) return workflowSuccessResponse(submission);
+
+    const recovered = await reconcileHeartbeatReviewSubmission(input);
+    return recovered
+      ? workflowSuccessResponse(recovered)
       : workflowConflictResponse();
   } catch (error) {
+    try {
+      const recovered = await reconcileHeartbeatReviewSubmission({
+        submissionId: id,
+        claimToken: body.claimToken,
+        expectedReviewVersion: body.expectedReviewVersion,
+        actor: auth.user,
+      });
+      if (recovered) return workflowSuccessResponse(recovered);
+    } catch (reconciliationError) {
+      logger.error("Failed to reconcile review heartbeat outcome", {
+        reviewId: id,
+        actorSubject: auth.user.subject,
+        ...sanitizedWorkflowError(reconciliationError),
+      });
+    }
     logger.error("Failed to heartbeat review submission", {
       reviewId: id,
       actorSubject: auth.user.subject,

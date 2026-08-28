@@ -406,9 +406,12 @@ describe("review notification delivery", () => {
             lockedAt: "2026-08-27T12:00:00.000Z",
             lockedBy: "worker-1",
           },
-          submission,
+          submission: { ...submission, status: "pending" },
         },
-        { fetchImpl },
+        {
+          fetchImpl,
+          beginSlackSubmissionDeliveryImpl: jest.fn().mockResolvedValue(true),
+        },
       ),
     ).rejects.toThrow("Slack delivery failed");
     expect(fetchImpl).toHaveBeenCalledTimes(1);
@@ -435,9 +438,13 @@ describe("review notification delivery", () => {
           lockedAt: "2026-08-27T12:00:00.000Z",
           lockedBy: "worker-1",
         },
-        submission,
+        submission: { ...submission, status: "pending" },
       },
-      { fetchImpl, now: new Date("2026-08-27T12:00:00.000Z") },
+      {
+        fetchImpl,
+        beginSlackSubmissionDeliveryImpl: jest.fn().mockResolvedValue(true),
+        now: new Date("2026-08-27T12:00:00.000Z"),
+      },
     );
 
     const request = JSON.parse(fetchImpl.mock.calls[0][1].body);
@@ -452,6 +459,98 @@ describe("review notification delivery", () => {
       outcome: "delivered",
       providerMessageId: "1234.5678",
     });
+  });
+
+  it("does not send a submission Slack alert after the review is withdrawn", async () => {
+    const fetchImpl = jest.fn();
+
+    await expect(
+      deliverReviewNotification(
+        {
+          notification: {
+            id: "22222222-2222-4222-8222-222222222222",
+            submissionId: submission.id,
+            notificationType: "submission_received",
+            channel: "slack",
+            status: "processing",
+            recipient: null,
+            payload: {},
+            attemptCount: 1,
+            lockedAt: "2026-08-27T12:00:00.000Z",
+            lockedBy: "worker-1",
+          },
+          submission: { ...submission, status: "withdrawn" },
+        },
+        { fetchImpl },
+      ),
+    ).rejects.toThrow("no longer active");
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it.each(["approved", "changes_requested"])(
+    "still sends the submission alert after a fast %s decision",
+    async (status) => {
+      const fetchImpl = jest.fn().mockResolvedValue(
+        new Response(JSON.stringify({ ok: true, ts: "1234.5678" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      );
+      const beginSlackSubmissionDeliveryImpl = jest
+        .fn()
+        .mockResolvedValue(true);
+
+      await deliverReviewNotification(
+        {
+          notification: {
+            id: "22222222-2222-4222-8222-222222222222",
+            submissionId: submission.id,
+            notificationType: "submission_received",
+            channel: "slack",
+            status: "processing",
+            recipient: null,
+            payload: {},
+            attemptCount: 1,
+            lockedAt: "2026-08-27T12:00:00.000Z",
+            lockedBy: "worker-1",
+          },
+          submission: { ...submission, status },
+        },
+        { fetchImpl, beginSlackSubmissionDeliveryImpl },
+      );
+
+      expect(beginSlackSubmissionDeliveryImpl).toHaveBeenCalledTimes(1);
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("does not call Slack when the exact pre-send fence loses to withdrawal", async () => {
+    const fetchImpl = jest.fn();
+
+    await expect(
+      deliverReviewNotification(
+        {
+          notification: {
+            id: "22222222-2222-4222-8222-222222222222",
+            submissionId: submission.id,
+            notificationType: "submission_received",
+            channel: "slack",
+            status: "processing",
+            recipient: null,
+            payload: {},
+            attemptCount: 1,
+            lockedAt: "2026-08-27T12:00:00.000Z",
+            lockedBy: "worker-1",
+          },
+          submission: { ...submission, status: "pending" },
+        },
+        {
+          fetchImpl,
+          beginSlackSubmissionDeliveryImpl: jest.fn().mockResolvedValue(false),
+        },
+      ),
+    ).rejects.toThrow("no longer authorized");
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 
   it("attaches the outbox id to a decision email without recomputing recipients", async () => {
@@ -573,6 +672,9 @@ describe("review notification delivery", () => {
 
   it("deletes an exact aborted prepared plan with a bounded S3 signal", async () => {
     const deletePreparedAssetsImpl = jest.fn().mockResolvedValue(undefined);
+    const reconcilePreparedAssetsImpl = jest
+      .fn()
+      .mockResolvedValue("aborted" as const);
     const key = "verified/app_123/review_meta_123_aaaaaaaaaaaaaaaa_logo.png";
 
     await expect(
@@ -606,7 +708,7 @@ describe("review notification delivery", () => {
             decisionResult: null,
           },
         },
-        { deletePreparedAssetsImpl },
+        { deletePreparedAssetsImpl, reconcilePreparedAssetsImpl },
       ),
     ).resolves.toEqual({
       outcome: "delivered",
@@ -616,6 +718,113 @@ describe("review notification delivery", () => {
       keys: [key],
       abortSignal: expect.any(AbortSignal),
     });
+    expect(reconcilePreparedAssetsImpl).toHaveBeenCalledWith({
+      notificationId: "22222222-2222-4222-8222-222222222222",
+      submissionId: submission.id,
+      decisionFingerprint: "b".repeat(64),
+      operationId: "a".repeat(16),
+      expectedReviewVersion: 7,
+      appMetadataId: "meta_123",
+      assetKeys: [key],
+      workerId: "worker-1",
+    });
+  });
+
+  it("retains assets when locked reconciliation observes an in-flight approval commit", async () => {
+    const deletePreparedAssetsImpl = jest.fn();
+    const reconcilePreparedAssetsImpl = jest
+      .fn()
+      .mockResolvedValue("committed" as const);
+    const key = "verified/app_123/review_meta_123_aaaaaaaaaaaaaaaa_logo.png";
+
+    await expect(
+      deliverReviewNotification(
+        {
+          notification: {
+            id: "22222222-2222-4222-8222-222222222222",
+            submissionId: submission.id,
+            notificationType: "asset_cleanup",
+            channel: "asset",
+            status: "processing",
+            recipient: null,
+            payload: {
+              cleanup_kind: "prepared_operation_settlement",
+              asset_keys: [key],
+              decision_fingerprint: "b".repeat(64),
+              expected_review_version: 7,
+              operation_id: "a".repeat(16),
+              app_metadata_id: "meta_123",
+              settlement_state: "pending",
+            },
+            attemptCount: 1,
+            lockedAt: "2026-08-27T12:31:00.000Z",
+            lockedBy: "worker-1",
+          },
+          submission: {
+            ...submission,
+            status: "in_review",
+            reviewVersion: 7,
+            claimExpiresAt: "2026-08-27T12:30:00.000Z",
+            decisionFingerprint: null,
+            decisionResult: null,
+          },
+        },
+        {
+          deletePreparedAssetsImpl,
+          reconcilePreparedAssetsImpl,
+          now: new Date("2026-08-27T12:31:00.000Z"),
+        },
+      ),
+    ).resolves.toEqual({
+      outcome: "delivered",
+      providerMessageId: "asset-retain:22222222-2222-4222-8222-222222222222",
+    });
+    expect(deletePreparedAssetsImpl).not.toHaveBeenCalled();
+  });
+
+  it("defers prepared cleanup while locked reconciliation still sees a live plan", async () => {
+    const deletePreparedAssetsImpl = jest.fn();
+    const reconcilePreparedAssetsImpl = jest
+      .fn()
+      .mockResolvedValue("pending" as const);
+    const key = "verified/app_123/review_meta_123_aaaaaaaaaaaaaaaa_logo.png";
+
+    await expect(
+      deliverReviewNotification(
+        {
+          notification: {
+            id: "22222222-2222-4222-8222-222222222222",
+            submissionId: submission.id,
+            notificationType: "asset_cleanup",
+            channel: "asset",
+            status: "processing",
+            recipient: null,
+            payload: {
+              cleanup_kind: "prepared_operation_settlement",
+              asset_keys: [key],
+              decision_fingerprint: "b".repeat(64),
+              expected_review_version: 7,
+              operation_id: "a".repeat(16),
+              app_metadata_id: "meta_123",
+              settlement_state: "pending",
+            },
+            attemptCount: 1,
+            lockedAt: "2026-08-27T12:00:00.000Z",
+            lockedBy: "worker-1",
+          },
+          submission: {
+            ...submission,
+            status: "in_review",
+            reviewVersion: 7,
+            claimExpiresAt: "2026-08-27T12:30:00.000Z",
+            decisionFingerprint: null,
+            decisionResult: null,
+          },
+        },
+        { deletePreparedAssetsImpl, reconcilePreparedAssetsImpl },
+      ),
+    ).resolves.toEqual({ outcome: "deferred", providerMessageId: null });
+    expect(deletePreparedAssetsImpl).not.toHaveBeenCalled();
   });
 
   it("bounds publication feed pagination within the worker request budget", async () => {

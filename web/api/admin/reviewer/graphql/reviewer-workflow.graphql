@@ -6,6 +6,38 @@ query FetchReviewChecklistContext($submission_id: uuid!) {
   }
 }
 
+query FetchReviewWorkflowOutcome($submission_id: uuid!) {
+  app_review_submission_by_pk(id: $submission_id) {
+    id
+    status
+    review_version
+    claim_token
+    claim_expires_at
+    claimed_by_subject
+    checklist_version
+    checklist
+    events(
+      where: {
+        event_type: {
+          _in: [
+            "claimed"
+            "claim_heartbeat"
+            "claim_released"
+            "checklist_updated"
+          ]
+        }
+      }
+      order_by: { event_sequence: desc }
+      limit: 8
+    ) {
+      event_type
+      actor_subject
+      review_version
+      payload
+    }
+  }
+}
+
 query FetchReviewDecisionContext($submission_id: uuid!) {
   app_review_submission_by_pk(id: $submission_id) {
     id
@@ -23,6 +55,7 @@ query FetchReviewDecisionContext($submission_id: uuid!) {
     listing_target
     listing_consent
     metadata_updated_at
+    asset_snapshot
     metadata_snapshot
     localizations_snapshot
     decision_fingerprint
@@ -35,11 +68,15 @@ query FetchReviewDecisionContext($submission_id: uuid!) {
       verification_status
       app_mode
       is_developer_allow_listing
+      integration_url
     }
     app {
       id
       is_staging
+      is_banned
       deleted_at
+      status
+      is_archived
       first_verified_at
       app_metadata(where: { verification_status: { _eq: "verified" } }) {
         id
@@ -177,14 +214,43 @@ mutation CompleteReviewNotification(
   }
 }
 
+mutation ReconcileReviewAssetCleanup(
+  $notification_id: uuid!
+  $submission_id: uuid!
+  $decision_fingerprint: String!
+  $operation_id: String!
+  $expected_review_version: Int!
+  $app_metadata_id: String!
+  $asset_keys: jsonb!
+  $worker_id: String!
+) {
+  reviewer_reconcile_app_review_asset_cleanup(
+    args: {
+      p_notification_id: $notification_id
+      p_submission_id: $submission_id
+      p_decision_fingerprint: $decision_fingerprint
+      p_operation_id: $operation_id
+      p_expected_review_version: $expected_review_version
+      p_app_metadata_id: $app_metadata_id
+      p_asset_keys: $asset_keys
+      p_worker_id: $worker_id
+    }
+  ) {
+    id
+    payload
+  }
+}
+
 mutation RetryReviewNotification(
   $notification_id: uuid!
+  $operation_id: uuid!
   $actor_subject: String!
   $actor_email: String!
 ) {
   reviewer_retry_app_review_notification(
     args: {
       p_notification_id: $notification_id
+      p_operation_id: $operation_id
       p_actor_subject: $actor_subject
       p_actor_email: $actor_email
     }
@@ -194,6 +260,32 @@ mutation RetryReviewNotification(
     attempt_count
     next_attempt_at
     delivered_at
+  }
+}
+
+query FetchReviewNotificationRetryOutcome(
+  $notification_id: uuid!
+  $actor_subject: String!
+  $event_payload: jsonb!
+) {
+  app_review_notification_by_pk(id: $notification_id) {
+    id
+    submission_id
+    status
+    attempt_count
+    next_attempt_at
+    delivered_at
+  }
+  app_review_event(
+    limit: 1
+    order_by: { event_sequence: desc }
+    where: {
+      event_type: { _eq: "notification_retry_requested" }
+      actor_subject: { _eq: $actor_subject }
+      payload: { _contains: $event_payload }
+    }
+  ) {
+    submission_id
   }
 }
 

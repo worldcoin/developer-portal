@@ -1,6 +1,11 @@
 import "server-only";
 
 import { getSdk as getCaptureListingReviewSubmissionSdk } from "@/api/helpers/graphql/capture-listing-review-submission.generated";
+import { isValidCredentiallessHttpsUrl } from "@/api/helpers/integration-url";
+import {
+  snapshotReviewerSubmissionAssets,
+  tryDeleteReviewerSubmissionAssetSnapshot,
+} from "@/api/helpers/reviewer-submission-assets";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import { LocalisationData } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
 import { getSupportType } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
@@ -39,10 +44,19 @@ export class AppReviewSubmissionError extends Error {
 }
 
 const assertValidHttpsIntegrationUrl = (integrationUrl: string) => {
+  let parsed: URL | null = null;
   try {
-    const parsed = new URL(integrationUrl);
-    if (parsed.protocol !== "https:" || !parsed.hostname) throw new Error();
+    parsed = new URL(integrationUrl);
   } catch {
+    // The shared predicate below returns the public validation error.
+  }
+
+  if (parsed?.username || parsed?.password) {
+    throw new AppReviewSubmissionError(
+      "Integration URL must not include credentials",
+    );
+  }
+  if (!isValidCredentiallessHttpsUrl(integrationUrl)) {
     throw new AppReviewSubmissionError(
       "Integration URL must be a valid HTTPS URL",
     );
@@ -83,6 +97,21 @@ const validateReviewState = async (
   if (metadata.app.is_staging) {
     throw new AppReviewSubmissionError(
       "Staging apps cannot be submitted for review",
+    );
+  }
+
+  if (
+    isListingReview &&
+    (metadata.app.status !== "active" || metadata.app.is_archived)
+  ) {
+    throw new AppReviewSubmissionError(
+      "Only active, unarchived apps can be submitted for listing review",
+    );
+  }
+
+  if (isListingReview && metadata.app.is_banned !== false) {
+    throw new AppReviewSubmissionError(
+      "Banned apps cannot be submitted for listing review",
     );
   }
 
@@ -206,24 +235,78 @@ export const submitAppForReviewOperation = async ({
   await validateReviewState(metadata, localizations, isListingReview);
 
   if (isListingReview) {
-    const result = await getCaptureListingReviewSubmissionSdk(
-      client,
-    ).CaptureListingReviewSubmission({
-      app_metadata_id: appMetadataId,
-      changelog,
-      submitted_by_subject: actor.subject,
-      submitted_by_email: actor.email,
-      listing_consent: true,
-      expected_metadata_updated_at: metadata.updated_at,
-      expected_localizations_snapshot: localizations,
+    const assetSnapshot = await snapshotReviewerSubmissionAssets({
+      appId: metadata.app_id,
+      appMetadataId,
+      metadataSnapshot: metadata as unknown as Record<string, unknown>,
+      localizationsSnapshot: localizations as unknown as Array<
+        Record<string, unknown>
+      >,
     });
-    const submission = result.capture_listing_review_submission[0];
+    let submission;
+    let captureResponded = false;
+    try {
+      const result = await getCaptureListingReviewSubmissionSdk(
+        client,
+      ).CaptureListingReviewSubmission({
+        app_metadata_id: appMetadataId,
+        changelog,
+        submitted_by_subject: actor.subject,
+        submitted_by_email: actor.email,
+        listing_consent: true,
+        expected_metadata_updated_at: metadata.updated_at,
+        expected_localizations_snapshot: localizations,
+        asset_snapshot: assetSnapshot,
+      });
+      captureResponded = true;
+      submission = result.capture_listing_review_submission[0];
 
-    if (!submission) {
-      throw new AppReviewSubmissionError(
-        "Listing review submission was not captured",
-        "conflict",
-      );
+      if (!submission) {
+        await tryDeleteReviewerSubmissionAssetSnapshot({
+          appId: metadata.app_id,
+          appMetadataId,
+          assetSnapshot,
+        });
+        throw new AppReviewSubmissionError(
+          "Listing review submission was not captured",
+          "conflict",
+        );
+      }
+    } catch (error) {
+      if (!captureResponded) {
+        try {
+          const outcome = await getCaptureListingReviewSubmissionSdk(
+            client,
+          ).ReconcileListingReviewSubmissionCapture({
+            app_metadata_id: appMetadataId,
+            asset_snapshot: assetSnapshot,
+          });
+          const committedSubmission =
+            outcome.reconcile_listing_review_submission_capture[0];
+          if (committedSubmission) {
+            return {
+              appMetadata: {
+                id: metadata.id,
+                app_id: metadata.app_id,
+                verification_status: "awaiting_review",
+                is_developer_allow_listing: true,
+                updated_at: committedSubmission.metadata_updated_at,
+              },
+              reviewSubmission: committedSubmission,
+            };
+          } else {
+            await tryDeleteReviewerSubmissionAssetSnapshot({
+              appId: metadata.app_id,
+              appMetadataId,
+              assetSnapshot,
+            });
+          }
+        } catch {
+          // The mutation outcome is still ambiguous. Keep the immutable,
+          // operation-unique objects; deleting could corrupt a committed row.
+        }
+      }
+      throw error;
     }
 
     return {
@@ -232,6 +315,7 @@ export const submitAppForReviewOperation = async ({
         app_id: metadata.app_id,
         verification_status: "awaiting_review",
         is_developer_allow_listing: true,
+        updated_at: submission.metadata_updated_at,
       },
       reviewSubmission: submission,
     };
@@ -257,6 +341,7 @@ export const submitAppForReviewOperation = async ({
       app_id: metadata.app_id,
       verification_status: "awaiting_review",
       is_developer_allow_listing: listingConsent,
+      updated_at: result.update_app_metadata_by_pk.updated_at,
     },
     reviewSubmission: null,
   };

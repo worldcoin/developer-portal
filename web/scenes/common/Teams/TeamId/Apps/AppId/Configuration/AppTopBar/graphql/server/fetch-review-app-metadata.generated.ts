@@ -38,6 +38,9 @@ export type FetchAppMetadataByIdQuery = {
       id: string;
       team_id: string;
       is_staging: boolean;
+      is_banned: boolean;
+      status: string;
+      is_archived: boolean;
     };
   }>;
   localisations: Array<{
@@ -94,6 +97,9 @@ export const FetchAppMetadataByIdDocument = gql`
         id
         team_id
         is_staging
+        is_banned
+        status
+        is_archived
       }
     }
     localisations(

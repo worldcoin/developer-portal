@@ -15,6 +15,11 @@ export interface ParameterStoreValues {
   implicitCredentialsApps: string[];
 }
 
+export type AppMetadataImageUrlResolver = (
+  filename: string,
+  locale?: string,
+) => string;
+
 export const fetchParameterStoreValues =
   async (): Promise<ParameterStoreValues> => {
     const [
@@ -50,6 +55,7 @@ export const formatAppMetadata = (
   platform?: string | null,
   country?: string | null,
   paramStoreValues?: ParameterStoreValues,
+  imageUrlResolver?: AppMetadataImageUrlResolver,
 ): AppStoreFormattedFields => {
   const { app, ...appMetadata } = appData;
   const singleAppStats: AppStatsItem | undefined = appStatsMap.get(
@@ -132,6 +138,15 @@ export const formatAppMetadata = (
       ? locale
       : "en";
 
+  const getImageUrl = (filename: string, imageLocale?: string) =>
+    imageUrlResolver?.(filename, imageLocale) ??
+    getCDNImageUrl(
+      appMetadata.app_id,
+      filename,
+      appMetadata.verification_status === "verified",
+      imageLocale,
+    );
+
   const supportedCountries = shouldCompressCountryList
     ? [country.toUpperCase()]
     : appMetadata.supported_countries;
@@ -169,32 +184,20 @@ export const formatAppMetadata = (
       appMetadata.world_app_description,
     short_name:
       localisedContent?.short_name || appMetadata.short_name || "test",
-    logo_img_url: getLogoImgCDNUrl(
-      appMetadata.app_id,
-      appMetadata.logo_img_url,
-      appMetadata.verification_status === "verified",
-    ),
-    meta_tag_image_url: getCDNImageUrl(
-      appMetadata.app_id,
-      metaTagImageUrl,
-      appMetadata.verification_status === "verified",
-      metaTagImageLocale,
-    ),
+    logo_img_url: appMetadata.logo_img_url
+      ? getImageUrl(appMetadata.logo_img_url)
+      : getLogoImgCDNUrl(
+          appMetadata.app_id,
+          appMetadata.logo_img_url,
+          appMetadata.verification_status === "verified",
+        ),
+    meta_tag_image_url: getImageUrl(metaTagImageUrl, metaTagImageLocale),
     hero_image_url: "",
     showcase_img_urls: showcaseImgUrls?.map((url: string) =>
-      getCDNImageUrl(
-        appMetadata.app_id,
-        url,
-        appMetadata.verification_status === "verified",
-        showcaseImgUrlsLocale,
-      ),
+      getImageUrl(url, showcaseImgUrlsLocale),
     ),
     content_card_image_url: appMetadata.content_card_image_url
-      ? getCDNImageUrl(
-          appMetadata.app_id,
-          appMetadata.content_card_image_url,
-          appMetadata.verification_status === "verified",
-        )
+      ? getImageUrl(appMetadata.content_card_image_url)
       : "",
     // TODO: These fields are not used anymore, we can add them back if we want later
     description: {

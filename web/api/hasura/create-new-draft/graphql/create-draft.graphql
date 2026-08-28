@@ -69,5 +69,6 @@ mutation CreateDraft(
     }
   ) {
     id
+    updated_at
   }
 }

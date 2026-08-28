@@ -8,6 +8,8 @@ import type {
   ReviewDecisionContext,
   ReviewDecisionOutcome,
 } from "@/api/helpers/reviewer-workflow";
+import { isValidCredentiallessHttpsUrl } from "@/api/helpers/integration-url";
+import { readReviewerSubmissionAssetSnapshot } from "@/api/helpers/reviewer-submission-assets";
 import {
   createChecklistDefinitionSnapshot,
   getChecklistDefinitions,
@@ -201,7 +203,10 @@ export const validateReviewDecisionContext = ({
       (mode === "mini-app" ? "mini_app_store" : "world_ecosystem") ||
     context.app.id !== context.app_id ||
     context.app.is_staging ||
+    context.app.is_banned !== false ||
     context.app.deleted_at !== null ||
+    context.app.status !== "active" ||
+    context.app.is_archived ||
     !currentMetadata ||
     currentMetadata.id !== body.appMetadataId ||
     currentMetadata.app_id !== context.app_id ||
@@ -212,9 +217,24 @@ export const validateReviewDecisionContext = ({
     !isRecord(submittedSnapshot) ||
     submittedSnapshot.app_mode !== mode ||
     submittedSnapshot.is_developer_allow_listing !== true ||
+    (body.decision === "approved" &&
+      (!isValidCredentiallessHttpsUrl(currentMetadata.integration_url) ||
+        !isValidCredentiallessHttpsUrl(submittedSnapshot.integration_url))) ||
     !Array.isArray(context.localizations_snapshot)
   ) {
     return null;
+  }
+
+  if (body.decision === "approved") {
+    try {
+      readReviewerSubmissionAssetSnapshot({
+        appId: context.app_id,
+        appMetadataId: context.app_metadata_id,
+        value: context.asset_snapshot,
+      });
+    } catch {
+      return null;
+    }
   }
 
   const version = context.checklist_version;

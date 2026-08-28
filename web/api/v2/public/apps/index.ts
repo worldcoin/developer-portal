@@ -88,6 +88,8 @@ const buildCatalogWhere = ({
         _and: [
           { is_banned: { _eq: false } },
           { deleted_at: { _is_null: true } },
+          { status: { _eq: "active" } },
+          { is_archived: { _eq: false } },
         ],
       },
     },

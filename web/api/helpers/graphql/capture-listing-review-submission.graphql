@@ -6,6 +6,7 @@ mutation CaptureListingReviewSubmission(
   $listing_consent: Boolean!
   $expected_metadata_updated_at: timestamptz!
   $expected_localizations_snapshot: jsonb!
+  $asset_snapshot: jsonb!
 ) {
   capture_listing_review_submission(
     args: {
@@ -16,11 +17,33 @@ mutation CaptureListingReviewSubmission(
       p_listing_consent: $listing_consent
       p_expected_metadata_updated_at: $expected_metadata_updated_at
       p_expected_localizations_snapshot: $expected_localizations_snapshot
+      p_asset_snapshot: $asset_snapshot
     }
   ) {
     id
     app_metadata_id
     attempt
     status
+    review_version
+    metadata_updated_at
+  }
+}
+
+mutation ReconcileListingReviewSubmissionCapture(
+  $app_metadata_id: String!
+  $asset_snapshot: jsonb!
+) {
+  reconcile_listing_review_submission_capture(
+    args: {
+      p_app_metadata_id: $app_metadata_id
+      p_asset_snapshot: $asset_snapshot
+    }
+  ) {
+    id
+    app_metadata_id
+    attempt
+    status
+    review_version
+    metadata_updated_at
   }
 }

@@ -40,6 +40,22 @@ const localizationsSnapshot = [
   },
 ];
 
+const snapshotPrefix =
+  "review-submissions/app_123/meta_123/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/";
+const assetSnapshot = {
+  version: 1,
+  prefix: snapshotPrefix,
+  objects: {
+    "unverified/app_123/logo_img.png": `${snapshotPrefix}logo_img.png`,
+    "unverified/app_123/meta_tag_image.jpg": `${snapshotPrefix}meta_tag_image.jpg`,
+    "unverified/app_123/content_card_image.png": `${snapshotPrefix}content_card_image.png`,
+    "unverified/app_123/showcase_img_1.png": `${snapshotPrefix}showcase_img_1.png`,
+    "unverified/app_123/showcase_img_2.jpg": `${snapshotPrefix}showcase_img_2.jpg`,
+    "unverified/app_123/es/meta_tag_image.jpg": `${snapshotPrefix}es/meta_tag_image.jpg`,
+    "unverified/app_123/es/showcase_img_1.png": `${snapshotPrefix}es/showcase_img_1.png`,
+  },
+};
+
 describe("review decision assets", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -54,6 +70,7 @@ describe("review decision assets", () => {
       appId: "app_123",
       appMetadataId: "meta_123",
       operationId: "a".repeat(24),
+      assetSnapshot,
       metadataSnapshot,
       localizationsSnapshot,
       registerPreparedPlan,
@@ -93,7 +110,7 @@ describe("review decision assets", () => {
     expect(processLogoImage).toHaveBeenCalledWith(
       client,
       "assets",
-      "unverified/app_123/logo_img.png",
+      `${snapshotPrefix}logo_img.png`,
       "verified/app_123/",
       `review_meta_123_${"a".repeat(24)}_logo`,
       400,
@@ -105,7 +122,7 @@ describe("review decision assets", () => {
     expect(processContentCardImage).toHaveBeenCalledWith(
       client,
       "assets",
-      "unverified/app_123/content_card_image.png",
+      `${snapshotPrefix}content_card_image.png`,
       `verified/app_123/review_meta_123_${"a".repeat(24)}_content.png`,
       "png",
     );
@@ -128,6 +145,7 @@ describe("review decision assets", () => {
         appId: "app_123",
         appMetadataId: "meta_123",
         operationId: "b".repeat(24),
+        assetSnapshot,
         metadataSnapshot: snapshot,
         localizationsSnapshot,
         registerPreparedPlan,
@@ -145,6 +163,7 @@ describe("review decision assets", () => {
         appId: "app_123",
         appMetadataId: "meta_123",
         operationId: "b".repeat(24),
+        assetSnapshot,
         metadataSnapshot,
         localizationsSnapshot: [
           { ...localizationsSnapshot[0], locale: "../es" },
@@ -162,6 +181,14 @@ describe("review decision assets", () => {
       appId: "app_123",
       appMetadataId: "meta_123",
       operationId: "c".repeat(24),
+      assetSnapshot: {
+        ...assetSnapshot,
+        objects: {
+          ...assetSnapshot.objects,
+          "unverified/app_123/logo_img.jpeg": `${snapshotPrefix}logo_img.jpeg`,
+          "unverified/app_123/meta_tag_image.jpeg": `${snapshotPrefix}meta_tag_image.jpeg`,
+        },
+      },
       metadataSnapshot: {
         ...metadataSnapshot,
         logo_img_url: "logo_img.jpeg",
@@ -178,7 +205,7 @@ describe("review decision assets", () => {
     expect(processLogoImage).toHaveBeenCalledWith(
       expect.anything(),
       expect.anything(),
-      "unverified/app_123/logo_img.jpeg",
+      `${snapshotPrefix}logo_img.jpeg`,
       expect.anything(),
       expect.anything(),
       400,
@@ -193,6 +220,7 @@ describe("review decision assets", () => {
         appId: "app_123",
         appMetadataId: "meta_123",
         operationId: "d".repeat(24),
+        assetSnapshot,
         metadataSnapshot: {
           ...metadataSnapshot,
           showcase_img_urls: ["one.png", "two.png", "three.png", "four.png"],
@@ -220,6 +248,7 @@ describe("review decision assets", () => {
         appId: "app_123",
         appMetadataId: "meta_123",
         operationId: "e".repeat(24),
+        assetSnapshot,
         metadataSnapshot,
         localizationsSnapshot,
         registerPreparedPlan,
@@ -259,6 +288,7 @@ describe("review decision assets", () => {
         appId: "app_123",
         appMetadataId: "meta_123",
         operationId: "f".repeat(24),
+        assetSnapshot,
         metadataSnapshot,
         localizationsSnapshot,
         registerPreparedPlan,

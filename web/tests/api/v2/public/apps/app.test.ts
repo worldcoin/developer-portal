@@ -351,7 +351,7 @@ describe("/api/public/app/[app_id]", () => {
       jest.clearAllMocks();
     });
 
-    test("should select metadata by draft_id when provided", async () => {
+    test("should serve active review draft images from the immutable submission snapshot", async () => {
       jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
         GetAppMetadata: jest.fn().mockResolvedValue({
           app_metadata: [
@@ -398,7 +398,9 @@ describe("/api/public/app/[app_id]", () => {
               app_id: "1",
               short_name: "test",
               logo_img_url: "logo.png",
+              meta_tag_image_url: "meta.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              content_card_image_url: "content.png",
               hero_image_url: "",
               world_app_description:
                 "This is an example app designed to showcase the capabilities of our platform.",
@@ -421,6 +423,44 @@ describe("/api/public/app/[app_id]", () => {
               verification_status: "unverified",
               is_allowed_unlimited_notifications: false,
               max_notifications_per_day: 10,
+              localisations: [
+                {
+                  name: "Aplicacion de ejemplo",
+                  short_name: "ejemplo",
+                  world_app_description: "Descripcion localizada completa",
+                  world_app_button_text: "Use Integration",
+                  description:
+                    '{"description_overview":"localizada","description_how_it_works":"","description_connect":""}',
+                  hero_image_url: "",
+                  meta_tag_image_url: "meta-es.png",
+                  showcase_img_urls: ["showcase-es.png"],
+                },
+              ],
+              review_submissions: [
+                {
+                  asset_snapshot: {
+                    version: 1,
+                    prefix:
+                      "review-submissions/1/2/0123456789abcdef0123456789abcdef/",
+                    objects: {
+                      "unverified/1/logo.png":
+                        "review-submissions/1/2/0123456789abcdef0123456789abcdef/logo.png",
+                      "unverified/1/meta.png":
+                        "review-submissions/1/2/0123456789abcdef0123456789abcdef/meta.png",
+                      "unverified/1/showcase1.png":
+                        "review-submissions/1/2/0123456789abcdef0123456789abcdef/showcase1.png",
+                      "unverified/1/showcase2.png":
+                        "review-submissions/1/2/0123456789abcdef0123456789abcdef/showcase2.png",
+                      "unverified/1/content.png":
+                        "review-submissions/1/2/0123456789abcdef0123456789abcdef/content.png",
+                      "unverified/1/es/meta-es.png":
+                        "review-submissions/1/2/0123456789abcdef0123456789abcdef/es/meta-es.png",
+                      "unverified/1/es/showcase-es.png":
+                        "review-submissions/1/2/0123456789abcdef0123456789abcdef/es/showcase-es.png",
+                    },
+                  },
+                },
+              ],
               app: {
                 team: {
                   name: "Example Team",
@@ -434,7 +474,7 @@ describe("/api/public/app/[app_id]", () => {
       }));
 
       const request = new NextRequest(
-        "https://cdn.test.com/api/public/app/test-app?draft_id=2",
+        "https://cdn.test.com/api/public/app/test-app?draft_id=2&language_override=es",
         {
           headers: {
             host: "cdn.test.com",
@@ -445,12 +485,68 @@ describe("/api/public/app/[app_id]", () => {
         params: Promise.resolve({ app_id: "test-app" }),
       });
       const data = await response.json();
-      expect(data.app_data.name).toBe("Example App");
+      expect(response.headers.get("Cache-Control")).toBe(
+        "private, no-store, max-age=0",
+      );
+      expect(data.app_data.name).toBe("Aplicacion de ejemplo");
       expect(data.app_data.app_rating).toBe(3.33);
       expect(data.app_data.integration_url).toBe(
         "https://example.com/integration-unverified",
       );
       expect(data.app_data.draft_id).toBe("2");
+      expect(data.app_data.logo_img_url).toBe(
+        "https://cdn.test.com/review-submissions/1/2/0123456789abcdef0123456789abcdef/logo.png",
+      );
+      expect(data.app_data.meta_tag_image_url).toBe(
+        "https://cdn.test.com/review-submissions/1/2/0123456789abcdef0123456789abcdef/es/meta-es.png",
+      );
+      expect(data.app_data.showcase_img_urls).toEqual([
+        "https://cdn.test.com/review-submissions/1/2/0123456789abcdef0123456789abcdef/es/showcase-es.png",
+      ]);
+      expect(data.app_data.content_card_image_url).toBe(
+        "https://cdn.test.com/review-submissions/1/2/0123456789abcdef0123456789abcdef/content.png",
+      );
+      expect(data.app_data.review_submissions).toBeUndefined();
+    });
+
+    test("should fail closed while an active review asset snapshot is unavailable", async () => {
+      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+        GetAppMetadata: jest.fn().mockResolvedValue({
+          app_metadata: [
+            {
+              id: "draft-without-assets",
+              app_id: "app_test",
+              verification_status: "awaiting_review",
+              is_reviewer_world_app_approved: false,
+              is_reviewer_app_store_approved: false,
+              should_uninstall_on_delist: false,
+              supported_countries: ["us"],
+              review_submissions: [{ asset_snapshot: null }],
+              app: {
+                deleted_at: null,
+                team: { name: "Example Team" },
+                rating_sum: 0,
+                rating_count: 0,
+              },
+            },
+          ],
+        }),
+      }));
+
+      const response = await GET(
+        new NextRequest(
+          "https://cdn.test.com/api/public/app/app_test?draft_id=draft-without-assets",
+          { headers: { host: "cdn.test.com" } },
+        ),
+        { params: Promise.resolve({ app_id: "app_test" }) },
+      );
+
+      expect(response.status).toBe(503);
+      expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+      expect(response.headers.get("Retry-After")).toBe("30");
+      expect(await response.json()).toEqual({
+        error: "Draft assets are being prepared. Try again shortly.",
+      });
     });
 
     test("should select reviewer approved metadata when no draft_id provided", async () => {

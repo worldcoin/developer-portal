@@ -73,9 +73,13 @@ export async function submitAppForReviewFormServerSide({
 
     const client = await getAPIServiceGraphqlClient();
     const session = await auth0.getSession();
+    let reviewContext: {
+      expectedVerificationStatus: "awaiting_review";
+      expectedMetadataUpdatedAt: string;
+    };
 
     try {
-      await submitAppForReviewOperation({
+      const submission = await submitAppForReviewOperation({
         client,
         appMetadataId: parsedInput.app_metadata_id,
         expectedAppId: appId,
@@ -87,6 +91,11 @@ export async function submitAppForReviewFormServerSide({
           email: session?.user.email ?? null,
         },
       });
+
+      reviewContext = {
+        expectedVerificationStatus: "awaiting_review",
+        expectedMetadataUpdatedAt: submission.appMetadata.updated_at,
+      };
     } catch (error) {
       if (!(error instanceof AppReviewSubmissionError)) throw error;
       return errorFormAction({
@@ -111,6 +120,7 @@ export async function submitAppForReviewFormServerSide({
     return {
       success: true,
       message: "App submitted for review successfully",
+      reviewContext,
     };
   } catch (error) {
     return errorFormAction({

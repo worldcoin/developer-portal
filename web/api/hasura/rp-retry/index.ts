@@ -22,8 +22,11 @@ import { logger } from "@/lib/logger";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
+import { getSdk as getClaimProductionRetrySdk } from "./graphql/claim-production-retry.generated";
+import { getSdk as getCompleteProductionRetrySdk } from "./graphql/complete-production-retry.generated";
 import { getSdk as getGetRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
-import { getSdk as getUpdateProductionRetrySdk } from "./graphql/update-production-retry.generated";
+import { getSdk as getReconcileProductionRetrySdk } from "./graphql/reconcile-production-retry.generated";
+import { getSdk as getRevertProductionRetrySdk } from "./graphql/revert-production-retry.generated";
 import { getSdk as getUpdateStagingRetrySdk } from "./graphql/update-staging-retry.generated";
 
 const CACHE_KEY_PREFIX = "rp_status:v2:";
@@ -257,9 +260,70 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  const needsRegistration = !onChainRp.initialized;
+  const needsSignerRotation =
+    onChainRp.initialized &&
+    normalizeAddress(onChainRp.signer).toLowerCase() !==
+      normalizeAddress(signerAddress).toLowerCase();
+  const needsExternalOperation = needsRegistration || needsSignerRotation;
+
+  let productionClaimed = false;
+  if (environment === "production" && needsExternalOperation) {
+    try {
+      const { update_rp_registration: claim } =
+        await getClaimProductionRetrySdk(client).ClaimProductionRetry({
+          rp_id: rpId,
+        });
+
+      if (!claim || claim.affected_rows !== 1) {
+        return errorHasuraQuery({
+          req,
+          detail:
+            "Cannot retry registration. Another operation or listing review may be in progress.",
+          code: "operation_in_progress",
+          app_id: appId,
+          team_id: teamId,
+        });
+      }
+      productionClaimed = true;
+    } catch (error) {
+      logger.warn("Retry: failed to claim production registration", {
+        rpId,
+        appId,
+        teamId,
+        error,
+      });
+      return errorHasuraQuery({
+        req,
+        detail:
+          "Cannot retry registration. Another operation or listing review may be in progress.",
+        code: "operation_in_progress",
+        app_id: appId,
+        team_id: teamId,
+      });
+    }
+  }
+
+  const revertProductionClaim = async () => {
+    if (!productionClaimed) return;
+
+    try {
+      await getRevertProductionRetrySdk(client).RevertProductionRetry({
+        rp_id: rpId,
+      });
+    } catch (error) {
+      logger.error("Retry: failed to release production registration claim", {
+        rpId,
+        appId,
+        teamId,
+        error,
+      });
+    }
+  };
+
   let operationHash: string | undefined;
 
-  if (!onChainRp.initialized) {
+  if (needsRegistration) {
     try {
       operationHash = await submitRegisterRpTransaction(config, {
         rpId: numericRpId,
@@ -284,6 +348,7 @@ export const POST = async (req: NextRequest) => {
         environment,
         error,
       });
+      await revertProductionClaim();
       return errorHasuraQuery({
         req,
         detail: "Failed to submit registration transaction.",
@@ -292,10 +357,7 @@ export const POST = async (req: NextRequest) => {
         team_id: teamId,
       });
     }
-  } else if (
-    normalizeAddress(onChainRp.signer).toLowerCase() !==
-    normalizeAddress(signerAddress).toLowerCase()
-  ) {
+  } else if (needsSignerRotation) {
     try {
       operationHash = await submitRotateSignerTransaction(config, {
         rpId: numericRpId,
@@ -319,6 +381,7 @@ export const POST = async (req: NextRequest) => {
         environment,
         error,
       });
+      await revertProductionClaim();
       return errorHasuraQuery({
         req,
         detail: "Failed to submit signer update transaction.",
@@ -336,15 +399,21 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  // Persist operation hash and reset status to pending on retry
+  // Persist the operation only while holding the production claim. If this
+  // write is ambiguous, leave the durable claim in place so a retry cannot
+  // submit the same on-chain operation twice.
   if (operationHash) {
     try {
       if (environment === "production") {
-        await getUpdateProductionRetrySdk(client).UpdateProductionRetry({
-          rp_id: rpId,
-          operation_hash: operationHash,
-          status: "pending",
-        });
+        const { update_rp_registration: completed } =
+          await getCompleteProductionRetrySdk(client).CompleteProductionRetry({
+            rp_id: rpId,
+            operation_hash: operationHash,
+          });
+
+        if (!completed || completed.affected_rows !== 1) {
+          throw new Error("Production retry claim was lost before completion.");
+        }
       } else {
         await getUpdateStagingRetrySdk(client).UpdateStagingRetry({
           rp_id: rpId,
@@ -359,6 +428,47 @@ export const POST = async (req: NextRequest) => {
         teamId,
         environment,
         error,
+      });
+      if (environment === "production") {
+        return errorHasuraQuery({
+          req,
+          detail:
+            "The registration was submitted, but Portal could not save its operation reference. Contact support before retrying.",
+          code: "db_error",
+          app_id: appId,
+          team_id: teamId,
+        });
+      }
+    }
+  } else if (environment === "production") {
+    try {
+      const { update_rp_registration: reconciled } =
+        await getReconcileProductionRetrySdk(client).ReconcileProductionRetry({
+          rp_id: rpId,
+        });
+
+      if (!reconciled || reconciled.affected_rows !== 1) {
+        return errorHasuraQuery({
+          req,
+          detail: "Registration state changed while it was being retried.",
+          code: "operation_in_progress",
+          app_id: appId,
+          team_id: teamId,
+        });
+      }
+    } catch (error) {
+      logger.error("Failed to reconcile retry state in DB", {
+        rpId,
+        appId,
+        teamId,
+        error,
+      });
+      return errorHasuraQuery({
+        req,
+        detail: "Failed to reconcile registration state.",
+        code: "db_error",
+        app_id: appId,
+        team_id: teamId,
       });
     }
   }

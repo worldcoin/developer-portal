@@ -1,0 +1,12 @@
+mutation ReconcileProductionRetry($rp_id: String!) {
+  update_rp_registration(
+    where: {
+      rp_id: { _eq: $rp_id }
+      status: { _eq: failed }
+      review_configuration_change_kind: { _is_null: true }
+    }
+    _set: { status: registered }
+  ) {
+    affected_rows
+  }
+}

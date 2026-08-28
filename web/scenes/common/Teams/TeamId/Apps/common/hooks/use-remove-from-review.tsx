@@ -8,6 +8,8 @@ import { removeAppFromReview } from "./server";
 
 export const useRemoveFromReview = (props: {
   metadataId: string | undefined;
+  metadataUpdatedAt: string | undefined;
+  verificationStatus: string | undefined;
 }) => {
   const { appId } = useParams() as { appId: string };
   const [loading, setLoading] = useState(false);
@@ -23,13 +25,25 @@ export const useRemoveFromReview = (props: {
   );
 
   const removeFromReview = useCallback(async () => {
-    if (loading || !props.metadataId) {
+    if (
+      loading ||
+      !props.metadataId ||
+      !props.metadataUpdatedAt ||
+      !["awaiting_review", "changes_requested"].includes(
+        props.verificationStatus ?? "",
+      )
+    ) {
       return;
     }
 
     setLoading(true);
 
-    const result = await removeAppFromReview(props.metadataId);
+    const result = await removeAppFromReview(props.metadataId, {
+      expectedVerificationStatus: props.verificationStatus as
+        | "awaiting_review"
+        | "changes_requested",
+      expectedMetadataUpdatedAt: props.metadataUpdatedAt,
+    });
 
     if (result.success) {
       await Promise.all([refetchAppMetadata(), refetchVerificationData()]);
@@ -38,7 +52,14 @@ export const useRemoveFromReview = (props: {
     }
 
     setLoading(false);
-  }, [loading, props.metadataId, refetchAppMetadata, refetchVerificationData]);
+  }, [
+    loading,
+    props.metadataId,
+    props.metadataUpdatedAt,
+    props.verificationStatus,
+    refetchAppMetadata,
+    refetchVerificationData,
+  ]);
 
   return { removeFromReview, loading };
 };

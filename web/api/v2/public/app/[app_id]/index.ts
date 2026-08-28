@@ -3,6 +3,7 @@ import {
   formatAppMetadata,
 } from "@/api/helpers/app-store";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { readReviewerSubmissionAssetSnapshot } from "@/api/helpers/reviewer-submission-assets";
 import { getAppStoreLocalisedCategoriesWithUrls } from "@/lib/categories";
 import { compareVersions } from "@/lib/compare-versions";
 import {
@@ -35,6 +36,17 @@ const independentFieldsToFetch = [
   "content_card_image_url",
   "rounded_logo_img_url",
 ];
+
+class ActiveReviewAssetSnapshotError extends Error {}
+
+const draftAssetsUnavailableResponse = () =>
+  NextResponse.json(
+    { error: "Draft assets are being prepared. Try again shortly." },
+    {
+      status: 503,
+      headers: { "Cache-Control": "private, no-store", "Retry-After": "30" },
+    },
+  );
 
 export async function GET(
   request: Request,
@@ -126,6 +138,9 @@ export async function GET(
 
   // Get query param for specific metadata if provided
   const draft_id = searchParams.get("draft_id");
+  const cacheControl = draft_id
+    ? "private, no-store, max-age=0"
+    : "public, max-age=5, stale-if-error=86400";
 
   if (draft_id) {
     const draft_metadata = app_metadata.find((meta) => meta.id === draft_id);
@@ -211,14 +226,47 @@ export async function GET(
 
   const metricsMap = new Map(metricsData.map((stat) => [stat.app_id, stat]));
   const paramStoreValues = await fetchParameterStoreValues();
-  let formattedMetadata = formatAppMetadata(
-    { ...parsedAppMetadata },
-    metricsMap,
-    locale,
-    undefined,
-    undefined,
-    paramStoreValues,
-  );
+  const { review_submissions: reviewSubmissions, ...metadataForFormatting } =
+    parsedAppMetadata;
+  let imageUrlResolver;
+  const activeReview = draft_id ? reviewSubmissions[0] : undefined;
+  if (activeReview) {
+    let assetSnapshot;
+    try {
+      assetSnapshot = readReviewerSubmissionAssetSnapshot({
+        appId: parsedAppMetadata.app_id,
+        appMetadataId: parsedAppMetadata.id,
+        value: activeReview.asset_snapshot,
+      });
+    } catch {
+      return draftAssetsUnavailableResponse();
+    }
+    imageUrlResolver = (filename: string, imageLocale = "en") => {
+      const localePrefix = imageLocale === "en" ? "" : `${imageLocale}/`;
+      const sourceKey = `unverified/${parsedAppMetadata.app_id}/${localePrefix}${filename}`;
+      const immutableKey = assetSnapshot.objects[sourceKey];
+      if (!immutableKey) throw new ActiveReviewAssetSnapshotError();
+      return `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/${immutableKey}`;
+    };
+  }
+
+  let formattedMetadata;
+  try {
+    formattedMetadata = formatAppMetadata(
+      metadataForFormatting,
+      metricsMap,
+      locale,
+      undefined,
+      undefined,
+      paramStoreValues,
+      imageUrlResolver,
+    );
+  } catch (error) {
+    if (error instanceof ActiveReviewAssetSnapshotError) {
+      return draftAssetsUnavailableResponse();
+    }
+    throw error;
+  }
 
   formattedMetadata = {
     ...formattedMetadata,
@@ -277,7 +325,7 @@ export async function GET(
         headers: {
           "Content-Type": "text/plain; charset=utf-8",
           "Content-Length": contentLength,
-          "Cache-Control": "public, max-age=5, stale-if-error=86400",
+          "Cache-Control": cacheControl,
         },
       });
     }
@@ -299,7 +347,7 @@ export async function GET(
         headers: {
           "Content-Type": "text/plain; charset=utf-8",
           "Content-Length": contentLength,
-          "Cache-Control": "public, max-age=5, stale-if-error=86400",
+          "Cache-Control": cacheControl,
         },
       });
     }
@@ -314,7 +362,7 @@ export async function GET(
         headers: {
           "Content-Type": "application/json; charset=utf-8",
           "Content-Length": contentLength,
-          "Cache-Control": "public, max-age=5, stale-if-error=86400",
+          "Cache-Control": cacheControl,
         },
       });
     }
@@ -331,7 +379,7 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Length": contentLength,
-      "Cache-Control": "public, max-age=5, stale-if-error=86400",
+      "Cache-Control": cacheControl,
     },
   });
 }

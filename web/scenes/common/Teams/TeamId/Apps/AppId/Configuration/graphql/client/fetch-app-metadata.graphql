@@ -10,6 +10,7 @@ query FetchAppMetadata($id: String!) {
     app_metadata(where: { verification_status: { _neq: "verified" } }) {
       id
       app_id
+      updated_at
       name
       logo_img_url
       hero_image_url
@@ -48,6 +49,7 @@ query FetchAppMetadata($id: String!) {
     ) {
       id
       app_id
+      updated_at
       name
       logo_img_url
       hero_image_url

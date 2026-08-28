@@ -1,0 +1,21 @@
+mutation ReopenChangesRequestedReviewDraft(
+  $app_metadata_id: String!
+  $expected_verification_status: String!
+  $expected_metadata_updated_at: timestamptz!
+  $actor_subject: String!
+  $actor_email: String
+) {
+  reopen_changes_requested_review_draft(
+    args: {
+      p_app_metadata_id: $app_metadata_id
+      p_expected_verification_status: $expected_verification_status
+      p_expected_metadata_updated_at: $expected_metadata_updated_at
+      p_actor_subject: $actor_subject
+      p_actor_email: $actor_email
+    }
+  ) {
+    id
+    verification_status
+    updated_at
+  }
+}

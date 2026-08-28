@@ -1,0 +1,67 @@
+mutation RegisterLegacyVerificationAssetSettlement(
+  $operation_id: uuid!
+  $app_id: String!
+  $app_metadata_id: String!
+  $expected_metadata_updated_at: timestamptz!
+  $prepared_asset_keys: jsonb!
+  $prior_asset_keys: jsonb!
+) {
+  register_legacy_app_verification_asset_settlement(
+    args: {
+      p_operation_id: $operation_id
+      p_app_id: $app_id
+      p_app_metadata_id: $app_metadata_id
+      p_expected_metadata_updated_at: $expected_metadata_updated_at
+      p_prepared_asset_keys: $prepared_asset_keys
+      p_prior_asset_keys: $prior_asset_keys
+    }
+  ) {
+    operation_id
+    outcome
+    delivery_status
+  }
+}
+
+mutation ClaimLegacyVerificationAssetSettlements(
+  $worker_id: String!
+  $limit: Int!
+) {
+  reviewer_claim_legacy_app_verification_asset_settlements(
+    args: { p_worker_id: $worker_id, p_limit: $limit }
+  ) {
+    operation_id
+    app_id
+    app_metadata_id
+    prepared_asset_keys
+    prior_asset_keys
+    outcome
+    delivery_status
+    attempt_count
+    locked_by
+  }
+}
+
+mutation CompleteLegacyVerificationAssetSettlement(
+  $operation_id: uuid!
+  $worker_id: String
+  $expected_outcome: String!
+  $delivery_succeeded: Boolean!
+  $error: String
+) {
+  complete_legacy_app_verification_asset_settlement(
+    args: {
+      p_operation_id: $operation_id
+      p_worker_id: $worker_id
+      p_expected_outcome: $expected_outcome
+      p_delivery_succeeded: $delivery_succeeded
+      p_error: $error
+    }
+  ) {
+    operation_id
+    outcome
+    delivery_status
+    attempt_count
+    next_attempt_at
+    delivered_at
+  }
+}

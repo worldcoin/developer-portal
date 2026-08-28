@@ -1,0 +1,12 @@
+mutation RevertProductionRetry($rp_id: String!) {
+  update_rp_registration(
+    where: {
+      rp_id: { _eq: $rp_id }
+      status: { _eq: pending }
+      review_configuration_change_kind: { _eq: "registration_retry" }
+    }
+    _set: { status: failed }
+  ) {
+    affected_rows
+  }
+}

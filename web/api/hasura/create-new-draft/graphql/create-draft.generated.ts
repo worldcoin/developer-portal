@@ -57,7 +57,11 @@ export type CreateDraftMutationVariables = Types.Exact<{
 
 export type CreateDraftMutation = {
   __typename?: "mutation_root";
-  insert_app_metadata_one?: { __typename?: "app_metadata"; id: string } | null;
+  insert_app_metadata_one?: {
+    __typename?: "app_metadata";
+    id: string;
+    updated_at: string;
+  } | null;
 };
 
 export const CreateDraftDocument = gql`
@@ -132,6 +136,7 @@ export const CreateDraftDocument = gql`
       }
     ) {
       id
+      updated_at
     }
   }
 `;

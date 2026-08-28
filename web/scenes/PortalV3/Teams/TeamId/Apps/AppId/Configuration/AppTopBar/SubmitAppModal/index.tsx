@@ -137,12 +137,25 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
       toast.success(
         <SubmitSuccessToast
           onUndo={async () => {
-            const result = await removeAppFromReview(appMetadataId);
-            if (result.success) {
+            const reviewContext = result.reviewContext as
+              | {
+                  expectedVerificationStatus: "awaiting_review";
+                  expectedMetadataUpdatedAt: string;
+                }
+              | undefined;
+            if (!reviewContext) {
+              toast.error("Review state is unavailable. Refresh and retry.");
+              return false;
+            }
+            const removalResult = await removeAppFromReview(
+              appMetadataId,
+              reviewContext,
+            );
+            if (removalResult.success) {
               await refetchAppMetadata();
               return true;
             } else {
-              toast.error(result.message);
+              toast.error(removalResult.message);
               return false;
             }
           }}

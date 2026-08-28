@@ -152,6 +152,8 @@ const ActionsFooter = ({
 
   const { removeFromReview, loading: isUnsubmitting } = useRemoveFromReview({
     metadataId: draft?.id,
+    metadataUpdatedAt: draft?.updated_at,
+    verificationStatus: draft?.verification_status,
   });
 
   const { createNewDraft, isCreating } = useCreateNewDraft({
@@ -525,6 +527,8 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
 
   const { removeFromReview } = useRemoveFromReview({
     metadataId: appMetadata?.id,
+    metadataUpdatedAt: appMetadata?.updated_at,
+    verificationStatus: appMetadata?.verification_status,
   });
 
   if (!isMetadataLoading && (error || !app)) {

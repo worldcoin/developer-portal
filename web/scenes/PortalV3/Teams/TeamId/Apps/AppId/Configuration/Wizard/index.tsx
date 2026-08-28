@@ -225,6 +225,8 @@ export const ConfigurationWizard = (props: {
   const draft = app.app_metadata[0];
   const { removeFromReview, loading: isUnsubmitting } = useRemoveFromReview({
     metadataId: draft?.id,
+    metadataUpdatedAt: draft?.updated_at,
+    verificationStatus: draft?.verification_status,
   });
   const { createNewDraft, isCreating } = useCreateNewDraft({
     appId,

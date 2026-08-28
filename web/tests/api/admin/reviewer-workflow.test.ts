@@ -7,6 +7,7 @@ const HeartbeatReviewSubmission = jest.fn();
 const ReleaseReviewSubmission = jest.fn();
 const SaveReviewChecklist = jest.fn();
 const FetchReviewChecklistContext = jest.fn();
+const FetchReviewWorkflowOutcome = jest.fn();
 const loggerError = jest.fn();
 
 jest.mock("@/lib/admin-auth", () => ({
@@ -31,6 +32,7 @@ jest.mock(
       ReleaseReviewSubmission,
       SaveReviewChecklist,
       FetchReviewChecklistContext,
+      FetchReviewWorkflowOutcome,
     }),
   }),
 );
@@ -106,7 +108,7 @@ const workflowRow = (overrides: Record<string, unknown> = {}) => ({
   status: "in_review",
   review_version: 8,
   claim_token: CLAIM_TOKEN,
-  claim_expires_at: "2026-08-27T12:30:00.000Z",
+  claim_expires_at: "2099-08-27T12:30:00.000Z",
   checklist_version: null,
   checklist: {},
   ...overrides,
@@ -156,6 +158,9 @@ beforeEach(() => {
       app_mode: "mini-app",
       checklist_version: null,
     },
+  });
+  FetchReviewWorkflowOutcome.mockResolvedValue({
+    app_review_submission_by_pk: null,
   });
 });
 
@@ -329,7 +334,7 @@ describe("POST /api/admin/reviewer/submissions/[id]/claim", () => {
         status: "in_review",
         reviewVersion: 8,
         claimToken: CLAIM_TOKEN,
-        claimExpiresAt: "2026-08-27T12:30:00.000Z",
+        claimExpiresAt: "2099-08-27T12:30:00.000Z",
         checklistVersion: null,
         checklist: {},
       },
@@ -399,6 +404,84 @@ describe("POST /api/admin/reviewer/submissions/[id]/claim", () => {
       code: "REVIEW_CONFLICT",
       error: "Review workflow conflict",
     });
+  });
+
+  it("returns a committed claim when the mutation response is lost", async () => {
+    ClaimReviewSubmission.mockRejectedValueOnce(new Error("connection reset"));
+    FetchReviewWorkflowOutcome.mockResolvedValueOnce({
+      app_review_submission_by_pk: {
+        ...workflowRow(),
+        claimed_by_subject: ADMIN.subject,
+        events: [
+          {
+            event_type: "claimed",
+            actor_subject: ADMIN.subject,
+            review_version: 8,
+            payload: {},
+          },
+        ],
+      },
+    });
+
+    const response = await invoke(claim, "claim", "POST", {
+      expectedReviewVersion: 7,
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      submission: expect.objectContaining({
+        reviewVersion: 8,
+        claimToken: CLAIM_TOKEN,
+      }),
+    });
+  });
+
+  it("returns a committed claim when a retry receives an empty CAS result", async () => {
+    ClaimReviewSubmission.mockResolvedValueOnce({
+      reviewer_claim_app_review_submission: [],
+    });
+    FetchReviewWorkflowOutcome.mockResolvedValueOnce({
+      app_review_submission_by_pk: {
+        ...workflowRow(),
+        claimed_by_subject: ADMIN.subject,
+        events: [
+          {
+            event_type: "claimed",
+            actor_subject: ADMIN.subject,
+            review_version: 8,
+            payload: {},
+          },
+        ],
+      },
+    });
+
+    const response = await invoke(claim, "claim", "POST", {
+      expectedReviewVersion: 7,
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      submission: expect.objectContaining({
+        reviewVersion: 8,
+        claimToken: CLAIM_TOKEN,
+      }),
+    });
+  });
+
+  it("does not recover an expired claim after a mutation error", async () => {
+    ClaimReviewSubmission.mockRejectedValueOnce(new Error("connection reset"));
+    FetchReviewWorkflowOutcome.mockResolvedValueOnce({
+      app_review_submission_by_pk: {
+        ...workflowRow({ claim_expires_at: "2020-01-01T00:00:00.000Z" }),
+        claimed_by_subject: ADMIN.subject,
+      },
+    });
+
+    const response = await invoke(claim, "claim", "POST", {
+      expectedReviewVersion: 7,
+    });
+
+    expect(response.status).toBe(500);
   });
 });
 // #endregion
@@ -472,6 +555,132 @@ describe.each([
     expect(response.status).toBe(500);
     expect(JSON.stringify(loggerError.mock.calls)).not.toContain(CLAIM_TOKEN);
   });
+
+  if (action === "heartbeat") {
+    it("returns a committed heartbeat when its mutation response is lost", async () => {
+      operation.mockRejectedValueOnce(new Error("connection reset"));
+      FetchReviewWorkflowOutcome.mockResolvedValueOnce({
+        app_review_submission_by_pk: {
+          ...workflowRow(),
+          claimed_by_subject: ADMIN.subject,
+          events: [
+            {
+              event_type: "claim_heartbeat",
+              actor_subject: ADMIN.subject,
+              review_version: 8,
+              payload: {},
+            },
+          ],
+        },
+      });
+
+      const response = await invoke(handler, action, "POST", {
+        claimToken: CLAIM_TOKEN,
+        expectedReviewVersion: 7,
+      });
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({
+        submission: expect.objectContaining({ reviewVersion: 8 }),
+      });
+    });
+
+    it("returns a committed heartbeat when a retry receives an empty CAS result", async () => {
+      operation.mockResolvedValueOnce({
+        reviewer_heartbeat_app_review_submission: [],
+      });
+      FetchReviewWorkflowOutcome.mockResolvedValueOnce({
+        app_review_submission_by_pk: {
+          ...workflowRow(),
+          claimed_by_subject: ADMIN.subject,
+          events: [
+            {
+              event_type: "claim_heartbeat",
+              actor_subject: ADMIN.subject,
+              review_version: 8,
+              payload: {},
+            },
+          ],
+        },
+      });
+
+      const response = await invoke(handler, action, "POST", {
+        claimToken: CLAIM_TOKEN,
+        expectedReviewVersion: 7,
+      });
+
+      expect(response.status).toBe(200);
+    });
+  }
+
+  if (action === "release") {
+    it("returns a committed release when its mutation response is lost", async () => {
+      operation.mockRejectedValueOnce(new Error("connection reset"));
+      FetchReviewWorkflowOutcome.mockResolvedValueOnce({
+        app_review_submission_by_pk: {
+          ...workflowRow({
+            status: "pending",
+            claim_token: null,
+            claim_expires_at: null,
+            claimed_by_subject: null,
+            events: [
+              {
+                event_type: "claim_released",
+                actor_subject: ADMIN.subject,
+                review_version: 8,
+                payload: {},
+              },
+            ],
+          }),
+        },
+      });
+
+      const response = await invoke(handler, action, "POST", {
+        claimToken: CLAIM_TOKEN,
+        expectedReviewVersion: 7,
+      });
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({
+        submission: expect.objectContaining({
+          status: "pending",
+          reviewVersion: 8,
+          claimToken: null,
+        }),
+      });
+    });
+
+    it("returns a committed release when a retry receives an empty CAS result", async () => {
+      operation.mockResolvedValueOnce({
+        reviewer_release_app_review_submission: [],
+      });
+      FetchReviewWorkflowOutcome.mockResolvedValueOnce({
+        app_review_submission_by_pk: {
+          ...workflowRow({
+            status: "pending",
+            claim_token: null,
+            claim_expires_at: null,
+            claimed_by_subject: null,
+            events: [
+              {
+                event_type: "claim_released",
+                actor_subject: ADMIN.subject,
+                review_version: 8,
+                payload: {},
+              },
+            ],
+          }),
+        },
+      });
+
+      const response = await invoke(handler, action, "POST", {
+        claimToken: CLAIM_TOKEN,
+        expectedReviewVersion: 7,
+      });
+
+      expect(response.status).toBe(200);
+    });
+  }
 });
 // #endregion
 
@@ -789,6 +998,107 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
 
     expect(response.status).toBe(500);
     expect(JSON.stringify(loggerError.mock.calls)).not.toContain(CLAIM_TOKEN);
+  });
+
+  it("returns a committed checklist when its mutation response is lost", async () => {
+    SaveReviewChecklist.mockRejectedValueOnce(new Error("connection reset"));
+    FetchReviewWorkflowOutcome.mockImplementationOnce(async () => ({
+      app_review_submission_by_pk: {
+        ...workflowRow({
+          checklist_version: "2026-08-27.1",
+          checklist: SaveReviewChecklist.mock.calls[0][0].checklist,
+        }),
+        claimed_by_subject: ADMIN.subject,
+        events: [
+          {
+            event_type: "checklist_updated",
+            actor_subject: ADMIN.subject,
+            review_version: 8,
+            payload: {},
+          },
+        ],
+      },
+    }));
+
+    const response = await invoke(
+      saveChecklist,
+      "checklist",
+      "PUT",
+      checklistBody,
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      submission: expect.objectContaining({
+        reviewVersion: 8,
+        checklistVersion: "2026-08-27.1",
+      }),
+    });
+  });
+
+  it("returns a committed checklist when a retry receives an empty CAS result", async () => {
+    SaveReviewChecklist.mockResolvedValueOnce({
+      reviewer_save_app_review_checklist: [],
+    });
+    FetchReviewWorkflowOutcome.mockImplementationOnce(async () => ({
+      app_review_submission_by_pk: {
+        ...workflowRow({
+          checklist_version: "2026-08-27.1",
+          checklist: SaveReviewChecklist.mock.calls[0][0].checklist,
+        }),
+        claimed_by_subject: ADMIN.subject,
+        events: [
+          {
+            event_type: "checklist_updated",
+            actor_subject: ADMIN.subject,
+            review_version: 8,
+            payload: {},
+          },
+        ],
+      },
+    }));
+
+    const response = await invoke(
+      saveChecklist,
+      "checklist",
+      "PUT",
+      checklistBody,
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      submission: expect.objectContaining({ reviewVersion: 8 }),
+    });
+  });
+
+  it("does not recover a different same-version workflow event", async () => {
+    SaveReviewChecklist.mockRejectedValueOnce(new Error("connection reset"));
+    FetchReviewWorkflowOutcome.mockImplementationOnce(async () => ({
+      app_review_submission_by_pk: {
+        ...workflowRow({
+          checklist_version: "2026-08-27.1",
+          checklist: SaveReviewChecklist.mock.calls[0][0].checklist,
+        }),
+        claimed_by_subject: ADMIN.subject,
+        events: [
+          {
+            event_type: "claim_heartbeat",
+            actor_subject: ADMIN.subject,
+            review_version: 8,
+            payload: {},
+          },
+        ],
+      },
+    }));
+
+    const response = await invoke(
+      saveChecklist,
+      "checklist",
+      "PUT",
+      checklistBody,
+    );
+
+    expect(response.status).toBe(500);
   });
 });
 // #endregion

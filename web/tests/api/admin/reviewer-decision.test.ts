@@ -127,10 +127,20 @@ const contextRow = (overrides: Record<string, unknown> = {}) => ({
     app_id: APP_ID,
     app_mode: "mini-app",
     is_developer_allow_listing: true,
+    integration_url: "https://app.example.com",
     logo_img_url: "logo_img.png",
     meta_tag_image_url: "meta_tag_image.jpg",
     content_card_image_url: "content_card_image.png",
     showcase_img_urls: ["showcase_img_1.png"],
+  },
+  asset_snapshot: {
+    version: 1,
+    prefix:
+      "review-submissions/app_123/meta_123/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/",
+    objects: {
+      "unverified/app_123/logo_img.png":
+        "review-submissions/app_123/meta_123/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/logo_img.png",
+    },
   },
   localizations_snapshot: [submittedLocalization],
   decision_fingerprint: null,
@@ -143,11 +153,15 @@ const contextRow = (overrides: Record<string, unknown> = {}) => ({
     verification_status: "awaiting_review",
     app_mode: "mini-app",
     is_developer_allow_listing: true,
+    integration_url: "https://app.example.com",
   },
   app: {
     id: APP_ID,
     is_staging: false,
+    is_banned: false,
     deleted_at: null,
+    status: "active",
+    is_archived: false,
     first_verified_at: "2026-01-01T00:00:00.000Z",
     app_metadata: [
       {
@@ -262,6 +276,7 @@ describe("POST /api/admin/reviewer/submissions/[id]/decision", () => {
       expect.objectContaining({
         appId: APP_ID,
         appMetadataId: METADATA_ID,
+        assetSnapshot: contextRow().asset_snapshot,
         operationId: expect.stringMatching(/^[a-f0-9]{32}$/),
         registerPreparedPlan: expect.any(Function),
       }),
@@ -433,6 +448,27 @@ describe("POST /api/admin/reviewer/submissions/[id]/decision", () => {
     ],
     ["withdrawn draft", { status: "withdrawn" }],
     ["missing consent", { listing_consent: false }],
+    ["missing immutable asset snapshot", { asset_snapshot: null }],
+    ["inactive app", { app: { ...contextRow().app, status: "inactive" } }],
+    ["archived app", { app: { ...contextRow().app, is_archived: true } }],
+    [
+      "malformed submitted integration URL",
+      {
+        metadata_snapshot: {
+          ...contextRow().metadata_snapshot,
+          integration_url: "https://%",
+        },
+      },
+    ],
+    [
+      "malformed current integration URL",
+      {
+        app_metadata: {
+          ...contextRow().app_metadata,
+          integration_url: "https://%",
+        },
+      },
+    ],
   ])("returns 409 for %s", async (_label, overrides) => {
     FetchReviewDecisionContext.mockResolvedValueOnce({
       app_review_submission_by_pk: contextRow(overrides),
@@ -443,6 +479,44 @@ describe("POST /api/admin/reviewer/submissions/[id]/decision", () => {
     expect(response.status).toBe(409);
     expect(prepareReviewerDecisionAssets).not.toHaveBeenCalled();
     expect(DecideReviewSubmission).not.toHaveBeenCalled();
+  });
+
+  it("allows request changes for a malformed legacy integration URL", async () => {
+    FetchReviewDecisionContext.mockResolvedValueOnce({
+      app_review_submission_by_pk: contextRow({
+        metadata_snapshot: {
+          ...contextRow().metadata_snapshot,
+          integration_url: "https://%",
+        },
+        app_metadata: {
+          ...contextRow().app_metadata,
+          integration_url: "https://%",
+        },
+      }),
+    });
+    DecideReviewSubmission.mockResolvedValueOnce({
+      reviewer_decide_app_review_submission: [
+        workflowRow({
+          status: "changes_requested",
+          decision_result: {
+            decision: "changes_requested",
+            prepared_asset_keys: [],
+          },
+        }),
+      ],
+    });
+
+    const response = await invoke(
+      body({
+        decision: "changes_requested",
+        developerMessage: "Please provide a valid HTTPS integration URL.",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(DecideReviewSubmission).toHaveBeenCalledWith(
+      expect.objectContaining({ decision: "changes_requested" }),
+    );
   });
 
   it("fails closed for an unknown checklist version or altered definition snapshot", async () => {

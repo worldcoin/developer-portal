@@ -4,8 +4,11 @@ const claimReviewNotifications = jest.fn();
 const fetchReviewNotificationContext = jest.fn();
 const completeReviewNotification = jest.fn();
 const retryReviewNotification = jest.fn();
+const reconcileRetryReviewNotification = jest.fn();
 const deliverReviewNotification = jest.fn();
 const authenticateAdminRequest = jest.fn();
+const repairReviewerAssetSnapshots = jest.fn();
+const settleLegacyVerificationAssets = jest.fn();
 
 jest.mock("@/api/helpers/reviewer-notifications", () => ({
   claimReviewNotifications: (...args: unknown[]) =>
@@ -16,12 +19,32 @@ jest.mock("@/api/helpers/reviewer-notifications", () => ({
     completeReviewNotification(...args),
   retryReviewNotification: (...args: unknown[]) =>
     retryReviewNotification(...args),
+  reconcileRetryReviewNotification: (...args: unknown[]) =>
+    reconcileRetryReviewNotification(...args),
 }));
 
 jest.mock("@/api/helpers/reviewer-notification-delivery", () => ({
   deliverReviewNotification: (...args: unknown[]) =>
     deliverReviewNotification(...args),
 }));
+
+jest.mock(
+  "@/api/helpers/reviewer-asset-snapshot-repair",
+  () => ({
+    repairReviewerAssetSnapshots: (...args: unknown[]) =>
+      repairReviewerAssetSnapshots(...args),
+  }),
+  { virtual: true },
+);
+
+jest.mock(
+  "@/api/helpers/legacy-verification-asset-settlement",
+  () => ({
+    settleLegacyVerificationAssets: (...args: unknown[]) =>
+      settleLegacyVerificationAssets(...args),
+  }),
+  { virtual: true },
+);
 
 jest.mock("@/lib/admin-auth", () => ({
   authenticateAdminRequest: (...args: unknown[]) =>
@@ -42,6 +65,7 @@ import { POST as retryNotification } from "@/api/admin/reviewer/notifications/[i
 const REVIEW_ID = "11111111-1111-4111-8111-111111111111";
 const NOTIFICATION_ONE = "22222222-2222-4222-8222-222222222222";
 const NOTIFICATION_TWO = "33333333-3333-4333-8333-333333333333";
+const RETRY_OPERATION_ID = "44444444-4444-4444-8444-444444444444";
 const ADMIN = {
   accessLevel: "review",
   email: "reviewer@example.com",
@@ -87,6 +111,18 @@ beforeEach(() => {
     status: "pending",
     attemptCount: 2,
   });
+  reconcileRetryReviewNotification.mockResolvedValue(null);
+  repairReviewerAssetSnapshots.mockResolvedValue({
+    attempted: 1,
+    repaired: 1,
+    failed: 0,
+  });
+  settleLegacyVerificationAssets.mockResolvedValue({
+    claimed: 1,
+    delivered: 1,
+    failed: 0,
+    finalizationPending: 0,
+  });
 });
 
 const workerRequest = (authorization = "Bearer internal-secret") =>
@@ -126,6 +162,29 @@ describe("review notification worker endpoint", () => {
         notificationId: NOTIFICATION_ONE,
         outcome: "delivered",
         providerMessageId: "provider-1",
+      }),
+    );
+  });
+
+  it("repairs legacy NULL asset manifests before the reviewer UI is enabled", async () => {
+    process.env.ADMIN_REVIEWER_PORTAL_ENABLED = "false";
+
+    const response = await deliverNotifications(workerRequest());
+
+    expect(repairReviewerAssetSnapshots).toHaveBeenCalledWith({ limit: 10 });
+    expect(settleLegacyVerificationAssets).toHaveBeenCalledWith({
+      workerId: expect.stringMatching(/^review-outbox-/),
+      limit: 10,
+    });
+    await expect(response.json()).resolves.toEqual(
+      expect.objectContaining({
+        assetSnapshots: { attempted: 1, repaired: 1, failed: 0 },
+        legacyVerificationAssets: {
+          claimed: 1,
+          delivered: 1,
+          failed: 0,
+          finalizationPending: 0,
+        },
       }),
     );
   });
@@ -240,7 +299,10 @@ describe("review notification worker endpoint", () => {
   });
 });
 
-const retryRequest = (headers: Record<string, string> = {}) =>
+const retryRequest = (
+  headers: Record<string, string> = {},
+  body: unknown = { operationId: RETRY_OPERATION_ID },
+) =>
   new NextRequest(
     `https://review.example.com/api/admin/reviewer/notifications/${NOTIFICATION_ONE}/retry`,
     {
@@ -251,7 +313,7 @@ const retryRequest = (headers: Record<string, string> = {}) =>
         origin: "https://review.example.com",
         ...headers,
       },
-      body: "{}",
+      body: JSON.stringify(body),
     },
   );
 
@@ -264,6 +326,7 @@ describe("manual review notification retry", () => {
     expect(response.status).toBe(200);
     expect(retryReviewNotification).toHaveBeenCalledWith({
       notificationId: NOTIFICATION_ONE,
+      operationId: RETRY_OPERATION_ID,
       actor: ADMIN,
     });
   });
@@ -278,7 +341,40 @@ describe("manual review notification retry", () => {
     expect(response.status).toBe(409);
   });
 
-  it("rejects read-only, cross-origin, malformed-id, and nonempty requests", async () => {
+  it("returns a committed retry when the mutation response is lost", async () => {
+    retryReviewNotification.mockRejectedValueOnce(
+      new Error("connection reset"),
+    );
+    reconcileRetryReviewNotification.mockResolvedValueOnce({
+      id: NOTIFICATION_ONE,
+      status: "pending",
+      attemptCount: 2,
+    });
+
+    const response = await retryNotification(retryRequest(), {
+      params: Promise.resolve({ id: NOTIFICATION_ONE }),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      notification: expect.objectContaining({
+        id: NOTIFICATION_ONE,
+        status: "pending",
+      }),
+    });
+    expect(reconcileRetryReviewNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        notificationId: NOTIFICATION_ONE,
+        operationId: expect.any(String),
+        actor: ADMIN,
+      }),
+    );
+    expect(reconcileRetryReviewNotification.mock.calls[0][0].operationId).toBe(
+      retryReviewNotification.mock.calls[0][0].operationId,
+    );
+  });
+
+  it("rejects read-only, cross-origin, malformed-id, and malformed requests", async () => {
     authenticateAdminRequest.mockResolvedValue({
       ...ADMIN,
       accessLevel: "read",
@@ -308,23 +404,19 @@ describe("manual review notification retry", () => {
       ).status,
     ).toBe(400);
 
-    const nonempty = new NextRequest(
-      `https://review.example.com/api/admin/reviewer/notifications/${NOTIFICATION_ONE}/retry`,
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          host: "review.example.com",
-          origin: "https://review.example.com",
-        },
-        body: JSON.stringify({ actor: "spoofed" }),
-      },
-    );
     expect(
       (
-        await retryNotification(nonempty, {
+        await retryNotification(retryRequest({}, { actor: "spoofed" }), {
           params: Promise.resolve({ id: NOTIFICATION_ONE }),
         })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await retryNotification(
+          retryRequest({}, { operationId: "not-a-uuid" }),
+          { params: Promise.resolve({ id: NOTIFICATION_ONE }) },
+        )
       ).status,
     ).toBe(400);
   });

@@ -16,16 +16,20 @@ export type GetAppMetadataQuery = {
     app_metadata: Array<{
       __typename?: "app_metadata";
       id: string;
+      updated_at: string;
+      legacy_verification_operation_id?: unknown | null;
       logo_img_url: string;
       showcase_img_urls?: Array<string> | null;
       hero_image_url: string;
       meta_tag_image_url: string;
       content_card_image_url: string;
       verification_status: string;
+      app_mode: string;
       is_developer_allow_listing: boolean;
       localisations: Array<{
         __typename?: "localisations";
         id: string;
+        updated_at: string;
         locale: string;
         hero_image_url: string;
         showcase_img_urls?: Array<string> | null;
@@ -41,15 +45,19 @@ export const GetAppMetadataDocument = gql`
       first_verified_at
       app_metadata {
         id
+        updated_at
+        legacy_verification_operation_id
         logo_img_url
         showcase_img_urls
         hero_image_url
         meta_tag_image_url
         content_card_image_url
         verification_status
+        app_mode
         is_developer_allow_listing
         localisations {
           id
+          updated_at
           locale
           hero_image_url
           showcase_img_urls

@@ -5,8 +5,13 @@ import {
   expireVerifiedReviewerAssets,
 } from "@/api/helpers/reviewer-decision-assets";
 import { invalidateAppCatalogCache } from "@/api/helpers/invalidate-app-catalog-cache";
-import type { ReviewNotificationContext } from "@/api/helpers/reviewer-notifications";
+import {
+  beginSlackSubmissionDelivery,
+  reconcilePreparedReviewAssetCleanup,
+  type ReviewNotificationContext,
+} from "@/api/helpers/reviewer-notifications";
 import { sendEmailDetailed } from "@/api/helpers/send-email";
+import { randomUUID } from "node:crypto";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -394,14 +399,20 @@ type DeliveryDependencies = {
   invalidateCatalogCacheImpl?: typeof invalidateAppCatalogCache;
   deletePreparedAssetsImpl?: typeof deletePreparedReviewerAssets;
   expireVerifiedAssetsImpl?: typeof expireVerifiedReviewerAssets;
+  reconcilePreparedAssetsImpl?: typeof reconcilePreparedReviewAssetCleanup;
+  beginSlackSubmissionDeliveryImpl?: typeof beginSlackSubmissionDelivery;
   now?: Date;
 };
 
 const sendSlackSubmission = async (
   context: ReviewNotificationContext,
   fetchImpl: typeof fetch,
+  beginSlackSubmissionDeliveryImpl: typeof beginSlackSubmissionDelivery,
   now: Date,
 ) => {
+  if (context.submission.status === "withdrawn") {
+    throw new Error("Review submission is no longer active.");
+  }
   const token = requiredConfig("SLACK_BOT_TOKEN", 1_000);
   const channelId = requiredConfig("SLACK_REVIEW_CHANNEL_ID", 100);
   if (!/^[A-Z0-9]{2,100}$/.test(channelId)) {
@@ -414,6 +425,19 @@ const sendSlackSubmission = async (
     now,
     submission: context.submission,
   });
+  const workerId = context.notification.lockedBy;
+  if (
+    !workerId ||
+    !(await beginSlackSubmissionDeliveryImpl({
+      notificationId: context.notification.id,
+      workerId,
+      fenceToken: randomUUID(),
+    }))
+  ) {
+    throw new Error(
+      "Review submission Slack delivery is no longer authorized.",
+    );
+  }
   const response = await fetchImpl("https://slack.com/api/chat.postMessage", {
     method: "POST",
     headers: {
@@ -560,9 +584,9 @@ const checkPublication = async (
 
 const settleAssets = async (
   context: ReviewNotificationContext,
-  now: Date,
   deletePreparedAssetsImpl: typeof deletePreparedReviewerAssets,
   expireVerifiedAssetsImpl: typeof expireVerifiedReviewerAssets,
+  reconcilePreparedAssetsImpl: typeof reconcilePreparedReviewAssetCleanup,
 ) => {
   const payload = isRecord(context.notification.payload)
     ? context.notification.payload
@@ -594,6 +618,7 @@ const settleAssets = async (
   const settlementState = nonblankString(payload.settlement_state);
   const operationId = nonblankString(payload.operation_id);
   const appMetadataId = nonblankString(payload.app_metadata_id);
+  const workerId = nonblankString(context.notification.lockedBy);
   if (
     !decisionFingerprint ||
     !/^[a-f0-9]{64}$/.test(decisionFingerprint) ||
@@ -603,6 +628,7 @@ const settleAssets = async (
     !["pending", "committed", "aborted"].includes(settlementState) ||
     !operationId ||
     !/^[a-f0-9]{16,64}$/.test(operationId) ||
+    !workerId ||
     appMetadataId !== context.submission.appMetadataId ||
     !assetKeys.every((key) =>
       key
@@ -613,20 +639,28 @@ const settleAssets = async (
   ) {
     throw new Error("Invalid reviewer asset cleanup payload.");
   }
-  const disposition = getPreparedAssetDisposition({
-    assetKeys,
+
+  const authoritativeSettlement = await reconcilePreparedAssetsImpl({
+    notificationId: context.notification.id,
+    submissionId: context.submission.id,
     decisionFingerprint,
+    operationId,
     expectedReviewVersion,
-    now,
-    settlementState,
-    submission: context.submission,
+    appMetadataId,
+    assetKeys,
+    workerId,
   });
-  if (disposition === "defer") {
+  if (!authoritativeSettlement) {
+    throw new Error("Reviewer asset cleanup reconciliation failed.");
+  }
+  if (authoritativeSettlement === "pending") {
     return {
       outcome: "deferred" as const,
       providerMessageId: null,
     };
   }
+  const disposition =
+    authoritativeSettlement === "committed" ? "retain" : "delete";
   if (disposition === "delete") {
     await deletePreparedAssetsImpl({
       keys: assetKeys,
@@ -650,7 +684,13 @@ export const deliverReviewNotification = async (
   const tuple = `${notification.notificationType}/${notification.channel}`;
   const now = dependencies.now ?? new Date();
   if (tuple === "submission_received/slack") {
-    return sendSlackSubmission(context, dependencies.fetchImpl ?? fetch, now);
+    return sendSlackSubmission(
+      context,
+      dependencies.fetchImpl ?? fetch,
+      dependencies.beginSlackSubmissionDeliveryImpl ??
+        beginSlackSubmissionDelivery,
+      now,
+    );
   }
   if (
     tuple === "decision_approved/email" ||
@@ -671,9 +711,10 @@ export const deliverReviewNotification = async (
   if (tuple === "asset_cleanup/asset") {
     return settleAssets(
       context,
-      now,
       dependencies.deletePreparedAssetsImpl ?? deletePreparedReviewerAssets,
       dependencies.expireVerifiedAssetsImpl ?? expireVerifiedReviewerAssets,
+      dependencies.reconcilePreparedAssetsImpl ??
+        reconcilePreparedReviewAssetCleanup,
     );
   }
   throw new Error("Unsupported review notification.");

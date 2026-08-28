@@ -30,7 +30,10 @@ export const ClaimToggleSlotDocument = gql`
   ) {
     update_rp_registration(
       where: { rp_id: { _eq: $rp_id }, status: { _eq: $current_status } }
-      _set: { status: pending }
+      _set: {
+        status: pending
+        review_configuration_change_kind: "active_toggle"
+      }
     ) {
       affected_rows
       returning {

@@ -19,6 +19,7 @@ export type FetchAppMetadataQuery = {
       __typename?: "app_metadata";
       id: string;
       app_id: string;
+      updated_at: string;
       name: string;
       logo_img_url: string;
       hero_image_url: string;
@@ -56,6 +57,7 @@ export type FetchAppMetadataQuery = {
       __typename?: "app_metadata";
       id: string;
       app_id: string;
+      updated_at: string;
       name: string;
       logo_img_url: string;
       hero_image_url: string;
@@ -205,6 +207,10 @@ export const FetchAppMetadataDocument = {
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "app_id" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "updated_at" },
                       },
                       { kind: "Field", name: { kind: "Name", value: "name" } },
                       {
@@ -389,6 +395,10 @@ export const FetchAppMetadataDocument = {
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "app_id" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "updated_at" },
                       },
                       { kind: "Field", name: { kind: "Name", value: "name" } },
                       {

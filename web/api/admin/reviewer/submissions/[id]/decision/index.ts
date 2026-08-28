@@ -186,6 +186,7 @@ export async function POST(
           appId: context.app_id,
           appMetadataId: body.appMetadataId,
           operationId,
+          assetSnapshot: context.asset_snapshot,
           metadataSnapshot: context.metadata_snapshot,
           localizationsSnapshot: context.localizations_snapshot,
           registerPreparedPlan: async (keys) => {
