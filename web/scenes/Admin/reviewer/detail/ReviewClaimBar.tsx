@@ -34,6 +34,8 @@ export const ReviewClaimBar = ({
   const claimExpired = Boolean(
     claimExpiresAt && Date.parse(claimExpiresAt) <= Date.now(),
   );
+  const canRecoverClaim =
+    claimedByCurrentUser && Boolean(claimedByEmail) && !claimExpired;
 
   return (
     <section
@@ -51,7 +53,7 @@ export const ReviewClaimBar = ({
               : claimExpired
                 ? "Lease expired, available to claim"
                 : claimedByCurrentUser
-                  ? "Assigned to you, but this browser has no claim token"
+                  ? "Assigned to you — recover the claim for this browser"
                   : claimedByEmail
                     ? `Claimed by ${claimedByEmail}`
                     : isTerminal
@@ -89,13 +91,15 @@ export const ReviewClaimBar = ({
             disabled={
               busy ||
               !canReview ||
-              (Boolean(claimedByEmail) && !claimExpired) ||
+              (Boolean(claimedByEmail) &&
+                !claimExpired &&
+                !claimedByCurrentUser) ||
               isTerminal
             }
             onClick={onClaim}
             type="button"
           >
-            Claim review
+            {canRecoverClaim ? "Recover claim" : "Claim review"}
           </button>
         )}
       </div>

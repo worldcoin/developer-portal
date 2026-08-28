@@ -57,6 +57,11 @@ type WorkflowPayload = {
   };
 };
 
+const getPersistedChecklistVersion = (submission: ReviewerSubmissionDetail) =>
+  submission.checklistVersion && submission.checklist.definitionSnapshot
+    ? submission.checklistVersion
+    : null;
+
 const claimedWriteBody = (workflow: WorkflowState) => ({
   claimToken: workflow.claimToken,
   expectedReviewVersion: workflow.reviewVersion,
@@ -83,6 +88,9 @@ export const ReviewerWorkspace = ({
   const [checklist, setChecklist] = useState<ReviewChecklist>(
     submission.checklist,
   );
+  const [persistedChecklistVersion, setPersistedChecklistVersion] = useState<
+    string | null
+  >(() => getPersistedChecklistVersion(submission));
   const [checklistDirty, setChecklistDirty] = useState(false);
   const [developerMessage, setDeveloperMessage] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
@@ -127,6 +135,7 @@ export const ReviewerWorkspace = ({
     setWorkflow(next);
     if (submissionChanged || !checklistDirtyRef.current) {
       setChecklist(submission.checklist);
+      setPersistedChecklistVersion(getPersistedChecklistVersion(submission));
       updateChecklistDirty(false);
     }
   }, [submission, updateChecklistDirty]);
@@ -361,6 +370,7 @@ export const ReviewerWorkspace = ({
       },
     });
     if (payload && applyWorkflowPayload(payload, "checklist")) {
+      setPersistedChecklistVersion(checklistVersion);
       updateChecklistDirty(false);
       toast.success("Checklist saved");
     }
@@ -389,6 +399,9 @@ export const ReviewerWorkspace = ({
   const hasActiveClaim = Boolean(workflow.claimToken);
   const checklistVersion =
     submission.checklistVersion ?? REVIEW_CHECKLIST_VERSION;
+  const checklistPersisted = persistedChecklistVersion === checklistVersion;
+  const testAvailable =
+    workflow.status === "pending" || workflow.status === "in_review";
   const checklistVersionSupported =
     isReviewChecklistVersionSupported(checklistVersion);
   const checklistProgress = getChecklistProgress(
@@ -408,13 +421,23 @@ export const ReviewerWorkspace = ({
       case "Metadata":
         return <ReviewMetadata submission={submission} />;
       case "Test":
-        return (
+        return testAvailable ? (
           <ReviewTestPanel
             appId={submission.appId}
             integrationUrl={submission.metadataSnapshot.integration_url}
             metadataId={submission.appMetadataId}
             mode={submission.appMode}
           />
+        ) : (
+          <section className="rounded-16 border border-grey-200 bg-grey-0 p-6">
+            <h2 className="text-16 font-semibold text-grey-900">
+              Test preview unavailable
+            </h2>
+            <p className="mt-2 text-13 leading-5 text-grey-500">
+              Completed and withdrawn attempts cannot safely preview an exact
+              draft. Review the immutable metadata and event history instead.
+            </p>
+          </section>
         );
       case "Guidelines":
         return (
@@ -436,9 +459,12 @@ export const ReviewerWorkspace = ({
       case "History":
         return (
           <ReviewHistory
+            assetSnapshotRepair={submission.assetSnapshotRepair}
             canReview={canReview}
             events={submission.events}
             notifications={submission.notifications}
+            reviewId={submission.id}
+            reviewStatus={workflow.status}
           />
         );
       default:
@@ -453,6 +479,7 @@ export const ReviewerWorkspace = ({
     checklistVersion,
     checklistVersionSupported,
     submission,
+    testAvailable,
     updateChecklistDirty,
   ]);
 
@@ -488,9 +515,10 @@ export const ReviewerWorkspace = ({
                   aria-selected={activePanel === panel}
                   className={
                     activePanel === panel
-                      ? "border-b-2 border-grey-900 px-3 py-3 text-13 font-semibold text-grey-900"
-                      : "border-b-2 border-transparent px-3 py-3 text-13 font-medium text-grey-500"
+                      ? "border-b-2 border-grey-900 px-3 py-3 text-13 font-semibold text-grey-900 disabled:cursor-not-allowed disabled:opacity-40"
+                      : "border-b-2 border-transparent px-3 py-3 text-13 font-medium text-grey-500 disabled:cursor-not-allowed disabled:opacity-40"
                   }
+                  disabled={panel === "Test" && !testAvailable}
                   key={panel}
                   onClick={() => setActivePanel(panel)}
                   role="tab"
@@ -560,7 +588,7 @@ export const ReviewerWorkspace = ({
             className="rounded-8 border border-grey-300 bg-grey-0 px-3 py-2 text-12 font-semibold text-grey-700 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={
               !hasActiveClaim ||
-              !checklistDirty ||
+              (!checklistDirty && checklistPersisted) ||
               Boolean(busyAction) ||
               !checklistVersionSupported
             }
@@ -597,6 +625,7 @@ export const ReviewerWorkspace = ({
               className="rounded-8 border border-system-error-300 bg-system-error-100 px-3 py-2.5 text-12 font-semibold text-system-error-700 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={
                 !hasActiveClaim ||
+                !checklistPersisted ||
                 checklistDirty ||
                 !developerMessage.trim() ||
                 Boolean(busyAction) ||
@@ -611,6 +640,7 @@ export const ReviewerWorkspace = ({
               className="rounded-8 bg-system-success-600 px-3 py-2.5 text-12 font-semibold text-grey-0 disabled:cursor-not-allowed disabled:bg-grey-300"
               disabled={
                 !hasActiveClaim ||
+                !checklistPersisted ||
                 checklistDirty ||
                 approvalErrors.length > 0 ||
                 Boolean(busyAction) ||
@@ -625,6 +655,10 @@ export const ReviewerWorkspace = ({
           {checklistDirty ? (
             <p className="text-11 leading-4 text-system-warning-700">
               Save checklist changes before deciding.
+            </p>
+          ) : !checklistPersisted ? (
+            <p className="text-11 leading-4 text-system-warning-700">
+              Save the versioned checklist before deciding.
             </p>
           ) : null}
           {approvalErrors.length ? (

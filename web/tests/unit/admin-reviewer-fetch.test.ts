@@ -144,6 +144,15 @@ describe("reviewer dashboard reads", () => {
         decision_summary: null,
         listing_consent: true,
         listing_target: "world_ecosystem",
+        asset_snapshot: {
+          version: 1,
+          prefix:
+            "review-submissions/app_1/metadata_1/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/",
+          objects: {
+            "unverified/app_1/logo.png":
+              "review-submissions/app_1/metadata_1/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/logo.png",
+          },
+        },
         localizations_snapshot: [{ locale: "es", name: "Aplicacion" }],
         metadata_snapshot: {
           name: "Draft app",
@@ -153,24 +162,51 @@ describe("reviewer dashboard reads", () => {
         review_version: 3,
         status: "in_review",
         submitted_at: "2026-08-20T12:00:00.000Z",
+        world_id_configuration_snapshot: {
+          version: 1,
+          config: {
+            legacy_actions: [
+              {
+                id: "action_1",
+                action: "verify",
+                name: "Verify",
+                status: "active",
+                redirects: [
+                  {
+                    id: "redirect_1",
+                    redirect_uri: "https://example.com/callback",
+                  },
+                ],
+              },
+            ],
+            registrations: [
+              {
+                rp_id: "rp_1",
+                mode: "managed",
+                signer_address: "0x1234",
+                actions: [
+                  {
+                    id: "v4_1",
+                    action: "signin",
+                    description: "Sign in",
+                    environment: "production",
+                  },
+                ],
+              },
+            ],
+          },
+          lifecycle: {
+            registrations: [
+              {
+                rp_id: "rp_1",
+                status: "pending",
+                staging_status: "registered",
+              },
+            ],
+          },
+        },
         app: {
           name: "Source app",
-          actions: [
-            {
-              id: "action_1",
-              action: "verify",
-              name: "Verify",
-              status: "active",
-            },
-          ],
-          rp_registration: [
-            {
-              rp_id: "rp_1",
-              actions_v4: [
-                { id: "v4_1", action: "signin", environment: "production" },
-              ],
-            },
-          ],
           verified_metadata: [
             {
               is_reviewer_world_app_approved: true,
@@ -186,6 +222,7 @@ describe("reviewer dashboard reads", () => {
             event_type: "submitted",
             event_sequence: 1,
             actor_email: "dev@example.com",
+            actor_subject: "developer-subject",
             created_at: "2026-08-20T12:00:00.000Z",
             payload: {},
             review_version: 1,
@@ -206,9 +243,10 @@ describe("reviewer dashboard reads", () => {
       },
     });
 
-    await expect(
-      fetchReviewerSubmission("00000000-0000-4000-8000-000000000001"),
-    ).resolves.toEqual(
+    const submission = await fetchReviewerSubmission(
+      "00000000-0000-4000-8000-000000000001",
+    );
+    expect(submission).toEqual(
       expect.objectContaining({
         checklist: expect.objectContaining({
           definitionSnapshot: {
@@ -224,8 +262,24 @@ describe("reviewer dashboard reads", () => {
         }),
         liveMetadata: expect.objectContaining({ name: "Live app" }),
         liveLocalizations: [expect.objectContaining({ locale: "es" })],
+        events: [
+          expect.objectContaining({
+            actorEmail: "dev@example.com",
+            actorSubject: "developer-subject",
+          }),
+        ],
         worldIdConfiguration: {
-          legacyActions: [expect.objectContaining({ id: "action_1" })],
+          legacyActions: [
+            expect.objectContaining({
+              id: "action_1",
+              redirects: [
+                {
+                  id: "redirect_1",
+                  redirectUri: "https://example.com/callback",
+                },
+              ],
+            }),
+          ],
           registrations: [
             expect.objectContaining({
               rpId: "rp_1",
@@ -235,6 +289,7 @@ describe("reviewer dashboard reads", () => {
         },
       }),
     );
+    expect(submission).not.toHaveProperty("assetSnapshot");
     expect(mockFetchLiveMetadata).toHaveBeenCalledWith("app_1");
   });
 
@@ -264,10 +319,13 @@ describe("reviewer dashboard reads", () => {
         review_version: 1,
         status: "pending",
         submitted_at: "2026-08-20T12:00:00.000Z",
+        world_id_configuration_snapshot: {
+          version: 1,
+          config: { legacy_actions: [], registrations: [] },
+          lifecycle: { registrations: [] },
+        },
         app: {
           name: "Source app",
-          actions: [],
-          rp_registration: [],
           verified_metadata: [
             {
               is_reviewer_world_app_approved: false,

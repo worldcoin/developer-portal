@@ -32,6 +32,7 @@ export type ReviewerEvent = {
   eventType: string;
   eventSequence: number;
   actorEmail: string | null;
+  actorSubject: string | null;
   createdAt: string;
   payload: Record<string, unknown>;
   reviewVersion: number | null;
@@ -49,6 +50,7 @@ export type ReviewerNotification = {
   notificationType: string;
   providerMessageId: string | null;
   recipient: string | null;
+  retryable?: boolean;
   status: string;
   updatedAt: string;
 };
@@ -78,6 +80,10 @@ export type ReviewerWorldIdConfiguration = {
     status: string;
     termsUri: string | null;
     webhookUri: string | null;
+    redirects: Array<{
+      id: string;
+      redirectUri: string;
+    }>;
   }>;
   registrations: Array<{
     mode: string;
@@ -95,6 +101,13 @@ export type ReviewerWorldIdConfiguration = {
 };
 
 export type ReviewerSubmissionDetail = ReviewerQueueRow & {
+  assetSnapshotRepair?: {
+    ready: boolean;
+    attemptCount: number;
+    deadLetteredAt: string | null;
+    lastError: string | null;
+    nextAttemptAt: string | null;
+  };
   checklist: StoredReviewChecklist;
   checklistVersion: string | null;
   claimedAt: string | null;

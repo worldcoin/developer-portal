@@ -9,6 +9,7 @@ import {
   fetchReviewerLiveMetadata,
   type ReviewerLiveMetadata,
 } from "@/api/helpers/reviewer-live-metadata";
+import gql from "graphql-tag";
 
 import {
   type FetchReviewerQueueQuery,
@@ -28,12 +29,25 @@ import type {
   ReviewerQueueRow,
   ReviewerSubmissionDetail,
   ReviewerSubmissionStatus,
+  ReviewerWorldIdConfiguration,
 } from "../types";
 
 type QueueRecord = FetchReviewerQueueQuery["app_review_submission"][number];
 type DetailRecord = NonNullable<
   FetchReviewerSubmissionQuery["app_review_submission_by_pk"]
 >;
+
+const FetchReviewerSubmissionAssetContext = gql`
+  query FetchReviewerSubmissionAssetContext($reviewId: uuid!) {
+    app_review_submission_by_pk(id: $reviewId) {
+      app_id
+      app_metadata_id
+      asset_snapshot
+      localizations_snapshot
+      metadata_snapshot
+    }
+  }
+`;
 
 const record = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" && !Array.isArray(value)
@@ -42,6 +56,75 @@ const record = (value: unknown): Record<string, unknown> =>
 
 const records = (value: unknown): Array<Record<string, unknown>> =>
   Array.isArray(value) ? value.map(record) : [];
+
+const stringValue = (value: unknown, fallback = ""): string =>
+  typeof value === "string" ? value : fallback;
+
+const nullableString = (value: unknown): string | null =>
+  typeof value === "string" ? value : null;
+
+const numberValue = (value: unknown): number =>
+  typeof value === "number" ? value : 0;
+
+const mapWorldIdConfiguration = (
+  value: unknown,
+): ReviewerWorldIdConfiguration => {
+  const snapshot = record(value);
+  const config = record(snapshot.config);
+  const lifecycle = record(snapshot.lifecycle);
+  const lifecycleByRpId = new Map(
+    records(lifecycle.registrations).map((registration) => [
+      stringValue(registration.rp_id),
+      registration,
+    ]),
+  );
+
+  return {
+    legacyActions: records(config.legacy_actions).map((action) => ({
+      action: stringValue(action.action),
+      appFlowOnComplete: nullableString(action.app_flow_on_complete),
+      creationMode: stringValue(action.creation_mode),
+      description: stringValue(action.description),
+      id: stringValue(action.id),
+      kioskEnabled:
+        typeof action.kiosk_enabled === "boolean"
+          ? action.kiosk_enabled
+          : false,
+      maxAccountsPerUser: numberValue(action.max_accounts_per_user),
+      maxVerifications: numberValue(action.max_verifications),
+      name: stringValue(action.name),
+      postActionDeepLinkAndroid: nullableString(
+        action.post_action_deep_link_android,
+      ),
+      postActionDeepLinkIos: nullableString(action.post_action_deep_link_ios),
+      privacyPolicyUri: nullableString(action.privacy_policy_uri),
+      status: stringValue(action.status),
+      termsUri: nullableString(action.terms_uri),
+      webhookUri: nullableString(action.webhook_uri),
+      redirects: records(action.redirects).map((redirect) => ({
+        id: stringValue(redirect.id),
+        redirectUri: stringValue(redirect.redirect_uri),
+      })),
+    })),
+    registrations: records(config.registrations).map((registration) => {
+      const rpId = stringValue(registration.rp_id);
+      const submittedLifecycle = lifecycleByRpId.get(rpId) ?? {};
+      return {
+        mode: stringValue(registration.mode),
+        rpId,
+        signerAddress: nullableString(registration.signer_address),
+        stagingStatus: nullableString(submittedLifecycle.staging_status),
+        status: stringValue(submittedLifecycle.status, "unknown"),
+        actions: records(registration.actions).map((action) => ({
+          action: stringValue(action.action),
+          description: stringValue(action.description),
+          environment: stringValue(action.environment),
+          id: stringValue(action.id),
+        })),
+      };
+    }),
+  };
+};
 
 const checklistStatuses = new Set(["pass", "fail", "na"]);
 
@@ -182,6 +265,13 @@ const mapDetail = (
 
   return {
     ...queueRow(row),
+    assetSnapshotRepair: {
+      ready: row.asset_snapshot != null,
+      attemptCount: row.asset_snapshot_repair_attempt_count,
+      deadLetteredAt: row.asset_snapshot_repair_dead_lettered_at ?? null,
+      lastError: row.asset_snapshot_repair_last_error ?? null,
+      nextAttemptAt: row.asset_snapshot_repair_next_at ?? null,
+    },
     checklist: normalizeChecklist(row.checklist),
     checklistVersion: row.checklist_version ?? null,
     claimedAt: row.claimed_at ?? null,
@@ -194,6 +284,7 @@ const mapDetail = (
       eventType: event.event_type,
       eventSequence: event.event_sequence,
       actorEmail: event.actor_email ?? null,
+      actorSubject: event.actor_subject ?? null,
       createdAt: event.created_at,
       payload: record(event.payload),
       reviewVersion: event.review_version ?? null,
@@ -214,47 +305,15 @@ const mapDetail = (
       notificationType: notification.notification_type,
       providerMessageId: notification.provider_message_id ?? null,
       recipient: notification.recipient ?? null,
+      retryable: !notification.manual_retry_blocked,
       status: notification.status,
       updatedAt: notification.updated_at,
     })),
     liveMetadata: liveMetadata ? record(liveMetadata) : null,
     liveLocalizations: records(liveLocalizations),
-    worldIdConfiguration: {
-      legacyActions: row.app.actions.map((action) => ({
-        action: action.action,
-        appFlowOnComplete: action.app_flow_on_complete
-          ? String(action.app_flow_on_complete)
-          : null,
-        creationMode: action.creation_mode,
-        description: action.description,
-        id: action.id,
-        kioskEnabled: action.kiosk_enabled,
-        maxAccountsPerUser: action.max_accounts_per_user,
-        maxVerifications: action.max_verifications,
-        name: action.name,
-        postActionDeepLinkAndroid: action.post_action_deep_link_android ?? null,
-        postActionDeepLinkIos: action.post_action_deep_link_ios ?? null,
-        privacyPolicyUri: action.privacy_policy_uri ?? null,
-        status: action.status,
-        termsUri: action.terms_uri ?? null,
-        webhookUri: action.webhook_uri ?? null,
-      })),
-      registrations: row.app.rp_registration.map((registration) => ({
-        mode: String(registration.mode),
-        rpId: registration.rp_id,
-        signerAddress: registration.signer_address ?? null,
-        stagingStatus: registration.staging_status
-          ? String(registration.staging_status)
-          : null,
-        status: String(registration.status),
-        actions: registration.actions_v4.map((action) => ({
-          action: action.action,
-          description: action.description,
-          environment: String(action.environment),
-          id: action.id,
-        })),
-      })),
-    },
+    worldIdConfiguration: mapWorldIdConfiguration(
+      row.world_id_configuration_snapshot,
+    ),
   };
 };
 
@@ -270,4 +329,34 @@ export const fetchReviewerSubmission = async (
     result.app_review_submission_by_pk.app_id,
   );
   return mapDetail(result.app_review_submission_by_pk, live);
+};
+
+export const fetchReviewerSubmissionAssetContext = async (
+  reviewId: string,
+): Promise<{
+  appId: string;
+  appMetadataId: string;
+  assetSnapshot: unknown;
+  localizationsSnapshot: Array<Record<string, unknown>>;
+  metadataSnapshot: Record<string, unknown>;
+} | null> => {
+  const client = await getInternalDashboardGraphqlClient();
+  const result = await client.request<{
+    app_review_submission_by_pk: {
+      app_id: string;
+      app_metadata_id: string;
+      asset_snapshot: unknown;
+      localizations_snapshot: unknown;
+      metadata_snapshot: unknown;
+    } | null;
+  }>(FetchReviewerSubmissionAssetContext, { reviewId });
+  const row = result.app_review_submission_by_pk;
+  if (!row) return null;
+  return {
+    appId: row.app_id,
+    appMetadataId: row.app_metadata_id,
+    assetSnapshot: row.asset_snapshot,
+    localizationsSnapshot: records(row.localizations_snapshot),
+    metadataSnapshot: record(row.metadata_snapshot),
+  };
 };

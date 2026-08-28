@@ -16,6 +16,11 @@ export type FetchReviewerSubmissionQuery = {
     app_id: string;
     app_metadata_id: string;
     app_mode: string;
+    asset_snapshot?: any | null;
+    asset_snapshot_repair_attempt_count: number;
+    asset_snapshot_repair_dead_lettered_at?: string | null;
+    asset_snapshot_repair_last_error?: string | null;
+    asset_snapshot_repair_next_at?: string | null;
     attempt: number;
     changelog: string;
     checklist: any;
@@ -35,43 +40,8 @@ export type FetchReviewerSubmissionQuery = {
     review_version: number;
     status: string;
     submitted_at: string;
-    app: {
-      __typename?: "app";
-      name: string;
-      actions: Array<{
-        __typename?: "action";
-        id: string;
-        action: string;
-        app_flow_on_complete?: unknown | null;
-        creation_mode: string;
-        description: string;
-        kiosk_enabled: boolean;
-        max_accounts_per_user: number;
-        max_verifications: number;
-        name: string;
-        post_action_deep_link_android?: string | null;
-        post_action_deep_link_ios?: string | null;
-        privacy_policy_uri?: string | null;
-        status: string;
-        terms_uri?: string | null;
-        webhook_uri?: string | null;
-      }>;
-      rp_registration: Array<{
-        __typename?: "rp_registration";
-        rp_id: string;
-        mode: unknown;
-        signer_address?: string | null;
-        staging_status?: unknown | null;
-        status: unknown;
-        actions_v4: Array<{
-          __typename?: "action_v4";
-          id: string;
-          action: string;
-          description: string;
-          environment: unknown;
-        }>;
-      }>;
-    };
+    world_id_configuration_snapshot: any;
+    app: { __typename?: "app"; name: string };
     team: { __typename?: "team"; id: string; name?: string | null };
     events: Array<{
       __typename?: "app_review_event";
@@ -79,6 +49,7 @@ export type FetchReviewerSubmissionQuery = {
       event_type: string;
       event_sequence: number;
       actor_email?: string | null;
+      actor_subject?: string | null;
       created_at: string;
       payload: any;
       review_version?: number | null;
@@ -92,6 +63,7 @@ export type FetchReviewerSubmissionQuery = {
       delivered_at?: string | null;
       last_attempt_at?: string | null;
       last_error?: string | null;
+      manual_retry_blocked: boolean;
       next_attempt_at: string;
       notification_type: string;
       provider_message_id?: string | null;
@@ -109,6 +81,11 @@ export const FetchReviewerSubmissionDocument = gql`
       app_id
       app_metadata_id
       app_mode
+      asset_snapshot
+      asset_snapshot_repair_attempt_count
+      asset_snapshot_repair_dead_lettered_at
+      asset_snapshot_repair_last_error
+      asset_snapshot_repair_next_at
       attempt
       changelog
       checklist
@@ -128,38 +105,9 @@ export const FetchReviewerSubmissionDocument = gql`
       review_version
       status
       submitted_at
+      world_id_configuration_snapshot
       app {
         name
-        actions(order_by: { created_at: desc }) {
-          id
-          action
-          app_flow_on_complete
-          creation_mode
-          description
-          kiosk_enabled
-          max_accounts_per_user
-          max_verifications
-          name
-          post_action_deep_link_android
-          post_action_deep_link_ios
-          privacy_policy_uri
-          status
-          terms_uri
-          webhook_uri
-        }
-        rp_registration(order_by: { created_at: desc }) {
-          rp_id
-          mode
-          signer_address
-          staging_status
-          status
-          actions_v4(order_by: { created_at: desc }) {
-            id
-            action
-            description
-            environment
-          }
-        }
       }
       team {
         id
@@ -170,6 +118,7 @@ export const FetchReviewerSubmissionDocument = gql`
         event_type
         event_sequence
         actor_email
+        actor_subject
         created_at
         payload
         review_version
@@ -182,6 +131,7 @@ export const FetchReviewerSubmissionDocument = gql`
         delivered_at
         last_attempt_at
         last_error
+        manual_retry_blocked
         next_attempt_at
         notification_type
         provider_message_id

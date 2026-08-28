@@ -27,6 +27,24 @@ describe("reviewer asset signing", () => {
   it("signs only immutable submission filenames under the submitted app prefix", async () => {
     const assets = await signReviewerSubmissionAssets({
       appId: "app_123",
+      appMetadataId: "meta_456",
+      assetSnapshot: {
+        version: 1,
+        prefix:
+          "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/",
+        objects: {
+          "unverified/app_123/logo_img.png":
+            "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/logo_img.png",
+          "unverified/app_123/content_card_image.jpg":
+            "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/content_card_image.jpg",
+          "unverified/app_123/showcase_img_1.png":
+            "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/showcase_img_1.png",
+          "unverified/app_123/es_419/hero_image.png":
+            "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/es_419/hero_image.png",
+          "unverified/app_123/es_419/showcase_img_2.jpg":
+            "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/es_419/showcase_img_2.jpg",
+        },
+      },
       metadataSnapshot: {
         logo_img_url: "logo_img.png",
         content_card_image_url: "content_card_image.jpg",
@@ -45,11 +63,11 @@ describe("reviewer asset signing", () => {
       mockGetSignedUrl.mock.calls.map((call) => call[1].input.Key),
     ).toEqual(
       expect.arrayContaining([
-        "unverified/app_123/logo_img.png",
-        "unverified/app_123/content_card_image.jpg",
-        "unverified/app_123/showcase_img_1.png",
-        "unverified/app_123/es_419/hero_image.png",
-        "unverified/app_123/es_419/showcase_img_2.jpg",
+        "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/logo_img.png",
+        "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/content_card_image.jpg",
+        "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/showcase_img_1.png",
+        "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/es_419/hero_image.png",
+        "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/es_419/showcase_img_2.jpg",
       ]),
     );
     expect(assets).toHaveLength(5);
@@ -58,6 +76,13 @@ describe("reviewer asset signing", () => {
   it("refuses path traversal and remote URL values", async () => {
     const assets = await signReviewerSubmissionAssets({
       appId: "app_123",
+      appMetadataId: "meta_456",
+      assetSnapshot: {
+        version: 1,
+        prefix:
+          "review-submissions/app_123/meta_456/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/",
+        objects: {},
+      },
       metadataSnapshot: {
         logo_img_url: "../other-app/logo.png",
         showcase_img_urls: ["https://attacker.example/image.png"],

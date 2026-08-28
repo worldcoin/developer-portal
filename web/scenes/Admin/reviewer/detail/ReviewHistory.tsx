@@ -5,27 +5,93 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
 import { getReviewEventLabel, sortReviewEvents } from "../history";
-import type { ReviewerEvent, ReviewerNotification } from "../types";
+import type {
+  ReviewerEvent,
+  ReviewerNotification,
+  ReviewerSubmissionDetail,
+  ReviewerSubmissionStatus,
+} from "../types";
 
 const formatTime = (value: string) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
 };
 
+const RETRY_OPERATION_STORAGE_PREFIX = "admin-reviewer-retry:";
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const retryOperationStorageKey = (target: string) =>
+  `${RETRY_OPERATION_STORAGE_PREFIX}${target}`;
+
+const createRetryOperationId = () => {
+  if (typeof globalThis.crypto.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0"));
+  return `${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex.slice(6, 8).join("")}-${hex.slice(8, 10).join("")}-${hex.slice(10).join("")}`;
+};
+
+const getRetryOperationId = (target: string) => {
+  const storageKey = retryOperationStorageKey(target);
+  try {
+    const existing = window.sessionStorage.getItem(storageKey);
+    if (existing && UUID_PATTERN.test(existing)) return existing;
+  } catch {
+    // Continue without persistence when storage is unavailable.
+  }
+
+  const operationId = createRetryOperationId();
+  try {
+    window.sessionStorage.setItem(storageKey, operationId);
+  } catch {
+    // The operation remains idempotent for the lifetime of this request.
+  }
+  return operationId;
+};
+
+const clearRetryOperationId = (target: string, operationId: string) => {
+  try {
+    const storageKey = retryOperationStorageKey(target);
+    if (window.sessionStorage.getItem(storageKey) === operationId) {
+      window.sessionStorage.removeItem(storageKey);
+    }
+  } catch {
+    // Storage may be unavailable in a locked-down browser.
+  }
+};
+
+const shouldClearRetryOperation = (response: Response) =>
+  response.ok || (response.status >= 400 && response.status < 500);
+
 export const ReviewHistory = ({
+  assetSnapshotRepair,
   canReview,
   events,
   notifications,
+  reviewId,
+  reviewStatus,
 }: {
+  assetSnapshotRepair?: ReviewerSubmissionDetail["assetSnapshotRepair"];
   canReview: boolean;
   events: ReviewerEvent[];
   notifications: ReviewerNotification[];
+  reviewId?: string;
+  reviewStatus?: ReviewerSubmissionStatus;
 }) => {
   const router = useRouter();
   const [retryingId, setRetryingId] = useState<string | null>(null);
   const [queuedIds, setQueuedIds] = useState<Set<string>>(() => new Set());
+  const [retryingAssets, setRetryingAssets] = useState(false);
+  const [assetsQueued, setAssetsQueued] = useState(false);
 
   const retry = async (notification: ReviewerNotification) => {
+    const target = `notification:${notification.id}`;
+    const operationId = getRetryOperationId(target);
     setRetryingId(notification.id);
     try {
       const response = await fetch(
@@ -33,9 +99,12 @@ export const ReviewHistory = ({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: "{}",
+          body: JSON.stringify({ operationId }),
         },
       );
+      if (shouldClearRetryOperation(response)) {
+        clearRetryOperationId(target, operationId);
+      }
       if (!response.ok) throw new Error();
       setQueuedIds((current) => new Set(current).add(notification.id));
       toast.success("Notification queued for retry");
@@ -47,8 +116,83 @@ export const ReviewHistory = ({
     }
   };
 
+  const retryAssets = async () => {
+    if (!reviewId) return;
+    const target = `assets:${reviewId}`;
+    const operationId = getRetryOperationId(target);
+    setRetryingAssets(true);
+    try {
+      const response = await fetch(
+        `/api/admin/reviewer/submissions/${reviewId}/assets/retry`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ operationId }),
+        },
+      );
+      if (shouldClearRetryOperation(response)) {
+        clearRetryOperationId(target, operationId);
+      }
+      if (!response.ok) throw new Error();
+      setAssetsQueued(true);
+      toast.success("Submitted assets queued for preparation");
+      router.refresh();
+    } catch {
+      toast.error("Could not retry submitted asset preparation");
+    } finally {
+      setRetryingAssets(false);
+    }
+  };
+
+  const activeReview =
+    reviewStatus === "pending" || reviewStatus === "in_review";
+
   return (
     <div className="grid gap-5">
+      {assetSnapshotRepair && !assetSnapshotRepair.ready ? (
+        <section className="rounded-12 border border-system-warning-200 bg-system-warning-100 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-14 font-semibold text-grey-900">
+                Submitted asset preparation
+              </h2>
+              <p className="text-grey-600 mt-1 text-12 leading-5">
+                {assetsQueued
+                  ? "Retry queued. The worker will prepare the immutable review assets shortly."
+                  : assetSnapshotRepair.deadLetteredAt
+                    ? `Stopped after ${assetSnapshotRepair.attemptCount} attempts. Approval is blocked until the assets are prepared.`
+                    : activeReview
+                      ? "The immutable review assets are still being prepared. Approval remains blocked."
+                      : "This historical attempt did not receive an immutable asset snapshot."}
+              </p>
+              {assetSnapshotRepair.lastError ? (
+                <p className="mt-2 text-11 text-system-error-700">
+                  {assetSnapshotRepair.lastError}
+                </p>
+              ) : null}
+              {!assetSnapshotRepair.deadLetteredAt &&
+              assetSnapshotRepair.nextAttemptAt ? (
+                <p className="mt-2 text-11 text-grey-500">
+                  Next retry: {formatTime(assetSnapshotRepair.nextAttemptAt)}
+                </p>
+              ) : null}
+            </div>
+            {activeReview &&
+            assetSnapshotRepair.deadLetteredAt &&
+            !assetsQueued ? (
+              <button
+                className="rounded-8 border border-grey-300 bg-grey-0 px-3 py-2 text-11 font-semibold text-grey-700 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!canReview || retryingAssets}
+                onClick={retryAssets}
+                type="button"
+              >
+                Retry submitted assets
+              </button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
       <section className="rounded-12 border border-grey-200 bg-grey-0 p-5">
         <h2 className="text-16 font-semibold text-grey-900">
           Immutable review timeline
@@ -73,7 +217,7 @@ export const ReviewHistory = ({
                 </time>
               </div>
               <p className="mt-1 text-12 text-grey-500">
-                {event.actorEmail ?? "System"}
+                {event.actorEmail ?? event.actorSubject ?? "System"}
                 {event.reviewVersion ? ` · version ${event.reviewVersion}` : ""}
               </p>
               {Object.keys(event.payload).length ? (
@@ -144,6 +288,7 @@ export const ReviewHistory = ({
                   </div>
                   {(notification.status === "failed" ||
                     notification.status === "dead_letter") &&
+                  notification.retryable !== false &&
                   !queuedIds.has(notification.id) ? (
                     <button
                       className="rounded-8 border border-grey-300 bg-grey-0 px-3 py-2 text-11 font-semibold text-grey-700 disabled:cursor-not-allowed disabled:opacity-50"

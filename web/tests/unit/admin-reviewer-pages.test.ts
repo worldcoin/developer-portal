@@ -56,7 +56,7 @@ describe("admin reviewer page boundaries", () => {
     );
     const contextQuery = query.slice(
       query.indexOf("query FetchReviewChecklistContext"),
-      query.indexOf("query FetchReviewDecisionContext"),
+      query.indexOf("query FetchReviewWorkflowOutcome"),
     );
 
     expect(contextQuery).toContain("app_review_submission_by_pk");

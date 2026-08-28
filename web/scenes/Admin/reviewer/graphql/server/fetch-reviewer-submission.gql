@@ -4,6 +4,11 @@ query FetchReviewerSubmission($reviewId: uuid!) {
     app_id
     app_metadata_id
     app_mode
+    asset_snapshot
+    asset_snapshot_repair_attempt_count
+    asset_snapshot_repair_dead_lettered_at
+    asset_snapshot_repair_last_error
+    asset_snapshot_repair_next_at
     attempt
     changelog
     checklist
@@ -23,38 +28,9 @@ query FetchReviewerSubmission($reviewId: uuid!) {
     review_version
     status
     submitted_at
+    world_id_configuration_snapshot
     app {
       name
-      actions(order_by: { created_at: desc }) {
-        id
-        action
-        app_flow_on_complete
-        creation_mode
-        description
-        kiosk_enabled
-        max_accounts_per_user
-        max_verifications
-        name
-        post_action_deep_link_android
-        post_action_deep_link_ios
-        privacy_policy_uri
-        status
-        terms_uri
-        webhook_uri
-      }
-      rp_registration(order_by: { created_at: desc }) {
-        rp_id
-        mode
-        signer_address
-        staging_status
-        status
-        actions_v4(order_by: { created_at: desc }) {
-          id
-          action
-          description
-          environment
-        }
-      }
     }
     team {
       id
@@ -65,6 +41,7 @@ query FetchReviewerSubmission($reviewId: uuid!) {
       event_type
       event_sequence
       actor_email
+      actor_subject
       created_at
       payload
       review_version
@@ -77,6 +54,7 @@ query FetchReviewerSubmission($reviewId: uuid!) {
       delivered_at
       last_attempt_at
       last_error
+      manual_retry_blocked
       next_attempt_at
       notification_type
       provider_message_id

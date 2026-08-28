@@ -16,6 +16,7 @@ import { ReviewClaimBar } from "@/scenes/Admin/reviewer/detail/ReviewClaimBar";
 import { ReviewHistory } from "@/scenes/Admin/reviewer/detail/ReviewHistory";
 import { ReviewTestPanel } from "@/scenes/Admin/reviewer/detail/ReviewTestPanel";
 import { ReviewerWorkspace } from "@/scenes/Admin/reviewer/detail/ReviewerWorkspace";
+import { REVIEW_CHECKLIST_VERSION } from "@/scenes/Admin/reviewer/checklist";
 import { parseReviewerQueueFilters } from "@/scenes/Admin/reviewer/queue-filters";
 import type { ReviewerSubmissionDetail } from "@/scenes/Admin/reviewer/types";
 
@@ -260,6 +261,25 @@ describe("reviewer mutation controls", () => {
     expect(screen.getAllByText(/lease expired/i).length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Claim review" })).toBeEnabled();
   });
+
+  it("allows the assigned reviewer to recover a claim in a new tab", () => {
+    render(
+      <ReviewClaimBar
+        canReview
+        claimExpiresAt="2999-01-01T00:00:00.000Z"
+        claimedByEmail="reviewer@example.com"
+        currentUserEmail="reviewer@example.com"
+        reviewId="00000000-0000-4000-8000-000000000001"
+        reviewVersion={4}
+        status="in_review"
+      />,
+    );
+
+    expect(
+      screen.getByText(/recover the claim for this browser/i),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Recover claim" })).toBeEnabled();
+  });
 });
 
 describe("review history", () => {
@@ -271,7 +291,8 @@ describe("review history", () => {
           id: "first",
           eventType: "submitted",
           eventSequence: 1,
-          actorEmail: "dev@example.com",
+          actorEmail: null,
+          actorSubject: "mcp-api-key:key_123",
           createdAt: "2026-08-20T12:00:00.000Z",
           payload: {},
           reviewVersion: 1,
@@ -281,6 +302,7 @@ describe("review history", () => {
           eventType: "claimed",
           eventSequence: 2,
           actorEmail: "reviewer@example.com",
+          actorSubject: "reviewer-subject",
           createdAt: "2026-08-21T12:00:00.000Z",
           payload: {},
           reviewVersion: 2,
@@ -311,6 +333,7 @@ describe("review history", () => {
     ).map((node) => node.textContent);
     expect(eventHeadings[0]).toContain("Claimed");
     expect(eventHeadings[1]).toContain("Submitted");
+    expect(screen.getByText(/mcp-api-key:key_123/)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Retry email notification" }),
     ).toBeDisabled();
@@ -319,6 +342,137 @@ describe("review history", () => {
     expect(screen.getByText("Provider unavailable")).toBeInTheDocument();
     expect(screen.getByText(/Last attempt:/)).toBeInTheDocument();
     expect(screen.getByText(/Next retry:/)).toBeInTheDocument();
+  });
+
+  it("shows and requeues a dead-lettered submitted-asset repair", async () => {
+    const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ assetSnapshotRepair: { attemptCount: 0 } }),
+    } as Response);
+
+    render(
+      <ReviewHistory
+        assetSnapshotRepair={{
+          ready: false,
+          attemptCount: 8,
+          deadLetteredAt: "2026-08-21T13:00:00.000Z",
+          lastError: "Reviewer submission asset snapshot failed.",
+          nextAttemptAt: null,
+        }}
+        canReview
+        events={[]}
+        notifications={[]}
+        reviewId="00000000-0000-4000-8000-000000000001"
+        reviewStatus="pending"
+      />,
+    );
+
+    expect(screen.getByText(/stopped after 8 attempts/i)).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Retry submitted assets" }),
+    );
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/admin/reviewer/submissions/00000000-0000-4000-8000-000000000001/assets/retry",
+        expect.objectContaining({ method: "POST" }),
+      ),
+    );
+    expect(
+      JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string),
+    ).toEqual({ operationId: expect.stringMatching(/^[0-9a-f-]{36}$/i) });
+    expect(window.sessionStorage).toHaveLength(0);
+    expect(screen.getByText(/retry queued/i)).toBeInTheDocument();
+  });
+
+  it("reuses a notification retry operation after an ambiguous network failure", async () => {
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValueOnce({ ok: true, status: 200 } as Response);
+
+    render(
+      <ReviewHistory
+        canReview
+        events={[]}
+        notifications={[
+          {
+            id: "00000000-0000-4000-8000-000000000002",
+            attemptCount: 8,
+            channel: "email",
+            createdAt: "2026-08-21T13:00:00.000Z",
+            deliveredAt: null,
+            lastAttemptAt: "2026-08-21T13:05:00.000Z",
+            lastError: "Provider unavailable",
+            nextAttemptAt: "2026-08-21T13:10:00.000Z",
+            notificationType: "decision_approved",
+            providerMessageId: null,
+            recipient: "owner@example.com",
+            status: "dead_letter",
+            updatedAt: "2026-08-21T13:05:00.000Z",
+          },
+        ]}
+      />,
+    );
+
+    const retryButton = screen.getByRole("button", {
+      name: "Retry email notification",
+    });
+    fireEvent.click(retryButton);
+    await waitFor(() => expect(retryButton).toBeEnabled());
+    expect(window.sessionStorage).toHaveLength(1);
+
+    fireEvent.click(retryButton);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    const operationIds = fetchMock.mock.calls.map(([_, init]) =>
+      JSON.parse((init as RequestInit).body as string),
+    );
+    expect(operationIds[0]).toEqual(operationIds[1]);
+    expect(operationIds[0]).toEqual({
+      operationId: expect.stringMatching(/^[0-9a-f-]{36}$/i),
+    });
+    await waitFor(() => expect(window.sessionStorage).toHaveLength(0));
+  });
+
+  it("reuses an asset retry operation after an ambiguous server failure", async () => {
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockResolvedValueOnce({ ok: false, status: 500 } as Response)
+      .mockResolvedValueOnce({ ok: true, status: 200 } as Response);
+
+    render(
+      <ReviewHistory
+        assetSnapshotRepair={{
+          ready: false,
+          attemptCount: 8,
+          deadLetteredAt: "2026-08-21T13:00:00.000Z",
+          lastError: "Reviewer submission asset snapshot failed.",
+          nextAttemptAt: null,
+        }}
+        canReview
+        events={[]}
+        notifications={[]}
+        reviewId="00000000-0000-4000-8000-000000000001"
+        reviewStatus="pending"
+      />,
+    );
+
+    const retryButton = screen.getByRole("button", {
+      name: "Retry submitted assets",
+    });
+    fireEvent.click(retryButton);
+    await waitFor(() => expect(retryButton).toBeEnabled());
+    expect(window.sessionStorage).toHaveLength(1);
+
+    fireEvent.click(retryButton);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    const operationIds = fetchMock.mock.calls.map(([_, init]) =>
+      JSON.parse((init as RequestInit).body as string),
+    );
+    expect(operationIds[0]).toEqual(operationIds[1]);
+    await waitFor(() => expect(window.sessionStorage).toHaveLength(0));
   });
 });
 
@@ -345,6 +499,7 @@ const detailFixture: ReviewerSubmissionDetail = {
       eventType: "submitted",
       eventSequence: 1,
       actorEmail: "dev@example.com",
+      actorSubject: "developer-subject",
       createdAt: "2026-08-20T12:00:00.000Z",
       payload: {},
       reviewVersion: 1,
@@ -396,6 +551,7 @@ const detailFixture: ReviewerSubmissionDetail = {
         status: "active",
         termsUri: "https://mini.example.com/terms",
         webhookUri: null,
+        redirects: [],
       },
     ],
     registrations: [],
@@ -403,6 +559,103 @@ const detailFixture: ReviewerSubmissionDetail = {
 };
 
 describe("review detail workspace", () => {
+  it("requires a versioned checklist snapshot before either decision", async () => {
+    const claimToken = "00000000-0000-4000-8000-000000000099";
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockImplementation(async (input) => {
+        const path = String(input);
+        if (path.endsWith("/claim")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              submission: {
+                status: "in_review",
+                reviewVersion: 2,
+                claimToken,
+                claimExpiresAt: "2999-01-01T00:00:00.000Z",
+              },
+            }),
+          } as Response;
+        }
+        if (path.endsWith("/checklist")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              submission: {
+                status: "in_review",
+                reviewVersion: 3,
+                claimToken,
+                claimExpiresAt: "2999-01-01T00:00:00.000Z",
+                checklistVersion: REVIEW_CHECKLIST_VERSION,
+              },
+            }),
+          } as Response;
+        }
+        throw new Error(`Unexpected request: ${path}`);
+      });
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={detailFixture}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Claim review" }));
+    await screen.findByText("Claimed by you");
+    fireEvent.change(screen.getByLabelText("Developer message"), {
+      target: { value: "Please correct the listing metadata." },
+    });
+    fireEvent.change(screen.getByLabelText("Override reason"), {
+      target: { value: "Policy owner approved this exception." },
+    });
+
+    expect(
+      screen.getByText(/save the versioned checklist before deciding/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Request changes" }),
+    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Approve" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Save checklist" }),
+    ).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining("/checklist"),
+        expect.objectContaining({ method: "PUT" }),
+      ),
+    );
+    expect(
+      screen.getByRole("button", { name: "Request changes" }),
+    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Approve" })).toBeEnabled();
+  });
+
+  it.each(["approved", "changes_requested", "withdrawn"] as const)(
+    "disables the draft Test tab for a %s historical attempt",
+    (status) => {
+      render(
+        <ReviewerWorkspace
+          canReview
+          currentUserEmail="reviewer@example.com"
+          submission={{ ...detailFixture, status }}
+        />,
+      );
+
+      expect(screen.getByRole("tab", { name: "Test" })).toBeDisabled();
+      expect(
+        screen.queryByText(/exact metadata version/i),
+      ).not.toBeInTheDocument();
+    },
+  );
+
   it("requests fresh signed assets only when the Metadata tab is opened", async () => {
     const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue({
       ok: true,
@@ -562,6 +815,58 @@ describe("review detail workspace", () => {
 
     expect(screen.getByText("Claimed by you")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Release claim" })).toBeEnabled();
+  });
+
+  it("rotates the assigned reviewer's token in a new tab", async () => {
+    const claimedSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      status: "in_review",
+      reviewVersion: 7,
+      claimedByEmail: "reviewer@example.com",
+      claimExpiresAt: "2999-01-01T00:00:00.000Z",
+    };
+    const recoveredToken = "00000000-0000-4000-8000-000000000088";
+    const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        submission: {
+          status: "in_review",
+          reviewVersion: 8,
+          claimToken: recoveredToken,
+          claimExpiresAt: "2999-01-01T00:30:00.000Z",
+        },
+      }),
+    } as Response);
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={claimedSubmission}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Recover claim" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining("/claim"),
+        expect.objectContaining({
+          body: JSON.stringify({ expectedReviewVersion: 7 }),
+        }),
+      ),
+    );
+    expect(await screen.findByText("Claimed by you")).toBeInTheDocument();
+    expect(
+      JSON.parse(
+        window.sessionStorage.getItem(
+          `admin-reviewer-claim:${detailFixture.id}`,
+        ) ?? "{}",
+      ),
+    ).toEqual(
+      expect.objectContaining({ claimToken: recoveredToken, reviewVersion: 8 }),
+    );
   });
 
   it("clears a recovered token and refreshes after a workflow conflict", async () => {
@@ -767,6 +1072,7 @@ describe("review detail workspace", () => {
               eventType: "notification_retry_queued",
               eventSequence: 2,
               actorEmail: "reviewer@example.com",
+              actorSubject: "reviewer-subject",
               createdAt: "2026-08-20T13:00:00.000Z",
               payload: {},
               reviewVersion: 7,

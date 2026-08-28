@@ -186,6 +186,10 @@ export const ReviewMetadata = ({
         <h2 className="text-16 font-semibold text-grey-900">
           World ID configuration
         </h2>
+        <p className="mt-1 text-12 text-grey-500">
+          Captured when this attempt was submitted, including registration
+          status at that time.
+        </p>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div>
             <h3 className="text-12 font-semibold text-grey-700">
