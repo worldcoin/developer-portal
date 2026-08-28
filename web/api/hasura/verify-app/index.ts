@@ -77,11 +77,7 @@ export const POST = async (req: NextRequest) => {
 
   const app_id = parsedParams.app_id;
 
-  const {
-    reviewer_name,
-    is_reviewer_app_store_approved,
-    is_reviewer_world_app_approved,
-  } = parsedParams;
+  const { reviewer_name } = parsedParams;
 
   const reviewer_client = await getAPIReviewerGraphqlClient();
 
@@ -145,20 +141,6 @@ export const POST = async (req: NextRequest) => {
   const verifiedAppMetadata = app.app_metadata.find(
     (metadata) => metadata.verification_status === "verified",
   );
-
-  // Check if app is allowed to be app store and world app approved
-  if (
-    (is_reviewer_app_store_approved || is_reviewer_world_app_approved) &&
-    !awaitingReviewAppMetadata.showcase_img_urls
-  ) {
-    return errorHasuraQuery({
-      req,
-      detail:
-        "Showcase images are required for app store and world app approval",
-      code: "invalid_approval_permissions",
-      app_id,
-    });
-  }
 
   const s3Client = new S3Client({
     region: process.env.ASSETS_S3_REGION,
@@ -370,8 +352,10 @@ export const POST = async (req: NextRequest) => {
       verification_status: "verified",
       verified_at: currentTimestamp,
       reviewed_by: reviewer_name,
-      is_reviewer_app_store_approved: is_reviewer_app_store_approved,
-      is_reviewer_world_app_approved: is_reviewer_world_app_approved,
+      // Verification-only submissions never carry listing consent. Publication
+      // is exclusively derived by the claimed reviewer decision workflow.
+      is_reviewer_app_store_approved: false,
+      is_reviewer_world_app_approved: false,
     },
     localisation_updates: localisationUpdates,
     app_id: app_id,

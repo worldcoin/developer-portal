@@ -434,6 +434,9 @@ describe("/api/v2/public/apps", () => {
           where: expect.objectContaining({
             _and: expect.arrayContaining([
               expect.objectContaining({ app_mode: { _eq: "external" } }),
+              expect.objectContaining({
+                is_developer_allow_listing: { _eq: true },
+              }),
             ]),
           }),
         }),

@@ -161,4 +161,37 @@ describe("legacy verify_app reviewer workflow fence", () => {
     expect(S3Client).toHaveBeenCalled();
     expect(VerifyApp).toHaveBeenCalledTimes(1);
   });
+
+  it("cannot publish a verification-only submission from caller supplied flags", async () => {
+    GetAppMetadata.mockResolvedValueOnce({
+      app: [
+        {
+          first_verified_at: null,
+          app_metadata: [
+            {
+              id: "meta_draft",
+              verification_status: "awaiting_review",
+              is_developer_allow_listing: false,
+              logo_img_url: "logo_img.png",
+              showcase_img_urls: ["showcase_img_1.png"],
+              localisations: [],
+            },
+          ],
+        },
+      ],
+    });
+    hasActiveListingReview.mockResolvedValueOnce(false);
+
+    const response = (await POST(request()))!;
+
+    expect(response.status).toBe(200);
+    expect(VerifyApp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        verified_data_changes: expect.objectContaining({
+          is_reviewer_app_store_approved: false,
+          is_reviewer_world_app_approved: false,
+        }),
+      }),
+    );
+  });
 });

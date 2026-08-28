@@ -95,6 +95,19 @@ const buildCatalogWhere = ({
     { verification_status: { _eq: "verified" } },
   ];
 
+  // External developers must explicitly consent to listing. Native apps are
+  // maintained internally and remain exempt from the developer consent field.
+  if (appMode === "mini-app" || appMode === "external") {
+    filters.push({ is_developer_allow_listing: { _eq: true } });
+  } else if (appMode !== "native") {
+    filters.push({
+      _or: [
+        { is_developer_allow_listing: { _eq: true } },
+        { app_mode: { _eq: "native" } },
+      ],
+    });
+  }
+
   if (highlightsIds) {
     filters.push({ app_id: { _in: highlightsIds } });
   }
