@@ -1,0 +1,42 @@
+table:
+  name: legacy_app_verification_asset_settlement
+  schema: public
+select_permissions:
+  - role: reviewer
+    permission:
+      columns:
+        - app_id
+        - app_metadata_id
+        - attempt_count
+        - created_at
+        - delivered_at
+        - delivery_status
+        - expected_metadata_updated_at
+        - last_error
+        - next_attempt_at
+        - operation_id
+        - outcome
+        - prepared_asset_keys
+        - prior_asset_keys
+        - updated_at
+      filter: {}
+  - role: service
+    permission:
+      columns:
+        - app_id
+        - app_metadata_id
+        - attempt_count
+        - created_at
+        - delivered_at
+        - delivery_status
+        - expected_metadata_updated_at
+        - last_error
+        - locked_at
+        - locked_by
+        - next_attempt_at
+        - operation_id
+        - outcome
+        - prepared_asset_keys
+        - prior_asset_keys
+        - updated_at
+      filter: {}

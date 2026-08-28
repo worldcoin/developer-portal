@@ -18,6 +18,7 @@
 - "!include public_invite.yaml"
 - "!include public_jwks.yaml"
 - "!include public_localisations.yaml"
+- "!include public_legacy_app_verification_asset_settlement.yaml"
 - "!include public_membership.yaml"
 - "!include public_notification_log.yaml"
 - "!include public_notification_log_wallet_address.yaml"

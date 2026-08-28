@@ -25,6 +25,7 @@ insert_permissions:
         - manager_kms_key_id
         - status
         - operation_hash
+        - review_configuration_change_kind
         - staging_status
         - staging_operation_hash
 select_permissions:
@@ -92,6 +93,7 @@ update_permissions:
         - is_unique_manager_key
         - status
         - operation_hash
+        - review_configuration_change_kind
         - staging_status
         - staging_operation_hash
         - updated_at

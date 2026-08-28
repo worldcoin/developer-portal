@@ -40,6 +40,7 @@ insert_permissions:
         - app_id
         - app_metadata_id
         - app_mode
+        - asset_snapshot
         - attempt
         - changelog
         - checklist
@@ -60,6 +61,11 @@ select_permissions:
         - app_id
         - app_metadata_id
         - app_mode
+        - asset_snapshot
+        - asset_snapshot_repair_attempt_count
+        - asset_snapshot_repair_dead_lettered_at
+        - asset_snapshot_repair_last_error
+        - asset_snapshot_repair_next_at
         - attempt
         - changelog
         - checklist
@@ -83,6 +89,7 @@ select_permissions:
         - submitted_at
         - team_id
         - updated_at
+        - world_id_configuration_snapshot
       filter: {}
       allow_aggregations: true
   - role: service
@@ -91,6 +98,11 @@ select_permissions:
         - app_id
         - app_metadata_id
         - app_mode
+        - asset_snapshot_repair_attempt_count
+        - asset_snapshot_repair_dead_lettered_at
+        - asset_snapshot_repair_last_error
+        - asset_snapshot_repair_next_at
+        - asset_snapshot
         - attempt
         - changelog
         - checklist
@@ -121,6 +133,7 @@ select_permissions:
         - submitted_by_subject
         - team_id
         - updated_at
+        - world_id_configuration_snapshot
       filter: {}
 update_permissions:
   - role: service

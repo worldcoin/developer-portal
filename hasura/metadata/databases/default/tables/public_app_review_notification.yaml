@@ -28,6 +28,7 @@ select_permissions:
         - id
         - last_attempt_at
         - last_error
+        - manual_retry_blocked
         - next_attempt_at
         - notification_type
         - recipient
@@ -50,6 +51,7 @@ select_permissions:
         - last_error
         - locked_at
         - locked_by
+        - manual_retry_blocked
         - next_attempt_at
         - notification_type
         - payload

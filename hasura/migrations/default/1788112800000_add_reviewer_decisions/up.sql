@@ -406,6 +406,36 @@ BEGIN
         ELSE NEW.app_metadata_id
     END;
 
+    -- Serialize with submission capture before checking the active attempt.
+    -- Without this lock, an INSERT can run its trigger against an old snapshot,
+    -- wait later on the foreign-key check, and commit after capture with data
+    -- absent from the immutable localization snapshot.
+    PERFORM guarded_metadata.id
+    FROM public.app_metadata AS guarded_metadata
+    WHERE guarded_metadata.id IN (
+            guarded_old_metadata_id,
+            guarded_new_metadata_id
+        )
+    ORDER BY guarded_metadata.id
+    FOR UPDATE;
+
+    IF EXISTS (
+        SELECT 1
+        FROM public.app_metadata AS guarded_metadata
+        WHERE guarded_metadata.id IN (
+                guarded_old_metadata_id,
+                guarded_new_metadata_id
+            )
+          AND guarded_metadata.verification_status IN (
+              'awaiting_review',
+              'verified'
+          )
+    ) THEN
+        RAISE EXCEPTION USING
+            ERRCODE = '55000',
+            MESSAGE = 'Awaiting-review or verified app localizations cannot be changed directly.';
+    END IF;
+
     IF EXISTS (
         SELECT 1
         FROM public.app_metadata AS guarded_metadata
@@ -603,6 +633,8 @@ BEGIN
        OR submission.app_mode NOT IN ('mini-app', 'external')
        OR reviewed_app.deleted_at IS NOT NULL
        OR reviewed_app.is_staging
+       OR reviewed_app.status IS DISTINCT FROM 'active'
+       OR reviewed_app.is_archived IS DISTINCT FROM false
        OR current_localizations_snapshot IS DISTINCT FROM submission.localizations_snapshot
        OR submission.checklist_version IS NULL
        OR jsonb_typeof(submission.checklist -> 'definitionSnapshot') <> 'object' THEN

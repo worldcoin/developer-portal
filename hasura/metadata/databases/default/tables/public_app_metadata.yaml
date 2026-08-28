@@ -198,6 +198,7 @@ select_permissions:
         - is_android_only
         - is_developer_allow_listing
         - is_for_humans_only
+        - legacy_verification_operation_id
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - logo_img_url
@@ -248,6 +249,7 @@ select_permissions:
         - is_android_only
         - is_developer_allow_listing
         - is_for_humans_only
+        - legacy_verification_operation_id
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - logo_img_url

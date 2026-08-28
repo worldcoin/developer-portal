@@ -144,6 +144,20 @@ describe("reviewer decision database operation", () => {
     }
   });
 
+  it("serializes localization writes with submission capture", () => {
+    const guard = migration.slice(
+      migration.indexOf(
+        "CREATE OR REPLACE FUNCTION public.guard_active_app_review_localization_write",
+      ),
+      migration.indexOf(
+        "CREATE TRIGGER guard_active_app_review_metadata_write",
+      ),
+    );
+    expect(guard).toMatch(
+      /FROM public\.app_metadata AS guarded_metadata[\s\S]*ORDER BY guarded_metadata\.id[\s\S]*FOR UPDATE[\s\S]*active_submission\.status IN \('pending', 'in_review'\)/,
+    );
+  });
+
   it("CASes the exact prior verified row or its locked absence", () => {
     expect(migration).toContain("p_expected_prior_verified_id");
     expect(migration).toContain("p_expected_prior_verified_updated_at");

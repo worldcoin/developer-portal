@@ -1,0 +1,8 @@
+function:
+  name: reconcile_app_review_asset_snapshot_repair
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: service

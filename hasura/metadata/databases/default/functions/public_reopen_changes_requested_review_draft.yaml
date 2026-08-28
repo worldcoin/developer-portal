@@ -1,0 +1,8 @@
+function:
+  name: reopen_changes_requested_review_draft
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: service

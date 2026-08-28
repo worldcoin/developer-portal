@@ -1,0 +1,9 @@
+function:
+  name: complete_legacy_app_verification_asset_settlement
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: reviewer
+  - role: service

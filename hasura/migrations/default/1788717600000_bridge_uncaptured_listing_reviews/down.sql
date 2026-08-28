@@ -1,0 +1,4 @@
+DROP TRIGGER bridge_uncaptured_listing_review_submission
+ON public.app_metadata;
+DROP FUNCTION public.bridge_uncaptured_listing_review_submission();
+DROP FUNCTION public.reconcile_uncaptured_listing_review_submission(text);
