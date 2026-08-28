@@ -208,7 +208,7 @@ const dailySnapshotLoader = createSnapshotLoader({
   dataset: "selfie_check_daily",
   label: "daily table",
   parseCsv: parseDailyTable,
-  prefix: "daily/",
+  prefix: process.env.SELFIE_CHECK_ANALYTICS_DAILY_PREFIX ?? "daily/",
 });
 
 // ============================================================================
