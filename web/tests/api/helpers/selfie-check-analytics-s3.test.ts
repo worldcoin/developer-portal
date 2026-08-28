@@ -1,8 +1,8 @@
 import {
   AnalyticsS3ConfigurationError,
   AnalyticsS3ObjectTooLargeError,
-  downloadTotalsCsv,
-  findLatestTotalsObject,
+  downloadCsv,
+  listCsv,
   type TableObjectDescriptor,
 } from "@/api/helpers/selfie-check-analytics/s3";
 
@@ -26,7 +26,6 @@ jest.mock("@aws-sdk/client-s3", () => ({
 const ENV_KEYS = [
   "SELFIE_CHECK_ANALYTICS_S3_BUCKET_NAME",
   "SELFIE_CHECK_ANALYTICS_S3_REGION",
-  "SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX",
 ] as const;
 const originalEnv = Object.fromEntries(
   ENV_KEYS.map((key) => [key, process.env[key]]),
@@ -61,7 +60,6 @@ beforeEach(() => {
   jest.clearAllMocks();
   process.env.SELFIE_CHECK_ANALYTICS_S3_BUCKET_NAME = bucket;
   process.env.SELFIE_CHECK_ANALYTICS_S3_REGION = region;
-  process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX = "total/";
 });
 
 afterAll(() => {
@@ -76,7 +74,7 @@ afterAll(() => {
 });
 
 // #region Latest object discovery
-describe("findLatestTotalsObject", () => {
+describe("listCsv", () => {
   it("selects the newest non-empty CSV across every listing page", async () => {
     s3SendMock
       .mockResolvedValueOnce({
@@ -115,7 +113,7 @@ describe("findLatestTotalsObject", () => {
         IsTruncated: false,
       });
 
-    await expect(findLatestTotalsObject()).resolves.toEqual({
+    await expect(listCsv("total/")).resolves.toEqual({
       bucket,
       region,
       key: "total/data_20260827_015233.csv",
@@ -137,7 +135,7 @@ describe("findLatestTotalsObject", () => {
     });
   });
 
-  it("ignores filenames with invalid timestamps", async () => {
+  it("fails explicitly when only invalid-timestamp or empty CSVs exist", async () => {
     s3SendMock.mockResolvedValueOnce({
       Contents: [
         {
@@ -145,17 +143,6 @@ describe("findLatestTotalsObject", () => {
           LastModified: new Date("2026-08-27T03:00:00.000Z"),
           Size: 10,
         },
-      ],
-    });
-
-    await expect(findLatestTotalsObject()).rejects.toThrow(
-      "No non-empty timestamped totals CSV found",
-    );
-  });
-
-  it("fails explicitly when no usable totals CSV exists", async () => {
-    s3SendMock.mockResolvedValueOnce({
-      Contents: [
         {
           Key: "total/data_20260827_015233.csv",
           LastModified: new Date("2026-08-27T02:00:00.000Z"),
@@ -164,33 +151,9 @@ describe("findLatestTotalsObject", () => {
       ],
     });
 
-    await expect(findLatestTotalsObject()).rejects.toThrow(
-      "No non-empty timestamped totals CSV found",
+    await expect(listCsv("total/")).rejects.toThrow(
+      "No non-empty timestamped CSV found",
     );
-  });
-
-  it("uses the total directory as the default prefix", async () => {
-    delete process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX;
-    s3SendMock.mockResolvedValueOnce({
-      Contents: [
-        {
-          Key: "total/data_20260827_015233.csv",
-          LastModified: new Date("2026-08-27T02:00:00.000Z"),
-          Size: 10,
-        },
-      ],
-    });
-
-    await findLatestTotalsObject();
-
-    expect(s3SendMock.mock.calls[0][0]).toEqual({
-      command: "ListObjectsV2",
-      input: {
-        Bucket: bucket,
-        Prefix: "total/",
-        ContinuationToken: undefined,
-      },
-    });
   });
 
   it("fails when a truncated response omits its continuation token", async () => {
@@ -199,7 +162,7 @@ describe("findLatestTotalsObject", () => {
       IsTruncated: true,
     });
 
-    await expect(findLatestTotalsObject()).rejects.toThrow(
+    await expect(listCsv("total/")).rejects.toThrow(
       "without a continuation token",
     );
   });
@@ -207,7 +170,7 @@ describe("findLatestTotalsObject", () => {
   it("fails before calling S3 when configuration is missing", async () => {
     delete process.env.SELFIE_CHECK_ANALYTICS_S3_BUCKET_NAME;
 
-    await expect(findLatestTotalsObject()).rejects.toBeInstanceOf(
+    await expect(listCsv("total/")).rejects.toBeInstanceOf(
       AnalyticsS3ConfigurationError,
     );
     expect(s3SendMock).not.toHaveBeenCalled();
@@ -216,15 +179,15 @@ describe("findLatestTotalsObject", () => {
   it("adds bucket and prefix context to listing failures", async () => {
     s3SendMock.mockRejectedValueOnce(new Error("AccessDenied"));
 
-    await expect(findLatestTotalsObject()).rejects.toThrow(
-      `Failed to list S3 totals objects: bucket=${bucket}, prefix=total/`,
+    await expect(listCsv("total/")).rejects.toThrow(
+      `Failed to list S3 CSV objects: bucket=${bucket}, prefix=total/`,
     );
   });
 });
 // #endregion
 
 // #region Object download
-describe("downloadTotalsCsv", () => {
+describe("downloadCsv", () => {
   it("downloads the exact listed ETag and returns actual object metadata", async () => {
     const body =
       "PARTNER_APP_ID,N_PROOFS\napp_0123456789abcdef0123456789abcdef,3\n";
@@ -234,7 +197,7 @@ describe("downloadTotalsCsv", () => {
       ETag: '"etag-get"',
     });
 
-    const result = await downloadTotalsCsv(descriptor());
+    const result = await downloadCsv(descriptor());
 
     expect(s3SendMock.mock.calls[0][0]).toEqual({
       command: "GetObject",
@@ -256,7 +219,7 @@ describe("downloadTotalsCsv", () => {
 
   it("rejects an oversized listed object without downloading it", async () => {
     await expect(
-      downloadTotalsCsv(descriptor({ sizeBytes: 25 * 1024 * 1024 + 1 })),
+      downloadCsv(descriptor({ sizeBytes: 25 * 1024 * 1024 + 1 })),
     ).rejects.toBeInstanceOf(AnalyticsS3ObjectTooLargeError);
 
     expect(s3SendMock).not.toHaveBeenCalled();
@@ -265,9 +228,7 @@ describe("downloadTotalsCsv", () => {
   it("rejects a response without a body", async () => {
     s3SendMock.mockResolvedValueOnce({ ContentLength: 10 });
 
-    await expect(downloadTotalsCsv(descriptor())).rejects.toThrow(
-      "has no body",
-    );
+    await expect(downloadCsv(descriptor())).rejects.toThrow("has no body");
   });
 
   it("rejects an empty body", async () => {
@@ -276,7 +237,7 @@ describe("downloadTotalsCsv", () => {
       ContentLength: 0,
     });
 
-    await expect(downloadTotalsCsv(descriptor())).rejects.toThrow("is empty");
+    await expect(downloadCsv(descriptor())).rejects.toThrow("is empty");
   });
 
   it("rejects invalid UTF-8", async () => {
@@ -285,7 +246,7 @@ describe("downloadTotalsCsv", () => {
       ContentLength: 2,
     });
 
-    await expect(downloadTotalsCsv(descriptor())).rejects.toThrow(
+    await expect(downloadCsv(descriptor())).rejects.toThrow(
       "is not valid UTF-8",
     );
   });
@@ -293,8 +254,8 @@ describe("downloadTotalsCsv", () => {
   it("adds bucket and key context to download failures", async () => {
     s3SendMock.mockRejectedValueOnce(new Error("NoSuchKey"));
 
-    await expect(downloadTotalsCsv(descriptor())).rejects.toThrow(
-      `Failed to download S3 totals object: bucket=${bucket}, key=total/data_20260826_210000.csv`,
+    await expect(downloadCsv(descriptor())).rejects.toThrow(
+      `Failed to download S3 object: bucket=${bucket}, key=total/data_20260826_210000.csv`,
     );
   });
 });

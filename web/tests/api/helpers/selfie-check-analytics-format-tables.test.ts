@@ -1,286 +1,189 @@
-// #region Mocks
-const findLatestTotalsObjectMock = jest.fn();
-const downloadTotalsCsvMock = jest.fn();
-
-jest.mock("@/api/helpers/selfie-check-analytics/s3", () => ({
-  findLatestTotalsObject: (...args: unknown[]) =>
-    findLatestTotalsObjectMock(...args),
-  downloadTotalsCsv: (...args: unknown[]) => downloadTotalsCsvMock(...args),
-}));
-
-jest.mock("@/lib/logger", () => ({
-  logger: {
-    error: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-// #endregion
-
 import {
-  clearTableCache,
-  loadLatestTableSnapshot,
-  parseMetricsTable,
-  TableCsvValidationError,
+  parseDailyTable,
+  parseTotalsTable,
+  TableValidationError,
 } from "@/api/helpers/selfie-check-analytics/format-tables";
-import { logger } from "@/lib/logger";
 
 // #region Test Data
 const appIdA = "app_0123456789abcdef0123456789abcdef";
-const appIdB = "app_fedcba9876543210fedcba9876543210";
+const appIdB = "app_staging_fedcba9876543210fedcba9876543210";
 
-const source = (
-  key: string,
-  etag: string,
-  lastModified = "2026-08-26T21:00:00.000Z",
-) => ({
-  bucket: "analytics-bucket",
-  region: "eu-west-1",
-  key,
-  etag,
-  identity: `${key}:${etag}`,
-  dataAsOf: new Date(lastModified),
-  lastModified: new Date(lastModified),
-  sizeBytes: 100,
-});
-
-const csv = (proofsA = 3, proofsB = 7) =>
+const totalsCsv = (proofsA = 3, proofsB = 7) =>
   [
-    "PARTNER_APP_ID,N_PROOFS,P_FACE_AUTH_COMPLETION",
-    `${appIdA},${proofsA},\"0.75\"`,
-    `${appIdB},${proofsB},`,
+    "PARTNER_APP_ID,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_PROOFS,N_PROOF_USERS,N_FACE_AUTH_STARTED_SESSIONS,N_FACE_AUTH_COMPLETED_SESSIONS,P_FACE_AUTH_COMPLETION",
+    `${appIdA},10,${proofsA},8,10,8,"0.75"`,
+    `${appIdB},10,${proofsB},8,10,8,`,
   ].join("\n");
+
+const dailyHeader =
+  "PARTNER_APP_ID,DAY,OS_NAME,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_PROOFS,N_PROOF_USERS,CUMULATIVE_N_PROOFS,CUMULATIVE_N_PROOF_USERS,N_FACE_AUTH_STARTED_SESSIONS,N_FACE_AUTH_COMPLETED_SESSIONS,P_FACE_AUTH_COMPLETION";
+
+const dailyCsv = (...rows: string[]) => [dailyHeader, ...rows].join("\n");
+
+const dailyRow = ({
+  appId = appIdA,
+  day = "2026-08-26",
+  osName = "iOS",
+  proofs = 3,
+  completion = "0.75",
+}: {
+  appId?: string;
+  day?: string;
+  osName?: string;
+  proofs?: number | string;
+  completion?: string;
+} = {}) => `${appId},${day},${osName},10,${proofs},8,30,20,10,8,${completion}`;
 // #endregion
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  clearTableCache();
-  jest.useFakeTimers();
-  jest.setSystemTime(new Date("2026-08-26T22:00:00.000Z"));
-});
-
-afterEach(() => {
-  jest.useRealTimers();
-});
-
-// #region CSV validation
-describe("parseMetricsTable", () => {
-  it("normalizes headers and indexes typed metrics by app ID", () => {
-    const result = parseMetricsTable(
-      `\uFEFFpartner_app_id,n_proofs,p_face_auth_completion\n${appIdA},3,\"0.75\"\n`,
-    );
+// #region Totals table
+describe("parseTotalsTable", () => {
+  it("normalizes headers and indexes one typed row per app ID", () => {
+    const result = parseTotalsTable(`\uFEFF${totalsCsv().toLowerCase()}\n`);
 
     expect(result.headers).toEqual([
       "PARTNER_APP_ID",
+      "N_USERS_STARTED_SELFIE_CHECK_FLOW",
       "N_PROOFS",
+      "N_PROOF_USERS",
+      "N_FACE_AUTH_STARTED_SESSIONS",
+      "N_FACE_AUTH_COMPLETED_SESSIONS",
       "P_FACE_AUTH_COMPLETION",
     ]);
     expect(result.records.get(appIdA)).toEqual({
       appId: appIdA,
-      metrics: {
-        n_proofs: 3,
-        p_face_auth_completion: 0.75,
-      },
+      n_users_started_selfie_check_flow: 10,
+      n_proofs: 3,
+      n_proof_users: 8,
+      n_face_auth_started_sessions: 10,
+      n_face_auth_completed_sessions: 8,
+      p_face_auth_completion: 0.75,
     });
   });
 
-  it("accepts APP_ID as the unique-key column", () => {
-    const result = parseMetricsTable(`APP_ID,N_PROOFS\n${appIdA},3\n`);
+  it("represents an empty metric as null", () => {
+    const result = parseTotalsTable(
+      totalsCsv(3).replace(`${appIdB},10,7,8,10,8,`, `${appIdB},10,,8,10,8,`),
+    );
 
-    expect(result.records.get(appIdA)?.metrics.N_PROOFS).toBeUndefined();
-    expect(result.records.get(appIdA)?.metrics.n_proofs).toBe(3);
+    expect(result.records.get(appIdB)?.n_proofs).toBeNull();
   });
 
-  it("represents an empty metric as null", () => {
-    const result = parseMetricsTable(`APP_ID,N_PROOFS\n${appIdA},\n`);
+  it("represents the Snowflake null marker as zero", () => {
+    const result = parseTotalsTable(
+      totalsCsv().replace(
+        `${appIdB},10,7,8,10,8,`,
+        `${appIdB},10,7,8,10,8,\\\\N`,
+      ),
+    );
 
-    expect(result.records.get(appIdA)?.metrics.n_proofs).toBeNull();
+    expect(result.records.get(appIdB)?.p_face_auth_completion).toBe(0);
   });
 
   it("rejects non-numeric metric values", () => {
     expect(() =>
-      parseMetricsTable(`APP_ID,N_PROOFS\n${appIdA},not-a-number\n`),
+      parseTotalsTable(
+        totalsCsv().replace(
+          `${appIdA},10,3,8,10,8,"0.75"`,
+          `${appIdA},10,not-a-number,8,10,8,"0.75"`,
+        ),
+      ),
     ).toThrow("is not a non-negative number");
   });
 
   it("rejects duplicate app IDs", () => {
-    expect(() =>
-      parseMetricsTable(`PARTNER_APP_ID,N_PROOFS\n${appIdA},3\n${appIdA},4\n`),
-    ).toThrow("duplicate app ID");
-  });
-
-  it("rejects duplicate normalized headers", () => {
-    expect(() =>
-      parseMetricsTable(`PARTNER_APP_ID,n_proofs,N_PROOFS\n${appIdA},3,4\n`),
-    ).toThrow("duplicate header");
-  });
-
-  it("rejects a missing app ID column", () => {
-    expect(() => parseMetricsTable("N_PROOFS\n3\n")).toThrow(
-      "must contain one of",
+    expect(() => parseTotalsTable(totalsCsv().replace(appIdB, appIdA))).toThrow(
+      "duplicate app ID",
     );
-  });
-
-  it("rejects malformed app IDs", () => {
-    expect(() =>
-      parseMetricsTable("PARTNER_APP_ID,N_PROOFS\nnot-an-app,3\n"),
-    ).toThrow("invalid app ID");
-  });
-
-  it("wraps malformed CSV as a validation error", () => {
-    expect(() =>
-      parseMetricsTable(`PARTNER_APP_ID,N_PROOFS\n${appIdA},\"unterminated\n`),
-    ).toThrow(TableCsvValidationError);
   });
 });
 // #endregion
 
-// #region Snapshot refresh and caching
-describe("loadLatestTableSnapshot", () => {
-  it("downloads and parses a cold snapshot", async () => {
-    const object = source("total/run-1.csv", '"etag-1"');
-    findLatestTotalsObjectMock.mockResolvedValue(object);
-    downloadTotalsCsvMock.mockResolvedValue({ csv: csv(), object });
+// #region Daily table
+describe("parseDailyTable", () => {
+  it("groups every row under its app ID while preserving source order", () => {
+    const first = dailyRow({ day: "2026-08-25", osName: "iOS", proofs: 2 });
+    const second = dailyRow({
+      day: "2026-08-26",
+      osName: "Android",
+      proofs: 3,
+    });
+    const third = dailyRow({ appId: appIdB, proofs: 7 });
 
-    const snapshot = await loadLatestTableSnapshot();
+    const result = parseDailyTable(dailyCsv(first, second, third));
 
-    expect(snapshot.isFallback).toBe(false);
-    expect(snapshot.loadedAt).toBe("2026-08-26T22:00:00.000Z");
-    expect(snapshot.source.identity).toBe('total/run-1.csv:"etag-1"');
-    expect(snapshot.records.get(appIdA)?.metrics.n_proofs).toBe(3);
-    expect(findLatestTotalsObjectMock).toHaveBeenCalledTimes(1);
-    expect(downloadTotalsCsvMock).toHaveBeenCalledWith(object);
-  });
-
-  it("serves the process cache without listing again inside the check interval", async () => {
-    const object = source("total/run-1.csv", '"etag-1"');
-    findLatestTotalsObjectMock.mockResolvedValue(object);
-    downloadTotalsCsvMock.mockResolvedValue({ csv: csv(), object });
-
-    await loadLatestTableSnapshot();
-    await loadLatestTableSnapshot();
-
-    expect(findLatestTotalsObjectMock).toHaveBeenCalledTimes(1);
-    expect(downloadTotalsCsvMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("rechecks S3 but does not redownload an unchanged ETag", async () => {
-    const object = source("total/run-1.csv", '"etag-1"');
-    findLatestTotalsObjectMock.mockResolvedValue(object);
-    downloadTotalsCsvMock.mockResolvedValue({ csv: csv(), object });
-
-    await loadLatestTableSnapshot();
-    jest.setSystemTime(new Date("2026-08-26T23:00:01.000Z"));
-    const snapshot = await loadLatestTableSnapshot();
-
-    expect(snapshot.isFallback).toBe(false);
-    expect(snapshot.lastCheckedAt).toBe("2026-08-26T23:00:01.000Z");
-    expect(findLatestTotalsObjectMock).toHaveBeenCalledTimes(2);
-    expect(downloadTotalsCsvMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("atomically replaces the map when a new object validates", async () => {
-    const first = source("total/run-1.csv", '"etag-1"');
-    const second = source(
-      "total/run-2.csv",
-      '"etag-2"',
-      "2026-08-26T22:00:00.000Z",
-    );
-    findLatestTotalsObjectMock
-      .mockResolvedValueOnce(first)
-      .mockResolvedValueOnce(second);
-    downloadTotalsCsvMock
-      .mockResolvedValueOnce({ csv: csv(3), object: first })
-      .mockResolvedValueOnce({ csv: csv(9), object: second });
-
-    const original = await loadLatestTableSnapshot();
-    const updated = await loadLatestTableSnapshot({ forceRefresh: true });
-
-    expect(original.records.get(appIdA)?.metrics.n_proofs).toBe(3);
-    expect(updated.records.get(appIdA)?.metrics.n_proofs).toBe(9);
-    expect(updated.source.identity).toBe('total/run-2.csv:"etag-2"');
-  });
-
-  it("serves the previous verified map when refresh fails", async () => {
-    const object = source("total/run-1.csv", '"etag-1"');
-    findLatestTotalsObjectMock
-      .mockResolvedValueOnce(object)
-      .mockRejectedValueOnce(new Error("S3 unavailable"));
-    downloadTotalsCsvMock.mockResolvedValue({ csv: csv(), object });
-
-    const original = await loadLatestTableSnapshot();
-    const fallback = await loadLatestTableSnapshot({ forceRefresh: true });
-
-    expect(fallback.isFallback).toBe(true);
-    expect(fallback.records).toBe(original.records);
-    expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining("serving the last verified snapshot"),
+    expect(result.records.size).toBe(2);
+    expect(result.records.get(appIdA)).toEqual([
       expect.objectContaining({
-        dependency: "s3",
-        dataset: "selfie_check_totals",
-        failureClass: "Error",
+        appId: appIdA,
+        day: "2026-08-25",
+        os_name: "iOS",
+        n_proofs: 2,
       }),
+      expect.objectContaining({
+        appId: appIdA,
+        day: "2026-08-26",
+        os_name: "Android",
+        n_proofs: 3,
+      }),
+    ]);
+    expect(result.records.get(appIdB)).toHaveLength(1);
+    expect(
+      [...result.records.values()].reduce(
+        (rowCount, rows) => rowCount + rows.length,
+        0,
+      ),
+    ).toBe(3);
+  });
+
+  it("allows the same app and day for different operating systems", () => {
+    const result = parseDailyTable(
+      dailyCsv(dailyRow({ osName: "iOS" }), dailyRow({ osName: "Android" })),
+    );
+
+    expect(result.records.get(appIdA)).toHaveLength(2);
+  });
+
+  it("rejects a duplicate app/day/OS key instead of losing a row", () => {
+    expect(() =>
+      parseDailyTable(dailyCsv(dailyRow(), dailyRow({ proofs: 9 }))),
+    ).toThrow("duplicate app/day/OS row");
+  });
+
+  it("rejects an invalid calendar day", () => {
+    expect(() =>
+      parseDailyTable(dailyCsv(dailyRow({ day: "2026-02-30" }))),
+    ).toThrow("invalid required daily column");
+  });
+});
+// #endregion
+
+// #region Shared CSV validation
+describe("analytics CSV validation", () => {
+  it("rejects duplicate normalized headers", () => {
+    expect(() =>
+      parseTotalsTable(`PARTNER_APP_ID,n_proofs,N_PROOFS\n${appIdA},3,4\n`),
+    ).toThrow("duplicate header");
+  });
+
+  it("rejects a missing app ID column", () => {
+    expect(() => parseTotalsTable("N_PROOFS\n3\n")).toThrow(
+      "must contain one of",
     );
   });
 
-  it("does not replace verified data with an invalid new CSV", async () => {
-    const first = source("total/run-1.csv", '"etag-1"');
-    const second = source("total/run-2.csv", '"etag-2"');
-    findLatestTotalsObjectMock
-      .mockResolvedValueOnce(first)
-      .mockResolvedValueOnce(second);
-    downloadTotalsCsvMock
-      .mockResolvedValueOnce({ csv: csv(), object: first })
-      .mockResolvedValueOnce({
-        csv: "PARTNER_APP_ID,N_PROOFS\ninvalid,4\n",
-        object: second,
-      });
-
-    const original = await loadLatestTableSnapshot();
-    const fallback = await loadLatestTableSnapshot({ forceRefresh: true });
-
-    expect(fallback.isFallback).toBe(true);
-    expect(fallback.source.identity).toBe(original.source.identity);
-    expect(fallback.records).toBe(original.records);
-  });
-
-  it("surfaces a cold-start failure instead of returning an empty table", async () => {
-    findLatestTotalsObjectMock.mockRejectedValue(new Error("S3 unavailable"));
-
-    await expect(loadLatestTableSnapshot()).rejects.toThrow("S3 unavailable");
-    expect(downloadTotalsCsvMock).not.toHaveBeenCalled();
-  });
-
-  it("backs off repeated cold-start failures", async () => {
-    findLatestTotalsObjectMock.mockRejectedValue(new Error("S3 unavailable"));
-
-    await expect(loadLatestTableSnapshot()).rejects.toThrow("S3 unavailable");
-    await expect(loadLatestTableSnapshot()).rejects.toThrow("S3 unavailable");
-    expect(findLatestTotalsObjectMock).toHaveBeenCalledTimes(1);
-
-    jest.setSystemTime(new Date("2026-08-26T22:01:01.000Z"));
-    await expect(loadLatestTableSnapshot()).rejects.toThrow("S3 unavailable");
-    expect(findLatestTotalsObjectMock).toHaveBeenCalledTimes(2);
-  });
-
-  it("deduplicates concurrent cold refreshes", async () => {
-    const object = source("total/run-1.csv", '"etag-1"');
-    let resolveDiscovery: ((value: typeof object) => void) | undefined;
-    findLatestTotalsObjectMock.mockReturnValue(
-      new Promise((resolve) => {
-        resolveDiscovery = resolve;
-      }),
+  it("uses warehouse app IDs as opaque map keys", () => {
+    const warehouseAppId = "app_staging_c8137371ceac59890774ccc932e11dcf";
+    const result = parseTotalsTable(
+      totalsCsv().replace(appIdA, warehouseAppId),
     );
-    downloadTotalsCsvMock.mockResolvedValue({ csv: csv(), object });
 
-    const first = loadLatestTableSnapshot();
-    const second = loadLatestTableSnapshot();
-    resolveDiscovery?.(object);
-    await Promise.all([first, second]);
+    expect(result.records.get(warehouseAppId)?.appId).toBe(warehouseAppId);
+  });
 
-    expect(findLatestTotalsObjectMock).toHaveBeenCalledTimes(1);
-    expect(downloadTotalsCsvMock).toHaveBeenCalledTimes(1);
+  it("wraps malformed CSV as a validation error", () => {
+    expect(() =>
+      parseTotalsTable(`PARTNER_APP_ID,N_PROOFS\n${appIdA},"unterminated\n`),
+    ).toThrow(TableValidationError);
   });
 });
 // #endregion
