@@ -188,7 +188,7 @@ const buildObjectDescriptor = ({
  * explicitly instead of turning a request into unbounded listing work.
  */
 export const listCsv = async (
-  prefix: TablePrefix,
+  prefix: string,
 ): Promise<TableObjectDescriptor> => {
   const { bucket, region } = getAnalyticsS3Config();
   const client = getAnalyticsS3Client(region);

@@ -12,12 +12,7 @@ import {
   parseTotalsTable,
   type ParsedTable,
 } from "./format-tables";
-import {
-  downloadCsv,
-  listCsv,
-  type TableObjectDescriptor,
-  type TablePrefix,
-} from "./s3";
+import { downloadCsv, listCsv, type TableObjectDescriptor } from "./s3";
 
 const SNAPSHOT_CHECK_INTERVAL_MS = 60_000;
 const REFRESH_FAILURE_RETRY_MS = 60_000;
@@ -59,7 +54,7 @@ type SnapshotLoaderConfig<TRecord> = Readonly<{
   dataset: string;
   label: string;
   parseCsv: (csv: string) => ParsedTable<TRecord>;
-  prefix: TablePrefix;
+  prefix: string;
 }>;
 
 export type TotalsTableSnapshot = TableSnapshot<TotalsRow>;
@@ -204,7 +199,9 @@ const totalsSnapshotLoader = createSnapshotLoader({
   dataset: "selfie_check_totals",
   label: "totals",
   parseCsv: parseTotalsTable,
-  prefix: "total/",
+  // Staging's warehouse export writes totals under a different key prefix;
+  // the deploy stack provides it. Read at boot like every other task env var.
+  prefix: process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX ?? "total/",
 });
 
 const dailySnapshotLoader = createSnapshotLoader({
