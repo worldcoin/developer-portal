@@ -8,8 +8,8 @@ import {
 } from "@/lib/selfie-check-analytics";
 import { useMemo } from "react";
 import {
-  Area,
-  AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
@@ -18,13 +18,12 @@ import {
 
 // Validated categorical pair (portal blue + snapped portal purple): passes the
 // lightness band, chroma floor, CVD separation, and 3:1 surface contrast on the
-// white card. Assigned to series in fixed alphabetical order, never cycled;
-// series beyond the pair fold into muted gray.
-const SERIES_COLORS = ["#007cfb", "#6600cc"] as const;
-const OVERFLOW_SERIES_COLOR = "#757575";
+// white card. Assigned to operating systems in fixed alphabetical order, never
+// cycled; OSes beyond the pair fold into muted gray.
+const OS_COLORS = ["#007cfb", "#6600cc"] as const;
+const OVERFLOW_OS_COLOR = "#757575";
 
-const seriesColor = (index: number) =>
-  SERIES_COLORS[index] ?? OVERFLOW_SERIES_COLOR;
+const osColor = (index: number) => OS_COLORS[index] ?? OVERFLOW_OS_COLOR;
 
 const formatTickDate = (value: string) =>
   new Date(`${value}T00:00:00.000Z`).toLocaleDateString("en-US", {
@@ -39,13 +38,15 @@ export const DailyMetricChart = (props: {
   metric: DailyChartMetric;
   kind: MetricKind;
 }) => {
-  const { points, series } = useMemo(
+  const { points, operatingSystems } = useMemo(
     () => buildDailyChartData(props.rows, props.metric),
     [props.rows, props.metric],
   );
 
-  // Counts by OS compose to an additive total, so they stack; rates do not.
-  const stackId = props.kind === "count" ? "os" : undefined;
+  const formatValue = (value: number) =>
+    props.kind === "rate"
+      ? `${(value * 100).toFixed(1)}%`
+      : value.toLocaleString("en-US");
 
   return (
     <section
@@ -56,19 +57,19 @@ export const DailyMetricChart = (props: {
         <h3 className="font-world text-14 font-medium text-portal-heading">
           {props.title}
         </h3>
-        {series.length > 0 && (
+        {operatingSystems.length > 0 && (
           <ul className="flex items-center gap-3">
-            {series.map((name, index) => (
+            {operatingSystems.map((os, index) => (
               <li
-                key={name}
+                key={os.dataKey}
                 className="flex items-center gap-1.5 font-world text-12 text-portal-muted"
               >
                 <span
                   aria-hidden
                   className="size-2 rounded-full"
-                  style={{ backgroundColor: seriesColor(index) }}
+                  style={{ backgroundColor: osColor(index) }}
                 />
-                {name}
+                {os.osName}
               </li>
             ))}
           </ul>
@@ -82,9 +83,11 @@ export const DailyMetricChart = (props: {
       ) : (
         <div className="mt-4 aspect-video w-full [&_.recharts-surface]:outline-none [&_.recharts-wrapper]:outline-none">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
+            <BarChart
               data={[...points]}
               margin={{ top: 4, left: 12, right: 12, bottom: 0 }}
+              barGap={2}
+              barCategoryGap="30%"
             >
               <CartesianGrid vertical={false} stroke="#f1f1f1" />
               <XAxis
@@ -97,23 +100,23 @@ export const DailyMetricChart = (props: {
                 tickFormatter={formatTickDate}
               />
               <Tooltip
-                cursor={{ stroke: "#b8b8b8", strokeWidth: 1 }}
+                cursor={{ fill: "rgba(24, 24, 24, 0.04)" }}
                 labelFormatter={(value) => formatTickDate(String(value))}
+                formatter={(value) =>
+                  typeof value === "number" ? formatValue(value) : "—"
+                }
               />
-              {series.map((name, index) => (
-                <Area
-                  key={name}
-                  dataKey={name}
-                  type="natural"
-                  stackId={stackId}
-                  connectNulls={false}
-                  stroke={seriesColor(index)}
-                  strokeWidth={2}
-                  fill={seriesColor(index)}
-                  fillOpacity={0.4}
+              {operatingSystems.map((os, index) => (
+                <Bar
+                  key={os.dataKey}
+                  dataKey={os.dataKey}
+                  name={os.osName}
+                  fill={osColor(index)}
+                  radius={[2, 2, 0, 0]}
+                  maxBarSize={8}
                 />
               ))}
-            </AreaChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       )}

@@ -31,10 +31,13 @@ describe("buildDailyChartData", () => {
       "n_proofs",
     );
 
-    expect(result.series).toEqual(["Android", "iOS"]);
+    expect(result.operatingSystems).toEqual([
+      { dataKey: "os:Android", osName: "Android" },
+      { dataKey: "os:iOS", osName: "iOS" },
+    ]);
     expect(result.points).toEqual([
-      { date: "2026-08-25", iOS: 2 },
-      { date: "2026-08-26", Android: 5, iOS: 3 },
+      { date: "2026-08-25", "os:iOS": 2 },
+      { date: "2026-08-26", "os:Android": 5, "os:iOS": 3 },
     ]);
   });
 
@@ -47,17 +50,27 @@ describe("buildDailyChartData", () => {
       "n_proofs",
     );
 
-    expect(result.points[0]).toEqual({ date: "2026-08-25", iOS: null });
-    expect(result.points[1]).not.toHaveProperty("iOS");
+    expect(result.points[0]).toEqual({ date: "2026-08-25", "os:iOS": null });
+    expect(result.points[1]).not.toHaveProperty("os:iOS");
   });
 
-  it("remaps an OS named 'date' so it cannot clobber the x-axis key", () => {
+  it("keeps colliding display labels as distinct series keys", () => {
     const result = buildDailyChartData(
-      [row({ os_name: "date", n_proofs: 7 })],
+      [
+        row({ os_name: "date", n_proofs: 7 }),
+        row({ os_name: "date (os)", n_proofs: 9 }),
+      ],
       "n_proofs",
     );
 
-    expect(result.series).toEqual(["date (os)"]);
-    expect(result.points[0]).toEqual({ date: "2026-08-26", "date (os)": 7 });
+    expect(result.operatingSystems).toEqual([
+      { dataKey: "os:date", osName: "date" },
+      { dataKey: "os:date (os)", osName: "date (os)" },
+    ]);
+    expect(result.points[0]).toEqual({
+      date: "2026-08-26",
+      "os:date": 7,
+      "os:date (os)": 9,
+    });
   });
 });
