@@ -46,6 +46,9 @@ jest.mock("@/lib/utils", () => ({
 jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
   SandboxButton: () => <button type="button">World ID Sandbox</button>,
 }));
+
+const fetchMock = jest.fn();
+global.fetch = fetchMock as unknown as typeof fetch;
 // #endregion
 
 import {
@@ -104,7 +107,44 @@ beforeEach(() => {
     data: makeWorldIdNavigationData(),
     loading: false,
   });
+  // Analytics eligibility stays pending unless a test resolves it, so the
+  // allowlist-gated entry is hidden by default.
+  fetchMock.mockReturnValue(new Promise(() => {}));
 });
+
+// #region Analytics allowlist gate
+it("shows and activates the Analytics entry when the endpoint allows the app", async () => {
+  fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
+  usePathname.mockReturnValue(`${base}/analytics`);
+  renderSidebar();
+
+  expect(
+    await screen.findByRole("link", { name: "Analytics" }),
+  ).toBeInTheDocument();
+  expect(isCurrent("Analytics")).toBe(true);
+  expect(fetchMock).toHaveBeenCalledWith(
+    `/api/v2/apps/${appId}/selfie-check-analytics?table=daily`,
+    expect.objectContaining({ credentials: "same-origin" }),
+  );
+});
+
+it("hides the Analytics entry when the app is outside the allowlist", async () => {
+  fetchMock.mockResolvedValue(new Response(null, { status: 404 }));
+  renderSidebar();
+
+  await screen.findByRole("link", { name: "Dashboard" });
+  noLink("Analytics");
+});
+
+it("keeps the Analytics entry when the app passed the gate but data is unavailable", async () => {
+  fetchMock.mockResolvedValue(new Response(null, { status: 503 }));
+  renderSidebar();
+
+  expect(
+    await screen.findByRole("link", { name: "Analytics" }),
+  ).toBeInTheDocument();
+});
+// #endregion
 
 // #region active pill animation compartments
 it("snaps from an app tab to Projects but slides within team navigation", () => {
