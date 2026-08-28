@@ -42,10 +42,15 @@ export type ReviewerNotification = {
   attemptCount: number;
   channel: string;
   createdAt: string;
+  deliveredAt: string | null;
+  lastAttemptAt: string | null;
   lastError: string | null;
+  nextAttemptAt: string;
   notificationType: string;
+  providerMessageId: string | null;
   recipient: string | null;
   status: string;
+  updatedAt: string;
 };
 
 export type ReviewerAsset = {

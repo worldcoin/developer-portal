@@ -89,10 +89,15 @@ export type FetchReviewerSubmissionQuery = {
       attempt_count: number;
       channel: string;
       created_at: string;
+      delivered_at?: string | null;
+      last_attempt_at?: string | null;
       last_error?: string | null;
+      next_attempt_at: string;
       notification_type: string;
+      provider_message_id?: string | null;
       recipient?: string | null;
       status: string;
+      updated_at: string;
     }>;
   } | null;
 };
@@ -174,10 +179,15 @@ export const FetchReviewerSubmissionDocument = gql`
         attempt_count
         channel
         created_at
+        delivered_at
+        last_attempt_at
         last_error
+        next_attempt_at
         notification_type
+        provider_message_id
         recipient
         status
+        updated_at
       }
     }
   }

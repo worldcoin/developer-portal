@@ -4472,11 +4472,21 @@ export type App_Review_Notification = {
   attempt_count: Scalars["Int"]["output"];
   channel: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
+  delivered_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["uuid"]["output"];
+  last_attempt_at?: Maybe<Scalars["timestamptz"]["output"]>;
   last_error?: Maybe<Scalars["String"]["output"]>;
+  locked_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  locked_by?: Maybe<Scalars["String"]["output"]>;
+  next_attempt_at: Scalars["timestamptz"]["output"];
   notification_type: Scalars["String"]["output"];
+  payload: Scalars["jsonb"]["output"];
+  provider_message_id?: Maybe<Scalars["String"]["output"]>;
   recipient?: Maybe<Scalars["String"]["output"]>;
   status: Scalars["String"]["output"];
+  submission: App_Review_Submission;
+  submission_id: Scalars["uuid"]["output"];
+  updated_at: Scalars["timestamptz"]["output"];
 };
 
 export type App_Review_Notification_Order_By = {
@@ -7140,11 +7150,14 @@ export type Mutation_Root = {
   reset_client_secret?: Maybe<ResetClientOutput>;
   /** Retry RP registration sync for a specific environment */
   retry_rp?: Maybe<RetryRpOutput>;
+  reviewer_claim_app_review_notifications: Array<App_Review_Notification>;
   reviewer_claim_app_review_submission: Array<App_Review_Submission>;
+  reviewer_complete_app_review_notification: Array<App_Review_Notification>;
   reviewer_decide_app_review_submission: Array<App_Review_Submission>;
   reviewer_enqueue_app_review_asset_cleanup: Array<App_Review_Notification>;
   reviewer_heartbeat_app_review_submission: Array<App_Review_Submission>;
   reviewer_release_app_review_submission: Array<App_Review_Submission>;
+  reviewer_retry_app_review_notification: Array<App_Review_Notification>;
   reviewer_save_app_review_checklist: Array<App_Review_Submission>;
   reviewer_settle_app_review_asset_cleanup: Array<App_Review_Notification>;
   /** execute VOLATILE function "rollup_app_stats" which returns "app_stats" */
@@ -8145,8 +8158,18 @@ export type Mutation_RootRetry_RpArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootReviewer_Claim_App_Review_NotificationsArgs = {
+  args: Reviewer_Claim_App_Review_Notifications_Args;
+};
+
+/** mutation root */
 export type Mutation_RootReviewer_Claim_App_Review_SubmissionArgs = {
   args: Reviewer_Claim_App_Review_Submission_Args;
+};
+
+/** mutation root */
+export type Mutation_RootReviewer_Complete_App_Review_NotificationArgs = {
+  args: Reviewer_Complete_App_Review_Notification_Args;
 };
 
 /** mutation root */
@@ -8167,6 +8190,11 @@ export type Mutation_RootReviewer_Heartbeat_App_Review_SubmissionArgs = {
 /** mutation root */
 export type Mutation_RootReviewer_Release_App_Review_SubmissionArgs = {
   args: Reviewer_Release_App_Review_Submission_Args;
+};
+
+/** mutation root */
+export type Mutation_RootReviewer_Retry_App_Review_NotificationArgs = {
+  args: Reviewer_Retry_App_Review_Notification_Args;
 };
 
 /** mutation root */
@@ -10153,6 +10181,7 @@ export type Query_Root = {
   app_report_appeal_by_pk?: Maybe<App_Report_Appeal>;
   /** fetch data from the table: "app_report" using primary key columns */
   app_report_by_pk?: Maybe<App_Report>;
+  app_review_notification_by_pk?: Maybe<App_Review_Notification>;
   app_review_submission: Array<App_Review_Submission>;
   app_review_submission_by_pk?: Maybe<App_Review_Submission>;
   /** fetch data from the table: "app_reviews" */
@@ -10550,6 +10579,10 @@ export type Query_RootApp_Report_Appeal_By_PkArgs = {
 
 export type Query_RootApp_Report_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootApp_Review_Notification_By_PkArgs = {
+  id: Scalars["uuid"]["input"];
 };
 
 export type Query_RootApp_Review_SubmissionArgs = {
@@ -11246,11 +11279,24 @@ export type Review_Status_Enum_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars["review_status_enum"]["input"]>>;
 };
 
+export type Reviewer_Claim_App_Review_Notifications_Args = {
+  p_limit: Scalars["Int"]["input"];
+  p_worker_id: Scalars["String"]["input"];
+};
+
 export type Reviewer_Claim_App_Review_Submission_Args = {
   p_actor_email: Scalars["String"]["input"];
   p_actor_subject: Scalars["String"]["input"];
   p_expected_review_version: Scalars["Int"]["input"];
   p_submission_id: Scalars["uuid"]["input"];
+};
+
+export type Reviewer_Complete_App_Review_Notification_Args = {
+  p_error?: InputMaybe<Scalars["String"]["input"]>;
+  p_notification_id: Scalars["uuid"]["input"];
+  p_outcome: Scalars["String"]["input"];
+  p_provider_message_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_worker_id: Scalars["String"]["input"];
 };
 
 export type Reviewer_Decide_App_Review_Submission_Args = {
@@ -11302,6 +11348,12 @@ export type Reviewer_Release_App_Review_Submission_Args = {
   p_claim_token: Scalars["uuid"]["input"];
   p_expected_review_version: Scalars["Int"]["input"];
   p_submission_id: Scalars["uuid"]["input"];
+};
+
+export type Reviewer_Retry_App_Review_Notification_Args = {
+  p_actor_email: Scalars["String"]["input"];
+  p_actor_subject: Scalars["String"]["input"];
+  p_notification_id: Scalars["uuid"]["input"];
 };
 
 export type Reviewer_Save_App_Review_Checklist_Args = {

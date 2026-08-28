@@ -11,11 +11,13 @@ jest.mock("@/api/helpers/image-processing", () => ({
 import {
   collectVerifiedReviewerAssetKeys,
   deletePreparedReviewerAssets,
+  expireVerifiedReviewerAssets,
   prepareReviewerDecisionAssets,
 } from "@/api/helpers/reviewer-decision-assets";
 import {
   CopyObjectCommand,
   DeleteObjectsCommand,
+  PutObjectTaggingCommand,
   type S3Client,
 } from "@aws-sdk/client-s3";
 
@@ -302,6 +304,30 @@ describe("review decision assets", () => {
         bucketName: "assets",
       }),
     ).rejects.toMatchObject({ failedKeys: ["failed-key"] });
+  });
+
+  it("passes the worker deadline to prepared deletion and live expiry requests", async () => {
+    const abortSignal = AbortSignal.timeout(15_000);
+
+    await deletePreparedReviewerAssets({
+      keys: ["verified/app_123/prepared.png"],
+      abortSignal,
+      s3Client: client,
+      bucketName: "assets",
+    });
+    await expireVerifiedReviewerAssets({
+      keys: ["verified/app_123/old.png"],
+      abortSignal,
+      s3Client: client,
+      bucketName: "assets",
+    });
+
+    expect(send).toHaveBeenCalledWith(expect.any(DeleteObjectsCommand), {
+      abortSignal,
+    });
+    expect(send).toHaveBeenCalledWith(expect.any(PutObjectTaggingCommand), {
+      abortSignal,
+    });
   });
 
   it("collects exact prior live references without listing a shared prefix", () => {

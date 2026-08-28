@@ -10,7 +10,7 @@ type Attachment = {
   disposition?: string;
 };
 
-export const sendEmail = async (params: {
+type SendEmailParams = {
   apiKey: string;
   to: Array<EmailData> | EmailData;
   from: EmailData;
@@ -20,7 +20,12 @@ export const sendEmail = async (params: {
   text?: string;
   html?: string;
   attachments?: Array<Attachment>;
-}): Promise<boolean> => {
+  customArgs?: Record<string, string>;
+};
+
+export const sendEmailDetailed = async (
+  params: SendEmailParams,
+): Promise<{ messageId: string | null }> => {
   if (
     (params.templateId && !params.templateData) ||
     (!params.templateId && params.templateData)
@@ -32,9 +37,10 @@ export const sendEmail = async (params: {
   }
 
   sendgrid.setApiKey(params.apiKey);
+  sendgrid.setTimeout(15_000);
 
   try {
-    await sendgrid.send({
+    const result = await sendgrid.send({
       ...(params.attachments ? { attachments: params.attachments } : {}),
       mailSettings: {
         bypassUnsubscribeManagement: {
@@ -54,7 +60,19 @@ export const sendEmail = async (params: {
           }),
       from: params.from,
       to: params.to,
+      ...(params.customArgs ? { customArgs: params.customArgs } : {}),
     });
+    const response = Array.isArray(result) ? result[0] : undefined;
+    const rawMessageId = response?.headers?.["x-message-id"];
+    const messageId = Array.isArray(rawMessageId)
+      ? rawMessageId[0]
+      : rawMessageId;
+    return {
+      messageId:
+        typeof messageId === "string" && messageId.length <= 512
+          ? messageId
+          : null,
+    };
   } catch (err: any) {
     const emails = [params.to]
       .flat()
@@ -62,5 +80,9 @@ export const sendEmail = async (params: {
       .join(", ");
     throw new Error(`Cannot send email for user ${emails}: ${err.message}`);
   }
+};
+
+export const sendEmail = async (params: SendEmailParams): Promise<boolean> => {
+  await sendEmailDetailed(params);
   return true;
 };

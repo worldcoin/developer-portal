@@ -268,10 +268,15 @@ describe("review history", () => {
           attemptCount: 2,
           channel: "email",
           createdAt: "2026-08-21T13:00:00.000Z",
+          deliveredAt: null,
+          lastAttemptAt: "2026-08-21T13:05:00.000Z",
           lastError: "Provider unavailable",
+          nextAttemptAt: "2026-08-21T13:06:00.000Z",
           notificationType: "decision_approved",
+          providerMessageId: null,
           recipient: "owner@example.com",
           status: "failed",
+          updatedAt: "2026-08-21T13:05:00.000Z",
         },
       ],
     };
@@ -288,6 +293,8 @@ describe("review history", () => {
 
     fireEvent.click(screen.getByText("Delivery attempts"));
     expect(screen.getByText("Provider unavailable")).toBeInTheDocument();
+    expect(screen.getByText(/Last attempt:/)).toBeInTheDocument();
+    expect(screen.getByText(/Next retry:/)).toBeInTheDocument();
   });
 });
 

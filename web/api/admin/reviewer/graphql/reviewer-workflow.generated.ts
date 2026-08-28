@@ -126,6 +126,107 @@ export type HasActiveListingReviewQuery = {
   }>;
 };
 
+export type ClaimReviewNotificationsMutationVariables = Types.Exact<{
+  worker_id: Types.Scalars["String"]["input"];
+  limit: Types.Scalars["Int"]["input"];
+}>;
+
+export type ClaimReviewNotificationsMutation = {
+  __typename?: "mutation_root";
+  reviewer_claim_app_review_notifications: Array<{
+    __typename?: "app_review_notification";
+    id: unknown;
+    submission_id: unknown;
+    notification_type: string;
+    channel: string;
+    status: string;
+    recipient?: string | null;
+    payload: any;
+    attempt_count: number;
+    locked_at?: string | null;
+    locked_by?: string | null;
+  }>;
+};
+
+export type FetchReviewNotificationContextQueryVariables = Types.Exact<{
+  notification_id: Types.Scalars["uuid"]["input"];
+}>;
+
+export type FetchReviewNotificationContextQuery = {
+  __typename?: "query_root";
+  app_review_notification_by_pk?: {
+    __typename?: "app_review_notification";
+    id: unknown;
+    submission_id: unknown;
+    notification_type: string;
+    channel: string;
+    status: string;
+    recipient?: string | null;
+    payload: any;
+    attempt_count: number;
+    locked_at?: string | null;
+    locked_by?: string | null;
+    submission: {
+      __typename?: "app_review_submission";
+      id: unknown;
+      app_id: string;
+      app_metadata_id: string;
+      app_mode: string;
+      listing_target: string;
+      status: string;
+      review_version: number;
+      decision_fingerprint?: string | null;
+      decision_result?: any | null;
+      changelog: string;
+      submitted_at: string;
+      decision_summary?: string | null;
+      metadata_snapshot: any;
+      team_id: string;
+      claim_expires_at?: string | null;
+      app: { __typename?: "app"; name: string };
+      team: { __typename?: "team"; name?: string | null };
+    };
+  } | null;
+};
+
+export type CompleteReviewNotificationMutationVariables = Types.Exact<{
+  notification_id: Types.Scalars["uuid"]["input"];
+  worker_id: Types.Scalars["String"]["input"];
+  outcome: Types.Scalars["String"]["input"];
+  provider_message_id?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  error?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+}>;
+
+export type CompleteReviewNotificationMutation = {
+  __typename?: "mutation_root";
+  reviewer_complete_app_review_notification: Array<{
+    __typename?: "app_review_notification";
+    id: unknown;
+    status: string;
+    attempt_count: number;
+    next_attempt_at: string;
+    delivered_at?: string | null;
+  }>;
+};
+
+export type RetryReviewNotificationMutationVariables = Types.Exact<{
+  notification_id: Types.Scalars["uuid"]["input"];
+  actor_subject: Types.Scalars["String"]["input"];
+  actor_email: Types.Scalars["String"]["input"];
+}>;
+
+export type RetryReviewNotificationMutation = {
+  __typename?: "mutation_root";
+  reviewer_retry_app_review_notification: Array<{
+    __typename?: "app_review_notification";
+    id: unknown;
+    status: string;
+    attempt_count: number;
+    next_attempt_at: string;
+    delivered_at?: string | null;
+  }>;
+};
+
 export type ClaimReviewSubmissionMutationVariables = Types.Exact<{
   submission_id: Types.Scalars["uuid"]["input"];
   expected_review_version: Types.Scalars["Int"]["input"];
@@ -395,6 +496,109 @@ export const HasActiveListingReviewDocument = gql`
       }
     ) {
       id
+    }
+  }
+`;
+export const ClaimReviewNotificationsDocument = gql`
+  mutation ClaimReviewNotifications($worker_id: String!, $limit: Int!) {
+    reviewer_claim_app_review_notifications(
+      args: { p_worker_id: $worker_id, p_limit: $limit }
+    ) {
+      id
+      submission_id
+      notification_type
+      channel
+      status
+      recipient
+      payload
+      attempt_count
+      locked_at
+      locked_by
+    }
+  }
+`;
+export const FetchReviewNotificationContextDocument = gql`
+  query FetchReviewNotificationContext($notification_id: uuid!) {
+    app_review_notification_by_pk(id: $notification_id) {
+      id
+      submission_id
+      notification_type
+      channel
+      status
+      recipient
+      payload
+      attempt_count
+      locked_at
+      locked_by
+      submission {
+        id
+        app_id
+        app_metadata_id
+        app_mode
+        listing_target
+        status
+        review_version
+        decision_fingerprint
+        decision_result
+        changelog
+        submitted_at
+        decision_summary
+        metadata_snapshot
+        team_id
+        claim_expires_at
+        app {
+          name
+        }
+        team {
+          name
+        }
+      }
+    }
+  }
+`;
+export const CompleteReviewNotificationDocument = gql`
+  mutation CompleteReviewNotification(
+    $notification_id: uuid!
+    $worker_id: String!
+    $outcome: String!
+    $provider_message_id: String
+    $error: String
+  ) {
+    reviewer_complete_app_review_notification(
+      args: {
+        p_notification_id: $notification_id
+        p_worker_id: $worker_id
+        p_outcome: $outcome
+        p_provider_message_id: $provider_message_id
+        p_error: $error
+      }
+    ) {
+      id
+      status
+      attempt_count
+      next_attempt_at
+      delivered_at
+    }
+  }
+`;
+export const RetryReviewNotificationDocument = gql`
+  mutation RetryReviewNotification(
+    $notification_id: uuid!
+    $actor_subject: String!
+    $actor_email: String!
+  ) {
+    reviewer_retry_app_review_notification(
+      args: {
+        p_notification_id: $notification_id
+        p_actor_subject: $actor_subject
+        p_actor_email: $actor_email
+      }
+    ) {
+      id
+      status
+      attempt_count
+      next_attempt_at
+      delivered_at
     }
   }
 `;
@@ -697,6 +901,70 @@ export function getSdk(
           ),
         "HasActiveListingReview",
         "query",
+        variables,
+      );
+    },
+    ClaimReviewNotifications(
+      variables: ClaimReviewNotificationsMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<ClaimReviewNotificationsMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<ClaimReviewNotificationsMutation>(
+            ClaimReviewNotificationsDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "ClaimReviewNotifications",
+        "mutation",
+        variables,
+      );
+    },
+    FetchReviewNotificationContext(
+      variables: FetchReviewNotificationContextQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<FetchReviewNotificationContextQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<FetchReviewNotificationContextQuery>(
+            FetchReviewNotificationContextDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "FetchReviewNotificationContext",
+        "query",
+        variables,
+      );
+    },
+    CompleteReviewNotification(
+      variables: CompleteReviewNotificationMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<CompleteReviewNotificationMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<CompleteReviewNotificationMutation>(
+            CompleteReviewNotificationDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "CompleteReviewNotification",
+        "mutation",
+        variables,
+      );
+    },
+    RetryReviewNotification(
+      variables: RetryReviewNotificationMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<RetryReviewNotificationMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<RetryReviewNotificationMutation>(
+            RetryReviewNotificationDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "RetryReviewNotification",
+        "mutation",
         variables,
       );
     },

@@ -1,3 +1,17 @@
+- name: Deliver reviewer notifications
+  webhook: "{{NEXT_API_URL}}/_deliver-review-notifications"
+  schedule: "* * * * *"
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 0
+    retry_interval_seconds: 10
+    timeout_seconds: 55
+    tolerance_seconds: 21600
+  headers:
+    - name: Authorization
+      value_from_env: INTERNAL_ENDPOINTS_SECRET
+  comment: Drain the durable reviewer notification, publication, and asset outbox.
 - name: Cleanup notification logs
   webhook: "{{NEXT_API_URL}}/delete-expired-notification-logs"
   schedule: "*/15 * * * *"

@@ -122,6 +122,11 @@ export const readClaimBody = async (
   return { expectedReviewVersion: body.expectedReviewVersion };
 };
 
+export const readEmptyJsonBody = async (req: NextRequest): Promise<boolean> => {
+  const body = await readJsonObject(req);
+  return Boolean(body && Object.keys(body).length === 0);
+};
+
 export const readClaimedWriteBody = async (
   req: NextRequest,
 ): Promise<ClaimedWriteBody | null> => {

@@ -119,6 +119,28 @@ export const ReviewHistory = ({
                         {notification.recipient}
                       </p>
                     ) : null}
+                    {notification.lastAttemptAt ? (
+                      <p className="mt-1 text-11 text-grey-500">
+                        Last attempt: {formatTime(notification.lastAttemptAt)}
+                      </p>
+                    ) : null}
+                    {(notification.status === "failed" ||
+                      notification.status === "pending") &&
+                    notification.nextAttemptAt ? (
+                      <p className="mt-1 text-11 text-grey-500">
+                        Next retry: {formatTime(notification.nextAttemptAt)}
+                      </p>
+                    ) : null}
+                    {notification.deliveredAt ? (
+                      <p className="mt-1 text-11 text-grey-500">
+                        Delivered: {formatTime(notification.deliveredAt)}
+                      </p>
+                    ) : null}
+                    {notification.providerMessageId ? (
+                      <p className="mt-1 text-11 break-all text-grey-500">
+                        Provider ID: {notification.providerMessageId}
+                      </p>
+                    ) : null}
                   </div>
                   {(notification.status === "failed" ||
                     notification.status === "dead_letter") &&

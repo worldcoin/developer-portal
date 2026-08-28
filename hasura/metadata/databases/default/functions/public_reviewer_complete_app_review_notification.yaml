@@ -1,0 +1,8 @@
+function:
+  name: reviewer_complete_app_review_notification
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: service

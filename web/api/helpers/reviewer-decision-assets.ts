@@ -322,8 +322,12 @@ export const prepareReviewerDecisionAssets = async ({
 
 export const deletePreparedReviewerAssets = async ({
   keys,
+  abortSignal,
   ...storeOverride
-}: { keys: string[] } & StoreOverride): Promise<void> => {
+}: {
+  keys: string[];
+  abortSignal?: AbortSignal;
+} & StoreOverride): Promise<void> => {
   const { s3Client, bucketName } = resolveStore(storeOverride);
   const uniqueKeys = [...new Set(keys)];
   const failedKeys: string[] = [];
@@ -335,12 +339,13 @@ export const deletePreparedReviewerAssets = async ({
     const batch = uniqueKeys.slice(index, index + MAX_ASSET_DELETE_BATCH);
     if (batch.length === 0) continue;
     try {
-      const response = await s3Client.send(
-        new DeleteObjectsCommand({
-          Bucket: bucketName,
-          Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: true },
-        }),
-      );
+      const command = new DeleteObjectsCommand({
+        Bucket: bucketName,
+        Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: true },
+      });
+      const response = abortSignal
+        ? await s3Client.send(command, { abortSignal })
+        : await s3Client.send(command);
       if (response.Errors?.length) {
         const reportedKeys = response.Errors.flatMap(({ Key }) =>
           Key && batch.includes(Key) ? [Key] : [],
@@ -411,20 +416,24 @@ export const collectVerifiedReviewerAssetKeys = ({
 
 export const expireVerifiedReviewerAssets = async ({
   keys,
+  abortSignal,
   ...storeOverride
-}: { keys: string[] } & StoreOverride): Promise<string[]> => {
+}: { keys: string[]; abortSignal?: AbortSignal } & StoreOverride): Promise<
+  string[]
+> => {
   const { s3Client, bucketName } = resolveStore(storeOverride);
   const uniqueKeys = [...new Set(keys)];
   const results = await Promise.allSettled(
-    uniqueKeys.map((Key) =>
-      s3Client.send(
-        new PutObjectTaggingCommand({
-          Bucket: bucketName,
-          Key,
-          Tagging: { TagSet: [{ Key: "expired", Value: "true" }] },
-        }),
-      ),
-    ),
+    uniqueKeys.map((Key) => {
+      const command = new PutObjectTaggingCommand({
+        Bucket: bucketName,
+        Key,
+        Tagging: { TagSet: [{ Key: "expired", Value: "true" }] },
+      });
+      return abortSignal
+        ? s3Client.send(command, { abortSignal })
+        : s3Client.send(command);
+    }),
   );
   return uniqueKeys.filter((_, index) => results[index].status === "rejected");
 };

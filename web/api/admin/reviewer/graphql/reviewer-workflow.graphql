@@ -98,6 +98,105 @@ query HasActiveListingReview($app_metadata_id: String!) {
   }
 }
 
+mutation ClaimReviewNotifications($worker_id: String!, $limit: Int!) {
+  reviewer_claim_app_review_notifications(
+    args: { p_worker_id: $worker_id, p_limit: $limit }
+  ) {
+    id
+    submission_id
+    notification_type
+    channel
+    status
+    recipient
+    payload
+    attempt_count
+    locked_at
+    locked_by
+  }
+}
+
+query FetchReviewNotificationContext($notification_id: uuid!) {
+  app_review_notification_by_pk(id: $notification_id) {
+    id
+    submission_id
+    notification_type
+    channel
+    status
+    recipient
+    payload
+    attempt_count
+    locked_at
+    locked_by
+    submission {
+      id
+      app_id
+      app_metadata_id
+      app_mode
+      listing_target
+      status
+      review_version
+      decision_fingerprint
+      decision_result
+      changelog
+      submitted_at
+      decision_summary
+      metadata_snapshot
+      team_id
+      claim_expires_at
+      app {
+        name
+      }
+      team {
+        name
+      }
+    }
+  }
+}
+
+mutation CompleteReviewNotification(
+  $notification_id: uuid!
+  $worker_id: String!
+  $outcome: String!
+  $provider_message_id: String
+  $error: String
+) {
+  reviewer_complete_app_review_notification(
+    args: {
+      p_notification_id: $notification_id
+      p_worker_id: $worker_id
+      p_outcome: $outcome
+      p_provider_message_id: $provider_message_id
+      p_error: $error
+    }
+  ) {
+    id
+    status
+    attempt_count
+    next_attempt_at
+    delivered_at
+  }
+}
+
+mutation RetryReviewNotification(
+  $notification_id: uuid!
+  $actor_subject: String!
+  $actor_email: String!
+) {
+  reviewer_retry_app_review_notification(
+    args: {
+      p_notification_id: $notification_id
+      p_actor_subject: $actor_subject
+      p_actor_email: $actor_email
+    }
+  ) {
+    id
+    status
+    attempt_count
+    next_attempt_at
+    delivered_at
+  }
+}
+
 mutation ClaimReviewSubmission(
   $submission_id: uuid!
   $expected_review_version: Int!

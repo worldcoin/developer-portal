@@ -74,10 +74,15 @@ query FetchReviewerSubmission($reviewId: uuid!) {
       attempt_count
       channel
       created_at
+      delivered_at
+      last_attempt_at
       last_error
+      next_attempt_at
       notification_type
+      provider_message_id
       recipient
       status
+      updated_at
     }
   }
 }

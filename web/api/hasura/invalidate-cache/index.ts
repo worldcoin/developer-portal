@@ -1,11 +1,7 @@
 import { errorHasuraQuery } from "@/api/helpers/errors";
-import { clearMetricsCache } from "@/api/helpers/fetch-metrics";
+import { invalidateAppCatalogCache } from "@/api/helpers/invalidate-app-catalog-cache";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { logger } from "@/lib/logger";
-import {
-  CloudFrontClient,
-  CreateInvalidationCommand,
-} from "@aws-sdk/client-cloudfront";
 import { NextRequest, NextResponse } from "next/server";
 
 // This function serves to invalidate the cache after making changes to app store directory
@@ -44,53 +40,15 @@ export const POST = async (req: NextRequest) => {
     return errorHasuraQuery({ req });
   }
 
-  const debounceKey = `invalidate_cache_lock`;
-
-  // Add a redis debounce to prevent multiple requests invalidating the cache
-  const redis = global.RedisClient;
-  if (!redis) {
-    return errorHasuraQuery({
-      req,
-      detail: "Redis client not found",
-      code: "internal_server_error",
-    });
-  }
-
   try {
-    const debounceValue = await redis.get(debounceKey);
-
-    if (debounceValue) {
-      return NextResponse.json({ success: true });
-    } else {
-      await redis.set(debounceKey, "true", "EX", 60); // Can only be requested every minute
-    }
-
-    const client = new CloudFrontClient({
-      region: process.env.ASSETS_S3_REGION,
+    await invalidateAppCatalogCache({
+      callerReference: `legacy:${Date.now()}`,
     });
-
-    const input = {
-      DistributionId: process.env.CLOUDFRONT_DISTRIBUTION_ID,
-      InvalidationBatch: {
-        Paths: {
-          Quantity: 2,
-          Items: ["/api/v2/public/app/*", "/api/v2/public/apps*"],
-        },
-        CallerReference: Date.now().toString(),
-      },
-    };
-
-    await clearMetricsCache();
-
-    const command = new CreateInvalidationCommand(input);
-    await client.send(command);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     logger.error("Error invalidating cache.", { error });
 
-    // Also delete the key so we can try again
-    await redis.del(debounceKey);
     return errorHasuraQuery({
       req,
       detail: "Error invalidating cache.",

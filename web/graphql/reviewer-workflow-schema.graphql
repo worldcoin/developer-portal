@@ -56,13 +56,23 @@ input app_review_event_order_by {
 
 type app_review_notification {
   id: uuid!
+  submission_id: uuid!
   notification_type: String!
   channel: String!
   status: String!
   recipient: String
+  payload: jsonb!
   attempt_count: Int!
+  next_attempt_at: timestamptz!
+  locked_at: timestamptz
+  locked_by: String
+  last_attempt_at: timestamptz
+  delivered_at: timestamptz
+  provider_message_id: String
   last_error: String
   created_at: timestamptz!
+  updated_at: timestamptz!
+  submission: app_review_submission!
 }
 
 input app_review_notification_order_by {
@@ -130,6 +140,25 @@ input reviewer_settle_app_review_asset_cleanup_args {
   p_actor_email: String!
 }
 
+input reviewer_claim_app_review_notifications_args {
+  p_worker_id: String!
+  p_limit: Int!
+}
+
+input reviewer_complete_app_review_notification_args {
+  p_notification_id: uuid!
+  p_worker_id: String!
+  p_outcome: String!
+  p_provider_message_id: String
+  p_error: String
+}
+
+input reviewer_retry_app_review_notification_args {
+  p_notification_id: uuid!
+  p_actor_subject: String!
+  p_actor_email: String!
+}
+
 input reviewer_claim_app_review_submission_args {
   p_submission_id: uuid!
   p_expected_review_version: Int!
@@ -164,6 +193,15 @@ input reviewer_save_app_review_checklist_args {
 }
 
 extend type mutation_root {
+  reviewer_claim_app_review_notifications(
+    args: reviewer_claim_app_review_notifications_args!
+  ): [app_review_notification!]!
+  reviewer_complete_app_review_notification(
+    args: reviewer_complete_app_review_notification_args!
+  ): [app_review_notification!]!
+  reviewer_retry_app_review_notification(
+    args: reviewer_retry_app_review_notification_args!
+  ): [app_review_notification!]!
   reviewer_enqueue_app_review_asset_cleanup(
     args: reviewer_enqueue_app_review_asset_cleanup_args!
   ): [app_review_notification!]!
@@ -188,6 +226,7 @@ extend type mutation_root {
 }
 
 extend type query_root {
+  app_review_notification_by_pk(id: uuid!): app_review_notification
   app_review_submission(
     limit: Int
     offset: Int
