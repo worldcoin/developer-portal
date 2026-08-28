@@ -1,3 +1,9 @@
+DELETE FROM "public"."app_review_notification";
+
+DELETE FROM "public"."app_review_event";
+
+DELETE FROM "public"."app_review_submission";
+
 DELETE FROM "public"."nullifier";
 
 DELETE FROM "public"."auth_code";
