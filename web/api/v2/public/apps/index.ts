@@ -25,6 +25,7 @@ import {
 import { fetchMetrics } from "@/api/helpers/fetch-metrics";
 import { compareVersions } from "@/lib/compare-versions";
 import { logger } from "@/lib/logger";
+import type { App_Metadata_Bool_Exp } from "@/graphql/graphql";
 import { CONTACTS_APP_AVAILABLE_FROM } from "../constants";
 import {
   GetHighlightsQuery,
@@ -44,6 +45,83 @@ const queryParamsSchema = yup
     skip_country_check: yup.boolean().notRequired().default(false),
   })
   .noUnknown();
+
+type PublicCatalogApp = Pick<
+  GetAppsQuery["top_apps"][number],
+  "app_mode" | "category"
+>;
+type CatalogAppMode = "mini-app" | "external" | "native" | null | undefined;
+
+const isLegacyExternalCategory = (category: string) =>
+  category.toLowerCase() === "external";
+
+const matchesCatalogMode = (
+  app: PublicCatalogApp,
+  appMode: CatalogAppMode,
+  showExternal: boolean,
+) => {
+  if (appMode === "external") return app.app_mode === "external";
+  if (appMode === "mini-app")
+    return (
+      app.app_mode === "mini-app" && !isLegacyExternalCategory(app.category)
+    );
+  if (appMode === "native") return app.app_mode === "native";
+
+  return (
+    showExternal ||
+    (app.app_mode !== "external" && !isLegacyExternalCategory(app.category))
+  );
+};
+
+const buildCatalogWhere = ({
+  appMode,
+  showExternal,
+  highlightsIds,
+}: {
+  appMode: CatalogAppMode;
+  showExternal: boolean;
+  highlightsIds?: string[];
+}): App_Metadata_Bool_Exp => {
+  const filters: App_Metadata_Bool_Exp[] = [
+    {
+      app: {
+        _and: [
+          { is_banned: { _eq: false } },
+          { deleted_at: { _is_null: true } },
+        ],
+      },
+    },
+    { is_reviewer_world_app_approved: { _eq: true } },
+    { verification_status: { _eq: "verified" } },
+  ];
+
+  if (highlightsIds) {
+    filters.push({ app_id: { _in: highlightsIds } });
+  }
+
+  if (appMode === "external") {
+    filters.push({ app_mode: { _eq: "external" } });
+  } else if (appMode === "mini-app") {
+    filters.push(
+      { app_mode: { _eq: "mini-app" } },
+      { category: { _nilike: "external" } },
+    );
+  } else if (appMode === "native") {
+    filters.push({ app_mode: { _eq: "native" } });
+  } else if (!showExternal) {
+    filters.push(
+      {
+        _or: [
+          { app_mode: { _neq: "external" } },
+          { app_mode: { _is_null: true } },
+        ],
+      },
+      { category: { _nilike: "external" } },
+    );
+  }
+
+  return { _and: filters };
+};
 
 export const GET = async (request: NextRequest) => {
   // NOTE: We only accept requests through the distribution origin
@@ -109,9 +187,19 @@ export const GET = async (request: NextRequest) => {
   let highlightsApps: GetHighlightsQuery["highlights"] = [];
 
   country = parsedParams.override_country ?? country;
-  const { page, limit } = parsedParams;
+  const { page, limit, app_mode: appMode } = parsedParams;
   const limitValue = limit ?? 750;
   const offset = page ? (page - 1) * limitValue : 0;
+  const showExternal = parsedParams.show_external ?? false;
+  const appModeWhere = buildCatalogWhere({
+    appMode,
+    showExternal,
+  });
+  const highlightsWhere = buildCatalogWhere({
+    appMode,
+    showExternal,
+    highlightsIds,
+  });
 
   // ANCHOR: Fetch app rankings
   try {
@@ -119,13 +207,14 @@ export const GET = async (request: NextRequest) => {
       limit: limitValue,
       offset,
       locale,
+      where: appModeWhere,
     });
     topApps = top_apps;
     const { highlights } = await getHighlightsSdk(client).GetHighlights({
       limit: limitValue,
       offset,
-      highlightsIds,
       locale,
+      where: highlightsWhere,
     });
     highlightsApps = highlights;
   } catch (error) {
@@ -147,18 +236,14 @@ export const GET = async (request: NextRequest) => {
     });
   }
 
-  if (!parsedParams.show_external) {
-    topApps = topApps.filter(
-      (app) =>
-        app.category.toLowerCase() !== "external" &&
-        app.app_mode !== "external",
-    );
-    highlightsApps = highlightsApps.filter(
-      (app) =>
-        app.category.toLowerCase() !== "external" &&
-        app.app_mode !== "external",
-    );
-  }
+  // Hasura applies the equivalent predicate before limit/offset. Keep this
+  // guard as a defensive contract for mocked/legacy query clients.
+  topApps = topApps.filter((app) =>
+    matchesCatalogMode(app, appMode, showExternal),
+  );
+  highlightsApps = highlightsApps.filter((app) =>
+    matchesCatalogMode(app, appMode, showExternal),
+  );
 
   if (platform === "ios") {
     topApps = topApps.filter((app) => app.is_android_only !== true);
@@ -292,7 +377,7 @@ export const GET = async (request: NextRequest) => {
    */
   const categories = getAppStoreLocalisedCategoriesWithUrls(
     locale,
-    parsedParams.show_external ?? false,
+    appMode == null ? showExternal : appMode === "external",
   );
   const areAppCategoriesValid =
     formattedTopApps.every((app) =>

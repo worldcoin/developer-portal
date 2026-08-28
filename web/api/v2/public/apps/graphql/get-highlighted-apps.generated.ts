@@ -7,10 +7,8 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type GetHighlightsQueryVariables = Types.Exact<{
   limit: Types.Scalars["Int"]["input"];
   offset: Types.Scalars["Int"]["input"];
-  highlightsIds?: Types.InputMaybe<
-    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
-  >;
   locale: Types.Scalars["String"]["input"];
+  where: Types.App_Metadata_Bool_Exp;
 }>;
 
 export type GetHighlightsQuery = {
@@ -71,24 +69,10 @@ export const GetHighlightsDocument = gql`
   query GetHighlights(
     $limit: Int!
     $offset: Int!
-    $highlightsIds: [String!]
     $locale: String!
+    $where: app_metadata_bool_exp!
   ) {
-    highlights: app_metadata(
-      where: {
-        app_id: { _in: $highlightsIds }
-        verification_status: { _eq: "verified" }
-        is_reviewer_world_app_approved: { _eq: true }
-        app: {
-          _and: [
-            { is_banned: { _eq: false } }
-            { deleted_at: { _is_null: true } }
-          ]
-        }
-      }
-      limit: $limit
-      offset: $offset
-    ) {
+    highlights: app_metadata(where: $where, limit: $limit, offset: $offset) {
       name
       short_name
       app_id

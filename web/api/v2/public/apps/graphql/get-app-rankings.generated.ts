@@ -8,6 +8,7 @@ export type GetAppsQueryVariables = Types.Exact<{
   limit: Types.Scalars["Int"]["input"];
   offset: Types.Scalars["Int"]["input"];
   locale: Types.Scalars["String"]["input"];
+  where: Types.App_Metadata_Bool_Exp;
 }>;
 
 export type GetAppsQuery = {
@@ -65,21 +66,13 @@ export type GetAppsQuery = {
 };
 
 export const GetAppsDocument = gql`
-  query GetApps($limit: Int!, $offset: Int!, $locale: String!) {
-    top_apps: app_metadata(
-      where: {
-        app: {
-          _and: [
-            { is_banned: { _eq: false } }
-            { deleted_at: { _is_null: true } }
-          ]
-        }
-        is_reviewer_world_app_approved: { _eq: true }
-        verification_status: { _eq: "verified" }
-      }
-      limit: $limit
-      offset: $offset
-    ) {
+  query GetApps(
+    $limit: Int!
+    $offset: Int!
+    $locale: String!
+    $where: app_metadata_bool_exp!
+  ) {
+    top_apps: app_metadata(where: $where, limit: $limit, offset: $offset) {
       name
       short_name
       app_id

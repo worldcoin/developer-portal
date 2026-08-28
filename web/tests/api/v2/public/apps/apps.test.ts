@@ -396,6 +396,169 @@ describe("/api/v2/public/apps", () => {
       expect(filteredAppIds).toContain("4");
     });
 
+    test("returns only external integrations before pagination when app_mode=external", async () => {
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          highlights: mockAppsWithMixedModes,
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps?app_mode=external&show_external=false&page=2&limit=1",
+        {
+          headers: { host: "cdn.test.com" },
+        },
+      );
+
+      const response = await GET(request);
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.app_rankings.top_apps.map((app: any) => app.app_id)).toEqual([
+        "2",
+        "4",
+      ]);
+      expect(data.categories).toContainEqual(
+        expect.objectContaining({ id: "external" }),
+      );
+      expect(
+        data.app_rankings.highlights.map((app: any) => app.app_id),
+      ).toEqual(["2", "4"]);
+
+      expect(
+        jest.mocked(getAppsSdk).mock.results[0].value.GetApps,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          limit: 1,
+          offset: 1,
+          where: expect.objectContaining({
+            _and: expect.arrayContaining([
+              expect.objectContaining({ app_mode: { _eq: "external" } }),
+            ]),
+          }),
+        }),
+      );
+      expect(
+        jest.mocked(getHighlightsSdk).mock.results[0].value.GetHighlights,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            _and: expect.arrayContaining([
+              expect.objectContaining({ app_mode: { _eq: "external" } }),
+            ]),
+          }),
+        }),
+      );
+      const highlightVariables =
+        jest.mocked(getHighlightsSdk).mock.results[0].value.GetHighlights.mock
+          .calls[0][0];
+      expect(highlightVariables).not.toHaveProperty("highlightsIds");
+    });
+
+    test("returns only mini apps and excludes legacy External categories when app_mode=mini-app", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps?app_mode=mini-app&show_external=true",
+        {
+          headers: { host: "cdn.test.com" },
+        },
+      );
+
+      const response = await GET(request);
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.app_rankings.top_apps.map((app: any) => app.app_id)).toEqual([
+        "1",
+      ]);
+      expect(data.categories).not.toContainEqual(
+        expect.objectContaining({ id: "external" }),
+      );
+    });
+
+    test("preserves null-mode apps by default but makes explicit native mode exact", async () => {
+      const nullModeApp = {
+        ...mockAppsWithMixedModes[0],
+        app_id: "null-mode",
+        app_mode: null,
+      };
+      const nativeApp = {
+        ...mockAppsWithMixedModes[0],
+        app_id: "native-mode",
+        app_mode: "native",
+      };
+
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: [...mockAppsWithMixedModes, nullModeApp, nativeApp],
+        }),
+      }));
+
+      const defaultResponse = await GET(
+        new NextRequest("https://cdn.test.com/api/v2/public/apps", {
+          headers: { host: "cdn.test.com" },
+        }),
+      );
+      expect(defaultResponse.status).toBe(200);
+      expect(
+        (await defaultResponse.json()).app_rankings.top_apps.map(
+          (app: any) => app.app_id,
+        ),
+      ).toEqual(expect.arrayContaining(["1", "null-mode", "native-mode"]));
+
+      const nativeResponse = await GET(
+        new NextRequest(
+          "https://cdn.test.com/api/v2/public/apps?app_mode=native&show_external=true",
+          { headers: { host: "cdn.test.com" } },
+        ),
+      );
+      expect(nativeResponse.status).toBe(200);
+      expect(
+        (await nativeResponse.json()).app_rankings.top_apps.map(
+          (app: any) => app.app_id,
+        ),
+      ).toEqual(["native-mode"]);
+      expect(
+        jest.mocked(getAppsSdk).mock.results[1].value.GetApps,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            _and: expect.arrayContaining([
+              expect.objectContaining({ app_mode: { _eq: "native" } }),
+            ]),
+          }),
+        }),
+      );
+    });
+
+    test("applies country filtering after the external catalog query", async () => {
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: mockAppsWithMixedModes.map((app) => ({
+            ...app,
+            supported_countries:
+              app.app_id === "2"
+                ? ["US"]
+                : app.app_id === "4"
+                  ? ["GB"]
+                  : ["US", "GB"],
+          })),
+        }),
+      }));
+
+      const response = await GET(
+        new NextRequest(
+          "https://cdn.test.com/api/v2/public/apps?app_mode=external&override_country=US",
+          { headers: { host: "cdn.test.com" } },
+        ),
+      );
+      expect(response.status).toBe(200);
+      expect(
+        (await response.json()).app_rankings.top_apps.map(
+          (app: any) => app.app_id,
+        ),
+      ).toEqual(["2"]);
+    });
+
     test("should filter external apps out of highlights the same way as top apps", async () => {
       // Put the mixed-mode apps in the highlights list instead of top_apps.
       jest.mocked(getAppsSdk).mockImplementation(() => ({
