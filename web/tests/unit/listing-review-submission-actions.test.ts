@@ -282,24 +282,20 @@ describe("human listing review submission", () => {
     ).toBe(false);
   });
 
-  it("keeps gate-off native listing consent on the legacy path", async () => {
+  it("captures an eligible listing while the reviewer UI flag is disabled", async () => {
     process.env.ADMIN_REVIEWER_PORTAL_ENABLED = "false";
-    requestMock.mockImplementationOnce(async () => ({
-      app_metadata: [{ ...reviewMetadata, app_mode: "native" }],
-      localisations,
-    }));
 
     const result = await submit(true);
 
     expect(result.success).toBe(true);
     expect(
       requestMock.mock.calls.some(
-        ([query]) => operationName(query) === "SubmitApp",
+        ([query]) => operationName(query) === "CaptureListingReviewSubmission",
       ),
     ).toBe(true);
     expect(
       requestMock.mock.calls.some(
-        ([query]) => operationName(query) === "CaptureListingReviewSubmission",
+        ([query]) => operationName(query) === "SubmitApp",
       ),
     ).toBe(false);
   });
@@ -308,7 +304,7 @@ describe("human listing review submission", () => {
 
 // #region Withdrawal
 describe("listing review withdrawal", () => {
-  it("withdraws the exact active attempt atomically when the gate is enabled", async () => {
+  it("withdraws the exact active attempt atomically", async () => {
     const result = await removeAppFromReview(metadataId);
 
     expect(result.success).toBe(true);
@@ -320,6 +316,24 @@ describe("listing review withdrawal", () => {
       actor_subject: "auth0|submitter",
       actor_email: "submitter@example.com",
     });
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => operationName(query) === "RemoveAppFromReview",
+      ),
+    ).toBe(false);
+  });
+
+  it("withdraws the captured attempt while the reviewer UI flag is disabled", async () => {
+    process.env.ADMIN_REVIEWER_PORTAL_ENABLED = "false";
+
+    const result = await removeAppFromReview(metadataId);
+
+    expect(result.success).toBe(true);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => operationName(query) === "WithdrawListingReviewSubmission",
+      ),
+    ).toBe(true);
     expect(
       requestMock.mock.calls.some(
         ([query]) => operationName(query) === "RemoveAppFromReview",

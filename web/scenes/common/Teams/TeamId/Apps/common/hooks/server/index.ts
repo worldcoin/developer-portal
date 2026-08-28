@@ -3,12 +3,10 @@
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getSdk as getWithdrawListingReviewSubmissionSdk } from "@/api/helpers/graphql/withdraw-listing-review-submission.generated";
-import { isAdminReviewerPortalEnabled } from "@/lib/admin-auth";
 import { auth0 } from "@/lib/auth0";
 import { getIsUserAllowedToUpdateVerificationStatus } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
-import { getSdk as getRemoveAppFromReviewSdk } from "../graphql/server/remove-app-from-review.generated";
 
 export async function removeAppFromReview(
   app_metadata_id: string,
@@ -35,20 +33,14 @@ export async function removeAppFromReview(
     }
 
     const client = await getAPIServiceGraphqlClient();
-    if (isAdminReviewerPortalEnabled()) {
-      const session = await auth0.getSession();
-      await getWithdrawListingReviewSubmissionSdk(
-        client,
-      ).WithdrawListingReviewSubmission({
-        app_metadata_id,
-        actor_subject: session?.user.sub ?? null,
-        actor_email: session?.user.email ?? null,
-      });
-    } else {
-      await getRemoveAppFromReviewSdk(client).RemoveAppFromReview({
-        app_metadata_id,
-      });
-    }
+    const session = await auth0.getSession();
+    await getWithdrawListingReviewSubmissionSdk(
+      client,
+    ).WithdrawListingReviewSubmission({
+      app_metadata_id,
+      actor_subject: session?.user.sub ?? null,
+      actor_email: session?.user.email ?? null,
+    });
 
     return {
       success: true,

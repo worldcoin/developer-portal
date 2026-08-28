@@ -2073,8 +2073,8 @@ describe("/api/mcp", () => {
     );
   });
 
-  it("uses the shared atomic listing operation when the reviewer gate is enabled", async () => {
-    process.env.ADMIN_REVIEWER_PORTAL_ENABLED = "true";
+  it("captures listing consent while the reviewer UI flag is disabled", async () => {
+    process.env.ADMIN_REVIEWER_PORTAL_ENABLED = "false";
     requestMock.mockImplementation(async (query: unknown, variables: any) => {
       const name = getOperationName(query);
 

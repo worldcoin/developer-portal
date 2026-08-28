@@ -1,7 +1,6 @@
 import "server-only";
 
 import { getSdk as getCaptureListingReviewSubmissionSdk } from "@/api/helpers/graphql/capture-listing-review-submission.generated";
-import { isAdminReviewerPortalEnabled } from "@/lib/admin-auth";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import { LocalisationData } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
 import { getSupportType } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
@@ -79,7 +78,7 @@ const assertSupportedLanguageRows = (
 const validateReviewState = async (
   metadata: ReviewMetadata,
   localizations: ReviewLocalization[],
-  reviewerCaptureEnabled: boolean,
+  isListingReview: boolean,
 ) => {
   if (metadata.app.is_staging) {
     throw new AppReviewSubmissionError(
@@ -88,7 +87,7 @@ const validateReviewState = async (
   }
 
   if (
-    reviewerCaptureEnabled &&
+    isListingReview &&
     !(["mini-app", "external"] as string[]).includes(metadata.app_mode)
   ) {
     throw new AppReviewSubmissionError(
@@ -96,7 +95,7 @@ const validateReviewState = async (
     );
   }
 
-  if (reviewerCaptureEnabled) {
+  if (isListingReview) {
     assertValidHttpsIntegrationUrl(metadata.integration_url);
     assertSupportedLanguageRows(metadata, localizations);
   }
@@ -120,7 +119,7 @@ const validateReviewState = async (
   } as const;
 
   try {
-    if (reviewerCaptureEnabled) {
+    if (isListingReview) {
       await basicInformationReviewSchema.validate(
         {
           name: metadata.name,
@@ -203,11 +202,10 @@ export const submitAppForReviewOperation = async ({
       left.locale.localeCompare(right.locale) ||
       left.id.localeCompare(right.id),
   );
-  const reviewerCaptureEnabled =
-    listingConsent && isAdminReviewerPortalEnabled();
-  await validateReviewState(metadata, localizations, reviewerCaptureEnabled);
+  const isListingReview = listingConsent;
+  await validateReviewState(metadata, localizations, isListingReview);
 
-  if (reviewerCaptureEnabled) {
+  if (isListingReview) {
     const result = await getCaptureListingReviewSubmissionSdk(
       client,
     ).CaptureListingReviewSubmission({
