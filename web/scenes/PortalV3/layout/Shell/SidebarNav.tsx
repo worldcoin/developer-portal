@@ -247,6 +247,31 @@ export const SidebarNav = (props: {
     onWorldIdActionsRoute ||
     onLegacyActionsRoute ||
     (onCanonicalWorldId && !worldIdConfigurationActive);
+  const analyticsActive = withinApp("/analytics");
+
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
+  useEffect(() => {
+    setAnalyticsEnabled(false);
+    if (!appId) return;
+
+    let active = true;
+    const controller = new AbortController();
+    fetch(
+      `/api/v2/apps/${encodeURIComponent(appId)}/selfie-check-analytics?table=daily`,
+      { credentials: "same-origin", signal: controller.signal },
+    )
+      .then((response) => {
+        if (active) setAnalyticsEnabled(response.ok || response.status === 503);
+      })
+      .catch(() => {
+        if (active) setAnalyticsEnabled(false);
+      });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [appId]);
   const verificationActive = withinApp("/configuration");
   const developActive =
     currentPathname === (appBase ? `${appBase}/mini-app` : "") ||
@@ -362,6 +387,15 @@ export const SidebarNav = (props: {
                   )}
                   icon={<SidebarGlyph name="nav-home-active" />}
                 />
+                {analyticsEnabled && appBase ? (
+                  <NavItem
+                    label="Analytics"
+                    href={`${appBase}/analytics`}
+                    active={analyticsActive}
+                    onNavigate={beginNavigation(`${appBase}/analytics`)}
+                    icon={<SidebarGlyph name="stat-triangle" />}
+                  />
+                ) : null}
                 <NavItem
                   label="World ID Configuration"
                   href={urls.worldIdTab({
