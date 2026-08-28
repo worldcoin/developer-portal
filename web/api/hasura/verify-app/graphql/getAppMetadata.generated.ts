@@ -22,6 +22,7 @@ export type GetAppMetadataQuery = {
       meta_tag_image_url: string;
       content_card_image_url: string;
       verification_status: string;
+      is_developer_allow_listing: boolean;
       localisations: Array<{
         __typename?: "localisations";
         id: string;
@@ -46,6 +47,7 @@ export const GetAppMetadataDocument = gql`
         meta_tag_image_url
         content_card_image_url
         verification_status
+        is_developer_allow_listing
         localisations {
           id
           locale

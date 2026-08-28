@@ -11,6 +11,16 @@ type ClaimedWriteBody = {
   expectedReviewVersion: number;
 };
 
+export type ReviewDecision = "approved" | "changes_requested";
+
+export type DecisionWriteBody = ClaimedWriteBody & {
+  appMetadataId: string;
+  expectedMetadataUpdatedAt: string;
+  decision: ReviewDecision;
+  developerMessage: string;
+  overrideReason?: string;
+};
+
 export type ChecklistItemStatus = "pass" | "fail" | "na";
 
 export type ReviewChecklist = {
@@ -215,5 +225,61 @@ export const readChecklistWriteBody = async (
     expectedReviewVersion: body.expectedReviewVersion,
     checklistVersion: body.checklistVersion.trim(),
     checklist,
+  };
+};
+
+const RFC3339_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+
+const isRfc3339Timestamp = (value: unknown): value is string =>
+  typeof value === "string" &&
+  value.length <= 40 &&
+  RFC3339_PATTERN.test(value) &&
+  !Number.isNaN(Date.parse(value));
+
+export const readDecisionWriteBody = async (
+  req: NextRequest,
+): Promise<DecisionWriteBody | null> => {
+  const body = await readJsonObject(req);
+
+  if (
+    !body ||
+    !hasOnlyKeys(body, [
+      "claimToken",
+      "expectedReviewVersion",
+      "appMetadataId",
+      "expectedMetadataUpdatedAt",
+      "decision",
+      "developerMessage",
+      "overrideReason",
+    ]) ||
+    typeof body.claimToken !== "string" ||
+    !isUuid(body.claimToken) ||
+    !isPositiveInteger(body.expectedReviewVersion) ||
+    !isBoundedString(body.appMetadataId, 128, true) ||
+    !/^[A-Za-z0-9_-]+$/.test(body.appMetadataId) ||
+    !isRfc3339Timestamp(body.expectedMetadataUpdatedAt) ||
+    (body.decision !== "approved" && body.decision !== "changes_requested") ||
+    !isBoundedString(
+      body.developerMessage,
+      20_000,
+      body.decision === "changes_requested",
+    ) ||
+    (body.overrideReason !== undefined &&
+      !isBoundedString(body.overrideReason, 10_000, true))
+  ) {
+    return null;
+  }
+
+  return {
+    claimToken: body.claimToken,
+    expectedReviewVersion: body.expectedReviewVersion,
+    appMetadataId: body.appMetadataId.trim(),
+    expectedMetadataUpdatedAt: body.expectedMetadataUpdatedAt,
+    decision: body.decision,
+    developerMessage: body.developerMessage,
+    ...(body.overrideReason === undefined
+      ? {}
+      : { overrideReason: body.overrideReason }),
   };
 };

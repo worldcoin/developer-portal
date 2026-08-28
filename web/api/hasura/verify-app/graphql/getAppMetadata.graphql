@@ -9,6 +9,7 @@ query GetAppMetadata($app_id: String!) {
       meta_tag_image_url
       content_card_image_url
       verification_status
+      is_developer_allow_listing
       localisations {
         id
         locale

@@ -105,6 +105,8 @@ select_permissions:
         - decided_at
         - decided_by_email
         - decided_by_subject
+        - decision_fingerprint
+        - decision_result
         - decision_summary
         - id
         - listing_consent
@@ -135,6 +137,8 @@ update_permissions:
         - decided_at
         - decided_by_email
         - decided_by_subject
+        - decision_fingerprint
+        - decision_result
         - decision_summary
         - review_version
         - status

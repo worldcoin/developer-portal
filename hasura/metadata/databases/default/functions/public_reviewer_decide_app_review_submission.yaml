@@ -1,0 +1,8 @@
+function:
+  name: reviewer_decide_app_review_submission
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: service

@@ -6,6 +6,7 @@ import {
   processContentCardImage,
   processLogoImage,
 } from "@/api/helpers/image-processing";
+import { hasActiveListingReview } from "@/api/helpers/reviewer-workflow";
 import { getFileExtension, protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import * as Types from "@/graphql/graphql";
@@ -109,6 +110,34 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "No app awaiting review.",
       code: "invalid_verification_status",
+      app_id,
+    });
+  }
+
+  let hasActiveReview = false;
+  try {
+    hasActiveReview = await hasActiveListingReview(
+      awaitingReviewAppMetadata.id,
+    );
+  } catch (error) {
+    logger.error("Failed to check the reviewer workflow fence", {
+      app_id,
+      metadata_id: awaitingReviewAppMetadata.id,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+    });
+    return errorHasuraQuery({
+      req,
+      detail: "Unable to verify reviewer workflow state.",
+      code: "reviewer_workflow_unavailable",
+      app_id,
+    });
+  }
+
+  if (awaitingReviewAppMetadata.is_developer_allow_listing || hasActiveReview) {
+    return errorHasuraQuery({
+      req,
+      detail: "This listing is managed by the reviewer portal.",
+      code: "active_reviewer_workflow",
       app_id,
     });
   }

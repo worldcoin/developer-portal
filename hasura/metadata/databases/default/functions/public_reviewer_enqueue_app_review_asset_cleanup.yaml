@@ -1,0 +1,8 @@
+function:
+  name: reviewer_enqueue_app_review_asset_cleanup
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: service

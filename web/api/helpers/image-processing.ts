@@ -7,6 +7,16 @@ import {
 } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 
+export const settleImageWrites = async (
+  writes: Promise<unknown>[],
+): Promise<void> => {
+  const results = await Promise.allSettled(writes);
+  const failure = results.find(
+    (result): result is PromiseRejectedResult => result.status === "rejected",
+  );
+  if (failure) throw failure.reason;
+};
+
 /**
  * Downloads an image from S3, resizes it, and uploads the resized version back to S3
  * @param s3Client - The S3 client instance
@@ -123,7 +133,7 @@ export const processLogoImage = async (
       }),
     );
 
-    await Promise.all([
+    await settleImageWrites([
       putMinifiedImagePromise,
       copyOriginalImagePromise,
       putRoundedImagePromise,

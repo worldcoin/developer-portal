@@ -1,6 +1,7 @@
 # Temporary local schema supplement for Task 4's tracked functions. Replace it
 # with a live staging introspection snapshot during Task 9 verification.
 extend type app_review_submission {
+  app_metadata_id: String!
   app_id: String!
   team_id: String!
   app_mode: String!
@@ -11,6 +12,7 @@ extend type app_review_submission {
   metadata_updated_at: timestamptz!
   review_version: Int!
   claim_token: uuid
+  claimed_by_subject: String
   claimed_by_email: String
   claimed_at: timestamptz
   claim_expires_at: timestamptz
@@ -19,12 +21,16 @@ extend type app_review_submission {
   metadata_snapshot: jsonb!
   localizations_snapshot: jsonb!
   decision_summary: String
+  decision_fingerprint: String
+  decision_result: jsonb
+  decided_by_subject: String
   decided_by_email: String
   decided_at: timestamptz
   completed_at: timestamptz
   created_at: timestamptz!
   updated_at: timestamptz!
   app: app!
+  app_metadata: app_metadata
   team: team!
   events(order_by: [app_review_event_order_by!]): [app_review_event!]!
   notifications(
@@ -73,12 +79,55 @@ input app_review_submission_bool_exp {
   _and: [app_review_submission_bool_exp!]
   _or: [app_review_submission_bool_exp!]
   app_mode: String_comparison_exp
+  app_metadata_id: String_comparison_exp
   claim_expires_at: timestamptz_comparison_exp
   claimed_by_email: String_comparison_exp
   status: String_comparison_exp
   submitted_at: timestamptz_comparison_exp
   team: team_bool_exp
   team_id: String_comparison_exp
+}
+
+input reviewer_decide_app_review_submission_args {
+  p_submission_id: uuid!
+  p_claim_token: uuid!
+  p_expected_review_version: Int!
+  p_app_metadata_id: String!
+  p_expected_metadata_updated_at: timestamptz!
+  p_decision: String!
+  p_developer_message: String!
+  p_override_reason: String
+  p_decision_fingerprint: String!
+  p_expected_prior_verified_id: String
+  p_expected_prior_verified_updated_at: timestamptz
+  p_expected_prior_localizations_snapshot: jsonb!
+  p_metadata_assets: jsonb!
+  p_localization_assets: jsonb!
+  p_prepared_asset_keys: jsonb!
+  p_old_asset_keys: jsonb!
+  p_failed_checks: jsonb!
+  p_actor_subject: String!
+  p_actor_email: String!
+}
+
+input reviewer_enqueue_app_review_asset_cleanup_args {
+  p_submission_id: uuid!
+  p_decision_fingerprint: String!
+  p_operation_id: String!
+  p_expected_review_version: Int!
+  p_app_metadata_id: String!
+  p_asset_keys: jsonb!
+  p_actor_subject: String!
+  p_actor_email: String!
+}
+
+input reviewer_settle_app_review_asset_cleanup_args {
+  p_submission_id: uuid!
+  p_decision_fingerprint: String!
+  p_operation_id: String!
+  p_settlement_state: String!
+  p_actor_subject: String!
+  p_actor_email: String!
 }
 
 input reviewer_claim_app_review_submission_args {
@@ -115,6 +164,15 @@ input reviewer_save_app_review_checklist_args {
 }
 
 extend type mutation_root {
+  reviewer_enqueue_app_review_asset_cleanup(
+    args: reviewer_enqueue_app_review_asset_cleanup_args!
+  ): [app_review_notification!]!
+  reviewer_settle_app_review_asset_cleanup(
+    args: reviewer_settle_app_review_asset_cleanup_args!
+  ): [app_review_notification!]!
+  reviewer_decide_app_review_submission(
+    args: reviewer_decide_app_review_submission_args!
+  ): [app_review_submission!]!
   reviewer_claim_app_review_submission(
     args: reviewer_claim_app_review_submission_args!
   ): [app_review_submission!]!

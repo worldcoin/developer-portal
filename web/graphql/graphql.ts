@@ -4488,6 +4488,7 @@ export type App_Review_Submission = {
   __typename?: "app_review_submission";
   app: App;
   app_id: Scalars["String"]["output"];
+  app_metadata?: Maybe<App_Metadata>;
   app_metadata_id: Scalars["String"]["output"];
   app_mode: Scalars["String"]["output"];
   attempt: Scalars["Int"]["output"];
@@ -4498,10 +4499,14 @@ export type App_Review_Submission = {
   claim_token?: Maybe<Scalars["uuid"]["output"]>;
   claimed_at?: Maybe<Scalars["timestamptz"]["output"]>;
   claimed_by_email?: Maybe<Scalars["String"]["output"]>;
+  claimed_by_subject?: Maybe<Scalars["String"]["output"]>;
   completed_at?: Maybe<Scalars["timestamptz"]["output"]>;
   created_at: Scalars["timestamptz"]["output"];
   decided_at?: Maybe<Scalars["timestamptz"]["output"]>;
   decided_by_email?: Maybe<Scalars["String"]["output"]>;
+  decided_by_subject?: Maybe<Scalars["String"]["output"]>;
+  decision_fingerprint?: Maybe<Scalars["String"]["output"]>;
+  decision_result?: Maybe<Scalars["jsonb"]["output"]>;
   decision_summary?: Maybe<Scalars["String"]["output"]>;
   events: Array<App_Review_Event>;
   id: Scalars["uuid"]["output"];
@@ -4530,6 +4535,7 @@ export type App_Review_SubmissionNotificationsArgs = {
 export type App_Review_Submission_Bool_Exp = {
   _and?: InputMaybe<Array<App_Review_Submission_Bool_Exp>>;
   _or?: InputMaybe<Array<App_Review_Submission_Bool_Exp>>;
+  app_metadata_id?: InputMaybe<String_Comparison_Exp>;
   app_mode?: InputMaybe<String_Comparison_Exp>;
   claim_expires_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   claimed_by_email?: InputMaybe<String_Comparison_Exp>;
@@ -7135,9 +7141,12 @@ export type Mutation_Root = {
   /** Retry RP registration sync for a specific environment */
   retry_rp?: Maybe<RetryRpOutput>;
   reviewer_claim_app_review_submission: Array<App_Review_Submission>;
+  reviewer_decide_app_review_submission: Array<App_Review_Submission>;
+  reviewer_enqueue_app_review_asset_cleanup: Array<App_Review_Notification>;
   reviewer_heartbeat_app_review_submission: Array<App_Review_Submission>;
   reviewer_release_app_review_submission: Array<App_Review_Submission>;
   reviewer_save_app_review_checklist: Array<App_Review_Submission>;
+  reviewer_settle_app_review_asset_cleanup: Array<App_Review_Notification>;
   /** execute VOLATILE function "rollup_app_stats" which returns "app_stats" */
   rollup_app_stats: Array<App_Stats>;
   /** Rotate the signer key for an RP (Relying Party) */
@@ -8141,6 +8150,16 @@ export type Mutation_RootReviewer_Claim_App_Review_SubmissionArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootReviewer_Decide_App_Review_SubmissionArgs = {
+  args: Reviewer_Decide_App_Review_Submission_Args;
+};
+
+/** mutation root */
+export type Mutation_RootReviewer_Enqueue_App_Review_Asset_CleanupArgs = {
+  args: Reviewer_Enqueue_App_Review_Asset_Cleanup_Args;
+};
+
+/** mutation root */
 export type Mutation_RootReviewer_Heartbeat_App_Review_SubmissionArgs = {
   args: Reviewer_Heartbeat_App_Review_Submission_Args;
 };
@@ -8153,6 +8172,11 @@ export type Mutation_RootReviewer_Release_App_Review_SubmissionArgs = {
 /** mutation root */
 export type Mutation_RootReviewer_Save_App_Review_ChecklistArgs = {
   args: Reviewer_Save_App_Review_Checklist_Args;
+};
+
+/** mutation root */
+export type Mutation_RootReviewer_Settle_App_Review_Asset_CleanupArgs = {
+  args: Reviewer_Settle_App_Review_Asset_Cleanup_Args;
 };
 
 /** mutation root */
@@ -11229,6 +11253,41 @@ export type Reviewer_Claim_App_Review_Submission_Args = {
   p_submission_id: Scalars["uuid"]["input"];
 };
 
+export type Reviewer_Decide_App_Review_Submission_Args = {
+  p_actor_email: Scalars["String"]["input"];
+  p_actor_subject: Scalars["String"]["input"];
+  p_app_metadata_id: Scalars["String"]["input"];
+  p_claim_token: Scalars["uuid"]["input"];
+  p_decision: Scalars["String"]["input"];
+  p_decision_fingerprint: Scalars["String"]["input"];
+  p_developer_message: Scalars["String"]["input"];
+  p_expected_metadata_updated_at: Scalars["timestamptz"]["input"];
+  p_expected_prior_localizations_snapshot: Scalars["jsonb"]["input"];
+  p_expected_prior_verified_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_expected_prior_verified_updated_at?: InputMaybe<
+    Scalars["timestamptz"]["input"]
+  >;
+  p_expected_review_version: Scalars["Int"]["input"];
+  p_failed_checks: Scalars["jsonb"]["input"];
+  p_localization_assets: Scalars["jsonb"]["input"];
+  p_metadata_assets: Scalars["jsonb"]["input"];
+  p_old_asset_keys: Scalars["jsonb"]["input"];
+  p_override_reason?: InputMaybe<Scalars["String"]["input"]>;
+  p_prepared_asset_keys: Scalars["jsonb"]["input"];
+  p_submission_id: Scalars["uuid"]["input"];
+};
+
+export type Reviewer_Enqueue_App_Review_Asset_Cleanup_Args = {
+  p_actor_email: Scalars["String"]["input"];
+  p_actor_subject: Scalars["String"]["input"];
+  p_app_metadata_id: Scalars["String"]["input"];
+  p_asset_keys: Scalars["jsonb"]["input"];
+  p_decision_fingerprint: Scalars["String"]["input"];
+  p_expected_review_version: Scalars["Int"]["input"];
+  p_operation_id: Scalars["String"]["input"];
+  p_submission_id: Scalars["uuid"]["input"];
+};
+
 export type Reviewer_Heartbeat_App_Review_Submission_Args = {
   p_actor_email: Scalars["String"]["input"];
   p_actor_subject: Scalars["String"]["input"];
@@ -11252,6 +11311,15 @@ export type Reviewer_Save_App_Review_Checklist_Args = {
   p_checklist_version: Scalars["String"]["input"];
   p_claim_token: Scalars["uuid"]["input"];
   p_expected_review_version: Scalars["Int"]["input"];
+  p_submission_id: Scalars["uuid"]["input"];
+};
+
+export type Reviewer_Settle_App_Review_Asset_Cleanup_Args = {
+  p_actor_email: Scalars["String"]["input"];
+  p_actor_subject: Scalars["String"]["input"];
+  p_decision_fingerprint: Scalars["String"]["input"];
+  p_operation_id: Scalars["String"]["input"];
+  p_settlement_state: Scalars["String"]["input"];
   p_submission_id: Scalars["uuid"]["input"];
 };
 
