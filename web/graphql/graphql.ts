@@ -2839,6 +2839,7 @@ export type App_Metadata = {
   is_reviewer_app_store_approved: Scalars["Boolean"]["output"];
   is_reviewer_world_app_approved: Scalars["Boolean"]["output"];
   is_row_verified: Scalars["Boolean"]["output"];
+  legacy_verification_operation_id?: Maybe<Scalars["uuid"]["output"]>;
   /** An array relationship */
   localisations: Array<Localisations>;
   /** An aggregate relationship */
@@ -3025,6 +3026,7 @@ export type App_Metadata_Bool_Exp = {
   is_reviewer_app_store_approved?: InputMaybe<Boolean_Comparison_Exp>;
   is_reviewer_world_app_approved?: InputMaybe<Boolean_Comparison_Exp>;
   is_row_verified?: InputMaybe<Boolean_Comparison_Exp>;
+  legacy_verification_operation_id?: InputMaybe<Uuid_Comparison_Exp>;
   localisations?: InputMaybe<Localisations_Bool_Exp>;
   localisations_aggregate?: InputMaybe<Localisations_Aggregate_Bool_Exp>;
   logo_img_url?: InputMaybe<String_Comparison_Exp>;
@@ -3055,6 +3057,8 @@ export type App_Metadata_Bool_Exp = {
 export enum App_Metadata_Constraint {
   /** unique or primary key constraint on columns "app_id", "is_row_verified" */
   AppMetadataAppIdIsRowVerifiedKey = "app_metadata_app_id_is_row_verified_key",
+  /** unique or primary key constraint on columns "legacy_verification_operation_id" */
+  AppMetadataLegacyVerificationOperationIdKey = "app_metadata_legacy_verification_operation_id_key",
   /** unique or primary key constraint on columns "id" */
   AppMetadataPkey = "app_metadata_pkey",
 }
@@ -3089,6 +3093,7 @@ export type App_Metadata_Insert_Input = {
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_row_verified?: InputMaybe<Scalars["Boolean"]["input"]>;
+  legacy_verification_operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
   localisations?: InputMaybe<Localisations_Arr_Rel_Insert_Input>;
   logo_img_url?: InputMaybe<Scalars["String"]["input"]>;
   max_notifications_per_day?: InputMaybe<Scalars["Int"]["input"]>;
@@ -3131,6 +3136,7 @@ export type App_Metadata_Max_Fields = {
   hero_image_url?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   integration_url?: Maybe<Scalars["String"]["output"]>;
+  legacy_verification_operation_id?: Maybe<Scalars["uuid"]["output"]>;
   logo_img_url?: Maybe<Scalars["String"]["output"]>;
   max_notifications_per_day?: Maybe<Scalars["Int"]["output"]>;
   meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
@@ -3167,6 +3173,7 @@ export type App_Metadata_Max_Order_By = {
   hero_image_url?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   integration_url?: InputMaybe<Order_By>;
+  legacy_verification_operation_id?: InputMaybe<Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
   max_notifications_per_day?: InputMaybe<Order_By>;
   meta_tag_image_url?: InputMaybe<Order_By>;
@@ -3206,6 +3213,7 @@ export type App_Metadata_Min_Fields = {
   hero_image_url?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   integration_url?: Maybe<Scalars["String"]["output"]>;
+  legacy_verification_operation_id?: Maybe<Scalars["uuid"]["output"]>;
   logo_img_url?: Maybe<Scalars["String"]["output"]>;
   max_notifications_per_day?: Maybe<Scalars["Int"]["output"]>;
   meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
@@ -3242,6 +3250,7 @@ export type App_Metadata_Min_Order_By = {
   hero_image_url?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   integration_url?: InputMaybe<Order_By>;
+  legacy_verification_operation_id?: InputMaybe<Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
   max_notifications_per_day?: InputMaybe<Order_By>;
   meta_tag_image_url?: InputMaybe<Order_By>;
@@ -3312,6 +3321,7 @@ export type App_Metadata_Order_By = {
   is_reviewer_app_store_approved?: InputMaybe<Order_By>;
   is_reviewer_world_app_approved?: InputMaybe<Order_By>;
   is_row_verified?: InputMaybe<Order_By>;
+  legacy_verification_operation_id?: InputMaybe<Order_By>;
   localisations_aggregate?: InputMaybe<Localisations_Aggregate_Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
   max_notifications_per_day?: InputMaybe<Order_By>;
@@ -3387,6 +3397,8 @@ export enum App_Metadata_Select_Column {
   IsReviewerWorldAppApproved = "is_reviewer_world_app_approved",
   /** column name */
   IsRowVerified = "is_row_verified",
+  /** column name */
+  LegacyVerificationOperationId = "legacy_verification_operation_id",
   /** column name */
   LogoImgUrl = "logo_img_url",
   /** column name */
@@ -3501,6 +3513,7 @@ export type App_Metadata_Set_Input = {
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_row_verified?: InputMaybe<Scalars["Boolean"]["input"]>;
+  legacy_verification_operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
   logo_img_url?: InputMaybe<Scalars["String"]["input"]>;
   max_notifications_per_day?: InputMaybe<Scalars["Int"]["input"]>;
   meta_tag_image_url?: InputMaybe<Scalars["String"]["input"]>;
@@ -3594,6 +3607,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_row_verified?: InputMaybe<Scalars["Boolean"]["input"]>;
+  legacy_verification_operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
   logo_img_url?: InputMaybe<Scalars["String"]["input"]>;
   max_notifications_per_day?: InputMaybe<Scalars["Int"]["input"]>;
   meta_tag_image_url?: InputMaybe<Scalars["String"]["input"]>;
@@ -3675,6 +3689,8 @@ export enum App_Metadata_Update_Column {
   IsReviewerWorldAppApproved = "is_reviewer_world_app_approved",
   /** column name */
   IsRowVerified = "is_row_verified",
+  /** column name */
+  LegacyVerificationOperationId = "legacy_verification_operation_id",
   /** column name */
   LogoImgUrl = "logo_img_url",
   /** column name */
@@ -4628,6 +4644,8 @@ export type App_Review_Event_Bool_Exp = {
 export enum App_Review_Event_Constraint {
   /** unique or primary key constraint on columns "event_sequence" */
   AppReviewEventEventSequenceUnique = "app_review_event_event_sequence_unique",
+  /** unique or primary key constraint on columns "submission_id" */
+  AppReviewEventOneSubmittedPerSubmission = "app_review_event_one_submitted_per_submission",
   /** unique or primary key constraint on columns "id" */
   AppReviewEventPkey = "app_review_event_pkey",
 }
@@ -4979,6 +4997,8 @@ export type App_Review_Notification = {
   last_error?: Maybe<Scalars["String"]["output"]>;
   locked_at?: Maybe<Scalars["timestamptz"]["output"]>;
   locked_by?: Maybe<Scalars["String"]["output"]>;
+  /** True for workflow-cancelled outbox rows that a reviewer must not requeue. */
+  manual_retry_blocked: Scalars["Boolean"]["output"];
   next_attempt_at: Scalars["timestamptz"]["output"];
   notification_type: Scalars["String"]["output"];
   payload: Scalars["jsonb"]["output"];
@@ -5005,7 +5025,23 @@ export type App_Review_Notification_Aggregate = {
 };
 
 export type App_Review_Notification_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<App_Review_Notification_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<App_Review_Notification_Aggregate_Bool_Exp_Bool_Or>;
   count?: InputMaybe<App_Review_Notification_Aggregate_Bool_Exp_Count>;
+};
+
+export type App_Review_Notification_Aggregate_Bool_Exp_Bool_And = {
+  arguments: App_Review_Notification_Select_Column_App_Review_Notification_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<App_Review_Notification_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type App_Review_Notification_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: App_Review_Notification_Select_Column_App_Review_Notification_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<App_Review_Notification_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
 };
 
 export type App_Review_Notification_Aggregate_Bool_Exp_Count = {
@@ -5090,6 +5126,7 @@ export type App_Review_Notification_Bool_Exp = {
   last_error?: InputMaybe<String_Comparison_Exp>;
   locked_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   locked_by?: InputMaybe<String_Comparison_Exp>;
+  manual_retry_blocked?: InputMaybe<Boolean_Comparison_Exp>;
   next_attempt_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   notification_type?: InputMaybe<String_Comparison_Exp>;
   payload?: InputMaybe<Jsonb_Comparison_Exp>;
@@ -5141,6 +5178,8 @@ export type App_Review_Notification_Insert_Input = {
   last_error?: InputMaybe<Scalars["String"]["input"]>;
   locked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   locked_by?: InputMaybe<Scalars["String"]["input"]>;
+  /** True for workflow-cancelled outbox rows that a reviewer must not requeue. */
+  manual_retry_blocked?: InputMaybe<Scalars["Boolean"]["input"]>;
   next_attempt_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   notification_type?: InputMaybe<Scalars["String"]["input"]>;
   payload?: InputMaybe<Scalars["jsonb"]["input"]>;
@@ -5271,6 +5310,7 @@ export type App_Review_Notification_Order_By = {
   last_error?: InputMaybe<Order_By>;
   locked_at?: InputMaybe<Order_By>;
   locked_by?: InputMaybe<Order_By>;
+  manual_retry_blocked?: InputMaybe<Order_By>;
   next_attempt_at?: InputMaybe<Order_By>;
   notification_type?: InputMaybe<Order_By>;
   payload?: InputMaybe<Order_By>;
@@ -5315,6 +5355,8 @@ export enum App_Review_Notification_Select_Column {
   /** column name */
   LockedBy = "locked_by",
   /** column name */
+  ManualRetryBlocked = "manual_retry_blocked",
+  /** column name */
   NextAttemptAt = "next_attempt_at",
   /** column name */
   NotificationType = "notification_type",
@@ -5332,6 +5374,18 @@ export enum App_Review_Notification_Select_Column {
   UpdatedAt = "updated_at",
 }
 
+/** select "app_review_notification_aggregate_bool_exp_bool_and_arguments_columns" columns of table "app_review_notification" */
+export enum App_Review_Notification_Select_Column_App_Review_Notification_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  ManualRetryBlocked = "manual_retry_blocked",
+}
+
+/** select "app_review_notification_aggregate_bool_exp_bool_or_arguments_columns" columns of table "app_review_notification" */
+export enum App_Review_Notification_Select_Column_App_Review_Notification_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  ManualRetryBlocked = "manual_retry_blocked",
+}
+
 /** input type for updating data in table "app_review_notification" */
 export type App_Review_Notification_Set_Input = {
   attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
@@ -5344,6 +5398,8 @@ export type App_Review_Notification_Set_Input = {
   last_error?: InputMaybe<Scalars["String"]["input"]>;
   locked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   locked_by?: InputMaybe<Scalars["String"]["input"]>;
+  /** True for workflow-cancelled outbox rows that a reviewer must not requeue. */
+  manual_retry_blocked?: InputMaybe<Scalars["Boolean"]["input"]>;
   next_attempt_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   notification_type?: InputMaybe<Scalars["String"]["input"]>;
   payload?: InputMaybe<Scalars["jsonb"]["input"]>;
@@ -5408,6 +5464,8 @@ export type App_Review_Notification_Stream_Cursor_Value_Input = {
   last_error?: InputMaybe<Scalars["String"]["input"]>;
   locked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   locked_by?: InputMaybe<Scalars["String"]["input"]>;
+  /** True for workflow-cancelled outbox rows that a reviewer must not requeue. */
+  manual_retry_blocked?: InputMaybe<Scalars["Boolean"]["input"]>;
   next_attempt_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   notification_type?: InputMaybe<Scalars["String"]["input"]>;
   payload?: InputMaybe<Scalars["jsonb"]["input"]>;
@@ -5452,6 +5510,8 @@ export enum App_Review_Notification_Update_Column {
   LockedAt = "locked_at",
   /** column name */
   LockedBy = "locked_by",
+  /** column name */
+  ManualRetryBlocked = "manual_retry_blocked",
   /** column name */
   NextAttemptAt = "next_attempt_at",
   /** column name */
@@ -5533,6 +5593,14 @@ export type App_Review_Submission = {
   /** Immutable submitted metadata identifier. It intentionally has no foreign key so replacing an old metadata row cannot erase review history. */
   app_metadata_id: Scalars["String"]["output"];
   app_mode: Scalars["String"]["output"];
+  /** Immutable S3 object manifest captured for this review attempt. NULL is limited to legacy backfill rows, which must be repaired before approval. */
+  asset_snapshot?: Maybe<Scalars["jsonb"]["output"]>;
+  asset_snapshot_repair_attempt_count: Scalars["Int"]["output"];
+  asset_snapshot_repair_dead_lettered_at?: Maybe<
+    Scalars["timestamptz"]["output"]
+  >;
+  asset_snapshot_repair_last_error?: Maybe<Scalars["String"]["output"]>;
+  asset_snapshot_repair_next_at?: Maybe<Scalars["timestamptz"]["output"]>;
   attempt: Scalars["Int"]["output"];
   changelog: Scalars["String"]["output"];
   checklist: Scalars["jsonb"]["output"];
@@ -5574,6 +5642,13 @@ export type App_Review_Submission = {
   team: Team;
   team_id: Scalars["String"]["output"];
   updated_at: Scalars["timestamptz"]["output"];
+  /** Immutable World ID configuration and lifecycle state captured at listing submission. */
+  world_id_configuration_snapshot: Scalars["jsonb"]["output"];
+};
+
+/** columns and relationships of "app_review_submission" */
+export type App_Review_SubmissionAsset_SnapshotArgs = {
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "app_review_submission" */
@@ -5630,6 +5705,11 @@ export type App_Review_SubmissionNotifications_AggregateArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Review_Notification_Order_By>>;
   where?: InputMaybe<App_Review_Notification_Bool_Exp>;
+};
+
+/** columns and relationships of "app_review_submission" */
+export type App_Review_SubmissionWorld_Id_Configuration_SnapshotArgs = {
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregated selection of "app_review_submission" */
@@ -5705,10 +5785,14 @@ export type App_Review_Submission_Aggregate_Order_By = {
 
 /** append existing jsonb value of filtered columns with new jsonb value */
 export type App_Review_Submission_Append_Input = {
+  /** Immutable S3 object manifest captured for this review attempt. NULL is limited to legacy backfill rows, which must be repaired before approval. */
+  asset_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
   checklist?: InputMaybe<Scalars["jsonb"]["input"]>;
   decision_result?: InputMaybe<Scalars["jsonb"]["input"]>;
   localizations_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
   metadata_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
+  /** Immutable World ID configuration and lifecycle state captured at listing submission. */
+  world_id_configuration_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
 };
 
 /** input type for inserting array relation for remote table "app_review_submission" */
@@ -5721,12 +5805,14 @@ export type App_Review_Submission_Arr_Rel_Insert_Input = {
 /** aggregate avg on columns */
 export type App_Review_Submission_Avg_Fields = {
   __typename?: "app_review_submission_avg_fields";
+  asset_snapshot_repair_attempt_count?: Maybe<Scalars["Float"]["output"]>;
   attempt?: Maybe<Scalars["Float"]["output"]>;
   review_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by avg() on columns of table "app_review_submission" */
 export type App_Review_Submission_Avg_Order_By = {
+  asset_snapshot_repair_attempt_count?: InputMaybe<Order_By>;
   attempt?: InputMaybe<Order_By>;
   review_version?: InputMaybe<Order_By>;
 };
@@ -5741,6 +5827,11 @@ export type App_Review_Submission_Bool_Exp = {
   app_metadata?: InputMaybe<App_Metadata_Bool_Exp>;
   app_metadata_id?: InputMaybe<String_Comparison_Exp>;
   app_mode?: InputMaybe<String_Comparison_Exp>;
+  asset_snapshot?: InputMaybe<Jsonb_Comparison_Exp>;
+  asset_snapshot_repair_attempt_count?: InputMaybe<Int_Comparison_Exp>;
+  asset_snapshot_repair_dead_lettered_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  asset_snapshot_repair_last_error?: InputMaybe<String_Comparison_Exp>;
+  asset_snapshot_repair_next_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   attempt?: InputMaybe<Int_Comparison_Exp>;
   changelog?: InputMaybe<String_Comparison_Exp>;
   checklist?: InputMaybe<Jsonb_Comparison_Exp>;
@@ -5776,6 +5867,7 @@ export type App_Review_Submission_Bool_Exp = {
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  world_id_configuration_snapshot?: InputMaybe<Jsonb_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "app_review_submission" */
@@ -5790,30 +5882,45 @@ export enum App_Review_Submission_Constraint {
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
 export type App_Review_Submission_Delete_At_Path_Input = {
+  /** Immutable S3 object manifest captured for this review attempt. NULL is limited to legacy backfill rows, which must be repaired before approval. */
+  asset_snapshot?: InputMaybe<Array<Scalars["String"]["input"]>>;
   checklist?: InputMaybe<Array<Scalars["String"]["input"]>>;
   decision_result?: InputMaybe<Array<Scalars["String"]["input"]>>;
   localizations_snapshot?: InputMaybe<Array<Scalars["String"]["input"]>>;
   metadata_snapshot?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  /** Immutable World ID configuration and lifecycle state captured at listing submission. */
+  world_id_configuration_snapshot?: InputMaybe<
+    Array<Scalars["String"]["input"]>
+  >;
 };
 
 /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
 export type App_Review_Submission_Delete_Elem_Input = {
+  /** Immutable S3 object manifest captured for this review attempt. NULL is limited to legacy backfill rows, which must be repaired before approval. */
+  asset_snapshot?: InputMaybe<Scalars["Int"]["input"]>;
   checklist?: InputMaybe<Scalars["Int"]["input"]>;
   decision_result?: InputMaybe<Scalars["Int"]["input"]>;
   localizations_snapshot?: InputMaybe<Scalars["Int"]["input"]>;
   metadata_snapshot?: InputMaybe<Scalars["Int"]["input"]>;
+  /** Immutable World ID configuration and lifecycle state captured at listing submission. */
+  world_id_configuration_snapshot?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 /** delete key/value pair or string element. key/value pairs are matched based on their key value */
 export type App_Review_Submission_Delete_Key_Input = {
+  /** Immutable S3 object manifest captured for this review attempt. NULL is limited to legacy backfill rows, which must be repaired before approval. */
+  asset_snapshot?: InputMaybe<Scalars["String"]["input"]>;
   checklist?: InputMaybe<Scalars["String"]["input"]>;
   decision_result?: InputMaybe<Scalars["String"]["input"]>;
   localizations_snapshot?: InputMaybe<Scalars["String"]["input"]>;
   metadata_snapshot?: InputMaybe<Scalars["String"]["input"]>;
+  /** Immutable World ID configuration and lifecycle state captured at listing submission. */
+  world_id_configuration_snapshot?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** input type for incrementing numeric columns in table "app_review_submission" */
 export type App_Review_Submission_Inc_Input = {
+  asset_snapshot_repair_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
   attempt?: InputMaybe<Scalars["Int"]["input"]>;
   review_version?: InputMaybe<Scalars["Int"]["input"]>;
 };
@@ -5826,6 +5933,14 @@ export type App_Review_Submission_Insert_Input = {
   /** Immutable submitted metadata identifier. It intentionally has no foreign key so replacing an old metadata row cannot erase review history. */
   app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
   app_mode?: InputMaybe<Scalars["String"]["input"]>;
+  /** Immutable S3 object manifest captured for this review attempt. NULL is limited to legacy backfill rows, which must be repaired before approval. */
+  asset_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
+  asset_snapshot_repair_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  asset_snapshot_repair_dead_lettered_at?: InputMaybe<
+    Scalars["timestamptz"]["input"]
+  >;
+  asset_snapshot_repair_last_error?: InputMaybe<Scalars["String"]["input"]>;
+  asset_snapshot_repair_next_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   attempt?: InputMaybe<Scalars["Int"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
   checklist?: InputMaybe<Scalars["jsonb"]["input"]>;
@@ -5860,6 +5975,8 @@ export type App_Review_Submission_Insert_Input = {
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** Immutable World ID configuration and lifecycle state captured at listing submission. */
+  world_id_configuration_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
 };
 
 /** aggregate max on columns */
@@ -5869,6 +5986,12 @@ export type App_Review_Submission_Max_Fields = {
   /** Immutable submitted metadata identifier. It intentionally has no foreign key so replacing an old metadata row cannot erase review history. */
   app_metadata_id?: Maybe<Scalars["String"]["output"]>;
   app_mode?: Maybe<Scalars["String"]["output"]>;
+  asset_snapshot_repair_attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  asset_snapshot_repair_dead_lettered_at?: Maybe<
+    Scalars["timestamptz"]["output"]
+  >;
+  asset_snapshot_repair_last_error?: Maybe<Scalars["String"]["output"]>;
+  asset_snapshot_repair_next_at?: Maybe<Scalars["timestamptz"]["output"]>;
   attempt?: Maybe<Scalars["Int"]["output"]>;
   changelog?: Maybe<Scalars["String"]["output"]>;
   checklist_version?: Maybe<Scalars["String"]["output"]>;
@@ -5903,6 +6026,10 @@ export type App_Review_Submission_Max_Order_By = {
   /** Immutable submitted metadata identifier. It intentionally has no foreign key so replacing an old metadata row cannot erase review history. */
   app_metadata_id?: InputMaybe<Order_By>;
   app_mode?: InputMaybe<Order_By>;
+  asset_snapshot_repair_attempt_count?: InputMaybe<Order_By>;
+  asset_snapshot_repair_dead_lettered_at?: InputMaybe<Order_By>;
+  asset_snapshot_repair_last_error?: InputMaybe<Order_By>;
+  asset_snapshot_repair_next_at?: InputMaybe<Order_By>;
   attempt?: InputMaybe<Order_By>;
   changelog?: InputMaybe<Order_By>;
   checklist_version?: InputMaybe<Order_By>;
@@ -5938,6 +6065,12 @@ export type App_Review_Submission_Min_Fields = {
   /** Immutable submitted metadata identifier. It intentionally has no foreign key so replacing an old metadata row cannot erase review history. */
   app_metadata_id?: Maybe<Scalars["String"]["output"]>;
   app_mode?: Maybe<Scalars["String"]["output"]>;
+  asset_snapshot_repair_attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  asset_snapshot_repair_dead_lettered_at?: Maybe<
+    Scalars["timestamptz"]["output"]
+  >;
+  asset_snapshot_repair_last_error?: Maybe<Scalars["String"]["output"]>;
+  asset_snapshot_repair_next_at?: Maybe<Scalars["timestamptz"]["output"]>;
   attempt?: Maybe<Scalars["Int"]["output"]>;
   changelog?: Maybe<Scalars["String"]["output"]>;
   checklist_version?: Maybe<Scalars["String"]["output"]>;
@@ -5972,6 +6105,10 @@ export type App_Review_Submission_Min_Order_By = {
   /** Immutable submitted metadata identifier. It intentionally has no foreign key so replacing an old metadata row cannot erase review history. */
   app_metadata_id?: InputMaybe<Order_By>;
   app_mode?: InputMaybe<Order_By>;
+  asset_snapshot_repair_attempt_count?: InputMaybe<Order_By>;
+  asset_snapshot_repair_dead_lettered_at?: InputMaybe<Order_By>;
+  asset_snapshot_repair_last_error?: InputMaybe<Order_By>;
+  asset_snapshot_repair_next_at?: InputMaybe<Order_By>;
   attempt?: InputMaybe<Order_By>;
   changelog?: InputMaybe<Order_By>;
   checklist_version?: InputMaybe<Order_By>;
@@ -6030,6 +6167,11 @@ export type App_Review_Submission_Order_By = {
   app_metadata?: InputMaybe<App_Metadata_Order_By>;
   app_metadata_id?: InputMaybe<Order_By>;
   app_mode?: InputMaybe<Order_By>;
+  asset_snapshot?: InputMaybe<Order_By>;
+  asset_snapshot_repair_attempt_count?: InputMaybe<Order_By>;
+  asset_snapshot_repair_dead_lettered_at?: InputMaybe<Order_By>;
+  asset_snapshot_repair_last_error?: InputMaybe<Order_By>;
+  asset_snapshot_repair_next_at?: InputMaybe<Order_By>;
   attempt?: InputMaybe<Order_By>;
   changelog?: InputMaybe<Order_By>;
   checklist?: InputMaybe<Order_By>;
@@ -6063,6 +6205,7 @@ export type App_Review_Submission_Order_By = {
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  world_id_configuration_snapshot?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: app_review_submission */
@@ -6072,10 +6215,14 @@ export type App_Review_Submission_Pk_Columns_Input = {
 
 /** prepend existing jsonb value of filtered columns with new jsonb value */
 export type App_Review_Submission_Prepend_Input = {
+  /** Immutable S3 object manifest captured for this review attempt. NULL is limited to legacy backfill rows, which must be repaired before approval. */
+  asset_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
   checklist?: InputMaybe<Scalars["jsonb"]["input"]>;
   decision_result?: InputMaybe<Scalars["jsonb"]["input"]>;
   localizations_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
   metadata_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
+  /** Immutable World ID configuration and lifecycle state captured at listing submission. */
+  world_id_configuration_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
 };
 
 /** select columns of table "app_review_submission" */
@@ -6086,6 +6233,16 @@ export enum App_Review_Submission_Select_Column {
   AppMetadataId = "app_metadata_id",
   /** column name */
   AppMode = "app_mode",
+  /** column name */
+  AssetSnapshot = "asset_snapshot",
+  /** column name */
+  AssetSnapshotRepairAttemptCount = "asset_snapshot_repair_attempt_count",
+  /** column name */
+  AssetSnapshotRepairDeadLetteredAt = "asset_snapshot_repair_dead_lettered_at",
+  /** column name */
+  AssetSnapshotRepairLastError = "asset_snapshot_repair_last_error",
+  /** column name */
+  AssetSnapshotRepairNextAt = "asset_snapshot_repair_next_at",
   /** column name */
   Attempt = "attempt",
   /** column name */
@@ -6146,6 +6303,8 @@ export enum App_Review_Submission_Select_Column {
   TeamId = "team_id",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  WorldIdConfigurationSnapshot = "world_id_configuration_snapshot",
 }
 
 /** select "app_review_submission_aggregate_bool_exp_bool_and_arguments_columns" columns of table "app_review_submission" */
@@ -6166,6 +6325,14 @@ export type App_Review_Submission_Set_Input = {
   /** Immutable submitted metadata identifier. It intentionally has no foreign key so replacing an old metadata row cannot erase review history. */
   app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
   app_mode?: InputMaybe<Scalars["String"]["input"]>;
+  /** Immutable S3 object manifest captured for this review attempt. NULL is limited to legacy backfill rows, which must be repaired before approval. */
+  asset_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
+  asset_snapshot_repair_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  asset_snapshot_repair_dead_lettered_at?: InputMaybe<
+    Scalars["timestamptz"]["input"]
+  >;
+  asset_snapshot_repair_last_error?: InputMaybe<Scalars["String"]["input"]>;
+  asset_snapshot_repair_next_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   attempt?: InputMaybe<Scalars["Int"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
   checklist?: InputMaybe<Scalars["jsonb"]["input"]>;
@@ -6197,17 +6364,21 @@ export type App_Review_Submission_Set_Input = {
   submitted_by_subject?: InputMaybe<Scalars["String"]["input"]>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** Immutable World ID configuration and lifecycle state captured at listing submission. */
+  world_id_configuration_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
 };
 
 /** aggregate stddev on columns */
 export type App_Review_Submission_Stddev_Fields = {
   __typename?: "app_review_submission_stddev_fields";
+  asset_snapshot_repair_attempt_count?: Maybe<Scalars["Float"]["output"]>;
   attempt?: Maybe<Scalars["Float"]["output"]>;
   review_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev() on columns of table "app_review_submission" */
 export type App_Review_Submission_Stddev_Order_By = {
+  asset_snapshot_repair_attempt_count?: InputMaybe<Order_By>;
   attempt?: InputMaybe<Order_By>;
   review_version?: InputMaybe<Order_By>;
 };
@@ -6215,12 +6386,14 @@ export type App_Review_Submission_Stddev_Order_By = {
 /** aggregate stddev_pop on columns */
 export type App_Review_Submission_Stddev_Pop_Fields = {
   __typename?: "app_review_submission_stddev_pop_fields";
+  asset_snapshot_repair_attempt_count?: Maybe<Scalars["Float"]["output"]>;
   attempt?: Maybe<Scalars["Float"]["output"]>;
   review_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_pop() on columns of table "app_review_submission" */
 export type App_Review_Submission_Stddev_Pop_Order_By = {
+  asset_snapshot_repair_attempt_count?: InputMaybe<Order_By>;
   attempt?: InputMaybe<Order_By>;
   review_version?: InputMaybe<Order_By>;
 };
@@ -6228,12 +6401,14 @@ export type App_Review_Submission_Stddev_Pop_Order_By = {
 /** aggregate stddev_samp on columns */
 export type App_Review_Submission_Stddev_Samp_Fields = {
   __typename?: "app_review_submission_stddev_samp_fields";
+  asset_snapshot_repair_attempt_count?: Maybe<Scalars["Float"]["output"]>;
   attempt?: Maybe<Scalars["Float"]["output"]>;
   review_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_samp() on columns of table "app_review_submission" */
 export type App_Review_Submission_Stddev_Samp_Order_By = {
+  asset_snapshot_repair_attempt_count?: InputMaybe<Order_By>;
   attempt?: InputMaybe<Order_By>;
   review_version?: InputMaybe<Order_By>;
 };
@@ -6252,6 +6427,14 @@ export type App_Review_Submission_Stream_Cursor_Value_Input = {
   /** Immutable submitted metadata identifier. It intentionally has no foreign key so replacing an old metadata row cannot erase review history. */
   app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
   app_mode?: InputMaybe<Scalars["String"]["input"]>;
+  /** Immutable S3 object manifest captured for this review attempt. NULL is limited to legacy backfill rows, which must be repaired before approval. */
+  asset_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
+  asset_snapshot_repair_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  asset_snapshot_repair_dead_lettered_at?: InputMaybe<
+    Scalars["timestamptz"]["input"]
+  >;
+  asset_snapshot_repair_last_error?: InputMaybe<Scalars["String"]["input"]>;
+  asset_snapshot_repair_next_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   attempt?: InputMaybe<Scalars["Int"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
   checklist?: InputMaybe<Scalars["jsonb"]["input"]>;
@@ -6283,17 +6466,21 @@ export type App_Review_Submission_Stream_Cursor_Value_Input = {
   submitted_by_subject?: InputMaybe<Scalars["String"]["input"]>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** Immutable World ID configuration and lifecycle state captured at listing submission. */
+  world_id_configuration_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type App_Review_Submission_Sum_Fields = {
   __typename?: "app_review_submission_sum_fields";
+  asset_snapshot_repair_attempt_count?: Maybe<Scalars["Int"]["output"]>;
   attempt?: Maybe<Scalars["Int"]["output"]>;
   review_version?: Maybe<Scalars["Int"]["output"]>;
 };
 
 /** order by sum() on columns of table "app_review_submission" */
 export type App_Review_Submission_Sum_Order_By = {
+  asset_snapshot_repair_attempt_count?: InputMaybe<Order_By>;
   attempt?: InputMaybe<Order_By>;
   review_version?: InputMaybe<Order_By>;
 };
@@ -6306,6 +6493,16 @@ export enum App_Review_Submission_Update_Column {
   AppMetadataId = "app_metadata_id",
   /** column name */
   AppMode = "app_mode",
+  /** column name */
+  AssetSnapshot = "asset_snapshot",
+  /** column name */
+  AssetSnapshotRepairAttemptCount = "asset_snapshot_repair_attempt_count",
+  /** column name */
+  AssetSnapshotRepairDeadLetteredAt = "asset_snapshot_repair_dead_lettered_at",
+  /** column name */
+  AssetSnapshotRepairLastError = "asset_snapshot_repair_last_error",
+  /** column name */
+  AssetSnapshotRepairNextAt = "asset_snapshot_repair_next_at",
   /** column name */
   Attempt = "attempt",
   /** column name */
@@ -6366,6 +6563,8 @@ export enum App_Review_Submission_Update_Column {
   TeamId = "team_id",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  WorldIdConfigurationSnapshot = "world_id_configuration_snapshot",
 }
 
 export type App_Review_Submission_Updates = {
@@ -6390,12 +6589,14 @@ export type App_Review_Submission_Updates = {
 /** aggregate var_pop on columns */
 export type App_Review_Submission_Var_Pop_Fields = {
   __typename?: "app_review_submission_var_pop_fields";
+  asset_snapshot_repair_attempt_count?: Maybe<Scalars["Float"]["output"]>;
   attempt?: Maybe<Scalars["Float"]["output"]>;
   review_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_pop() on columns of table "app_review_submission" */
 export type App_Review_Submission_Var_Pop_Order_By = {
+  asset_snapshot_repair_attempt_count?: InputMaybe<Order_By>;
   attempt?: InputMaybe<Order_By>;
   review_version?: InputMaybe<Order_By>;
 };
@@ -6403,12 +6604,14 @@ export type App_Review_Submission_Var_Pop_Order_By = {
 /** aggregate var_samp on columns */
 export type App_Review_Submission_Var_Samp_Fields = {
   __typename?: "app_review_submission_var_samp_fields";
+  asset_snapshot_repair_attempt_count?: Maybe<Scalars["Float"]["output"]>;
   attempt?: Maybe<Scalars["Float"]["output"]>;
   review_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_samp() on columns of table "app_review_submission" */
 export type App_Review_Submission_Var_Samp_Order_By = {
+  asset_snapshot_repair_attempt_count?: InputMaybe<Order_By>;
   attempt?: InputMaybe<Order_By>;
   review_version?: InputMaybe<Order_By>;
 };
@@ -6416,12 +6619,14 @@ export type App_Review_Submission_Var_Samp_Order_By = {
 /** aggregate variance on columns */
 export type App_Review_Submission_Variance_Fields = {
   __typename?: "app_review_submission_variance_fields";
+  asset_snapshot_repair_attempt_count?: Maybe<Scalars["Float"]["output"]>;
   attempt?: Maybe<Scalars["Float"]["output"]>;
   review_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by variance() on columns of table "app_review_submission" */
 export type App_Review_Submission_Variance_Order_By = {
+  asset_snapshot_repair_attempt_count?: InputMaybe<Order_By>;
   attempt?: InputMaybe<Order_By>;
   review_version?: InputMaybe<Order_By>;
 };
@@ -7674,12 +7879,21 @@ export type Cache_Updates = {
 
 export type Capture_Listing_Review_Submission_Args = {
   p_app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_asset_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
   p_changelog?: InputMaybe<Scalars["String"]["input"]>;
   p_expected_localizations_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
   p_expected_metadata_updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   p_listing_consent?: InputMaybe<Scalars["Boolean"]["input"]>;
   p_submitted_by_email?: InputMaybe<Scalars["String"]["input"]>;
   p_submitted_by_subject?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+export type Complete_Legacy_App_Verification_Asset_Settlement_Args = {
+  p_delivery_succeeded?: InputMaybe<Scalars["Boolean"]["input"]>;
+  p_error?: InputMaybe<Scalars["String"]["input"]>;
+  p_expected_outcome?: InputMaybe<Scalars["String"]["input"]>;
+  p_operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  p_worker_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** ordering argument of a cursor */
@@ -7701,6 +7915,15 @@ export type Date_Comparison_Exp = {
   _lte?: InputMaybe<Scalars["date"]["input"]>;
   _neq?: InputMaybe<Scalars["date"]["input"]>;
   _nin?: InputMaybe<Array<Scalars["date"]["input"]>>;
+};
+
+export type Developer_Withdraw_Active_Review_Draft_Args = {
+  p_actor_email?: InputMaybe<Scalars["String"]["input"]>;
+  p_actor_subject?: InputMaybe<Scalars["String"]["input"]>;
+  p_app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_expected_metadata_updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  p_expected_review_version?: InputMaybe<Scalars["Int"]["input"]>;
+  p_expected_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
 };
 
 /** Boolean expression to compare columns of type "illegal_content_sub_category_enum". All fields are combined with logical 'AND'. */
@@ -8172,6 +8395,391 @@ export type Jwks_Updates = {
   where: Jwks_Bool_Exp;
 };
 
+/** columns and relationships of "legacy_app_verification_asset_settlement" */
+export type Legacy_App_Verification_Asset_Settlement = {
+  __typename?: "legacy_app_verification_asset_settlement";
+  app_id: Scalars["String"]["output"];
+  app_metadata_id: Scalars["String"]["output"];
+  attempt_count: Scalars["Int"]["output"];
+  created_at: Scalars["timestamptz"]["output"];
+  delivered_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  delivery_status: Scalars["String"]["output"];
+  expected_metadata_updated_at: Scalars["timestamptz"]["output"];
+  last_error?: Maybe<Scalars["String"]["output"]>;
+  locked_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  locked_by?: Maybe<Scalars["String"]["output"]>;
+  next_attempt_at: Scalars["timestamptz"]["output"];
+  operation_id: Scalars["uuid"]["output"];
+  outcome: Scalars["String"]["output"];
+  prepared_asset_keys: Array<Scalars["String"]["output"]>;
+  prior_asset_keys: Array<Scalars["String"]["output"]>;
+  updated_at: Scalars["timestamptz"]["output"];
+};
+
+/** aggregated selection of "legacy_app_verification_asset_settlement" */
+export type Legacy_App_Verification_Asset_Settlement_Aggregate = {
+  __typename?: "legacy_app_verification_asset_settlement_aggregate";
+  aggregate?: Maybe<Legacy_App_Verification_Asset_Settlement_Aggregate_Fields>;
+  nodes: Array<Legacy_App_Verification_Asset_Settlement>;
+};
+
+/** aggregate fields of "legacy_app_verification_asset_settlement" */
+export type Legacy_App_Verification_Asset_Settlement_Aggregate_Fields = {
+  __typename?: "legacy_app_verification_asset_settlement_aggregate_fields";
+  avg?: Maybe<Legacy_App_Verification_Asset_Settlement_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Legacy_App_Verification_Asset_Settlement_Max_Fields>;
+  min?: Maybe<Legacy_App_Verification_Asset_Settlement_Min_Fields>;
+  stddev?: Maybe<Legacy_App_Verification_Asset_Settlement_Stddev_Fields>;
+  stddev_pop?: Maybe<Legacy_App_Verification_Asset_Settlement_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Legacy_App_Verification_Asset_Settlement_Stddev_Samp_Fields>;
+  sum?: Maybe<Legacy_App_Verification_Asset_Settlement_Sum_Fields>;
+  var_pop?: Maybe<Legacy_App_Verification_Asset_Settlement_Var_Pop_Fields>;
+  var_samp?: Maybe<Legacy_App_Verification_Asset_Settlement_Var_Samp_Fields>;
+  variance?: Maybe<Legacy_App_Verification_Asset_Settlement_Variance_Fields>;
+};
+
+/** aggregate fields of "legacy_app_verification_asset_settlement" */
+export type Legacy_App_Verification_Asset_Settlement_Aggregate_FieldsCountArgs =
+  {
+    columns?: InputMaybe<
+      Array<Legacy_App_Verification_Asset_Settlement_Select_Column>
+    >;
+    distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  };
+
+/** aggregate avg on columns */
+export type Legacy_App_Verification_Asset_Settlement_Avg_Fields = {
+  __typename?: "legacy_app_verification_asset_settlement_avg_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "legacy_app_verification_asset_settlement". All fields are combined with a logical 'AND'. */
+export type Legacy_App_Verification_Asset_Settlement_Bool_Exp = {
+  _and?: InputMaybe<Array<Legacy_App_Verification_Asset_Settlement_Bool_Exp>>;
+  _not?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Bool_Exp>;
+  _or?: InputMaybe<Array<Legacy_App_Verification_Asset_Settlement_Bool_Exp>>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  app_metadata_id?: InputMaybe<String_Comparison_Exp>;
+  attempt_count?: InputMaybe<Int_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  delivered_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  delivery_status?: InputMaybe<String_Comparison_Exp>;
+  expected_metadata_updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  last_error?: InputMaybe<String_Comparison_Exp>;
+  locked_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  locked_by?: InputMaybe<String_Comparison_Exp>;
+  next_attempt_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  operation_id?: InputMaybe<Uuid_Comparison_Exp>;
+  outcome?: InputMaybe<String_Comparison_Exp>;
+  prepared_asset_keys?: InputMaybe<String_Array_Comparison_Exp>;
+  prior_asset_keys?: InputMaybe<String_Array_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "legacy_app_verification_asset_settlement" */
+export enum Legacy_App_Verification_Asset_Settlement_Constraint {
+  /** unique or primary key constraint on columns "operation_id" */
+  LegacyAppVerificationAssetSettlementPkey = "legacy_app_verification_asset_settlement_pkey",
+}
+
+/** input type for incrementing numeric columns in table "legacy_app_verification_asset_settlement" */
+export type Legacy_App_Verification_Asset_Settlement_Inc_Input = {
+  attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** input type for inserting data into table "legacy_app_verification_asset_settlement" */
+export type Legacy_App_Verification_Asset_Settlement_Insert_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
+  attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  delivered_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  delivery_status?: InputMaybe<Scalars["String"]["input"]>;
+  expected_metadata_updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_error?: InputMaybe<Scalars["String"]["input"]>;
+  locked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  locked_by?: InputMaybe<Scalars["String"]["input"]>;
+  next_attempt_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  outcome?: InputMaybe<Scalars["String"]["input"]>;
+  prepared_asset_keys?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  prior_asset_keys?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Legacy_App_Verification_Asset_Settlement_Max_Fields = {
+  __typename?: "legacy_app_verification_asset_settlement_max_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  app_metadata_id?: Maybe<Scalars["String"]["output"]>;
+  attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  delivered_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  delivery_status?: Maybe<Scalars["String"]["output"]>;
+  expected_metadata_updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_error?: Maybe<Scalars["String"]["output"]>;
+  locked_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  locked_by?: Maybe<Scalars["String"]["output"]>;
+  next_attempt_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  operation_id?: Maybe<Scalars["uuid"]["output"]>;
+  outcome?: Maybe<Scalars["String"]["output"]>;
+  prepared_asset_keys?: Maybe<Array<Scalars["String"]["output"]>>;
+  prior_asset_keys?: Maybe<Array<Scalars["String"]["output"]>>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Legacy_App_Verification_Asset_Settlement_Min_Fields = {
+  __typename?: "legacy_app_verification_asset_settlement_min_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  app_metadata_id?: Maybe<Scalars["String"]["output"]>;
+  attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  delivered_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  delivery_status?: Maybe<Scalars["String"]["output"]>;
+  expected_metadata_updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_error?: Maybe<Scalars["String"]["output"]>;
+  locked_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  locked_by?: Maybe<Scalars["String"]["output"]>;
+  next_attempt_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  operation_id?: Maybe<Scalars["uuid"]["output"]>;
+  outcome?: Maybe<Scalars["String"]["output"]>;
+  prepared_asset_keys?: Maybe<Array<Scalars["String"]["output"]>>;
+  prior_asset_keys?: Maybe<Array<Scalars["String"]["output"]>>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** response of any mutation on the table "legacy_app_verification_asset_settlement" */
+export type Legacy_App_Verification_Asset_Settlement_Mutation_Response = {
+  __typename?: "legacy_app_verification_asset_settlement_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Legacy_App_Verification_Asset_Settlement>;
+};
+
+/** on_conflict condition type for table "legacy_app_verification_asset_settlement" */
+export type Legacy_App_Verification_Asset_Settlement_On_Conflict = {
+  constraint: Legacy_App_Verification_Asset_Settlement_Constraint;
+  update_columns?: Array<Legacy_App_Verification_Asset_Settlement_Update_Column>;
+  where?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "legacy_app_verification_asset_settlement". */
+export type Legacy_App_Verification_Asset_Settlement_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  app_metadata_id?: InputMaybe<Order_By>;
+  attempt_count?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  delivered_at?: InputMaybe<Order_By>;
+  delivery_status?: InputMaybe<Order_By>;
+  expected_metadata_updated_at?: InputMaybe<Order_By>;
+  last_error?: InputMaybe<Order_By>;
+  locked_at?: InputMaybe<Order_By>;
+  locked_by?: InputMaybe<Order_By>;
+  next_attempt_at?: InputMaybe<Order_By>;
+  operation_id?: InputMaybe<Order_By>;
+  outcome?: InputMaybe<Order_By>;
+  prepared_asset_keys?: InputMaybe<Order_By>;
+  prior_asset_keys?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: legacy_app_verification_asset_settlement */
+export type Legacy_App_Verification_Asset_Settlement_Pk_Columns_Input = {
+  operation_id: Scalars["uuid"]["input"];
+};
+
+/** select columns of table "legacy_app_verification_asset_settlement" */
+export enum Legacy_App_Verification_Asset_Settlement_Select_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  AppMetadataId = "app_metadata_id",
+  /** column name */
+  AttemptCount = "attempt_count",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  DeliveredAt = "delivered_at",
+  /** column name */
+  DeliveryStatus = "delivery_status",
+  /** column name */
+  ExpectedMetadataUpdatedAt = "expected_metadata_updated_at",
+  /** column name */
+  LastError = "last_error",
+  /** column name */
+  LockedAt = "locked_at",
+  /** column name */
+  LockedBy = "locked_by",
+  /** column name */
+  NextAttemptAt = "next_attempt_at",
+  /** column name */
+  OperationId = "operation_id",
+  /** column name */
+  Outcome = "outcome",
+  /** column name */
+  PreparedAssetKeys = "prepared_asset_keys",
+  /** column name */
+  PriorAssetKeys = "prior_asset_keys",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+/** input type for updating data in table "legacy_app_verification_asset_settlement" */
+export type Legacy_App_Verification_Asset_Settlement_Set_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
+  attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  delivered_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  delivery_status?: InputMaybe<Scalars["String"]["input"]>;
+  expected_metadata_updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_error?: InputMaybe<Scalars["String"]["input"]>;
+  locked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  locked_by?: InputMaybe<Scalars["String"]["input"]>;
+  next_attempt_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  outcome?: InputMaybe<Scalars["String"]["input"]>;
+  prepared_asset_keys?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  prior_asset_keys?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Legacy_App_Verification_Asset_Settlement_Stddev_Fields = {
+  __typename?: "legacy_app_verification_asset_settlement_stddev_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Legacy_App_Verification_Asset_Settlement_Stddev_Pop_Fields = {
+  __typename?: "legacy_app_verification_asset_settlement_stddev_pop_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Legacy_App_Verification_Asset_Settlement_Stddev_Samp_Fields = {
+  __typename?: "legacy_app_verification_asset_settlement_stddev_samp_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "legacy_app_verification_asset_settlement" */
+export type Legacy_App_Verification_Asset_Settlement_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Legacy_App_Verification_Asset_Settlement_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Legacy_App_Verification_Asset_Settlement_Stream_Cursor_Value_Input =
+  {
+    app_id?: InputMaybe<Scalars["String"]["input"]>;
+    app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
+    attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+    created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+    delivered_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+    delivery_status?: InputMaybe<Scalars["String"]["input"]>;
+    expected_metadata_updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+    last_error?: InputMaybe<Scalars["String"]["input"]>;
+    locked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+    locked_by?: InputMaybe<Scalars["String"]["input"]>;
+    next_attempt_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+    operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
+    outcome?: InputMaybe<Scalars["String"]["input"]>;
+    prepared_asset_keys?: InputMaybe<Array<Scalars["String"]["input"]>>;
+    prior_asset_keys?: InputMaybe<Array<Scalars["String"]["input"]>>;
+    updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  };
+
+/** aggregate sum on columns */
+export type Legacy_App_Verification_Asset_Settlement_Sum_Fields = {
+  __typename?: "legacy_app_verification_asset_settlement_sum_fields";
+  attempt_count?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** update columns of table "legacy_app_verification_asset_settlement" */
+export enum Legacy_App_Verification_Asset_Settlement_Update_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  AppMetadataId = "app_metadata_id",
+  /** column name */
+  AttemptCount = "attempt_count",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  DeliveredAt = "delivered_at",
+  /** column name */
+  DeliveryStatus = "delivery_status",
+  /** column name */
+  ExpectedMetadataUpdatedAt = "expected_metadata_updated_at",
+  /** column name */
+  LastError = "last_error",
+  /** column name */
+  LockedAt = "locked_at",
+  /** column name */
+  LockedBy = "locked_by",
+  /** column name */
+  NextAttemptAt = "next_attempt_at",
+  /** column name */
+  OperationId = "operation_id",
+  /** column name */
+  Outcome = "outcome",
+  /** column name */
+  PreparedAssetKeys = "prepared_asset_keys",
+  /** column name */
+  PriorAssetKeys = "prior_asset_keys",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+export type Legacy_App_Verification_Asset_Settlement_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Legacy_App_Verification_Asset_Settlement_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Legacy_App_Verification_Asset_Settlement_Var_Pop_Fields = {
+  __typename?: "legacy_app_verification_asset_settlement_var_pop_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Legacy_App_Verification_Asset_Settlement_Var_Samp_Fields = {
+  __typename?: "legacy_app_verification_asset_settlement_var_samp_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Legacy_App_Verification_Asset_Settlement_Variance_Fields = {
+  __typename?: "legacy_app_verification_asset_settlement_variance_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+export type Legacy_Verify_App_Metadata_Args = {
+  p_app_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_expected_localization_versions?: InputMaybe<Scalars["jsonb"]["input"]>;
+  p_expected_metadata_updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  p_expected_prior_verified_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_expected_prior_verified_updated_at?: InputMaybe<
+    Scalars["timestamptz"]["input"]
+  >;
+  p_is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
+  p_is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
+  p_localization_assets?: InputMaybe<Scalars["jsonb"]["input"]>;
+  p_metadata_assets?: InputMaybe<Scalars["jsonb"]["input"]>;
+  p_operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  p_reviewer_name?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 /** columns and relationships of "localisations" */
 export type Localisations = {
   __typename?: "localisations";
@@ -8503,6 +9111,15 @@ export type Localisations_Updates = {
   where: Localisations_Bool_Exp;
 };
 
+export type Mcp_Patch_Editable_App_Metadata_Args = {
+  p_actor_email?: InputMaybe<Scalars["String"]["input"]>;
+  p_actor_subject?: InputMaybe<Scalars["String"]["input"]>;
+  p_app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_expected_metadata_updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  p_expected_verification_status?: InputMaybe<Scalars["String"]["input"]>;
+  p_patch?: InputMaybe<Scalars["jsonb"]["input"]>;
+};
+
 /** columns and relationships of "membership" */
 export type Membership = {
   __typename?: "membership";
@@ -8752,6 +9369,8 @@ export type Mutation_Root = {
   capture_listing_review_submission: Array<App_Review_Submission>;
   /** Closes the report with a decision */
   change_app_report_status?: Maybe<ChangeAppReportStatusOutput>;
+  /** execute VOLATILE function "complete_legacy_app_verification_asset_settlement" which returns "legacy_app_verification_asset_settlement" */
+  complete_legacy_app_verification_asset_settlement: Array<Legacy_App_Verification_Asset_Settlement>;
   /** Creates an app report */
   create_app_report?: Maybe<CreateAppReportOutput>;
   create_new_draft?: Maybe<CreateNewDraftOutput>;
@@ -8831,6 +9450,10 @@ export type Mutation_Root = {
   delete_jwks?: Maybe<Jwks_Mutation_Response>;
   /** delete single row from the table: "jwks" */
   delete_jwks_by_pk?: Maybe<Jwks>;
+  /** delete data from the table: "legacy_app_verification_asset_settlement" */
+  delete_legacy_app_verification_asset_settlement?: Maybe<Legacy_App_Verification_Asset_Settlement_Mutation_Response>;
+  /** delete single row from the table: "legacy_app_verification_asset_settlement" */
+  delete_legacy_app_verification_asset_settlement_by_pk?: Maybe<Legacy_App_Verification_Asset_Settlement>;
   /** delete data from the table: "localisations" */
   delete_localisations?: Maybe<Localisations_Mutation_Response>;
   /** delete single row from the table: "localisations" */
@@ -8892,6 +9515,8 @@ export type Mutation_Root = {
   delete_user?: Maybe<User_Mutation_Response>;
   /** delete single row from the table: "user" */
   delete_user_by_pk?: Maybe<User>;
+  /** execute VOLATILE function "developer_withdraw_active_review_draft" which returns "app_metadata" */
+  developer_withdraw_active_review_draft: Array<App_Metadata>;
   /** insert data into the table: "action" */
   insert_action?: Maybe<Action_Mutation_Response>;
   /** insert a single row into the table: "action" */
@@ -8968,6 +9593,10 @@ export type Mutation_Root = {
   insert_jwks?: Maybe<Jwks_Mutation_Response>;
   /** insert a single row into the table: "jwks" */
   insert_jwks_one?: Maybe<Jwks>;
+  /** insert data into the table: "legacy_app_verification_asset_settlement" */
+  insert_legacy_app_verification_asset_settlement?: Maybe<Legacy_App_Verification_Asset_Settlement_Mutation_Response>;
+  /** insert a single row into the table: "legacy_app_verification_asset_settlement" */
+  insert_legacy_app_verification_asset_settlement_one?: Maybe<Legacy_App_Verification_Asset_Settlement>;
   /** insert data into the table: "localisations" */
   insert_localisations?: Maybe<Localisations_Mutation_Response>;
   /** insert a single row into the table: "localisations" */
@@ -9031,34 +9660,60 @@ export type Mutation_Root = {
   invalidate_cache?: Maybe<InvalidateCacheOutput>;
   /** Create invites and send emails */
   invite_team_members?: Maybe<InviteTeamMembersOutput>;
+  /** execute VOLATILE function "legacy_verify_app_metadata" which returns "app_metadata" */
+  legacy_verify_app_metadata: Array<App_Metadata>;
+  /** execute VOLATILE function "mcp_patch_editable_app_metadata" which returns "app_metadata" */
+  mcp_patch_editable_app_metadata: Array<App_Metadata>;
   /** execute VOLATILE function "merge_world_id_accounts" which returns "user" */
   merge_world_id_accounts: Array<User>;
+  /** execute VOLATILE function "reconcile_app_review_asset_snapshot_repair" which returns "app_review_submission" */
+  reconcile_app_review_asset_snapshot_repair: Array<App_Review_Submission>;
+  /** execute VOLATILE function "reconcile_listing_review_submission_capture" which returns "app_review_submission" */
+  reconcile_listing_review_submission_capture: Array<App_Review_Submission>;
+  /** execute VOLATILE function "register_legacy_app_verification_asset_settlement" which returns "legacy_app_verification_asset_settlement" */
+  register_legacy_app_verification_asset_settlement: Array<Legacy_App_Verification_Asset_Settlement>;
   /** Register an RP (Relying Party) for an app with managed mode */
   register_rp?: Maybe<RegisterRpOutput>;
+  /** execute VOLATILE function "reopen_changes_requested_review_draft" which returns "app_metadata" */
+  reopen_changes_requested_review_draft: Array<App_Metadata>;
   /** Reset the given API key for the developer portal */
   reset_api_key?: Maybe<ResetApiOutput>;
   /** Reset the client secret for a Sign in with World ID application */
   reset_client_secret?: Maybe<ResetClientOutput>;
   /** Retry RP registration sync for a specific environment */
   retry_rp?: Maybe<RetryRpOutput>;
+  /** execute VOLATILE function "reviewer_begin_app_review_asset_snapshot_repair" which returns "app_review_submission" */
+  reviewer_begin_app_review_asset_snapshot_repair: Array<App_Review_Submission>;
+  /** execute VOLATILE function "reviewer_begin_app_review_submission_slack_delivery" which returns "app_review_notification" */
+  reviewer_begin_app_review_submission_slack_delivery: Array<App_Review_Notification>;
   /** execute VOLATILE function "reviewer_claim_app_review_notifications" which returns "app_review_notification" */
   reviewer_claim_app_review_notifications: Array<App_Review_Notification>;
   /** execute VOLATILE function "reviewer_claim_app_review_submission" which returns "app_review_submission" */
   reviewer_claim_app_review_submission: Array<App_Review_Submission>;
+  /** execute VOLATILE function "reviewer_claim_legacy_app_verification_asset_settlements" which returns "legacy_app_verification_asset_settlement" */
+  reviewer_claim_legacy_app_verification_asset_settlements: Array<Legacy_App_Verification_Asset_Settlement>;
   /** execute VOLATILE function "reviewer_complete_app_review_notification" which returns "app_review_notification" */
   reviewer_complete_app_review_notification: Array<App_Review_Notification>;
   /** execute VOLATILE function "reviewer_decide_app_review_submission" which returns "app_review_submission" */
   reviewer_decide_app_review_submission: Array<App_Review_Submission>;
   /** execute VOLATILE function "reviewer_enqueue_app_review_asset_cleanup" which returns "app_review_notification" */
   reviewer_enqueue_app_review_asset_cleanup: Array<App_Review_Notification>;
+  /** execute VOLATILE function "reviewer_fail_app_review_asset_snapshot_repair" which returns "app_review_submission" */
+  reviewer_fail_app_review_asset_snapshot_repair: Array<App_Review_Submission>;
   /** execute VOLATILE function "reviewer_heartbeat_app_review_submission" which returns "app_review_submission" */
   reviewer_heartbeat_app_review_submission: Array<App_Review_Submission>;
+  /** execute VOLATILE function "reviewer_reconcile_app_review_asset_cleanup" which returns "app_review_notification" */
+  reviewer_reconcile_app_review_asset_cleanup: Array<App_Review_Notification>;
   /** execute VOLATILE function "reviewer_release_app_review_submission" which returns "app_review_submission" */
   reviewer_release_app_review_submission: Array<App_Review_Submission>;
+  /** execute VOLATILE function "reviewer_retry_app_review_asset_snapshot_repair" which returns "app_review_submission" */
+  reviewer_retry_app_review_asset_snapshot_repair: Array<App_Review_Submission>;
   /** execute VOLATILE function "reviewer_retry_app_review_notification" which returns "app_review_notification" */
   reviewer_retry_app_review_notification: Array<App_Review_Notification>;
   /** execute VOLATILE function "reviewer_save_app_review_checklist" which returns "app_review_submission" */
   reviewer_save_app_review_checklist: Array<App_Review_Submission>;
+  /** execute VOLATILE function "reviewer_set_app_review_asset_snapshot" which returns "app_review_submission" */
+  reviewer_set_app_review_asset_snapshot: Array<App_Review_Submission>;
   /** execute VOLATILE function "reviewer_settle_app_review_asset_cleanup" which returns "app_review_notification" */
   reviewer_settle_app_review_asset_cleanup: Array<App_Review_Notification>;
   /** execute VOLATILE function "rollup_app_stats" which returns "app_stats" */
@@ -9201,6 +9856,14 @@ export type Mutation_Root = {
   update_jwks_by_pk?: Maybe<Jwks>;
   /** update multiples rows of table: "jwks" */
   update_jwks_many?: Maybe<Array<Maybe<Jwks_Mutation_Response>>>;
+  /** update data of the table: "legacy_app_verification_asset_settlement" */
+  update_legacy_app_verification_asset_settlement?: Maybe<Legacy_App_Verification_Asset_Settlement_Mutation_Response>;
+  /** update single row of the table: "legacy_app_verification_asset_settlement" */
+  update_legacy_app_verification_asset_settlement_by_pk?: Maybe<Legacy_App_Verification_Asset_Settlement>;
+  /** update multiples rows of table: "legacy_app_verification_asset_settlement" */
+  update_legacy_app_verification_asset_settlement_many?: Maybe<
+    Array<Maybe<Legacy_App_Verification_Asset_Settlement_Mutation_Response>>
+  >;
   /** update data of the table: "localisations" */
   update_localisations?: Maybe<Localisations_Mutation_Response>;
   /** update single row of the table: "localisations" */
@@ -9345,6 +10008,21 @@ export type Mutation_RootCapture_Listing_Review_SubmissionArgs = {
 export type Mutation_RootChange_App_Report_StatusArgs = {
   input: ChangeAppReportStatusInput;
 };
+
+/** mutation root */
+export type Mutation_RootComplete_Legacy_App_Verification_Asset_SettlementArgs =
+  {
+    args: Complete_Legacy_App_Verification_Asset_Settlement_Args;
+    distinct_on?: InputMaybe<
+      Array<Legacy_App_Verification_Asset_Settlement_Select_Column>
+    >;
+    limit?: InputMaybe<Scalars["Int"]["input"]>;
+    offset?: InputMaybe<Scalars["Int"]["input"]>;
+    order_by?: InputMaybe<
+      Array<Legacy_App_Verification_Asset_Settlement_Order_By>
+    >;
+    where?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Bool_Exp>;
+  };
 
 /** mutation root */
 export type Mutation_RootCreate_App_ReportArgs = {
@@ -9551,6 +10229,17 @@ export type Mutation_RootDelete_Jwks_By_PkArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootDelete_Legacy_App_Verification_Asset_SettlementArgs = {
+  where: Legacy_App_Verification_Asset_Settlement_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Legacy_App_Verification_Asset_Settlement_By_PkArgs =
+  {
+    operation_id: Scalars["uuid"]["input"];
+  };
+
+/** mutation root */
 export type Mutation_RootDelete_LocalisationsArgs = {
   where: Localisations_Bool_Exp;
 };
@@ -9703,6 +10392,16 @@ export type Mutation_RootDelete_UserArgs = {
 /** mutation root */
 export type Mutation_RootDelete_User_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDeveloper_Withdraw_Active_Review_DraftArgs = {
+  args: Developer_Withdraw_Active_Review_Draft_Args;
+  distinct_on?: InputMaybe<Array<App_Metadata_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Metadata_Order_By>>;
+  where?: InputMaybe<App_Metadata_Bool_Exp>;
 };
 
 /** mutation root */
@@ -9934,6 +10633,19 @@ export type Mutation_RootInsert_Jwks_OneArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootInsert_Legacy_App_Verification_Asset_SettlementArgs = {
+  objects: Array<Legacy_App_Verification_Asset_Settlement_Insert_Input>;
+  on_conflict?: InputMaybe<Legacy_App_Verification_Asset_Settlement_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Legacy_App_Verification_Asset_Settlement_OneArgs =
+  {
+    object: Legacy_App_Verification_Asset_Settlement_Insert_Input;
+    on_conflict?: InputMaybe<Legacy_App_Verification_Asset_Settlement_On_Conflict>;
+  };
+
+/** mutation root */
 export type Mutation_RootInsert_LocalisationsArgs = {
   objects: Array<Localisations_Insert_Input>;
   on_conflict?: InputMaybe<Localisations_On_Conflict>;
@@ -10120,6 +10832,26 @@ export type Mutation_RootInvite_Team_MembersArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootLegacy_Verify_App_MetadataArgs = {
+  args: Legacy_Verify_App_Metadata_Args;
+  distinct_on?: InputMaybe<Array<App_Metadata_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Metadata_Order_By>>;
+  where?: InputMaybe<App_Metadata_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootMcp_Patch_Editable_App_MetadataArgs = {
+  args: Mcp_Patch_Editable_App_Metadata_Args;
+  distinct_on?: InputMaybe<Array<App_Metadata_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Metadata_Order_By>>;
+  where?: InputMaybe<App_Metadata_Bool_Exp>;
+};
+
+/** mutation root */
 export type Mutation_RootMerge_World_Id_AccountsArgs = {
   args: Merge_World_Id_Accounts_Args;
   distinct_on?: InputMaybe<Array<User_Select_Column>>;
@@ -10130,10 +10862,55 @@ export type Mutation_RootMerge_World_Id_AccountsArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootReconcile_App_Review_Asset_Snapshot_RepairArgs = {
+  args: Reconcile_App_Review_Asset_Snapshot_Repair_Args;
+  distinct_on?: InputMaybe<Array<App_Review_Submission_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Review_Submission_Order_By>>;
+  where?: InputMaybe<App_Review_Submission_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootReconcile_Listing_Review_Submission_CaptureArgs = {
+  args: Reconcile_Listing_Review_Submission_Capture_Args;
+  distinct_on?: InputMaybe<Array<App_Review_Submission_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Review_Submission_Order_By>>;
+  where?: InputMaybe<App_Review_Submission_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootRegister_Legacy_App_Verification_Asset_SettlementArgs =
+  {
+    args: Register_Legacy_App_Verification_Asset_Settlement_Args;
+    distinct_on?: InputMaybe<
+      Array<Legacy_App_Verification_Asset_Settlement_Select_Column>
+    >;
+    limit?: InputMaybe<Scalars["Int"]["input"]>;
+    offset?: InputMaybe<Scalars["Int"]["input"]>;
+    order_by?: InputMaybe<
+      Array<Legacy_App_Verification_Asset_Settlement_Order_By>
+    >;
+    where?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Bool_Exp>;
+  };
+
+/** mutation root */
 export type Mutation_RootRegister_RpArgs = {
   app_id: Scalars["String"]["input"];
   mode?: InputMaybe<Scalars["String"]["input"]>;
   signer_address?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** mutation root */
+export type Mutation_RootReopen_Changes_Requested_Review_DraftArgs = {
+  args: Reopen_Changes_Requested_Review_Draft_Args;
+  distinct_on?: InputMaybe<Array<App_Metadata_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Metadata_Order_By>>;
+  where?: InputMaybe<App_Metadata_Bool_Exp>;
 };
 
 /** mutation root */
@@ -10155,6 +10932,27 @@ export type Mutation_RootRetry_RpArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootReviewer_Begin_App_Review_Asset_Snapshot_RepairArgs = {
+  args: Reviewer_Begin_App_Review_Asset_Snapshot_Repair_Args;
+  distinct_on?: InputMaybe<Array<App_Review_Submission_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Review_Submission_Order_By>>;
+  where?: InputMaybe<App_Review_Submission_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootReviewer_Begin_App_Review_Submission_Slack_DeliveryArgs =
+  {
+    args: Reviewer_Begin_App_Review_Submission_Slack_Delivery_Args;
+    distinct_on?: InputMaybe<Array<App_Review_Notification_Select_Column>>;
+    limit?: InputMaybe<Scalars["Int"]["input"]>;
+    offset?: InputMaybe<Scalars["Int"]["input"]>;
+    order_by?: InputMaybe<Array<App_Review_Notification_Order_By>>;
+    where?: InputMaybe<App_Review_Notification_Bool_Exp>;
+  };
+
+/** mutation root */
 export type Mutation_RootReviewer_Claim_App_Review_NotificationsArgs = {
   args: Reviewer_Claim_App_Review_Notifications_Args;
   distinct_on?: InputMaybe<Array<App_Review_Notification_Select_Column>>;
@@ -10173,6 +10971,21 @@ export type Mutation_RootReviewer_Claim_App_Review_SubmissionArgs = {
   order_by?: InputMaybe<Array<App_Review_Submission_Order_By>>;
   where?: InputMaybe<App_Review_Submission_Bool_Exp>;
 };
+
+/** mutation root */
+export type Mutation_RootReviewer_Claim_Legacy_App_Verification_Asset_SettlementsArgs =
+  {
+    args: Reviewer_Claim_Legacy_App_Verification_Asset_Settlements_Args;
+    distinct_on?: InputMaybe<
+      Array<Legacy_App_Verification_Asset_Settlement_Select_Column>
+    >;
+    limit?: InputMaybe<Scalars["Int"]["input"]>;
+    offset?: InputMaybe<Scalars["Int"]["input"]>;
+    order_by?: InputMaybe<
+      Array<Legacy_App_Verification_Asset_Settlement_Order_By>
+    >;
+    where?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Bool_Exp>;
+  };
 
 /** mutation root */
 export type Mutation_RootReviewer_Complete_App_Review_NotificationArgs = {
@@ -10205,6 +11018,16 @@ export type Mutation_RootReviewer_Enqueue_App_Review_Asset_CleanupArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootReviewer_Fail_App_Review_Asset_Snapshot_RepairArgs = {
+  args: Reviewer_Fail_App_Review_Asset_Snapshot_Repair_Args;
+  distinct_on?: InputMaybe<Array<App_Review_Submission_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Review_Submission_Order_By>>;
+  where?: InputMaybe<App_Review_Submission_Bool_Exp>;
+};
+
+/** mutation root */
 export type Mutation_RootReviewer_Heartbeat_App_Review_SubmissionArgs = {
   args: Reviewer_Heartbeat_App_Review_Submission_Args;
   distinct_on?: InputMaybe<Array<App_Review_Submission_Select_Column>>;
@@ -10215,8 +11038,28 @@ export type Mutation_RootReviewer_Heartbeat_App_Review_SubmissionArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootReviewer_Reconcile_App_Review_Asset_CleanupArgs = {
+  args: Reviewer_Reconcile_App_Review_Asset_Cleanup_Args;
+  distinct_on?: InputMaybe<Array<App_Review_Notification_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Review_Notification_Order_By>>;
+  where?: InputMaybe<App_Review_Notification_Bool_Exp>;
+};
+
+/** mutation root */
 export type Mutation_RootReviewer_Release_App_Review_SubmissionArgs = {
   args: Reviewer_Release_App_Review_Submission_Args;
+  distinct_on?: InputMaybe<Array<App_Review_Submission_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Review_Submission_Order_By>>;
+  where?: InputMaybe<App_Review_Submission_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootReviewer_Retry_App_Review_Asset_Snapshot_RepairArgs = {
+  args: Reviewer_Retry_App_Review_Asset_Snapshot_Repair_Args;
   distinct_on?: InputMaybe<Array<App_Review_Submission_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
@@ -10237,6 +11080,16 @@ export type Mutation_RootReviewer_Retry_App_Review_NotificationArgs = {
 /** mutation root */
 export type Mutation_RootReviewer_Save_App_Review_ChecklistArgs = {
   args: Reviewer_Save_App_Review_Checklist_Args;
+  distinct_on?: InputMaybe<Array<App_Review_Submission_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Review_Submission_Order_By>>;
+  where?: InputMaybe<App_Review_Submission_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootReviewer_Set_App_Review_Asset_SnapshotArgs = {
+  args: Reviewer_Set_App_Review_Asset_Snapshot_Args;
   distinct_on?: InputMaybe<Array<App_Review_Submission_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
@@ -10676,6 +11529,27 @@ export type Mutation_RootUpdate_Jwks_By_PkArgs = {
 export type Mutation_RootUpdate_Jwks_ManyArgs = {
   updates: Array<Jwks_Updates>;
 };
+
+/** mutation root */
+export type Mutation_RootUpdate_Legacy_App_Verification_Asset_SettlementArgs = {
+  _inc?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Inc_Input>;
+  _set?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Set_Input>;
+  where: Legacy_App_Verification_Asset_Settlement_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Legacy_App_Verification_Asset_Settlement_By_PkArgs =
+  {
+    _inc?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Inc_Input>;
+    _set?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Set_Input>;
+    pk_columns: Legacy_App_Verification_Asset_Settlement_Pk_Columns_Input;
+  };
+
+/** mutation root */
+export type Mutation_RootUpdate_Legacy_App_Verification_Asset_Settlement_ManyArgs =
+  {
+    updates: Array<Legacy_App_Verification_Asset_Settlement_Updates>;
+  };
 
 /** mutation root */
 export type Mutation_RootUpdate_LocalisationsArgs = {
@@ -12367,6 +13241,12 @@ export type Query_Root = {
   jwks_aggregate: Jwks_Aggregate;
   /** fetch data from the table: "jwks" using primary key columns */
   jwks_by_pk?: Maybe<Jwks>;
+  /** fetch data from the table: "legacy_app_verification_asset_settlement" */
+  legacy_app_verification_asset_settlement: Array<Legacy_App_Verification_Asset_Settlement>;
+  /** fetch aggregated fields from the table: "legacy_app_verification_asset_settlement" */
+  legacy_app_verification_asset_settlement_aggregate: Legacy_App_Verification_Asset_Settlement_Aggregate;
+  /** fetch data from the table: "legacy_app_verification_asset_settlement" using primary key columns */
+  legacy_app_verification_asset_settlement_by_pk?: Maybe<Legacy_App_Verification_Asset_Settlement>;
   /** An array relationship */
   localisations: Array<Localisations>;
   /** An aggregate relationship */
@@ -12924,6 +13804,34 @@ export type Query_RootJwks_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
+export type Query_RootLegacy_App_Verification_Asset_SettlementArgs = {
+  distinct_on?: InputMaybe<
+    Array<Legacy_App_Verification_Asset_Settlement_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<
+    Array<Legacy_App_Verification_Asset_Settlement_Order_By>
+  >;
+  where?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Bool_Exp>;
+};
+
+export type Query_RootLegacy_App_Verification_Asset_Settlement_AggregateArgs = {
+  distinct_on?: InputMaybe<
+    Array<Legacy_App_Verification_Asset_Settlement_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<
+    Array<Legacy_App_Verification_Asset_Settlement_Order_By>
+  >;
+  where?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Bool_Exp>;
+};
+
+export type Query_RootLegacy_App_Verification_Asset_Settlement_By_PkArgs = {
+  operation_id: Scalars["uuid"]["input"];
+};
+
 export type Query_RootLocalisationsArgs = {
   distinct_on?: InputMaybe<Array<Localisations_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -13236,6 +14144,16 @@ export type Query_RootUser_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
+export type Reconcile_App_Review_Asset_Snapshot_Repair_Args = {
+  p_asset_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
+  p_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
+};
+
+export type Reconcile_Listing_Review_Submission_Capture_Args = {
+  p_app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_asset_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
+};
+
 /** columns and relationships of "redirect" */
 export type Redirect = {
   __typename?: "redirect";
@@ -13453,6 +14371,23 @@ export type Redirect_Updates = {
   where: Redirect_Bool_Exp;
 };
 
+export type Register_Legacy_App_Verification_Asset_Settlement_Args = {
+  p_app_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_expected_metadata_updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  p_operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  p_prepared_asset_keys?: InputMaybe<Scalars["jsonb"]["input"]>;
+  p_prior_asset_keys?: InputMaybe<Scalars["jsonb"]["input"]>;
+};
+
+export type Reopen_Changes_Requested_Review_Draft_Args = {
+  p_actor_email?: InputMaybe<Scalars["String"]["input"]>;
+  p_actor_subject?: InputMaybe<Scalars["String"]["input"]>;
+  p_app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_expected_metadata_updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  p_expected_verification_status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 /** Boolean expression to compare columns of type "review_status_enum". All fields are combined with logical 'AND'. */
 export type Review_Status_Enum_Comparison_Exp = {
   _eq?: InputMaybe<Scalars["review_status_enum"]["input"]>;
@@ -13466,6 +14401,19 @@ export type Review_Status_Enum_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars["review_status_enum"]["input"]>>;
 };
 
+export type Reviewer_Begin_App_Review_Asset_Snapshot_Repair_Args = {
+  p_expected_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  p_expected_review_version?: InputMaybe<Scalars["Int"]["input"]>;
+  p_operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  p_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
+};
+
+export type Reviewer_Begin_App_Review_Submission_Slack_Delivery_Args = {
+  p_fence_token?: InputMaybe<Scalars["uuid"]["input"]>;
+  p_notification_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  p_worker_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 export type Reviewer_Claim_App_Review_Notifications_Args = {
   p_limit?: InputMaybe<Scalars["Int"]["input"]>;
   p_worker_id?: InputMaybe<Scalars["String"]["input"]>;
@@ -13476,6 +14424,11 @@ export type Reviewer_Claim_App_Review_Submission_Args = {
   p_actor_subject?: InputMaybe<Scalars["String"]["input"]>;
   p_expected_review_version?: InputMaybe<Scalars["Int"]["input"]>;
   p_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
+};
+
+export type Reviewer_Claim_Legacy_App_Verification_Asset_Settlements_Args = {
+  p_limit?: InputMaybe<Scalars["Int"]["input"]>;
+  p_worker_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type Reviewer_Complete_App_Review_Notification_Args = {
@@ -13523,12 +14476,30 @@ export type Reviewer_Enqueue_App_Review_Asset_Cleanup_Args = {
   p_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
 };
 
+export type Reviewer_Fail_App_Review_Asset_Snapshot_Repair_Args = {
+  p_error?: InputMaybe<Scalars["String"]["input"]>;
+  p_expected_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  p_expected_review_version?: InputMaybe<Scalars["Int"]["input"]>;
+  p_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
+};
+
 export type Reviewer_Heartbeat_App_Review_Submission_Args = {
   p_actor_email?: InputMaybe<Scalars["String"]["input"]>;
   p_actor_subject?: InputMaybe<Scalars["String"]["input"]>;
   p_claim_token?: InputMaybe<Scalars["uuid"]["input"]>;
   p_expected_review_version?: InputMaybe<Scalars["Int"]["input"]>;
   p_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
+};
+
+export type Reviewer_Reconcile_App_Review_Asset_Cleanup_Args = {
+  p_app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_asset_keys?: InputMaybe<Scalars["jsonb"]["input"]>;
+  p_decision_fingerprint?: InputMaybe<Scalars["String"]["input"]>;
+  p_expected_review_version?: InputMaybe<Scalars["Int"]["input"]>;
+  p_notification_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  p_operation_id?: InputMaybe<Scalars["String"]["input"]>;
+  p_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  p_worker_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type Reviewer_Release_App_Review_Submission_Args = {
@@ -13539,10 +14510,18 @@ export type Reviewer_Release_App_Review_Submission_Args = {
   p_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
 };
 
+export type Reviewer_Retry_App_Review_Asset_Snapshot_Repair_Args = {
+  p_actor_email?: InputMaybe<Scalars["String"]["input"]>;
+  p_actor_subject?: InputMaybe<Scalars["String"]["input"]>;
+  p_operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  p_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
+};
+
 export type Reviewer_Retry_App_Review_Notification_Args = {
   p_actor_email?: InputMaybe<Scalars["String"]["input"]>;
   p_actor_subject?: InputMaybe<Scalars["String"]["input"]>;
   p_notification_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  p_operation_id?: InputMaybe<Scalars["uuid"]["input"]>;
 };
 
 export type Reviewer_Save_App_Review_Checklist_Args = {
@@ -13551,6 +14530,12 @@ export type Reviewer_Save_App_Review_Checklist_Args = {
   p_checklist?: InputMaybe<Scalars["jsonb"]["input"]>;
   p_checklist_version?: InputMaybe<Scalars["String"]["input"]>;
   p_claim_token?: InputMaybe<Scalars["uuid"]["input"]>;
+  p_expected_review_version?: InputMaybe<Scalars["Int"]["input"]>;
+  p_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
+};
+
+export type Reviewer_Set_App_Review_Asset_Snapshot_Args = {
+  p_asset_snapshot?: InputMaybe<Scalars["jsonb"]["input"]>;
   p_expected_review_version?: InputMaybe<Scalars["Int"]["input"]>;
   p_submission_id?: InputMaybe<Scalars["uuid"]["input"]>;
 };
@@ -13990,6 +14975,8 @@ export type Rp_Registration = {
   manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
   mode: Scalars["rp_registration_mode"]["output"];
   operation_hash?: Maybe<Scalars["String"]["output"]>;
+  /** Durable claim for a reviewer-visible RP configuration operation; cleared when its lifecycle status leaves pending. */
+  review_configuration_change_kind?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
   signer_address?: Maybe<Scalars["String"]["output"]>;
   staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
@@ -14092,6 +15079,7 @@ export type Rp_Registration_Bool_Exp = {
   manager_kms_key_id?: InputMaybe<String_Comparison_Exp>;
   mode?: InputMaybe<Rp_Registration_Mode_Comparison_Exp>;
   operation_hash?: InputMaybe<String_Comparison_Exp>;
+  review_configuration_change_kind?: InputMaybe<String_Comparison_Exp>;
   rp_id?: InputMaybe<String_Comparison_Exp>;
   signer_address?: InputMaybe<String_Comparison_Exp>;
   staging_operation_hash?: InputMaybe<String_Comparison_Exp>;
@@ -14118,6 +15106,8 @@ export type Rp_Registration_Insert_Input = {
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
+  /** Durable claim for a reviewer-visible RP configuration operation; cleared when its lifecycle status leaves pending. */
+  review_configuration_change_kind?: InputMaybe<Scalars["String"]["input"]>;
   rp_id?: InputMaybe<Scalars["String"]["input"]>;
   signer_address?: InputMaybe<Scalars["String"]["input"]>;
   staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -14134,6 +15124,8 @@ export type Rp_Registration_Max_Fields = {
   manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
   mode?: Maybe<Scalars["rp_registration_mode"]["output"]>;
   operation_hash?: Maybe<Scalars["String"]["output"]>;
+  /** Durable claim for a reviewer-visible RP configuration operation; cleared when its lifecycle status leaves pending. */
+  review_configuration_change_kind?: Maybe<Scalars["String"]["output"]>;
   rp_id?: Maybe<Scalars["String"]["output"]>;
   signer_address?: Maybe<Scalars["String"]["output"]>;
   staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
@@ -14149,6 +15141,8 @@ export type Rp_Registration_Max_Order_By = {
   manager_kms_key_id?: InputMaybe<Order_By>;
   mode?: InputMaybe<Order_By>;
   operation_hash?: InputMaybe<Order_By>;
+  /** Durable claim for a reviewer-visible RP configuration operation; cleared when its lifecycle status leaves pending. */
+  review_configuration_change_kind?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
   staging_operation_hash?: InputMaybe<Order_By>;
@@ -14165,6 +15159,8 @@ export type Rp_Registration_Min_Fields = {
   manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
   mode?: Maybe<Scalars["rp_registration_mode"]["output"]>;
   operation_hash?: Maybe<Scalars["String"]["output"]>;
+  /** Durable claim for a reviewer-visible RP configuration operation; cleared when its lifecycle status leaves pending. */
+  review_configuration_change_kind?: Maybe<Scalars["String"]["output"]>;
   rp_id?: Maybe<Scalars["String"]["output"]>;
   signer_address?: Maybe<Scalars["String"]["output"]>;
   staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
@@ -14180,6 +15176,8 @@ export type Rp_Registration_Min_Order_By = {
   manager_kms_key_id?: InputMaybe<Order_By>;
   mode?: InputMaybe<Order_By>;
   operation_hash?: InputMaybe<Order_By>;
+  /** Durable claim for a reviewer-visible RP configuration operation; cleared when its lifecycle status leaves pending. */
+  review_configuration_change_kind?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
   staging_operation_hash?: InputMaybe<Order_By>;
@@ -14234,6 +15232,7 @@ export type Rp_Registration_Order_By = {
   manager_kms_key_id?: InputMaybe<Order_By>;
   mode?: InputMaybe<Order_By>;
   operation_hash?: InputMaybe<Order_By>;
+  review_configuration_change_kind?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
   staging_operation_hash?: InputMaybe<Order_By>;
@@ -14261,6 +15260,8 @@ export enum Rp_Registration_Select_Column {
   Mode = "mode",
   /** column name */
   OperationHash = "operation_hash",
+  /** column name */
+  ReviewConfigurationChangeKind = "review_configuration_change_kind",
   /** column name */
   RpId = "rp_id",
   /** column name */
@@ -14295,6 +15296,8 @@ export type Rp_Registration_Set_Input = {
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
+  /** Durable claim for a reviewer-visible RP configuration operation; cleared when its lifecycle status leaves pending. */
+  review_configuration_change_kind?: InputMaybe<Scalars["String"]["input"]>;
   rp_id?: InputMaybe<Scalars["String"]["input"]>;
   signer_address?: InputMaybe<Scalars["String"]["input"]>;
   staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -14332,6 +15335,8 @@ export type Rp_Registration_Stream_Cursor_Value_Input = {
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
+  /** Durable claim for a reviewer-visible RP configuration operation; cleared when its lifecycle status leaves pending. */
+  review_configuration_change_kind?: InputMaybe<Scalars["String"]["input"]>;
   rp_id?: InputMaybe<Scalars["String"]["input"]>;
   signer_address?: InputMaybe<Scalars["String"]["input"]>;
   staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -14354,6 +15359,8 @@ export enum Rp_Registration_Update_Column {
   Mode = "mode",
   /** column name */
   OperationHash = "operation_hash",
+  /** column name */
+  ReviewConfigurationChangeKind = "review_configuration_change_kind",
   /** column name */
   RpId = "rp_id",
   /** column name */
@@ -15122,6 +16129,14 @@ export type Subscription_Root = {
   jwks_by_pk?: Maybe<Jwks>;
   /** fetch data from the table in a streaming manner: "jwks" */
   jwks_stream: Array<Jwks>;
+  /** fetch data from the table: "legacy_app_verification_asset_settlement" */
+  legacy_app_verification_asset_settlement: Array<Legacy_App_Verification_Asset_Settlement>;
+  /** fetch aggregated fields from the table: "legacy_app_verification_asset_settlement" */
+  legacy_app_verification_asset_settlement_aggregate: Legacy_App_Verification_Asset_Settlement_Aggregate;
+  /** fetch data from the table: "legacy_app_verification_asset_settlement" using primary key columns */
+  legacy_app_verification_asset_settlement_by_pk?: Maybe<Legacy_App_Verification_Asset_Settlement>;
+  /** fetch data from the table in a streaming manner: "legacy_app_verification_asset_settlement" */
+  legacy_app_verification_asset_settlement_stream: Array<Legacy_App_Verification_Asset_Settlement>;
   /** An array relationship */
   localisations: Array<Localisations>;
   /** An aggregate relationship */
@@ -15800,6 +16815,45 @@ export type Subscription_RootJwks_StreamArgs = {
   cursor: Array<InputMaybe<Jwks_Stream_Cursor_Input>>;
   where?: InputMaybe<Jwks_Bool_Exp>;
 };
+
+export type Subscription_RootLegacy_App_Verification_Asset_SettlementArgs = {
+  distinct_on?: InputMaybe<
+    Array<Legacy_App_Verification_Asset_Settlement_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<
+    Array<Legacy_App_Verification_Asset_Settlement_Order_By>
+  >;
+  where?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Bool_Exp>;
+};
+
+export type Subscription_RootLegacy_App_Verification_Asset_Settlement_AggregateArgs =
+  {
+    distinct_on?: InputMaybe<
+      Array<Legacy_App_Verification_Asset_Settlement_Select_Column>
+    >;
+    limit?: InputMaybe<Scalars["Int"]["input"]>;
+    offset?: InputMaybe<Scalars["Int"]["input"]>;
+    order_by?: InputMaybe<
+      Array<Legacy_App_Verification_Asset_Settlement_Order_By>
+    >;
+    where?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Bool_Exp>;
+  };
+
+export type Subscription_RootLegacy_App_Verification_Asset_Settlement_By_PkArgs =
+  {
+    operation_id: Scalars["uuid"]["input"];
+  };
+
+export type Subscription_RootLegacy_App_Verification_Asset_Settlement_StreamArgs =
+  {
+    batch_size: Scalars["Int"]["input"];
+    cursor: Array<
+      InputMaybe<Legacy_App_Verification_Asset_Settlement_Stream_Cursor_Input>
+    >;
+    where?: InputMaybe<Legacy_App_Verification_Asset_Settlement_Bool_Exp>;
+  };
 
 export type Subscription_RootLocalisationsArgs = {
   distinct_on?: InputMaybe<Array<Localisations_Select_Column>>;
