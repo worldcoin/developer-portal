@@ -49,6 +49,22 @@ describe("admin reviewer page boundaries", () => {
     expect(`${queueQuery}\n${detailQuery}`).not.toMatch(/claim_token/i);
   });
 
+  it("keeps the server checklist context projection narrow", () => {
+    const query = readFileSync(
+      join(root, "api/admin/reviewer/graphql/reviewer-workflow.graphql"),
+      "utf8",
+    );
+    const contextQuery = query.slice(
+      query.indexOf("query FetchReviewChecklistContext"),
+      query.indexOf("mutation ClaimReviewSubmission"),
+    );
+
+    expect(contextQuery).toContain("app_review_submission_by_pk");
+    expect(contextQuery).toContain("app_mode");
+    expect(contextQuery).toContain("checklist_version");
+    expect(contextQuery).not.toMatch(/claim_token|claimed_by_subject/i);
+  });
+
   it("keeps broad unpublished metadata out of the dashboard read role", () => {
     const appMetadata = readFileSync(
       join(

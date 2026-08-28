@@ -156,8 +156,10 @@ export const REVIEWER_QUEUE_PAGE_SIZE = 50;
 
 type ReviewerQueueWhere = Record<string, unknown>;
 
-const ilikeValue = (value: string) =>
-  `%${value.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_")}%`;
+const escapeIlikeValue = (value: string) =>
+  value.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_");
+
+const ilikeValue = (value: string) => `%${escapeIlikeValue(value)}%`;
 
 export const createReviewerQueueWhere = (
   filters: ReviewerQueueFilters,
@@ -184,7 +186,7 @@ export const createReviewerQueueWhere = (
       _and: [
         { status: { _eq: "in_review" } },
         { claim_expires_at: { _gt: nowIso } },
-        { claimed_by_email: { _ilike: reviewerEmail } },
+        { claimed_by_email: { _ilike: escapeIlikeValue(reviewerEmail) } },
       ],
     });
   } else if (filters.status === "in_review") {

@@ -23,6 +23,21 @@ export type ReviewChecklist = {
   internalNotes: string;
 };
 
+export type ReviewChecklistDefinitionSnapshot = {
+  mode: "mini-app" | "external";
+  items: Array<{
+    id: string;
+    label: string;
+    description: string;
+    sourceUrl: string;
+    conditional: boolean;
+  }>;
+};
+
+export type StoredReviewChecklist = ReviewChecklist & {
+  definitionSnapshot?: ReviewChecklistDefinitionSnapshot;
+};
+
 export type ChecklistWriteBody = ClaimedWriteBody & {
   checklistVersion: string;
   checklist: ReviewChecklist;

@@ -1,4 +1,7 @@
-import type { ReviewChecklist } from "@/api/admin/reviewer/request-schema";
+import type {
+  ReviewChecklist,
+  ReviewChecklistDefinitionSnapshot,
+} from "@/api/admin/reviewer/request-schema";
 
 import type { ReviewerAppMode } from "./types";
 
@@ -189,6 +192,24 @@ export const getChecklistDefinitions = (
     ...configuration.shared,
     ...(mode === "mini-app" ? configuration.miniApp : configuration.external),
   ];
+};
+
+export const createChecklistDefinitionSnapshot = (
+  mode: ReviewerAppMode,
+  version = REVIEW_CHECKLIST_VERSION,
+): ReviewChecklistDefinitionSnapshot | null => {
+  if (!isReviewChecklistVersionSupported(version)) return null;
+
+  return {
+    mode,
+    items: getChecklistDefinitions(mode, version).map((definition) => ({
+      id: definition.id,
+      label: definition.title,
+      description: definition.description,
+      sourceUrl: definition.sourceUrl,
+      conditional: Boolean(definition.conditional),
+    })),
+  };
 };
 
 const duplicateIds = (items: ReviewChecklist["items"]) => {

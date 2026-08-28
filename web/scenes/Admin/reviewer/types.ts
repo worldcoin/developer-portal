@@ -1,4 +1,4 @@
-import type { ReviewChecklist } from "@/api/admin/reviewer/request-schema";
+import type { StoredReviewChecklist } from "@/api/admin/reviewer/request-schema";
 
 export type ReviewerAppMode = "mini-app" | "external";
 
@@ -90,7 +90,7 @@ export type ReviewerWorldIdConfiguration = {
 };
 
 export type ReviewerSubmissionDetail = ReviewerQueueRow & {
-  checklist: ReviewChecklist;
+  checklist: StoredReviewChecklist;
   checklistVersion: string | null;
   claimedAt: string | null;
   completedAt: string | null;

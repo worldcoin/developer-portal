@@ -3,11 +3,16 @@ import { NavBar } from "@/components/AdminDashboard/NavBar";
 import { NavProvider } from "@/components/AdminDashboard/NavProvider";
 import { ProfileBadge } from "@/components/AdminDashboard/ProfileBadge";
 import { Search } from "@/components/AdminDashboard/Search";
-import { isAdminReviewerPortalEnabled } from "@/lib/admin-auth";
+import { getAdminUser, isAdminReviewerPortalEnabled } from "@/lib/admin-auth";
 import clsx from "clsx";
 
-export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
-  const showReviewer = isAdminReviewerPortalEnabled();
+export const AdminLayout = async ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const user = await getAdminUser();
+  const showReviewer = Boolean(user) && isAdminReviewerPortalEnabled();
 
   return (
     <NavProvider>

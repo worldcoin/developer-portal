@@ -3,6 +3,7 @@
 import "@testing-library/jest-dom";
 import { TextEncoder } from "node:util";
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -114,6 +115,45 @@ describe("review queue workspace", () => {
       "href",
       expect.stringContaining("page=2"),
     );
+  });
+
+  it("renders an expired claim in Pending as unassigned and available", () => {
+    render(
+      <ReviewerQueue
+        currentUserEmail="reviewer@example.com"
+        filters={parseReviewerQueueFilters({ status: "pending" })}
+        hasNextPage={false}
+        submissions={[
+          {
+            id: "review-expired",
+            appId: "app_expired",
+            appMetadataId: "metadata_expired",
+            appName: "Expired app",
+            appMode: "mini-app",
+            attempt: 1,
+            changelog: "Ready for another reviewer",
+            claimedByEmail: "former-reviewer@example.com",
+            claimExpiresAt: "2000-01-01T00:00:00.000Z",
+            listingTarget: "mini_app_store",
+            reviewVersion: 4,
+            status: "in_review",
+            submittedAt: "1999-12-31T00:00:00.000Z",
+            teamId: "team_expired",
+            teamName: "Expired team",
+          },
+        ]}
+      />,
+    );
+
+    const row = screen.getByRole("row", { name: /Expired app/ });
+    expect(within(row).getByText("Unassigned")).toBeInTheDocument();
+    expect(
+      within(row).getByText("Available — lease expired"),
+    ).toBeInTheDocument();
+    expect(
+      within(row).queryByText("former-reviewer@example.com"),
+    ).not.toBeInTheDocument();
+    expect(within(row).queryByText("In review")).not.toBeInTheDocument();
   });
 });
 
@@ -650,5 +690,167 @@ describe("review detail workspace", () => {
       "Saved on the server",
     );
     expect(screen.getByRole("button", { name: "Claim review" })).toBeDisabled();
+  });
+
+  it("preserves unsaved checklist work across a server prop refresh", async () => {
+    const claimToken = "00000000-0000-4000-8000-000000000099";
+    const claimedSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      status: "in_review",
+      reviewVersion: 7,
+      claimedByEmail: "reviewer@example.com",
+      claimExpiresAt: "2999-01-01T00:00:00.000Z",
+    };
+    window.sessionStorage.setItem(
+      `admin-reviewer-claim:${detailFixture.id}`,
+      JSON.stringify({
+        claimToken,
+        claimExpiresAt: claimedSubmission.claimExpiresAt,
+        reviewVersion: 7,
+      }),
+    );
+
+    const { rerender } = render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={claimedSubmission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "Unsaved reviewer investigation" },
+    });
+
+    rerender(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={{
+          ...claimedSubmission,
+          events: [
+            ...claimedSubmission.events,
+            {
+              id: "event-2",
+              eventType: "notification_retry_queued",
+              eventSequence: 2,
+              actorEmail: "reviewer@example.com",
+              createdAt: "2026-08-20T13:00:00.000Z",
+              payload: {},
+              reviewVersion: 7,
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByLabelText("Internal notes")).toHaveValue(
+      "Unsaved reviewer investigation",
+    );
+    expect(
+      screen.getByText(/save checklist changes before deciding/i),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the five-minute heartbeat cadence across checklist saves", async () => {
+    jest.useFakeTimers();
+    const claimToken = "00000000-0000-4000-8000-000000000099";
+    const claimedSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      status: "in_review",
+      reviewVersion: 7,
+      claimedByEmail: "reviewer@example.com",
+      claimExpiresAt: "2999-01-01T00:00:00.000Z",
+    };
+    window.sessionStorage.setItem(
+      `admin-reviewer-claim:${detailFixture.id}`,
+      JSON.stringify({
+        claimToken,
+        claimExpiresAt: claimedSubmission.claimExpiresAt,
+        reviewVersion: 7,
+      }),
+    );
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockImplementation(async (input) => {
+        const path = String(input);
+        if (path.endsWith("/checklist")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              submission: {
+                status: "in_review",
+                reviewVersion: 8,
+                claimToken,
+                claimExpiresAt: "2999-01-01T00:00:00.000Z",
+              },
+            }),
+          } as Response;
+        }
+        if (path.endsWith("/heartbeat")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              submission: {
+                status: "in_review",
+                reviewVersion: 9,
+                claimToken,
+                claimExpiresAt: "2999-01-01T00:00:00.000Z",
+              },
+            }),
+          } as Response;
+        }
+        throw new Error(`Unexpected request: ${path}`);
+      });
+
+    const rendered = render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={claimedSubmission}
+      />,
+    );
+
+    try {
+      await act(async () => {});
+      expect(screen.getByText("Claimed by you")).toBeInTheDocument();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(4 * 60 * 1000);
+      });
+      fireEvent.change(screen.getByLabelText("Internal notes"), {
+        target: { value: "Saved before the lease heartbeat" },
+      });
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(
+        fetchMock.mock.calls.some(([input]) =>
+          String(input).endsWith("/checklist"),
+        ),
+      ).toBe(true);
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(60 * 1000);
+      });
+      expect(
+        fetchMock.mock.calls.some(([input]) =>
+          String(input).endsWith("/heartbeat"),
+        ),
+      ).toBe(true);
+    } finally {
+      rendered.unmount();
+      jest.useRealTimers();
+    }
   });
 });

@@ -10,7 +10,10 @@ export const getSafeExternalIntegrationUrl = (
 
   try {
     const parsed = new URL(integrationUrl);
-    return parsed.protocol === "https:" && parsed.hostname
+    return parsed.protocol === "https:" &&
+      parsed.hostname &&
+      !parsed.username &&
+      !parsed.password
       ? parsed.toString()
       : null;
   } catch {

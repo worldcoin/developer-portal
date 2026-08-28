@@ -4,6 +4,20 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
+export type FetchReviewChecklistContextQueryVariables = Types.Exact<{
+  submission_id: Types.Scalars["uuid"]["input"];
+}>;
+
+export type FetchReviewChecklistContextQuery = {
+  __typename?: "query_root";
+  app_review_submission_by_pk?: {
+    __typename?: "app_review_submission";
+    id: unknown;
+    app_mode: string;
+    checklist_version?: string | null;
+  } | null;
+};
+
 export type ClaimReviewSubmissionMutationVariables = Types.Exact<{
   submission_id: Types.Scalars["uuid"]["input"];
   expected_review_version: Types.Scalars["Int"]["input"];
@@ -93,6 +107,15 @@ export type SaveReviewChecklistMutation = {
   }>;
 };
 
+export const FetchReviewChecklistContextDocument = gql`
+  query FetchReviewChecklistContext($submission_id: uuid!) {
+    app_review_submission_by_pk(id: $submission_id) {
+      id
+      app_mode
+      checklist_version
+    }
+  }
+`;
 export const ClaimReviewSubmissionDocument = gql`
   mutation ClaimReviewSubmission(
     $submission_id: uuid!
@@ -223,6 +246,22 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
+    FetchReviewChecklistContext(
+      variables: FetchReviewChecklistContextQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<FetchReviewChecklistContextQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<FetchReviewChecklistContextQuery>(
+            FetchReviewChecklistContextDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "FetchReviewChecklistContext",
+        "query",
+        variables,
+      );
+    },
     ClaimReviewSubmission(
       variables: ClaimReviewSubmissionMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,

@@ -118,7 +118,22 @@ describe("reviewer dashboard reads", () => {
         app_mode: "external",
         attempt: 2,
         changelog: "Updated copy",
-        checklist: { items: [], internalNotes: "" },
+        checklist: {
+          items: [],
+          internalNotes: "",
+          definitionSnapshot: {
+            mode: "external",
+            items: [
+              {
+                id: "external.integration-url",
+                label: "Integration URL",
+                description: "The submitted integration URL is safe.",
+                sourceUrl: "https://docs.world.org/world-id",
+                conditional: false,
+              },
+            ],
+          },
+        },
         checklist_version: "2026-08-27.1",
         claimed_at: null,
         claimed_by_email: null,
@@ -195,6 +210,18 @@ describe("reviewer dashboard reads", () => {
       fetchReviewerSubmission("00000000-0000-4000-8000-000000000001"),
     ).resolves.toEqual(
       expect.objectContaining({
+        checklist: expect.objectContaining({
+          definitionSnapshot: {
+            mode: "external",
+            items: [
+              expect.objectContaining({
+                id: "external.integration-url",
+                label: "Integration URL",
+                conditional: false,
+              }),
+            ],
+          },
+        }),
         liveMetadata: expect.objectContaining({ name: "Live app" }),
         liveLocalizations: [expect.objectContaining({ locale: "es" })],
         worldIdConfiguration: {

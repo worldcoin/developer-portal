@@ -206,49 +206,66 @@ export const ReviewerQueue = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-grey-100 bg-grey-0 text-grey-700">
-              {visibleSubmissions.map((submission) => (
-                <tr className="hover:bg-grey-50" key={submission.id}>
-                  <th className="p-3 font-normal" scope="row">
-                    <Link
-                      className="block font-semibold text-grey-900 hover:text-blue-500"
-                      href={`/admin/reviewer/${submission.id}`}
-                    >
-                      {submission.appName}
-                    </Link>
-                    <span className="mt-1 block font-mono text-11 text-grey-400">
-                      Attempt {submission.attempt} · {submission.appId}
-                    </span>
-                  </th>
-                  <td className="p-3">
-                    {submission.appMode === "mini-app"
-                      ? "Mini App"
-                      : "External"}
-                  </td>
-                  <td className="p-3">
-                    <span className="block font-medium text-grey-900">
-                      {submission.teamName}
-                    </span>
-                    <span className="font-mono text-11 text-grey-400">
-                      {submission.teamId}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    <time dateTime={submission.submittedAt}>
-                      {formatSubmittedAt(submission.submittedAt)}
-                    </time>
-                  </td>
-                  <td className="max-w-52 truncate p-3">
-                    {submission.claimedByEmail ?? "Unassigned"}
-                  </td>
-                  <td className="p-3">
-                    <span
-                      className={`inline-flex rounded-full border px-2.5 py-1 text-11 font-semibold ${statusClasses[submission.status]}`}
-                    >
-                      {statusLabels[submission.status]}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {visibleSubmissions.map((submission) => {
+                const claimExpiry = submission.claimExpiresAt
+                  ? Date.parse(submission.claimExpiresAt)
+                  : Number.NaN;
+                const isAvailableAfterLeaseExpiry =
+                  submission.status === "in_review" &&
+                  Number.isFinite(claimExpiry) &&
+                  claimExpiry <= Date.now();
+                const displayedStatus = isAvailableAfterLeaseExpiry
+                  ? "pending"
+                  : submission.status;
+
+                return (
+                  <tr className="hover:bg-grey-50" key={submission.id}>
+                    <th className="p-3 font-normal" scope="row">
+                      <Link
+                        className="block font-semibold text-grey-900 hover:text-blue-500"
+                        href={`/admin/reviewer/${submission.id}`}
+                      >
+                        {submission.appName}
+                      </Link>
+                      <span className="mt-1 block font-mono text-11 text-grey-400">
+                        Attempt {submission.attempt} · {submission.appId}
+                      </span>
+                    </th>
+                    <td className="p-3">
+                      {submission.appMode === "mini-app"
+                        ? "Mini App"
+                        : "External"}
+                    </td>
+                    <td className="p-3">
+                      <span className="block font-medium text-grey-900">
+                        {submission.teamName}
+                      </span>
+                      <span className="font-mono text-11 text-grey-400">
+                        {submission.teamId}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <time dateTime={submission.submittedAt}>
+                        {formatSubmittedAt(submission.submittedAt)}
+                      </time>
+                    </td>
+                    <td className="max-w-52 truncate p-3">
+                      {isAvailableAfterLeaseExpiry
+                        ? "Unassigned"
+                        : submission.claimedByEmail ?? "Unassigned"}
+                    </td>
+                    <td className="p-3">
+                      <span
+                        className={`inline-flex rounded-full border px-2.5 py-1 text-11 font-semibold ${statusClasses[displayedStatus]}`}
+                      >
+                        {isAvailableAfterLeaseExpiry
+                          ? "Available — lease expired"
+                          : statusLabels[displayedStatus]}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
               {visibleSubmissions.length === 0 ? (
                 <tr>
                   <td

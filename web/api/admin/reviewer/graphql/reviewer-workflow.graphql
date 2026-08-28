@@ -1,3 +1,11 @@
+query FetchReviewChecklistContext($submission_id: uuid!) {
+  app_review_submission_by_pk(id: $submission_id) {
+    id
+    app_mode
+    checklist_version
+  }
+}
+
 mutation ClaimReviewSubmission(
   $submission_id: uuid!
   $expected_review_version: Int!

@@ -1,5 +1,6 @@
 import {
   REVIEW_CHECKLIST_VERSION,
+  createChecklistDefinitionSnapshot,
   getChecklistDefinitions,
   isReviewChecklistVersionSupported,
   validateApprovalChecklist,
@@ -173,6 +174,32 @@ describe("reviewer queue filters", () => {
       ],
     });
   });
+
+  it("escapes SQL wildcards when Mine matches the current reviewer", () => {
+    expect(
+      createReviewerQueueWhere(
+        parseReviewerQueueFilters({ status: "mine" }),
+        "review_er%@example.com",
+        now,
+      ),
+    ).toEqual({
+      _and: [
+        {
+          _and: [
+            { status: { _eq: "in_review" } },
+            {
+              claim_expires_at: { _gt: "2026-08-27T12:00:00.000Z" },
+            },
+            {
+              claimed_by_email: {
+                _ilike: "review\\_er\\%@example.com",
+              },
+            },
+          ],
+        },
+      ],
+    });
+  });
 });
 
 describe("review preview links", () => {
@@ -188,6 +215,23 @@ describe("review preview links", () => {
     );
     expect(getSafeExternalIntegrationUrl("http://example.com/app")).toBeNull();
     expect(getSafeExternalIntegrationUrl("javascript:alert(1)")).toBeNull();
+  });
+
+  it("rejects HTTPS external integration URLs with embedded credentials", () => {
+    expect(
+      getSafeExternalIntegrationUrl("https://reviewer@example.com/app"),
+    ).toBeNull();
+    expect(
+      getSafeExternalIntegrationUrl("https://reviewer:secret@example.com/app"),
+    ).toBeNull();
+    expect(
+      getSafeExternalIntegrationUrl(
+        "https://reviewer%40world.example@example.com/app",
+      ),
+    ).toBeNull();
+    expect(
+      getSafeExternalIntegrationUrl("https://:secret@example.com/app"),
+    ).toBeNull();
   });
 });
 
@@ -209,6 +253,39 @@ describe("versioned reviewer checklist", () => {
     );
     expect(isReviewChecklistVersionSupported("retired-version")).toBe(false);
     expect(getChecklistDefinitions("mini-app", "retired-version")).toEqual([]);
+  });
+
+  it("builds a complete immutable definition snapshot for the submitted mode", () => {
+    const snapshot = createChecklistDefinitionSnapshot(
+      "external",
+      REVIEW_CHECKLIST_VERSION,
+    );
+
+    expect(snapshot).toEqual({
+      mode: "external",
+      items: expect.arrayContaining([
+        {
+          id: "shared.metadata-accurate",
+          label: "Accurate metadata",
+          description: expect.any(String),
+          sourceUrl: "https://docs.world.org/mini-apps/guidelines/policy",
+          conditional: false,
+        },
+        {
+          id: "external.integration-url",
+          label: "Integration URL",
+          description: expect.any(String),
+          sourceUrl: "https://docs.world.org/world-id",
+          conditional: false,
+        },
+      ]),
+    });
+    expect(snapshot?.items.some(({ id }) => id.startsWith("mini."))).toBe(
+      false,
+    );
+    expect(
+      createChecklistDefinitionSnapshot("external", "retired-version"),
+    ).toBeNull();
   });
 
   it("requires an applicability note for N/A", () => {

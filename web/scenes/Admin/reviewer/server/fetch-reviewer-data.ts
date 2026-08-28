@@ -1,6 +1,9 @@
 import "server-only";
 
-import type { ReviewChecklist } from "@/api/admin/reviewer/request-schema";
+import type {
+  ReviewChecklistDefinitionSnapshot,
+  StoredReviewChecklist,
+} from "@/api/admin/reviewer/request-schema";
 import { getInternalDashboardGraphqlClient } from "@/api/helpers/graphql";
 import {
   fetchReviewerLiveMetadata,
@@ -42,7 +45,46 @@ const records = (value: unknown): Array<Record<string, unknown>> =>
 
 const checklistStatuses = new Set(["pass", "fail", "na"]);
 
-const normalizeChecklist = (value: unknown): ReviewChecklist => {
+const normalizeDefinitionSnapshot = (
+  value: unknown,
+): ReviewChecklistDefinitionSnapshot | undefined => {
+  const raw = record(value);
+  if (
+    (raw.mode !== "mini-app" && raw.mode !== "external") ||
+    !Array.isArray(raw.items)
+  ) {
+    return undefined;
+  }
+
+  const ids = new Set<string>();
+  const items: ReviewChecklistDefinitionSnapshot["items"] = [];
+  for (const value of raw.items) {
+    const item = record(value);
+    if (
+      typeof item.id !== "string" ||
+      !item.id ||
+      ids.has(item.id) ||
+      typeof item.label !== "string" ||
+      typeof item.description !== "string" ||
+      typeof item.sourceUrl !== "string" ||
+      typeof item.conditional !== "boolean"
+    ) {
+      return undefined;
+    }
+    ids.add(item.id);
+    items.push({
+      id: item.id,
+      label: item.label,
+      description: item.description,
+      sourceUrl: item.sourceUrl,
+      conditional: item.conditional,
+    });
+  }
+
+  return { mode: raw.mode, items };
+};
+
+const normalizeChecklist = (value: unknown): StoredReviewChecklist => {
   const raw = record(value);
   const items = Array.isArray(raw.items)
     ? raw.items.flatMap((value) => {
@@ -68,10 +110,15 @@ const normalizeChecklist = (value: unknown): ReviewChecklist => {
       })
     : [];
 
+  const definitionSnapshot = normalizeDefinitionSnapshot(
+    raw.definitionSnapshot,
+  );
+
   return {
     items,
     internalNotes:
       typeof raw.internalNotes === "string" ? raw.internalNotes : "",
+    ...(definitionSnapshot ? { definitionSnapshot } : {}),
   };
 };
 

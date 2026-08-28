@@ -1,5 +1,5 @@
 import { getSdk } from "@/api/admin/reviewer/graphql/reviewer-workflow.generated";
-import type { ReviewChecklist } from "@/api/admin/reviewer/request-schema";
+import type { StoredReviewChecklist } from "@/api/admin/reviewer/request-schema";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import type { AdminUser } from "@/lib/admin-auth";
 import "server-only";
@@ -35,6 +35,28 @@ const mapSubmission = (row: WorkflowRow): ReviewerWorkflowSubmission => ({
 });
 
 const sdk = async () => getSdk(await getAPIServiceGraphqlClient());
+
+export type ReviewChecklistContext = {
+  appMode: "mini-app" | "external";
+  checklistVersion: string | null;
+};
+
+export const fetchReviewChecklistContext = async (
+  submissionId: string,
+): Promise<ReviewChecklistContext | null> => {
+  const result = await (
+    await sdk()
+  ).FetchReviewChecklistContext({ submission_id: submissionId });
+  const row = result.app_review_submission_by_pk;
+  if (!row || (row.app_mode !== "mini-app" && row.app_mode !== "external")) {
+    return null;
+  }
+
+  return {
+    appMode: row.app_mode,
+    checklistVersion: row.checklist_version ?? null,
+  };
+};
 
 export const claimReviewSubmission = async (
   submissionId: string,
@@ -87,7 +109,7 @@ export const releaseReviewSubmission = async (input: ClaimedWrite) => {
 export const saveReviewChecklist = async (
   input: ClaimedWrite & {
     checklistVersion: string;
-    checklist: ReviewChecklist;
+    checklist: StoredReviewChecklist;
   },
 ) => {
   const result = await (

@@ -6,6 +6,7 @@ const ClaimReviewSubmission = jest.fn();
 const HeartbeatReviewSubmission = jest.fn();
 const ReleaseReviewSubmission = jest.fn();
 const SaveReviewChecklist = jest.fn();
+const FetchReviewChecklistContext = jest.fn();
 const loggerError = jest.fn();
 
 jest.mock("@/lib/admin-auth", () => ({
@@ -29,6 +30,7 @@ jest.mock(
       HeartbeatReviewSubmission,
       ReleaseReviewSubmission,
       SaveReviewChecklist,
+      FetchReviewChecklistContext,
     }),
   }),
 );
@@ -134,11 +136,11 @@ beforeEach(() => {
   SaveReviewChecklist.mockResolvedValue({
     reviewer_save_app_review_checklist: [
       workflowRow({
-        checklist_version: "2026-08-27",
+        checklist_version: "2026-08-27.1",
         checklist: {
           items: [
             {
-              id: "privacy",
+              id: "shared.privacy-legal",
               status: "pass",
               evidence: "Privacy policy is linked.",
             },
@@ -147,6 +149,13 @@ beforeEach(() => {
         },
       }),
     ],
+  });
+  FetchReviewChecklistContext.mockResolvedValue({
+    app_review_submission_by_pk: {
+      id: REVIEW_ID,
+      app_mode: "mini-app",
+      checklist_version: null,
+    },
   });
 });
 
@@ -471,16 +480,16 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
   const checklistBody = {
     claimToken: CLAIM_TOKEN,
     expectedReviewVersion: 7,
-    checklistVersion: "2026-08-27",
+    checklistVersion: "2026-08-27.1",
     checklist: {
       items: [
         {
-          id: "privacy",
+          id: "shared.privacy-legal",
           status: "pass",
           evidence: "Privacy policy is linked.",
         },
         {
-          id: "payments",
+          id: "mini.smart-contracts",
           status: "na",
           evidence: "No payment flow exists.",
           applicabilityNote: "The app has no purchasable content.",
@@ -499,15 +508,114 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(SaveReviewChecklist).toHaveBeenCalledWith({
+    expect(FetchReviewChecklistContext).toHaveBeenCalledWith({
       submission_id: REVIEW_ID,
-      claim_token: CLAIM_TOKEN,
-      expected_review_version: 7,
-      checklist_version: "2026-08-27",
-      checklist: checklistBody.checklist,
-      actor_subject: ADMIN.subject,
-      actor_email: ADMIN.email,
     });
+    expect(SaveReviewChecklist).toHaveBeenCalledWith(
+      expect.objectContaining({
+        submission_id: REVIEW_ID,
+        claim_token: CLAIM_TOKEN,
+        expected_review_version: 7,
+        checklist_version: "2026-08-27.1",
+        checklist: {
+          ...checklistBody.checklist,
+          definitionSnapshot: {
+            mode: "mini-app",
+            items: expect.arrayContaining([
+              expect.objectContaining({
+                id: "shared.metadata-accurate",
+                label: "Accurate metadata",
+                description: expect.any(String),
+                sourceUrl: "https://docs.world.org/mini-apps/guidelines/policy",
+                conditional: false,
+              }),
+              expect.objectContaining({
+                id: "mini.smart-contracts",
+                label: "Smart contracts",
+                description: expect.any(String),
+                sourceUrl: "https://docs.world.org/mini-apps/guidelines/policy",
+                conditional: true,
+              }),
+            ]),
+          },
+        },
+        actor_subject: ADMIN.subject,
+        actor_email: ADMIN.email,
+      }),
+    );
+  });
+
+  it("rejects unknown checklist versions before the mutation", async () => {
+    const response = await invoke(saveChecklist, "checklist", "PUT", {
+      ...checklistBody,
+      checklistVersion: "retired-version",
+    });
+
+    expect(response.status).toBe(400);
+    expect(SaveReviewChecklist).not.toHaveBeenCalled();
+  });
+
+  it("rejects item IDs from another app mode", async () => {
+    FetchReviewChecklistContext.mockResolvedValueOnce({
+      app_review_submission_by_pk: {
+        id: REVIEW_ID,
+        app_mode: "external",
+        checklist_version: null,
+      },
+    });
+
+    const response = await invoke(saveChecklist, "checklist", "PUT", {
+      ...checklistBody,
+      checklist: {
+        items: [
+          {
+            id: "mini.mobile-reliability",
+            status: "pass",
+            evidence: "Tested in World App.",
+          },
+        ],
+        internalNotes: "",
+      },
+    });
+
+    expect(response.status).toBe(400);
+    expect(SaveReviewChecklist).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when the stored checklist version is unsupported", async () => {
+    FetchReviewChecklistContext.mockResolvedValueOnce({
+      app_review_submission_by_pk: {
+        id: REVIEW_ID,
+        app_mode: "mini-app",
+        checklist_version: "retired-version",
+      },
+    });
+
+    const response = await invoke(
+      saveChecklist,
+      "checklist",
+      "PUT",
+      checklistBody,
+    );
+
+    expect(response.status).toBe(409);
+    expect(SaveReviewChecklist).not.toHaveBeenCalled();
+  });
+
+  it("returns a conflict when the server cannot resolve the review context", async () => {
+    FetchReviewChecklistContext.mockResolvedValueOnce({
+      app_review_submission_by_pk: null,
+    });
+
+    const response = await invoke(
+      saveChecklist,
+      "checklist",
+      "PUT",
+      checklistBody,
+    );
+
+    expect(response.status).toBe(409);
+    expect(SaveReviewChecklist).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -517,7 +625,13 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
         ...checklistBody,
         checklist: {
           ...checklistBody.checklist,
-          items: [{ id: "privacy", status: "passed", evidence: "ok" }],
+          items: [
+            {
+              id: "shared.privacy-legal",
+              status: "passed",
+              evidence: "ok",
+            },
+          ],
         },
       },
     ],
@@ -527,7 +641,13 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
         ...checklistBody,
         checklist: {
           ...checklistBody.checklist,
-          items: [{ id: "payments", status: "na", evidence: "none" }],
+          items: [
+            {
+              id: "mini.smart-contracts",
+              status: "na",
+              evidence: "none",
+            },
+          ],
         },
       },
     ],
@@ -539,7 +659,7 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
           ...checklistBody.checklist,
           items: [
             {
-              id: "privacy",
+              id: "shared.privacy-legal",
               status: "pass",
               evidence: "ok",
               reviewerEmail: "forged@example.com",
@@ -551,6 +671,29 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
     [
       "unknown top-level field",
       { ...checklistBody, isReviewerWorldAppApproved: true },
+    ],
+    [
+      "client-supplied definition snapshot",
+      {
+        ...checklistBody,
+        checklist: {
+          ...checklistBody.checklist,
+          definitionSnapshot: { mode: "mini-app", items: [] },
+        },
+      },
+    ],
+    [
+      "duplicate stable item IDs",
+      {
+        ...checklistBody,
+        checklist: {
+          ...checklistBody.checklist,
+          items: [
+            checklistBody.checklist.items[0],
+            checklistBody.checklist.items[0],
+          ],
+        },
+      },
     ],
   ])("returns 400 for %s", async (_label, body) => {
     const response = await invoke(saveChecklist, "checklist", "PUT", body);

@@ -90,10 +90,17 @@ export const ReviewerWorkspace = ({
   const workflowRef = useRef(workflow);
   const heartbeatPromiseRef = useRef<Promise<void> | null>(null);
   const busyActionRef = useRef<string | null>(null);
+  const checklistDirtyRef = useRef(false);
+  const submissionIdRef = useRef(submission.id);
 
   const updateBusyAction = useCallback((action: string | null) => {
     busyActionRef.current = action;
     setBusyAction(action);
+  }, []);
+
+  const updateChecklistDirty = useCallback((dirty: boolean) => {
+    checklistDirtyRef.current = dirty;
+    setChecklistDirty(dirty);
   }, []);
 
   const updateWorkflow = useCallback(
@@ -107,6 +114,8 @@ export const ReviewerWorkspace = ({
   );
 
   useEffect(() => {
+    const submissionChanged = submissionIdRef.current !== submission.id;
+    submissionIdRef.current = submission.id;
     const next: WorkflowState = {
       status: submission.status,
       reviewVersion: submission.reviewVersion,
@@ -116,9 +125,11 @@ export const ReviewerWorkspace = ({
     };
     workflowRef.current = next;
     setWorkflow(next);
-    setChecklist(submission.checklist);
-    setChecklistDirty(false);
-  }, [submission]);
+    if (submissionChanged || !checklistDirtyRef.current) {
+      setChecklist(submission.checklist);
+      updateChecklistDirty(false);
+    }
+  }, [submission, updateChecklistDirty]);
 
   useEffect(() => {
     if (
@@ -275,18 +286,13 @@ export const ReviewerWorkspace = ({
     }
   };
 
+  const workflowRequestRef = useRef(workflowRequest);
+  workflowRequestRef.current = workflowRequest;
+  const applyWorkflowPayloadRef = useRef(applyWorkflowPayload);
+  applyWorkflowPayloadRef.current = applyWorkflowPayload;
+
   useEffect(() => {
-    if (
-      !shouldHeartbeatReviewerClaim({
-        busyAction,
-        canReview,
-        claimToken: workflow.claimToken,
-        status: workflow.status,
-        visibilityState: "visible",
-      })
-    ) {
-      return;
-    }
+    if (!canReview) return;
 
     const heartbeat = async () => {
       if (heartbeatPromiseRef.current || busyActionRef.current) return;
@@ -302,13 +308,15 @@ export const ReviewerWorkspace = ({
         return;
       }
       const currentHeartbeat = (async () => {
-        const payload = await workflowRequest({
+        const payload = await workflowRequestRef.current({
           action: "heartbeat",
           path: `/api/admin/reviewer/submissions/${submission.id}/heartbeat`,
           body: claimedWriteBody(workflowRef.current),
           quiet: true,
         });
-        if (payload) applyWorkflowPayload(payload, "heartbeat");
+        if (payload) {
+          applyWorkflowPayloadRef.current(payload, "heartbeat");
+        }
       })();
       heartbeatPromiseRef.current = currentHeartbeat;
       try {
@@ -328,14 +336,7 @@ export const ReviewerWorkspace = ({
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [
-    applyWorkflowPayload,
-    busyAction,
-    canReview,
-    submission.id,
-    workflow,
-    workflowRequest,
-  ]);
+  }, [canReview, submission.id]);
 
   const saveChecklist = async () => {
     if (!workflowRef.current.claimToken) return;
@@ -360,7 +361,7 @@ export const ReviewerWorkspace = ({
       },
     });
     if (payload && applyWorkflowPayload(payload, "checklist")) {
-      setChecklistDirty(false);
+      updateChecklistDirty(false);
       toast.success("Checklist saved");
     }
   };
@@ -427,7 +428,7 @@ export const ReviewerWorkspace = ({
             mode={submission.appMode}
             onChange={(nextChecklist) => {
               setChecklist(nextChecklist);
-              setChecklistDirty(true);
+              updateChecklistDirty(true);
             }}
             version={checklistVersion}
           />
@@ -452,6 +453,7 @@ export const ReviewerWorkspace = ({
     checklistVersion,
     checklistVersionSupported,
     submission,
+    updateChecklistDirty,
   ]);
 
   return (
@@ -545,7 +547,7 @@ export const ReviewerWorkspace = ({
                 !checklistVersionSupported
               }
               onChange={(event) => {
-                setChecklistDirty(true);
+                updateChecklistDirty(true);
                 setChecklist((current) => ({
                   ...current,
                   internalNotes: event.target.value,
