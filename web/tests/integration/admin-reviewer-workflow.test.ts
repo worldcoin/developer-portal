@@ -1,5 +1,6 @@
 import { Pool, QueryResult } from "pg";
 
+import { fetchReviewerLiveMetadata } from "@/api/helpers/reviewer-live-metadata";
 import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
 
 const REVIEWER = {
@@ -291,6 +292,18 @@ const decideSubmission = async ({
 };
 
 describe("reviewer workflow database invariants", () => {
+  test("loads the current published version through the service-role projection", async () => {
+    const fixture = await prepareDraft({ withPriorVerified: true });
+
+    await expect(
+      fetchReviewerLiveMetadata(fixture.appId),
+    ).resolves.toMatchObject({
+      id: fixture.priorVerified!.id,
+      verification_status: "verified",
+      is_reviewer_world_app_approved: true,
+    });
+  });
+
   test("prevents two active attempts for the same metadata version", async () => {
     const fixture = await prepareDraft();
     const submission = await captureSubmission(fixture);
@@ -340,10 +353,11 @@ describe("reviewer workflow database invariants", () => {
   test("serializes simultaneous claims and rejects stale lease versions", async () => {
     const fixture = await prepareDraft();
     const submission = await captureSubmission(fixture);
-    const pool = new Pool({ max: 3 });
+    const pool = new Pool({ max: 4 });
     const blocker = await pool.connect();
     const firstClaimant = await pool.connect();
     const secondClaimant = await pool.connect();
+    const observer = await pool.connect();
     let blockerTransactionOpen = false;
     let firstClaimPromise: Promise<QueryResult<ReviewSubmission>> | undefined;
     let secondClaimPromise: Promise<QueryResult<ReviewSubmission>> | undefined;
@@ -392,7 +406,7 @@ describe("reviewer workflow database invariants", () => {
 
       let blockedClaims = 0;
       for (let attempt = 0; attempt < 100; attempt += 1) {
-        const { rows } = await blocker.query<{ count: string }>(
+        const { rows } = await observer.query<{ count: string }>(
           `SELECT count(*)::text AS count
            FROM pg_catalog.pg_stat_activity
            WHERE application_name IN (
@@ -465,6 +479,7 @@ describe("reviewer workflow database invariants", () => {
       blocker.release();
       firstClaimant.release();
       secondClaimant.release();
+      observer.release();
       await pool.end();
     }
   });

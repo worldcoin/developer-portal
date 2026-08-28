@@ -37,7 +37,6 @@ export type FetchReviewerLiveMetadataQuery = {
     meta_tag_image_url: string;
     name: string;
     permit2_tokens?: Array<string> | null;
-    review_message: string;
     short_name: string;
     should_uninstall_on_delist: boolean;
     showcase_img_urls?: Array<string> | null;
@@ -45,7 +44,6 @@ export type FetchReviewerLiveMetadataQuery = {
     support_link: string;
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
-    updated_at: string;
     verification_status: string;
     verified_at?: string | null;
     whitelisted_addresses?: Array<string> | null;
@@ -106,7 +104,6 @@ export const FetchReviewerLiveMetadataDocument = gql`
       meta_tag_image_url
       name
       permit2_tokens
-      review_message
       short_name
       should_uninstall_on_delist
       showcase_img_urls
@@ -114,7 +111,6 @@ export const FetchReviewerLiveMetadataDocument = gql`
       support_link
       supported_countries
       supported_languages
-      updated_at
       verification_status
       verified_at
       whitelisted_addresses

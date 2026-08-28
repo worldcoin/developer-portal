@@ -155,6 +155,30 @@ describe("review queue workspace", () => {
     ).not.toBeInTheDocument();
     expect(within(row).queryByText("In review")).not.toBeInTheDocument();
   });
+
+  it("keeps the status filter in sync after tab navigation", () => {
+    const { rerender } = render(
+      <ReviewerQueue
+        currentUserEmail="reviewer@example.com"
+        filters={parseReviewerQueueFilters({ status: "pending" })}
+        hasNextPage={false}
+        submissions={[]}
+      />,
+    );
+
+    expect(screen.getByLabelText("Status")).toHaveValue("pending");
+
+    rerender(
+      <ReviewerQueue
+        currentUserEmail="reviewer@example.com"
+        filters={parseReviewerQueueFilters({ status: "approved" })}
+        hasNextPage={false}
+        submissions={[]}
+      />,
+    );
+
+    expect(screen.getByLabelText("Status")).toHaveValue("approved");
+  });
 });
 
 describe("review test panel", () => {

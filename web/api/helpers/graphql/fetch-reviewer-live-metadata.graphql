@@ -33,7 +33,6 @@ query FetchReviewerLiveMetadata($appId: String!) {
     meta_tag_image_url
     name
     permit2_tokens
-    review_message
     short_name
     should_uninstall_on_delist
     showcase_img_urls
@@ -41,7 +40,6 @@ query FetchReviewerLiveMetadata($appId: String!) {
     support_link
     supported_countries
     supported_languages
-    updated_at
     verification_status
     verified_at
     whitelisted_addresses

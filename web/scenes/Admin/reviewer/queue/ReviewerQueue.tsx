@@ -166,6 +166,7 @@ export const ReviewerQueue = ({
           <select
             className="h-10 rounded-8 border border-grey-200 bg-grey-0 px-3 text-13 font-normal tracking-normal text-grey-900 normal-case"
             defaultValue={filters.status}
+            key={filters.status}
             name="status"
           >
             <option value="pending">Pending</option>
