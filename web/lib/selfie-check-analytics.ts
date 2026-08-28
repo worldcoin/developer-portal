@@ -209,18 +209,18 @@ export type DailyChartPoint = {
   [series: string]: number | null | string;
 } & { date: string };
 
-export type DailyChartSeries = Readonly<{
-  /** Collision-free data key ("os:" + label); never equals the x-axis key. */
-  key: string;
+export type DailyChartOs = Readonly<{
+  /** Collision-free point key ("os:" + name); never equals the x-axis key. */
+  dataKey: string;
   /** The OS name exactly as it appears in the data. */
-  label: string;
+  osName: string;
 }>;
 
 export type DailyChartData = Readonly<{
-  /** One point per day, ascending. A day missing an OS omits that key. */
+  /** One point per day, ascending. A day missing an OS omits its key. */
   points: readonly DailyChartPoint[];
   /** One entry per OS, alphabetical for stable colors across metrics. */
-  series: readonly DailyChartSeries[];
+  operatingSystems: readonly DailyChartOs[];
 }>;
 
 /**
@@ -247,6 +247,8 @@ export const buildDailyChartData = (
     points: [...pointsByDay.values()].sort((a, b) =>
       a.date.localeCompare(b.date),
     ),
-    series: [...osNames].sort().map((label) => ({ key: `os:${label}`, label })),
+    operatingSystems: [...osNames]
+      .sort()
+      .map((osName) => ({ dataKey: `os:${osName}`, osName })),
   };
 };
