@@ -5,7 +5,6 @@ import "server-only";
  * Totals contain one row per app; daily tables contain ordered row arrays per app.
  */
 
-import { appIdRegex } from "@/lib/schema";
 import {
   pickDailyRow,
   pickTotalsRow,
@@ -205,20 +204,6 @@ function validateFieldLengths(
   }
 }
 
-function getAppId(
-  record: Readonly<Record<string, string>>,
-  appIdColumn: AppIdColumn,
-  rowNumber: number,
-): string {
-  const appId = record[appIdColumn] ?? "";
-  if (!appIdRegex.test(appId)) {
-    throw new TableValidationError(
-      `Table row ${rowNumber} has an invalid app ID.`,
-    );
-  }
-  return appId;
-}
-
 function parseMetricFields({
   excludedColumns,
   headers,
@@ -257,7 +242,7 @@ export function parseTotalsTable(csv: string): ParsedTotalsTable {
 
   for (const { info, record } of parsedCsv.records) {
     validateFieldLengths(parsedCsv.headers, record, info.lines);
-    const appId = getAppId(record, parsedCsv.appIdColumn, info.lines);
+    const appId = record[parsedCsv.appIdColumn] ?? "";
 
     if (records.has(appId)) {
       throw new TableValidationError(
@@ -306,7 +291,7 @@ export function parseDailyTable(csv: string): ParsedDailyTable {
 
   for (const { info, record } of parsedCsv.records) {
     validateFieldLengths(parsedCsv.headers, record, info.lines);
-    const appId = getAppId(record, parsedCsv.appIdColumn, info.lines);
+    const appId = record[parsedCsv.appIdColumn] ?? "";
     const fields = parseMetricFields({
       excludedColumns: DAILY_NON_METRIC_COLUMNS,
       headers: parsedCsv.headers,
