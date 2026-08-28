@@ -145,6 +145,12 @@ describe("review workflow migration", () => {
     expect(migration).toContain('app."team_id"');
     expect(migration).toContain('metadata."is_developer_allow_listing"');
     expect(migration).toContain("COALESCE(metadata.\"changelog\", '')");
+    expect(migration).toContain(
+      'CREATE UNIQUE INDEX "app_review_event_one_submitted_per_submission"',
+    );
+    expect(migration).toMatch(
+      /INSERT INTO "public"\."app_review_event"[\s\S]*'submitted'[\s\S]*jsonb_build_object\('backfilled', true\)[\s\S]*submission\."submitted_at"[\s\S]*ON CONFLICT DO NOTHING/,
+    );
   });
 
   it("drops dependent outbox and event tables before submissions", () => {

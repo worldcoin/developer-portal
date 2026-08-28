@@ -153,6 +153,10 @@ COMMENT ON COLUMN "public"."app_review_event"."event_type" IS
 CREATE INDEX "app_review_event_submission_created_at"
 ON "public"."app_review_event" ("submission_id", "created_at", "id");
 
+CREATE UNIQUE INDEX "app_review_event_one_submitted_per_submission"
+ON "public"."app_review_event" ("submission_id")
+WHERE "event_type" = 'submitted';
+
 CREATE TABLE "public"."app_review_notification" (
     "id" uuid NOT NULL DEFAULT gen_random_uuid (),
     "submission_id" uuid NOT NULL,
@@ -273,4 +277,29 @@ WHERE app."is_staging" = false
   AND metadata."verification_status" = 'awaiting_review'
   AND metadata."is_developer_allow_listing" = true
   AND metadata."app_mode" IN ('mini-app', 'external')
+ON CONFLICT DO NOTHING;
+
+-- Give rollout-seeded submissions the same immutable lifecycle origin as live
+-- captures. The partial unique index makes this safe to rerun.
+INSERT INTO "public"."app_review_event" (
+    "submission_id",
+    "event_type",
+    "actor_subject",
+    "actor_email",
+    "review_version",
+    "payload",
+    "created_at"
+)
+SELECT
+    submission."id",
+    'submitted',
+    NULL,
+    NULL,
+    submission."review_version",
+    jsonb_build_object('backfilled', true),
+    submission."submitted_at"
+FROM "public"."app_review_submission" AS submission
+WHERE submission."attempt" = 1
+  AND submission."submitted_by_subject" IS NULL
+  AND submission."submitted_by_email" IS NULL
 ON CONFLICT DO NOTHING;
