@@ -68,15 +68,17 @@ describe("parseTotalsTable", () => {
     expect(result.records.get(appIdB)?.n_proofs).toBeNull();
   });
 
-  it("represents the Snowflake null marker as zero", () => {
-    const result = parseTotalsTable(
-      totalsCsv().replace(
-        `${appIdB},10,7,8,10,8,`,
-        `${appIdB},10,7,8,10,8,\\\\N`,
-      ),
-    );
+  it("represents both Snowflake null marker escapes as null", () => {
+    for (const marker of ["\\N", "\\\\N"]) {
+      const result = parseTotalsTable(
+        totalsCsv().replace(
+          `${appIdB},10,7,8,10,8,`,
+          `${appIdB},10,7,8,10,8,${marker}`,
+        ),
+      );
 
-    expect(result.records.get(appIdB)?.p_face_auth_completion).toBe(0);
+      expect(result.records.get(appIdB)?.p_face_auth_completion).toBeNull();
+    }
   });
 
   it("rejects non-numeric metric values", () => {

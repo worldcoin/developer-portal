@@ -78,7 +78,9 @@ function parseMetricValue({
   value: string;
 }): number | null {
   if (value === "") return null;
-  if (value === "\\\\N") return 0;
+  // Snowflake writes NULL as \N; some exports double-escape it to \\N.
+  // NULL means "no value", never zero — 0/0 rates must render as absent.
+  if (value === "\\N" || value === "\\\\N") return null;
 
   if (!NON_NEGATIVE_NUMBER_PATTERN.test(value)) {
     throw new TableValidationError(
