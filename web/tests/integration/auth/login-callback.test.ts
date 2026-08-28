@@ -190,7 +190,7 @@ describe("test /login-callback", () => {
     ).toBeTruthy();
   });
 
-  it("Should redirect new invited user to /join-callback", async () => {
+  it("Should redirect new invited user to /join", async () => {
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
     const email = "new-test-email@world.org";
 
@@ -221,7 +221,7 @@ describe("test /login-callback", () => {
     expect(
       response.headers
         .get("location")
-        ?.endsWith(`/join-callback?invite_id=${insertedInvite[0].id}`),
+        ?.endsWith(`/join?invite_id=${insertedInvite[0].id}`),
     ).toBeTruthy();
   });
 
@@ -292,7 +292,7 @@ describe("test /login-callback", () => {
     ).toBeTruthy();
   });
 
-  it("Should add membership for the invited existing user", async () => {
+  it("does not consume an invite for an existing email user; redirects to /join", async () => {
     const email = "test1-member@team2.example.com";
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
 
@@ -317,58 +317,27 @@ describe("test /login-callback", () => {
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     const response = await loginCallback(mockReq);
 
-    const userQuery = gql`
-      query FetchUserByEmail($email: String!) {
-        user(where: { email: { _eq: $email } }) {
-          id
-          email
-          name
-          auth0Id
-          posthog_id
-          is_allow_tracking
-          name
-          memberships {
-            team {
-              id
-              name
-            }
-            role
-          }
-        }
-      }
-    `;
+    const { rows: membershipRows } = (await integrationDBExecuteQuery(
+      `SELECT count(*)::int AS count
+         FROM public.membership m
+         JOIN public."user" u ON u.id = m.user_id
+        WHERE m.team_id = '${team_id}' AND u.email = '${email}'`,
+    )) as { rows: { count: number }[] };
+    expect(membershipRows[0].count).toBe(0);
 
-    const client = await getAPIServiceGraphqlClient();
-
-    const fetchUserRes = await client.request<{
-      user: Array<{
-        id: string;
-        email: string;
-        auth0Id: string;
-        posthog_id: string;
-        is_allow_tracking: boolean;
-        name: string;
-        memberships: Array<{
-          team: {
-            id: string;
-            name: string;
-          };
-          role: string;
-        }>;
-      }>;
-    }>(userQuery, { email });
+    const { rowCount: remainingInvites } = await integrationDBExecuteQuery(
+      `SELECT id FROM public.invite WHERE id = '${insertedInvite[0].id}'`,
+    );
+    expect(remainingInvites).toBe(1);
 
     expect(
-      fetchUserRes.user[0].memberships.some((m) => m.team.id === team_id),
-    ).toBeTruthy();
-
-    expect(getSession).toHaveReturned();
-    expect(
-      response.headers.get("location")?.endsWith(`/teams/${team_id}`),
+      response.headers
+        .get("location")
+        ?.endsWith(`/join?invite_id=${insertedInvite[0].id}`),
     ).toBeTruthy();
   });
 
-  it("Should add membership for the invited existing World ID user", async () => {
+  it("does not consume an invite for an existing World ID user; redirects to /join", async () => {
     const inviteEmail = "invited-world-user@example.com";
     const team_id = "team_2222214f17eda7e0ededba7ded6b4222";
 
@@ -387,132 +356,104 @@ describe("test /login-callback", () => {
       nextUrl: url,
     } as unknown as NextRequest;
 
-    const mockSession = {
+    (getSession as jest.Mock).mockResolvedValue({
       user: validNullifierSessionUser,
-    };
-
-    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    });
     const response = await loginCallback(mockReq);
 
-    const userQuery = gql`
-      query FetchUserByNullifier($world_id_nullifier: String!) {
-        user(where: { world_id_nullifier: { _eq: $world_id_nullifier } }) {
-          memberships {
-            team {
-              id
-            }
-          }
-        }
-      }
-    `;
-
-    const client = await getAPIServiceGraphqlClient();
-
-    const fetchUserRes = await client.request<{
-      user: Array<{
-        memberships: Array<{
-          team: {
-            id: string;
-          };
-        }>;
-      }>;
-    }>(userQuery, { world_id_nullifier: "0x123" });
-
-    expect(
-      fetchUserRes.user[0].memberships.some((m) => m.team.id === team_id),
-    ).toBeTruthy();
-
-    expect(getSession).toHaveReturned();
-    expect(
-      updateSession.mock.calls[0][2].user.hasura.memberships.some(
-        (m: { team: { id: string } }) => m.team.id === team_id,
-      ),
-    ).toBeTruthy();
-    expect(response.headers.get("location")).not.toContain("/unauthorized");
-  });
-
-  // Regression test for HackerOne #3857870. A single-use invite must yield at
-  // most one membership even when /login-callback is hit concurrently with the
-  // same invite_id. The previous flow inserted the membership and deleted the
-  // invite in two separate, un-transactioned mutations with no unique
-  // constraint on (team_id, user_id), so a concurrent burst produced multiple
-  // memberships from one invite. The accept_team_invite function now consumes
-  // the invite (DELETE) and creates the membership in one transaction, so the
-  // delete is the concurrency gate.
-  it("consumes a single-use invite exactly once under a concurrent burst", async () => {
-    // usr_...d94: seeded into team_2222..., NOT into the team below.
-    const email = "test1-member@team2.example.com";
-    const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
-
-    const { rows: insertedInvite } = (await integrationDBExecuteQuery(
-      `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2030-01-01 00:00:00+00', '${email}') RETURNING id`,
-    )) as { rows: { id: string }[] };
-
-    const url = new URL("/login-callback", "http://localhost:3000");
-    url.searchParams.append("invite_id", insertedInvite[0].id);
-    const mockReq = { nextUrl: url } as unknown as NextRequest;
-
-    (getSession as jest.Mock).mockResolvedValue({
-      user: { ...validEmailSessionUser, email },
-    });
-
-    const CONCURRENCY = 8;
-    await Promise.all(
-      Array.from({ length: CONCURRENCY }, () => loginCallback(mockReq)),
-    );
-
-    // Exactly one membership created for this user in the invited team...
     const { rows: membershipRows } = (await integrationDBExecuteQuery(
       `SELECT count(*)::int AS count
          FROM public.membership m
          JOIN public."user" u ON u.id = m.user_id
-        WHERE m.team_id = '${team_id}' AND u.email = '${email}'`,
+        WHERE m.team_id = '${team_id}' AND u.world_id_nullifier = '0x123'`,
     )) as { rows: { count: number }[] };
-    expect(membershipRows[0].count).toBe(1);
+    expect(membershipRows[0].count).toBe(0);
 
-    // ...and the single-use invite is consumed exactly once.
-    const { rowCount: remainingInvites } = await integrationDBExecuteQuery(
-      `SELECT id FROM public.invite WHERE id = '${insertedInvite[0].id}'`,
-    );
-    expect(remainingInvites).toBe(0);
+    expect(
+      response.headers
+        .get("location")
+        ?.endsWith(`/join?invite_id=${insertedInvite[0].id}`),
+    ).toBeTruthy();
   });
 
-  it("does not re-add a member when the invite was already consumed", async () => {
-    const email = "test1-member@team2.example.com";
-    const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
-
-    const { rows: insertedInvite } = (await integrationDBExecuteQuery(
-      `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2030-01-01 00:00:00+00', '${email}') RETURNING id`,
-    )) as { rows: { id: string }[] };
-
+  it("ignores a bogus invite_id without logging the user out", async () => {
     const url = new URL("/login-callback", "http://localhost:3000");
-    url.searchParams.append("invite_id", insertedInvite[0].id);
-    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    url.searchParams.append("invite_id", "inv_does_not_exist");
+    url.searchParams.append("returnTo", "/dashboard");
 
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
     (getSession as jest.Mock).mockResolvedValue({
-      user: { ...validEmailSessionUser, email },
+      user: validEmailSessionUser,
     });
 
-    // First acceptance succeeds and consumes the invite.
-    const first = await loginCallback(mockReq);
-    expect(
-      first.headers.get("location")?.endsWith(`/teams/${team_id}`),
-    ).toBeTruthy();
+    const response = await loginCallback(mockReq);
 
-    // Second attempt with the same (now-consumed) invite must not create a
-    // second membership; it falls through to the logout redirect.
-    const second = await loginCallback(mockReq);
+    expect(response.headers.get("location")).not.toContain("/api/auth/logout");
     expect(
-      second.headers.get("location")?.includes("/api/auth/logout"),
+      response.headers
+        .get("location")
+        ?.endsWith(`/join?invite_id=inv_does_not_exist`),
     ).toBeTruthy();
+  });
 
-    const { rows: membershipRows } = (await integrationDBExecuteQuery(
-      `SELECT count(*)::int AS count
-         FROM public.membership m
-         JOIN public."user" u ON u.id = m.user_id
-        WHERE m.team_id = '${team_id}' AND u.email = '${email}'`,
-    )) as { rows: { count: number }[] };
-    expect(membershipRows[0].count).toBe(1);
+  it("prefers invite_id over returnTo so confirm cannot be skipped", async () => {
+    const url = new URL("/login-callback", "http://localhost:3000");
+    url.searchParams.append("invite_id", "inv_prefer_join");
+    url.searchParams.append("returnTo", "/dashboard");
+
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    (getSession as jest.Mock).mockResolvedValue({
+      user: validEmailSessionUser,
+    });
+
+    const response = await loginCallback(mockReq);
+
+    expect(
+      response.headers
+        .get("location")
+        ?.endsWith(`/join?invite_id=inv_prefer_join`),
+    ).toBeTruthy();
+  });
+
+  it("reads invite_id from returnTo=/join when the top-level param is missing", async () => {
+    const url = new URL("/login-callback", "http://localhost:3000");
+    url.searchParams.append("returnTo", "/join?invite_id=inv_from_return_to");
+
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    (getSession as jest.Mock).mockResolvedValue({
+      user: validEmailSessionUser,
+    });
+
+    const response = await loginCallback(mockReq);
+
+    expect(
+      response.headers
+        .get("location")
+        ?.endsWith("/join?invite_id=inv_from_return_to"),
+    ).toBeTruthy();
+  });
+
+  it("routes a new user to /join when invite_id is only inside returnTo", async () => {
+    const url = new URL("/login-callback", "http://localhost:3000");
+    url.searchParams.append("returnTo", "/join?invite_id=inv_new_user");
+
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    (getSession as jest.Mock).mockResolvedValue({
+      user: {
+        ...validEmailSessionUser,
+        email: "brand-new-invitee@world.org",
+        sub: "email|brand-new-invitee",
+      },
+    });
+
+    const response = await loginCallback(mockReq);
+
+    expect(
+      response.headers
+        .get("location")
+        ?.endsWith("/join?invite_id=inv_new_user"),
+    ).toBeTruthy();
+    expect(response.headers.get("location")).not.toContain("/create-team");
   });
 
   // Exercises the accept_team_invite DB function directly for the branches a
