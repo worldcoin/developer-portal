@@ -257,11 +257,17 @@ export const SidebarNav = (props: {
     let active = true;
     const controller = new AbortController();
     fetch(
-      `/api/v2/apps/${encodeURIComponent(appId)}/selfie-check-analytics?table=daily`,
+      `/api/v2/apps/${encodeURIComponent(appId)}/selfie-check-analytics/eligibility`,
       { credentials: "same-origin", signal: controller.signal },
     )
-      .then((response) => {
-        if (active) setAnalyticsEnabled(response.ok || response.status === 503);
+      .then(async (response) => {
+        const payload: unknown = response.ok ? await response.json() : null;
+        if (!active) return;
+        setAnalyticsEnabled(
+          typeof payload === "object" &&
+            payload !== null &&
+            (payload as { isEligible?: unknown }).isEligible === true,
+        );
       })
       .catch(() => {
         if (active) setAnalyticsEnabled(false);

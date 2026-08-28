@@ -113,8 +113,10 @@ beforeEach(() => {
 });
 
 // #region Analytics allowlist gate
-it("shows and activates the Analytics entry when the endpoint allows the app", async () => {
-  fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
+it("shows and activates the Analytics entry only on explicit eligibility", async () => {
+  fetchMock.mockResolvedValue(
+    new Response(JSON.stringify({ isEligible: true }), { status: 200 }),
+  );
   usePathname.mockReturnValue(`${base}/analytics`);
   renderSidebar();
 
@@ -123,26 +125,27 @@ it("shows and activates the Analytics entry when the endpoint allows the app", a
   ).toBeInTheDocument();
   expect(isCurrent("Analytics")).toBe(true);
   expect(fetchMock).toHaveBeenCalledWith(
-    `/api/v2/apps/${appId}/selfie-check-analytics?table=daily`,
+    `/api/v2/apps/${appId}/selfie-check-analytics/eligibility`,
     expect.objectContaining({ credentials: "same-origin" }),
   );
 });
 
 it("hides the Analytics entry when the app is outside the allowlist", async () => {
-  fetchMock.mockResolvedValue(new Response(null, { status: 404 }));
+  fetchMock.mockResolvedValue(
+    new Response(JSON.stringify({ isEligible: false }), { status: 200 }),
+  );
   renderSidebar();
 
   await screen.findByRole("link", { name: "Dashboard" });
   noLink("Analytics");
 });
 
-it("keeps the Analytics entry when the app passed the gate but data is unavailable", async () => {
+it("does not infer eligibility from a failing eligibility request", async () => {
   fetchMock.mockResolvedValue(new Response(null, { status: 503 }));
   renderSidebar();
 
-  expect(
-    await screen.findByRole("link", { name: "Analytics" }),
-  ).toBeInTheDocument();
+  await screen.findByRole("link", { name: "Dashboard" });
+  noLink("Analytics");
 });
 // #endregion
 

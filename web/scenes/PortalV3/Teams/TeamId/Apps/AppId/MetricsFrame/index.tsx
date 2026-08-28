@@ -55,6 +55,15 @@ const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
+// Eligibility controls the tab and page; these only describe the view's data.
+const requestFailureMessage = (scope: string, status: number) => {
+  if (status === 404)
+    return "Analytics data is not available for this view yet.";
+  if (status === 503)
+    return "Analytics are temporarily unavailable. Try again shortly.";
+  return `${scope} request failed (${status}).`;
+};
+
 const formatTileValue = (value: number | null, kind: MetricKind) => {
   if (typeof value !== "number") return "—";
   return kind === "rate"
@@ -145,7 +154,7 @@ export const MetricsFrame = (props: { appId: string }) => {
           if (!active) return;
           setDaily({
             kind: "error",
-            message: `Daily analytics request failed (${response.status}).`,
+            message: requestFailureMessage("Daily analytics", response.status),
           });
           return;
         }
@@ -189,7 +198,7 @@ export const MetricsFrame = (props: { appId: string }) => {
           if (!active) return;
           setTotals({
             kind: "error",
-            message: `Totals request failed (${response.status}).`,
+            message: requestFailureMessage("Totals", response.status),
           });
           return;
         }

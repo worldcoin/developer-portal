@@ -5,17 +5,16 @@ import { render, screen } from "@testing-library/react";
 
 // #region Mocks
 const isEnabledForApp = jest.fn();
-const notFoundMock = jest.fn(() => {
-  throw new Error("NEXT_NOT_FOUND");
-});
 
 jest.mock("@/api/helpers/selfie-check-analytics/eligibility", () => ({
   isSelfieCheckAnalyticsEnabledForApp: (...args: unknown[]) =>
     isEnabledForApp(...args),
 }));
 
-jest.mock("next/navigation", () => ({
-  notFound: () => notFoundMock(),
+jest.mock("@/components/ErrorPage", () => ({
+  ErrorPage: ({ statusCode }: { statusCode: number }) => (
+    <div data-testid="error" data-status={statusCode} />
+  ),
 }));
 
 jest.mock("@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MetricsFrame", () => ({
@@ -49,10 +48,12 @@ describe("/analytics [rollout gate]", () => {
     expect(isEnabledForApp).toHaveBeenCalledWith(appId);
   });
 
-  it("returns the Next.js not-found boundary for a disabled app", async () => {
+  it("renders a Forbidden screen for a member outside the rollout", async () => {
     isEnabledForApp.mockResolvedValue(false);
 
-    await expect(RoutePage(props)).rejects.toThrow("NEXT_NOT_FOUND");
-    expect(notFoundMock).toHaveBeenCalledTimes(1);
+    render(await RoutePage(props));
+
+    expect(screen.getByTestId("error")).toHaveAttribute("data-status", "403");
+    expect(screen.queryByTestId("metrics-frame")).not.toBeInTheDocument();
   });
 });
