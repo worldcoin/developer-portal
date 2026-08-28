@@ -16,14 +16,19 @@ import {
   XAxis,
 } from "recharts";
 
-// Validated categorical pair (portal blue + snapped portal purple): passes the
-// lightness band, chroma floor, CVD separation, and 3:1 surface contrast on the
-// white card. Assigned to operating systems in fixed alphabetical order, never
-// cycled; OSes beyond the pair fold into muted gray.
-const OS_COLORS = ["#007cfb", "#6600cc"] as const;
-const OVERFLOW_OS_COLOR = "#757575";
+// Color follows the OS, not its position: Android green (brand #3DDC84
+// darkened one step to pass the lightness band and 3:1 contrast on the white
+// card) and iOS purple. The pair passes the CVD-separation checks. Unknown
+// OSes fall back to portal blue, then muted gray.
+const OS_COLORS: Readonly<Record<string, string>> = {
+  Android: "#2bb673",
+  iOS: "#6600cc",
+};
+const FALLBACK_OS_COLORS = ["#007cfb", "#757575"] as const;
 
-const osColor = (index: number) => OS_COLORS[index] ?? OVERFLOW_OS_COLOR;
+const osColor = (osName: string, index: number) =>
+  OS_COLORS[osName] ??
+  FALLBACK_OS_COLORS[Math.min(index, FALLBACK_OS_COLORS.length - 1)];
 
 const formatTickDate = (value: string) =>
   new Date(`${value}T00:00:00.000Z`).toLocaleDateString("en-US", {
@@ -67,7 +72,7 @@ export const DailyMetricChart = (props: {
                 <span
                   aria-hidden
                   className="size-2 rounded-full"
-                  style={{ backgroundColor: osColor(index) }}
+                  style={{ backgroundColor: osColor(os.osName, index) }}
                 />
                 {os.osName}
               </li>
@@ -111,7 +116,7 @@ export const DailyMetricChart = (props: {
                   key={os.dataKey}
                   dataKey={os.dataKey}
                   name={os.osName}
-                  fill={osColor(index)}
+                  fill={osColor(os.osName, index)}
                   radius={[2, 2, 0, 0]}
                   maxBarSize={8}
                 />
