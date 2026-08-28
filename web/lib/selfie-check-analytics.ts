@@ -209,31 +209,37 @@ export type DailyChartPoint = {
   [series: string]: number | null | string;
 } & { date: string };
 
+export type DailyChartSeries = Readonly<{
+  /** Collision-free data key ("os:" + label); never equals the x-axis key. */
+  key: string;
+  /** The OS name exactly as it appears in the data. */
+  label: string;
+}>;
+
 export type DailyChartData = Readonly<{
   /** One point per day, ascending. A day missing an OS omits that key. */
   points: readonly DailyChartPoint[];
-  /** OS series keys, alphabetical for stable colors across metrics. */
-  series: readonly string[];
+  /** One entry per OS, alphabetical for stable colors across metrics. */
+  series: readonly DailyChartSeries[];
 }>;
 
 /**
  * Pivots per-app daily rows (one per day+OS) into the flat one-object-per-day
- * shape recharts consumes. An OS literally named "date" is remapped to
- * "date (os)" so it cannot clobber the x-axis key.
+ * shape recharts consumes. Series values are keyed by a prefixed identifier
+ * rather than the display label, so no OS name can collide with the x-axis
+ * key or with another series.
  */
 export const buildDailyChartData = (
   rows: readonly DailyRow[],
   metric: DailyChartMetric,
 ): DailyChartData => {
   const pointsByDay = new Map<string, DailyChartPoint>();
-  const seriesKeys = new Set<string>();
+  const osNames = new Set<string>();
 
   for (const row of rows) {
-    const seriesKey = row.os_name === "date" ? "date (os)" : row.os_name;
-    seriesKeys.add(seriesKey);
-
+    osNames.add(row.os_name);
     const point = pointsByDay.get(row.day) ?? { date: row.day };
-    point[seriesKey] = row[metric];
+    point[`os:${row.os_name}`] = row[metric];
     pointsByDay.set(row.day, point);
   }
 
@@ -241,6 +247,6 @@ export const buildDailyChartData = (
     points: [...pointsByDay.values()].sort((a, b) =>
       a.date.localeCompare(b.date),
     ),
-    series: [...seriesKeys].sort(),
+    series: [...osNames].sort().map((label) => ({ key: `os:${label}`, label })),
   };
 };
