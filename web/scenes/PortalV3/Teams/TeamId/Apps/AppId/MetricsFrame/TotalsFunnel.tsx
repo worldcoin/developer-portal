@@ -107,11 +107,11 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
 
   return (
     <section
-      aria-label="Verification funnel"
+      aria-label="Face Authentication Verification funnel"
       className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
     >
       <h3 className="font-world text-14 font-medium text-portal-heading">
-        Verification Funnel
+        Face Authentication Verification Funnel
       </h3>
 
       <div className="mt-4 grid grid-cols-3">
