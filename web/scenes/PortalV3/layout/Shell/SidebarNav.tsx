@@ -51,6 +51,9 @@ type ShellNavigation = {
   pendingHref: string | null;
   isNavigating: boolean;
   navigate: (href: string) => void;
+  /** App IDs the server confirmed to have analytics data this session. */
+  analyticsAppIds: readonly string[];
+  addAnalyticsAppId: (appId: string) => void;
 };
 
 const ShellNavigationContext = createContext<ShellNavigation | null>(null);
@@ -82,9 +85,22 @@ export const SidebarAnimationShell = (props: { children: ReactNode }) => {
     [router],
   );
 
+  const [analyticsAppIds, setAnalyticsAppIds] = useState<readonly string[]>([]);
+  const addAnalyticsAppId = useCallback((appId: string) => {
+    setAnalyticsAppIds((current) =>
+      current.includes(appId) ? current : [...current, appId],
+    );
+  }, []);
+
   const value = useMemo(
-    () => ({ pendingHref, isNavigating, navigate }),
-    [pendingHref, isNavigating, navigate],
+    () => ({
+      pendingHref,
+      isNavigating,
+      navigate,
+      analyticsAppIds,
+      addAnalyticsAppId,
+    }),
+    [pendingHref, isNavigating, navigate, analyticsAppIds, addAnalyticsAppId],
   );
 
   return (
@@ -92,6 +108,17 @@ export const SidebarAnimationShell = (props: { children: ReactNode }) => {
       {props.children}
     </ShellNavigationContext.Provider>
   );
+};
+
+/**
+ * Rendered by the app layout only when the server confirmed the app has
+ * analytics data; publishes that verdict to the sidebar via the shell
+ * context. Safe to render anywhere: it no-ops without the provider.
+ */
+export const AnalyticsEligibleApp = (props: { appId: string }) => {
+  const add = useContext(ShellNavigationContext)?.addAnalyticsAppId;
+  useEffect(() => add?.(props.appId), [add, props.appId]);
+  return null;
 };
 
 const sidebarPreloadIcons = [
@@ -123,7 +150,6 @@ const SectionLabel = (props: { children: ReactNode }) => (
 export const SidebarNav = (props: {
   initialSandboxRequest?: SandboxAccessRequestState | null;
   apiKeyTeamIds?: string[];
-  analyticsAppIds?: string[];
 }) => {
   preloadIcons(sidebarPreloadIcons);
 
@@ -134,7 +160,8 @@ export const SidebarNav = (props: {
   const routeAppId = params?.appId;
   const { setOpenMobile } = useSidebar();
 
-  const { pendingHref, isNavigating, navigate } = useShellNavigation();
+  const { pendingHref, isNavigating, navigate, analyticsAppIds } =
+    useShellNavigation();
   const optimisticHref =
     isNavigating && pendingHref !== null ? pendingHref : null;
   const currentHref = optimisticHref ?? pathname;
@@ -250,9 +277,7 @@ export const SidebarNav = (props: {
     (onCanonicalWorldId && !worldIdConfigurationActive);
   const analyticsActive = withinApp("/analytics");
 
-  const analyticsEnabled = Boolean(
-    appId && props.analyticsAppIds?.includes(appId),
-  );
+  const analyticsEnabled = Boolean(appId && analyticsAppIds.includes(appId));
   const verificationActive = withinApp("/configuration");
   const developActive =
     currentPathname === (appBase ? `${appBase}/mini-app` : "") ||

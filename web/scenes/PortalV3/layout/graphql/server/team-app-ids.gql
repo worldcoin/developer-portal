@@ -1,7 +1,0 @@
-query TeamAppIds($teamIds: [String!]!) {
-  app(
-    where: { team: { id: { _in: $teamIds } }, deleted_at: { _is_null: true } }
-  ) {
-    id
-  }
-}

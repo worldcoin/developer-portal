@@ -1,5 +1,7 @@
+import { isAppInAnalytics } from "@/api/helpers/selfie-check-analytics/snapshots";
 import { ErrorPage } from "@/components/ErrorPage";
 import { getIsUserAllowedToReadApp } from "@/lib/permissions";
+import { AnalyticsEligibleApp } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 import { ReactNode } from "react";
 
 type AppIdLayoutProps = {
@@ -14,5 +16,12 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
     return <ErrorPage statusCode={404} title="App not found" />;
   }
 
-  return <>{props.children}</>;
+  return (
+    <>
+      {(await isAppInAnalytics(appId)) ? (
+        <AnalyticsEligibleApp appId={appId} />
+      ) : null}
+      {props.children}
+    </>
+  );
 };

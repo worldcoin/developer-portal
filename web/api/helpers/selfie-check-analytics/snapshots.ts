@@ -234,3 +234,15 @@ export function clearTableCaches(): void {
   totalsSnapshotLoader.clear();
   dailySnapshotLoader.clear();
 }
+
+/**
+ * Whether the newest totals table has a row for the app. Fail-closed: a cold
+ * cache during an S3 outage hides the entry rather than throwing.
+ */
+export async function isAppInAnalytics(appId: string): Promise<boolean> {
+  try {
+    return (await loadLatestTotalsTableSnapshot()).records.has(appId);
+  } catch {
+    return false;
+  }
+}

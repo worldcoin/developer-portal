@@ -10,6 +10,17 @@ jest.mock("@/lib/permissions", () => ({
     getIsUserAllowedToReadApp(...args),
 }));
 
+const isAppInAnalytics = jest.fn();
+jest.mock("@/api/helpers/selfie-check-analytics/snapshots", () => ({
+  isAppInAnalytics: (...args: unknown[]) => isAppInAnalytics(...args),
+}));
+
+jest.mock("@/scenes/PortalV3/layout/Shell/SidebarNav", () => ({
+  AnalyticsEligibleApp: ({ appId }: { appId: string }) => (
+    <div data-testid="analytics-eligible">{appId}</div>
+  ),
+}));
+
 jest.mock("@/components/ErrorPage", () => ({
   ErrorPage: ({ statusCode }: { statusCode: number }) => (
     <div data-testid="error" data-status={statusCode} />
@@ -31,11 +42,20 @@ const renderLayout = async (value?: string) =>
 beforeEach(() => {
   jest.clearAllMocks();
   getIsUserAllowedToReadApp.mockResolvedValue(true);
+  isAppInAnalytics.mockResolvedValue(false);
 });
 
-it("renders the app for a member", async () => {
+it("renders the app for a member without vouching by default", async () => {
   await renderLayout(appId);
   expect(screen.getByTestId("page")).toBeInTheDocument();
+  expect(screen.queryByTestId("analytics-eligible")).not.toBeInTheDocument();
+});
+
+it("vouches for the app when the totals snapshot has it", async () => {
+  isAppInAnalytics.mockResolvedValue(true);
+  await renderLayout(appId);
+  expect(isAppInAnalytics).toHaveBeenCalledWith(appId);
+  expect(screen.getByTestId("analytics-eligible")).toHaveTextContent(appId);
 });
 
 it("returns 404 when the user cannot read the app", async () => {
