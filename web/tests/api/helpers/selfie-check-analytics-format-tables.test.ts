@@ -189,3 +189,15 @@ describe("analytics CSV validation", () => {
   });
 });
 // #endregion
+
+// #region Row limit
+it("rejects a table above the row limit without parsing it in full", () => {
+  const rows = Array.from(
+    { length: 250_001 },
+    (_, index) => `app_${index.toString(16).padStart(32, "0")},1`,
+  );
+  const csv = ["PARTNER_APP_ID,N_PROOFS", ...rows].join("\n");
+
+  expect(() => parseTotalsTable(csv)).toThrow("row maximum");
+});
+// #endregion

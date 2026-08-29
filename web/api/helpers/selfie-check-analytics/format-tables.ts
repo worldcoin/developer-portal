@@ -164,6 +164,9 @@ function parseCsv(csv: string): ParsedCsv {
       max_record_size: MAX_RECORD_BYTES,
       relax_column_count: false,
       skip_empty_lines: true,
+      // Stop materializing records at the limit so an over-long CSV is
+      // rejected with bounded memory instead of parsing in full first.
+      to: MAX_ROWS + 1,
       trim: true,
     });
   } catch (error) {
@@ -179,7 +182,7 @@ function parseCsv(csv: string): ParsedCsv {
 
   if (records.length > MAX_ROWS) {
     throw new TableValidationError(
-      `Table has ${records.length} rows; maximum is ${MAX_ROWS}.`,
+      `Table exceeds the ${MAX_ROWS}-row maximum.`,
     );
   }
 
