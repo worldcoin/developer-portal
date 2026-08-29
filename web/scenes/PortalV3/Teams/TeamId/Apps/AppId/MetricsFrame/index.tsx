@@ -99,8 +99,8 @@ export const MetricsFrame = (props: { appId: string }) => {
 
         const rawRows =
           typeof payload === "object" &&
-            payload !== null &&
-            Array.isArray((payload as { rows?: unknown }).rows)
+          payload !== null &&
+          Array.isArray((payload as { rows?: unknown }).rows)
             ? ((payload as { rows: unknown[] }).rows as unknown[])
             : null;
         const rows = rawRows?.map(pickDailyRow) ?? null;
