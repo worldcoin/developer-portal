@@ -16,11 +16,14 @@ import { TotalsFunnel } from "./TotalsFunnel";
 
 const REQUEST_TIMEOUT_MS = 8_000;
 
-/** Daily columns charted for RPs, in display order. */
+/** Daily columns charted for RPs, in display order, with display titles. */
 const CHART_METRICS = [
-  "n_users_started_selfie_check_flow",
-  "n_proofs",
-] as const satisfies readonly DailyChartMetric[];
+  {
+    metric: "n_users_started_selfie_check_flow",
+    title: "# of Selfie Checks Started",
+  },
+  { metric: "n_proofs", title: "# of Proofs Shared" },
+] as const satisfies readonly { metric: DailyChartMetric; title: string }[];
 
 // Eligibility controls the tab and page; these only describe the view's data.
 const requestFailureMessage = (scope: string, status: number) => {
@@ -31,16 +34,11 @@ const requestFailureMessage = (scope: string, status: number) => {
   return `${scope} request failed (${status}).`;
 };
 
-const chartSpec = (metric: DailyChartMetric) => {
+const metricKind = (metric: DailyChartMetric): MetricKind => {
   const column = TABLE_COLUMNS_DAILY.find((column) => column.key === metric);
-  const kind: MetricKind =
-    column && (column.kind === "count" || column.kind === "rate")
-      ? column.kind
-      : "count";
-  return {
-    title: column?.label ?? metric,
-    kind,
-  };
+  return column && (column.kind === "count" || column.kind === "rate")
+    ? column.kind
+    : "count";
 };
 
 type DailyState =
@@ -185,7 +183,7 @@ export const MetricsFrame = (props: { appId: string }) => {
           <TotalsFunnel row={totals.row} />
         ) : (
           <PlaceholderCard
-            label="Selfie check funnel"
+            label="Verification funnel"
             message={
               totals.kind === "loading"
                 ? "Loading total analytics…"
@@ -196,18 +194,15 @@ export const MetricsFrame = (props: { appId: string }) => {
 
         {daily.kind === "ready" ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            {CHART_METRICS.map((metric) => {
-              const { title, kind } = chartSpec(metric);
-              return (
-                <DailyMetricChart
-                  key={metric}
-                  title={title}
-                  rows={daily.rows}
-                  metric={metric}
-                  kind={kind}
-                />
-              );
-            })}
+            {CHART_METRICS.map(({ metric, title }) => (
+              <DailyMetricChart
+                key={metric}
+                title={title}
+                rows={daily.rows}
+                metric={metric}
+                kind={metricKind(metric)}
+              />
+            ))}
           </div>
         ) : (
           <PlaceholderCard

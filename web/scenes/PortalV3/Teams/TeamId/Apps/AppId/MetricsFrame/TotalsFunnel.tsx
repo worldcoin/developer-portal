@@ -107,11 +107,11 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
 
   return (
     <section
-      aria-label="Selfie check funnel"
+      aria-label="Verification funnel"
       className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
     >
       <h3 className="font-world text-14 font-medium text-portal-heading">
-        Selfie Check - Funnel
+        Verification Funnel
       </h3>
 
       <div className="mt-4 grid grid-cols-3">
@@ -170,10 +170,7 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
             style={{
               left: hover.x,
               top: hover.y,
-              transform:
-                hover.index === FUNNEL_STAGES.length - 1
-                  ? "translate(calc(-100% - 12px), 12px)"
-                  : "translate(12px, 12px)",
+              transform: "translate(calc(-100% - 12px), 12px)",
             }}
           >
             <p className="font-world text-12 whitespace-nowrap text-portal-muted">

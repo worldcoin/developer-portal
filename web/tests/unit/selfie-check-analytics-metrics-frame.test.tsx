@@ -94,7 +94,7 @@ describe("MetricsFrame [funnel + daily charts]", () => {
     render(<MetricsFrame appId={appId} />);
 
     await screen.findByText("Face auth started");
-    const funnel = screen.getByLabelText("Selfie check funnel");
+    const funnel = screen.getByLabelText("Verification funnel");
     expect(funnel).toHaveTextContent("240");
     expect(funnel).toHaveTextContent("Face auth completed");
     expect(funnel).toHaveTextContent("168");
@@ -104,9 +104,9 @@ describe("MetricsFrame [funnel + daily charts]", () => {
     expect(funnel).toHaveTextContent("50.0% of previous");
 
     expect(
-      await screen.findByText("Users started selfie check"),
+      await screen.findByText("# of Selfie Checks Started"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Proofs")).toBeInTheDocument();
+    expect(screen.getByText("# of Proofs Shared")).toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
@@ -118,7 +118,7 @@ describe("MetricsFrame [funnel + daily charts]", () => {
     render(<MetricsFrame appId={appId} />);
 
     await screen.findByText("Face auth started");
-    expect(screen.getByLabelText("Selfie check funnel")).toHaveTextContent("—");
+    expect(screen.getByLabelText("Verification funnel")).toHaveTextContent("—");
   });
 
   it("keeps the funnel visible while daily data is unavailable", async () => {
