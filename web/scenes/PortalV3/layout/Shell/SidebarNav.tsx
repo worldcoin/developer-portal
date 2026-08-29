@@ -399,7 +399,7 @@ export const SidebarNav = (props: {
                     href={`${appBase}/analytics`}
                     active={analyticsActive}
                     onNavigate={beginNavigation(`${appBase}/analytics`)}
-                    icon={<SidebarGlyph name="stat-triangle" />}
+                    icon={<SidebarGlyph name="stats-down-square" />}
                   />
                 ) : null}
                 <NavItem
