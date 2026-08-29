@@ -37,6 +37,7 @@
     "clsx": "^2.1.0",
     "cors": "^2.8.5",
     "countries-list": "^3.1.0",
+    "csv-parse": "^7.0.2",
     "date-fns": "^3.3.1",
     "dayjs": "^1.11.13",
     "dd-trace": "5.115.0",
