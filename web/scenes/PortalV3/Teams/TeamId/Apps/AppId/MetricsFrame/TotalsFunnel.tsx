@@ -128,7 +128,8 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
             <Bar
               dataKey="value"
               isAnimationActive={false}
-              radius={[3, 3, 0, 0]}
+              maxBarSize={120}
+              radius={[4, 4, 0, 0]}
             >
               {data.map((datum, index) => (
                 <Cell key={datum.name} fill={FUNNEL_COLORS[index]} />
