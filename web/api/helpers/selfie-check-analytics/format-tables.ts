@@ -180,6 +180,11 @@ function parseCsv(csv: string): ParsedCsv {
     throw new TableValidationError("Table has no header row.");
   }
 
+  if (records.length === 0) {
+    // A header-only export must never replace the last verified snapshot.
+    throw new TableValidationError("Table has no data rows.");
+  }
+
   if (records.length > MAX_ROWS) {
     throw new TableValidationError(
       `Table exceeds the ${MAX_ROWS}-row maximum.`,

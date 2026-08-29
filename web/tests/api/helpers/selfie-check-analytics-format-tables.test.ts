@@ -182,6 +182,12 @@ describe("analytics CSV validation", () => {
     expect(result.records.get(warehouseAppId)?.appId).toBe(warehouseAppId);
   });
 
+  it("rejects a header-only export instead of an empty table", () => {
+    expect(() => parseTotalsTable(`${totalsCsv().split("\n")[0]}\n`)).toThrow(
+      "no data rows",
+    );
+  });
+
   it("wraps malformed CSV as a validation error", () => {
     expect(() =>
       parseTotalsTable(`PARTNER_APP_ID,N_PROOFS\n${appIdA},"unterminated\n`),
