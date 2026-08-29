@@ -16,12 +16,12 @@ import {
   XAxis,
 } from "recharts";
 
-// Color follows the OS, not its position: Android green (Google green
-// deepened one step to clear the 3:1 contrast floor) and Apple system blue
-// for iOS. The pair passes every palette check on the white card. Unknown
-// OSes fall back to purple, then muted gray.
+// Color follows the OS, not its position: classic Android Green (#A4C639
+// deepened along its own hue until it passes the lightness band and 3:1
+// contrast on the white card) and Apple system blue for iOS. The pair clears
+// every palette check. Unknown OSes fall back to purple, then muted gray.
 const OS_COLORS: Readonly<Record<string, string>> = {
-  Android: "#2e9e5b",
+  Android: "#7d992b",
   iOS: "#007aff",
 };
 const FALLBACK_OS_COLORS = ["#6600cc", "#757575"] as const;
