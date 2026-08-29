@@ -1,4 +1,7 @@
-import { isSelfieCheckAnalyticsEnabledForApp } from "@/api/helpers/selfie-check-analytics/eligibility";
+import {
+  filterSelfieCheckAnalyticsEnabledApps,
+  isSelfieCheckAnalyticsEnabledForApp,
+} from "@/api/helpers/selfie-check-analytics/eligibility";
 import { logger } from "@/lib/logger";
 
 // #region Mocks
@@ -99,6 +102,31 @@ describe("isSelfieCheckAnalyticsEnabledForApp", () => {
         failureClass: "Error",
       }),
     );
+  });
+});
+// #endregion
+
+// #region Batch filtering
+describe("filterSelfieCheckAnalyticsEnabledApps", () => {
+  it("keeps only allowlisted apps with a single parameter read", async () => {
+    const getParameter = jest
+      .fn()
+      .mockResolvedValue([appId, "app_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]);
+    setParameterStore(getParameter);
+
+    await expect(
+      filterSelfieCheckAnalyticsEnabledApps([
+        appId,
+        "app_cccccccccccccccccccccccccccccccc",
+      ]),
+    ).resolves.toEqual([appId]);
+    expect(getParameter).toHaveBeenCalledTimes(1);
+  });
+
+  it("fails closed to an empty result when the allowlist is unavailable", async () => {
+    await expect(
+      filterSelfieCheckAnalyticsEnabledApps([appId]),
+    ).resolves.toEqual([]);
   });
 });
 // #endregion

@@ -25,18 +25,9 @@ const normalizeAppIds = (value: unknown): string[] | null => {
   return null;
 };
 
-/**
- * Fail-closed rollout gate for the analytics endpoint.
- *
- * The SSM parameter is the operational kill switch: a missing/empty parameter
- * enables no apps. It is not an authorization boundary; the route separately
- * checks the authenticated user's membership and the current totals snapshot.
- */
-export const isSelfieCheckAnalyticsEnabledForApp = async (
-  appId: string,
-): Promise<boolean> => {
+const readAllowlist = async (): Promise<readonly string[] | null> => {
   const parameterStore = global.ParameterStore;
-  if (!parameterStore) return false;
+  if (!parameterStore) return null;
 
   let value: unknown;
   try {
@@ -55,7 +46,7 @@ export const isSelfieCheckAnalyticsEnabledForApp = async (
         error,
       },
     );
-    return false;
+    return null;
   }
 
   const appIds = normalizeAppIds(value);
@@ -68,8 +59,39 @@ export const isSelfieCheckAnalyticsEnabledForApp = async (
         failureClass: "InvalidParameterValue",
       },
     );
-    return false;
+    return null;
   }
 
-  return appIds.includes(appId);
+  return appIds;
+};
+
+/**
+ * Fail-closed rollout gate for the analytics endpoint.
+ *
+ * The SSM parameter is the operational kill switch: a missing/empty parameter
+ * enables no apps. It is not an authorization boundary; the route separately
+ * checks the authenticated user's membership and the current totals snapshot.
+ */
+export const isSelfieCheckAnalyticsEnabledForApp = async (
+  appId: string,
+): Promise<boolean> => {
+  const appIds = await readAllowlist();
+  return appIds?.includes(appId) ?? false;
+};
+
+/**
+ * Filters to the allowlisted subset with a single parameter read, for callers
+ * that gate several apps at once (e.g. sidebar navigation). Fail-closed: any
+ * allowlist failure yields an empty result.
+ */
+export const filterSelfieCheckAnalyticsEnabledApps = async (
+  appIds: readonly string[],
+): Promise<string[]> => {
+  if (appIds.length === 0) return [];
+
+  const allowlist = await readAllowlist();
+  if (!allowlist) return [];
+
+  const allowed = new Set(allowlist);
+  return appIds.filter((appId) => allowed.has(appId));
 };
