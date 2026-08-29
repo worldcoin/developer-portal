@@ -16,15 +16,15 @@ import {
   XAxis,
 } from "recharts";
 
-// Color follows the OS, not its position: Android green (brand #3DDC84
-// darkened one step to pass the lightness band and 3:1 contrast on the white
-// card) and iOS purple. The pair passes the CVD-separation checks. Unknown
-// OSes fall back to portal blue, then muted gray.
+// Color follows the OS, not its position: Android green (Google green
+// deepened one step to clear the 3:1 contrast floor) and Apple system blue
+// for iOS. The pair passes every palette check on the white card. Unknown
+// OSes fall back to purple, then muted gray.
 const OS_COLORS: Readonly<Record<string, string>> = {
-  Android: "#2bb673",
-  iOS: "#6600cc",
+  Android: "#2e9e5b",
+  iOS: "#007aff",
 };
-const FALLBACK_OS_COLORS = ["#007cfb", "#757575"] as const;
+const FALLBACK_OS_COLORS = ["#6600cc", "#757575"] as const;
 
 const osColor = (osName: string, index: number) =>
   OS_COLORS[osName] ??
@@ -56,7 +56,7 @@ export const DailyMetricChart = (props: {
   return (
     <section
       aria-label={props.title}
-      className="w-[452px] max-w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
+      className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
     >
       <div className="flex items-baseline justify-between gap-4">
         <h3 className="font-world text-14 font-medium text-portal-heading">

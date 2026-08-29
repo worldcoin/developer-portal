@@ -10,9 +10,9 @@ import {
   type MetricKind,
   type TotalsRow,
 } from "@/lib/selfie-check-analytics";
-import clsx from "clsx";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { DailyMetricChart } from "./DailyMetricChart";
+import { TotalsFunnel } from "./TotalsFunnel";
 
 const REQUEST_TIMEOUT_MS = 8_000;
 
@@ -22,39 +22,6 @@ const CHART_METRICS = [
   "n_proofs",
 ] as const satisfies readonly DailyChartMetric[];
 
-/** Totals stat tiles, in display order. */
-const TOTAL_TILES = [
-  { key: "n_proofs", label: "Proofs", kind: "count" },
-  {
-    key: "n_users_started_selfie_check_flow",
-    label: "Users started selfie check",
-    kind: "count",
-  },
-  {
-    key: "n_proof_users",
-    label: "Users completed selfie check",
-    kind: "count",
-  },
-  {
-    key: "p_face_auth_completion",
-    label: "Face auth completion",
-    kind: "rate",
-  },
-] as const satisfies readonly {
-  key: keyof Omit<TotalsRow, "appId">;
-  label: string;
-  kind: MetricKind;
-}[];
-
-const countFormatter = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 0,
-});
-const percentFormatter = new Intl.NumberFormat("en-US", {
-  style: "percent",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
 // Eligibility controls the tab and page; these only describe the view's data.
 const requestFailureMessage = (scope: string, status: number) => {
   if (status === 404)
@@ -62,13 +29,6 @@ const requestFailureMessage = (scope: string, status: number) => {
   if (status === 503)
     return "Analytics are temporarily unavailable. Try again shortly.";
   return `${scope} request failed (${status}).`;
-};
-
-const formatTileValue = (value: number | null, kind: MetricKind) => {
-  if (typeof value !== "number") return "—";
-  return kind === "rate"
-    ? percentFormatter.format(value)
-    : countFormatter.format(value);
 };
 
 const chartSpec = (metric: DailyChartMetric) => {
@@ -83,8 +43,6 @@ const chartSpec = (metric: DailyChartMetric) => {
   };
 };
 
-type MetricsView = "daily" | "total";
-
 type DailyState =
   | { kind: "loading" }
   | { kind: "ready"; rows: readonly DailyRow[] }
@@ -95,26 +53,6 @@ type TotalsState =
   | { kind: "ready"; row: TotalsRow }
   | { kind: "error"; message: string };
 
-const PillButton = (props: {
-  active: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) => (
-  <button
-    type="button"
-    aria-pressed={props.active}
-    onClick={props.onClick}
-    className={clsx(
-      "rounded-full border px-4 py-1.5 font-world text-13 transition-colors",
-      props.active
-        ? "border-portal-ink bg-portal-ink text-white"
-        : "border-portal-border bg-white text-portal-muted hover:text-portal-ink",
-    )}
-  >
-    {props.children}
-  </button>
-);
-
 const PlaceholderCard = (props: { label: string; message: string }) => (
   <section
     aria-label={props.label}
@@ -124,9 +62,8 @@ const PlaceholderCard = (props: { label: string; message: string }) => (
   </section>
 );
 
-/** Fetches the app's analytics and renders daily charts or totals tiles. */
+/** Fetches the app's analytics: totals funnel above the daily charts. */
 export const MetricsFrame = (props: { appId: string }) => {
-  const [view, setView] = useState<MetricsView>("daily");
   const [daily, setDaily] = useState<DailyState>({ kind: "loading" });
   const [totals, setTotals] = useState<TotalsState>({ kind: "loading" });
 
@@ -244,76 +181,44 @@ export const MetricsFrame = (props: { appId: string }) => {
   return (
     <SizingWrapper className="py-8">
       <div className="grid w-[920px] max-w-full gap-4">
-        <div className="flex gap-2" role="group" aria-label="Metrics view">
-          <PillButton
-            active={view === "daily"}
-            onClick={() => setView("daily")}
-          >
-            Daily metrics
-          </PillButton>
-          <PillButton
-            active={view === "total"}
-            onClick={() => setView("total")}
-          >
-            Total metrics
-          </PillButton>
-        </div>
+        {totals.kind === "ready" ? (
+          <TotalsFunnel row={totals.row} />
+        ) : (
+          <PlaceholderCard
+            label="Selfie check funnel"
+            message={
+              totals.kind === "loading"
+                ? "Loading total analytics…"
+                : totals.message
+            }
+          />
+        )}
 
-        {view === "daily" &&
-          (daily.kind === "ready" ? (
-            <div className="flex flex-wrap gap-4">
-              {CHART_METRICS.map((metric) => {
-                const { title, kind } = chartSpec(metric);
-                return (
-                  <DailyMetricChart
-                    key={metric}
-                    title={title}
-                    rows={daily.rows}
-                    metric={metric}
-                    kind={kind}
-                  />
-                );
-              })}
-            </div>
-          ) : (
-            <PlaceholderCard
-              label="Daily selfie check charts"
-              message={
-                daily.kind === "loading"
-                  ? "Loading daily analytics…"
-                  : daily.message
-              }
-            />
-          ))}
-
-        {view === "total" &&
-          (totals.kind === "ready" ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {TOTAL_TILES.map((tile) => (
-                <section
-                  key={tile.key}
-                  aria-label={tile.label}
-                  className="flex min-h-[144px] flex-col justify-between rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
-                >
-                  <p className="font-world text-13 text-portal-muted">
-                    {tile.label}
-                  </p>
-                  <p className="font-world text-32 leading-none font-medium text-portal-heading">
-                    {formatTileValue(totals.row[tile.key], tile.kind)}
-                  </p>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <PlaceholderCard
-              label="Total selfie check metrics"
-              message={
-                totals.kind === "loading"
-                  ? "Loading total analytics…"
-                  : totals.message
-              }
-            />
-          ))}
+        {daily.kind === "ready" ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {CHART_METRICS.map((metric) => {
+              const { title, kind } = chartSpec(metric);
+              return (
+                <DailyMetricChart
+                  key={metric}
+                  title={title}
+                  rows={daily.rows}
+                  metric={metric}
+                  kind={kind}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <PlaceholderCard
+            label="Daily selfie check charts"
+            message={
+              daily.kind === "loading"
+                ? "Loading daily analytics…"
+                : daily.message
+            }
+          />
+        )}
       </div>
     </SizingWrapper>
   );
