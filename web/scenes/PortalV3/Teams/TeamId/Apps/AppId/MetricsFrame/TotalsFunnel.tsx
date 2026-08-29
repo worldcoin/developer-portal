@@ -5,8 +5,8 @@ import { useState } from "react";
 
 /** Conversion stages, left to right, computed from the totals row. */
 const FUNNEL_STAGES = [
-  { key: "n_face_auth_started_sessions", label: "Face auth started" },
-  { key: "n_face_auth_completed_sessions", label: "Face auth completed" },
+  { key: "n_face_auth_started_sessions", label: "Selfie Check started" },
+  { key: "n_face_auth_completed_sessions", label: "Selfie Check completed" },
   { key: "n_proofs", label: "Proofs shared" },
 ] as const satisfies readonly {
   key: keyof Omit<TotalsRow, "appId">;
@@ -107,11 +107,11 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
 
   return (
     <section
-      aria-label="Face Authentication Verification funnel"
+      aria-label="Selfie Check funnel"
       className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
     >
       <h3 className="font-world text-14 font-medium text-portal-heading">
-        Face Authentication Verification Funnel
+        Selfie Check Funnel
       </h3>
 
       <div className="mt-4 grid grid-cols-3">
