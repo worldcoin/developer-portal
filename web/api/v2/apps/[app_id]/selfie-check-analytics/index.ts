@@ -1,4 +1,3 @@
-import { isSelfieCheckAnalyticsEnabledForApp } from "@/api/helpers/selfie-check-analytics/eligibility";
 import {
   loadLatestDailyTableSnapshot,
   loadLatestTotalsTableSnapshot,
@@ -145,14 +144,6 @@ export async function GET(
   }
 
   if (!hasAppAccess) {
-    return errorResponse({
-      status: 404,
-      code: "not_found",
-      detail: "Analytics not found.",
-    });
-  }
-
-  if (!(await isSelfieCheckAnalyticsEnabledForApp(appId))) {
     return errorResponse({
       status: 404,
       code: "not_found",

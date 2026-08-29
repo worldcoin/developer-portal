@@ -6,9 +6,8 @@ import { render, screen } from "@testing-library/react";
 // #region Mocks
 const isEnabledForApp = jest.fn();
 
-jest.mock("@/api/helpers/selfie-check-analytics/eligibility", () => ({
-  isSelfieCheckAnalyticsEnabledForApp: (...args: unknown[]) =>
-    isEnabledForApp(...args),
+jest.mock("@/api/helpers/selfie-check-analytics/snapshots", () => ({
+  isAppInAnalytics: (...args: unknown[]) => isEnabledForApp(...args),
 }));
 
 jest.mock("@/components/ErrorPage", () => ({

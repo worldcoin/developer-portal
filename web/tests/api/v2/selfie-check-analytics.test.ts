@@ -5,7 +5,6 @@ import { NextRequest } from "next/server";
 // #region Mocks
 const getIsUserAllowedToReadApp = jest.fn();
 const getSessionMock = jest.fn();
-const isEnabledForAppMock = jest.fn();
 const loadLatestTotalsTableSnapshotMock = jest.fn();
 const loadLatestDailyTableSnapshotMock = jest.fn();
 
@@ -16,11 +15,6 @@ jest.mock("@/lib/permissions", () => ({
 
 jest.mock("@/lib/auth0", () => ({
   auth0: { getSession: (...args: unknown[]) => getSessionMock(...args) },
-}));
-
-jest.mock("@/api/helpers/selfie-check-analytics/eligibility", () => ({
-  isSelfieCheckAnalyticsEnabledForApp: (...args: unknown[]) =>
-    isEnabledForAppMock(...args),
 }));
 
 jest.mock("@/api/helpers/selfie-check-analytics/snapshots", () => ({
@@ -116,7 +110,6 @@ beforeEach(() => {
     user: { hasura: { id: userId } },
   });
   getIsUserAllowedToReadApp.mockResolvedValue(true);
-  isEnabledForAppMock.mockResolvedValue(true);
   loadLatestTotalsTableSnapshotMock.mockResolvedValue(snapshot());
   loadLatestDailyTableSnapshotMock.mockResolvedValue(dailySnapshot());
 });
@@ -139,7 +132,6 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [success]", () => {
     expect(response.headers.get("cache-control")).toBe("private, max-age=60");
     expect(response.headers.get("etag")).toMatch(/^"[A-Za-z0-9_-]+"$/);
     expect(getIsUserAllowedToReadApp).toHaveBeenCalledWith(appId);
-    expect(isEnabledForAppMock).toHaveBeenCalledWith(appId);
   });
 
   it("returns 304 when the app snapshot ETag matches", async () => {
@@ -213,7 +205,6 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [guards]", () => {
 
     expect(response.status).toBe(401);
     expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
-    expect(isEnabledForAppMock).not.toHaveBeenCalled();
     expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
   });
 
@@ -233,16 +224,6 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [guards]", () => {
 
   it("returns 404 when the user is not a member of the app's team", async () => {
     getIsUserAllowedToReadApp.mockResolvedValue(false);
-
-    const response = await GET(request(), context());
-
-    expect(response.status).toBe(404);
-    expect(isEnabledForAppMock).not.toHaveBeenCalled();
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
-  });
-
-  it("returns 404 without loading S3 when the rollout flag is off", async () => {
-    isEnabledForAppMock.mockResolvedValue(false);
 
     const response = await GET(request(), context());
 
