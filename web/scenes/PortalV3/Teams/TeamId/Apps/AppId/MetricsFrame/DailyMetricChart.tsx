@@ -48,10 +48,6 @@ export const DailyMetricChart = (props: {
     [props.rows, props.metric],
   );
 
-  // Counts by OS compose to an additive daily total, so they stack; rates
-  // do not. Rounded corners go only on the top segment of a stack.
-  const stackId = props.kind === "count" ? "os" : undefined;
-
   const formatValue = (value: number) =>
     props.kind === "rate"
       ? `${(value * 100).toFixed(1)}%`
@@ -95,7 +91,8 @@ export const DailyMetricChart = (props: {
             <BarChart
               data={[...points]}
               margin={{ top: 4, left: 12, right: 12, bottom: 0 }}
-              barCategoryGap="20%"
+              barGap={2}
+              barCategoryGap="15%"
             >
               <CartesianGrid vertical={false} stroke="#f1f1f1" />
               <XAxis
@@ -119,16 +116,10 @@ export const DailyMetricChart = (props: {
                   key={os.dataKey}
                   dataKey={os.dataKey}
                   name={os.osName}
-                  stackId={stackId}
                   fill={osColor(os.osName, index)}
-                  stroke="#ffffff"
-                  strokeWidth={1}
                   isAnimationActive={false}
-                  radius={
-                    !stackId || index === operatingSystems.length - 1
-                      ? [4, 4, 0, 0]
-                      : [0, 0, 0, 0]
-                  }
+                  maxBarSize={20}
+                  radius={[3, 3, 0, 0]}
                 />
               ))}
             </BarChart>
