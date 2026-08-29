@@ -46,9 +46,6 @@ jest.mock("@/lib/utils", () => ({
 jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
   SandboxButton: () => <button type="button">World ID Sandbox</button>,
 }));
-
-const fetchMock = jest.fn();
-global.fetch = fetchMock as unknown as typeof fetch;
 // #endregion
 
 import {
@@ -80,12 +77,18 @@ const makeWorldIdNavigationData = (options?: { rp?: boolean }) => ({
   action: [],
 });
 
-const renderSidebar = (apiKeyTeamIds = [teamId]) =>
+const renderSidebar = (
+  apiKeyTeamIds = [teamId],
+  analyticsAppIds: string[] = [],
+) =>
   render(
     <TooltipProvider>
       <SidebarProvider>
         <SidebarAnimationShell>
-          <SidebarNav apiKeyTeamIds={apiKeyTeamIds} />
+          <SidebarNav
+            apiKeyTeamIds={apiKeyTeamIds}
+            analyticsAppIds={analyticsAppIds}
+          />
         </SidebarAnimationShell>
       </SidebarProvider>
     </TooltipProvider>,
@@ -107,44 +110,20 @@ beforeEach(() => {
     data: makeWorldIdNavigationData(),
     loading: false,
   });
-  // Analytics eligibility stays pending unless a test resolves it, so the
-  // allowlist-gated entry is hidden by default.
-  fetchMock.mockReturnValue(new Promise(() => {}));
 });
 
 // #region Analytics allowlist gate
-it("shows and activates the Analytics entry only on explicit eligibility", async () => {
-  fetchMock.mockResolvedValue(
-    new Response(JSON.stringify({ isEligible: true }), { status: 200 }),
-  );
+it("shows and activates the Analytics entry for an eligible app", () => {
   usePathname.mockReturnValue(`${base}/analytics`);
-  renderSidebar();
+  renderSidebar([teamId], [appId]);
 
-  expect(
-    await screen.findByRole("link", { name: "Analytics" }),
-  ).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Analytics" })).toBeInTheDocument();
   expect(isCurrent("Analytics")).toBe(true);
-  expect(fetchMock).toHaveBeenCalledWith(
-    `/api/v2/apps/${appId}/selfie-check-analytics/eligibility`,
-    expect.objectContaining({ credentials: "same-origin" }),
-  );
 });
 
-it("hides the Analytics entry when the app is outside the allowlist", async () => {
-  fetchMock.mockResolvedValue(
-    new Response(JSON.stringify({ isEligible: false }), { status: 200 }),
-  );
-  renderSidebar();
+it("hides the Analytics entry when the app is outside the allowlist", () => {
+  renderSidebar([teamId], ["app_someoneelse0000000000000000000"]);
 
-  await screen.findByRole("link", { name: "Dashboard" });
-  noLink("Analytics");
-});
-
-it("does not infer eligibility from a failing eligibility request", async () => {
-  fetchMock.mockResolvedValue(new Response(null, { status: 503 }));
-  renderSidebar();
-
-  await screen.findByRole("link", { name: "Dashboard" });
   noLink("Analytics");
 });
 // #endregion

@@ -123,6 +123,7 @@ const SectionLabel = (props: { children: ReactNode }) => (
 export const SidebarNav = (props: {
   initialSandboxRequest?: SandboxAccessRequestState | null;
   apiKeyTeamIds?: string[];
+  analyticsAppIds?: string[];
 }) => {
   preloadIcons(sidebarPreloadIcons);
 
@@ -249,35 +250,9 @@ export const SidebarNav = (props: {
     (onCanonicalWorldId && !worldIdConfigurationActive);
   const analyticsActive = withinApp("/analytics");
 
-  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
-  useEffect(() => {
-    setAnalyticsEnabled(false);
-    if (!appId) return;
-
-    let active = true;
-    const controller = new AbortController();
-    fetch(
-      `/api/v2/apps/${encodeURIComponent(appId)}/selfie-check-analytics/eligibility`,
-      { credentials: "same-origin", signal: controller.signal },
-    )
-      .then(async (response) => {
-        const payload: unknown = response.ok ? await response.json() : null;
-        if (!active) return;
-        setAnalyticsEnabled(
-          typeof payload === "object" &&
-            payload !== null &&
-            (payload as { isEligible?: unknown }).isEligible === true,
-        );
-      })
-      .catch(() => {
-        if (active) setAnalyticsEnabled(false);
-      });
-
-    return () => {
-      active = false;
-      controller.abort();
-    };
-  }, [appId]);
+  const analyticsEnabled = Boolean(
+    appId && props.analyticsAppIds?.includes(appId),
+  );
   const verificationActive = withinApp("/configuration");
   const developActive =
     currentPathname === (appBase ? `${appBase}/mini-app` : "") ||
