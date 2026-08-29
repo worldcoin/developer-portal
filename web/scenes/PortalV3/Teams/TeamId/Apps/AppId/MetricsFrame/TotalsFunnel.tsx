@@ -2,12 +2,12 @@
 
 import { type TotalsRow } from "@/lib/selfie-check-analytics";
 import {
+  Bar,
+  BarChart,
   Cell,
-  Funnel,
-  FunnelChart,
-  LabelList,
   ResponsiveContainer,
   Tooltip,
+  XAxis,
 } from "recharts";
 
 /** Conversion stages, in order, computed from the totals row. */
@@ -88,7 +88,7 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
       className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
     >
       <h3 className="font-world text-14 font-medium text-portal-heading">
-        Selfie check funnel
+        Selfie Check - Funnel
       </h3>
 
       <div className="mt-4 grid grid-cols-3">
@@ -112,23 +112,29 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
         ))}
       </div>
 
-      <div className="mt-3 h-[200px] w-full [&_.recharts-surface]:outline-none [&_.recharts-wrapper]:outline-none">
+      <div className="mt-3 h-[180px] w-full [&_.recharts-surface]:outline-none [&_.recharts-wrapper]:outline-none">
         <ResponsiveContainer width="100%" height="100%">
-          <FunnelChart margin={{ top: 8, right: 140, bottom: 8, left: 8 }}>
-            <Tooltip content={<FunnelTooltip />} />
-            <Funnel dataKey="value" data={data} lastShapeType="rectangle">
+          <BarChart
+            data={data}
+            margin={{ top: 8, right: 8, bottom: 4, left: 8 }}
+            barCategoryGap="18%"
+          >
+            <XAxis dataKey="name" hide />
+            <Tooltip
+              content={<FunnelTooltip />}
+              isAnimationActive={false}
+              cursor={{ fill: "rgba(24, 24, 24, 0.04)" }}
+            />
+            <Bar
+              dataKey="value"
+              isAnimationActive={false}
+              radius={[3, 3, 0, 0]}
+            >
               {data.map((datum, index) => (
                 <Cell key={datum.name} fill={FUNNEL_COLORS[index]} />
               ))}
-              <LabelList
-                position="right"
-                dataKey="name"
-                stroke="none"
-                fill="#757575"
-                fontSize={12}
-              />
-            </Funnel>
-          </FunnelChart>
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </section>
