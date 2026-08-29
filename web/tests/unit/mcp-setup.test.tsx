@@ -5,9 +5,14 @@ import { McpSetup } from "@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys/M
 
 // #region Mocks
 const writeTextMock = jest.fn();
+const toastSuccessMock = jest.fn();
+const toastErrorMock = jest.fn();
 
 jest.mock("react-toastify", () => ({
-  toast: { success: jest.fn(), error: jest.fn() },
+  toast: {
+    success: (...args: unknown[]) => toastSuccessMock(...args),
+    error: (...args: unknown[]) => toastErrorMock(...args),
+  },
 }));
 // #endregion
 
@@ -43,6 +48,10 @@ describe("MCP setup", () => {
       screen.getByText("https://staging.example.test/api/mcp"),
     ).toBeInTheDocument();
     expect(screen.getByText(/YOUR_API_KEY/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Codex" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("copies the displayed setup command", async () => {
@@ -56,5 +65,23 @@ describe("MCP setup", () => {
     });
 
     expect(writeTextMock).toHaveBeenCalledWith(command);
+    expect(toastSuccessMock).toHaveBeenCalledWith(
+      "Setup command copied to clipboard",
+    );
+  });
+
+  it("shows an actionable error when clipboard access fails", async () => {
+    writeTextMock.mockRejectedValueOnce(new Error("Clipboard denied"));
+    render(<McpSetup />);
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: /copy mcp setup command/i }),
+      );
+    });
+
+    expect(toastErrorMock).toHaveBeenCalledWith(
+      "Couldn't copy. Select the command and copy it manually",
+    );
   });
 });

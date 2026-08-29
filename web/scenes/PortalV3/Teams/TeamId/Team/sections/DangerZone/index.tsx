@@ -19,7 +19,8 @@ export const TeamDangerZone = (props: {
   return (
     <>
       <DestructiveTriggerButton
-        className="shrink-0"
+        appearance="solid"
+        className="min-w-[100px] shrink-0"
         onClick={() => setIsOpenDeleteDialog(true)}
       >
         Delete team
