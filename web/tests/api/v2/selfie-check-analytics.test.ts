@@ -7,6 +7,7 @@ const getIsUserAllowedToReadApp = jest.fn();
 const getSessionMock = jest.fn();
 const loadLatestTotalsTableSnapshotMock = jest.fn();
 const loadLatestDailyTableSnapshotMock = jest.fn();
+const isAppInAnalyticsMock = jest.fn();
 
 jest.mock("@/lib/permissions", () => ({
   getIsUserAllowedToReadApp: (...args: unknown[]) =>
@@ -22,6 +23,7 @@ jest.mock("@/api/helpers/selfie-check-analytics/snapshots", () => ({
     loadLatestTotalsTableSnapshotMock(...args),
   loadLatestDailyTableSnapshot: (...args: unknown[]) =>
     loadLatestDailyTableSnapshotMock(...args),
+  isAppInAnalytics: (...args: unknown[]) => isAppInAnalyticsMock(...args),
 }));
 
 jest.mock("@/lib/logger", () => ({
@@ -112,6 +114,7 @@ beforeEach(() => {
   getIsUserAllowedToReadApp.mockResolvedValue(true);
   loadLatestTotalsTableSnapshotMock.mockResolvedValue(snapshot());
   loadLatestDailyTableSnapshotMock.mockResolvedValue(dailySnapshot());
+  isAppInAnalyticsMock.mockResolvedValue(true);
 });
 
 // #region Success and cache behavior
@@ -229,6 +232,15 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [guards]", () => {
 
     expect(response.status).toBe(404);
     expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
+  });
+
+  it("gates the daily table on totals presence during export skew", async () => {
+    isAppInAnalyticsMock.mockResolvedValue(false);
+
+    const response = await GET(request(undefined, "?table=daily"), context());
+
+    expect(response.status).toBe(404);
+    expect(loadLatestDailyTableSnapshotMock).not.toHaveBeenCalled();
   });
 
   it("returns 404 when the whitelisted app is absent from the table", async () => {

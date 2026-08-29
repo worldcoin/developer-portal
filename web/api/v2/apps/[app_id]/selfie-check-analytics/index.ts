@@ -1,4 +1,5 @@
 import {
+  isAppInAnalytics,
   loadLatestDailyTableSnapshot,
   loadLatestTotalsTableSnapshot,
 } from "@/api/helpers/selfie-check-analytics/snapshots";
@@ -144,6 +145,18 @@ export async function GET(
   }
 
   if (!hasAppAccess) {
+    return errorResponse({
+      status: 404,
+      code: "not_found",
+      detail: "Analytics not found.",
+    });
+  }
+
+  // Presence in the totals export is the single eligibility rule (the same
+  // one the page and sidebar use); the requested table only governs what the
+  // response contains. Without this, skew between the independently loaded
+  // exports lets ?table=daily serve rows for an app that has no analytics.
+  if (!(await isAppInAnalytics(appId))) {
     return errorResponse({
       status: 404,
       code: "not_found",
