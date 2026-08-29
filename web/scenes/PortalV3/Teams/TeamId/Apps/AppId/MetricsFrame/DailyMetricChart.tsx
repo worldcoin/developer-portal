@@ -86,7 +86,7 @@ export const DailyMetricChart = (props: {
           No daily data yet.
         </p>
       ) : (
-        <div className="mt-4 aspect-video w-full [&_.recharts-surface]:outline-none [&_.recharts-wrapper]:outline-none">
+        <div className="mt-4 aspect-video w-full outline-none [&_*]:outline-none">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={[...points]}
