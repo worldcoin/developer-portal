@@ -77,12 +77,18 @@ const makeWorldIdNavigationData = (options?: { rp?: boolean }) => ({
   action: [],
 });
 
-const renderSidebar = (apiKeyTeamIds = [teamId]) =>
+const renderSidebar = (
+  apiKeyTeamIds = [teamId],
+  analyticsAppIds: string[] = [],
+) =>
   render(
     <TooltipProvider>
       <SidebarProvider>
         <SidebarAnimationShell>
-          <SidebarNav apiKeyTeamIds={apiKeyTeamIds} />
+          <SidebarNav
+            apiKeyTeamIds={apiKeyTeamIds}
+            analyticsAppIds={analyticsAppIds}
+          />
         </SidebarAnimationShell>
       </SidebarProvider>
     </TooltipProvider>,
@@ -105,6 +111,22 @@ beforeEach(() => {
     loading: false,
   });
 });
+
+// #region Analytics allowlist gate
+it("shows and activates the Analytics entry for an eligible app", () => {
+  usePathname.mockReturnValue(`${base}/analytics`);
+  renderSidebar([teamId], [appId]);
+
+  expect(screen.getByRole("link", { name: "Analytics" })).toBeInTheDocument();
+  expect(isCurrent("Analytics")).toBe(true);
+});
+
+it("hides the Analytics entry when the app is outside the allowlist", () => {
+  renderSidebar([teamId], ["app_someoneelse0000000000000000000"]);
+
+  noLink("Analytics");
+});
+// #endregion
 
 // #region active pill animation compartments
 it("snaps from an app tab to Projects but slides within team navigation", () => {

@@ -123,6 +123,7 @@ const SectionLabel = (props: { children: ReactNode }) => (
 export const SidebarNav = (props: {
   initialSandboxRequest?: SandboxAccessRequestState | null;
   apiKeyTeamIds?: string[];
+  analyticsAppIds?: string[];
 }) => {
   preloadIcons(sidebarPreloadIcons);
 
@@ -247,6 +248,11 @@ export const SidebarNav = (props: {
     onWorldIdActionsRoute ||
     onLegacyActionsRoute ||
     (onCanonicalWorldId && !worldIdConfigurationActive);
+  const analyticsActive = withinApp("/analytics");
+
+  const analyticsEnabled = Boolean(
+    appId && props.analyticsAppIds?.includes(appId),
+  );
   const verificationActive = withinApp("/configuration");
   const developActive =
     currentPathname === (appBase ? `${appBase}/mini-app` : "") ||
@@ -362,6 +368,15 @@ export const SidebarNav = (props: {
                   )}
                   icon={<SidebarGlyph name="nav-home-active" />}
                 />
+                {analyticsEnabled && appBase ? (
+                  <NavItem
+                    label="Analytics"
+                    href={`${appBase}/analytics`}
+                    active={analyticsActive}
+                    onNavigate={beginNavigation(`${appBase}/analytics`)}
+                    icon={<SidebarGlyph name="stats-down-square" />}
+                  />
+                ) : null}
                 <NavItem
                   label="World ID Configuration"
                   href={urls.worldIdTab({
