@@ -9,7 +9,6 @@ import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { InviteTeamMembersDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/invite-team-members.generated";
 import { EditRoleDialog, editRoleDialogAtom } from "./EditRoleDialog";
 import { PermissionsDialog } from "./PermissionsDialog";
 import { RemoveUserDialog, removeUserDialogAtom } from "./RemoveUserDialog";
@@ -84,34 +83,6 @@ export const List = (props: ListProps) => {
     [setIsRemoveDialogOpened],
   );
 
-  const [inviteTeamMembers, { loading: resendMutationLoading }] = useMutation(
-    InviteTeamMembersDocument,
-  );
-
-  const resendInvite = useCallback(
-    async (membership: FetchTeamMembersQuery["members"][number]) => {
-      if (
-        !isEnoughPermissions ||
-        !membership.user.email ||
-        resendMutationLoading
-      ) {
-        return;
-      }
-
-      try {
-        await inviteTeamMembers({
-          variables: { emails: [membership.user.email], team_id: teamId },
-          refetchQueries: [FetchTeamMembersDocument],
-        });
-
-        toast.success(`New invite is sent to ${membership.user.email}`);
-      } catch (error) {
-        toast.error("Error inviting team members");
-      }
-    },
-    [inviteTeamMembers, isEnoughPermissions, resendMutationLoading, teamId],
-  );
-
   const [deleteInvite, { loading: deleteInviteMutationLoading }] = useMutation(
     DeleteInviteDocument,
     {
@@ -166,7 +137,6 @@ export const List = (props: ListProps) => {
             isEnoughPermissions={isEnoughPermissions}
             onEdit={() => onEditUser(item)}
             onRemove={() => onRemoveUser(item)}
-            onResendInvite={() => resendInvite(item)}
             onCancelInvite={() => cancelInvite(item)}
           />
         ))}
