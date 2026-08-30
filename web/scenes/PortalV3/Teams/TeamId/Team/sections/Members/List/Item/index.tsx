@@ -5,9 +5,9 @@ import { UserLogo } from "./UserLogo";
 import { Dropdown } from "@/components/Dropdown";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
 import { EditUserIcon } from "@/components/Icons/EditUserIcon";
-import { SendIcon } from "@/components/Icons/SendIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { Role_Enum } from "@/graphql/graphql";
+import Image from "next/image";
 import Skeleton from "react-loading-skeleton";
 
 const roleName: Record<Role_Enum, string> = {
@@ -22,7 +22,6 @@ type ItemProps = {
   isEnoughPermissions?: boolean;
   onEdit?: () => void;
   onRemove?: () => void;
-  onResendInvite?: () => void;
   onCancelInvite?: () => void;
 };
 
@@ -48,11 +47,16 @@ export const Item = (props: ItemProps) => {
           <span className="block max-w-full truncate font-world text-15 leading-[1.2] font-[450] text-portal-ink">
             {!item ? <Skeleton width={180} inline /> : primaryLabel}
           </span>
-          <span className="block max-w-full truncate font-world text-13 leading-[1.3] font-[350] text-[#7d7d7d]">
+          <span
+            className={clsx(
+              "block max-w-full truncate font-world text-13 leading-[1.3] font-[350]",
+              isInviteRow ? "text-[#ffae00]" : "text-[#7d7d7d]",
+            )}
+          >
             {!item ? (
               <Skeleton width={60} inline />
             ) : isInviteRow ? (
-              "Pending"
+              "Pending invitation"
             ) : (
               roleName[item.role]
             )}
@@ -65,6 +69,28 @@ export const Item = (props: ItemProps) => {
           <div className="flex size-8 items-center justify-center">
             <MoreVerticalIcon className="text-grey-400" />
           </div>
+        ) : isInviteRow ? (
+          <button
+            type="button"
+            aria-label={`Cancel invitation for ${primaryLabel}`}
+            onClick={props.onCancelInvite}
+            disabled={!isEnoughPermissions || !props.onCancelInvite}
+            className={clsx(
+              "flex size-5 items-center justify-center outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2",
+              {
+                "pointer-events-none invisible": !isEnoughPermissions,
+              },
+            )}
+          >
+            <Image
+              src="/icons/pending-invite-trash.svg"
+              width={20}
+              height={20}
+              alt=""
+              aria-hidden
+              className="size-5"
+            />
+          </button>
         ) : (
           <Dropdown>
             <Dropdown.Button
@@ -78,7 +104,7 @@ export const Item = (props: ItemProps) => {
             </Dropdown.Button>
 
             <Dropdown.List align="end" heading={primaryLabel}>
-              {isEnoughPermissions && !isInviteRow && (
+              {isEnoughPermissions && (
                 <Dropdown.ListItem asChild>
                   <button onClick={props.onEdit}>
                     <Dropdown.ListItemIcon asChild>
@@ -90,29 +116,9 @@ export const Item = (props: ItemProps) => {
                 </Dropdown.ListItem>
               )}
 
-              {isEnoughPermissions && isInviteRow && (
-                <Dropdown.ListItem asChild>
-                  <button onClick={props.onResendInvite}>
-                    <Dropdown.ListItemIcon asChild>
-                      <SendIcon />
-                    </Dropdown.ListItemIcon>
-
-                    <Dropdown.ListItemText>
-                      Re-send invite
-                    </Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
-              )}
-
               {isEnoughPermissions && (
                 <Dropdown.ListItem className="text-system-error-600" asChild>
-                  <button
-                    onClick={() =>
-                      isInviteRow
-                        ? props.onCancelInvite?.()
-                        : props.onRemove?.()
-                    }
-                  >
+                  <button onClick={props.onRemove}>
                     <Dropdown.ListItemIcon
                       className="text-system-error-600"
                       asChild
@@ -120,9 +126,7 @@ export const Item = (props: ItemProps) => {
                       <TrashIcon />
                     </Dropdown.ListItemIcon>
 
-                    <Dropdown.ListItemText>
-                      {isInviteRow ? "Cancel invite" : "Remove member"}
-                    </Dropdown.ListItemText>
+                    <Dropdown.ListItemText>Remove member</Dropdown.ListItemText>
                   </button>
                 </Dropdown.ListItem>
               )}
