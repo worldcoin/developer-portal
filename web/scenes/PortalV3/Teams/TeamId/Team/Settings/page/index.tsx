@@ -45,6 +45,10 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
   });
   const team = data?.team_by_pk;
 
+  if (activeTab === TEAM_SETTINGS_TABS.Members) {
+    return <Members teamId={teamId} />;
+  }
+
   return (
     <SizingWrapper
       gridClassName="order-1 grow"
@@ -114,10 +118,6 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
                 </SettingsPanel>
               ) : null}
             </>
-          ) : null}
-
-          {activeTab === TEAM_SETTINGS_TABS.Members ? (
-            <Members teamId={teamId} />
           ) : null}
 
           {activeTab === TEAM_SETTINGS_TABS.ApiKeys && canViewApiKeys ? (
