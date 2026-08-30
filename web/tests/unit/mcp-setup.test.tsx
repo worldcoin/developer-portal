@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { MCP_ENDPOINT } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/mcp-snippets";
 import { McpSetup } from "@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys/McpSetup";
 
 // #region Mocks
@@ -41,16 +42,26 @@ afterEach(() => {
 });
 
 describe("MCP setup", () => {
-  it("shows a setup command for the current portal origin", () => {
+  it("shows a setup command for the canonical MCP endpoint", () => {
     render(<McpSetup />);
 
-    expect(
-      screen.getByText("https://staging.example.test/api/mcp"),
-    ).toBeInTheDocument();
+    expect(screen.getByText(MCP_ENDPOINT())).toBeInTheDocument();
     expect(screen.getByText(/YOUR_API_KEY/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Codex" })).toHaveAttribute(
       "aria-pressed",
       "true",
+    );
+    expect(screen.queryByText("Run in your terminal")).not.toBeInTheDocument();
+  });
+
+  it("keeps long setup text in a fixed horizontal scroller", () => {
+    render(<McpSetup />);
+
+    const commandScroller = screen.getByLabelText("MCP setup command");
+    expect(commandScroller).toHaveClass("min-w-0", "overflow-x-auto");
+    expect(commandScroller.querySelector("code")).toHaveClass(
+      "w-max",
+      "whitespace-nowrap",
     );
   });
 

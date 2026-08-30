@@ -1,7 +1,7 @@
 "use client";
 import {
-  getMcpEndpoint,
   getProviderSnippets,
+  MCP_ENDPOINT,
   PROVIDERS,
   type ProviderId,
 } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/mcp-snippets";
@@ -13,16 +13,12 @@ import { toast } from "react-toastify";
 const KEY_PLACEHOLDER = "YOUR_API_KEY";
 
 export const McpSetup = () => {
-  // Origin is unknown during SSR; correct on mount rather than hydrate a wrong one.
-  const [endpoint, setEndpoint] = useState(() => getMcpEndpoint(undefined));
-  useEffect(() => setEndpoint(getMcpEndpoint(window.location.origin)), []);
-
   const [providerId, setProviderId] = useState<ProviderId>("codex");
 
   // The real key is shown once at creation; this section never handles one.
   const snippets = useMemo(
-    () => getProviderSnippets(KEY_PLACEHOLDER, endpoint),
-    [endpoint],
+    () => getProviderSnippets(KEY_PLACEHOLDER, MCP_ENDPOINT()),
+    [],
   );
   const command = snippets[providerId].command;
   const [copied, setCopied] = useState(false);
@@ -66,16 +62,12 @@ export const McpSetup = () => {
 
       <div className="mt-4 flex h-10 w-full items-center overflow-hidden rounded-[10px] border border-portal-border bg-white px-[15px]">
         <code className="block min-w-0 truncate font-world text-15 leading-[1.3] font-[350] text-portal-ink">
-          {endpoint}
+          {MCP_ENDPOINT()}
         </code>
       </div>
 
-      <div className="mt-4 min-h-[162px] rounded-[10px] border border-portal-border bg-white p-[19px]">
-        <h3 className="font-world text-15 leading-[1.2] font-[450] text-portal-ink">
-          Run in your terminal
-        </h3>
-
-        <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 rounded-[10px] border border-portal-border bg-white p-[19px]">
+        <div className="flex flex-wrap gap-2">
           {PROVIDERS.map((item) => {
             const isSelected = item.id === providerId;
 
@@ -108,10 +100,16 @@ export const McpSetup = () => {
           })}
         </div>
 
-        <div className="mt-4 flex h-10 min-w-0 items-center gap-4 rounded-[10px] border border-portal-border bg-white px-[15px]">
-          <code className="block min-w-0 flex-1 truncate font-world text-15 leading-[1.3] font-[350] text-portal-ink">
-            {command}
-          </code>
+        <div className="mt-4 flex h-10 min-w-0 items-center gap-4 overflow-hidden rounded-[10px] border border-portal-border bg-white px-[15px]">
+          <div
+            aria-label="MCP setup command"
+            tabIndex={0}
+            className="flex h-full min-w-0 flex-1 [scrollbar-width:thin] items-center overflow-x-auto overscroll-x-contain outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-inset"
+          >
+            <code className="block w-max shrink-0 font-world text-15 leading-[1.3] font-[350] whitespace-nowrap text-portal-ink">
+              {command}
+            </code>
+          </div>
 
           <button
             type="button"
