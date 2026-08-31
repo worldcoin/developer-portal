@@ -247,7 +247,7 @@ export const SandboxButton = (props: {
           name="world-id-sandbox-app-icon"
           className="size-8 shrink-0 drop-shadow-sm"
         />
-        <span className="grid min-w-0 flex-1 gap-y-0.5">
+        <span className="grid min-w-0 flex-1 gap-y-0">
           <span className="font-world text-13 font-medium whitespace-nowrap text-portal-text">
             World ID Sandbox
           </span>

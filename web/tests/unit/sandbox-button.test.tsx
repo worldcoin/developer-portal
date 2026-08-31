@@ -106,6 +106,9 @@ describe("SandboxButton [sidebar banner layout]", () => {
     expect(screen.getByText("Install the test build")).toHaveClass(
       "whitespace-nowrap",
     );
+    expect(screen.getByText("World ID Sandbox").parentElement).toHaveClass(
+      "gap-y-0",
+    );
   });
 
   it("keeps the hover arrow inset from the banner edge", () => {
