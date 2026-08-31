@@ -240,6 +240,27 @@ export const getChecklistDefinitions = (
   ];
 };
 
+export const getChecklistDisplayDefinitions = ({
+  mode,
+  snapshot,
+  version,
+}: {
+  mode: ReviewerAppMode;
+  snapshot?: ReviewChecklistDefinitionSnapshot;
+  version: string;
+}): ReviewChecklistDefinition[] => {
+  const registered = getChecklistDefinitions(mode, version);
+  if (registered.length > 0) return registered;
+  if (!snapshot || snapshot.mode !== mode) return [];
+  return snapshot.items.map((item) => ({
+    id: item.id,
+    title: item.label,
+    description: item.description,
+    sourceUrl: item.sourceUrl,
+    conditional: item.conditional,
+  }));
+};
+
 export const createChecklistDefinitionSnapshot = (
   mode: ReviewerAppMode,
   version = REVIEW_CHECKLIST_VERSION,

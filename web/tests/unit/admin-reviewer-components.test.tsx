@@ -10,11 +10,13 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import type { ComponentProps } from "react";
 
 import { ReviewerQueue } from "@/scenes/Admin/reviewer/queue/ReviewerQueue";
 import { ReviewClaimBar } from "@/scenes/Admin/reviewer/detail/ReviewClaimBar";
 import { ReviewHistory } from "@/scenes/Admin/reviewer/detail/ReviewHistory";
 import { ReviewerHeader } from "@/scenes/Admin/reviewer/detail/ReviewerHeader";
+import { ReviewerChecklist } from "@/scenes/Admin/reviewer/detail/ReviewerChecklist";
 import { ReviewerTabs } from "@/scenes/Admin/reviewer/detail/ReviewerTabs";
 import { ReviewerTestTarget } from "@/scenes/Admin/reviewer/detail/ReviewerTestTarget";
 import { ReviewerWorkspace } from "@/scenes/Admin/reviewer/detail/ReviewerWorkspace";
@@ -1365,5 +1367,199 @@ describe("review detail workspace", () => {
       rendered.unmount();
       jest.useRealTimers();
     }
+  });
+});
+
+describe("grouped reviewer checklist", () => {
+  const renderChecklist = (
+    overrides: Partial<ComponentProps<typeof ReviewerChecklist>> = {},
+  ) => {
+    const props: ComponentProps<typeof ReviewerChecklist> = {
+      checklist: { items: [], internalNotes: "" },
+      disabled: false,
+      mode: "mini-app",
+      onAddNote: jest.fn(),
+      onChange: jest.fn(),
+      onRetrySave: jest.fn(),
+      saveState: "idle",
+      version: REVIEW_CHECKLIST_VERSION,
+      ...overrides,
+    };
+    render(<ReviewerChecklist {...props} />);
+    return props;
+  };
+
+  it("renders five grouped checks with pressed status buttons and accessible progress", () => {
+    renderChecklist();
+
+    expect(screen.getAllByRole("article")).toHaveLength(5);
+    expect(screen.getByText("Listing and localization")).toBeInTheDocument();
+    expect(screen.getByText("Legal and support")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Pass" })).toHaveLength(5);
+    expect(screen.getAllByRole("button", { name: "Issue" })).toHaveLength(5);
+    expect(screen.getAllByRole("button", { name: "N/A" })).toHaveLength(5);
+    expect(screen.getAllByRole("button", { name: "Pass" })[0]).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(screen.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuemin",
+      "0",
+    );
+    expect(screen.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuemax",
+      "5",
+    );
+    expect(screen.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuenow",
+      "0",
+    );
+  });
+
+  it("shows one contextual note for Issue or N/A and clears stale N/A notes", () => {
+    const onChange = jest.fn();
+    const naChecklist = {
+      items: [
+        {
+          id: "group.listing-localization",
+          status: "na" as const,
+          evidence: "",
+          applicabilityNote: "Not relevant",
+        },
+      ],
+      internalNotes: "",
+    };
+    const { rerender } = render(
+      <ReviewerChecklist
+        checklist={naChecklist}
+        disabled={false}
+        mode="mini-app"
+        onAddNote={jest.fn()}
+        onChange={onChange}
+        onRetrySave={jest.fn()}
+        saveState="idle"
+        version={REVIEW_CHECKLIST_VERSION}
+      />,
+    );
+
+    expect(screen.getByLabelText(/not applicable note/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/issue note/i)).not.toBeInTheDocument();
+    fireEvent.click(
+      within(
+        screen.getByRole("group", {
+          name: "Listing and localization check status",
+        }),
+      ).getByRole("button", { name: "Pass" }),
+    );
+    expect(onChange).toHaveBeenLastCalledWith({
+      items: [
+        {
+          id: "group.listing-localization",
+          status: "pass",
+          evidence: "",
+        },
+      ],
+      internalNotes: "",
+    });
+
+    rerender(
+      <ReviewerChecklist
+        checklist={naChecklist}
+        disabled={false}
+        mode="mini-app"
+        onAddNote={jest.fn()}
+        onChange={onChange}
+        onRetrySave={jest.fn()}
+        saveState="idle"
+        version={REVIEW_CHECKLIST_VERSION}
+      />,
+    );
+    fireEvent.click(screen.getAllByRole("button", { name: "Issue" })[0]);
+    expect(onChange).toHaveBeenLastCalledWith({
+      items: [
+        {
+          id: "group.listing-localization",
+          status: "fail",
+          evidence: "",
+        },
+      ],
+      internalNotes: "",
+    });
+    const issueChecklist = onChange.mock.calls.at(-1)?.[0];
+    rerender(
+      <ReviewerChecklist
+        checklist={issueChecklist}
+        disabled={false}
+        mode="mini-app"
+        onAddNote={jest.fn()}
+        onChange={onChange}
+        onRetrySave={jest.fn()}
+        saveState="idle"
+        version={REVIEW_CHECKLIST_VERSION}
+      />,
+    );
+    expect(screen.getByLabelText(/issue note/i)).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(/not applicable note/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("adds only a failed issue note to the developer message", () => {
+    const onAddNote = jest.fn();
+    renderChecklist({
+      checklist: {
+        items: [
+          {
+            id: "group.listing-localization",
+            status: "fail",
+            evidence: "Correct the Spanish listing copy.",
+          },
+        ],
+        internalNotes: "",
+      },
+      onAddNote,
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Add note to message" }),
+    );
+    expect(onAddNote).toHaveBeenCalledWith("Correct the Spanish listing copy.");
+  });
+
+  it.each([
+    ["saving", "Saving"],
+    ["saved", "Saved"],
+    ["error", "Retry save"],
+  ] as const)("announces %s checklist saves", (saveState, announcement) => {
+    renderChecklist({ saveState });
+
+    expect(screen.getByRole("status")).toHaveTextContent(announcement);
+    if (saveState === "error") {
+      expect(screen.getByRole("button", { name: "Retry save" })).toBeEnabled();
+    }
+  });
+
+  it("renders a retired checklist snapshot as read-only labels", () => {
+    renderChecklist({
+      definitionSnapshot: {
+        mode: "mini-app",
+        items: [
+          {
+            id: "retired.check",
+            label: "Retired check label",
+            description: "Preserved guidance.",
+            sourceUrl: "https://example.com/guidance",
+            conditional: false,
+          },
+        ],
+      },
+      version: "retired-version",
+    });
+
+    expect(screen.getByText("Retired check label")).toBeInTheDocument();
+    expect(screen.getByText(/read-only/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Pass" }),
+    ).not.toBeInTheDocument();
   });
 });
