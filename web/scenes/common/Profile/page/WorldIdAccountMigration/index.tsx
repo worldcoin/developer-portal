@@ -21,6 +21,7 @@ type WorldIdAccountMigrationProps = {
   auth0User: Auth0SessionUser["user"] | undefined;
   isLinked: boolean;
   onLinkSuccess?: () => void;
+  className?: string;
 };
 
 const statusCopy: Record<
@@ -62,6 +63,7 @@ export const WorldIdAccountMigration = ({
   auth0User,
   isLinked,
   onLinkSuccess,
+  className,
 }: WorldIdAccountMigrationProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [migrationState, setMigrationState] = useState<MigrationState>({
@@ -191,7 +193,12 @@ export const WorldIdAccountMigration = ({
   }
 
   return (
-    <div className="grid w-full gap-y-5 rounded-12 border border-grey-200 p-6">
+    <div
+      className={clsx(
+        "grid w-full gap-y-5 rounded-12 border border-grey-200 p-6",
+        className,
+      )}
+    >
       <div className="grid gap-y-3">
         <Typography as="h2" variant={TYPOGRAPHY.R3}>
           Restore legacy account
