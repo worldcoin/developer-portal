@@ -14,7 +14,7 @@ import {
 import { ReviewerQueue } from "@/scenes/Admin/reviewer/queue/ReviewerQueue";
 import { ReviewClaimBar } from "@/scenes/Admin/reviewer/detail/ReviewClaimBar";
 import { ReviewHistory } from "@/scenes/Admin/reviewer/detail/ReviewHistory";
-import { ReviewTestPanel } from "@/scenes/Admin/reviewer/detail/ReviewTestPanel";
+import { ReviewerTestTarget } from "@/scenes/Admin/reviewer/detail/ReviewerTestTarget";
 import { ReviewerWorkspace } from "@/scenes/Admin/reviewer/detail/ReviewerWorkspace";
 import { REVIEW_CHECKLIST_VERSION } from "@/scenes/Admin/reviewer/checklist";
 import { parseReviewerQueueFilters } from "@/scenes/Admin/reviewer/queue-filters";
@@ -182,11 +182,12 @@ describe("review queue workspace", () => {
   });
 });
 
-describe("review test panel", () => {
+describe("reviewer test target", () => {
   it("shows the exact Mini App QR, copy, and open target", () => {
     render(
-      <ReviewTestPanel
+      <ReviewerTestTarget
         appId="app_123"
+        appName="Draft app"
         metadataId="metadata_456"
         mode="mini-app"
         integrationUrl="https://mini.example.com"
@@ -195,21 +196,54 @@ describe("review test panel", () => {
 
     const expected =
       "https://world.org/mini-app?app_id=app_123&path=&draft_id=metadata_456";
+    expect(screen.getByText("Scan to test")).toBeInTheDocument();
+    expect(screen.getByText("Draft app", { exact: true })).toBeInTheDocument();
     expect(
       screen.getByLabelText("World App draft QR code"),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Open draft in World App" }),
+      screen.getByRole("link", { name: "Open in World App" }),
     ).toHaveAttribute("href", expected);
     expect(
       screen.getByRole("button", { name: "Copy draft link" }),
     ).toBeEnabled();
   });
 
-  it("shows an HTTPS external URL without any World App QR", () => {
+  it.each([
+    "http://external.example.com/integration",
+    "https://reviewer:secret@external.example.com/integration",
+  ])("rejects an unsafe external URL: %s", (integrationUrl) => {
     render(
-      <ReviewTestPanel
+      <ReviewerTestTarget
         appId="app_123"
+        appName="External app"
+        metadataId="metadata_456"
+        mode="external"
+        integrationUrl={integrationUrl}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "The submitted integration URL is not a valid HTTPS URL.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("World App draft QR code"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Open integration" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Copy integration URL" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a validated HTTPS external URL with open and copy actions", () => {
+    render(
+      <ReviewerTestTarget
+        appId="app_123"
+        appName="External app"
         metadataId="metadata_456"
         mode="external"
         integrationUrl="https://external.example.com/integration"
@@ -222,7 +256,33 @@ describe("review test panel", () => {
     expect(
       screen.getByRole("link", { name: "Open integration" }),
     ).toHaveAttribute("href", "https://external.example.com/integration");
+    expect(
+      screen.getByRole("button", { name: "Copy integration URL" }),
+    ).toBeEnabled();
   });
+
+  it.each([
+    { compact: false, className: "min-h-[160px] min-w-[160px]" },
+    { compact: true, className: "h-[88px] w-[88px]" },
+  ])(
+    "uses the $className QR container in compact=$compact mode",
+    ({ compact, className }) => {
+      render(
+        <ReviewerTestTarget
+          appId="app_123"
+          appName="Draft app"
+          metadataId="metadata_456"
+          mode="mini-app"
+          compact={compact}
+          integrationUrl="https://mini.example.com"
+        />,
+      );
+
+      expect(
+        screen.getByLabelText("World App draft QR code").parentElement,
+      ).toHaveClass(...className.split(" "));
+    },
+  );
 });
 
 describe("reviewer mutation controls", () => {
