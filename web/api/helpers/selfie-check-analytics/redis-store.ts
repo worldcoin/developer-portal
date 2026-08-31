@@ -19,6 +19,9 @@ const LOCK_TTL_MS = 60_000;
 const META_TTL_SECONDS = 24 * 60 * 60;
 // Rows must outlive meta so a live pointer never references expired keys.
 const ROW_TTL_SECONDS = 25 * 60 * 60;
+// The cron runs hourly. Rebuild with a two-run buffer so metadata cannot expire
+// between healthy runs because of scheduler drift or one failed invocation.
+const REPUBLISH_BEFORE_EXPIRY_MS = 2 * 60 * 60 * 1000;
 const MAX_CONCURRENT_PUBLISH_WRITES = 32;
 
 export type AnalyticsDataset = "totals" | "daily";
@@ -363,26 +366,46 @@ export const publishAnalyticsSnapshot = async (params: {
  * different S3 object — callers republish instead.
  */
 export const markDatasetChecked = async (
-  dataset: AnalyticsDataset,
+  lock: AnalyticsRefreshLock,
   sourceIdentity: string,
   lastCheckedAt: string,
 ): Promise<boolean> => {
   const redis = requireRedis();
+  const datasetMetadataKey = metadataKey(lock.dataset);
 
-  const raw = await redis.get(metadataKey(dataset));
-  const meta = raw ? parseDatasetMetadata(raw) : null;
-  if (!meta || meta.source.identity !== sourceIdentity) return false;
+  try {
+    const raw = await redis.get(datasetMetadataKey);
+    const meta = raw ? parseDatasetMetadata(raw) : null;
+    if (!raw || !meta || meta.source.identity !== sourceIdentity) return false;
 
-  const remainingTtlMs = await redis.pttl(metadataKey(dataset));
-  if (remainingTtlMs <= 0) return false;
-
-  await redis.set(
-    metadataKey(dataset),
-    JSON.stringify({ ...meta, lastCheckedAt }),
-    "PX",
-    remainingTtlMs,
-  );
-  return true;
+    const updated = await redis.eval(
+      `if redis.call("get", KEYS[1]) ~= ARGV[1] then
+         return 0
+       end
+       if redis.call("get", KEYS[2]) ~= ARGV[2] then
+         return 0
+       end
+       local ttl = redis.call("pttl", KEYS[2])
+       if ttl <= tonumber(ARGV[4]) then
+         return 0
+       end
+       redis.call("set", KEYS[2], ARGV[3], "PX", ttl)
+       return 1`,
+      2,
+      lockKey(lock.dataset),
+      datasetMetadataKey,
+      lock.owner,
+      raw,
+      JSON.stringify({ ...meta, lastCheckedAt }),
+      String(REPUBLISH_BEFORE_EXPIRY_MS),
+    );
+    return updated === 1;
+  } catch (error) {
+    throw new AnalyticsRedisUnavailableError(
+      "Failed to update analytics dataset metadata",
+      { cause: error },
+    );
+  }
 };
 
 // #endregion

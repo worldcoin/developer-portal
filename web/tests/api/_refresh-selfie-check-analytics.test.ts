@@ -27,6 +27,9 @@ import { POST } from "@/api/_refresh-selfie-check-analytics";
 import {
   getAppFromRedis,
   getDatasetMetadata,
+  markDatasetChecked,
+  releaseAnalyticsRefreshLock,
+  tryAcquireAnalyticsRefreshLock,
 } from "@/api/helpers/selfie-check-analytics/redis-store";
 import type { TableObjectDescriptor } from "@/api/helpers/selfie-check-analytics/s3";
 import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
@@ -170,6 +173,25 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
     expect(downloadCsvMock).toHaveBeenCalledTimes(firstDownloadCount);
   });
 
+  it("republishes before unchanged metadata can expire between cron runs", async () => {
+    await POST(request());
+    await global.RedisClient?.pexpire(
+      "selfie-check-analytics:v2:{daily}:metadata",
+      30 * 60 * 1000,
+    );
+    downloadCsvMock.mockClear();
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(204);
+    expect(downloadCsvMock).toHaveBeenCalledTimes(1);
+    expect(downloadCsvMock).toHaveBeenCalledWith(dailyObject);
+    const remainingTtlMs = await global.RedisClient?.pttl(
+      "selfie-check-analytics:v2:{daily}:metadata",
+    );
+    expect(remainingTtlMs).toBeGreaterThan(23 * 60 * 60 * 1000);
+  });
+
   it("makes removed totals apps unreachable through the new snapshot", async () => {
     await POST(request());
     const firstMeta = await getDatasetMetadata("totals");
@@ -226,6 +248,33 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
     } finally {
       global.RedisClient = redis;
     }
+  });
+});
+
+// #endregion
+
+// #region Metadata concurrency
+
+describe("analytics metadata refresh concurrency", () => {
+  it("does not update metadata after the worker loses its lock", async () => {
+    await POST(request());
+    const before = await getDatasetMetadata("daily");
+    const lock = await tryAcquireAnalyticsRefreshLock("daily");
+    expect(lock).not.toBeNull();
+
+    await global.RedisClient?.set(
+      "selfie-check-analytics:v2:{daily}:refresh-lock",
+      "replacement-owner",
+    );
+    const updated = await markDatasetChecked(
+      lock!,
+      dailyObject.identity,
+      "2026-08-31T12:00:00.000Z",
+    );
+
+    expect(updated).toBe(false);
+    await expect(getDatasetMetadata("daily")).resolves.toEqual(before);
+    await releaseAnalyticsRefreshLock(lock!);
   });
 });
 

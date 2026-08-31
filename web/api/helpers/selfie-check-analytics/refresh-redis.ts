@@ -33,7 +33,7 @@ async function refreshDataset<TAppData>({
 
   try {
     const unchanged = await markDatasetChecked(
-      dataset,
+      lock,
       source.identity,
       new Date().toISOString(),
     );
