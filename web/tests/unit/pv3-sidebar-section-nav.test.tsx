@@ -49,6 +49,7 @@ jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
 // #endregion
 
 import {
+  AnalyticsAppEligibility,
   SidebarAnimationShell,
   SidebarNav,
 } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
@@ -79,16 +80,14 @@ const makeWorldIdNavigationData = (options?: { rp?: boolean }) => ({
 
 const renderSidebar = (
   apiKeyTeamIds = [teamId],
-  analyticsAppIds: string[] = [],
+  eligibility?: { appId: string; enabled: boolean },
 ) =>
   render(
     <TooltipProvider>
       <SidebarProvider>
         <SidebarAnimationShell>
-          <SidebarNav
-            apiKeyTeamIds={apiKeyTeamIds}
-            analyticsAppIds={analyticsAppIds}
-          />
+          {eligibility ? <AnalyticsAppEligibility {...eligibility} /> : null}
+          <SidebarNav apiKeyTeamIds={apiKeyTeamIds} />
         </SidebarAnimationShell>
       </SidebarProvider>
     </TooltipProvider>,
@@ -113,16 +112,43 @@ beforeEach(() => {
 });
 
 // #region Analytics allowlist gate
-it("shows and activates the Analytics entry for an eligible app", () => {
+it("shows and activates Analytics after the app layout signals eligibility", () => {
   usePathname.mockReturnValue(`${base}/analytics`);
-  renderSidebar([teamId], [appId]);
+  renderSidebar([teamId], { appId, enabled: true });
 
   expect(screen.getByRole("link", { name: "Analytics" })).toBeInTheDocument();
   expect(isCurrent("Analytics")).toBe(true);
 });
 
-it("hides the Analytics entry when the app is outside the allowlist", () => {
-  renderSidebar([teamId], ["app_someoneelse0000000000000000000"]);
+it("hides Analytics when only another app was signaled as eligible", () => {
+  renderSidebar([teamId], {
+    appId: "app_someoneelse0000000000000000000",
+    enabled: true,
+  });
+
+  noLink("Analytics");
+});
+
+it("clears Analytics when a later verdict disables the current app", () => {
+  const view = renderSidebar([teamId], { appId, enabled: true });
+  expect(link("Analytics")).toBeInTheDocument();
+
+  view.rerender(
+    <TooltipProvider>
+      <SidebarProvider>
+        <SidebarAnimationShell>
+          <AnalyticsAppEligibility appId={appId} enabled={false} />
+          <SidebarNav apiKeyTeamIds={[teamId]} />
+        </SidebarAnimationShell>
+      </SidebarProvider>
+    </TooltipProvider>,
+  );
+
+  noLink("Analytics");
+});
+
+it("hides Analytics when no app was signaled as eligible", () => {
+  renderSidebar();
 
   noLink("Analytics");
 });
