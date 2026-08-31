@@ -41,6 +41,7 @@ jest.mock("@apollo/client/react", () => ({
 }));
 
 const queryResult = {
+  loading: false,
   data: {
     team_by_pk: {
       id: teamId,
@@ -87,6 +88,35 @@ describe("Team settings permissions", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     useQuery.mockReturnValue(queryResult);
+  });
+
+  it("mirrors the redesigned General layout while the team is loading", () => {
+    mockSession = sessionWithRole(Role_Enum.Owner);
+    useQuery.mockReturnValue({
+      data: undefined,
+      loading: true,
+      refetch: jest.fn(),
+    });
+
+    const { container } = render(<TeamSettingsPage />);
+
+    expect(
+      screen.getByRole("heading", { name: "General", level: 1 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Team name", level: 2 }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("MCP setup")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Danger zone", level: 2 }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Loading team settings",
+    );
+    expect(screen.queryByLabelText("Team profile")).not.toBeInTheDocument();
+    expect(container.querySelectorAll(".react-loading-skeleton")).toHaveLength(
+      2,
+    );
   });
 
   it.each([

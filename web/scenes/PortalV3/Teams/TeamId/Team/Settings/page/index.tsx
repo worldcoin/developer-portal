@@ -11,6 +11,7 @@ import { FetchTeamDocument } from "@/scenes/common/Teams/TeamId/Team/common/Team
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useQuery } from "@apollo/client/react";
 import { useParams } from "next/navigation";
+import { GeneralSettingsLoadingState } from "./LoadingState";
 import { SettingsPanel } from "../../common/SettingsPanel";
 import { ApiKeys } from "../../sections/ApiKeys";
 import { McpSetup } from "../../sections/ApiKeys/McpSetup";
@@ -39,7 +40,11 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
 
   // Only General needs the team record. Members and credentials own their
   // separate queries, so switching tabs does not fetch hidden page sections.
-  const { data, refetch: refetchTeam } = useQuery(FetchTeamDocument, {
+  const {
+    data,
+    loading,
+    refetch: refetchTeam,
+  } = useQuery(FetchTeamDocument, {
     variables: { teamId },
     skip: activeTab !== TEAM_SETTINGS_TABS.General,
   });
@@ -47,6 +52,14 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
 
   if (activeTab === TEAM_SETTINGS_TABS.ApiKeys && canViewApiKeys) {
     return <ApiKeys teamId={teamId} canWrite={canWriteTeamSettings} />;
+  }
+
+  if (activeTab === TEAM_SETTINGS_TABS.General && loading && !team) {
+    return (
+      <GeneralSettingsLoadingState
+        canWriteTeamSettings={canWriteTeamSettings}
+      />
+    );
   }
 
   return (

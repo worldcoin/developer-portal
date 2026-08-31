@@ -3,11 +3,11 @@ import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { CombinedGraphQLErrors } from "@apollo/client";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useCallback, useState } from "react";
-import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { ApiKeysTable } from "./ApiKeyTable";
 import { RotateKeyModal } from "./ApiKeyTable/RotateKeyModal";
 import { CreateKeyModal } from "./CreateKeyModal";
+import { ApiKeysLoadingState } from "./LoadingState";
 import { ResetApiKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
 import {
   FetchKeysDocument,
@@ -148,7 +148,16 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
     </>
   );
 
-  if (!isInitialLoad && apiKeys?.length === 0) {
+  if (isInitialLoad) {
+    return (
+      <>
+        {dialogs}
+        <ApiKeysLoadingState action={newKeyButton} />
+      </>
+    );
+  }
+
+  if (apiKeys?.length === 0) {
     return (
       <>
         {dialogs}
@@ -188,46 +197,16 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
             <SettingsPanel.Title>API keys</SettingsPanel.Title>
           </SettingsPanel.Header>
 
-          {isInitialLoad ? (
-            <>
-              <div className="grid grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-y border-grey-100 bg-grey-25 px-5 py-2.5 font-gta text-12 leading-4 text-grey-400">
-                <span>Name</span>
-                <span>Status</span>
-                <span aria-hidden="true" />
-              </div>
-
-              <div className="max-h-[229px] overflow-hidden">
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className="grid min-h-16 grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-b border-grey-100 px-5 py-3 last:border-b-0"
-                  >
-                    <div className="grid min-w-0 gap-1">
-                      <Skeleton width="60%" />
-                      <Skeleton width="85%" />
-                    </div>
-                    <Skeleton width={56} height={24} borderRadius={999} />
-                    <Skeleton circle width={24} height={24} />
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <ApiKeysTable
-              teamId={teamId}
-              apiKeys={apiKeys}
-              openRotateKeyModal={openRotateKeyModal}
-            />
-          )}
+          <ApiKeysTable
+            teamId={teamId}
+            apiKeys={apiKeys}
+            openRotateKeyModal={openRotateKeyModal}
+          />
 
           <SettingsPanel.Footer>
-            {isInitialLoad ? (
-              <Skeleton width={48} />
-            ) : (
-              <span className="font-gta text-12 text-grey-400">
-                {apiKeys?.length ?? 0} {apiKeys?.length === 1 ? "key" : "keys"}
-              </span>
-            )}
+            <span className="font-gta text-12 text-grey-400">
+              {apiKeys?.length ?? 0} {apiKeys?.length === 1 ? "key" : "keys"}
+            </span>
 
             {newKeyButton}
           </SettingsPanel.Footer>

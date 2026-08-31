@@ -106,16 +106,31 @@ beforeEach(() => {
 });
 // #endregion
 
-// #region Empty state
-describe("API keys empty state", () => {
+// #region Initial and empty states
+describe("API keys initial and empty states", () => {
+  it("mirrors the redesigned API keys shell during the initial load", () => {
+    const { container } = renderSection([{ ...fetchKeysMock([]), delay: 100 }]);
+
+    expect(
+      screen.getByRole("heading", { name: "API Keys", level: 1 }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "New key" })).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Loading API keys");
+    expect(screen.queryByText("Name")).not.toBeInTheDocument();
+    expect(screen.queryByText("Status")).not.toBeInTheDocument();
+    expect(container.querySelectorAll(".react-loading-skeleton")).toHaveLength(
+      2,
+    );
+  });
+
   it("shows the API keys empty-state copy instead of an empty table", async () => {
     renderSection([fetchKeysMock([])]);
 
     expect(
-      await screen.findByRole("heading", { name: "API Keys", level: 1 }),
+      await screen.findByRole("heading", { name: "No API keys", level: 2 }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "No API keys", level: 2 }),
+      screen.getByRole("heading", { name: "API Keys", level: 1 }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(

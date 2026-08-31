@@ -21,6 +21,7 @@ import {
   InviteTeamMemberDialog,
   inviteTeamMemberDialogAtom,
 } from "./InviteTeamMemberDialog";
+import { MembersLoadingState } from "./LoadingState";
 import { List } from "./List";
 
 const schema = yup
@@ -74,6 +75,10 @@ export const Members = (props: { teamId: string }) => {
 
     membersRes.client.refetchQueries({ include: [FetchMeDocument] });
   }, [membersRes.client, membersRes.data]);
+
+  if (membersRes.loading && !membersRes.data) {
+    return <MembersLoadingState />;
+  }
 
   const memberCount = membersRes.data?.members.length ?? 0;
   const pendingInviteCount = membersRes.data?.invites.length ?? 0;
