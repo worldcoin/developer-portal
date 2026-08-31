@@ -1,4 +1,11 @@
 import { NextRequest } from "next/server";
+import {
+  REVIEWER_APPLICABILITY_NOTE_MAX_LENGTH,
+  REVIEWER_CHECKLIST_EVIDENCE_MAX_LENGTH,
+  REVIEWER_DEVELOPER_MESSAGE_MAX_LENGTH,
+  REVIEWER_INTERNAL_NOTES_MAX_LENGTH,
+  REVIEWER_OVERRIDE_REASON_MAX_LENGTH,
+} from "@/lib/reviewer-limits";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -171,7 +178,7 @@ const readChecklist = (value: unknown): ReviewChecklist | null => {
     !hasOnlyKeys(value, ["items", "internalNotes"]) ||
     !Array.isArray(value.items) ||
     value.items.length > MAX_CHECKLIST_ITEMS ||
-    !isBoundedString(value.internalNotes, 20_000)
+    !isBoundedString(value.internalNotes, REVIEWER_INTERNAL_NOTES_MAX_LENGTH)
   ) {
     return null;
   }
@@ -192,11 +199,15 @@ const readChecklist = (value: unknown): ReviewChecklist | null => {
       (rawItem.status !== "pass" &&
         rawItem.status !== "fail" &&
         rawItem.status !== "na") ||
-      !isBoundedString(rawItem.evidence, 10_000) ||
+      !isBoundedString(
+        rawItem.evidence,
+        REVIEWER_CHECKLIST_EVIDENCE_MAX_LENGTH,
+      ) ||
       (rawItem.applicabilityNote !== undefined &&
-        !isBoundedString(rawItem.applicabilityNote, 5_000)) ||
-      (rawItem.status === "na" &&
-        !isBoundedString(rawItem.applicabilityNote, 5_000, true))
+        !isBoundedString(
+          rawItem.applicabilityNote,
+          REVIEWER_APPLICABILITY_NOTE_MAX_LENGTH,
+        ))
     ) {
       return null;
     }
@@ -284,11 +295,15 @@ export const readDecisionWriteBody = async (
     (body.decision !== "approved" && body.decision !== "changes_requested") ||
     !isBoundedString(
       body.developerMessage,
-      20_000,
+      REVIEWER_DEVELOPER_MESSAGE_MAX_LENGTH,
       body.decision === "changes_requested",
     ) ||
     (body.overrideReason !== undefined &&
-      !isBoundedString(body.overrideReason, 10_000, true))
+      !isBoundedString(
+        body.overrideReason,
+        REVIEWER_OVERRIDE_REASON_MAX_LENGTH,
+        true,
+      ))
   ) {
     return null;
   }

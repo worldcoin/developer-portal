@@ -5,7 +5,8 @@ import type {
 
 import type { ReviewerAppMode } from "./types";
 
-export const REVIEW_CHECKLIST_VERSION = "2026-08-27.1";
+export const LEGACY_REVIEW_CHECKLIST_VERSION = "2026-08-27.1";
+export const REVIEW_CHECKLIST_VERSION = "2026-08-31.1";
 
 export type ReviewChecklistDefinition = {
   id: string;
@@ -13,6 +14,13 @@ export type ReviewChecklistDefinition = {
   description: string;
   sourceUrl: string;
   conditional?: boolean;
+};
+
+type ChecklistConfiguration = {
+  shared: readonly ReviewChecklistDefinition[];
+  miniApp: readonly ReviewChecklistDefinition[];
+  external: readonly ReviewChecklistDefinition[];
+  requireNaNote: boolean;
 };
 
 const REVIEW_POLICY_URL = "https://docs.world.org/mini-apps/guidelines/policy";
@@ -164,18 +172,56 @@ const externalDefinitions: readonly ReviewChecklistDefinition[] = [
   },
 ];
 
-const checklistConfigurations: Record<
-  string,
+const groupedDefinitions: readonly ReviewChecklistDefinition[] = [
   {
-    shared: readonly ReviewChecklistDefinition[];
-    miniApp: readonly ReviewChecklistDefinition[];
-    external: readonly ReviewChecklistDefinition[];
-  }
-> = {
-  [REVIEW_CHECKLIST_VERSION]: {
+    id: "group.listing-localization",
+    title: "Listing and localization",
+    description:
+      "Name, descriptions, category, countries, languages, and listing assets are accurate and complete.",
+    sourceUrl: APP_GUIDELINES_URL,
+  },
+  {
+    id: "group.experience-test",
+    title: "Experience and test flow",
+    description:
+      "Core paths, navigation, copy, loading, cancellation, and failure states work in the submitted experience.",
+    sourceUrl: APP_GUIDELINES_URL,
+  },
+  {
+    id: "group.integration-reliability",
+    title: "Integration and reliability",
+    description:
+      "The submitted URL, World ID or MiniKit behavior, actions, contracts, and production readiness are reliable.",
+    sourceUrl: WORLD_ID_DOCS_URL,
+  },
+  {
+    id: "group.permissions-safety",
+    title: "Permissions and user safety",
+    description:
+      "Sensitive permissions, claims, content, notifications, and user safeguards follow policy.",
+    sourceUrl: REVIEW_POLICY_URL,
+  },
+  {
+    id: "group.legal-support",
+    title: "Legal and support",
+    description:
+      "Privacy, terms, consent, regional restrictions, branding, and support channels are appropriate.",
+    sourceUrl: REVIEW_POLICY_URL,
+  },
+];
+
+const checklistConfigurations: Record<string, ChecklistConfiguration> = {
+  [LEGACY_REVIEW_CHECKLIST_VERSION]: {
     shared: sharedDefinitions,
     miniApp: miniAppDefinitions,
     external: externalDefinitions,
+    requireNaNote: true,
+  },
+  [REVIEW_CHECKLIST_VERSION]: {
+    shared: groupedDefinitions,
+    miniApp: [],
+    external: [],
+    requireNaNote: false,
   },
 };
 
@@ -230,6 +276,7 @@ export const validateChecklistDraft = (
   if (!isReviewChecklistVersionSupported(version)) {
     return [`Checklist version ${version} is not supported`];
   }
+  const configuration = checklistConfigurations[version];
   const validIds = new Set(
     getChecklistDefinitions(mode, version).map(({ id }) => id),
   );
@@ -242,7 +289,11 @@ export const validateChecklistDraft = (
   for (const item of checklist.items) {
     if (!validIds.has(item.id))
       errors.push(`${item.id} is not in this checklist`);
-    if (item.status === "na" && !item.applicabilityNote?.trim()) {
+    if (
+      configuration.requireNaNote &&
+      item.status === "na" &&
+      !item.applicabilityNote?.trim()
+    ) {
       errors.push(`${item.id} requires an applicability note`);
     }
   }
@@ -255,12 +306,15 @@ export const getChecklistProgress = (
   checklist: ReviewChecklist,
   version = REVIEW_CHECKLIST_VERSION,
 ) => {
+  const configuration = checklistConfigurations[version];
   const definitions = getChecklistDefinitions(mode, version);
   const completedIds = new Set(
     checklist.items
       .filter(
         (item) =>
-          item.status !== "na" || Boolean(item.applicabilityNote?.trim()),
+          !configuration?.requireNaNote ||
+          item.status !== "na" ||
+          Boolean(item.applicabilityNote?.trim()),
       )
       .map(({ id }) => id),
   );
@@ -272,6 +326,23 @@ export const getChecklistProgress = (
       ? Math.round((completed / definitions.length) * 100)
       : 0,
   };
+};
+
+export const formatDeveloperDecisionMessage = ({
+  decision,
+  developerMessage,
+  failedLabels,
+}: {
+  decision: "approved" | "changes_requested";
+  developerMessage: string;
+  failedLabels: string[];
+}) => {
+  const message = developerMessage.trim();
+  if (decision !== "changes_requested" || failedLabels.length === 0) {
+    return message;
+  }
+  const failedSummary = failedLabels.map((label) => `- ${label}`).join("\n");
+  return `${message}\n\nFailed guideline checks:\n${failedSummary}`;
 };
 
 export const validateApprovalChecklist = (

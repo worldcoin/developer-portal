@@ -12,6 +12,7 @@ import { isValidCredentiallessHttpsUrl } from "@/api/helpers/integration-url";
 import { readReviewerSubmissionAssetSnapshot } from "@/api/helpers/reviewer-submission-assets";
 import {
   createChecklistDefinitionSnapshot,
+  formatDeveloperDecisionMessage,
   getChecklistDefinitions,
   isReviewChecklistVersionSupported,
   validateApprovalChecklist,
@@ -266,13 +267,11 @@ export const validateReviewDecisionContext = ({
   const failedChecks = getChecklistDefinitions(mode, version)
     .filter(({ id }) => results.get(id)?.status === "fail")
     .map(({ id, title }) => ({ id, label: title }));
-  const customMessage = body.developerMessage.trim();
-  const developerMessage =
-    body.decision === "changes_requested" && failedChecks.length > 0
-      ? `${customMessage}\n\nFailed guideline checks:\n${failedChecks
-          .map(({ label }) => `- ${label}`)
-          .join("\n")}`
-      : customMessage;
+  const developerMessage = formatDeveloperDecisionMessage({
+    decision: body.decision,
+    developerMessage: body.developerMessage,
+    failedLabels: failedChecks.map(({ label }) => label),
+  });
 
   const priorRows = context.app.app_metadata.filter(
     (metadata) =>

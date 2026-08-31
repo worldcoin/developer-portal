@@ -1,4 +1,7 @@
-import { readDecisionWriteBody } from "@/api/admin/reviewer/request-schema";
+import {
+  readChecklistWriteBody,
+  readDecisionWriteBody,
+} from "@/api/admin/reviewer/request-schema";
 import { NextRequest } from "next/server";
 
 const CLAIM_TOKEN = "22222222-2222-4222-8222-222222222222";
@@ -19,6 +22,22 @@ const validBody = {
   developerMessage: "Please correct the listing copy.",
 };
 
+const validChecklistBody = {
+  claimToken: CLAIM_TOKEN,
+  expectedReviewVersion: 7,
+  checklistVersion: "2026-08-31.1",
+  checklist: {
+    internalNotes: "",
+    items: [
+      {
+        id: "group.listing-localization",
+        status: "na",
+        evidence: "",
+      },
+    ],
+  },
+};
+
 describe("review decision request parsing", () => {
   it("accepts the exact versioned decision contract", async () => {
     await expect(readDecisionWriteBody(request(validBody))).resolves.toEqual(
@@ -35,6 +54,12 @@ describe("review decision request parsing", () => {
     };
 
     await expect(readDecisionWriteBody(request(body))).resolves.toEqual(body);
+  });
+
+  it("accepts note-free N/A checklist items for version-aware validation", async () => {
+    await expect(
+      readChecklistWriteBody(request(validChecklistBody)),
+    ).resolves.toEqual(validChecklistBody);
   });
 
   it.each([

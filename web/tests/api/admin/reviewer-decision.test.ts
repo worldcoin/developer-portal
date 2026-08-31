@@ -416,14 +416,14 @@ describe("POST /api/admin/reviewer/submissions/[id]/decision", () => {
 
     expect(response.status).toBe(200);
     expect(prepareReviewerDecisionAssets).not.toHaveBeenCalled();
-    expect(DecideReviewSubmission).toHaveBeenCalledWith(
+    const variables = DecideReviewSubmission.mock.calls[0][0];
+    expect(variables).toEqual(
       expect.objectContaining({
         decision: "changes_requested",
-        developer_message: expect.stringContaining("Accurate metadata"),
         failed_checks: [
           expect.objectContaining({
-            id: "shared.metadata-accurate",
-            label: "Accurate metadata",
+            id: "group.listing-localization",
+            label: "Listing and localization",
           }),
         ],
         metadata_assets: {},
@@ -431,6 +431,12 @@ describe("POST /api/admin/reviewer/submissions/[id]/decision", () => {
         old_asset_keys: [],
       }),
     );
+    expect(variables.developer_message).toBe(
+      "Please resolve the issues below.\n\nFailed guideline checks:\n- Listing and localization",
+    );
+    expect(
+      variables.developer_message.match(/Listing and localization/g),
+    ).toHaveLength(1);
   });
 
   it.each([

@@ -1,4 +1,5 @@
 import {
+  LEGACY_REVIEW_CHECKLIST_VERSION,
   REVIEW_CHECKLIST_VERSION,
   createChecklistDefinitionSnapshot,
   getChecklistDefinitions,
@@ -236,26 +237,56 @@ describe("review preview links", () => {
 });
 
 describe("versioned reviewer checklist", () => {
-  it("uses stable shared and mode-specific item IDs", () => {
+  it("uses the grouped checklist as the default for both app modes", () => {
     const miniAppIds = getChecklistDefinitions("mini-app").map(({ id }) => id);
     const externalIds = getChecklistDefinitions("external").map(({ id }) => id);
 
-    expect(REVIEW_CHECKLIST_VERSION).toMatch(/^\d{4}-\d{2}-\d{2}\.\d+$/);
-    expect(miniAppIds).toContain("shared.metadata-accurate");
-    expect(miniAppIds).toContain("mini.mobile-reliability");
-    expect(externalIds).toContain("shared.metadata-accurate");
-    expect(externalIds).toContain("external.idkit-flow");
-    expect(externalIds).not.toContain("mini.mobile-reliability");
-    expect(new Set(miniAppIds).size).toBe(miniAppIds.length);
-    expect(new Set(externalIds).size).toBe(externalIds.length);
+    expect(REVIEW_CHECKLIST_VERSION).toBe("2026-08-31.1");
+    expect(miniAppIds).toEqual([
+      "group.listing-localization",
+      "group.experience-test",
+      "group.integration-reliability",
+      "group.permissions-safety",
+      "group.legal-support",
+    ]);
+    expect(externalIds).toEqual(miniAppIds);
     expect(isReviewChecklistVersionSupported(REVIEW_CHECKLIST_VERSION)).toBe(
       true,
     );
+    expect(
+      isReviewChecklistVersionSupported(LEGACY_REVIEW_CHECKLIST_VERSION),
+    ).toBe(true);
     expect(isReviewChecklistVersionSupported("retired-version")).toBe(false);
     expect(getChecklistDefinitions("mini-app", "retired-version")).toEqual([]);
   });
 
-  it("builds a complete immutable definition snapshot for the submitted mode", () => {
+  it("retains the existing mode-specific definitions for the legacy version", () => {
+    const miniAppIds = getChecklistDefinitions(
+      "mini-app",
+      LEGACY_REVIEW_CHECKLIST_VERSION,
+    ).map(({ id }) => id);
+    const externalIds = getChecklistDefinitions(
+      "external",
+      LEGACY_REVIEW_CHECKLIST_VERSION,
+    ).map(({ id }) => id);
+
+    expect(LEGACY_REVIEW_CHECKLIST_VERSION).toBe("2026-08-27.1");
+    expect(miniAppIds).toEqual(
+      expect.arrayContaining([
+        "shared.metadata-accurate",
+        "mini.mobile-reliability",
+      ]),
+    );
+    expect(externalIds).toEqual(
+      expect.arrayContaining([
+        "shared.metadata-accurate",
+        "external.idkit-flow",
+      ]),
+    );
+    expect(externalIds).not.toContain("mini.mobile-reliability");
+  });
+
+  it("builds a complete immutable definition snapshot for the grouped version", () => {
     const snapshot = createChecklistDefinitionSnapshot(
       "external",
       REVIEW_CHECKLIST_VERSION,
@@ -265,41 +296,62 @@ describe("versioned reviewer checklist", () => {
       mode: "external",
       items: expect.arrayContaining([
         {
-          id: "shared.metadata-accurate",
-          label: "Accurate metadata",
+          id: "group.listing-localization",
+          label: "Listing and localization",
           description: expect.any(String),
-          sourceUrl: "https://docs.world.org/mini-apps/guidelines/policy",
+          sourceUrl:
+            "https://docs.world.org/mini-apps/guidelines/app-guidelines",
           conditional: false,
         },
         {
-          id: "external.integration-url",
-          label: "Integration URL",
+          id: "group.integration-reliability",
+          label: "Integration and reliability",
           description: expect.any(String),
           sourceUrl: "https://docs.world.org/world-id",
           conditional: false,
         },
       ]),
     });
-    expect(snapshot?.items.some(({ id }) => id.startsWith("mini."))).toBe(
-      false,
-    );
+    expect(snapshot?.items).toHaveLength(5);
     expect(
       createChecklistDefinitionSnapshot("external", "retired-version"),
     ).toBeNull();
   });
 
-  it("requires an applicability note for N/A", () => {
-    const errors = validateChecklistDraft("external", {
+  it("allows note-free N/A and requires every grouped item for approval", () => {
+    const definitions = getChecklistDefinitions("external");
+    const checklist = {
       internalNotes: "",
-      items: [
-        {
-          id: "shared.metadata-accurate",
-          status: "na",
-          evidence: "",
-          applicabilityNote: "   ",
-        },
-      ],
-    });
+      items: definitions.map(({ id }) => ({
+        id,
+        status: "na" as const,
+        evidence: "",
+      })),
+    };
+
+    expect(validateApprovalChecklist("external", checklist, "")).toEqual([]);
+    checklist.items.pop();
+    expect(validateApprovalChecklist("external", checklist, "")).toContain(
+      "Override reason is required when checks fail or remain incomplete",
+    );
+  });
+
+  it("requires an applicability note for legacy N/A", () => {
+    const errors = validateChecklistDraft(
+      "external",
+      {
+        internalNotes: "",
+        items: [
+          {
+            id: "shared.metadata-accurate",
+            status: "na",
+            evidence: "",
+            applicabilityNote: "   ",
+          },
+        ],
+      },
+      LEGACY_REVIEW_CHECKLIST_VERSION,
+    );
 
     expect(errors).toContain(
       "shared.metadata-accurate requires an applicability note",
