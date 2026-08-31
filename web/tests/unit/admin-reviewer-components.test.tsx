@@ -1106,6 +1106,7 @@ describe("review detail workspace", () => {
     );
 
     expect(screen.getByTestId("reviewer-workspace-body")).toHaveClass(
+      "min-w-0",
       "pb-24",
       "lg:grid-cols-[minmax(0,1fr)_360px]",
     );

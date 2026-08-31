@@ -842,7 +842,7 @@ const StatefulReviewerWorkspace = ({
       />
 
       <div
-        className="flex min-h-0 flex-col gap-4 pb-24 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:overflow-hidden lg:pb-0"
+        className="flex min-h-0 min-w-0 flex-col gap-4 pb-24 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:overflow-hidden lg:pb-0"
         data-testid="reviewer-workspace-body"
       >
         <main className="order-2 min-w-0 lg:order-none lg:overflow-y-auto lg:pr-1">

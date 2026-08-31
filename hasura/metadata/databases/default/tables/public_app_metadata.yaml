@@ -264,6 +264,7 @@ select_permissions:
         - support_link
         - supported_countries
         - supported_languages
+        - updated_at
         - verified_at
         - verification_status
         - whitelisted_addresses

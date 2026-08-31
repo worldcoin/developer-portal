@@ -95,6 +95,24 @@ describe("admin reviewer page boundaries", () => {
     );
   });
 
+  it("lets the service role read metadata timestamps used by reviewer decisions", () => {
+    const appMetadata = readFileSync(
+      join(
+        root,
+        "../hasura/metadata/databases/default/tables/public_app_metadata.yaml",
+      ),
+      "utf8",
+    );
+    const serviceStart = appMetadata.indexOf(
+      "  - role: service",
+      appMetadata.indexOf("select_permissions:"),
+    );
+    const serviceEnd = appMetadata.indexOf("\n  - role:", serviceStart + 1);
+    const servicePermission = appMetadata.slice(serviceStart, serviceEnd);
+
+    expect(servicePermission).toContain("- updated_at");
+  });
+
   it("loads live listing metadata through an exact-app server-only projection", () => {
     const query = readFileSync(
       join(root, "api/helpers/graphql/fetch-reviewer-live-metadata.graphql"),
