@@ -5,9 +5,8 @@ import { NextRequest } from "next/server";
 // #region Mocks
 const getIsUserAllowedToReadApp = jest.fn();
 const getSessionMock = jest.fn();
-const isEnabledForAppMock = jest.fn();
-const loadLatestTotalsTableSnapshotMock = jest.fn();
-const loadLatestDailyTableSnapshotMock = jest.fn();
+const getTotalsAppSnapshotMock = jest.fn();
+const getDailyAppSnapshotMock = jest.fn();
 
 jest.mock("@/lib/permissions", () => ({
   getIsUserAllowedToReadApp: (...args: unknown[]) =>
@@ -18,16 +17,10 @@ jest.mock("@/lib/auth0", () => ({
   auth0: { getSession: (...args: unknown[]) => getSessionMock(...args) },
 }));
 
-jest.mock("@/api/helpers/selfie-check-analytics/eligibility", () => ({
-  isSelfieCheckAnalyticsEnabledForApp: (...args: unknown[]) =>
-    isEnabledForAppMock(...args),
-}));
-
-jest.mock("@/api/helpers/selfie-check-analytics/snapshots", () => ({
-  loadLatestTotalsTableSnapshot: (...args: unknown[]) =>
-    loadLatestTotalsTableSnapshotMock(...args),
-  loadLatestDailyTableSnapshot: (...args: unknown[]) =>
-    loadLatestDailyTableSnapshotMock(...args),
+jest.mock("@/api/helpers/selfie-check-analytics/redis-store", () => ({
+  getTotalsAppSnapshot: (...args: unknown[]) =>
+    getTotalsAppSnapshotMock(...args),
+  getDailyAppSnapshot: (...args: unknown[]) => getDailyAppSnapshotMock(...args),
 }));
 
 jest.mock("@/lib/logger", () => ({
@@ -54,30 +47,6 @@ const completeRow = {
   p_face_auth_completion: 0.75,
 };
 
-const snapshot = (isFallback = false) => ({
-  headers: [
-    "PARTNER_APP_ID",
-    "N_USERS_STARTED_SELFIE_CHECK_FLOW",
-    "N_PROOFS",
-    "N_PROOF_USERS",
-    "N_FACE_AUTH_STARTED_SESSIONS",
-    "N_FACE_AUTH_COMPLETED_SESSIONS",
-    "P_FACE_AUTH_COMPLETION",
-  ],
-  records: new Map([[appId, completeRow]]),
-  isFallback,
-  loadedAt: "2026-08-26T22:00:00.000Z",
-  lastCheckedAt: "2026-08-26T22:01:00.000Z",
-  source: {
-    etag: '"source-etag"',
-    identity: 'total/run-1.csv:"source-etag"',
-    key: "total/run-1.csv",
-    dataAsOf: "2026-08-26T21:00:00.000Z",
-    lastModified: "2026-08-26T21:00:00.000Z",
-    sizeBytes: 100,
-  },
-});
-
 const dailyRows = [
   {
     appId,
@@ -94,9 +63,30 @@ const dailyRows = [
   },
 ];
 
+const metadata = (dataset: "totals" | "daily") => ({
+  dataset,
+  snapshotUID: `${dataset}-snapshot`,
+  appCount: 1,
+  publishedAt: "2026-08-26T22:00:00.000Z",
+  lastCheckedAt: "2026-08-26T22:01:00.000Z",
+  source: {
+    etag: '"source-etag"',
+    identity: `${dataset}:source-identity`,
+    key: `${dataset}/run-1.csv`,
+    dataAsOf: "2026-08-26T21:00:00.000Z",
+    lastModified: "2026-08-26T21:00:00.000Z",
+    sizeBytes: 100,
+  },
+});
+
+const totalsSnapshot = () => ({
+  data: completeRow,
+  metadata: metadata("totals"),
+});
+
 const dailySnapshot = () => ({
-  ...snapshot(),
-  records: new Map([[appId, dailyRows]]),
+  data: dailyRows,
+  metadata: metadata("daily"),
 });
 
 const request = (etag?: string, query = "") =>
@@ -116,14 +106,13 @@ beforeEach(() => {
     user: { hasura: { id: userId } },
   });
   getIsUserAllowedToReadApp.mockResolvedValue(true);
-  isEnabledForAppMock.mockResolvedValue(true);
-  loadLatestTotalsTableSnapshotMock.mockResolvedValue(snapshot());
-  loadLatestDailyTableSnapshotMock.mockResolvedValue(dailySnapshot());
+  getTotalsAppSnapshotMock.mockResolvedValue(totalsSnapshot());
+  getDailyAppSnapshotMock.mockResolvedValue(dailySnapshot());
 });
 
 // #region Success and cache behavior
 describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [success]", () => {
-  it("returns only the authorized app's totals row", async () => {
+  it("returns the authorized app's totals row from Redis", async () => {
     const response = await GET(request(), context());
 
     expect(response.status).toBe(200);
@@ -139,10 +128,11 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [success]", () => {
     expect(response.headers.get("cache-control")).toBe("private, max-age=60");
     expect(response.headers.get("etag")).toMatch(/^"[A-Za-z0-9_-]+"$/);
     expect(getIsUserAllowedToReadApp).toHaveBeenCalledWith(appId);
-    expect(isEnabledForAppMock).toHaveBeenCalledWith(appId);
+    expect(getTotalsAppSnapshotMock).toHaveBeenCalledWith(appId);
+    expect(getDailyAppSnapshotMock).not.toHaveBeenCalled();
   });
 
-  it("returns 304 when the app snapshot ETag matches", async () => {
+  it("returns 304 when the Redis snapshot ETag matches", async () => {
     const firstResponse = await GET(request(), context());
     const etag = firstResponse.headers.get("etag")!;
 
@@ -153,7 +143,7 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [success]", () => {
     expect(response.headers.get("etag")).toBe(etag);
   });
 
-  it("returns the app's daily rows when table=daily is requested", async () => {
+  it("checks totals eligibility before returning daily Redis rows", async () => {
     const response = await GET(request(undefined, "?table=daily"), context());
 
     expect(response.status).toBe(200);
@@ -166,19 +156,11 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [success]", () => {
         isFallback: false,
       },
     });
-    expect(loadLatestDailyTableSnapshotMock).toHaveBeenCalled();
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
-  });
-
-  it("surfaces last-known-good fallback metadata", async () => {
-    loadLatestTotalsTableSnapshotMock.mockResolvedValue(snapshot(true));
-
-    const response = await GET(request(), context());
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      meta: { isFallback: true },
-    });
+    expect(getTotalsAppSnapshotMock).toHaveBeenCalledWith(appId);
+    expect(getDailyAppSnapshotMock).toHaveBeenCalledWith(appId);
+    expect(getTotalsAppSnapshotMock.mock.invocationCallOrder[0]).toBeLessThan(
+      getDailyAppSnapshotMock.mock.invocationCallOrder[0],
+    );
   });
 });
 // #endregion
@@ -191,7 +173,7 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [guards]", () => {
     expect(response.status).toBe(400);
     expect(getSessionMock).not.toHaveBeenCalled();
     expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
+    expect(getTotalsAppSnapshotMock).not.toHaveBeenCalled();
   });
 
   it("rejects an unknown table parameter before any I/O", async () => {
@@ -202,8 +184,7 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [guards]", () => {
       code: "invalid_table",
     });
     expect(getSessionMock).not.toHaveBeenCalled();
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
-    expect(loadLatestDailyTableSnapshotMock).not.toHaveBeenCalled();
+    expect(getTotalsAppSnapshotMock).not.toHaveBeenCalled();
   });
 
   it("returns 401 without an authenticated session", async () => {
@@ -213,8 +194,7 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [guards]", () => {
 
     expect(response.status).toBe(401);
     expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
-    expect(isEnabledForAppMock).not.toHaveBeenCalled();
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
+    expect(getTotalsAppSnapshotMock).not.toHaveBeenCalled();
   });
 
   it("returns 503 when the authentication dependency is unavailable", async () => {
@@ -237,31 +217,27 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [guards]", () => {
     const response = await GET(request(), context());
 
     expect(response.status).toBe(404);
-    expect(isEnabledForAppMock).not.toHaveBeenCalled();
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
+    expect(getTotalsAppSnapshotMock).not.toHaveBeenCalled();
   });
 
-  it("returns 404 without loading S3 when the rollout flag is off", async () => {
-    isEnabledForAppMock.mockResolvedValue(false);
+  it("returns 404 when the app has no row in the totals snapshot", async () => {
+    getTotalsAppSnapshotMock.mockResolvedValue(null);
 
     const response = await GET(request(), context());
 
     expect(response.status).toBe(404);
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
+    expect(getDailyAppSnapshotMock).not.toHaveBeenCalled();
   });
 
-  it("returns 404 when the whitelisted app is absent from the table", async () => {
-    loadLatestTotalsTableSnapshotMock.mockResolvedValue({
-      ...snapshot(),
-      records: new Map(),
-    });
+  it("returns 404 when an eligible app is absent from the daily snapshot", async () => {
+    getDailyAppSnapshotMock.mockResolvedValue(null);
 
-    const response = await GET(request(), context());
+    const response = await GET(request(undefined, "?table=daily"), context());
 
     expect(response.status).toBe(404);
     expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining("absent from the snapshot"),
-      expect.objectContaining({ appId }),
+      expect.stringContaining("absent from the Redis snapshot"),
+      expect.objectContaining({ dependency: "redis", appId }),
     );
   });
 
@@ -272,13 +248,11 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [guards]", () => {
 
     expect(response.status).toBe(503);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
+    expect(getTotalsAppSnapshotMock).not.toHaveBeenCalled();
   });
 
-  it("returns retryable 503 when no totals snapshot is available", async () => {
-    loadLatestTotalsTableSnapshotMock.mockRejectedValue(
-      new Error("S3 timeout"),
-    );
+  it("returns retryable 503 when Redis is unavailable", async () => {
+    getTotalsAppSnapshotMock.mockRejectedValue(new Error("Redis timeout"));
 
     const response = await GET(request(), context());
 
@@ -286,9 +260,9 @@ describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [guards]", () => {
     expect(response.headers.get("retry-after")).toBe("60");
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(logger.error).toHaveBeenCalledWith(
-      "Failed to load selfie-check analytics table",
+      "Failed to read selfie-check analytics from Redis",
       expect.objectContaining({
-        dependency: "s3",
+        dependency: "redis",
         dataset: "selfie_check_totals",
       }),
     );

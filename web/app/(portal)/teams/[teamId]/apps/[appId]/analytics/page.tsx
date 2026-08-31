@@ -1,6 +1,7 @@
-import { isSelfieCheckAnalyticsEnabledForApp } from "@/api/helpers/selfie-check-analytics/eligibility";
+import { checkEligibility } from "@/api/helpers/selfie-check-analytics/eligibility";
 import { ErrorPage } from "@/components/ErrorPage";
 import { generateMetaTitle } from "@/lib/genarate-title";
+import { logger } from "@/lib/logger";
 import { MetricsFrame } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MetricsFrame";
 import type { Metadata } from "next";
 
@@ -16,9 +17,22 @@ export default async function Page(props: Props) {
   const { appId } = await props.params;
 
   // The parent app layout already renders non-members as "App not found";
-  // members outside the analytics rollout get an explicit Forbidden screen.
-  if (!(await isSelfieCheckAnalyticsEnabledForApp(appId))) {
-    return <ErrorPage statusCode={403} title="Forbidden" />;
+  // apps without totals data get an explicit Forbidden screen.
+  let isEligible: boolean;
+  try {
+    isEligible = await checkEligibility(appId);
+  } catch (error) {
+    logger.error("Failed to resolve selfie-check analytics page eligibility", {
+      dependency: "redis",
+      appId,
+      failureClass: error instanceof Error ? error.name : "UnknownRedisError",
+      error,
+    });
+    return <ErrorPage statusCode={503} title="Analytics unavailable" />;
+  }
+
+  if (!isEligible) {
+    return <ErrorPage statusCode={404} title="Not found" />;
   }
 
   return <MetricsFrame appId={appId} />;

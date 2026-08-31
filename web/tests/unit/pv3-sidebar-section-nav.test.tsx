@@ -112,7 +112,7 @@ beforeEach(() => {
   });
 });
 
-// #region Analytics allowlist gate
+// #region Analytics Redis-presence gate
 it("shows and activates the Analytics entry for an eligible app", () => {
   usePathname.mockReturnValue(`${base}/analytics`);
   renderSidebar([teamId], [appId]);
@@ -121,7 +121,7 @@ it("shows and activates the Analytics entry for an eligible app", () => {
   expect(isCurrent("Analytics")).toBe(true);
 });
 
-it("hides the Analytics entry when the app is outside the allowlist", () => {
+it("hides the Analytics entry when the app is absent from Redis", () => {
   renderSidebar([teamId], ["app_someoneelse0000000000000000000"]);
 
   noLink("Analytics");

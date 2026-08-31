@@ -1,97 +1,15 @@
 import "server-only";
 
-import { logger } from "@/lib/logger";
+import { filterAppsWithTotalsData, getTotalsAppSnapshot } from "./redis-store";
 
-const SELFIE_CHECK_ANALYTICS_APPS_PARAMETER =
-  "whitelisted-apps/selfie-check-analytics";
+// Follow-up after this rollout is verified: remove the obsolete
+// whitelisted-apps/selfie-check-analytics parameter from the deployment repo.
 
-const normalizeAppIds = (value: unknown): string[] | null => {
-  if (Array.isArray(value)) {
-    return value
-      .filter((item): item is string => typeof item === "string")
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
+/** A totals row in the live Redis snapshot is the runtime eligibility gate. */
+export const checkEligibility = async (appId: string): Promise<boolean> =>
+  (await getTotalsAppSnapshot(appId)) !== null;
 
-  // Be tolerant if the deployment parameter is accidentally created as a
-  // String instead of StringList; the source remains a comma-separated list.
-  if (typeof value === "string") {
-    return value
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
-  return null;
-};
-
-const readAllowlist = async (): Promise<readonly string[] | null> => {
-  const parameterStore = global.ParameterStore;
-  if (!parameterStore) return null;
-
-  let value: unknown;
-  try {
-    value = await parameterStore.getParameter<unknown>(
-      SELFIE_CHECK_ANALYTICS_APPS_PARAMETER,
-      [],
-    );
-  } catch (error) {
-    logger.warn(
-      "Failed to read the selfie-check analytics allowlist; feature remains disabled",
-      {
-        dependency: "ssm",
-        parameterName: SELFIE_CHECK_ANALYTICS_APPS_PARAMETER,
-        failureClass:
-          error instanceof Error ? error.name : "UnknownParameterStoreError",
-        error,
-      },
-    );
-    return null;
-  }
-
-  const appIds = normalizeAppIds(value);
-  if (!appIds) {
-    logger.warn(
-      "Selfie-check analytics allowlist has an invalid value; feature remains disabled",
-      {
-        dependency: "ssm",
-        parameterName: SELFIE_CHECK_ANALYTICS_APPS_PARAMETER,
-        failureClass: "InvalidParameterValue",
-      },
-    );
-    return null;
-  }
-
-  return appIds;
-};
-
-/**
- * Fail-closed rollout gate for the analytics endpoint.
- *
- * The SSM parameter is the operational kill switch: a missing/empty parameter
- * enables no apps. It is not an authorization boundary; the route separately
- * checks the authenticated user's membership and the current totals snapshot.
- */
-export const isSelfieCheckAnalyticsEnabledForApp = async (
-  appId: string,
-): Promise<boolean> => {
-  const appIds = await readAllowlist();
-  return appIds?.includes(appId) ?? false;
-};
-
-/**
- * Filters to the allowlisted subset with a single parameter read, for callers
- * that gate several apps at once (e.g. sidebar navigation). Fail-closed: any
- * allowlist failure yields an empty result.
- */
-export const filterSelfieCheckAnalyticsEnabledApps = async (
+/** Filters several apps against the same live totals snapshot. */
+export const filterSelfieCheckAnalyticsEnabledApps = (
   appIds: readonly string[],
-): Promise<string[]> => {
-  if (appIds.length === 0) return [];
-
-  const allowlist = await readAllowlist();
-  if (!allowlist) return [];
-
-  const allowed = new Set(allowlist);
-  return appIds.filter((appId) => allowed.has(appId));
-};
+): Promise<string[]> => filterAppsWithTotalsData(appIds);

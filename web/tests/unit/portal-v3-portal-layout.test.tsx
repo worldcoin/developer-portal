@@ -132,7 +132,7 @@ it("labels World ID sessions without exposing their nullifier-like name", async 
   );
 });
 
-it("passes the allowlisted subset of the user's apps to the shell", async () => {
+it("passes the Redis-eligible subset of the user's apps to the shell", async () => {
   getSession.mockResolvedValue({
     user: {
       sub: "auth0|ada",
@@ -168,6 +168,28 @@ it("mounts the shell even when app eligibility resolution fails", async () => {
     },
   });
   teamAppIds.mockRejectedValue(new Error("hasura down"));
+
+  render(await PortalLayout({ children: null }));
+
+  expect(screen.getByTestId("shell")).toHaveAttribute(
+    "data-analytics-app-ids",
+    "",
+  );
+});
+
+it("mounts the shell without analytics links when Redis fails", async () => {
+  getSession.mockResolvedValue({
+    user: {
+      sub: "auth0|ada",
+      name: "Ada",
+      hasura: {
+        id: "usr_abc123",
+        memberships: [{ role: "OWNER", team: { id: "team_1", name: "Acme" } }],
+      },
+    },
+  });
+  teamAppIds.mockResolvedValue({ app: [{ id: "app_a" }] });
+  filterEnabledApps.mockRejectedValue(new Error("Redis timeout"));
 
   render(await PortalLayout({ children: null }));
 

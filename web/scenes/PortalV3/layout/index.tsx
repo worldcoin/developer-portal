@@ -30,26 +30,38 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
 
   const userId = user?.hasura?.id;
 
-  // Which of the user's apps are in the analytics rollout, resolved here so
-  // the sidebar can gate its entry synchronously. Fail-closed and non-fatal.
+  // Resolve the user's apps here so the sidebar can gate its analytics entry
+  // synchronously. A failure hides the entry without breaking the portal.
   let analyticsAppIds: string[] = [];
   if (userId && teams.length > 0) {
+    let userAppIds: string[] = [];
     try {
       const client = await getAPIServiceGraphqlClient();
       const { app } = await getTeamAppIdsSdk(client).TeamAppIds({
         teamIds: teams.map((team) => team.id),
       });
-      analyticsAppIds = await filterSelfieCheckAnalyticsEnabledApps(
-        app.map(({ id }) => id),
-      );
+      userAppIds = app.map(({ id }) => id);
     } catch (error) {
-      logger.warn(
-        "Failed to resolve analytics-eligible apps in portal layout",
-        {
+      logger.warn("Failed to load apps for analytics sidebar eligibility", {
+        dependency: "hasura",
+        userId,
+        failureClass: error instanceof Error ? error.name : "UnknownError",
+        error,
+      });
+    }
+
+    if (userAppIds.length > 0) {
+      try {
+        analyticsAppIds =
+          await filterSelfieCheckAnalyticsEnabledApps(userAppIds);
+      } catch (error) {
+        logger.warn("Failed to read analytics sidebar eligibility", {
+          dependency: "redis",
           userId,
+          failureClass: error instanceof Error ? error.name : "UnknownError",
           error,
-        },
-      );
+        });
+      }
     }
   }
 

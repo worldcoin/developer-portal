@@ -1,8 +1,8 @@
-import { isSelfieCheckAnalyticsEnabledForApp } from "@/api/helpers/selfie-check-analytics/eligibility";
 import {
-  loadLatestDailyTableSnapshot,
-  loadLatestTotalsTableSnapshot,
-} from "@/api/helpers/selfie-check-analytics/snapshots";
+  getDailyAppSnapshot,
+  getTotalsAppSnapshot,
+  type AnalyticsAppSnapshot,
+} from "@/api/helpers/selfie-check-analytics/redis-store";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
@@ -53,18 +53,14 @@ const errorResponse = ({
 const buildResponseEtag = ({
   appId,
   identity,
-  isFallback,
   tablePrefix,
 }: {
   appId: string;
   identity: string;
-  isFallback: boolean;
   tablePrefix: string;
 }) =>
   `"${createHash("sha256")
-    .update(
-      `${tablePrefix}:${appId}:${identity}:${isFallback ? "fallback" : "fresh"}`,
-    )
+    .update(`${tablePrefix}:${appId}:${identity}`)
     .digest("base64url")}"`;
 
 const responseHeaders = (etag: string) => ({
@@ -152,36 +148,54 @@ export async function GET(
     });
   }
 
-  if (!(await isSelfieCheckAnalyticsEnabledForApp(appId))) {
-    return errorResponse({
-      status: 404,
-      code: "not_found",
-      detail: "Analytics not found.",
-    });
-  }
-
   const dataset =
     tableParam === "daily" ? "selfie_check_daily" : "selfie_check_totals";
 
-  let loaded;
+  let loaded:
+    | { table: "total"; snapshot: AnalyticsAppSnapshot<TotalsRow> }
+    | {
+        table: "daily";
+        snapshot: AnalyticsAppSnapshot<readonly DailyRow[]>;
+      };
   try {
-    loaded =
-      tableParam === "daily"
-        ? {
-            table: "daily" as const,
-            snapshot: await loadLatestDailyTableSnapshot(),
-          }
-        : {
-            table: "total" as const,
-            snapshot: await loadLatestTotalsTableSnapshot(),
-          };
+    // Totals-row presence is the runtime allowlist. Read it before daily so an
+    // app cannot obtain analytics solely because stale daily data still exists.
+    const totalsSnapshot = await getTotalsAppSnapshot(appId);
+    if (!totalsSnapshot) {
+      return errorResponse({
+        status: 404,
+        code: "not_found",
+        detail: "Analytics not found.",
+      });
+    }
+
+    if (tableParam === "daily") {
+      const dailySnapshot = await getDailyAppSnapshot(appId);
+      if (!dailySnapshot) {
+        logger.warn(
+          "Eligible analytics app is absent from the Redis snapshot",
+          {
+            dependency: "redis",
+            appId,
+            dataset,
+          },
+        );
+        return errorResponse({
+          status: 404,
+          code: "not_found",
+          detail: "Analytics not found.",
+        });
+      }
+      loaded = { table: "daily", snapshot: dailySnapshot };
+    } else {
+      loaded = { table: "total", snapshot: totalsSnapshot };
+    }
   } catch (error) {
-    logger.error("Failed to load selfie-check analytics table", {
-      dependency: "s3",
+    logger.error("Failed to read selfie-check analytics from Redis", {
+      dependency: "redis",
       dataset,
       appId,
-      failureClass:
-        error instanceof Error ? error.name : "UnknownSnapshotError",
+      failureClass: error instanceof Error ? error.name : "UnknownRedisError",
       error,
     });
     return NextResponse.json(
@@ -201,39 +215,28 @@ export async function GET(
   }
 
   const meta: AnalyticsMeta = {
-    dataAsOf: loaded.snapshot.source.dataAsOf,
-    isFallback: loaded.snapshot.isFallback,
+    dataAsOf: loaded.snapshot.metadata.source.dataAsOf,
+    isFallback: false,
   };
 
-  let response: AnalyticsResponse | null = null;
-  if (loaded.table === "daily") {
-    const rows = loaded.snapshot.records.get(appId);
-    if (rows) response = { appId, tablePrefix: "daily/", rows, meta };
-  } else {
-    const row = loaded.snapshot.records.get(appId);
-    if (row) response = { appId, tablePrefix: "total/", row, meta };
-  }
-
-  if (!response) {
-    logger.warn(
-      "Whitelisted selfie-check analytics app is absent from the snapshot",
-      {
-        appId,
-        dataset,
-        snapshotIdentity: loaded.snapshot.source.identity,
-      },
-    );
-    return errorResponse({
-      status: 404,
-      code: "not_found",
-      detail: "Analytics not found.",
-    });
-  }
+  const response: AnalyticsResponse =
+    loaded.table === "daily"
+      ? {
+          appId,
+          tablePrefix: "daily/",
+          rows: loaded.snapshot.data,
+          meta,
+        }
+      : {
+          appId,
+          tablePrefix: "total/",
+          row: loaded.snapshot.data,
+          meta,
+        };
 
   const etag = buildResponseEtag({
     appId,
-    identity: loaded.snapshot.source.identity,
-    isFallback: loaded.snapshot.isFallback,
+    identity: loaded.snapshot.metadata.source.identity,
     tablePrefix: response.tablePrefix,
   });
   const headers = responseHeaders(etag);

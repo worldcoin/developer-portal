@@ -7,14 +7,17 @@ import { render, screen } from "@testing-library/react";
 const isEnabledForApp = jest.fn();
 
 jest.mock("@/api/helpers/selfie-check-analytics/eligibility", () => ({
-  isSelfieCheckAnalyticsEnabledForApp: (...args: unknown[]) =>
-    isEnabledForApp(...args),
+  checkEligibility: (...args: unknown[]) => isEnabledForApp(...args),
 }));
 
 jest.mock("@/components/ErrorPage", () => ({
   ErrorPage: ({ statusCode }: { statusCode: number }) => (
     <div data-testid="error" data-status={statusCode} />
   ),
+}));
+
+jest.mock("@/lib/logger", () => ({
+  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
 
 jest.mock("@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MetricsFrame", () => ({
@@ -38,8 +41,8 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe("/analytics [rollout gate]", () => {
-  it("renders the metrics frame for an allowlisted app", async () => {
+describe("/analytics [Redis eligibility gate]", () => {
+  it("renders the metrics frame for an app present in Redis", async () => {
     isEnabledForApp.mockResolvedValue(true);
 
     render(await RoutePage(props));
@@ -48,12 +51,21 @@ describe("/analytics [rollout gate]", () => {
     expect(isEnabledForApp).toHaveBeenCalledWith(appId);
   });
 
-  it("renders a Forbidden screen for a member outside the rollout", async () => {
+  it("renders a Forbidden screen for an app absent from Redis", async () => {
     isEnabledForApp.mockResolvedValue(false);
 
     render(await RoutePage(props));
 
-    expect(screen.getByTestId("error")).toHaveAttribute("data-status", "403");
+    expect(screen.getByTestId("error")).toHaveAttribute("data-status", "404");
+    expect(screen.queryByTestId("metrics-frame")).not.toBeInTheDocument();
+  });
+
+  it("renders an unavailable screen when Redis eligibility fails", async () => {
+    isEnabledForApp.mockRejectedValue(new Error("Redis timeout"));
+
+    render(await RoutePage(props));
+
+    expect(screen.getByTestId("error")).toHaveAttribute("data-status", "503");
     expect(screen.queryByTestId("metrics-frame")).not.toBeInTheDocument();
   });
 });
