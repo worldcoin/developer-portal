@@ -1788,6 +1788,137 @@ describe("review detail workspace", () => {
     });
   });
 
+  it("ignores an original heartbeat after switching away and back", async () => {
+    const originalClaimToken = "00000000-0000-4000-8000-000000000077";
+    const currentClaimToken = "00000000-0000-4000-8000-000000000066";
+    const originalSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      status: "in_review",
+      reviewVersion: 7,
+      claimedByEmail: "reviewer@example.com",
+      claimExpiresAt: "2999-01-01T00:00:00.000Z",
+    };
+    const otherSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      id: "00000000-0000-4000-8000-000000000002",
+    };
+    const currentSubmission: ReviewerSubmissionDetail = {
+      ...originalSubmission,
+      reviewVersion: 30,
+    };
+    window.sessionStorage.setItem(
+      `admin-reviewer-claim:${originalSubmission.id}`,
+      JSON.stringify({
+        claimToken: originalClaimToken,
+        claimExpiresAt: originalSubmission.claimExpiresAt,
+        reviewVersion: 7,
+      }),
+    );
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+
+    let resolveHeartbeat!: (response: Response) => void;
+    const heartbeatResponse = new Promise<Response>((resolve) => {
+      resolveHeartbeat = resolve;
+    });
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockReturnValueOnce(heartbeatResponse)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          submission: {
+            status: "in_review",
+            reviewVersion: 31,
+            claimToken: currentClaimToken,
+            claimExpiresAt: "2999-01-01T00:00:00.000Z",
+          },
+        }),
+      } as Response);
+
+    const { rerender } = render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={originalSubmission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent(document, new Event("visibilitychange"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={otherSubmission}
+      />,
+    );
+    await act(async () => {});
+    window.sessionStorage.setItem(
+      `admin-reviewer-claim:${currentSubmission.id}`,
+      JSON.stringify({
+        claimToken: currentClaimToken,
+        claimExpiresAt: currentSubmission.claimExpiresAt,
+        reviewVersion: 30,
+      }),
+    );
+    rerender(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={currentSubmission}
+      />,
+    );
+    await act(async () => {});
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "new A generation edit" },
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const staleHeartbeatJson = jest.fn().mockResolvedValue({
+      submission: {
+        status: "in_review",
+        reviewVersion: 8,
+        claimToken: originalClaimToken,
+        claimExpiresAt: "2999-01-01T00:00:00.000Z",
+      },
+    });
+    resolveHeartbeat({
+      ok: true,
+      status: 200,
+      json: staleHeartbeatJson,
+    } as unknown as Response);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(staleHeartbeatJson).not.toHaveBeenCalled();
+    expect(String(fetchMock.mock.calls[1][0])).toContain(
+      `/submissions/${currentSubmission.id}/checklist`,
+    );
+    expect(
+      JSON.parse((fetchMock.mock.calls[1][1] as RequestInit).body as string),
+    ).toEqual({
+      checklist: { internalNotes: "new A generation edit", items: [] },
+      checklistVersion: REVIEW_CHECKLIST_VERSION,
+      claimToken: currentClaimToken,
+      expectedReviewVersion: 30,
+    });
+    expect(
+      JSON.parse(
+        window.sessionStorage.getItem(
+          `admin-reviewer-claim:${currentSubmission.id}`,
+        )!,
+      ),
+    ).toEqual({
+      claimToken: currentClaimToken,
+      claimExpiresAt: currentSubmission.claimExpiresAt,
+      reviewVersion: 31,
+    });
+  });
+
   it("ignores an autosave response after switching submissions", async () => {
     const claimToken = "00000000-0000-4000-8000-000000000099";
     const claimedSubmission: ReviewerSubmissionDetail = {

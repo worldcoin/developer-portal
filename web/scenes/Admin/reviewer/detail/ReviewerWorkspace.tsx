@@ -112,6 +112,16 @@ export const ReviewerWorkspace = ({
   const submissionIdRef = useRef(submission.id);
   const renderedSubmissionIdRef = useRef(submission.id);
   renderedSubmissionIdRef.current = submission.id;
+  const submissionGenerationRef = useRef({
+    generation: 0,
+    submissionId: submission.id,
+  });
+  if (submissionGenerationRef.current.submissionId !== submission.id) {
+    submissionGenerationRef.current = {
+      generation: submissionGenerationRef.current.generation + 1,
+      submissionId: submission.id,
+    };
+  }
   const checklistContextRef = useRef({
     appMode: submission.appMode,
     submissionId: submission.id,
@@ -357,19 +367,18 @@ export const ReviewerWorkspace = ({
         return;
       }
       const heartbeatSubmissionId = submission.id;
+      const heartbeatGeneration = submissionGenerationRef.current.generation;
+      const isCurrentHeartbeat = () =>
+        submissionGenerationRef.current.generation === heartbeatGeneration;
       const currentHeartbeat = (async () => {
         const payload = await workflowRequestRef.current({
           action: "heartbeat",
           path: `/api/admin/reviewer/submissions/${heartbeatSubmissionId}/heartbeat`,
           body: claimedWriteBody(workflowRef.current),
           quiet: true,
-          isCurrent: () =>
-            renderedSubmissionIdRef.current === heartbeatSubmissionId,
+          isCurrent: isCurrentHeartbeat,
         });
-        if (
-          payload &&
-          renderedSubmissionIdRef.current === heartbeatSubmissionId
-        ) {
+        if (payload && isCurrentHeartbeat()) {
           applyWorkflowPayloadRef.current(payload, "heartbeat");
         }
       })();
