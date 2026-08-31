@@ -356,14 +356,20 @@ export const ReviewerWorkspace = ({
       ) {
         return;
       }
+      const heartbeatSubmissionId = submission.id;
       const currentHeartbeat = (async () => {
         const payload = await workflowRequestRef.current({
           action: "heartbeat",
-          path: `/api/admin/reviewer/submissions/${submission.id}/heartbeat`,
+          path: `/api/admin/reviewer/submissions/${heartbeatSubmissionId}/heartbeat`,
           body: claimedWriteBody(workflowRef.current),
           quiet: true,
+          isCurrent: () =>
+            renderedSubmissionIdRef.current === heartbeatSubmissionId,
         });
-        if (payload) {
+        if (
+          payload &&
+          renderedSubmissionIdRef.current === heartbeatSubmissionId
+        ) {
           applyWorkflowPayloadRef.current(payload, "heartbeat");
         }
       })();

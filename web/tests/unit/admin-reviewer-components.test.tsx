@@ -1670,6 +1670,124 @@ describe("review detail workspace", () => {
     });
   });
 
+  it("ignores a heartbeat response after switching submissions", async () => {
+    const claimTokenA = "00000000-0000-4000-8000-000000000099";
+    const claimTokenB = "00000000-0000-4000-8000-000000000088";
+    const submissionA: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      status: "in_review",
+      reviewVersion: 7,
+      claimedByEmail: "reviewer@example.com",
+      claimExpiresAt: "2999-01-01T00:00:00.000Z",
+    };
+    const submissionB: ReviewerSubmissionDetail = {
+      ...submissionA,
+      id: "00000000-0000-4000-8000-000000000002",
+      reviewVersion: 20,
+    };
+    window.sessionStorage.setItem(
+      `admin-reviewer-claim:${submissionA.id}`,
+      JSON.stringify({
+        claimToken: claimTokenA,
+        claimExpiresAt: submissionA.claimExpiresAt,
+        reviewVersion: 7,
+      }),
+    );
+    window.sessionStorage.setItem(
+      `admin-reviewer-claim:${submissionB.id}`,
+      JSON.stringify({
+        claimToken: claimTokenB,
+        claimExpiresAt: submissionB.claimExpiresAt,
+        reviewVersion: 20,
+      }),
+    );
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+
+    let resolveHeartbeat!: (response: Response) => void;
+    const heartbeatResponse = new Promise<Response>((resolve) => {
+      resolveHeartbeat = resolve;
+    });
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockReturnValueOnce(heartbeatResponse)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          submission: {
+            status: "in_review",
+            reviewVersion: 21,
+            claimToken: claimTokenB,
+            claimExpiresAt: "2999-01-01T00:00:00.000Z",
+          },
+        }),
+      } as Response);
+
+    const { rerender } = render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submissionA}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent(document, new Event("visibilitychange"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submissionB}
+      />,
+    );
+    await act(async () => {});
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "submission B edit" },
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    resolveHeartbeat({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        submission: {
+          status: "in_review",
+          reviewVersion: 8,
+          claimToken: claimTokenA,
+          claimExpiresAt: "2999-01-01T00:00:00.000Z",
+        },
+      }),
+    } as Response);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(String(fetchMock.mock.calls[1][0])).toContain(
+      `/submissions/${submissionB.id}/checklist`,
+    );
+    expect(
+      JSON.parse((fetchMock.mock.calls[1][1] as RequestInit).body as string),
+    ).toEqual({
+      checklist: { internalNotes: "submission B edit", items: [] },
+      checklistVersion: REVIEW_CHECKLIST_VERSION,
+      claimToken: claimTokenB,
+      expectedReviewVersion: 20,
+    });
+    expect(
+      JSON.parse(
+        window.sessionStorage.getItem(
+          `admin-reviewer-claim:${submissionB.id}`,
+        )!,
+      ),
+    ).toEqual({
+      claimToken: claimTokenB,
+      claimExpiresAt: submissionB.claimExpiresAt,
+      reviewVersion: 21,
+    });
+  });
+
   it("ignores an autosave response after switching submissions", async () => {
     const claimToken = "00000000-0000-4000-8000-000000000099";
     const claimedSubmission: ReviewerSubmissionDetail = {
