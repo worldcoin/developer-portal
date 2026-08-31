@@ -322,6 +322,66 @@ describe("reviewer test target", () => {
       ).toHaveClass(...className.split(" "));
     },
   );
+
+  it("reduces the compact Mini App target to identity, QR, and primary action", () => {
+    const { container } = render(
+      <ReviewerTestTarget
+        appId="app_123"
+        appName="Draft app"
+        compact
+        metadataId="metadata_456"
+        mode="mini-app"
+        integrationUrl="https://mini.example.com"
+      />,
+    );
+
+    expect(screen.getByText("Scan to test")).toBeInTheDocument();
+    expect(screen.getByText("Draft app", { exact: true })).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("World App draft QR code").parentElement,
+    ).toHaveClass("h-[88px]", "w-[88px]");
+    expect(
+      screen.getByRole("link", { name: "Open in World App" }),
+    ).toHaveAttribute(
+      "href",
+      "https://world.org/mini-app?app_id=app_123&path=&draft_id=metadata_456",
+    );
+    expect(
+      screen.queryByText("Test the exact metadata version"),
+    ).not.toBeInTheDocument();
+    expect(container.querySelector("code")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Copy draft link" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("reduces the compact external target to identity and primary action", () => {
+    const { container } = render(
+      <ReviewerTestTarget
+        appId="app_123"
+        appName="External app"
+        compact
+        metadataId="metadata_456"
+        mode="external"
+        integrationUrl="https://external.example.com/integration"
+      />,
+    );
+
+    expect(screen.getByText("External integration")).toBeInTheDocument();
+    expect(
+      screen.getByText("External app", { exact: true }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Open integration" }),
+    ).toHaveAttribute("href", "https://external.example.com/integration");
+    expect(
+      screen.queryByText("Test in a standard browser"),
+    ).not.toBeInTheDocument();
+    expect(container.querySelector("code")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Copy integration URL" }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 describe("reviewer workspace navigation", () => {
@@ -1249,14 +1309,71 @@ describe("review detail workspace", () => {
       screen.getByRole("button", { name: "Confirm request changes" }),
     );
 
+    const confirmation = screen.getByRole("dialog", {
+      name: "Confirm request changes",
+    });
     expect(
-      await screen.findByText(
+      await within(confirmation).findByText(
         "The submitted metadata changed. Refresh before retrying.",
       ),
     ).toHaveAttribute("role", "alert");
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    const retry = within(confirmation).getByRole("button", {
+      name: "Confirm request changes",
+    });
+    expect(retry).toBeEnabled();
+    fireEvent.click(retry);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
     expect(screen.getByLabelText("Message to developer")).toHaveValue(
       "Keep this feedback for retry.",
+    );
+  });
+
+  it("shows decision busy state inside confirmation", async () => {
+    const submission = claimedSubmissionFixture();
+    seedClaimSession(submission);
+    let resolveDecision!: (response: Response) => void;
+    jest.spyOn(global, "fetch").mockReturnValue(
+      new Promise<Response>((resolve) => {
+        resolveDecision = resolve;
+      }),
+    );
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent.click(screen.getByRole("button", { name: "Approve" }));
+    const confirmation = screen.getByRole("dialog", {
+      name: "Confirm approval",
+    });
+    fireEvent.click(
+      within(confirmation).getByRole("button", { name: "Confirm approval" }),
+    );
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+    expect(confirmation).toHaveAttribute("aria-busy", "true");
+    expect(
+      within(confirmation).getByRole("button", { name: "Confirm approval" }),
+    ).toBeDisabled();
+
+    resolveDecision({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        submission: {
+          status: "approved",
+          reviewVersion: 8,
+          claimToken: null,
+          claimExpiresAt: null,
+        },
+      }),
+    } as Response);
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
   });
 
@@ -1298,8 +1415,13 @@ describe("review detail workspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "Approve" }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm approval" }));
 
-    expect(await screen.findByText(expected)).toHaveAttribute("role", "alert");
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    const confirmation = screen.getByRole("dialog", {
+      name: "Confirm approval",
+    });
+    expect(await within(confirmation).findByText(expected)).toHaveAttribute(
+      "role",
+      "alert",
+    );
   });
 
   it("uses a network fallback without closing confirmation", async () => {
@@ -1318,12 +1440,14 @@ describe("review detail workspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "Approve" }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm approval" }));
 
+    const confirmation = screen.getByRole("dialog", {
+      name: "Confirm approval",
+    });
     expect(
-      await screen.findByText(
+      await within(confirmation).findByText(
         "The review action could not reach the server. Check your connection and try again.",
       ),
     ).toHaveAttribute("role", "alert");
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("closes confirmation and requires reclaim after a decision conflict", async () => {
@@ -1391,7 +1515,8 @@ describe("review detail workspace", () => {
       "aria-selected",
       "true",
     );
-    fireEvent.change(screen.getByLabelText("Message to developer"), {
+    const firstMessageField = screen.getByLabelText("Message to developer");
+    fireEvent.change(firstMessageField, {
       target: { value: "Submission-specific feedback." },
     });
     fireEvent.change(screen.getByLabelText("Override reason"), {
@@ -1416,7 +1541,9 @@ describe("review detail workspace", () => {
       ),
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Message to developer")).toHaveValue("");
+    const secondMessageField = screen.getByLabelText("Message to developer");
+    expect(secondMessageField).not.toBe(firstMessageField);
+    expect(secondMessageField).toHaveValue("");
     expect(screen.queryByLabelText("Override reason")).not.toBeInTheDocument();
     expect(screen.getByText("Developer submission note")).toBeInTheDocument();
     expect(mockReplace).toHaveBeenLastCalledWith(
@@ -2364,7 +2491,7 @@ describe("review detail workspace", () => {
     });
   });
 
-  it("ignores a heartbeat response after switching submissions", async () => {
+  it("lets a new submission save without waiting for the previous heartbeat", async () => {
     const claimTokenA = "00000000-0000-4000-8000-000000000099";
     const claimTokenB = "00000000-0000-4000-8000-000000000088";
     const submissionA: ReviewerSubmissionDetail = {
@@ -2442,21 +2569,6 @@ describe("review detail workspace", () => {
     fireEvent.change(screen.getByLabelText("Internal notes"), {
       target: { value: "submission B edit" },
     });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-
-    resolveHeartbeat({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        submission: {
-          status: "in_review",
-          reviewVersion: 8,
-          claimToken: claimTokenA,
-          claimExpiresAt: "2999-01-01T00:00:00.000Z",
-        },
-      }),
-    } as Response);
-
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
     expect(String(fetchMock.mock.calls[1][0])).toContain(
       `/submissions/${submissionB.id}/checklist`,
@@ -2480,6 +2592,29 @@ describe("review detail workspace", () => {
       claimExpiresAt: submissionB.claimExpiresAt,
       reviewVersion: 21,
     });
+
+    const staleHeartbeatJson = jest.fn().mockResolvedValue({
+      submission: {
+        status: "in_review",
+        reviewVersion: 8,
+        claimToken: claimTokenA,
+        claimExpiresAt: "2999-01-01T00:00:00.000Z",
+      },
+    });
+    resolveHeartbeat({
+      ok: true,
+      status: 200,
+      json: staleHeartbeatJson,
+    } as unknown as Response);
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(staleHeartbeatJson).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Review status")).toHaveTextContent(
+      "in review",
+    );
   });
 
   it("ignores an original heartbeat after switching away and back", async () => {

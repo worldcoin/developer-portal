@@ -29,6 +29,35 @@ export const ReviewerTestTarget = ({
   if (mode === "external") {
     const safeUrl = getSafeExternalIntegrationUrl(integrationUrl);
 
+    if (compact) {
+      return (
+        <section className="flex min-w-0 items-center justify-between gap-3 rounded-12 border border-grey-200 bg-grey-0 p-3">
+          <div className="min-w-0">
+            <p className="text-10 font-medium tracking-wide text-grey-400 uppercase">
+              External integration
+            </p>
+            <p className="mt-1 truncate text-14 font-semibold text-grey-900">
+              {appName}
+            </p>
+          </div>
+          {safeUrl ? (
+            <a
+              className="inline-flex min-h-11 shrink-0 items-center rounded-8 bg-grey-900 px-3 text-12 font-semibold text-grey-0"
+              href={safeUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Open integration
+            </a>
+          ) : (
+            <p className="max-w-40 text-11 leading-4 text-system-error-700">
+              The submitted integration URL is not a valid HTTPS URL.
+            </p>
+          )}
+        </section>
+      );
+    }
+
     return (
       <section className="rounded-12 border border-grey-200 bg-grey-0 p-5">
         <p className="text-12 font-medium tracking-wide text-grey-400 uppercase">
@@ -71,9 +100,37 @@ export const ReviewerTestTarget = ({
   }
 
   const draftUrl = buildMiniAppDraftUrl(appId, metadataId);
-  const qrContainerClass = compact
-    ? "h-[88px] w-[88px]"
-    : "min-h-[160px] min-w-[160px]";
+
+  if (compact) {
+    return (
+      <section className="flex min-w-0 items-center gap-3 rounded-12 border border-grey-200 bg-grey-0 p-3">
+        <div className="h-[88px] w-[88px] shrink-0 rounded-8 border border-grey-200 bg-white p-2">
+          <QRCode
+            aria-label="World App draft QR code"
+            className="h-auto w-full"
+            value={draftUrl}
+            viewBox="0 0 256 256"
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-10 font-medium tracking-wide text-grey-400 uppercase">
+            Scan to test
+          </p>
+          <p className="mt-1 truncate text-14 font-semibold text-grey-900">
+            {appName}
+          </p>
+          <a
+            className="mt-2 inline-flex min-h-11 items-center rounded-8 bg-grey-900 px-3 text-12 font-semibold text-grey-0"
+            href={draftUrl}
+            rel="noreferrer"
+            target="_blank"
+          >
+            Open in World App
+          </a>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="grid gap-6 rounded-12 border border-grey-200 bg-grey-0 p-5 md:grid-cols-[minmax(0,1fr)_240px] md:items-center">
@@ -108,9 +165,7 @@ export const ReviewerTestTarget = ({
           />
         </div>
       </div>
-      <div
-        className={`rounded-12 border border-grey-200 bg-white p-4 ${qrContainerClass}`}
-      >
+      <div className="min-h-[160px] min-w-[160px] rounded-12 border border-grey-200 bg-white p-4">
         <QRCode
           aria-label="World App draft QR code"
           className="h-auto w-full"

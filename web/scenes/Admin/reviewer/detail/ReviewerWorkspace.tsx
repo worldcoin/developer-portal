@@ -74,6 +74,17 @@ type WorkflowPayload = {
 
 type WorkflowErrorPayload = { code?: string; error?: string };
 
+type ReviewerWorkspaceProps = {
+  canReview: boolean;
+  currentUserEmail: string;
+  submission: ReviewerSubmissionDetail;
+};
+
+type StatefulReviewerWorkspaceProps = ReviewerWorkspaceProps & {
+  activePanel: ReviewerPanel;
+  onPanelChange: (panel: ReviewerPanel) => void;
+};
+
 const workflowStatusError = (status: number) => {
   if (status >= 500) {
     return `The review service is unavailable (${status}). Try again.`;
@@ -115,20 +126,14 @@ const claimedWriteBody = (workflow: WorkflowState) => ({
   expectedReviewVersion: workflow.reviewVersion,
 });
 
-export const ReviewerWorkspace = ({
+const StatefulReviewerWorkspace = ({
+  activePanel,
   canReview,
   currentUserEmail,
+  onPanelChange,
   submission,
-}: {
-  canReview: boolean;
-  currentUserEmail: string;
-  submission: ReviewerSubmissionDetail;
-}) => {
+}: StatefulReviewerWorkspaceProps) => {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const requestedPanel = parseReviewerPanel(searchParams.get("panel"));
-  const [activePanel, setActivePanel] = useState<ReviewerPanel>(requestedPanel);
   const [workflow, setWorkflow] = useState<WorkflowState>({
     status: submission.status,
     reviewVersion: submission.reviewVersion,
@@ -165,19 +170,7 @@ export const ReviewerWorkspace = ({
   const workflowConflictRef = useRef(0);
   const busyActionRef = useRef<string | null>(null);
   const checklistSaveStateRef = useRef<ChecklistSaveQueueState>("idle");
-  const submissionIdRef = useRef(submission.id);
-  const renderedSubmissionIdRef = useRef(submission.id);
-  renderedSubmissionIdRef.current = submission.id;
-  const submissionGenerationRef = useRef({
-    generation: 0,
-    submissionId: submission.id,
-  });
-  if (submissionGenerationRef.current.submissionId !== submission.id) {
-    submissionGenerationRef.current = {
-      generation: submissionGenerationRef.current.generation + 1,
-      submissionId: submission.id,
-    };
-  }
+  const mountedRef = useRef(true);
   const checklistContextRef = useRef({
     appMode: submission.appMode,
     submissionId: submission.id,
@@ -189,23 +182,12 @@ export const ReviewerWorkspace = ({
     version: submission.checklistVersion ?? REVIEW_CHECKLIST_VERSION,
   };
 
-  const replacePanel = useCallback(
-    (panel: ReviewerPanel) => {
-      const nextParams = new URLSearchParams(searchParams.toString());
-      if (panel === "review") nextParams.delete("panel");
-      else nextParams.set("panel", panel);
-      const query = nextParams.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
-      });
-      setActivePanel(panel);
-    },
-    [pathname, router, searchParams],
-  );
-
   useEffect(() => {
-    setActivePanel(requestedPanel);
-  }, [requestedPanel]);
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const updateBusyAction = useCallback((action: string | null) => {
     busyActionRef.current = action;
@@ -231,8 +213,6 @@ export const ReviewerWorkspace = ({
   );
 
   useEffect(() => {
-    const submissionChanged = submissionIdRef.current !== submission.id;
-    submissionIdRef.current = submission.id;
     const next: WorkflowState = {
       status: submission.status,
       reviewVersion: submission.reviewVersion,
@@ -243,24 +223,13 @@ export const ReviewerWorkspace = ({
     workflowRef.current = next;
     setWorkflow(next);
     if (
-      submissionChanged ||
-      (checklistSaveStateRef.current !== "saving" &&
-        checklistSaveStateRef.current !== "error")
+      checklistSaveStateRef.current !== "saving" &&
+      checklistSaveStateRef.current !== "error"
     ) {
       setChecklist(getEditableChecklist(submission.checklist));
       const nextPersistedVersion = getPersistedChecklistVersion(submission);
       persistedChecklistVersionRef.current = nextPersistedVersion;
       setPersistedChecklistVersion(nextPersistedVersion);
-    }
-    if (submissionChanged) {
-      updateChecklistSaveState("idle");
-      setDeveloperMessage("");
-      setOverrideReason("");
-      setPendingDecision(null);
-      setMobileComposerOpen(false);
-      setDecisionError(null);
-      decisionReturnFocusRef.current = null;
-      replacePanel("review");
     }
   }, [submission, updateChecklistSaveState]);
 
@@ -336,13 +305,15 @@ export const ReviewerWorkspace = ({
       quiet?: boolean;
     }) => {
       if (!quiet) updateBusyAction(action);
+      const requestIsCurrent = () =>
+        mountedRef.current && (!isCurrent || isCurrent());
       try {
         const response = await fetch(path, {
           method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
-        if (isCurrent && !isCurrent()) return null;
+        if (!requestIsCurrent()) return null;
         if (response.status === 409) {
           workflowConflictRef.current += 1;
           clearReviewerClaimSession(submission.id);
@@ -358,7 +329,7 @@ export const ReviewerWorkspace = ({
         }
         if (!response.ok) {
           const message = await readWorkflowError(response);
-          if (isCurrent && !isCurrent()) return null;
+          if (!requestIsCurrent()) return null;
           if (action === "approved" || action === "changes_requested") {
             setDecisionError(message);
           }
@@ -366,10 +337,10 @@ export const ReviewerWorkspace = ({
           return null;
         }
         const payload = (await response.json()) as WorkflowPayload;
-        if (isCurrent && !isCurrent()) return null;
+        if (!requestIsCurrent()) return null;
         return payload;
       } catch {
-        if (isCurrent && !isCurrent()) return null;
+        if (!requestIsCurrent()) return null;
         const message =
           "The review action could not reach the server. Check your connection and try again.";
         if (action === "approved" || action === "changes_requested") {
@@ -466,9 +437,7 @@ export const ReviewerWorkspace = ({
         return;
       }
       const heartbeatSubmissionId = submission.id;
-      const heartbeatGeneration = submissionGenerationRef.current.generation;
-      const isCurrentHeartbeat = () =>
-        submissionGenerationRef.current.generation === heartbeatGeneration;
+      const isCurrentHeartbeat = () => mountedRef.current;
       const currentHeartbeat = (async () => {
         const payload = await workflowRequestRef.current({
           action: "heartbeat",
@@ -503,10 +472,7 @@ export const ReviewerWorkspace = ({
 
   const saveChecklistSnapshot = useCallback(
     async (snapshot: ReviewChecklist) => {
-      const saveGeneration = submissionGenerationRef.current.generation;
-      const isCurrentChecklistSave = () =>
-        renderedSubmissionIdRef.current === submission.id &&
-        submissionGenerationRef.current.generation === saveGeneration;
+      const isCurrentChecklistSave = () => mountedRef.current;
       await heartbeatPromiseRef.current;
       if (!isCurrentChecklistSave()) return false;
       const current = workflowRef.current;
@@ -581,11 +547,8 @@ export const ReviewerWorkspace = ({
   const confirmDecision = async (decision: ReviewerDecision) => {
     if (busyActionRef.current) return;
     const decisionSubmissionId = submission.id;
-    const decisionGeneration = submissionGenerationRef.current.generation;
     const conflictGeneration = workflowConflictRef.current;
-    const isCurrentDecision = () =>
-      renderedSubmissionIdRef.current === decisionSubmissionId &&
-      submissionGenerationRef.current.generation === decisionGeneration;
+    const isCurrentDecision = () => mountedRef.current;
     const canContinueDecision = () =>
       isCurrentDecision() && workflowConflictRef.current === conflictGeneration;
     const rejectDecision = (message: string) => {
@@ -874,7 +837,7 @@ export const ReviewerWorkspace = ({
         appMode={submission.appMode}
         appName={submission.appName}
         attempt={submission.attempt}
-        onPanelChange={replacePanel}
+        onPanelChange={onPanelChange}
         status={workflow.status}
       />
 
@@ -923,8 +886,10 @@ export const ReviewerWorkspace = ({
       </Sheet>
 
       <ReviewerDecisionConfirmation
+        busy={busyAction === "approved" || busyAction === "changes_requested"}
         checklistProgress={checklistProgress}
         decision={pendingDecision}
+        decisionError={decisionError}
         developerMessage={developerMessage}
         failedLabels={failedLabels}
         onConfirm={confirmDecision}
@@ -939,5 +904,87 @@ export const ReviewerWorkspace = ({
         testTarget={testTarget}
       />
     </div>
+  );
+};
+
+type PanelState = {
+  panel: ReviewerPanel;
+  submissionId: string;
+  waitingForResetUrl: boolean;
+};
+
+export const ReviewerWorkspace = ({
+  canReview,
+  currentUserEmail,
+  submission,
+}: ReviewerWorkspaceProps) => {
+  const pathname = usePathname();
+  const { replace } = useRouter();
+  const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
+  const requestedPanel = parseReviewerPanel(searchParams.get("panel"));
+  const [panelState, setPanelState] = useState<PanelState>(() => ({
+    panel: requestedPanel,
+    submissionId: submission.id,
+    waitingForResetUrl: false,
+  }));
+  const submissionChanged = panelState.submissionId !== submission.id;
+
+  const replacePanelUrl = useCallback(
+    (panel: ReviewerPanel) => {
+      const nextParams = new URLSearchParams(searchParamsString);
+      if (panel === "review") nextParams.delete("panel");
+      else nextParams.set("panel", panel);
+      const query = nextParams.toString();
+      replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, replace, searchParamsString],
+  );
+
+  useEffect(() => {
+    if (!submissionChanged) return;
+    setPanelState({
+      panel: "review",
+      submissionId: submission.id,
+      waitingForResetUrl: true,
+    });
+    replacePanelUrl("review");
+  }, [replacePanelUrl, submission.id, submissionChanged]);
+
+  useEffect(() => {
+    setPanelState((current) => {
+      if (current.submissionId !== submission.id) return current;
+      if (current.waitingForResetUrl) {
+        if (requestedPanel !== "review") return current;
+        return { ...current, panel: "review", waitingForResetUrl: false };
+      }
+      if (current.panel === requestedPanel) return current;
+      return { ...current, panel: requestedPanel };
+    });
+  }, [requestedPanel, submission.id]);
+
+  const selectPanel = useCallback(
+    (panel: ReviewerPanel) => {
+      setPanelState({
+        panel,
+        submissionId: submission.id,
+        waitingForResetUrl: false,
+      });
+      replacePanelUrl(panel);
+    },
+    [replacePanelUrl, submission.id],
+  );
+
+  return (
+    <StatefulReviewerWorkspace
+      activePanel={submissionChanged ? "review" : panelState.panel}
+      canReview={canReview}
+      currentUserEmail={currentUserEmail}
+      key={submission.id}
+      onPanelChange={selectPanel}
+      submission={submission}
+    />
   );
 };

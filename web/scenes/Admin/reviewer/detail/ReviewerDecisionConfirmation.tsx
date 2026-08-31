@@ -16,8 +16,10 @@ import { ReviewerTestTarget } from "./ReviewerTestTarget";
 import type { ReviewerDecision } from "./ReviewerDecisionComposer";
 
 export type ReviewerDecisionConfirmationProps = {
+  busy?: boolean;
   checklistProgress: { completed: number; total: number };
   decision: ReviewerDecision | null;
+  decisionError?: string | null;
   developerMessage: string;
   failedLabels: string[];
   onConfirm: (decision: ReviewerDecision) => void;
@@ -28,8 +30,10 @@ export type ReviewerDecisionConfirmationProps = {
 };
 
 export const ReviewerDecisionConfirmation = ({
+  busy = false,
   checklistProgress,
   decision,
+  decisionError,
   developerMessage,
   failedLabels,
   onConfirm,
@@ -50,6 +54,7 @@ export const ReviewerDecisionConfirmation = ({
   return (
     <Sheet onOpenChange={onOpenChange} open={open && Boolean(decision)}>
       <SheetContent
+        aria-busy={busy || undefined}
         className="w-full overflow-y-auto sm:max-w-lg"
         onCloseAutoFocus={(event) => {
           if (!returnFocusRef?.current) return;
@@ -101,6 +106,25 @@ export const ReviewerDecisionConfirmation = ({
             </section>
 
             <ReviewerTestTarget {...testTarget} />
+
+            {busy ? (
+              <p
+                aria-live="polite"
+                className="text-12 text-grey-500"
+                role="status"
+              >
+                Sending decision.
+              </p>
+            ) : null}
+            {decisionError ? (
+              <p
+                aria-live="assertive"
+                className="text-12 text-system-error-700"
+                role="alert"
+              >
+                {decisionError}
+              </p>
+            ) : null}
           </div>
         ) : null}
 
@@ -115,6 +139,7 @@ export const ReviewerDecisionConfirmation = ({
           </SheetClose>
           <button
             className="rounded-8 bg-grey-900 px-3 py-2.5 text-13 font-semibold text-grey-0"
+            disabled={busy}
             onClick={() => {
               if (decision) onConfirm(decision);
             }}
