@@ -119,14 +119,14 @@ describe("/_refresh-selfie-check-analytics [guards]", () => {
 
   it("returns 204 without downloading when another refresh owns the lock", async () => {
     await global.RedisClient?.set(
-      "selfie-check-analytics:{daily}:refresh-lock",
+      "selfie-check-analytics:{analytics}:refresh-lock",
       "another-owner",
     );
 
     const response = await POST(request());
 
     expect(response.status).toBe(204);
-    expect(listCsvMock).toHaveBeenCalledWith("daily/");
+    expect(listCsvMock).not.toHaveBeenCalled();
     expect(downloadCsvMock).not.toHaveBeenCalled();
   });
 });
@@ -136,7 +136,7 @@ describe("/_refresh-selfie-check-analytics [guards]", () => {
 // #region Publication
 
 describe("/_refresh-selfie-check-analytics [publication]", () => {
-  it("publishes daily before totals and stores one value per app", async () => {
+  it("publishes one consistent daily and totals pair", async () => {
     const response = await POST(request());
 
     expect(response.status).toBe(204);
@@ -146,6 +146,7 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
     const totalsMeta = await getDatasetMetadata("totals");
     expect(dailyMeta?.appCount).toBe(2);
     expect(totalsMeta?.appCount).toBe(2);
+    expect(dailyMeta?.publishedAt).toBe(totalsMeta?.publishedAt);
 
     await expect(getDailyAppSnapshot(APP_ID_A)).resolves.toEqual(
       expect.objectContaining({
@@ -192,7 +193,7 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
     await POST(request());
     const metadata = await getDatasetMetadata("daily");
     const metadataTtlMs = await global.RedisClient?.pttl(
-      "selfie-check-analytics:{daily}:metadata",
+      "selfie-check-analytics:{analytics}:metadata:daily",
     );
     const rowTtlMs = await global.RedisClient?.pttl(
       `selfie-check-analytics:daily:${metadata?.snapshotUID}:${APP_ID_A}`,
@@ -206,6 +207,7 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
     await POST(request());
     const firstMeta = await getDatasetMetadata("totals");
 
+    dailyObject = source("daily", 2);
     totalsObject = source("total", 2);
     totalsCsvValue = totalsCsv(false);
     const response = await POST(request());
@@ -217,7 +219,7 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
     await expect(getTotalsAppSnapshot(APP_ID_B)).resolves.toBeNull();
   });
 
-  it("does not publish totals when the daily CSV is invalid", async () => {
+  it("does not publish either table when the daily CSV is invalid", async () => {
     dailyCsvValue = "PARTNER_APP_ID,N_PROOFS\ninvalid,1";
 
     const response = await POST(request());
@@ -226,7 +228,7 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
     expect(response.headers.get("retry-after")).toBe("60");
     await expect(getDatasetMetadata("daily")).resolves.toBeNull();
     await expect(getDatasetMetadata("totals")).resolves.toBeNull();
-    expect(listCsvMock).toHaveBeenCalledTimes(1);
+    expect(listCsvMock).toHaveBeenCalledTimes(2);
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.stringContaining("Failed to refresh"),
       expect.objectContaining({
@@ -235,6 +237,67 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
         requestId: "request-123",
       }),
     );
+  });
+
+  it("keeps both live pointers when a newer totals table is invalid", async () => {
+    await POST(request());
+    const previousDaily = await getDatasetMetadata("daily");
+    const previousTotals = await getDatasetMetadata("totals");
+
+    dailyObject = source("daily", 2);
+    totalsObject = source("total", 2);
+    totalsCsvValue = "PARTNER_APP_ID,N_PROOFS\ninvalid,1";
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(503);
+    await expect(getDatasetMetadata("daily")).resolves.toEqual(previousDaily);
+    await expect(getDatasetMetadata("totals")).resolves.toEqual(previousTotals);
+  });
+
+  it("keeps both live pointers when a Redis row write fails", async () => {
+    await POST(request());
+    const previousDaily = await getDatasetMetadata("daily");
+    const previousTotals = await getDatasetMetadata("totals");
+    dailyObject = source("daily", 2);
+    totalsObject = source("total", 2);
+
+    const redis = global.RedisClient!;
+    const originalSet = redis.set.bind(redis);
+    const set = jest.spyOn(redis, "set").mockImplementation(((
+      key: string,
+      ...args: unknown[]
+    ) => {
+      if (key.includes(":totals:") && key.endsWith(`:${APP_ID_A}`)) {
+        return Promise.reject(new Error("Redis write failed"));
+      }
+      return Reflect.apply(originalSet, redis, [key, ...args]) as ReturnType<
+        typeof redis.set
+      >;
+    }) as typeof redis.set);
+
+    try {
+      const response = await POST(request());
+
+      expect(response.status).toBe(503);
+      await expect(getDatasetMetadata("daily")).resolves.toEqual(previousDaily);
+      await expect(getDatasetMetadata("totals")).resolves.toEqual(
+        previousTotals,
+      );
+    } finally {
+      set.mockRestore();
+    }
+  });
+
+  it("rejects daily and totals exports from different timestamps", async () => {
+    totalsObject = source("total", 2);
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(503);
+    expect(downloadCsvMock).not.toHaveBeenCalled();
+    await expect(getDatasetMetadata("daily")).resolves.toBeNull();
+    await expect(getDatasetMetadata("totals")).resolves.toBeNull();
   });
 
   it("returns 503 without hiding a Redis outage", async () => {

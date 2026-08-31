@@ -4,8 +4,8 @@ import "server-only";
  * Shared Redis storage for analytics tables. S3 is only the CSV exporter;
  * runtime eligibility is presence in the snapshot referenced by `metadata`.
  *
- *   selfie-check-analytics:{<dataset>}:metadata
- *   selfie-check-analytics:{<dataset>}:refresh-lock
+ *   selfie-check-analytics:{analytics}:metadata:<dataset>
+ *   selfie-check-analytics:{analytics}:refresh-lock
  *   selfie-check-analytics:<dataset>:<snapshotUID>:<appId>
  */
 
@@ -47,7 +47,6 @@ export class AnalyticsRedisDataError extends Error {
 }
 
 export type AnalyticsRefreshLock = Readonly<{
-  dataset: AnalyticsDataset;
   owner: string;
 }>;
 
@@ -73,10 +72,9 @@ export type AnalyticsAppSnapshot<TAppData> = Readonly<{
 }>;
 
 const metadataKey = (dataset: AnalyticsDataset) =>
-  `${KEY_PREFIX}:{${dataset}}:metadata`;
+  `${KEY_PREFIX}:{analytics}:metadata:${dataset}`;
 
-const lockKey = (dataset: AnalyticsDataset) =>
-  `${KEY_PREFIX}:{${dataset}}:refresh-lock`;
+const lockKey = () => `${KEY_PREFIX}:{analytics}:refresh-lock`;
 
 const rowKey = (
   dataset: AnalyticsDataset,
@@ -199,31 +197,32 @@ const mapInBatches = async <T>(
 
 // #region Refresh lock
 
-export const tryAcquireAnalyticsRefreshLock = async (
-  dataset: AnalyticsDataset,
-): Promise<AnalyticsRefreshLock | null> => {
-  const redis = global.RedisClient;
-  if (!redis) {
-    throw new AnalyticsRedisUnavailableError("Redis client is not configured");
-  }
+export const tryAcquireAnalyticsRefreshLock =
+  async (): Promise<AnalyticsRefreshLock | null> => {
+    const redis = global.RedisClient;
+    if (!redis) {
+      throw new AnalyticsRedisUnavailableError(
+        "Redis client is not configured",
+      );
+    }
 
-  const owner = randomUUID();
-  try {
-    const result = await redis.set(
-      lockKey(dataset),
-      owner,
-      "PX",
-      REFRESH_LOCK_TTL_MS,
-      "NX",
-    );
-    return result === "OK" ? { dataset, owner } : null;
-  } catch (error) {
-    throw new AnalyticsRedisUnavailableError(
-      "Failed to acquire the analytics refresh lock",
-      { cause: error },
-    );
-  }
-};
+    const owner = randomUUID();
+    try {
+      const result = await redis.set(
+        lockKey(),
+        owner,
+        "PX",
+        REFRESH_LOCK_TTL_MS,
+        "NX",
+      );
+      return result === "OK" ? { owner } : null;
+    } catch (error) {
+      throw new AnalyticsRedisUnavailableError(
+        "Failed to acquire the analytics refresh lock",
+        { cause: error },
+      );
+    }
+  };
 
 export const releaseAnalyticsRefreshLock = async (
   lock: AnalyticsRefreshLock,
@@ -232,7 +231,6 @@ export const releaseAnalyticsRefreshLock = async (
   if (!redis) {
     logger.warn("Could not release the analytics refresh lock", {
       dependency: "redis",
-      dataset: lock.dataset,
       failureClass: "RedisClientNotConfigured",
     });
     return;
@@ -242,16 +240,15 @@ export const releaseAnalyticsRefreshLock = async (
     await redis.eval(
       `if redis.call("get", KEYS[1]) == ARGV[1] then
          return redis.call("del", KEYS[1])
-       end
+      end
        return 0`,
       1,
-      lockKey(lock.dataset),
+      lockKey(),
       lock.owner,
     );
   } catch (error) {
     logger.warn("Failed to release the analytics refresh lock", {
       dependency: "redis",
-      dataset: lock.dataset,
       failureClass: error instanceof Error ? error.name : "UnknownRedisError",
       error,
     });
@@ -367,101 +364,113 @@ export const filterAppsWithTotalsData = async (
 
 // #region Publication
 
-/**
- * Writes every record under a content-addressed snapshot UID, then atomically
- * points `meta` at that snapshot. Callers must hold the refresh lock.
- * Old snapshot keys are left to expire; they are unreachable once `meta`
- * moves, so they cannot grant eligibility.
- */
-export const publishAnalyticsSnapshot = async (params: {
-  dataset: AnalyticsDataset;
-  lock: AnalyticsRefreshLock;
+type AnalyticsDatasetPublication = Readonly<{
   records: ReadonlyMap<string, unknown>;
   source: TableObjectDescriptor;
+}>;
+
+const buildMetadata = (
+  dataset: AnalyticsDataset,
+  publication: AnalyticsDatasetPublication,
+  publishedAt: string,
+): AnalyticsDatasetMetadata => ({
+  dataset,
+  snapshotUID: createSnapshotUID(publication.source.identity),
+  appCount: publication.records.size,
+  publishedAt,
+  lastCheckedAt: publishedAt,
+  source: {
+    etag: publication.source.etag,
+    identity: publication.source.identity,
+    key: publication.source.key,
+    dataAsOf: publication.source.dataAsOf.toISOString(),
+    lastModified: publication.source.lastModified.toISOString(),
+    sizeBytes: publication.source.sizeBytes,
+  },
+});
+
+const isIncomingSourceOlder = (
+  incoming: TableObjectDescriptor,
+  existing: AnalyticsDatasetMetadata,
+): boolean =>
+  incoming.dataAsOf.toISOString() < existing.source.dataAsOf ||
+  (incoming.dataAsOf.toISOString() === existing.source.dataAsOf &&
+    incoming.lastModified.toISOString() < existing.source.lastModified);
+
+/**
+ * Stages both tables, then atomically moves both live metadata pointers. A
+ * failed or partial write therefore leaves the complete previous generation
+ * visible. Unreferenced rows expire automatically.
+ */
+export const publishAnalyticsSnapshots = async (params: {
+  lock: AnalyticsRefreshLock;
+  daily: AnalyticsDatasetPublication;
+  totals: AnalyticsDatasetPublication;
 }): Promise<void> => {
-  const { dataset, lock, records, source } = params;
+  const { lock, daily, totals } = params;
+  const publications = [
+    { dataset: "daily", ...daily },
+    { dataset: "totals", ...totals },
+  ] as const;
 
-  if (records.size === 0) {
-    throw new AnalyticsRedisDataError(
-      "Refusing to publish an empty analytics snapshot",
-    );
-  }
-
-  const redis = requireRedis();
-  const snapshotUID = createSnapshotUID(source.identity);
-
-  let existingRaw: string | null;
-  try {
-    existingRaw = await redis.get(metadataKey(dataset));
-  } catch (error) {
-    throw new AnalyticsRedisUnavailableError(
-      "Failed to read existing analytics metadata before publication",
-      { cause: error },
-    );
-  }
-  const existing = existingRaw
-    ? parseDatasetMetadata(existingRaw, dataset)
-    : null;
-  if (existing && existing.snapshotUID !== snapshotUID) {
-    const incomingIsNewer =
-      source.dataAsOf.toISOString() > existing.source.dataAsOf ||
-      (source.dataAsOf.toISOString() === existing.source.dataAsOf &&
-        source.lastModified.toISOString() > existing.source.lastModified);
-    if (!incomingIsNewer) {
-      logger.warn("Skipped publishing a stale analytics snapshot", {
-        dependency: "redis",
-        dataset,
-        incomingIdentity: source.identity,
-        currentIdentity: existing.source.identity,
-      });
-      return;
+  for (const { dataset, records } of publications) {
+    if (records.size === 0) {
+      throw new AnalyticsRedisDataError(
+        `Refusing to publish an empty ${dataset} analytics snapshot`,
+      );
     }
   }
 
-  await mapInBatches(
-    Array.from(records.entries()),
-    REDIS_CONCURRENCY,
-    async ([appId, record]) => {
-      try {
-        const result = await redis.set(
-          rowKey(dataset, snapshotUID, appId),
-          JSON.stringify(record),
-          "EX",
-          SNAPSHOT_TTL_SECONDS,
-        );
-        if (result !== "OK") {
-          throw new AnalyticsRedisUnavailableError(
-            "Redis rejected an analytics record write",
-          );
-        }
-      } catch (error) {
-        if (error instanceof AnalyticsRedisUnavailableError) throw error;
+  const existing = await Promise.all(
+    publications.map(({ dataset }) => getDatasetMetadata(dataset)),
+  );
+  for (const [index, publication] of publications.entries()) {
+    const current = existing[index];
+    if (current && isIncomingSourceOlder(publication.source, current)) {
+      throw new AnalyticsRedisDataError(
+        `Refusing to replace ${publication.dataset} analytics with an older snapshot`,
+      );
+    }
+  }
+
+  const redis = requireRedis();
+  const records = publications.flatMap(({ dataset, source, records }) => {
+    const snapshotUID = createSnapshotUID(source.identity);
+    return Array.from(records.entries(), ([appId, record]) => ({
+      appId,
+      dataset,
+      record,
+      snapshotUID,
+    }));
+  });
+
+  await mapInBatches(records, REDIS_CONCURRENCY, async (record) => {
+    try {
+      const result = await redis.set(
+        rowKey(record.dataset, record.snapshotUID, record.appId),
+        JSON.stringify(record.record),
+        "EX",
+        SNAPSHOT_TTL_SECONDS,
+      );
+      if (result !== "OK") {
         throw new AnalyticsRedisUnavailableError(
-          "Failed to write an analytics record",
-          { cause: error },
+          "Redis rejected an analytics record write",
         );
       }
-    },
-  );
+    } catch (error) {
+      if (error instanceof AnalyticsRedisUnavailableError) throw error;
+      throw new AnalyticsRedisUnavailableError(
+        `Failed to write a ${record.dataset} analytics record`,
+        { cause: error },
+      );
+    }
+  });
 
-  const nowIso = new Date().toISOString();
-  const meta: AnalyticsDatasetMetadata = {
-    dataset,
-    snapshotUID,
-    appCount: records.size,
-    publishedAt: nowIso,
-    lastCheckedAt: nowIso,
-    source: {
-      etag: source.etag,
-      identity: source.identity,
-      key: source.key,
-      dataAsOf: source.dataAsOf.toISOString(),
-      lastModified: source.lastModified.toISOString(),
-      sizeBytes: source.sizeBytes,
-    },
-  };
+  const publishedAt = new Date().toISOString();
+  const dailyMetadata = buildMetadata("daily", daily, publishedAt);
+  const totalsMetadata = buildMetadata("totals", totals, publishedAt);
 
-  // Same-slot EVAL: do not expose this snapshot unless we still own the lock.
+  // All three keys share the {analytics} Redis Cluster hash slot.
   let committed: unknown;
   try {
     committed = await redis.eval(
@@ -469,12 +478,15 @@ export const publishAnalyticsSnapshot = async (params: {
          return 0
        end
        redis.call("set", KEYS[2], ARGV[2])
+       redis.call("set", KEYS[3], ARGV[3])
        return 1`,
-      2,
-      lockKey(dataset),
-      metadataKey(dataset),
+      3,
+      lockKey(),
+      metadataKey("daily"),
+      metadataKey("totals"),
       lock.owner,
-      JSON.stringify(meta),
+      JSON.stringify(dailyMetadata),
+      JSON.stringify(totalsMetadata),
     );
   } catch (error) {
     throw new AnalyticsRedisUnavailableError(
@@ -484,7 +496,7 @@ export const publishAnalyticsSnapshot = async (params: {
   }
   if (committed !== 1) {
     throw new AnalyticsRedisUnavailableError(
-      "Lost the analytics refresh lock before publishing the snapshot",
+      "Lost the analytics refresh lock before publishing the snapshots",
     );
   }
 };

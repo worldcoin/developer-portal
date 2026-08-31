@@ -1,68 +1,46 @@
 import "server-only";
 
+import { parseDailyTable, parseTotalsTable } from "./format-tables";
 import {
-  parseDailyTable,
-  parseTotalsTable,
-  type ParsedTable,
-} from "./format-tables";
-import {
-  publishAnalyticsSnapshot,
+  publishAnalyticsSnapshots,
   releaseAnalyticsRefreshLock,
   tryAcquireAnalyticsRefreshLock,
-  type AnalyticsDataset,
 } from "./redis-store";
 import { downloadCsv, listCsv } from "./s3";
 
-type RefreshResult = "published" | "busy";
-
-type DatasetRefreshConfig<TAppData> = Readonly<{
-  dataset: AnalyticsDataset;
-  parseCsv: (csv: string) => ParsedTable<TAppData>;
-  prefix: string;
-}>;
-
-async function refreshDataset<TAppData>({
-  dataset,
-  parseCsv,
-  prefix,
-}: DatasetRefreshConfig<TAppData>): Promise<RefreshResult> {
-  const source = await listCsv(prefix);
-  const lock = await tryAcquireAnalyticsRefreshLock(dataset);
-  if (!lock) return "busy";
-
-  try {
-    const downloaded = await downloadCsv(source);
-    const parsedTable = parseCsv(downloaded.csv);
-    await publishAnalyticsSnapshot({
-      dataset,
-      lock,
-      records: parsedTable.records,
-      source: downloaded.object,
-    });
-    return "published";
-  } finally {
-    await releaseAnalyticsRefreshLock(lock);
-  }
-}
-
-/**
- * Refreshes daily first because totals-row presence is the runtime eligibility
- * gate. A failed daily refresh must not enable an app with incomplete data.
- */
+/** Downloads, validates, and atomically publishes one matching table pair. */
 export async function refreshSelfieCheckAnalyticsRedis(): Promise<
   "complete" | "busy"
 > {
-  const daily = await refreshDataset({
-    dataset: "daily",
-    parseCsv: parseDailyTable,
-    prefix: process.env.SELFIE_CHECK_ANALYTICS_DAILY_PREFIX ?? "daily/",
-  });
-  if (daily === "busy") return "busy";
+  const lock = await tryAcquireAnalyticsRefreshLock();
+  if (!lock) return "busy";
 
-  const totals = await refreshDataset({
-    dataset: "totals",
-    parseCsv: parseTotalsTable,
-    prefix: process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX ?? "total/",
-  });
-  return totals === "busy" ? "busy" : "complete";
+  try {
+    const [dailySource, totalsSource] = await Promise.all([
+      listCsv(process.env.SELFIE_CHECK_ANALYTICS_DAILY_PREFIX ?? "daily/"),
+      listCsv(process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX ?? "total/"),
+    ]);
+
+    if (dailySource.dataAsOf.getTime() !== totalsSource.dataAsOf.getTime()) {
+      throw new Error(
+        "Daily and totals analytics exports have different timestamps",
+      );
+    }
+
+    const [dailyDownload, totalsDownload] = await Promise.all([
+      downloadCsv(dailySource),
+      downloadCsv(totalsSource),
+    ]);
+    const daily = parseDailyTable(dailyDownload.csv);
+    const totals = parseTotalsTable(totalsDownload.csv);
+
+    await publishAnalyticsSnapshots({
+      lock,
+      daily: { records: daily.records, source: dailyDownload.object },
+      totals: { records: totals.records, source: totalsDownload.object },
+    });
+    return "complete";
+  } finally {
+    await releaseAnalyticsRefreshLock(lock);
+  }
 }
