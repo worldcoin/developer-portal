@@ -93,6 +93,23 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+// #region Sidebar banner layout
+describe("SandboxButton [sidebar banner layout]", () => {
+  it("keeps both labels on one line inside the narrow sidebar", () => {
+    render(<SandboxButton />);
+
+    const button = screen.getByRole("button", { name: /World ID Sandbox/ });
+    expect(button).toHaveClass("gap-x-2", "px-2");
+    expect(screen.getByText("World ID Sandbox")).toHaveClass(
+      "whitespace-nowrap",
+    );
+    expect(screen.getByText("Install the test build")).toHaveClass(
+      "whitespace-nowrap",
+    );
+  });
+});
+// #endregion
+
 // #region Persistent request confirmation
 describe("SandboxButton [android request confirmation]", () => {
   it("does not present team-scoped iOS enrollment without an active team", async () => {
