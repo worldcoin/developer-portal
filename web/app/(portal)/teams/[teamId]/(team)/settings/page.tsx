@@ -1,10 +1,6 @@
 import { generateMetaTitle } from "@/lib/genarate-title";
-import { logger } from "@/lib/logger";
-import { getIsUserAllowedToReadApp } from "@/lib/permissions";
-import { getPortalAppContext } from "@/lib/team-settings";
 import { TeamSettingsPage } from "@/scenes/PortalV3/Teams/TeamId/Team/Settings/page";
-import { AnalyticsAppEligibility } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
-import { getAnalyticsSidebarEligibility } from "@/scenes/PortalV3/layout/server/get-analytics-sidebar-eligibility";
+import { TeamSettingsAnalyticsEligibility } from "@/scenes/PortalV3/layout/server/team-settings-analytics-eligibility";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -31,39 +27,12 @@ export default async function Page(
       props.params ?? Promise.resolve({}),
       props.searchParams ?? Promise.resolve({}),
     ]);
-  // AppIdLayout is not mounted on team settings. Recover its exact app context
-  // so copied or refreshed return_to links can restore the sidebar verdict.
-  const appContext = params.teamId
-    ? getPortalAppContext(searchParams.return_to, params.teamId)
-    : null;
-  let analyticsEnabled = false;
-  if (appContext) {
-    try {
-      analyticsEnabled =
-        (await getIsUserAllowedToReadApp(appContext.appId)) &&
-        (await getAnalyticsSidebarEligibility(appContext.appId));
-    } catch (error) {
-      logger.warn(
-        "Failed to validate analytics sidebar app from team settings",
-        {
-          appId: appContext.appId,
-          dependency: "hasura",
-          failureClass:
-            error instanceof Error ? error.name : "UnknownPermissionError",
-          error,
-        },
-      );
-    }
-  }
-
   return (
     <>
-      {appContext ? (
-        <AnalyticsAppEligibility
-          appId={appContext.appId}
-          enabled={analyticsEnabled}
-        />
-      ) : null}
+      <TeamSettingsAnalyticsEligibility
+        teamId={params.teamId}
+        returnTo={searchParams.return_to}
+      />
       <TeamSettingsPage requestedTab={searchParams.tab} />
     </>
   );

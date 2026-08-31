@@ -38,26 +38,18 @@ jest.mock("@/scenes/PortalV3/layout/Shell/SidebarNav", () => ({
   ),
 }));
 
-jest.mock("@/scenes/PortalV3/Teams/TeamId/Team/Settings/page", () => ({
-  TeamSettingsPage: ({ requestedTab }: { requestedTab?: string }) => (
-    <div data-testid="team-settings" data-tab={requestedTab} />
-  ),
-}));
 // #endregion
 
-import RoutePage from "../../app/(portal)/teams/[teamId]/(team)/settings/page";
+import { TeamSettingsAnalyticsEligibility } from "@/scenes/PortalV3/layout/server/team-settings-analytics-eligibility";
 
 // #region Test Data
 const teamId = "team_1";
 const appId = "app_9cdd0a714aec9ed17dca660bc9ffe72a";
-const renderPage = async (returnTo?: string) =>
+const renderEligibility = async (returnTo?: string) =>
   render(
-    await RoutePage({
-      params: Promise.resolve({ teamId }),
-      searchParams: Promise.resolve({
-        tab: "members",
-        return_to: returnTo,
-      }),
+    await TeamSettingsAnalyticsEligibility({
+      teamId,
+      returnTo,
     }),
   );
 // #endregion
@@ -70,7 +62,7 @@ beforeEach(() => {
 
 // #region Analytics return_to eligibility
 it("signals analytics on a direct team-settings load for an eligible readable app", async () => {
-  await renderPage(`/teams/${teamId}/apps/${appId}/configuration`);
+  await renderEligibility(`/teams/${teamId}/apps/${appId}/configuration`);
 
   expect(getIsUserAllowedToReadApp).toHaveBeenCalledWith(appId);
   expect(getAnalyticsSidebarEligibility).toHaveBeenCalledWith(appId);
@@ -78,14 +70,10 @@ it("signals analytics on a direct team-settings load for an eligible readable ap
     "data-enabled",
     "true",
   );
-  expect(screen.getByTestId("team-settings")).toHaveAttribute(
-    "data-tab",
-    "members",
-  );
 });
 
 it("does not trust a return_to app from another team", async () => {
-  await renderPage(`/teams/team_2/apps/${appId}/configuration`);
+  await renderEligibility(`/teams/team_2/apps/${appId}/configuration`);
 
   expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
   expect(getAnalyticsSidebarEligibility).not.toHaveBeenCalled();
@@ -95,7 +83,7 @@ it("does not trust a return_to app from another team", async () => {
 it("does not check eligibility when the user cannot read the return_to app", async () => {
   getIsUserAllowedToReadApp.mockResolvedValue(false);
 
-  await renderPage(`/teams/${teamId}/apps/${appId}/configuration`);
+  await renderEligibility(`/teams/${teamId}/apps/${appId}/configuration`);
 
   expect(getAnalyticsSidebarEligibility).not.toHaveBeenCalled();
   expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
@@ -108,9 +96,8 @@ it("keeps team settings available when return_to app validation fails", async ()
   const error = new Error("Hasura unavailable");
   getIsUserAllowedToReadApp.mockRejectedValue(error);
 
-  await renderPage(`/teams/${teamId}/apps/${appId}/configuration`);
+  await renderEligibility(`/teams/${teamId}/apps/${appId}/configuration`);
 
-  expect(screen.getByTestId("team-settings")).toBeInTheDocument();
   expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
     "data-enabled",
     "false",
