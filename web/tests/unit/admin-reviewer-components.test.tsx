@@ -20,7 +20,10 @@ import { ReviewerChecklist } from "@/scenes/Admin/reviewer/detail/ReviewerCheckl
 import { ReviewerTabs } from "@/scenes/Admin/reviewer/detail/ReviewerTabs";
 import { ReviewerTestTarget } from "@/scenes/Admin/reviewer/detail/ReviewerTestTarget";
 import { ReviewerWorkspace } from "@/scenes/Admin/reviewer/detail/ReviewerWorkspace";
-import { REVIEW_CHECKLIST_VERSION } from "@/scenes/Admin/reviewer/checklist";
+import {
+  LEGACY_REVIEW_CHECKLIST_VERSION,
+  REVIEW_CHECKLIST_VERSION,
+} from "@/scenes/Admin/reviewer/checklist";
 import { parseReviewerQueueFilters } from "@/scenes/Admin/reviewer/queue-filters";
 import type { ReviewerSubmissionDetail } from "@/scenes/Admin/reviewer/types";
 import {
@@ -737,6 +740,119 @@ const detailFixture: ReviewerSubmissionDetail = {
 };
 
 describe("review detail workspace", () => {
+  it("serializes rapid checklist autosaves with the latest workflow version", async () => {
+    const claimToken = "00000000-0000-4000-8000-000000000099";
+    const claimedSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      checklist: {
+        ...detailFixture.checklist,
+        definitionSnapshot: { mode: "mini-app", items: [] },
+      },
+      checklistVersion: REVIEW_CHECKLIST_VERSION,
+      status: "in_review",
+      reviewVersion: 7,
+      claimedByEmail: "reviewer@example.com",
+      claimExpiresAt: "2999-01-01T00:00:00.000Z",
+    };
+    window.sessionStorage.setItem(
+      `admin-reviewer-claim:${detailFixture.id}`,
+      JSON.stringify({
+        claimToken,
+        claimExpiresAt: claimedSubmission.claimExpiresAt,
+        reviewVersion: 7,
+      }),
+    );
+
+    let resolveFirst!: (response: Response) => void;
+    let resolveSecond!: (response: Response) => void;
+    const firstResponse = new Promise<Response>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const secondResponse = new Promise<Response>((resolve) => {
+      resolveSecond = resolve;
+    });
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockReturnValueOnce(firstResponse)
+      .mockReturnValueOnce(secondResponse);
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={claimedSubmission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent.change(screen.getByLabelText("Developer message"), {
+      target: { value: "Please correct this." },
+    });
+    expect(
+      screen.getByRole("button", { name: "Request changes" }),
+    ).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "first edit" },
+    });
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "newest edit" },
+    });
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(
+      screen.getByRole("button", { name: "Request changes" }),
+    ).toBeDisabled();
+    expect(
+      JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string),
+    ).toEqual({
+      checklist: { internalNotes: "first edit", items: [] },
+      checklistVersion: REVIEW_CHECKLIST_VERSION,
+      claimToken,
+      expectedReviewVersion: 7,
+    });
+
+    resolveFirst({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        submission: {
+          status: "in_review",
+          reviewVersion: 8,
+          claimToken,
+          claimExpiresAt: "2999-01-01T00:00:00.000Z",
+        },
+      }),
+    } as Response);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(
+      JSON.parse((fetchMock.mock.calls[1][1] as RequestInit).body as string),
+    ).toEqual({
+      checklist: { internalNotes: "newest edit", items: [] },
+      checklistVersion: REVIEW_CHECKLIST_VERSION,
+      claimToken,
+      expectedReviewVersion: 8,
+    });
+
+    resolveSecond({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        submission: {
+          status: "in_review",
+          reviewVersion: 9,
+          claimToken,
+          claimExpiresAt: "2999-01-01T00:00:00.000Z",
+        },
+      }),
+    } as Response);
+    await waitFor(() =>
+      expect(
+        screen.queryByText("Saving checklist changes."),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
   it("requires a versioned checklist snapshot before either decision", async () => {
     const claimToken = "00000000-0000-4000-8000-000000000099";
     const fetchMock = jest
@@ -800,10 +916,11 @@ describe("review detail workspace", () => {
     ).toBeDisabled();
     expect(screen.getByRole("button", { name: "Approve" })).toBeDisabled();
     expect(
-      screen.getByRole("button", { name: "Save checklist" }),
-    ).toBeEnabled();
-
-    fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
+      screen.queryByRole("button", { name: "Save checklist" }),
+    ).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "Reviewed before deciding." },
+    });
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
         expect.stringContaining("/checklist"),
@@ -943,12 +1060,8 @@ describe("review detail workspace", () => {
     fireEvent.change(screen.getByLabelText("Override reason"), {
       target: { value: "Partner exception approved by policy owner." },
     });
-    expect(
-      screen.getByText(/save checklist changes before deciding/i),
-    ).toBeInTheDocument();
     expect(approve).toBeDisabled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
         expect.stringContaining("/checklist"),
@@ -1206,7 +1319,7 @@ describe("review detail workspace", () => {
     expect(screen.getByRole("button", { name: "Claim review" })).toBeDisabled();
   });
 
-  it("preserves unsaved checklist work across a server prop refresh", async () => {
+  it("preserves an active checklist autosave across a server prop refresh", async () => {
     const claimToken = "00000000-0000-4000-8000-000000000099";
     const claimedSubmission: ReviewerSubmissionDetail = {
       ...detailFixture,
@@ -1223,6 +1336,7 @@ describe("review detail workspace", () => {
         reviewVersion: 7,
       }),
     );
+    jest.spyOn(global, "fetch").mockReturnValue(new Promise(() => undefined));
 
     const { rerender } = render(
       <ReviewerWorkspace
@@ -1263,9 +1377,7 @@ describe("review detail workspace", () => {
     expect(screen.getByLabelText("Internal notes")).toHaveValue(
       "Unsaved reviewer investigation",
     );
-    expect(
-      screen.getByText(/save checklist changes before deciding/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/saving checklist changes/i)).toBeInTheDocument();
   });
 
   it("keeps the five-minute heartbeat cadence across checklist saves", async () => {
@@ -1341,11 +1453,10 @@ describe("review detail workspace", () => {
       await act(async () => {
         await jest.advanceTimersByTimeAsync(4 * 60 * 1000);
       });
-      fireEvent.change(screen.getByLabelText("Internal notes"), {
-        target: { value: "Saved before the lease heartbeat" },
-      });
       await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
+        fireEvent.change(screen.getByLabelText("Internal notes"), {
+          target: { value: "Saved before the lease heartbeat" },
+        });
         await Promise.resolve();
         await Promise.resolve();
       });
@@ -1367,6 +1478,273 @@ describe("review detail workspace", () => {
       rendered.unmount();
       jest.useRealTimers();
     }
+  });
+
+  it("keeps heartbeat writes behind an active checklist autosave", async () => {
+    const claimToken = "00000000-0000-4000-8000-000000000099";
+    const claimedSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      status: "in_review",
+      reviewVersion: 7,
+      claimedByEmail: "reviewer@example.com",
+      claimExpiresAt: "2999-01-01T00:00:00.000Z",
+    };
+    window.sessionStorage.setItem(
+      `admin-reviewer-claim:${detailFixture.id}`,
+      JSON.stringify({
+        claimToken,
+        claimExpiresAt: claimedSubmission.claimExpiresAt,
+        reviewVersion: 7,
+      }),
+    );
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+
+    let resolveChecklist!: (response: Response) => void;
+    const checklistResponse = new Promise<Response>((resolve) => {
+      resolveChecklist = resolve;
+    });
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockReturnValueOnce(checklistResponse)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          submission: {
+            status: "in_review",
+            reviewVersion: 9,
+            claimToken,
+            claimExpiresAt: "2999-01-01T00:00:00.000Z",
+          },
+        }),
+      } as Response);
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={claimedSubmission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "save in flight" },
+    });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    fireEvent(document, new Event("visibilitychange"));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    resolveChecklist({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        submission: {
+          status: "in_review",
+          reviewVersion: 8,
+          claimToken,
+          claimExpiresAt: "2999-01-01T00:00:00.000Z",
+        },
+      }),
+    } as Response);
+    await waitFor(() =>
+      expect(
+        screen.queryByText("Saving checklist changes."),
+      ).not.toBeInTheDocument(),
+    );
+
+    fireEvent(document, new Event("visibilitychange"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      expect.stringContaining("/heartbeat"),
+      expect.objectContaining({
+        body: JSON.stringify({
+          claimToken,
+          expectedReviewVersion: 8,
+        }),
+      }),
+    );
+  });
+
+  it("waits for heartbeat before reading the current checklist workflow context", async () => {
+    const claimToken = "00000000-0000-4000-8000-000000000099";
+    const claimedSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      checklistVersion: LEGACY_REVIEW_CHECKLIST_VERSION,
+      status: "in_review",
+      reviewVersion: 7,
+      claimedByEmail: "reviewer@example.com",
+      claimExpiresAt: "2999-01-01T00:00:00.000Z",
+    };
+    window.sessionStorage.setItem(
+      `admin-reviewer-claim:${detailFixture.id}`,
+      JSON.stringify({
+        claimToken,
+        claimExpiresAt: claimedSubmission.claimExpiresAt,
+        reviewVersion: 7,
+      }),
+    );
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+
+    let resolveHeartbeat!: (response: Response) => void;
+    const heartbeatResponse = new Promise<Response>((resolve) => {
+      resolveHeartbeat = resolve;
+    });
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockReturnValueOnce(heartbeatResponse)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          submission: {
+            status: "in_review",
+            reviewVersion: 9,
+            claimToken,
+            claimExpiresAt: "2999-01-01T00:00:00.000Z",
+          },
+        }),
+      } as Response);
+
+    const { rerender } = render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={claimedSubmission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent(document, new Event("visibilitychange"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "queued behind heartbeat" },
+    });
+    rerender(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={{
+          ...claimedSubmission,
+          checklistVersion: REVIEW_CHECKLIST_VERSION,
+        }}
+      />,
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    resolveHeartbeat({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        submission: {
+          status: "in_review",
+          reviewVersion: 8,
+          claimToken,
+          claimExpiresAt: "2999-01-01T00:00:00.000Z",
+        },
+      }),
+    } as Response);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(String(fetchMock.mock.calls[1][0])).toContain("/checklist");
+    expect(
+      JSON.parse((fetchMock.mock.calls[1][1] as RequestInit).body as string),
+    ).toEqual({
+      checklist: {
+        internalNotes: "queued behind heartbeat",
+        items: [],
+      },
+      checklistVersion: REVIEW_CHECKLIST_VERSION,
+      claimToken,
+      expectedReviewVersion: 8,
+    });
+  });
+
+  it("ignores an autosave response after switching submissions", async () => {
+    const claimToken = "00000000-0000-4000-8000-000000000099";
+    const claimedSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      status: "in_review",
+      reviewVersion: 7,
+      claimedByEmail: "reviewer@example.com",
+      claimExpiresAt: "2999-01-01T00:00:00.000Z",
+    };
+    window.sessionStorage.setItem(
+      `admin-reviewer-claim:${detailFixture.id}`,
+      JSON.stringify({
+        claimToken,
+        claimExpiresAt: claimedSubmission.claimExpiresAt,
+        reviewVersion: 7,
+      }),
+    );
+
+    let resolveChecklist!: (response: Response) => void;
+    const fetchMock = jest.spyOn(global, "fetch").mockReturnValue(
+      new Promise<Response>((resolve) => {
+        resolveChecklist = resolve;
+      }),
+    );
+    const { rerender } = render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={claimedSubmission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "old submission edit" },
+    });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    const nextSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      id: "00000000-0000-4000-8000-000000000002",
+      checklist: { internalNotes: "new submission", items: [] },
+    };
+    rerender(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={nextSubmission}
+      />,
+    );
+    expect(screen.getByLabelText("Internal notes")).toHaveValue(
+      "new submission",
+    );
+
+    resolveChecklist({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        submission: {
+          status: "approved",
+          reviewVersion: 99,
+          claimToken: null,
+          claimExpiresAt: null,
+        },
+      }),
+    } as Response);
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(screen.getByText("pending")).toBeInTheDocument();
+    expect(screen.queryByText("approved")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Internal notes")).toHaveValue(
+      "new submission",
+    );
   });
 });
 

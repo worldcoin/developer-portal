@@ -50,6 +50,10 @@ import { POST as claim } from "@/api/admin/reviewer/submissions/[id]/claim";
 import { POST as heartbeat } from "@/api/admin/reviewer/submissions/[id]/heartbeat";
 import { POST as release } from "@/api/admin/reviewer/submissions/[id]/release";
 import { PUT as saveChecklist } from "@/api/admin/reviewer/submissions/[id]/checklist";
+import {
+  LEGACY_REVIEW_CHECKLIST_VERSION,
+  REVIEW_CHECKLIST_VERSION,
+} from "@/scenes/Admin/reviewer/checklist";
 
 // #region Test Data
 const REVIEW_ID = "11111111-1111-4111-8111-111111111111";
@@ -138,13 +142,13 @@ beforeEach(() => {
   SaveReviewChecklist.mockResolvedValue({
     reviewer_save_app_review_checklist: [
       workflowRow({
-        checklist_version: "2026-08-27.1",
+        checklist_version: REVIEW_CHECKLIST_VERSION,
         checklist: {
           items: [
             {
-              id: "shared.privacy-legal",
+              id: "group.listing-localization",
               status: "pass",
-              evidence: "Privacy policy is linked.",
+              evidence: "Listing details are accurate.",
             },
           ],
           internalNotes: "Checked the current draft.",
@@ -689,16 +693,16 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
   const checklistBody = {
     claimToken: CLAIM_TOKEN,
     expectedReviewVersion: 7,
-    checklistVersion: "2026-08-27.1",
+    checklistVersion: REVIEW_CHECKLIST_VERSION,
     checklist: {
       items: [
         {
-          id: "shared.privacy-legal",
+          id: "group.listing-localization",
           status: "pass",
-          evidence: "Privacy policy is linked.",
+          evidence: "Listing details are accurate.",
         },
         {
-          id: "mini.smart-contracts",
+          id: "group.integration-reliability",
           status: "na",
           evidence: "No payment flow exists.",
           applicabilityNote: "The app has no purchasable content.",
@@ -706,6 +710,22 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
       ],
       internalNotes: "Checked the current draft.",
     },
+  };
+  const legacyChecklist = {
+    items: [
+      {
+        id: "shared.privacy-legal",
+        status: "pass",
+        evidence: "Privacy policy is linked.",
+      },
+      {
+        id: "mini.smart-contracts",
+        status: "na",
+        evidence: "No payment flow exists.",
+        applicabilityNote: "The app has no purchasable content.",
+      },
+    ],
+    internalNotes: "Checked the legacy draft.",
   };
 
   it("saves versioned item results, evidence, applicability, and internal notes", async () => {
@@ -725,25 +745,26 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
         submission_id: REVIEW_ID,
         claim_token: CLAIM_TOKEN,
         expected_review_version: 7,
-        checklist_version: "2026-08-27.1",
+        checklist_version: REVIEW_CHECKLIST_VERSION,
         checklist: {
           ...checklistBody.checklist,
           definitionSnapshot: {
             mode: "mini-app",
             items: expect.arrayContaining([
               expect.objectContaining({
-                id: "shared.metadata-accurate",
-                label: "Accurate metadata",
+                id: "group.listing-localization",
+                label: "Listing and localization",
                 description: expect.any(String),
-                sourceUrl: "https://docs.world.org/mini-apps/guidelines/policy",
+                sourceUrl:
+                  "https://docs.world.org/mini-apps/guidelines/app-guidelines",
                 conditional: false,
               }),
               expect.objectContaining({
-                id: "mini.smart-contracts",
-                label: "Smart contracts",
+                id: "group.integration-reliability",
+                label: "Integration and reliability",
                 description: expect.any(String),
-                sourceUrl: "https://docs.world.org/mini-apps/guidelines/policy",
-                conditional: true,
+                sourceUrl: "https://docs.world.org/world-id",
+                conditional: false,
               }),
             ]),
           },
@@ -762,6 +783,36 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
 
     expect(response.status).toBe(400);
     expect(SaveReviewChecklist).not.toHaveBeenCalled();
+  });
+
+  it("continues a persisted legacy checklist with its legacy version", async () => {
+    FetchReviewChecklistContext.mockResolvedValueOnce({
+      app_review_submission_by_pk: {
+        id: REVIEW_ID,
+        app_mode: "mini-app",
+        checklist_version: LEGACY_REVIEW_CHECKLIST_VERSION,
+      },
+    });
+    SaveReviewChecklist.mockResolvedValueOnce({
+      reviewer_save_app_review_checklist: [
+        workflowRow({
+          checklist_version: LEGACY_REVIEW_CHECKLIST_VERSION,
+        }),
+      ],
+    });
+
+    const response = await invoke(saveChecklist, "checklist", "PUT", {
+      ...checklistBody,
+      checklist: legacyChecklist,
+      checklistVersion: LEGACY_REVIEW_CHECKLIST_VERSION,
+    });
+
+    expect(response.status).toBe(200);
+    expect(SaveReviewChecklist).toHaveBeenCalledWith(
+      expect.objectContaining({
+        checklist_version: LEGACY_REVIEW_CHECKLIST_VERSION,
+      }),
+    );
   });
 
   it("rejects item IDs from another app mode", async () => {
@@ -845,22 +896,6 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
       },
     ],
     [
-      "N/A without applicability note",
-      {
-        ...checklistBody,
-        checklist: {
-          ...checklistBody.checklist,
-          items: [
-            {
-              id: "mini.smart-contracts",
-              status: "na",
-              evidence: "none",
-            },
-          ],
-        },
-      },
-    ],
-    [
       "unknown nested field",
       {
         ...checklistBody,
@@ -906,6 +941,33 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
     ],
   ])("returns 400 for %s", async (_label, body) => {
     const response = await invoke(saveChecklist, "checklist", "PUT", body);
+
+    expect(response.status).toBe(400);
+    expect(SaveReviewChecklist).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for a legacy N/A result without an applicability note", async () => {
+    FetchReviewChecklistContext.mockResolvedValueOnce({
+      app_review_submission_by_pk: {
+        id: REVIEW_ID,
+        app_mode: "mini-app",
+        checklist_version: LEGACY_REVIEW_CHECKLIST_VERSION,
+      },
+    });
+    const response = await invoke(saveChecklist, "checklist", "PUT", {
+      ...checklistBody,
+      checklist: {
+        ...legacyChecklist,
+        items: [
+          {
+            id: "mini.smart-contracts",
+            status: "na",
+            evidence: "none",
+          },
+        ],
+      },
+      checklistVersion: LEGACY_REVIEW_CHECKLIST_VERSION,
+    });
 
     expect(response.status).toBe(400);
     expect(SaveReviewChecklist).not.toHaveBeenCalled();
@@ -1005,7 +1067,7 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
     FetchReviewWorkflowOutcome.mockImplementationOnce(async () => ({
       app_review_submission_by_pk: {
         ...workflowRow({
-          checklist_version: "2026-08-27.1",
+          checklist_version: REVIEW_CHECKLIST_VERSION,
           checklist: SaveReviewChecklist.mock.calls[0][0].checklist,
         }),
         claimed_by_subject: ADMIN.subject,
@@ -1031,7 +1093,7 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
     await expect(response.json()).resolves.toEqual({
       submission: expect.objectContaining({
         reviewVersion: 8,
-        checklistVersion: "2026-08-27.1",
+        checklistVersion: REVIEW_CHECKLIST_VERSION,
       }),
     });
   });
@@ -1043,7 +1105,7 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
     FetchReviewWorkflowOutcome.mockImplementationOnce(async () => ({
       app_review_submission_by_pk: {
         ...workflowRow({
-          checklist_version: "2026-08-27.1",
+          checklist_version: REVIEW_CHECKLIST_VERSION,
           checklist: SaveReviewChecklist.mock.calls[0][0].checklist,
         }),
         claimed_by_subject: ADMIN.subject,
@@ -1076,7 +1138,7 @@ describe("PUT /api/admin/reviewer/submissions/[id]/checklist", () => {
     FetchReviewWorkflowOutcome.mockImplementationOnce(async () => ({
       app_review_submission_by_pk: {
         ...workflowRow({
-          checklist_version: "2026-08-27.1",
+          checklist_version: REVIEW_CHECKLIST_VERSION,
           checklist: SaveReviewChecklist.mock.calls[0][0].checklist,
         }),
         claimed_by_subject: ADMIN.subject,

@@ -30,6 +30,10 @@ import { ReviewHistory } from "./ReviewHistory";
 import { ReviewMetadata } from "./ReviewMetadata";
 import { ReviewOverview } from "./ReviewOverview";
 import { ReviewTestPanel } from "./ReviewTestPanel";
+import {
+  createChecklistSaveQueue,
+  type ChecklistSaveQueueState,
+} from "./checklist-save-queue";
 
 const panels = [
   "Overview",
@@ -62,6 +66,11 @@ const getPersistedChecklistVersion = (submission: ReviewerSubmissionDetail) =>
     ? submission.checklistVersion
     : null;
 
+const getEditableChecklist = ({
+  internalNotes,
+  items,
+}: ReviewChecklist): ReviewChecklist => ({ internalNotes, items });
+
 const claimedWriteBody = (workflow: WorkflowState) => ({
   claimToken: workflow.claimToken,
   expectedReviewVersion: workflow.reviewVersion,
@@ -86,30 +95,46 @@ export const ReviewerWorkspace = ({
     claimedByEmail: submission.claimedByEmail,
   });
   const [checklist, setChecklist] = useState<ReviewChecklist>(
-    submission.checklist,
+    getEditableChecklist(submission.checklist),
   );
   const [persistedChecklistVersion, setPersistedChecklistVersion] = useState<
     string | null
   >(() => getPersistedChecklistVersion(submission));
-  const [checklistDirty, setChecklistDirty] = useState(false);
+  const [checklistSaveState, setChecklistSaveState] =
+    useState<ChecklistSaveQueueState>("idle");
   const [developerMessage, setDeveloperMessage] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const workflowRef = useRef(workflow);
   const heartbeatPromiseRef = useRef<Promise<void> | null>(null);
   const busyActionRef = useRef<string | null>(null);
-  const checklistDirtyRef = useRef(false);
+  const checklistSaveStateRef = useRef<ChecklistSaveQueueState>("idle");
   const submissionIdRef = useRef(submission.id);
+  const renderedSubmissionIdRef = useRef(submission.id);
+  renderedSubmissionIdRef.current = submission.id;
+  const checklistContextRef = useRef({
+    appMode: submission.appMode,
+    submissionId: submission.id,
+    version: submission.checklistVersion ?? REVIEW_CHECKLIST_VERSION,
+  });
+  checklistContextRef.current = {
+    appMode: submission.appMode,
+    submissionId: submission.id,
+    version: submission.checklistVersion ?? REVIEW_CHECKLIST_VERSION,
+  };
 
   const updateBusyAction = useCallback((action: string | null) => {
     busyActionRef.current = action;
     setBusyAction(action);
   }, []);
 
-  const updateChecklistDirty = useCallback((dirty: boolean) => {
-    checklistDirtyRef.current = dirty;
-    setChecklistDirty(dirty);
-  }, []);
+  const updateChecklistSaveState = useCallback(
+    (state: ChecklistSaveQueueState) => {
+      checklistSaveStateRef.current = state;
+      setChecklistSaveState(state);
+    },
+    [],
+  );
 
   const updateWorkflow = useCallback(
     (update: WorkflowState | ((current: WorkflowState) => WorkflowState)) => {
@@ -133,12 +158,16 @@ export const ReviewerWorkspace = ({
     };
     workflowRef.current = next;
     setWorkflow(next);
-    if (submissionChanged || !checklistDirtyRef.current) {
-      setChecklist(submission.checklist);
+    if (
+      submissionChanged ||
+      (checklistSaveStateRef.current !== "saving" &&
+        checklistSaveStateRef.current !== "error")
+    ) {
+      setChecklist(getEditableChecklist(submission.checklist));
       setPersistedChecklistVersion(getPersistedChecklistVersion(submission));
-      updateChecklistDirty(false);
     }
-  }, [submission, updateChecklistDirty]);
+    if (submissionChanged) updateChecklistSaveState("idle");
+  }, [submission, updateChecklistSaveState]);
 
   useEffect(() => {
     if (
@@ -202,9 +231,11 @@ export const ReviewerWorkspace = ({
       method = "POST",
       path,
       quiet = false,
+      isCurrent,
     }: {
       action: string;
       body: Record<string, unknown>;
+      isCurrent?: () => boolean;
       method?: "POST" | "PUT";
       path: string;
       quiet?: boolean;
@@ -216,6 +247,7 @@ export const ReviewerWorkspace = ({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
+        if (isCurrent && !isCurrent()) return null;
         if (response.status === 409) {
           clearReviewerClaimSession(submission.id);
           updateWorkflow((current) => ({ ...current, claimToken: null }));
@@ -229,8 +261,11 @@ export const ReviewerWorkspace = ({
           toast.error("The review action could not be saved.");
           return null;
         }
-        return (await response.json()) as WorkflowPayload;
+        const payload = (await response.json()) as WorkflowPayload;
+        if (isCurrent && !isCurrent()) return null;
+        return payload;
       } catch {
+        if (isCurrent && !isCurrent()) return null;
         toast.error("The review action could not be saved.");
         return null;
       } finally {
@@ -304,7 +339,12 @@ export const ReviewerWorkspace = ({
     if (!canReview) return;
 
     const heartbeat = async () => {
-      if (heartbeatPromiseRef.current || busyActionRef.current) return;
+      if (
+        heartbeatPromiseRef.current ||
+        busyActionRef.current ||
+        checklistSaveStateRef.current === "saving"
+      )
+        return;
       if (
         !shouldHeartbeatReviewerClaim({
           busyAction: busyActionRef.current,
@@ -347,34 +387,71 @@ export const ReviewerWorkspace = ({
     };
   }, [canReview, submission.id]);
 
-  const saveChecklist = async () => {
-    if (!workflowRef.current.claimToken) return;
-    const checklistVersion =
-      submission.checklistVersion ?? REVIEW_CHECKLIST_VERSION;
-    const errors = validateChecklistDraft(
-      submission.appMode,
-      checklist,
-      checklistVersion,
-    );
-    if (errors.length) {
-      toast.error(errors[0]);
-      return;
-    }
-    const payload = await claimedWorkflowRequest({
-      action: "checklist",
-      method: "PUT",
-      path: `/api/admin/reviewer/submissions/${submission.id}/checklist`,
-      extraBody: {
-        checklistVersion,
-        checklist,
-      },
-    });
-    if (payload && applyWorkflowPayload(payload, "checklist")) {
-      setPersistedChecklistVersion(checklistVersion);
-      updateChecklistDirty(false);
-      toast.success("Checklist saved");
-    }
-  };
+  const saveChecklistSnapshot = useCallback(
+    async (snapshot: ReviewChecklist) => {
+      await heartbeatPromiseRef.current;
+      const current = workflowRef.current;
+      if (!current.claimToken) return false;
+      const checklistContext = checklistContextRef.current;
+      if (checklistContext.submissionId !== submission.id) return false;
+
+      const errors = validateChecklistDraft(
+        checklistContext.appMode,
+        snapshot,
+        checklistContext.version,
+      );
+      if (errors.length) {
+        toast.error(errors[0]);
+        return false;
+      }
+
+      const payload = await workflowRequest({
+        action: "checklist",
+        method: "PUT",
+        path: `/api/admin/reviewer/submissions/${checklistContext.submissionId}/checklist`,
+        quiet: true,
+        isCurrent: () => renderedSubmissionIdRef.current === submission.id,
+        body: {
+          ...claimedWriteBody(current),
+          checklistVersion: checklistContext.version,
+          checklist: snapshot,
+        },
+      });
+      if (payload && applyWorkflowPayload(payload, "checklist")) {
+        setPersistedChecklistVersion(checklistContext.version);
+        return true;
+      }
+      return false;
+    },
+    [applyWorkflowPayload, submission.id, workflowRequest],
+  );
+
+  const saveChecklistSnapshotRef = useRef(saveChecklistSnapshot);
+  saveChecklistSnapshotRef.current = saveChecklistSnapshot;
+  const checklistSaveQueue = useMemo(
+    () =>
+      createChecklistSaveQueue({
+        onStateChange: updateChecklistSaveState,
+        save: (snapshot) => saveChecklistSnapshotRef.current(snapshot),
+      }),
+    [submission.id, updateChecklistSaveState],
+  );
+
+  useEffect(
+    () => () => {
+      checklistSaveQueue.reset();
+    },
+    [checklistSaveQueue],
+  );
+
+  const enqueueChecklist = useCallback(
+    (nextChecklist: ReviewChecklist) => {
+      const editableChecklist = getEditableChecklist(nextChecklist);
+      setChecklist(editableChecklist);
+      void checklistSaveQueue.enqueue(editableChecklist);
+    },
+    [checklistSaveQueue],
+  );
 
   const decide = async (decision: "approved" | "changes_requested") => {
     if (!workflowRef.current.claimToken) return;
@@ -400,6 +477,8 @@ export const ReviewerWorkspace = ({
   const checklistVersion =
     submission.checklistVersion ?? REVIEW_CHECKLIST_VERSION;
   const checklistPersisted = persistedChecklistVersion === checklistVersion;
+  const checklistSaveBlocking =
+    checklistSaveState === "saving" || checklistSaveState === "error";
   const testAvailable =
     workflow.status === "pending" || workflow.status === "in_review";
   const checklistVersionSupported =
@@ -449,10 +528,7 @@ export const ReviewerWorkspace = ({
               !checklistVersionSupported
             }
             mode={submission.appMode}
-            onChange={(nextChecklist) => {
-              setChecklist(nextChecklist);
-              updateChecklistDirty(true);
-            }}
+            onChange={enqueueChecklist}
             version={checklistVersion}
           />
         );
@@ -480,7 +556,7 @@ export const ReviewerWorkspace = ({
     checklistVersionSupported,
     submission,
     testAvailable,
-    updateChecklistDirty,
+    enqueueChecklist,
   ]);
 
   return (
@@ -575,28 +651,14 @@ export const ReviewerWorkspace = ({
                 !checklistVersionSupported
               }
               onChange={(event) => {
-                updateChecklistDirty(true);
-                setChecklist((current) => ({
-                  ...current,
+                enqueueChecklist({
+                  ...checklist,
                   internalNotes: event.target.value,
-                }));
+                });
               }}
               value={checklist.internalNotes}
             />
           </label>
-          <button
-            className="rounded-8 border border-grey-300 bg-grey-0 px-3 py-2 text-12 font-semibold text-grey-700 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={
-              !hasActiveClaim ||
-              (!checklistDirty && checklistPersisted) ||
-              Boolean(busyAction) ||
-              !checklistVersionSupported
-            }
-            onClick={saveChecklist}
-            type="button"
-          >
-            Save checklist
-          </button>
 
           <label className="grid gap-1 text-11 font-medium text-grey-500">
             Developer message
@@ -626,7 +688,7 @@ export const ReviewerWorkspace = ({
               disabled={
                 !hasActiveClaim ||
                 !checklistPersisted ||
-                checklistDirty ||
+                checklistSaveBlocking ||
                 !developerMessage.trim() ||
                 Boolean(busyAction) ||
                 !checklistVersionSupported
@@ -641,7 +703,7 @@ export const ReviewerWorkspace = ({
               disabled={
                 !hasActiveClaim ||
                 !checklistPersisted ||
-                checklistDirty ||
+                checklistSaveBlocking ||
                 approvalErrors.length > 0 ||
                 Boolean(busyAction) ||
                 !checklistVersionSupported
@@ -652,9 +714,20 @@ export const ReviewerWorkspace = ({
               Approve
             </button>
           </div>
-          {checklistDirty ? (
+          {checklistSaveState === "saving" ? (
             <p className="text-11 leading-4 text-system-warning-700">
-              Save checklist changes before deciding.
+              Saving checklist changes.
+            </p>
+          ) : checklistSaveState === "error" ? (
+            <p className="text-11 leading-4 text-system-warning-700">
+              Checklist save failed. Decisions are disabled.{" "}
+              <button
+                className="font-semibold underline"
+                onClick={() => void checklistSaveQueue.retry()}
+                type="button"
+              >
+                Retry save
+              </button>
             </p>
           ) : !checklistPersisted ? (
             <p className="text-11 leading-4 text-system-warning-700">
