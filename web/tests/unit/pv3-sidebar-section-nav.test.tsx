@@ -337,6 +337,14 @@ describe("v3 SidebarNav [Figma navigation contract]", () => {
 
 // #region persistent app context
 describe("v3 SidebarNav [persistent app context]", () => {
+  it("keeps the team sandbox tile close to the profile footer", () => {
+    renderSidebar();
+
+    expect(
+      screen.getByRole("button", { name: /World ID Sandbox/i }).parentElement,
+    ).toHaveClass("pb-1");
+  });
+
   it("highlights Projects on the canonical team page with the view-grid icon", () => {
     useParams.mockReturnValue({ teamId });
     usePathname.mockReturnValue(`/teams/${teamId}`);
