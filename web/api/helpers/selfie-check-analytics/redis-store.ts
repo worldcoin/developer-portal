@@ -31,6 +31,7 @@ const ROW_TTL_SECONDS = 25 * 60 * 60;
 // between healthy runs because of scheduler drift or one failed invocation.
 const REPUBLISH_BEFORE_EXPIRY_MS = 2 * 60 * 60 * 1000;
 const MAX_CONCURRENT_PUBLISH_WRITES = 32;
+const MAX_CONCURRENT_READS = 32;
 
 export type AnalyticsDataset = "totals" | "daily";
 
@@ -340,11 +341,17 @@ export const filterAppsWithTotalsData = async (
   if (!metadata) return [];
 
   const redis = requireRedis();
-  let values: (string | null)[];
+  const values = new Array<string | null>(appIds.length).fill(null);
 
   try {
-    values = await redis.mget(
-      ...appIds.map((appId) => rowKey("totals", metadata.snapshotUID, appId)),
+    await mapInBatches(
+      appIds.map((appId, index) => ({ appId, index })),
+      MAX_CONCURRENT_READS,
+      async ({ appId, index }) => {
+        values[index] = await redis.get(
+          rowKey("totals", metadata.snapshotUID, appId),
+        );
+      },
     );
   } catch (error) {
     throw new AnalyticsRedisUnavailableError(

@@ -25,6 +25,7 @@ jest.mock("@/lib/logger", () => ({
 
 import { POST } from "@/api/_refresh-selfie-check-analytics";
 import {
+  filterAppsWithTotalsData,
   getDailyAppSnapshot,
   getDatasetMetadata,
   getTotalsAppSnapshot,
@@ -161,6 +162,24 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
         data: expect.objectContaining({ appId: APP_ID_A }),
       }),
     );
+  });
+
+  it("filters app IDs without a cross-slot multi-key Redis command", async () => {
+    await POST(request());
+    const mget = jest.spyOn(global.RedisClient!, "mget");
+
+    try {
+      await expect(
+        filterAppsWithTotalsData([
+          APP_ID_A,
+          "app_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          APP_ID_B,
+        ]),
+      ).resolves.toEqual([APP_ID_A, APP_ID_B]);
+      expect(mget).not.toHaveBeenCalled();
+    } finally {
+      mget.mockRestore();
+    }
   });
 
   it("skips downloads when both S3 identities are already published", async () => {
