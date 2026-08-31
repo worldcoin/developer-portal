@@ -29,8 +29,12 @@ jest.mock(
 );
 
 jest.mock("@/scenes/PortalV3/layout/Shell/SidebarNav", () => ({
-  AnalyticsEligibleApp: ({ appId }: { appId: string }) => (
-    <div data-testid="analytics-eligible">{appId}</div>
+  AnalyticsAppEligibility: (props: { appId: string; enabled: boolean }) => (
+    <div
+      data-testid="analytics-eligibility"
+      data-app-id={props.appId}
+      data-enabled={props.enabled}
+    />
   ),
 }));
 
@@ -70,7 +74,10 @@ it("signals analytics on a direct team-settings load for an eligible readable ap
 
   expect(getIsUserAllowedToReadApp).toHaveBeenCalledWith(appId);
   expect(getAnalyticsSidebarEligibility).toHaveBeenCalledWith(appId);
-  expect(screen.getByTestId("analytics-eligible")).toHaveTextContent(appId);
+  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
+    "data-enabled",
+    "true",
+  );
   expect(screen.getByTestId("team-settings")).toHaveAttribute(
     "data-tab",
     "members",
@@ -82,7 +89,7 @@ it("does not trust a return_to app from another team", async () => {
 
   expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
   expect(getAnalyticsSidebarEligibility).not.toHaveBeenCalled();
-  expect(screen.queryByTestId("analytics-eligible")).not.toBeInTheDocument();
+  expect(screen.queryByTestId("analytics-eligibility")).not.toBeInTheDocument();
 });
 
 it("does not check eligibility when the user cannot read the return_to app", async () => {
@@ -91,7 +98,10 @@ it("does not check eligibility when the user cannot read the return_to app", asy
   await renderPage(`/teams/${teamId}/apps/${appId}/configuration`);
 
   expect(getAnalyticsSidebarEligibility).not.toHaveBeenCalled();
-  expect(screen.queryByTestId("analytics-eligible")).not.toBeInTheDocument();
+  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
+    "data-enabled",
+    "false",
+  );
 });
 
 it("keeps team settings available when return_to app validation fails", async () => {
@@ -101,7 +111,10 @@ it("keeps team settings available when return_to app validation fails", async ()
   await renderPage(`/teams/${teamId}/apps/${appId}/configuration`);
 
   expect(screen.getByTestId("team-settings")).toBeInTheDocument();
-  expect(screen.queryByTestId("analytics-eligible")).not.toBeInTheDocument();
+  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
+    "data-enabled",
+    "false",
+  );
   expect(loggerWarn).toHaveBeenCalledWith(
     "Failed to validate analytics sidebar app from team settings",
     expect.objectContaining({

@@ -25,8 +25,12 @@ jest.mock("@/lib/logger", () => ({
 }));
 
 jest.mock("@/scenes/PortalV3/layout/Shell/SidebarNav", () => ({
-  AnalyticsEligibleApp: ({ appId }: { appId: string }) => (
-    <div data-testid="analytics-eligible">{appId}</div>
+  AnalyticsAppEligibility: (props: { appId: string; enabled: boolean }) => (
+    <div
+      data-testid="analytics-eligibility"
+      data-app-id={props.appId}
+      data-enabled={props.enabled}
+    />
   ),
 }));
 
@@ -54,12 +58,15 @@ beforeEach(() => {
   isSelfieCheckAnalyticsEnabledForApp.mockResolvedValue(false);
 });
 
-it("renders the app without a sidebar signal when analytics is disabled", async () => {
+it("publishes a false sidebar verdict when analytics is disabled", async () => {
   await renderLayout(appId);
 
   expect(isSelfieCheckAnalyticsEnabledForApp).toHaveBeenCalledWith(appId);
   expect(screen.getByTestId("page")).toBeInTheDocument();
-  expect(screen.queryByTestId("analytics-eligible")).not.toBeInTheDocument();
+  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
+    "data-enabled",
+    "false",
+  );
 });
 
 it("signals the sidebar when analytics is enabled for the app", async () => {
@@ -67,7 +74,10 @@ it("signals the sidebar when analytics is enabled for the app", async () => {
 
   await renderLayout(appId);
 
-  expect(screen.getByTestId("analytics-eligible")).toHaveTextContent(appId);
+  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
+    "data-enabled",
+    "true",
+  );
 });
 
 it("keeps the app available and hides analytics when eligibility fails", async () => {
@@ -77,7 +87,10 @@ it("keeps the app available and hides analytics when eligibility fails", async (
   await renderLayout(appId);
 
   expect(screen.getByTestId("page")).toBeInTheDocument();
-  expect(screen.queryByTestId("analytics-eligible")).not.toBeInTheDocument();
+  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
+    "data-enabled",
+    "false",
+  );
   expect(loggerWarn).toHaveBeenCalledWith(
     "Failed to resolve analytics eligibility for the sidebar",
     expect.objectContaining({
@@ -94,11 +107,16 @@ it("returns 404 when the user cannot read the app", async () => {
   await renderLayout(appId);
 
   expect(isSelfieCheckAnalyticsEnabledForApp).not.toHaveBeenCalled();
+  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
+    "data-enabled",
+    "false",
+  );
   expect(screen.getByTestId("error")).toHaveAttribute("data-status", "404");
 });
 
 it("returns 404 without querying when appId is missing", async () => {
   await renderLayout();
   expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
+  expect(screen.queryByTestId("analytics-eligibility")).not.toBeInTheDocument();
   expect(screen.getByTestId("error")).toHaveAttribute("data-status", "404");
 });

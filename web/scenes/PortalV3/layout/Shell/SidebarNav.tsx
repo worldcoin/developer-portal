@@ -51,9 +51,9 @@ type ShellNavigation = {
   pendingHref: string | null;
   isNavigating: boolean;
   navigate: (href: string) => void;
-  /** App IDs whose analytics eligibility was confirmed by the app layout. */
+  /** App IDs whose latest server verdict says analytics is enabled. */
   analyticsAppIds: readonly string[];
-  addAnalyticsAppId: (appId: string) => void;
+  setAnalyticsAppEligibility: (appId: string, enabled: boolean) => void;
 };
 
 const ShellNavigationContext = createContext<ShellNavigation | null>(null);
@@ -86,11 +86,17 @@ export const SidebarAnimationShell = (props: { children: ReactNode }) => {
     [router],
   );
 
-  const addAnalyticsAppId = useCallback((appId: string) => {
-    setAnalyticsAppIds((current) =>
-      current.includes(appId) ? current : [...current, appId],
-    );
-  }, []);
+  const setAnalyticsAppEligibility = useCallback(
+    (appId: string, enabled: boolean) => {
+      setAnalyticsAppIds((current) => {
+        if (enabled) {
+          return current.includes(appId) ? current : [...current, appId];
+        }
+        return current.filter((candidate) => candidate !== appId);
+      });
+    },
+    [],
+  );
 
   const value = useMemo(
     () => ({
@@ -98,9 +104,15 @@ export const SidebarAnimationShell = (props: { children: ReactNode }) => {
       isNavigating,
       navigate,
       analyticsAppIds,
-      addAnalyticsAppId,
+      setAnalyticsAppEligibility,
     }),
-    [pendingHref, isNavigating, navigate, analyticsAppIds, addAnalyticsAppId],
+    [
+      pendingHref,
+      isNavigating,
+      navigate,
+      analyticsAppIds,
+      setAnalyticsAppEligibility,
+    ],
   );
 
   return (
@@ -110,15 +122,18 @@ export const SidebarAnimationShell = (props: { children: ReactNode }) => {
   );
 };
 
-/** Publishes the app layout's server-side analytics verdict to the sidebar. */
-export const AnalyticsEligibleApp = (props: { appId: string }) => {
-  const addAnalyticsAppId = useContext(
+/** Publishes a server-side app eligibility verdict to the sidebar. */
+export const AnalyticsAppEligibility = (props: {
+  appId: string;
+  enabled: boolean;
+}) => {
+  const setAnalyticsAppEligibility = useContext(
     ShellNavigationContext,
-  )?.addAnalyticsAppId;
+  )?.setAnalyticsAppEligibility;
 
   useEffect(
-    () => addAnalyticsAppId?.(props.appId),
-    [addAnalyticsAppId, props.appId],
+    () => setAnalyticsAppEligibility?.(props.appId, props.enabled),
+    [setAnalyticsAppEligibility, props.appId, props.enabled],
   );
 
   return null;

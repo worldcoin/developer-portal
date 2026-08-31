@@ -3,7 +3,7 @@ import { logger } from "@/lib/logger";
 import { getIsUserAllowedToReadApp } from "@/lib/permissions";
 import { getPortalAppContext } from "@/lib/team-settings";
 import { TeamSettingsPage } from "@/scenes/PortalV3/Teams/TeamId/Team/Settings/page";
-import { AnalyticsEligibleApp } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
+import { AnalyticsAppEligibility } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 import { getAnalyticsSidebarEligibility } from "@/scenes/PortalV3/layout/server/get-analytics-sidebar-eligibility";
 import { Metadata } from "next";
 
@@ -58,8 +58,11 @@ export default async function Page(
 
   return (
     <>
-      {analyticsEnabled && appContext ? (
-        <AnalyticsEligibleApp appId={appContext.appId} />
+      {appContext ? (
+        <AnalyticsAppEligibility
+          appId={appContext.appId}
+          enabled={analyticsEnabled}
+        />
       ) : null}
       <TeamSettingsPage requestedTab={searchParams.tab} />
     </>
