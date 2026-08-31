@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { DailyMetricChart } from "./DailyMetricChart";
 import { TotalsFunnel } from "./TotalsFunnel";
+import { TotalsOverview } from "./TotalsOverview";
 
 const REQUEST_TIMEOUT_MS = 8_000;
 
@@ -60,7 +61,7 @@ const PlaceholderCard = (props: { label: string; message: string }) => (
   </section>
 );
 
-/** Fetches the app's analytics: totals funnel above the daily charts. */
+/** Fetches the app's analytics: overview and funnel above the daily charts. */
 export const MetricsFrame = (props: { appId: string }) => {
   const [daily, setDaily] = useState<DailyState>({ kind: "loading" });
   const [totals, setTotals] = useState<TotalsState>({ kind: "loading" });
@@ -180,7 +181,10 @@ export const MetricsFrame = (props: { appId: string }) => {
     <SizingWrapper className="py-8">
       <div className="grid w-[920px] max-w-full gap-4">
         {totals.kind === "ready" ? (
-          <TotalsFunnel row={totals.row} />
+          <>
+            <TotalsOverview row={totals.row} />
+            <TotalsFunnel row={totals.row} />
+          </>
         ) : (
           <PlaceholderCard
             label="Face Authentication Verification funnel"
