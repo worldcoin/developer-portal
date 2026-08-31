@@ -49,6 +49,7 @@ jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
 // #endregion
 
 import {
+  AnalyticsEligibleApp,
   SidebarAnimationShell,
   SidebarNav,
 } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
@@ -77,18 +78,15 @@ const makeWorldIdNavigationData = (options?: { rp?: boolean }) => ({
   action: [],
 });
 
-const renderSidebar = (
-  apiKeyTeamIds = [teamId],
-  analyticsAppIds: string[] = [],
-) =>
+const renderSidebar = (apiKeyTeamIds = [teamId], eligibleAppId?: string) =>
   render(
     <TooltipProvider>
       <SidebarProvider>
         <SidebarAnimationShell>
-          <SidebarNav
-            apiKeyTeamIds={apiKeyTeamIds}
-            analyticsAppIds={analyticsAppIds}
-          />
+          {eligibleAppId ? (
+            <AnalyticsEligibleApp appId={eligibleAppId} />
+          ) : null}
+          <SidebarNav apiKeyTeamIds={apiKeyTeamIds} />
         </SidebarAnimationShell>
       </SidebarProvider>
     </TooltipProvider>,
@@ -113,16 +111,22 @@ beforeEach(() => {
 });
 
 // #region Analytics allowlist gate
-it("shows and activates the Analytics entry for an eligible app", () => {
+it("shows and activates Analytics after the app layout signals eligibility", () => {
   usePathname.mockReturnValue(`${base}/analytics`);
-  renderSidebar([teamId], [appId]);
+  renderSidebar([teamId], appId);
 
   expect(screen.getByRole("link", { name: "Analytics" })).toBeInTheDocument();
   expect(isCurrent("Analytics")).toBe(true);
 });
 
-it("hides the Analytics entry when the app is outside the allowlist", () => {
-  renderSidebar([teamId], ["app_someoneelse0000000000000000000"]);
+it("hides Analytics when only another app was signaled as eligible", () => {
+  renderSidebar([teamId], "app_someoneelse0000000000000000000");
+
+  noLink("Analytics");
+});
+
+it("hides Analytics when no app was signaled as eligible", () => {
+  renderSidebar();
 
   noLink("Analytics");
 });
