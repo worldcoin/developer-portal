@@ -79,7 +79,7 @@ it("keeps the app available and hides analytics when eligibility fails", async (
   expect(screen.getByTestId("page")).toBeInTheDocument();
   expect(screen.queryByTestId("analytics-eligible")).not.toBeInTheDocument();
   expect(loggerWarn).toHaveBeenCalledWith(
-    "Failed to resolve analytics eligibility in app layout",
+    "Failed to resolve analytics eligibility for the sidebar",
     expect.objectContaining({
       appId,
       dependency: "selfie-check-analytics-eligibility",
