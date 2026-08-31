@@ -268,6 +268,19 @@ describe("v3 SidebarNav [Figma navigation contract]", () => {
     noLink("Get verified");
   });
 
+  it("optically aligns every navigation icon with its label", () => {
+    renderSidebar([teamId], { appId, enabled: true });
+
+    const iconLinks = screen
+      .getAllByRole("link")
+      .filter((item) => item.querySelector("img"));
+
+    expect(iconLinks.length).toBeGreaterThan(0);
+    for (const item of iconLinks) {
+      expect(item.firstElementChild).toHaveClass("-translate-y-[2px]");
+    }
+  });
+
   it.each([
     [base, "Dashboard"],
     [`${base}/world-id`, "Dashboard"],
