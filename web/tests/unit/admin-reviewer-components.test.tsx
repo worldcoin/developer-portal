@@ -16,6 +16,8 @@ import { useRef, useState } from "react";
 import { ReviewerQueue } from "@/scenes/Admin/reviewer/queue/ReviewerQueue";
 import { ReviewClaimBar } from "@/scenes/Admin/reviewer/detail/ReviewClaimBar";
 import { ReviewHistory } from "@/scenes/Admin/reviewer/detail/ReviewHistory";
+import { ReviewMetadata } from "@/scenes/Admin/reviewer/detail/ReviewMetadata";
+import { ReviewOverview } from "@/scenes/Admin/reviewer/detail/ReviewOverview";
 import { ReviewerHeader } from "@/scenes/Admin/reviewer/detail/ReviewerHeader";
 import { ReviewerChecklist } from "@/scenes/Admin/reviewer/detail/ReviewerChecklist";
 import { ReviewerTabs } from "@/scenes/Admin/reviewer/detail/ReviewerTabs";
@@ -41,6 +43,10 @@ Object.defineProperty(global, "TextDecoder", {
   configurable: true,
   value: TextDecoder,
 });
+
+const {
+  renderToString,
+}: typeof import("react-dom/server") = require("react-dom/server.node");
 
 const {
   ReviewerWorkspace,
@@ -548,6 +554,42 @@ describe("reviewer mutation controls", () => {
       screen.getByText(/recover the claim for this browser/i),
     ).toBeVisible();
     expect(screen.getByRole("button", { name: "Recover claim" })).toBeEnabled();
+  });
+
+  it("makes a claim available after its lease expires without a parent rerender", () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-08-31T12:00:00.000Z"));
+
+    try {
+      render(
+        <ReviewClaimBar
+          canReview
+          claimExpiresAt="2026-08-31T12:00:30.000Z"
+          claimedByEmail="former-reviewer@example.com"
+          currentUserEmail="reviewer@example.com"
+          reviewId="00000000-0000-4000-8000-000000000001"
+          reviewVersion={4}
+          status="in_review"
+        />,
+      );
+
+      expect(
+        screen.getByRole("button", { name: "Claim review" }),
+      ).toBeDisabled();
+
+      act(() => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(
+        screen.getByText(/lease expired, available to claim/i),
+      ).toBeVisible();
+      expect(
+        screen.getByRole("button", { name: "Claim review" }),
+      ).toBeEnabled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
 
@@ -3374,5 +3416,103 @@ describe("reviewer decision composer", () => {
     );
     fireEvent.click(messageAndDecide);
     expect(onOpenComposer).not.toHaveBeenCalled();
+  });
+});
+
+describe("reviewer timing and submitted images", () => {
+  it("hydrates claim, overview, and history dates from stable server output", () => {
+    const originalLocaleString = Date.prototype.toLocaleString;
+    let locale = "server locale";
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+    jest
+      .spyOn(Date.prototype, "toLocaleString")
+      .mockImplementation(() => locale);
+    const claimExpiresAt = "2026-08-31T12:30:00.000Z";
+    const historyEvent = {
+      id: "hydration-event",
+      eventType: "submitted" as const,
+      eventSequence: 1,
+      actorEmail: "dev@example.com",
+      actorSubject: "developer-subject",
+      createdAt: "2026-08-31T12:00:00.000Z",
+      payload: {},
+      reviewVersion: 1,
+    };
+    const tree = (
+      <>
+        <ReviewClaimBar
+          canReview
+          claimExpiresAt={claimExpiresAt}
+          claimedByEmail="former-reviewer@example.com"
+          currentUserEmail="reviewer@example.com"
+          reviewId="00000000-0000-4000-8000-000000000001"
+          reviewVersion={4}
+          status="in_review"
+        />
+        <ReviewOverview submission={detailFixture} />
+        <ReviewHistory
+          canReview={false}
+          events={[historyEvent]}
+          notifications={[]}
+        />
+      </>
+    );
+    const container = document.createElement("div");
+
+    try {
+      container.innerHTML = renderToString(tree);
+      locale = "client locale";
+      document.body.appendChild(container);
+
+      act(() => {
+        render(tree, { container, hydrate: true });
+      });
+
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      container.remove();
+      Date.prototype.toLocaleString = originalLocaleString;
+      consoleError.mockRestore();
+    }
+  });
+
+  it("renders submitted images with lazy decoding and stable dimensions", async () => {
+    jest.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        assets: [
+          {
+            id: "hero",
+            kind: "hero",
+            label: "Store hero image",
+            locale: "en",
+            signedUrl: "https://signed.example/hero.png",
+            width: 1200,
+            height: 630,
+          },
+          {
+            id: "logo",
+            kind: "logo",
+            label: "App logo",
+            locale: "en",
+            signedUrl: "https://signed.example/logo.png",
+          },
+        ],
+      }),
+    } as Response);
+
+    render(<ReviewMetadata submission={detailFixture} />);
+
+    const hero = await screen.findByRole("img", {
+      name: "Store hero image, English",
+    });
+    expect(hero).toHaveAttribute("loading", "lazy");
+    expect(hero).toHaveAttribute("decoding", "async");
+    expect(hero).toHaveAttribute("width", "1200");
+    expect(hero).toHaveAttribute("height", "630");
+
+    const logo = screen.getByRole("img", { name: "App logo, English" });
+    expect(logo).toHaveAttribute("width", "1");
+    expect(logo).toHaveAttribute("height", "1");
   });
 });

@@ -89,7 +89,7 @@ export const RootLayout = async ({
 
   return (
     <html lang="en" className={fontVariables}>
-      <body>
+      <body suppressHydrationWarning>
         <ToastContainer
           autoClose={4000}
           transition={Slide}

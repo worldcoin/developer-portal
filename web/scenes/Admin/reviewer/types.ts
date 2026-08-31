@@ -56,11 +56,13 @@ export type ReviewerNotification = {
 };
 
 export type ReviewerAsset = {
+  height?: number;
   id: string;
   kind: "logo" | "hero" | "meta_tag" | "showcase" | "content_card";
   label: string;
   locale: string;
   signedUrl: string;
+  width?: number;
 };
 
 export type ReviewerWorldIdConfiguration = {

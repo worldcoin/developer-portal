@@ -1,17 +1,10 @@
 import { buildReviewerSnapshotDiff } from "../metadata-diff";
 import type { ReviewerSubmissionDetail } from "../types";
+import { ReviewerDateTime, ReviewerSubmissionAge } from "./ReviewerTime";
 
 const value = (input: unknown) => {
   if (input === null || input === undefined || input === "") return "—";
   return typeof input === "string" ? input : JSON.stringify(input);
-};
-
-const submissionAge = (submittedAt: string) => {
-  const elapsed = Date.now() - Date.parse(submittedAt);
-  if (!Number.isFinite(elapsed) || elapsed < 0) return "Unknown";
-  const hours = Math.floor(elapsed / (60 * 60 * 1000));
-  if (hours < 24) return `${hours}h`;
-  return `${Math.floor(hours / 24)}d ${hours % 24}h`;
 };
 
 export const ReviewOverview = ({
@@ -32,27 +25,44 @@ export const ReviewOverview = ({
         <h2 className="text-16 font-semibold text-grey-900">Submission</h2>
         <dl className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
-            ["Team", `${submission.teamName} · ${submission.teamId}`],
-            ["Listing target", submission.listingTarget.replaceAll("_", " ")],
-            ["Submitted", new Date(submission.submittedAt).toLocaleString()],
-            ["Submission age", submissionAge(submission.submittedAt)],
-            [
-              "Current live version",
-              submission.liveMetadata
+            {
+              label: "Team",
+              itemValue: `${submission.teamName} · ${submission.teamId}`,
+            },
+            {
+              label: "Listing target",
+              itemValue: submission.listingTarget.replaceAll("_", " "),
+            },
+            {
+              label: "Submitted",
+              itemValue: <ReviewerDateTime value={submission.submittedAt} />,
+            },
+            {
+              label: "Submission age",
+              itemValue: (
+                <ReviewerSubmissionAge value={submission.submittedAt} />
+              ),
+            },
+            {
+              label: "Current live version",
+              itemValue: submission.liveMetadata
                 ? `${value(submission.liveMetadata.id)} · ${value(
                     submission.liveMetadata.verified_at ??
                       submission.liveMetadata.updated_at,
                   )}`
                 : "None",
-            ],
-            ["Attempt", String(submission.attempt)],
-            [
-              "Listing consent",
-              submission.listingConsent ? "Confirmed" : "Missing",
-            ],
-            ["Metadata version", submission.appMetadataId],
-            ["Review version", String(submission.reviewVersion)],
-          ].map(([label, itemValue]) => (
+            },
+            { label: "Attempt", itemValue: String(submission.attempt) },
+            {
+              label: "Listing consent",
+              itemValue: submission.listingConsent ? "Confirmed" : "Missing",
+            },
+            { label: "Metadata version", itemValue: submission.appMetadataId },
+            {
+              label: "Review version",
+              itemValue: String(submission.reviewVersion),
+            },
+          ].map(({ label, itemValue }) => (
             <div className="rounded-8 bg-grey-50 p-3" key={label}>
               <dt className="text-11 font-medium tracking-wide text-grey-400 uppercase">
                 {label}

@@ -11,11 +11,7 @@ import type {
   ReviewerSubmissionDetail,
   ReviewerSubmissionStatus,
 } from "../types";
-
-const formatTime = (value: string) => {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
-};
+import { ReviewerDateTime } from "./ReviewerTime";
 
 const RETRY_OPERATION_STORAGE_PREFIX = "admin-reviewer-retry:";
 const UUID_PATTERN =
@@ -173,7 +169,8 @@ export const ReviewHistory = ({
               {!assetSnapshotRepair.deadLetteredAt &&
               assetSnapshotRepair.nextAttemptAt ? (
                 <p className="mt-2 text-11 text-grey-500">
-                  Next retry: {formatTime(assetSnapshotRepair.nextAttemptAt)}
+                  Next retry:{" "}
+                  <ReviewerDateTime value={assetSnapshotRepair.nextAttemptAt} />
                 </p>
               ) : null}
             </div>
@@ -209,12 +206,10 @@ export const ReviewHistory = ({
                 <h3 className="text-13 font-semibold text-grey-900">
                   {getReviewEventLabel(event.eventType)}
                 </h3>
-                <time
+                <ReviewerDateTime
                   className="text-11 text-grey-400"
-                  dateTime={event.createdAt}
-                >
-                  {formatTime(event.createdAt)}
-                </time>
+                  value={event.createdAt}
+                />
               </div>
               <p className="mt-1 text-12 text-grey-500">
                 {event.actorEmail ?? event.actorSubject ?? "System"}
@@ -265,19 +260,22 @@ export const ReviewHistory = ({
                     ) : null}
                     {notification.lastAttemptAt ? (
                       <p className="mt-1 text-11 text-grey-500">
-                        Last attempt: {formatTime(notification.lastAttemptAt)}
+                        Last attempt:{" "}
+                        <ReviewerDateTime value={notification.lastAttemptAt} />
                       </p>
                     ) : null}
                     {(notification.status === "failed" ||
                       notification.status === "pending") &&
                     notification.nextAttemptAt ? (
                       <p className="mt-1 text-11 text-grey-500">
-                        Next retry: {formatTime(notification.nextAttemptAt)}
+                        Next retry:{" "}
+                        <ReviewerDateTime value={notification.nextAttemptAt} />
                       </p>
                     ) : null}
                     {notification.deliveredAt ? (
                       <p className="mt-1 text-11 text-grey-500">
-                        Delivered: {formatTime(notification.deliveredAt)}
+                        Delivered:{" "}
+                        <ReviewerDateTime value={notification.deliveredAt} />
                       </p>
                     ) : null}
                     {notification.providerMessageId ? (

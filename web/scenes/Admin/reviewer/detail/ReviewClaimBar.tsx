@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReviewerSubmissionStatus } from "../types";
+import { ReviewerDateTime, useReviewerNow } from "./ReviewerTime";
 
 export const ReviewClaimBar = ({
   busy = false,
@@ -25,6 +26,7 @@ export const ReviewClaimBar = ({
   reviewVersion: number;
   status: ReviewerSubmissionStatus;
 }) => {
+  const now = useReviewerNow();
   const isTerminal = ["approved", "changes_requested", "withdrawn"].includes(
     status,
   );
@@ -32,7 +34,7 @@ export const ReviewClaimBar = ({
     claimedByEmail?.toLocaleLowerCase() ===
     currentUserEmail.toLocaleLowerCase();
   const claimExpired = Boolean(
-    claimExpiresAt && Date.parse(claimExpiresAt) <= Date.now(),
+    now !== null && claimExpiresAt && Date.parse(claimExpiresAt) <= now,
   );
   const canRecoverClaim =
     claimedByCurrentUser && Boolean(claimedByEmail) && !claimExpired;
@@ -61,13 +63,10 @@ export const ReviewClaimBar = ({
                       : "Unassigned"}
           </p>
           {claimExpiresAt ? (
-            <time
-              className="mt-1 block text-11 text-grey-500"
-              dateTime={claimExpiresAt}
-            >
+            <p className="mt-1 block text-11 text-grey-500">
               {claimExpired ? "Lease expired" : "Lease expires"}{" "}
-              {new Date(claimExpiresAt).toLocaleString()}
-            </time>
+              <ReviewerDateTime value={claimExpiresAt} />
+            </p>
           ) : null}
           {!canReview ? (
             <p className="mt-2 text-12 text-system-warning-700">

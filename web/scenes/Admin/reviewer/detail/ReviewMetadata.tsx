@@ -4,6 +4,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ReviewerAsset, ReviewerSubmissionDetail } from "../types";
 
+const FALLBACK_ASSET_DIMENSIONS: Record<
+  ReviewerAsset["kind"],
+  { height: number; width: number }
+> = {
+  content_card: { width: 16, height: 9 },
+  hero: { width: 16, height: 9 },
+  logo: { width: 1, height: 1 },
+  meta_tag: { width: 1200, height: 630 },
+  showcase: { width: 9, height: 16 },
+};
+
+const assetDimensions = (asset: ReviewerAsset) =>
+  Number.isFinite(asset.width) &&
+  Number.isFinite(asset.height) &&
+  (asset.width ?? 0) > 0 &&
+  (asset.height ?? 0) > 0
+    ? { width: asset.width!, height: asset.height! }
+    : FALLBACK_ASSET_DIMENSIONS[asset.kind];
+
 const humanize = (key: string) =>
   key.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 
@@ -163,12 +182,24 @@ export const ReviewMetadata = ({
               key={asset.id}
             >
               {/* Signed URLs expire quickly and are rendered only after admin auth. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                alt={`${asset.label}, ${asset.locale === "en" ? "English" : asset.locale}`}
-                className="aspect-video w-full object-contain"
-                src={asset.signedUrl}
-              />
+              {(() => {
+                const dimensions = assetDimensions(asset);
+                return (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    alt={`${asset.label}, ${asset.locale === "en" ? "English" : asset.locale}`}
+                    className="w-full object-contain"
+                    decoding="async"
+                    height={dimensions.height}
+                    loading="lazy"
+                    src={asset.signedUrl}
+                    style={{
+                      aspectRatio: `${dimensions.width} / ${dimensions.height}`,
+                    }}
+                    width={dimensions.width}
+                  />
+                );
+              })()}
               <figcaption className="text-grey-600 border-t border-grey-200 bg-grey-0 p-3 text-11">
                 {asset.label} · {asset.locale}
               </figcaption>
