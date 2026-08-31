@@ -6,7 +6,6 @@ import {
   type ParsedTable,
 } from "./format-tables";
 import {
-  markDatasetChecked,
   publishAnalyticsSnapshot,
   releaseAnalyticsRefreshLock,
   tryAcquireAnalyticsRefreshLock,
@@ -14,7 +13,7 @@ import {
 } from "./redis-store";
 import { downloadCsv, listCsv } from "./s3";
 
-type RefreshResult = "published" | "unchanged" | "busy";
+type RefreshResult = "published" | "busy";
 
 type DatasetRefreshConfig<TAppData> = Readonly<{
   dataset: AnalyticsDataset;
@@ -32,13 +31,6 @@ async function refreshDataset<TAppData>({
   if (!lock) return "busy";
 
   try {
-    const unchanged = await markDatasetChecked(
-      lock,
-      source.identity,
-      new Date().toISOString(),
-    );
-    if (unchanged) return "unchanged";
-
     const downloaded = await downloadCsv(source);
     const parsedTable = parseCsv(downloaded.csv);
     await publishAnalyticsSnapshot({
