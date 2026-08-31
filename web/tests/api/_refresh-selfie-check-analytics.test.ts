@@ -29,9 +29,6 @@ import {
   getDailyAppSnapshot,
   getDatasetMetadata,
   getTotalsAppSnapshot,
-  markDatasetChecked,
-  releaseAnalyticsRefreshLock,
-  tryAcquireAnalyticsRefreshLock,
 } from "@/api/helpers/selfie-check-analytics/redis-store";
 import type { TableObjectDescriptor } from "@/api/helpers/selfie-check-analytics/s3";
 
@@ -122,7 +119,7 @@ describe("/_refresh-selfie-check-analytics [guards]", () => {
 
   it("returns 204 without downloading when another refresh owns the lock", async () => {
     await global.RedisClient?.set(
-      "selfie-check-analytics:v2:{daily}:refresh-lock",
+      "selfie-check-analytics:{daily}:refresh-lock",
       "another-owner",
     );
 
@@ -182,33 +179,27 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
     }
   });
 
-  it("skips downloads when both S3 identities are already published", async () => {
+  it("renews unchanged snapshots on every hourly refresh", async () => {
     await POST(request());
-    const firstDownloadCount = downloadCsvMock.mock.calls.length;
 
     const response = await POST(request());
 
     expect(response.status).toBe(204);
-    expect(downloadCsvMock).toHaveBeenCalledTimes(firstDownloadCount);
+    expect(downloadCsvMock).toHaveBeenCalledTimes(4);
   });
 
-  it("republishes before unchanged metadata can expire between cron runs", async () => {
+  it("keeps active metadata and expires snapshot rows for cleanup", async () => {
     await POST(request());
-    await global.RedisClient?.pexpire(
-      "selfie-check-analytics:v2:{daily}:metadata",
-      30 * 60 * 1000,
+    const metadata = await getDatasetMetadata("daily");
+    const metadataTtlMs = await global.RedisClient?.pttl(
+      "selfie-check-analytics:{daily}:metadata",
     );
-    downloadCsvMock.mockClear();
-
-    const response = await POST(request());
-
-    expect(response.status).toBe(204);
-    expect(downloadCsvMock).toHaveBeenCalledTimes(1);
-    expect(downloadCsvMock).toHaveBeenCalledWith(dailyObject);
-    const remainingTtlMs = await global.RedisClient?.pttl(
-      "selfie-check-analytics:v2:{daily}:metadata",
+    const rowTtlMs = await global.RedisClient?.pttl(
+      `selfie-check-analytics:daily:${metadata?.snapshotUID}:${APP_ID_A}`,
     );
-    expect(remainingTtlMs).toBeGreaterThan(23 * 60 * 60 * 1000);
+
+    expect(metadataTtlMs).toBe(-1);
+    expect(rowTtlMs).toBeGreaterThan(6 * 24 * 60 * 60 * 1000);
   });
 
   it("makes removed totals apps unreachable through the new snapshot", async () => {
@@ -265,33 +256,6 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
     } finally {
       global.RedisClient = redis;
     }
-  });
-});
-
-// #endregion
-
-// #region Metadata concurrency
-
-describe("analytics metadata refresh concurrency", () => {
-  it("does not update metadata after the worker loses its lock", async () => {
-    await POST(request());
-    const before = await getDatasetMetadata("daily");
-    const lock = await tryAcquireAnalyticsRefreshLock("daily");
-    expect(lock).not.toBeNull();
-
-    await global.RedisClient?.set(
-      "selfie-check-analytics:v2:{daily}:refresh-lock",
-      "replacement-owner",
-    );
-    const updated = await markDatasetChecked(
-      lock!,
-      dailyObject.identity,
-      "2026-08-31T12:00:00.000Z",
-    );
-
-    expect(updated).toBe(false);
-    await expect(getDatasetMetadata("daily")).resolves.toEqual(before);
-    await releaseAnalyticsRefreshLock(lock!);
   });
 });
 

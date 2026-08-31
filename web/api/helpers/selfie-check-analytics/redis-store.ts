@@ -4,9 +4,9 @@ import "server-only";
  * Shared Redis storage for analytics tables. S3 is only the CSV exporter;
  * runtime eligibility is presence in the snapshot referenced by `metadata`.
  *
- *   selfie-check-analytics:v2:{<dataset>}:metadata
- *   selfie-check-analytics:v2:{<dataset>}:refresh-lock
- *   selfie-check-analytics:v2:<dataset>:<snapshotUID>:<appId>
+ *   selfie-check-analytics:{<dataset>}:metadata
+ *   selfie-check-analytics:{<dataset>}:refresh-lock
+ *   selfie-check-analytics:<dataset>:<snapshotUID>:<appId>
  */
 
 import { logger } from "@/lib/logger";
@@ -19,19 +19,14 @@ import {
 import { createHash, randomUUID } from "node:crypto";
 import type { TableObjectDescriptor } from "./s3";
 
-const KEY_PREFIX = "selfie-check-analytics:v2";
+const KEY_PREFIX = "selfie-check-analytics";
 
 // Outlive the cron trigger's 120-second request deadline so a timed-out worker
 // cannot overlap another publisher while it is still finishing Redis writes.
-const LOCK_TTL_MS = 3 * 60_000;
-const META_TTL_SECONDS = 24 * 60 * 60;
-// Rows must outlive meta so a live pointer never references expired keys.
-const ROW_TTL_SECONDS = 25 * 60 * 60;
-// The cron runs hourly. Rebuild with a two-run buffer so metadata cannot expire
-// between healthy runs because of scheduler drift or one failed invocation.
-const REPUBLISH_BEFORE_EXPIRY_MS = 2 * 60 * 60 * 1000;
-const MAX_CONCURRENT_PUBLISH_WRITES = 32;
-const MAX_CONCURRENT_READS = 32;
+const REFRESH_LOCK_TTL_MS = 3 * 60_000;
+// The hourly refresh renews the live snapshot while superseded snapshots expire.
+const SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60;
+const REDIS_CONCURRENCY = 32;
 
 export type AnalyticsDataset = "totals" | "daily";
 
@@ -218,7 +213,7 @@ export const tryAcquireAnalyticsRefreshLock = async (
       lockKey(dataset),
       owner,
       "PX",
-      LOCK_TTL_MS,
+      REFRESH_LOCK_TTL_MS,
       "NX",
     );
     return result === "OK" ? { dataset, owner } : null;
@@ -346,7 +341,7 @@ export const filterAppsWithTotalsData = async (
   try {
     await mapInBatches(
       appIds.map((appId, index) => ({ appId, index })),
-      MAX_CONCURRENT_READS,
+      REDIS_CONCURRENCY,
       async ({ appId, index }) => {
         values[index] = await redis.get(
           rowKey("totals", metadata.snapshotUID, appId),
@@ -425,14 +420,14 @@ export const publishAnalyticsSnapshot = async (params: {
 
   await mapInBatches(
     Array.from(records.entries()),
-    MAX_CONCURRENT_PUBLISH_WRITES,
+    REDIS_CONCURRENCY,
     async ([appId, record]) => {
       try {
         const result = await redis.set(
           rowKey(dataset, snapshotUID, appId),
           JSON.stringify(record),
           "EX",
-          ROW_TTL_SECONDS,
+          SNAPSHOT_TTL_SECONDS,
         );
         if (result !== "OK") {
           throw new AnalyticsRedisUnavailableError(
@@ -473,14 +468,13 @@ export const publishAnalyticsSnapshot = async (params: {
       `if redis.call("get", KEYS[1]) ~= ARGV[1] then
          return 0
        end
-       redis.call("set", KEYS[2], ARGV[2], "EX", ARGV[3])
+       redis.call("set", KEYS[2], ARGV[2])
        return 1`,
       2,
       lockKey(dataset),
       metadataKey(dataset),
       lock.owner,
       JSON.stringify(meta),
-      String(META_TTL_SECONDS),
     );
   } catch (error) {
     throw new AnalyticsRedisUnavailableError(
@@ -491,54 +485,6 @@ export const publishAnalyticsSnapshot = async (params: {
   if (committed !== 1) {
     throw new AnalyticsRedisUnavailableError(
       "Lost the analytics refresh lock before publishing the snapshot",
-    );
-  }
-};
-
-/**
- * Updates lastCheckedAt on the live dataset metadata without rewriting app
- * keys. Returns false when metadata is absent, corrupt, expired, or for a
- * different S3 object — callers republish instead.
- */
-export const markDatasetChecked = async (
-  lock: AnalyticsRefreshLock,
-  sourceIdentity: string,
-  lastCheckedAt: string,
-): Promise<boolean> => {
-  const redis = requireRedis();
-  const datasetMetadataKey = metadataKey(lock.dataset);
-
-  try {
-    const raw = await redis.get(datasetMetadataKey);
-    const meta = raw ? parseDatasetMetadata(raw, lock.dataset) : null;
-    if (!raw || !meta || meta.source.identity !== sourceIdentity) return false;
-
-    const updated = await redis.eval(
-      `if redis.call("get", KEYS[1]) ~= ARGV[1] then
-         return 0
-       end
-       if redis.call("get", KEYS[2]) ~= ARGV[2] then
-         return 0
-       end
-       local ttl = redis.call("pttl", KEYS[2])
-       if ttl <= tonumber(ARGV[4]) then
-         return 0
-       end
-       redis.call("set", KEYS[2], ARGV[3], "PX", ttl)
-       return 1`,
-      2,
-      lockKey(lock.dataset),
-      datasetMetadataKey,
-      lock.owner,
-      raw,
-      JSON.stringify({ ...meta, lastCheckedAt }),
-      String(REPUBLISH_BEFORE_EXPIRY_MS),
-    );
-    return updated === 1;
-  } catch (error) {
-    throw new AnalyticsRedisUnavailableError(
-      "Failed to update analytics dataset metadata",
-      { cause: error },
     );
   }
 };
