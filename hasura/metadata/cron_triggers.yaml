@@ -54,6 +54,20 @@
     - name: Authorization
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: Update the app stats table with the latest increment of nullifier data
+- name: Refresh selfie-check analytics
+  webhook: "{{NEXT_API_URL}}/_refresh-selfie-check-analytics"
+  schedule: 0 * * * *
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 2
+    retry_interval_seconds: 30
+    timeout_seconds: 120
+    tolerance_seconds: 3600
+  headers:
+    - name: Authorization
+      value_from_env: INTERNAL_ENDPOINTS_SECRET
+  comment: Refresh the app-indexed selfie-check analytics Redis snapshots from the latest S3 CSV exports
 - name: Deactivate RPs for deleted apps
   webhook: "{{NEXT_API_URL}}/_deactivate-deleted-app-rps"
   schedule: "*/15 * * * *"
