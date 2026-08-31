@@ -106,6 +106,23 @@ beforeEach(() => {
 });
 // #endregion
 
+// #region Empty state
+describe("API keys empty state", () => {
+  it("shows the API keys empty-state copy instead of an empty table", async () => {
+    renderSection([fetchKeysMock([])]);
+
+    expect(await screen.findByText("No API keys")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "You don't have any API keys associated with your workspace",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Name")).not.toBeInTheDocument();
+    expect(screen.getByText("0 keys")).toBeInTheDocument();
+  });
+});
+// #endregion
+
 // #region Rotation flow
 describe("API key rotation flow", () => {
   it("requires confirmation and can be cancelled without rotating", async () => {

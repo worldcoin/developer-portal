@@ -164,16 +164,25 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
         </>
       ) : (
         <>
-          <ApiKeysTable
-            teamId={teamId}
-            apiKeys={apiKeys}
-            openRotateKeyModal={openRotateKeyModal}
-          />
           {apiKeys?.length === 0 ? (
-            <div className="flex h-36 items-center justify-center font-gta text-13 text-grey-400">
-              No API keys found
-            </div>
-          ) : null}
+            <SettingsPanel.Body className="flex min-h-52 items-center justify-center border-y border-grey-100 px-5 py-8 text-center">
+              <div>
+                <p className="font-world text-13 leading-5 font-medium text-grey-900">
+                  No API keys
+                </p>
+                <p className="mt-1 font-gta text-12 leading-4 text-grey-400">
+                  You don&apos;t have any API keys associated with your
+                  workspace
+                </p>
+              </div>
+            </SettingsPanel.Body>
+          ) : (
+            <ApiKeysTable
+              teamId={teamId}
+              apiKeys={apiKeys}
+              openRotateKeyModal={openRotateKeyModal}
+            />
+          )}
         </>
       )}
 
