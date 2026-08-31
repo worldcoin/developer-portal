@@ -257,7 +257,7 @@ export const SandboxButton = (props: {
         </span>
         <span
           aria-hidden
-          className="-mr-[5px] font-world text-13 text-portal-subtle transition-transform duration-200 group-hover/sandbox:translate-x-0.5"
+          className="mr-0 font-world text-13 text-portal-subtle transition-transform duration-200 group-hover/sandbox:translate-x-0.5"
         >
           →
         </span>

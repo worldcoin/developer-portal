@@ -107,6 +107,13 @@ describe("SandboxButton [sidebar banner layout]", () => {
       "whitespace-nowrap",
     );
   });
+
+  it("keeps the hover arrow inset from the banner edge", () => {
+    render(<SandboxButton />);
+
+    const button = screen.getByRole("button", { name: /World ID Sandbox/ });
+    expect(button.lastElementChild).toHaveClass("mr-0");
+  });
 });
 // #endregion
 
