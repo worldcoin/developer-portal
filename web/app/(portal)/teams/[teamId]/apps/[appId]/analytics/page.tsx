@@ -1,4 +1,4 @@
-import { isSelfieCheckAnalyticsEnabledForApp } from "@/api/helpers/selfie-check-analytics/eligibility";
+import { checkEligibility } from "@/api/helpers/selfie-check-analytics/eligibility";
 import { ErrorPage } from "@/components/ErrorPage";
 import { generateMetaTitle } from "@/lib/genarate-title";
 import { MetricsFrame } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MetricsFrame";
@@ -16,9 +16,9 @@ export default async function Page(props: Props) {
   const { appId } = await props.params;
 
   // The parent app layout already renders non-members as "App not found";
-  // members outside the analytics rollout get an explicit Forbidden screen.
-  if (!(await isSelfieCheckAnalyticsEnabledForApp(appId))) {
-    return <ErrorPage statusCode={403} title="Forbidden" />;
+  // apps without a totals row are the same 404 so the tab cannot leak.
+  if (!(await checkEligibility(appId))) {
+    return <ErrorPage statusCode={404} title="Not found" />;
   }
 
   return <MetricsFrame appId={appId} />;

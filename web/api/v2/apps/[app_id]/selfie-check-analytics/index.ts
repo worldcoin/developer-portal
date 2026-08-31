@@ -1,4 +1,4 @@
-import { isSelfieCheckAnalyticsEnabledForApp } from "@/api/helpers/selfie-check-analytics/eligibility";
+import { checkEligibility } from "@/api/helpers/selfie-check-analytics/eligibility";
 import {
   loadLatestDailyTableSnapshot,
   loadLatestTotalsTableSnapshot,
@@ -152,7 +152,7 @@ export async function GET(
     });
   }
 
-  if (!(await isSelfieCheckAnalyticsEnabledForApp(appId))) {
+  if (!(await checkEligibility(appId))) {
     return errorResponse({
       status: 404,
       code: "not_found",
@@ -216,7 +216,7 @@ export async function GET(
 
   if (!response) {
     logger.warn(
-      "Whitelisted selfie-check analytics app is absent from the snapshot",
+      "Eligible selfie-check analytics app is absent from the snapshot",
       {
         appId,
         dataset,
