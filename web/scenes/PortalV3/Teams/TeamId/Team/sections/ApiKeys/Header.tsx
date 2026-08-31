@@ -1,6 +1,6 @@
 "use client";
 
-import { InkButton } from "@/scenes/PortalV3/common/InkButton";
+import { PlusIcon } from "@/components/Icons/PlusIcon";
 
 type ApiKeysHeaderProps = {
   canCreate: boolean;
@@ -15,14 +15,15 @@ export const ApiKeysHeader = (props: ApiKeysHeaderProps) => (
     </h1>
 
     {props.canCreate ? (
-      <InkButton
+      <button
         type="button"
         onClick={props.onCreate}
         disabled={props.disabled}
-        className="h-8 rounded-full px-3.5 text-13 leading-[1.2] font-[550] tracking-[-0.01em]"
+        className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-8 bg-portal-ink px-3 font-world text-13 leading-none font-medium text-white transition-colors hover:bg-portal-ink-hover focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-500"
       >
-        Create API token
-      </InkButton>
+        <PlusIcon className="size-4" />
+        New key
+      </button>
     ) : null}
   </header>
 );

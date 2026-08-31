@@ -120,9 +120,7 @@ describe("API keys initial and empty states", () => {
     expect(
       screen.getByRole("heading", { name: "API Keys", level: 1 }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Create API token" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "New key" })).toBeDisabled();
     expect(screen.getByRole("status")).toHaveTextContent("Loading API keys");
     expect(screen.getByRole("columnheader", { name: "Name" })).toBeVisible();
     expect(screen.getByRole("columnheader", { name: "Created" })).toBeVisible();
@@ -148,9 +146,7 @@ describe("API keys initial and empty states", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText("Name")).not.toBeInTheDocument();
     expect(screen.queryByText("0 keys")).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Create API token" }),
-    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: "New key" })).toBeEnabled();
   });
 
   it("renders populated keys in the four-column Figma table", async () => {
