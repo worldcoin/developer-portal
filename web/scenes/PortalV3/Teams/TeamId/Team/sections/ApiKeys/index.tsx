@@ -1,5 +1,4 @@
 "use client";
-import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { CombinedGraphQLErrors } from "@apollo/client";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useCallback, useState } from "react";
@@ -13,7 +12,7 @@ import {
   FetchKeysDocument,
   FetchKeysQuery,
 } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
-import { SettingsPanel } from "@/scenes/PortalV3/Teams/TeamId/Team/common/SettingsPanel";
+import { ApiKeysHeader } from "./Header";
 
 export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
   const { teamId, canWrite } = props;
@@ -112,18 +111,6 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
     setRotatedSecret(null);
   }, []);
 
-  const newKeyButton = canWrite ? (
-    <button
-      type="button"
-      onClick={() => setShowCreateKeyModal(true)}
-      disabled={isInitialLoad}
-      className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-8 bg-portal-ink px-3 font-world text-13 leading-none font-medium text-white transition-colors hover:bg-portal-ink-hover focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-500"
-    >
-      <PlusIcon className="size-4" />
-      New key
-    </button>
-  ) : null;
-
   const dialogs = (
     <>
       {canWrite ? (
@@ -152,7 +139,7 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
     return (
       <>
         {dialogs}
-        <ApiKeysLoadingState action={newKeyButton} />
+        <ApiKeysLoadingState canCreate={canWrite} />
       </>
     );
   }
@@ -164,12 +151,10 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
 
         <div className="w-full px-4 pt-5 pb-28 sm:px-6">
           <div className="w-full max-w-[800px] min-w-0">
-            <header className="flex h-8 items-center justify-between gap-4">
-              <h1 className="font-world text-19 leading-[1.2] font-[500] tracking-[-0.01em] text-portal-ink">
-                API Keys
-              </h1>
-              {newKeyButton}
-            </header>
+            <ApiKeysHeader
+              canCreate={canWrite}
+              onCreate={() => setShowCreateKeyModal(true)}
+            />
 
             <section className="mt-4 flex h-[300px] items-center justify-center rounded-[10px] border border-portal-border bg-white px-6 text-center sm:px-[120px]">
               <div className="w-full font-world">
@@ -192,25 +177,20 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
       {dialogs}
 
       <div className="w-full px-4 pt-5 pb-28 sm:px-6">
-        <SettingsPanel className="w-full max-w-[800px]">
-          <SettingsPanel.Header>
-            <SettingsPanel.Title>API keys</SettingsPanel.Title>
-          </SettingsPanel.Header>
-
-          <ApiKeysTable
-            teamId={teamId}
-            apiKeys={apiKeys}
-            openRotateKeyModal={openRotateKeyModal}
+        <div className="w-full max-w-[800px] min-w-0">
+          <ApiKeysHeader
+            canCreate={canWrite}
+            onCreate={() => setShowCreateKeyModal(true)}
           />
 
-          <SettingsPanel.Footer>
-            <span className="font-gta text-12 text-grey-400">
-              {apiKeys?.length ?? 0} {apiKeys?.length === 1 ? "key" : "keys"}
-            </span>
-
-            {newKeyButton}
-          </SettingsPanel.Footer>
-        </SettingsPanel>
+          <div className="mt-4">
+            <ApiKeysTable
+              teamId={teamId}
+              apiKeys={apiKeys}
+              openRotateKeyModal={openRotateKeyModal}
+            />
+          </div>
+        </div>
       </div>
     </>
   );

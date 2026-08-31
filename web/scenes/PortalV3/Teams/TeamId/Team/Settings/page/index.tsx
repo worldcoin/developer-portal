@@ -14,6 +14,7 @@ import { useParams } from "next/navigation";
 import { GeneralSettingsLoadingState } from "./LoadingState";
 import { SettingsPanel } from "../../common/SettingsPanel";
 import { ApiKeys } from "../../sections/ApiKeys";
+import { ApiKeysLoadingState } from "../../sections/ApiKeys/LoadingState";
 import { McpSetup } from "../../sections/ApiKeys/McpSetup";
 import { TeamDangerZone } from "../../sections/DangerZone";
 import { LeaveTeam } from "../../sections/LeaveTeam";
@@ -24,7 +25,9 @@ type QueryValue = string | string[] | undefined;
 
 export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
   const { teamId } = useParams() as { teamId: string };
-  const { user } = useUser() as Auth0SessionUser;
+  const { user, isLoading: isUserLoading } = useUser() as Auth0SessionUser & {
+    isLoading?: boolean;
+  };
 
   // Owner-only write access for the display name and destructive controls.
   // Everyone can open this page (sidebar is ungated); non-owners get a
@@ -36,6 +39,8 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
     Role_Enum.Owner,
     Role_Enum.Admin,
   ]);
+  const isResolvingApiKeysAccess =
+    props.requestedTab === TEAM_SETTINGS_TABS.ApiKeys && Boolean(isUserLoading);
   const activeTab = resolveTeamSettingsTab(props.requestedTab, canViewApiKeys);
 
   // Only General needs the team record. Members and credentials own their
@@ -46,9 +51,13 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
     refetch: refetchTeam,
   } = useQuery(FetchTeamDocument, {
     variables: { teamId },
-    skip: activeTab !== TEAM_SETTINGS_TABS.General,
+    skip: isResolvingApiKeysAccess || activeTab !== TEAM_SETTINGS_TABS.General,
   });
   const team = data?.team_by_pk;
+
+  if (isResolvingApiKeysAccess) {
+    return <ApiKeysLoadingState />;
+  }
 
   if (activeTab === TEAM_SETTINGS_TABS.ApiKeys && canViewApiKeys) {
     return <ApiKeys teamId={teamId} canWrite={canWriteTeamSettings} />;

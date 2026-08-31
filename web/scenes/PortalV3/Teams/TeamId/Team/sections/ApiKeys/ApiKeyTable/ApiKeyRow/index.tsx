@@ -12,6 +12,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useMemo } from "react";
 import { Status } from "./Status";
+import { apiKeysTableColumnsClassName } from "../TableHeader";
 
 export const ApiKeyRow = (props: {
   apiKey: FetchKeysQuery["api_key"][0];
@@ -43,84 +44,70 @@ export const ApiKeyRow = (props: {
 
   return (
     <div
+      role="row"
       data-row-index={index}
-      className="grid min-h-16 grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-b border-grey-100 px-5 py-3 last:border-b-0"
+      className={`grid h-12 ${apiKeysTableColumnsClassName} items-center border-b border-portal-border font-world text-15 leading-[1.2] font-[350] text-portal-ink last:border-b-0`}
     >
-      <div className="min-w-0">
-        <div className="truncate font-world text-13 leading-5 font-medium text-grey-900">
-          {apiKey.name}
-        </div>
-
-        <div className="flex min-w-0 items-center font-gta text-12 leading-4 text-grey-400">
-          <span className="truncate">Created {timeAgo}</span>
-          <span className="shrink-0">&nbsp;·&nbsp;</span>
-          {isEnoughPermissions ? (
-            <button
-              type="button"
-              onClick={() => openRotateKeyModal(apiKey)}
-              className="shrink-0 underline underline-offset-2 transition-colors hover:text-grey-700 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
-            >
-              Reset to view
-            </button>
-          ) : (
-            <span className="shrink-0 underline underline-offset-2">
-              Reset to view
-            </span>
-          )}
-        </div>
+      <div role="cell" className="min-w-0 truncate px-4">
+        {apiKey.name}
       </div>
 
-      <div className="flex">
+      <div role="cell" className="min-w-0 truncate px-4">
+        {timeAgo}
+      </div>
+
+      <div role="cell" className="flex min-w-0 px-4">
         <Status isActive={apiKey.is_active} />
       </div>
 
-      <div className="flex justify-end">
+      <div role="cell" className="flex justify-end pr-4">
         {/* Every item here is OWNER-only in Hasura; don't ship dead DOM. */}
         {isEnoughPermissions ? (
-          <div className="flex w-full justify-end">
-            <Dropdown>
-              <Dropdown.Button>
-                <MoreVerticalIcon />
-              </Dropdown.Button>
+          <Dropdown>
+            <Dropdown.Button
+              aria-label={`Manage ${apiKey.name}`}
+              className="size-5 place-items-center rounded-full text-portal-ink transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:outline-hidden"
+            >
+              <MoreVerticalIcon className="size-5" />
+            </Dropdown.Button>
 
-              <Dropdown.List align="end" heading={apiKey.name} hideBackButton>
-                <Dropdown.ListItem asChild>
-                  <button onClick={() => openViewDetails(apiKey)}>
-                    <Dropdown.ListItemIcon asChild>
-                      <EditIcon />
-                    </Dropdown.ListItemIcon>
+            <Dropdown.List align="end" heading={apiKey.name} hideBackButton>
+              <Dropdown.ListItem asChild>
+                <button onClick={() => openViewDetails(apiKey)}>
+                  <Dropdown.ListItemIcon asChild>
+                    <EditIcon />
+                  </Dropdown.ListItemIcon>
 
-                    <Dropdown.ListItemText>Edit Key</Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
+                  <Dropdown.ListItemText>Edit Key</Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
 
-                <Dropdown.ListItem asChild>
-                  <button onClick={() => openRotateKeyModal(apiKey)}>
-                    <Dropdown.ListItemIcon asChild>
-                      <KeyIcon />
-                    </Dropdown.ListItemIcon>
+              <Dropdown.ListItem asChild>
+                <button onClick={() => openRotateKeyModal(apiKey)}>
+                  <Dropdown.ListItemIcon asChild>
+                    <KeyIcon />
+                  </Dropdown.ListItemIcon>
 
-                    <Dropdown.ListItemText>Rotate key</Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
+                  <Dropdown.ListItemText>Rotate key</Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
 
-                <Dropdown.ListItem asChild>
-                  <button onClick={() => openDeleteKeyModal(apiKey)}>
-                    <Dropdown.ListItemIcon
-                      className="text-system-error-600"
-                      asChild
-                    >
-                      <TrashIcon />
-                    </Dropdown.ListItemIcon>
+              <Dropdown.ListItem asChild>
+                <button onClick={() => openDeleteKeyModal(apiKey)}>
+                  <Dropdown.ListItemIcon
+                    className="text-system-error-600"
+                    asChild
+                  >
+                    <TrashIcon />
+                  </Dropdown.ListItemIcon>
 
-                    <Dropdown.ListItemText className="text-system-error-600">
-                      Remove key
-                    </Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
-              </Dropdown.List>
-            </Dropdown>
-          </div>
+                  <Dropdown.ListItemText className="text-system-error-600">
+                    Remove key
+                  </Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
+            </Dropdown.List>
+          </Dropdown>
         ) : null}
       </div>
     </div>

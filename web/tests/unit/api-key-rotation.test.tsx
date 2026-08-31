@@ -87,8 +87,14 @@ const renderSection = (mocks: Mocks, canWrite = true) =>
     </MockedProvider>,
   );
 
-const findRotateTrigger = () =>
-  screen.findByRole("button", { name: /reset to view/i });
+const findRotateTrigger = async () => {
+  fireEvent.keyDown(
+    await screen.findByRole("button", { name: `Manage ${API_KEY.name}` }),
+    { key: "Enter" },
+  );
+
+  return screen.findByRole("menuitem", { name: /rotate key/i });
+};
 
 const confirmation = () => screen.getByRole("dialog");
 const confirmRotation = () =>
@@ -114,12 +120,15 @@ describe("API keys initial and empty states", () => {
     expect(
       screen.getByRole("heading", { name: "API Keys", level: 1 }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "New key" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Create API token" }),
+    ).toBeDisabled();
     expect(screen.getByRole("status")).toHaveTextContent("Loading API keys");
-    expect(screen.queryByText("Name")).not.toBeInTheDocument();
-    expect(screen.queryByText("Status")).not.toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Name" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "Created" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "Status" })).toBeVisible();
     expect(container.querySelectorAll(".react-loading-skeleton")).toHaveLength(
-      2,
+      9,
     );
   });
 
@@ -139,7 +148,28 @@ describe("API keys initial and empty states", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText("Name")).not.toBeInTheDocument();
     expect(screen.queryByText("0 keys")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "New key" })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: "Create API token" }),
+    ).toBeEnabled();
+  });
+
+  it("renders populated keys in the four-column Figma table", async () => {
+    renderSection([fetchKeysMock([API_KEY])]);
+
+    expect(await screen.findByText(API_KEY.name)).toBeVisible();
+    expect(screen.getByRole("table", { name: "API keys" })).toBeVisible();
+    expect(
+      screen
+        .getAllByRole("columnheader")
+        .map(
+          (header) => header.getAttribute("aria-label") ?? header.textContent,
+        ),
+    ).toEqual(["Name", "Created", "Status", "Actions"]);
+    expect(screen.getByText("Active")).toHaveClass("text-[#00c230]");
+    expect(
+      screen.getByRole("button", { name: `Manage ${API_KEY.name}` }),
+    ).toBeVisible();
+    expect(screen.queryByText("1 key")).not.toBeInTheDocument();
   });
 });
 // #endregion
@@ -340,7 +370,7 @@ describe("API key rotation flow", () => {
       screen.queryByRole("button", { name: /^rotate key$/i }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /reset to view/i }),
+      screen.queryByRole("button", { name: `Manage ${API_KEY.name}` }),
     ).not.toBeInTheDocument();
   });
 });
