@@ -111,14 +111,20 @@ describe("API keys empty state", () => {
   it("shows the API keys empty-state copy instead of an empty table", async () => {
     renderSection([fetchKeysMock([])]);
 
-    expect(await screen.findByText("No API keys")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "API Keys", level: 1 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "No API keys", level: 2 }),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "You don't have any API keys associated with your workspace",
+        "You don’t have any API key associated with your workspace",
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText("Name")).not.toBeInTheDocument();
-    expect(screen.getByText("0 keys")).toBeInTheDocument();
+    expect(screen.queryByText("0 keys")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "New key" })).toBeEnabled();
   });
 });
 // #endregion

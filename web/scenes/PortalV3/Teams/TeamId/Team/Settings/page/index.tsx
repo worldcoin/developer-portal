@@ -45,6 +45,10 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
   });
   const team = data?.team_by_pk;
 
+  if (activeTab === TEAM_SETTINGS_TABS.ApiKeys && canViewApiKeys) {
+    return <ApiKeys teamId={teamId} canWrite={canWriteTeamSettings} />;
+  }
+
   return (
     <SizingWrapper
       gridClassName="order-1 grow"
@@ -118,10 +122,6 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
 
           {activeTab === TEAM_SETTINGS_TABS.Members ? (
             <Members teamId={teamId} />
-          ) : null}
-
-          {activeTab === TEAM_SETTINGS_TABS.ApiKeys && canViewApiKeys ? (
-            <ApiKeys teamId={teamId} canWrite={canWriteTeamSettings} />
           ) : null}
         </div>
       </div>
