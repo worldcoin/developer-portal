@@ -1,14 +1,25 @@
 "use client";
 
 import type { ReviewChecklist } from "@/api/admin/reviewer/request-schema";
-import { useRouter } from "next/navigation";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  REVIEWER_DEVELOPER_MESSAGE_MAX_LENGTH,
+  REVIEWER_INTERNAL_NOTES_MAX_LENGTH,
+  REVIEWER_OVERRIDE_REASON_MAX_LENGTH,
+} from "@/lib/reviewer-limits";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
-import { Tabs } from "@/components/Tabs";
-
 import {
   REVIEW_CHECKLIST_VERSION,
+  getChecklistDefinitions,
   getChecklistProgress,
   isReviewChecklistVersionSupported,
   validateApprovalChecklist,
@@ -25,24 +36,24 @@ import {
   shouldHeartbeatReviewerClaim,
   writeReviewerClaimSession,
 } from "./claim-session";
-import { ReviewGuidelines } from "./ReviewGuidelines";
 import { ReviewHistory } from "./ReviewHistory";
 import { ReviewMetadata } from "./ReviewMetadata";
 import { ReviewOverview } from "./ReviewOverview";
-import { ReviewTestPanel } from "./ReviewTestPanel";
+import { ReviewerActionRail } from "./ReviewerActionRail";
+import { ReviewerChecklist } from "./ReviewerChecklist";
+import {
+  appendReviewerNote,
+  type ReviewerDecision,
+  ReviewerDecisionComposer,
+} from "./ReviewerDecisionComposer";
+import { ReviewerDecisionConfirmation } from "./ReviewerDecisionConfirmation";
+import { ReviewerHeader } from "./ReviewerHeader";
+import { ReviewerTestTarget } from "./ReviewerTestTarget";
 import {
   createChecklistSaveQueue,
   type ChecklistSaveQueueState,
 } from "./checklist-save-queue";
-
-const panels = [
-  "Overview",
-  "Metadata",
-  "Test",
-  "Guidelines",
-  "History",
-] as const;
-type Panel = (typeof panels)[number];
+import { parseReviewerPanel, type ReviewerPanel } from "./reviewer-panels";
 
 type WorkflowState = {
   status: ReviewerSubmissionStatus;
@@ -59,6 +70,34 @@ type WorkflowPayload = {
     claimToken: string | null;
     claimExpiresAt: string | null;
   };
+};
+
+type WorkflowErrorPayload = { code?: string; error?: string };
+
+const workflowStatusError = (status: number) => {
+  if (status >= 500) {
+    return `The review service is unavailable (${status}). Try again.`;
+  }
+  return `The review action was rejected (${status}). Check the request and try again.`;
+};
+
+const readWorkflowError = async (response: Response) => {
+  if (response.status >= 400 && response.status < 500) {
+    try {
+      const payload = (await response.json()) as WorkflowErrorPayload;
+      if (
+        payload &&
+        typeof payload.error === "string" &&
+        payload.error.trim() &&
+        payload.error.length <= 1_000
+      ) {
+        return payload.error.trim();
+      }
+    } catch {
+      // Use the status fallback for malformed responses.
+    }
+  }
+  return workflowStatusError(response.status);
 };
 
 const getPersistedChecklistVersion = (submission: ReviewerSubmissionDetail) =>
@@ -86,7 +125,10 @@ export const ReviewerWorkspace = ({
   submission: ReviewerSubmissionDetail;
 }) => {
   const router = useRouter();
-  const [activePanel, setActivePanel] = useState<Panel>("Overview");
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const requestedPanel = parseReviewerPanel(searchParams.get("panel"));
+  const [activePanel, setActivePanel] = useState<ReviewerPanel>(requestedPanel);
   const [workflow, setWorkflow] = useState<WorkflowState>({
     status: submission.status,
     reviewVersion: submission.reviewVersion,
@@ -100,13 +142,27 @@ export const ReviewerWorkspace = ({
   const [persistedChecklistVersion, setPersistedChecklistVersion] = useState<
     string | null
   >(() => getPersistedChecklistVersion(submission));
+  const persistedChecklistVersionRef = useRef(persistedChecklistVersion);
+  persistedChecklistVersionRef.current = persistedChecklistVersion;
   const [checklistSaveState, setChecklistSaveState] =
     useState<ChecklistSaveQueueState>("idle");
   const [developerMessage, setDeveloperMessage] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
+  const [pendingDecision, setPendingDecision] =
+    useState<ReviewerDecision | null>(null);
+  const [mobileComposerOpen, setMobileComposerOpen] = useState(false);
+  const [decisionError, setDecisionError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const workflowRef = useRef(workflow);
+  const checklistRef = useRef(checklist);
+  checklistRef.current = checklist;
+  const developerMessageRef = useRef(developerMessage);
+  developerMessageRef.current = developerMessage;
+  const overrideReasonRef = useRef(overrideReason);
+  overrideReasonRef.current = overrideReason;
+  const decisionReturnFocusRef = useRef<HTMLButtonElement>(null);
   const heartbeatPromiseRef = useRef<Promise<void> | null>(null);
+  const workflowConflictRef = useRef(0);
   const busyActionRef = useRef<string | null>(null);
   const checklistSaveStateRef = useRef<ChecklistSaveQueueState>("idle");
   const submissionIdRef = useRef(submission.id);
@@ -132,6 +188,24 @@ export const ReviewerWorkspace = ({
     submissionId: submission.id,
     version: submission.checklistVersion ?? REVIEW_CHECKLIST_VERSION,
   };
+
+  const replacePanel = useCallback(
+    (panel: ReviewerPanel) => {
+      const nextParams = new URLSearchParams(searchParams.toString());
+      if (panel === "review") nextParams.delete("panel");
+      else nextParams.set("panel", panel);
+      const query = nextParams.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+      setActivePanel(panel);
+    },
+    [pathname, router, searchParams],
+  );
+
+  useEffect(() => {
+    setActivePanel(requestedPanel);
+  }, [requestedPanel]);
 
   const updateBusyAction = useCallback((action: string | null) => {
     busyActionRef.current = action;
@@ -174,9 +248,20 @@ export const ReviewerWorkspace = ({
         checklistSaveStateRef.current !== "error")
     ) {
       setChecklist(getEditableChecklist(submission.checklist));
-      setPersistedChecklistVersion(getPersistedChecklistVersion(submission));
+      const nextPersistedVersion = getPersistedChecklistVersion(submission);
+      persistedChecklistVersionRef.current = nextPersistedVersion;
+      setPersistedChecklistVersion(nextPersistedVersion);
     }
-    if (submissionChanged) updateChecklistSaveState("idle");
+    if (submissionChanged) {
+      updateChecklistSaveState("idle");
+      setDeveloperMessage("");
+      setOverrideReason("");
+      setPendingDecision(null);
+      setMobileComposerOpen(false);
+      setDecisionError(null);
+      decisionReturnFocusRef.current = null;
+      replacePanel("review");
+    }
   }, [submission, updateChecklistSaveState]);
 
   useEffect(() => {
@@ -259,8 +344,12 @@ export const ReviewerWorkspace = ({
         });
         if (isCurrent && !isCurrent()) return null;
         if (response.status === 409) {
+          workflowConflictRef.current += 1;
           clearReviewerClaimSession(submission.id);
           updateWorkflow((current) => ({ ...current, claimToken: null }));
+          setPendingDecision(null);
+          setMobileComposerOpen(false);
+          setDecisionError(null);
           toast.error(
             "The claim or review version changed. Reload and reclaim.",
           );
@@ -268,7 +357,12 @@ export const ReviewerWorkspace = ({
           return null;
         }
         if (!response.ok) {
-          toast.error("The review action could not be saved.");
+          const message = await readWorkflowError(response);
+          if (isCurrent && !isCurrent()) return null;
+          if (action === "approved" || action === "changes_requested") {
+            setDecisionError(message);
+          }
+          toast.error(message);
           return null;
         }
         const payload = (await response.json()) as WorkflowPayload;
@@ -276,7 +370,12 @@ export const ReviewerWorkspace = ({
         return payload;
       } catch {
         if (isCurrent && !isCurrent()) return null;
-        toast.error("The review action could not be saved.");
+        const message =
+          "The review action could not reach the server. Check your connection and try again.";
+        if (action === "approved" || action === "changes_requested") {
+          setDecisionError(message);
+        }
+        toast.error(message);
         return null;
       } finally {
         if (!quiet) updateBusyAction(null);
@@ -404,7 +503,12 @@ export const ReviewerWorkspace = ({
 
   const saveChecklistSnapshot = useCallback(
     async (snapshot: ReviewChecklist) => {
+      const saveGeneration = submissionGenerationRef.current.generation;
+      const isCurrentChecklistSave = () =>
+        renderedSubmissionIdRef.current === submission.id &&
+        submissionGenerationRef.current.generation === saveGeneration;
       await heartbeatPromiseRef.current;
+      if (!isCurrentChecklistSave()) return false;
       const current = workflowRef.current;
       if (!current.claimToken) return false;
       const checklistContext = checklistContextRef.current;
@@ -425,7 +529,7 @@ export const ReviewerWorkspace = ({
         method: "PUT",
         path: `/api/admin/reviewer/submissions/${checklistContext.submissionId}/checklist`,
         quiet: true,
-        isCurrent: () => renderedSubmissionIdRef.current === submission.id,
+        isCurrent: isCurrentChecklistSave,
         body: {
           ...claimedWriteBody(current),
           checklistVersion: checklistContext.version,
@@ -433,6 +537,7 @@ export const ReviewerWorkspace = ({
         },
       });
       if (payload && applyWorkflowPayload(payload, "checklist")) {
+        persistedChecklistVersionRef.current = checklistContext.version;
         setPersistedChecklistVersion(checklistContext.version);
         return true;
       }
@@ -468,23 +573,147 @@ export const ReviewerWorkspace = ({
     [checklistSaveQueue],
   );
 
-  const decide = async (decision: "approved" | "changes_requested") => {
-    if (!workflowRef.current.claimToken) return;
-    const payload = await claimedWorkflowRequest({
-      action: decision,
-      path: `/api/admin/reviewer/submissions/${submission.id}/decision`,
-      extraBody: {
-        appMetadataId: submission.appMetadataId,
-        expectedMetadataUpdatedAt: submission.metadataUpdatedAt,
-        decision,
-        developerMessage,
-        ...(overrideReason.trim() ? { overrideReason } : {}),
-      },
-    });
-    if (payload) {
-      clearReviewerClaimSession(submission.id);
-      updateWorkflow((current) => ({ ...current, claimToken: null }));
+  const selectOutcome = (decision: ReviewerDecision) => {
+    setDecisionError(null);
+    setPendingDecision(decision);
+  };
+
+  const confirmDecision = async (decision: ReviewerDecision) => {
+    if (busyActionRef.current) return;
+    const decisionSubmissionId = submission.id;
+    const decisionGeneration = submissionGenerationRef.current.generation;
+    const conflictGeneration = workflowConflictRef.current;
+    const isCurrentDecision = () =>
+      renderedSubmissionIdRef.current === decisionSubmissionId &&
+      submissionGenerationRef.current.generation === decisionGeneration;
+    const canContinueDecision = () =>
+      isCurrentDecision() && workflowConflictRef.current === conflictGeneration;
+    const rejectDecision = (message: string) => {
+      if (!isCurrentDecision()) return;
+      setDecisionError(message);
+      toast.error(message);
+    };
+
+    updateBusyAction(decision);
+    setDecisionError(null);
+    try {
+      await heartbeatPromiseRef.current;
+      if (!canContinueDecision()) return;
+
+      const checklistSaved = await checklistSaveQueue.flush();
+      if (!canContinueDecision()) return;
+      if (!checklistSaved) {
+        if (workflowRef.current.claimToken) {
+          rejectDecision("Checklist save failed. Retry save before deciding.");
+        }
+        return;
+      }
+
+      const currentWorkflow = workflowRef.current;
+      const currentChecklist = checklistRef.current;
+      const checklistContext = checklistContextRef.current;
+      const currentDeveloperMessage = developerMessageRef.current;
+      const currentOverrideReason = overrideReasonRef.current;
+
+      if (
+        checklistContext.submissionId !== decisionSubmissionId ||
+        currentWorkflow.status !== "in_review" ||
+        !currentWorkflow.claimToken
+      ) {
+        rejectDecision("Claim this review again before deciding.");
+        return;
+      }
+      if (!isReviewChecklistVersionSupported(checklistContext.version)) {
+        rejectDecision(
+          `Checklist version ${checklistContext.version} is not supported.`,
+        );
+        return;
+      }
+      if (persistedChecklistVersionRef.current !== checklistContext.version) {
+        rejectDecision("Save the versioned checklist before deciding.");
+        return;
+      }
+      const checklistErrors = validateChecklistDraft(
+        checklistContext.appMode,
+        currentChecklist,
+        checklistContext.version,
+      );
+      if (checklistErrors.length) {
+        rejectDecision(checklistErrors[0]);
+        return;
+      }
+      if (
+        currentDeveloperMessage.length > REVIEWER_DEVELOPER_MESSAGE_MAX_LENGTH
+      ) {
+        rejectDecision("The developer message is too long.");
+        return;
+      }
+      if (decision === "changes_requested" && !currentDeveloperMessage.trim()) {
+        rejectDecision(
+          "A message to the developer is required to request changes.",
+        );
+        return;
+      }
+      if (currentOverrideReason.length > REVIEWER_OVERRIDE_REASON_MAX_LENGTH) {
+        rejectDecision("The override reason is too long.");
+        return;
+      }
+      if (decision === "approved") {
+        const currentApprovalErrors = validateApprovalChecklist(
+          checklistContext.appMode,
+          currentChecklist,
+          currentOverrideReason,
+          checklistContext.version,
+        );
+        if (currentApprovalErrors.length) {
+          rejectDecision(currentApprovalErrors[0]);
+          return;
+        }
+      }
+
+      const payload = await workflowRequest({
+        action: decision,
+        path: `/api/admin/reviewer/submissions/${decisionSubmissionId}/decision`,
+        quiet: true,
+        isCurrent: isCurrentDecision,
+        body: {
+          ...claimedWriteBody(currentWorkflow),
+          appMetadataId: submission.appMetadataId,
+          expectedMetadataUpdatedAt: submission.metadataUpdatedAt,
+          decision,
+          developerMessage: currentDeveloperMessage,
+          ...(currentOverrideReason.trim()
+            ? { overrideReason: currentOverrideReason }
+            : {}),
+        },
+      });
+      if (!payload || !canContinueDecision()) return;
+      if (!payload.submission) {
+        rejectDecision(
+          "The review service returned an invalid response. Try again.",
+        );
+        return;
+      }
+
+      clearReviewerClaimSession(decisionSubmissionId);
+      updateWorkflow((current) => ({
+        ...current,
+        status: payload.submission!.status as ReviewerSubmissionStatus,
+        reviewVersion: payload.submission!.reviewVersion,
+        claimToken: null,
+        claimExpiresAt: null,
+        claimedByEmail: null,
+      }));
+      checklistSaveQueue.reset();
+      setDeveloperMessage("");
+      setOverrideReason("");
+      setPendingDecision(null);
+      setMobileComposerOpen(false);
+      setDecisionError(null);
+      decisionReturnFocusRef.current = null;
       router.refresh();
+    } finally {
+      updateBusyAction(null);
     }
   };
 
@@ -492,10 +721,6 @@ export const ReviewerWorkspace = ({
   const checklistVersion =
     submission.checklistVersion ?? REVIEW_CHECKLIST_VERSION;
   const checklistPersisted = persistedChecklistVersion === checklistVersion;
-  const checklistSaveBlocking =
-    checklistSaveState === "saving" || checklistSaveState === "error";
-  const testAvailable =
-    workflow.status === "pending" || workflow.status === "in_review";
   const checklistVersionSupported =
     isReviewChecklistVersionSupported(checklistVersion);
   const checklistProgress = getChecklistProgress(
@@ -503,259 +728,216 @@ export const ReviewerWorkspace = ({
     checklist,
     checklistVersion,
   );
-  const approvalErrors = validateApprovalChecklist(
+  const checklistErrors = validateChecklistDraft(
     submission.appMode,
     checklist,
-    overrideReason,
     checklistVersion,
   );
-
-  const currentPanel = useMemo(() => {
-    switch (activePanel) {
-      case "Metadata":
-        return <ReviewMetadata submission={submission} />;
-      case "Test":
-        return testAvailable ? (
-          <ReviewTestPanel
-            appId={submission.appId}
-            integrationUrl={submission.metadataSnapshot.integration_url}
-            metadataId={submission.appMetadataId}
-            mode={submission.appMode}
-          />
-        ) : (
-          <section className="rounded-16 border border-grey-200 bg-grey-0 p-6">
-            <h2 className="text-16 font-semibold text-grey-900">
-              Test preview unavailable
-            </h2>
-            <p className="mt-2 text-13 leading-5 text-grey-500">
-              Completed and withdrawn attempts cannot safely preview an exact
-              draft. Review the immutable metadata and event history instead.
-            </p>
-          </section>
-        );
-      case "Guidelines":
-        return (
-          <ReviewGuidelines
-            checklist={checklist}
-            disabled={
-              !hasActiveClaim ||
-              Boolean(busyAction) ||
-              !checklistVersionSupported
-            }
-            mode={submission.appMode}
-            onChange={enqueueChecklist}
-            version={checklistVersion}
-          />
-        );
-      case "History":
-        return (
-          <ReviewHistory
-            assetSnapshotRepair={submission.assetSnapshotRepair}
-            canReview={canReview}
-            events={submission.events}
-            notifications={submission.notifications}
-            reviewId={submission.id}
-            reviewStatus={workflow.status}
-          />
-        );
-      default:
-        return <ReviewOverview submission={submission} />;
-    }
-  }, [
-    activePanel,
-    canReview,
+  const approvalWithoutOverride = validateApprovalChecklist(
+    submission.appMode,
     checklist,
-    busyAction,
-    hasActiveClaim,
+    "",
     checklistVersion,
-    checklistVersionSupported,
-    submission,
-    testAvailable,
-    enqueueChecklist,
-  ]);
+  );
+  const blockedApprovalReason = approvalWithoutOverride.includes(
+    "Override reason is required when checks fail or remain incomplete",
+  )
+    ? "Override reason is required when checks fail or remain incomplete"
+    : null;
+  const decisionDisabledReason = !hasActiveClaim
+    ? "Claim or recover this review before deciding."
+    : Boolean(busyAction)
+      ? "Wait for the current review action to finish."
+      : !checklistVersionSupported
+        ? `Checklist version ${checklistVersion} is not supported.`
+        : checklistSaveState === "saving"
+          ? "Wait for checklist changes to finish saving."
+          : checklistSaveState === "error"
+            ? "Retry the failed checklist save before deciding."
+            : !checklistPersisted
+              ? "Save the versioned checklist before deciding."
+              : checklistErrors[0] ?? null;
+  const approvalDisabledReason =
+    decisionDisabledReason ??
+    approvalWithoutOverride.find(
+      (error) =>
+        error !==
+        "Override reason is required when checks fail or remain incomplete",
+    ) ??
+    null;
+  const failedLabels = getChecklistDefinitions(
+    submission.appMode,
+    checklistVersion,
+  )
+    .filter((definition) =>
+      checklist.items.some(
+        (item) => item.id === definition.id && item.status === "fail",
+      ),
+    )
+    .map((definition) => definition.title);
+  const testTarget = {
+    appId: submission.appId,
+    appName: submission.appName,
+    integrationUrl: submission.metadataSnapshot.integration_url,
+    metadataId: submission.appMetadataId,
+    mode: submission.appMode,
+  };
+  const renderDecisionComposer = () => (
+    <ReviewerDecisionComposer
+      approvalDisabledReason={approvalDisabledReason}
+      blockedApprovalReason={blockedApprovalReason}
+      decisionError={decisionError}
+      developerMessage={developerMessage}
+      onDeveloperMessageChange={setDeveloperMessage}
+      onOverrideReasonChange={setOverrideReason}
+      onSelectOutcome={selectOutcome}
+      overrideReason={overrideReason}
+      requestChangesDisabledReason={decisionDisabledReason}
+      returnFocusRef={decisionReturnFocusRef}
+      saveState={checklistSaveState}
+    />
+  );
+  const renderReviewControls = () => (
+    <>
+      <ReviewClaimBar
+        busy={Boolean(busyAction)}
+        canReview={canReview}
+        claimExpiresAt={workflow.claimExpiresAt}
+        claimedByEmail={workflow.claimedByEmail}
+        currentUserEmail={currentUserEmail}
+        hasActiveClaim={hasActiveClaim}
+        onClaim={claim}
+        onRelease={release}
+        reviewId={submission.id}
+        reviewVersion={workflow.reviewVersion}
+        status={workflow.status}
+      />
+
+      <label className="grid gap-1 text-12 font-medium text-grey-700">
+        Internal notes
+        <textarea
+          className="min-h-24 resize-y rounded-8 border border-grey-200 p-3 text-13 font-normal text-grey-900 disabled:bg-grey-100"
+          disabled={
+            !hasActiveClaim || Boolean(busyAction) || !checklistVersionSupported
+          }
+          maxLength={REVIEWER_INTERNAL_NOTES_MAX_LENGTH}
+          onChange={(event) => {
+            enqueueChecklist({
+              ...checklist,
+              internalNotes: event.target.value,
+            });
+          }}
+          value={checklist.internalNotes}
+        />
+      </label>
+      {renderDecisionComposer()}
+    </>
+  );
+  const currentPanel =
+    activePanel === "app-data" ? (
+      <ReviewMetadata submission={submission} />
+    ) : activePanel === "activity" ? (
+      <ReviewHistory
+        assetSnapshotRepair={submission.assetSnapshotRepair}
+        canReview={canReview}
+        events={submission.events}
+        notifications={submission.notifications}
+        reviewId={submission.id}
+        reviewStatus={workflow.status}
+      />
+    ) : (
+      <div className="grid gap-5">
+        <ReviewOverview submission={submission} />
+        <ReviewerChecklist
+          checklist={checklist}
+          definitionSnapshot={submission.checklist.definitionSnapshot}
+          disabled={
+            !hasActiveClaim || Boolean(busyAction) || !checklistVersionSupported
+          }
+          mode={submission.appMode}
+          onAddNote={(note) =>
+            setDeveloperMessage((message) => appendReviewerNote(message, note))
+          }
+          onChange={enqueueChecklist}
+          onRetrySave={() => void checklistSaveQueue.retry()}
+          saveState={checklistSaveState}
+          version={checklistVersion}
+        />
+      </div>
+    );
 
   return (
     <div className="grid min-h-0 gap-4 lg:h-full lg:grid-rows-[auto_minmax(0,1fr)]">
-      <header className="rounded-16 border border-grey-200 bg-grey-0/90 p-5 backdrop-blur-md">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-11 font-medium tracking-wide text-grey-400 uppercase">
-              Reviewer /{" "}
-              {submission.appMode === "mini-app" ? "Mini App" : "External"}
-            </p>
-            <h1 className="mt-2 text-24 font-semibold tracking-[-0.02em] text-grey-900">
-              {submission.appName}
-            </h1>
-            <p className="mt-1 font-mono text-11 text-grey-500">
-              {submission.appId} · attempt {submission.attempt} ·{" "}
-              {submission.id}
-            </p>
-          </div>
-          <span className="rounded-full border border-grey-200 bg-grey-50 px-3 py-1.5 text-12 font-semibold text-grey-700">
-            {workflow.status.replaceAll("_", " ")}
-          </span>
-        </div>
-      </header>
+      <ReviewerHeader
+        activePanel={activePanel}
+        appId={submission.appId}
+        appMode={submission.appMode}
+        appName={submission.appName}
+        attempt={submission.attempt}
+        onPanelChange={replacePanel}
+        status={workflow.status}
+      />
 
-      <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:overflow-auto">
-        <main className="min-w-0">
-          <div className="mb-4 rounded-12 border border-grey-200 bg-grey-0 px-6">
-            <Tabs className="px-0!">
-              {panels.map((panel) => (
-                <button
-                  aria-selected={activePanel === panel}
-                  className={
-                    activePanel === panel
-                      ? "border-b-2 border-grey-900 px-3 py-3 text-13 font-semibold text-grey-900 disabled:cursor-not-allowed disabled:opacity-40"
-                      : "border-b-2 border-transparent px-3 py-3 text-13 font-medium text-grey-500 disabled:cursor-not-allowed disabled:opacity-40"
-                  }
-                  disabled={panel === "Test" && !testAvailable}
-                  key={panel}
-                  onClick={() => setActivePanel(panel)}
-                  role="tab"
-                  type="button"
-                >
-                  {panel}
-                </button>
-              ))}
-            </Tabs>
-          </div>
-          {currentPanel}
+      <div
+        className="flex min-h-0 flex-col gap-4 pb-24 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:overflow-hidden lg:pb-0"
+        data-testid="reviewer-workspace-body"
+      >
+        <main className="order-2 min-w-0 lg:order-none lg:overflow-y-auto lg:pr-1">
+          <section
+            aria-labelledby={`reviewer-tab-${activePanel}`}
+            id={`reviewer-panel-${activePanel}`}
+            role="tabpanel"
+            tabIndex={0}
+          >
+            {currentPanel}
+          </section>
         </main>
 
-        <aside
-          className="grid content-start gap-4 self-start rounded-16 border border-grey-200 bg-grey-0/90 p-4 backdrop-blur-md lg:sticky lg:top-0"
-          data-review-decision-rail
+        <ReviewerActionRail
+          checklistProgress={checklistProgress}
+          onOpenComposer={() => setMobileComposerOpen(true)}
+          saveState={checklistSaveState}
+          testTarget={testTarget}
         >
-          <ReviewClaimBar
-            busy={Boolean(busyAction)}
-            canReview={canReview}
-            claimExpiresAt={workflow.claimExpiresAt}
-            claimedByEmail={workflow.claimedByEmail}
-            currentUserEmail={currentUserEmail}
-            hasActiveClaim={hasActiveClaim}
-            onClaim={claim}
-            onRelease={release}
-            reviewId={submission.id}
-            reviewVersion={workflow.reviewVersion}
-            status={workflow.status}
-          />
-
-          <section>
-            <div className="flex items-center justify-between text-11 font-medium text-grey-500">
-              <span>Checklist</span>
-              <span>
-                {checklistProgress.completed}/{checklistProgress.total}
-              </span>
-            </div>
-            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-grey-100">
-              <div
-                className="h-full rounded-full bg-blue-500"
-                style={{ width: `${checklistProgress.percent}%` }}
-              />
-            </div>
-          </section>
-
-          <label className="grid gap-1 text-11 font-medium text-grey-500">
-            Internal notes
-            <textarea
-              className="min-h-24 resize-y rounded-8 border border-grey-200 p-3 text-12 font-normal text-grey-900 disabled:bg-grey-100"
-              disabled={
-                !hasActiveClaim ||
-                Boolean(busyAction) ||
-                !checklistVersionSupported
-              }
-              onChange={(event) => {
-                enqueueChecklist({
-                  ...checklist,
-                  internalNotes: event.target.value,
-                });
-              }}
-              value={checklist.internalNotes}
-            />
-          </label>
-
-          <label className="grid gap-1 text-11 font-medium text-grey-500">
-            Developer message
-            <textarea
-              className="min-h-24 resize-y rounded-8 border border-grey-200 p-3 text-12 font-normal text-grey-900 disabled:bg-grey-100"
-              disabled={!hasActiveClaim || Boolean(busyAction)}
-              onChange={(event) => setDeveloperMessage(event.target.value)}
-              placeholder="Required when requesting changes"
-              value={developerMessage}
-            />
-          </label>
-
-          <label className="grid gap-1 text-11 font-medium text-grey-500">
-            Override reason
-            <textarea
-              className="min-h-20 resize-y rounded-8 border border-grey-200 p-3 text-12 font-normal text-grey-900 disabled:bg-grey-100"
-              disabled={!hasActiveClaim || Boolean(busyAction)}
-              onChange={(event) => setOverrideReason(event.target.value)}
-              placeholder="Required for failed or incomplete checks"
-              value={overrideReason}
-            />
-          </label>
-
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              className="rounded-8 border border-system-error-300 bg-system-error-100 px-3 py-2.5 text-12 font-semibold text-system-error-700 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={
-                !hasActiveClaim ||
-                !checklistPersisted ||
-                checklistSaveBlocking ||
-                !developerMessage.trim() ||
-                Boolean(busyAction) ||
-                !checklistVersionSupported
-              }
-              onClick={() => decide("changes_requested")}
-              type="button"
-            >
-              Request changes
-            </button>
-            <button
-              className="rounded-8 bg-system-success-600 px-3 py-2.5 text-12 font-semibold text-grey-0 disabled:cursor-not-allowed disabled:bg-grey-300"
-              disabled={
-                !hasActiveClaim ||
-                !checklistPersisted ||
-                checklistSaveBlocking ||
-                approvalErrors.length > 0 ||
-                Boolean(busyAction) ||
-                !checklistVersionSupported
-              }
-              onClick={() => decide("approved")}
-              type="button"
-            >
-              Approve
-            </button>
-          </div>
-          {checklistSaveState === "saving" ? (
-            <p className="text-11 leading-4 text-system-warning-700">
-              Saving checklist changes.
-            </p>
-          ) : checklistSaveState === "error" ? (
-            <p className="text-11 leading-4 text-system-warning-700">
-              Checklist save failed. Decisions are disabled.{" "}
-              <button
-                className="font-semibold underline"
-                onClick={() => void checklistSaveQueue.retry()}
-                type="button"
-              >
-                Retry save
-              </button>
-            </p>
-          ) : !checklistPersisted ? (
-            <p className="text-11 leading-4 text-system-warning-700">
-              Save the versioned checklist before deciding.
-            </p>
-          ) : null}
-          {approvalErrors.length ? (
-            <p className="text-11 leading-4 text-system-warning-700">
-              {approvalErrors[0]}
-            </p>
-          ) : null}
-        </aside>
+          {mobileComposerOpen ? null : renderReviewControls()}
+        </ReviewerActionRail>
       </div>
+
+      <Sheet onOpenChange={setMobileComposerOpen} open={mobileComposerOpen}>
+        <SheetContent
+          className="max-h-[90dvh] overflow-y-auto lg:hidden"
+          side="bottom"
+        >
+          <SheetHeader>
+            <SheetTitle>Message and decide</SheetTitle>
+            <SheetDescription>
+              Edit the developer message, then choose an outcome to review
+              before sending.
+            </SheetDescription>
+            <div className="mt-3">
+              <ReviewerTestTarget {...testTarget} compact />
+            </div>
+          </SheetHeader>
+          <div className="grid gap-4 px-4 pb-4">{renderReviewControls()}</div>
+        </SheetContent>
+      </Sheet>
+
+      <ReviewerDecisionConfirmation
+        checklistProgress={checklistProgress}
+        decision={pendingDecision}
+        developerMessage={developerMessage}
+        failedLabels={failedLabels}
+        onConfirm={confirmDecision}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDecision(null);
+            setDecisionError(null);
+          }
+        }}
+        open={pendingDecision !== null}
+        returnFocusRef={decisionReturnFocusRef}
+        testTarget={testTarget}
+      />
     </div>
   );
 };

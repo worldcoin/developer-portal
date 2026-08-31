@@ -20,8 +20,8 @@ import { ReviewerHeader } from "@/scenes/Admin/reviewer/detail/ReviewerHeader";
 import { ReviewerChecklist } from "@/scenes/Admin/reviewer/detail/ReviewerChecklist";
 import { ReviewerTabs } from "@/scenes/Admin/reviewer/detail/ReviewerTabs";
 import { ReviewerTestTarget } from "@/scenes/Admin/reviewer/detail/ReviewerTestTarget";
-import { ReviewerWorkspace } from "@/scenes/Admin/reviewer/detail/ReviewerWorkspace";
 import {
+  createChecklistDefinitionSnapshot,
   LEGACY_REVIEW_CHECKLIST_VERSION,
   REVIEW_CHECKLIST_VERSION,
 } from "@/scenes/Admin/reviewer/checklist";
@@ -42,6 +42,9 @@ Object.defineProperty(global, "TextDecoder", {
   value: TextDecoder,
 });
 
+const {
+  ReviewerWorkspace,
+}: typeof import("@/scenes/Admin/reviewer/detail/ReviewerWorkspace") = require("@/scenes/Admin/reviewer/detail/ReviewerWorkspace");
 const {
   appendReviewerNote,
   ReviewerDecisionComposer,
@@ -65,10 +68,14 @@ Object.defineProperty(global, "ResizeObserver", {
 });
 
 const mockRefresh = jest.fn();
+const mockReplace = jest.fn();
+let mockPathname = "/admin/reviewer/00000000-0000-4000-8000-000000000001";
+let mockSearchParams = "";
 
 jest.mock("next/navigation", () => ({
-  usePathname: () => "/admin/reviewer/00000000-0000-4000-8000-000000000001",
-  useRouter: () => ({ refresh: mockRefresh }),
+  usePathname: () => mockPathname,
+  useRouter: () => ({ refresh: mockRefresh, replace: mockReplace }),
+  useSearchParams: () => new URLSearchParams(mockSearchParams),
 }));
 
 jest.mock("react-toastify", () => ({
@@ -77,6 +84,10 @@ jest.mock("react-toastify", () => ({
 
 beforeEach(() => {
   jest.restoreAllMocks();
+  mockRefresh.mockClear();
+  mockReplace.mockClear();
+  mockPathname = "/admin/reviewer/00000000-0000-4000-8000-000000000001";
+  mockSearchParams = "";
   window.sessionStorage.clear();
 });
 
@@ -756,7 +767,664 @@ const detailFixture: ReviewerSubmissionDetail = {
   },
 };
 
+const groupedChecklistItems = [
+  "group.listing-localization",
+  "group.experience-test",
+  "group.integration-reliability",
+  "group.permissions-safety",
+  "group.legal-support",
+].map((id) => ({ id, status: "pass" as const, evidence: "" }));
+
+const claimedSubmissionFixture = (
+  overrides: Partial<ReviewerSubmissionDetail> = {},
+): ReviewerSubmissionDetail => ({
+  ...detailFixture,
+  checklist: {
+    items: groupedChecklistItems,
+    internalNotes: "",
+    definitionSnapshot: createChecklistDefinitionSnapshot(
+      "mini-app",
+      REVIEW_CHECKLIST_VERSION,
+    )!,
+  },
+  checklistVersion: REVIEW_CHECKLIST_VERSION,
+  status: "in_review",
+  reviewVersion: 7,
+  claimedByEmail: "reviewer@example.com",
+  claimExpiresAt: "2999-01-01T00:00:00.000Z",
+  ...overrides,
+});
+
+const seedClaimSession = (
+  submission: ReviewerSubmissionDetail,
+  claimToken = "00000000-0000-4000-8000-000000000099",
+) => {
+  window.sessionStorage.setItem(
+    `admin-reviewer-claim:${submission.id}`,
+    JSON.stringify({
+      claimToken,
+      claimExpiresAt: submission.claimExpiresAt,
+      reviewVersion: submission.reviewVersion,
+    }),
+  );
+  return claimToken;
+};
+
 describe("review detail workspace", () => {
+  it("renders only the three URL-backed tabs and restores the active panel", async () => {
+    const { rerender } = render(
+      <ReviewerWorkspace
+        canReview={false}
+        currentUserEmail="reader@example.com"
+        submission={detailFixture}
+      />,
+    );
+
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Review",
+      "App data",
+      "Activity",
+    ]);
+    expect(screen.getByRole("tabpanel")).toHaveAttribute(
+      "id",
+      "reviewer-panel-review",
+    );
+    expect(screen.getByRole("tabpanel")).toHaveAttribute(
+      "aria-labelledby",
+      "reviewer-tab-review",
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: "App data" }));
+    expect(mockReplace).toHaveBeenLastCalledWith(
+      `${mockPathname}?panel=app-data`,
+      { scroll: false },
+    );
+
+    mockSearchParams = "view=compact&panel=activity";
+    rerender(
+      <ReviewerWorkspace
+        canReview={false}
+        currentUserEmail="reader@example.com"
+        submission={detailFixture}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("tab", { name: "Activity" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      ),
+    );
+    expect(screen.getByRole("tabpanel")).toHaveAttribute(
+      "id",
+      "reviewer-panel-activity",
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: "Review" }));
+    expect(mockReplace).toHaveBeenLastCalledWith(
+      `${mockPathname}?view=compact`,
+      { scroll: false },
+    );
+  });
+
+  it("mounts only the active task panel while keeping the exact test target", async () => {
+    const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ assets: [] }),
+    } as Response);
+
+    render(
+      <ReviewerWorkspace
+        canReview={false}
+        currentUserEmail="reader@example.com"
+        submission={detailFixture}
+      />,
+    );
+
+    expect(screen.getByText("Developer submission note")).toBeInTheDocument();
+    expect(screen.getByText("Draft vs live changes")).toBeInTheDocument();
+    expect(screen.getByText("Review checklist")).toBeInTheDocument();
+    expect(screen.getByText("Listing and localization")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Canonical submitted metadata"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Immutable review timeline"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getAllByLabelText("World App draft QR code").length,
+    ).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole("tab", { name: "App data" }));
+    expect(
+      screen.getByText("Canonical submitted metadata"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Developer submission note"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Immutable review timeline"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getAllByLabelText("World App draft QR code").length,
+    ).toBeGreaterThan(0);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("tab", { name: "Activity" }));
+    expect(screen.getByText("Immutable review timeline")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Canonical submitted metadata"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getAllByLabelText("World App draft QR code").length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("keeps the exact test target in both outcome confirmations without sending early", async () => {
+    const submission = claimedSubmissionFixture();
+    seedClaimSession(submission);
+    const fetchMock = jest.spyOn(global, "fetch");
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+
+    fireEvent.click(screen.getByRole("button", { name: "Approve" }));
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(
+      within(screen.getByRole("dialog")).getByLabelText(
+        "World App draft QR code",
+      ),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+
+    fireEvent.change(screen.getByLabelText("Message to developer"), {
+      target: { value: "Please correct the localized listing." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Request changes" }));
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(
+      within(screen.getByRole("dialog")).getByLabelText(
+        "World App draft QR code",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Confirm request changes" }),
+    ).toBeEnabled();
+  });
+
+  it("keeps a safe external target visible without rendering a World App QR", () => {
+    render(
+      <ReviewerWorkspace
+        canReview={false}
+        currentUserEmail="reader@example.com"
+        submission={{
+          ...detailFixture,
+          appMode: "external",
+          listingTarget: "world_ecosystem",
+          metadataSnapshot: {
+            ...detailFixture.metadataSnapshot,
+            integration_url: "https://external.example.com/integration",
+          },
+        }}
+      />,
+    );
+
+    expect(
+      screen.queryByLabelText("World App draft QR code"),
+    ).not.toBeInTheDocument();
+    for (const link of screen.getAllByRole("link", {
+      name: "Open integration",
+    })) {
+      expect(link).toHaveAttribute(
+        "href",
+        "https://external.example.com/integration",
+      );
+    }
+  });
+
+  it("uses the responsive two-pane layout with a bounded rail and mobile dock space", () => {
+    const submission = claimedSubmissionFixture();
+    seedClaimSession(submission);
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submission}
+      />,
+    );
+
+    expect(screen.getByTestId("reviewer-workspace-body")).toHaveClass(
+      "pb-24",
+      "lg:grid-cols-[minmax(0,1fr)_360px]",
+    );
+    expect(screen.getByTestId("reviewer-desktop-action-rail")).toHaveClass(
+      "lg:max-h-[calc(100dvh-2rem)]",
+      "lg:overflow-y-auto",
+    );
+    expect(screen.getByTestId("reviewer-mobile-test-target")).toHaveClass(
+      "sticky",
+      "top-0",
+    );
+    expect(
+      screen.getByRole("button", { name: "Message and decide" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the test target and review controls reachable in the mobile composer", async () => {
+    const submission = claimedSubmissionFixture();
+    seedClaimSession(submission);
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+
+    fireEvent.click(screen.getByRole("button", { name: "Message and decide" }));
+
+    const composer = screen.getByRole("dialog", {
+      name: "Message and decide",
+    });
+    expect(
+      within(composer).getByLabelText("World App draft QR code"),
+    ).toBeInTheDocument();
+    expect(within(composer).getByText("Claimed by you")).toBeInTheDocument();
+    expect(within(composer).getByLabelText("Internal notes")).toBeEnabled();
+    expect(
+      within(composer).getByLabelText("Message to developer"),
+    ).toBeEnabled();
+    expect(
+      document.querySelectorAll("#reviewer-developer-message"),
+    ).toHaveLength(1);
+  });
+
+  it("sends the unchanged decision payload only after final confirmation and clears local state on success", async () => {
+    const claimToken = "00000000-0000-4000-8000-000000000099";
+    const submission = claimedSubmissionFixture({
+      checklist: {
+        items: groupedChecklistItems.map((item, index) =>
+          index === 0
+            ? { ...item, status: "fail" as const, evidence: "Fix listing" }
+            : item,
+        ),
+        internalNotes: "",
+        definitionSnapshot: createChecklistDefinitionSnapshot(
+          "mini-app",
+          REVIEW_CHECKLIST_VERSION,
+        )!,
+      },
+    });
+    seedClaimSession(submission, claimToken);
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          submission: {
+            status: "in_review",
+            reviewVersion: 8,
+            claimToken,
+            claimExpiresAt: submission.claimExpiresAt,
+          },
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          submission: {
+            status: "changes_requested",
+            reviewVersion: 9,
+            claimToken: null,
+            claimExpiresAt: null,
+          },
+        }),
+      } as Response);
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "Reviewed the submitted flow." },
+    });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await screen.findAllByText(/saved/i);
+    fireEvent.change(screen.getByLabelText("Message to developer"), {
+      target: { value: "Please correct the localized listing." },
+    });
+    fireEvent.change(screen.getByLabelText("Override reason"), {
+      target: { value: "Policy owner reviewed the remaining exception." },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Request changes" }));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirm request changes" }),
+    );
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      `/api/admin/reviewer/submissions/${submission.id}/decision`,
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          claimToken,
+          expectedReviewVersion: 8,
+          appMetadataId: submission.appMetadataId,
+          expectedMetadataUpdatedAt: submission.metadataUpdatedAt,
+          decision: "changes_requested",
+          developerMessage: "Please correct the localized listing.",
+          overrideReason: "Policy owner reviewed the remaining exception.",
+        }),
+      }),
+    );
+    await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Message to developer")).toHaveValue("");
+    expect(screen.getByLabelText("Override reason")).toHaveValue("");
+    expect(
+      screen.queryByText("Checklist changes saved."),
+    ).not.toBeInTheDocument();
+    expect(
+      window.sessionStorage.getItem(`admin-reviewer-claim:${submission.id}`),
+    ).toBeNull();
+  });
+
+  it("waits for a deferred checklist save and decides with its new workflow version", async () => {
+    const submission = claimedSubmissionFixture();
+    const claimToken = seedClaimSession(submission);
+    let resolveChecklist!: (response: Response) => void;
+    const checklistResponse = new Promise<Response>((resolve) => {
+      resolveChecklist = resolve;
+    });
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockReturnValueOnce(checklistResponse)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          submission: {
+            status: "changes_requested",
+            reviewVersion: 9,
+            claimToken: null,
+            claimExpiresAt: null,
+          },
+        }),
+      } as Response);
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent.change(screen.getByLabelText("Message to developer"), {
+      target: { value: "Please retry the checkout flow." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Request changes" }));
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "Final note queued before confirmation." },
+    });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirm request changes" }),
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    resolveChecklist({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        submission: {
+          status: "in_review",
+          reviewVersion: 8,
+          claimToken,
+          claimExpiresAt: submission.claimExpiresAt,
+        },
+      }),
+    } as Response);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(
+      JSON.parse((fetchMock.mock.calls[1][1] as RequestInit).body as string),
+    ).toEqual({
+      claimToken,
+      expectedReviewVersion: 8,
+      appMetadataId: submission.appMetadataId,
+      expectedMetadataUpdatedAt: submission.metadataUpdatedAt,
+      decision: "changes_requested",
+      developerMessage: "Please retry the checkout flow.",
+    });
+  });
+
+  it("shows a safe structured client error and preserves confirmation inputs", async () => {
+    const submission = claimedSubmissionFixture();
+    seedClaimSession(submission);
+    jest.spyOn(global, "fetch").mockResolvedValue({
+      ok: false,
+      status: 422,
+      json: async () => ({
+        code: "INVALID_REVIEW_STATE",
+        error: "The submitted metadata changed. Refresh before retrying.",
+      }),
+    } as Response);
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent.change(screen.getByLabelText("Message to developer"), {
+      target: { value: "Keep this feedback for retry." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Request changes" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirm request changes" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "The submitted metadata changed. Refresh before retrying.",
+      ),
+    ).toHaveAttribute("role", "alert");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText("Message to developer")).toHaveValue(
+      "Keep this feedback for retry.",
+    );
+  });
+
+  it.each([
+    {
+      name: "invalid 400 JSON",
+      response: {
+        ok: false,
+        status: 400,
+        json: async () => {
+          throw new SyntaxError("invalid JSON");
+        },
+      } as unknown as Response,
+      expected:
+        "The review action was rejected (400). Check the request and try again.",
+    },
+    {
+      name: "a 500-series response",
+      response: {
+        ok: false,
+        status: 503,
+        json: async () => ({ error: "Unsafe internal detail" }),
+      } as Response,
+      expected: "The review service is unavailable (503). Try again.",
+    },
+  ])("uses the status fallback for $name", async ({ response, expected }) => {
+    const submission = claimedSubmissionFixture();
+    seedClaimSession(submission);
+    jest.spyOn(global, "fetch").mockResolvedValue(response);
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent.click(screen.getByRole("button", { name: "Approve" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm approval" }));
+
+    expect(await screen.findByText(expected)).toHaveAttribute("role", "alert");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("uses a network fallback without closing confirmation", async () => {
+    const submission = claimedSubmissionFixture();
+    seedClaimSession(submission);
+    jest.spyOn(global, "fetch").mockRejectedValue(new TypeError("offline"));
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent.click(screen.getByRole("button", { name: "Approve" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm approval" }));
+
+    expect(
+      await screen.findByText(
+        "The review action could not reach the server. Check your connection and try again.",
+      ),
+    ).toHaveAttribute("role", "alert");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("closes confirmation and requires reclaim after a decision conflict", async () => {
+    const submission = claimedSubmissionFixture();
+    seedClaimSession(submission);
+    jest.spyOn(global, "fetch").mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({
+        code: "REVIEW_CONFLICT",
+        error: "Review workflow conflict",
+      }),
+    } as Response);
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent.click(screen.getByRole("button", { name: "Approve" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm approval" }));
+
+    await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Recover claim" })).toBeEnabled();
+    expect(
+      window.sessionStorage.getItem(`admin-reviewer-claim:${submission.id}`),
+    ).toBeNull();
+  });
+
+  it("clears composer, confirmation, and URL panel state when the submission changes", async () => {
+    mockSearchParams = "panel=activity&view=compact";
+    const firstSubmission = claimedSubmissionFixture({
+      checklist: {
+        items: groupedChecklistItems.slice(0, 4),
+        internalNotes: "",
+        definitionSnapshot: createChecklistDefinitionSnapshot(
+          "mini-app",
+          REVIEW_CHECKLIST_VERSION,
+        )!,
+      },
+    });
+    seedClaimSession(firstSubmission);
+    const secondSubmission = claimedSubmissionFixture({
+      id: "00000000-0000-4000-8000-000000000002",
+      appName: "Second draft app",
+      claimedByEmail: null,
+      claimExpiresAt: null,
+      status: "pending",
+      reviewVersion: 1,
+    });
+
+    const { rerender } = render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={firstSubmission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    expect(screen.getByRole("tab", { name: "Activity" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    fireEvent.change(screen.getByLabelText("Message to developer"), {
+      target: { value: "Submission-specific feedback." },
+    });
+    fireEvent.change(screen.getByLabelText("Override reason"), {
+      target: { value: "Submission-specific override." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Request changes" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    mockPathname = "/admin/reviewer/00000000-0000-4000-8000-000000000002";
+    rerender(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={secondSubmission}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("tab", { name: "Review" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      ),
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Message to developer")).toHaveValue("");
+    expect(screen.queryByLabelText("Override reason")).not.toBeInTheDocument();
+    expect(screen.getByText("Developer submission note")).toBeInTheDocument();
+    expect(mockReplace).toHaveBeenLastCalledWith(
+      `${mockPathname}?view=compact`,
+      { scroll: false },
+    );
+  });
+
   it("serializes rapid checklist autosaves with the latest workflow version", async () => {
     const claimToken = "00000000-0000-4000-8000-000000000099";
     const claimedSubmission: ReviewerSubmissionDetail = {
@@ -801,7 +1469,7 @@ describe("review detail workspace", () => {
       />,
     );
     await screen.findByText("Claimed by you");
-    fireEvent.change(screen.getByLabelText("Developer message"), {
+    fireEvent.change(screen.getByLabelText("Message to developer"), {
       target: { value: "Please correct this." },
     });
     expect(
@@ -918,7 +1586,7 @@ describe("review detail workspace", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Claim review" }));
     await screen.findByText("Claimed by you");
-    fireEvent.change(screen.getByLabelText("Developer message"), {
+    fireEvent.change(screen.getByLabelText("Message to developer"), {
       target: { value: "Please correct the listing metadata." },
     });
     fireEvent.change(screen.getByLabelText("Override reason"), {
@@ -926,8 +1594,9 @@ describe("review detail workspace", () => {
     });
 
     expect(
-      screen.getByText(/save the versioned checklist before deciding/i),
-    ).toBeInTheDocument();
+      screen.getAllByText(/save the versioned checklist before deciding/i)
+        .length,
+    ).toBeGreaterThan(0);
     expect(
       screen.getByRole("button", { name: "Request changes" }),
     ).toBeDisabled();
@@ -951,7 +1620,7 @@ describe("review detail workspace", () => {
   });
 
   it.each(["approved", "changes_requested", "withdrawn"] as const)(
-    "disables the draft Test tab for a %s historical attempt",
+    "keeps the immutable test target and three panels for a %s historical attempt",
     (status) => {
       render(
         <ReviewerWorkspace
@@ -961,14 +1630,17 @@ describe("review detail workspace", () => {
         />,
       );
 
-      expect(screen.getByRole("tab", { name: "Test" })).toBeDisabled();
+      expect(screen.getAllByRole("tab")).toHaveLength(3);
       expect(
-        screen.queryByText(/exact metadata version/i),
-      ).not.toBeInTheDocument();
+        screen.getAllByLabelText("World App draft QR code").length,
+      ).toBeGreaterThan(0);
+      expect(
+        screen.getAllByText(/exact metadata version/i).length,
+      ).toBeGreaterThan(0);
     },
   );
 
-  it("requests fresh signed assets only when the Metadata tab is opened", async () => {
+  it("requests fresh signed assets only when the App data tab is opened", async () => {
     const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue({
       ok: true,
       status: 200,
@@ -984,7 +1656,7 @@ describe("review detail workspace", () => {
     );
 
     expect(fetchMock).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("tab", { name: "Metadata" }));
+    fireEvent.click(screen.getByRole("tab", { name: "App data" }));
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
         `/api/admin/reviewer/submissions/${detailFixture.id}/assets`,
@@ -1034,7 +1706,7 @@ describe("review detail workspace", () => {
         } as Response;
       });
 
-    const { container } = render(
+    render(
       <ReviewerWorkspace
         canReview
         currentUserEmail="reviewer@example.com"
@@ -1049,7 +1721,7 @@ describe("review detail workspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "Claim review" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
 
-    fireEvent.click(screen.getByRole("tab", { name: "Metadata" }));
+    fireEvent.click(screen.getByRole("tab", { name: "App data" }));
     expect(screen.getByText("Aplicacion borrador")).toBeInTheDocument();
     expect(await screen.findByAltText("App logo, English")).toHaveAttribute(
       "src",
@@ -1062,11 +1734,14 @@ describe("review detail workspace", () => {
       screen.getByText("https://mini.example.com/privacy"),
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("tab", { name: "Guidelines" }));
-    const firstStatus = screen.getAllByLabelText(/check status/i)[0];
-    fireEvent.change(firstStatus, { target: { value: "na" } });
-    const applicabilityNote =
-      screen.getAllByLabelText(/applicability note/i)[0];
+    fireEvent.click(screen.getByRole("tab", { name: "Review" }));
+    const firstGroup = screen
+      .getByRole("heading", { name: "Listing and localization" })
+      .closest("article")!;
+    fireEvent.click(within(firstGroup).getByRole("button", { name: "N/A" }));
+    const applicabilityNote = screen.getByLabelText(
+      "Listing and localization not applicable note",
+    );
     expect(applicabilityNote).toBeInTheDocument();
     fireEvent.change(applicabilityNote, {
       target: { value: "No user-facing metadata applies to this test." },
@@ -1087,11 +1762,11 @@ describe("review detail workspace", () => {
     );
     expect(approve).toBeEnabled();
 
-    fireEvent.click(screen.getByRole("tab", { name: "History" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Activity" }));
     expect(screen.getByText("Submitted")).toBeInTheDocument();
     expect(screen.getByText(/claimed by you/i)).toBeInTheDocument();
 
-    const rail = container.querySelector("[data-review-decision-rail]");
+    const rail = screen.getByTestId("reviewer-desktop-action-rail");
     expect(rail).toHaveClass("lg:sticky");
     expect(rail).not.toHaveClass("sticky");
   });
@@ -1394,7 +2069,9 @@ describe("review detail workspace", () => {
     expect(screen.getByLabelText("Internal notes")).toHaveValue(
       "Unsaved reviewer investigation",
     );
-    expect(screen.getByText(/saving checklist changes/i)).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/saving checklist changes/i).length,
+    ).toBeGreaterThan(0);
   });
 
   it("keeps the five-minute heartbeat cadence across checklist saves", async () => {
@@ -2012,6 +2689,98 @@ describe("review detail workspace", () => {
       "new submission",
     );
   });
+
+  it("ignores an original autosave after switching away and back", async () => {
+    const originalClaimToken = "00000000-0000-4000-8000-000000000077";
+    const currentClaimToken = "00000000-0000-4000-8000-000000000066";
+    const originalSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      status: "in_review",
+      reviewVersion: 7,
+      claimedByEmail: "reviewer@example.com",
+      claimExpiresAt: "2999-01-01T00:00:00.000Z",
+    };
+    const otherSubmission: ReviewerSubmissionDetail = {
+      ...detailFixture,
+      id: "00000000-0000-4000-8000-000000000002",
+    };
+    const currentSubmission: ReviewerSubmissionDetail = {
+      ...originalSubmission,
+      reviewVersion: 30,
+    };
+    seedClaimSession(originalSubmission, originalClaimToken);
+
+    let resolveChecklist!: (response: Response) => void;
+    const staleChecklistJson = jest.fn().mockResolvedValue({
+      submission: {
+        status: "approved",
+        reviewVersion: 8,
+        claimToken: originalClaimToken,
+        claimExpiresAt: originalSubmission.claimExpiresAt,
+      },
+    });
+    jest.spyOn(global, "fetch").mockReturnValue(
+      new Promise<Response>((resolve) => {
+        resolveChecklist = resolve;
+      }),
+    );
+
+    const { rerender } = render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={originalSubmission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+    fireEvent.change(screen.getByLabelText("Internal notes"), {
+      target: { value: "original A edit" },
+    });
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={otherSubmission}
+      />,
+    );
+    seedClaimSession(currentSubmission, currentClaimToken);
+    rerender(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={currentSubmission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+
+    resolveChecklist({
+      ok: true,
+      status: 200,
+      json: staleChecklistJson,
+    } as unknown as Response);
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(staleChecklistJson).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Review status")).toHaveTextContent(
+      "in review",
+    );
+    expect(
+      JSON.parse(
+        window.sessionStorage.getItem(
+          `admin-reviewer-claim:${currentSubmission.id}`,
+        )!,
+      ),
+    ).toEqual({
+      claimToken: currentClaimToken,
+      claimExpiresAt: currentSubmission.claimExpiresAt,
+      reviewVersion: 30,
+    });
+  });
 });
 
 describe("grouped reviewer checklist", () => {
@@ -2032,6 +2801,15 @@ describe("grouped reviewer checklist", () => {
     render(<ReviewerChecklist {...props} />);
     return props;
   };
+
+  it("keeps persisted legacy checklist controls available", () => {
+    renderChecklist({ version: LEGACY_REVIEW_CHECKLIST_VERSION });
+
+    expect(screen.getByText("Review guidelines")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Accurate metadata check status"),
+    ).toBeEnabled();
+  });
 
   it("renders five grouped checks with pressed status buttons and accessible progress", () => {
     renderChecklist();

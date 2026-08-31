@@ -31,7 +31,7 @@ export const ReviewerActionRail = ({
   return (
     <>
       <aside
-        className="hidden lg:sticky lg:top-0 lg:block lg:max-h-[calc(100vh-2rem)] lg:w-[360px] lg:shrink-0 lg:overflow-y-auto"
+        className="hidden lg:sticky lg:top-0 lg:order-none lg:col-start-2 lg:row-start-1 lg:block lg:max-h-[calc(100dvh-2rem)] lg:w-[360px] lg:shrink-0 lg:overflow-y-auto"
         data-testid="reviewer-desktop-action-rail"
       >
         <div className="grid gap-4 rounded-16 border border-grey-200 bg-grey-0/90 p-4 backdrop-blur-md">
@@ -41,12 +41,12 @@ export const ReviewerActionRail = ({
       </aside>
 
       <div
-        className="sticky top-0 z-20 lg:hidden"
+        className="sticky top-0 z-20 order-1 lg:hidden"
         data-testid="reviewer-mobile-test-target"
       >
         <ReviewerTestTarget {...testTarget} compact />
       </div>
-      <div className="sticky bottom-0 z-20 flex items-center justify-between gap-3 border-t border-grey-200 bg-grey-0/95 p-3 backdrop-blur-md lg:hidden">
+      <div className="sticky bottom-0 z-20 order-3 flex items-center justify-between gap-3 border-t border-grey-200 bg-grey-0/95 p-3 backdrop-blur-md lg:hidden">
         <div>
           <p className="text-12 font-medium text-grey-900">{completion}</p>
           {saveMessage ? (

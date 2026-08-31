@@ -65,7 +65,7 @@ export const ReviewOverview = ({
         </dl>
         <div className="mt-4 rounded-8 border border-grey-200 p-3">
           <p className="text-11 font-medium tracking-wide text-grey-400 uppercase">
-            Developer changelog
+            Developer submission note
           </p>
           <p className="mt-2 text-13 leading-5 whitespace-pre-wrap text-grey-700">
             {submission.changelog || "No changelog supplied."}
