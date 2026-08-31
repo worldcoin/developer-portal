@@ -14,11 +14,17 @@ import {
 import { ReviewerQueue } from "@/scenes/Admin/reviewer/queue/ReviewerQueue";
 import { ReviewClaimBar } from "@/scenes/Admin/reviewer/detail/ReviewClaimBar";
 import { ReviewHistory } from "@/scenes/Admin/reviewer/detail/ReviewHistory";
+import { ReviewerHeader } from "@/scenes/Admin/reviewer/detail/ReviewerHeader";
+import { ReviewerTabs } from "@/scenes/Admin/reviewer/detail/ReviewerTabs";
 import { ReviewerTestTarget } from "@/scenes/Admin/reviewer/detail/ReviewerTestTarget";
 import { ReviewerWorkspace } from "@/scenes/Admin/reviewer/detail/ReviewerWorkspace";
 import { REVIEW_CHECKLIST_VERSION } from "@/scenes/Admin/reviewer/checklist";
 import { parseReviewerQueueFilters } from "@/scenes/Admin/reviewer/queue-filters";
 import type { ReviewerSubmissionDetail } from "@/scenes/Admin/reviewer/types";
+import {
+  REVIEWER_PANELS,
+  parseReviewerPanel,
+} from "@/scenes/Admin/reviewer/detail/reviewer-panels";
 
 Object.defineProperty(global, "TextEncoder", {
   configurable: true,
@@ -283,6 +289,116 @@ describe("reviewer test target", () => {
       ).toHaveClass(...className.split(" "));
     },
   );
+});
+
+describe("reviewer workspace navigation", () => {
+  it.each([
+    ["review", "review"],
+    ["app-data", "app-data"],
+    ["activity", "activity"],
+    [null, "review"],
+    ["overview", "review"],
+  ] as const)("parses %s as %s", (value, expected) => {
+    expect(parseReviewerPanel(value)).toBe(expected);
+  });
+
+  it("renders three linked tabs with roving focus", () => {
+    const onChange = jest.fn();
+
+    render(<ReviewerTabs activePanel="review" onChange={onChange} />);
+
+    expect(REVIEWER_PANELS).toEqual(["review", "app-data", "activity"]);
+
+    const tablist = screen.getByRole("tablist", {
+      name: "Reviewer workspace sections",
+    });
+    const tabs = within(tablist).getAllByRole("tab");
+    expect(tabs).toHaveLength(3);
+    expect(tabs.map((tab) => tab.textContent)).toEqual([
+      "Review",
+      "App data",
+      "Activity",
+    ]);
+    expect(screen.getByRole("tab", { name: "Review" })).toHaveAttribute(
+      "id",
+      "reviewer-tab-review",
+    );
+    expect(screen.getByRole("tab", { name: "Review" })).toHaveAttribute(
+      "aria-controls",
+      "reviewer-panel-review",
+    );
+    expect(screen.getByRole("tab", { name: "Review" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("tab", { name: "Review" })).toHaveAttribute(
+      "tabindex",
+      "0",
+    );
+    expect(screen.getByRole("tab", { name: "App data" })).toHaveAttribute(
+      "tabindex",
+      "-1",
+    );
+  });
+
+  it("wraps arrow keys and supports Home and End", () => {
+    const onChange = jest.fn();
+
+    const { rerender } = render(
+      <ReviewerTabs activePanel="review" onChange={onChange} />,
+    );
+
+    const review = screen.getByRole("tab", { name: "Review" });
+    const appData = screen.getByRole("tab", { name: "App data" });
+    const activity = screen.getByRole("tab", { name: "Activity" });
+
+    review.focus();
+    fireEvent.keyDown(review, { key: "ArrowLeft" });
+    expect(onChange).toHaveBeenLastCalledWith("activity");
+    expect(activity).toHaveFocus();
+
+    rerender(<ReviewerTabs activePanel="activity" onChange={onChange} />);
+    fireEvent.keyDown(activity, { key: "ArrowRight" });
+    expect(onChange).toHaveBeenLastCalledWith("review");
+    expect(review).toHaveFocus();
+
+    rerender(<ReviewerTabs activePanel="review" onChange={onChange} />);
+    fireEvent.keyDown(review, { key: "End" });
+    expect(onChange).toHaveBeenLastCalledWith("activity");
+    expect(activity).toHaveFocus();
+
+    rerender(<ReviewerTabs activePanel="activity" onChange={onChange} />);
+    fireEvent.keyDown(activity, { key: "Home" });
+    expect(onChange).toHaveBeenLastCalledWith("review");
+    expect(review).toHaveFocus();
+
+    fireEvent.click(appData);
+    expect(onChange).toHaveBeenLastCalledWith("app-data");
+  });
+
+  it("renders the app identity, mode, attempt, status, and navigation", () => {
+    render(
+      <ReviewerHeader
+        activePanel="review"
+        appId="app_123"
+        appMode="mini-app"
+        appName="Draft app"
+        attempt={2}
+        onPanelChange={jest.fn()}
+        status="in_review"
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Draft app" })).toBeVisible();
+    expect(screen.getByText("Reviewer / Mini App")).toBeVisible();
+    expect(screen.getByText(/app_123.*attempt 2/i)).toBeVisible();
+    expect(screen.getByLabelText("Review status")).toHaveTextContent(
+      "in review",
+    );
+    expect(
+      screen.getByRole("tablist", { name: "Reviewer workspace sections" }),
+    ).toBeInTheDocument();
+  });
 });
 
 describe("reviewer mutation controls", () => {
