@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 import "@testing-library/jest-dom";
-import { TextEncoder } from "node:util";
+import { TextDecoder, TextEncoder } from "node:util";
 import {
   act,
   fireEvent,
@@ -11,6 +11,7 @@ import {
   within,
 } from "@testing-library/react";
 import type { ComponentProps } from "react";
+import { useRef, useState } from "react";
 
 import { ReviewerQueue } from "@/scenes/Admin/reviewer/queue/ReviewerQueue";
 import { ReviewClaimBar } from "@/scenes/Admin/reviewer/detail/ReviewClaimBar";
@@ -35,6 +36,22 @@ Object.defineProperty(global, "TextEncoder", {
   configurable: true,
   value: TextEncoder,
 });
+
+Object.defineProperty(global, "TextDecoder", {
+  configurable: true,
+  value: TextDecoder,
+});
+
+const {
+  appendReviewerNote,
+  ReviewerDecisionComposer,
+}: typeof import("@/scenes/Admin/reviewer/detail/ReviewerDecisionComposer") = require("@/scenes/Admin/reviewer/detail/ReviewerDecisionComposer");
+const {
+  ReviewerDecisionConfirmation,
+}: typeof import("@/scenes/Admin/reviewer/detail/ReviewerDecisionConfirmation") = require("@/scenes/Admin/reviewer/detail/ReviewerDecisionConfirmation");
+const {
+  ReviewerActionRail,
+}: typeof import("@/scenes/Admin/reviewer/detail/ReviewerActionRail") = require("@/scenes/Admin/reviewer/detail/ReviewerActionRail");
 
 class TestResizeObserver {
   observe() {}
@@ -2188,5 +2205,234 @@ describe("grouped reviewer checklist", () => {
     expect(
       screen.queryByRole("button", { name: "Pass" }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("reviewer decision composer", () => {
+  const testTarget = {
+    appId: "app_123",
+    appName: "Draft app",
+    integrationUrl: "https://mini.example.com",
+    metadataId: "metadata_456",
+    mode: "mini-app" as const,
+  };
+
+  const renderComposer = (
+    overrides: Partial<ComponentProps<typeof ReviewerDecisionComposer>> = {},
+  ) => {
+    const props: ComponentProps<typeof ReviewerDecisionComposer> = {
+      developerMessage: "",
+      onDeveloperMessageChange: jest.fn(),
+      onOverrideReasonChange: jest.fn(),
+      onSelectOutcome: jest.fn(),
+      overrideReason: "",
+      saveState: "idle",
+      ...overrides,
+    };
+    render(<ReviewerDecisionComposer {...props} />);
+    return props;
+  };
+
+  it("caps the developer message at the shared limit", () => {
+    const onDeveloperMessageChange = jest.fn();
+    renderComposer({ onDeveloperMessageChange });
+
+    expect(screen.getByLabelText("Message to developer")).toHaveAttribute(
+      "maxLength",
+      "20000",
+    );
+    fireEvent.change(screen.getByLabelText("Message to developer"), {
+      target: { value: "Please update the sign in flow." },
+    });
+    expect(onDeveloperMessageChange).toHaveBeenCalledWith(
+      "Please update the sign in flow.",
+    );
+  });
+
+  it("requires a message only before requesting changes", () => {
+    const props = renderComposer();
+
+    const requestChanges = screen.getByRole("button", {
+      name: "Request changes",
+    });
+    const approve = screen.getByRole("button", { name: "Approve" });
+    expect(requestChanges).toBeDisabled();
+    expect(approve).toBeEnabled();
+    expect(requestChanges).toHaveAccessibleDescription(
+      "A message to the developer is required to request changes.",
+    );
+
+    fireEvent.click(approve);
+    expect(props.onSelectOutcome).toHaveBeenCalledWith("approved");
+  });
+
+  it("only reveals the override control for blocked approval", () => {
+    const { rerender } = render(
+      <ReviewerDecisionComposer
+        developerMessage=""
+        onDeveloperMessageChange={jest.fn()}
+        onOverrideReasonChange={jest.fn()}
+        onSelectOutcome={jest.fn()}
+        overrideReason=""
+        saveState="idle"
+      />,
+    );
+    expect(
+      screen.queryByText("Override blocked approval"),
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <ReviewerDecisionComposer
+        blockedApprovalReason="One checklist check failed."
+        developerMessage=""
+        onDeveloperMessageChange={jest.fn()}
+        onOverrideReasonChange={jest.fn()}
+        onSelectOutcome={jest.fn()}
+        overrideReason=""
+        saveState="idle"
+      />,
+    );
+
+    expect(screen.getByText("Override blocked approval")).toBeInTheDocument();
+    expect(screen.getByLabelText("Override reason")).toBeInTheDocument();
+  });
+
+  it("requires a nonblank override before blocked approval opens confirmation", () => {
+    const props = renderComposer({
+      blockedApprovalReason: "One checklist check failed.",
+    });
+
+    const approve = screen.getByRole("button", { name: "Approve" });
+    expect(approve).toBeDisabled();
+    expect(approve).toHaveAccessibleDescription(
+      "Enter an override reason before approving despite blocked checks.",
+    );
+
+    fireEvent.change(screen.getByLabelText("Override reason"), {
+      target: { value: "  Reviewed exception  " },
+    });
+    expect(props.onOverrideReasonChange).toHaveBeenCalledWith(
+      "  Reviewed exception  ",
+    );
+  });
+
+  it("appends only a nonblank reviewer note", () => {
+    expect(
+      appendReviewerNote("Existing message\n", "  Fix the checkout copy. "),
+    ).toBe("Existing message\n\nFix the checkout copy.");
+    expect(appendReviewerNote("Existing message", "  ")).toBe(
+      "Existing message",
+    );
+  });
+
+  it("opens a confirmation sheet before calling the final callback and restores focus when closed", async () => {
+    const onConfirm = jest.fn();
+    const DecisionFlow = () => {
+      const [outcome, setOutcome] = useState<
+        "approved" | "changes_requested" | null
+      >(null);
+      const returnFocusRef = useRef<HTMLButtonElement>(null);
+      return (
+        <>
+          <ReviewerDecisionComposer
+            developerMessage="Fix the Spanish listing."
+            onDeveloperMessageChange={jest.fn()}
+            onOverrideReasonChange={jest.fn()}
+            onSelectOutcome={setOutcome}
+            overrideReason=""
+            returnFocusRef={returnFocusRef}
+            saveState="idle"
+          />
+          <ReviewerDecisionConfirmation
+            checklistProgress={{ completed: 4, total: 5 }}
+            decision={outcome}
+            developerMessage="Fix the Spanish listing."
+            failedLabels={["Listing and localization"]}
+            onConfirm={onConfirm}
+            onOpenChange={(open) => {
+              if (!open) setOutcome(null);
+            }}
+            open={outcome !== null}
+            returnFocusRef={returnFocusRef}
+            testTarget={testTarget}
+          />
+        </>
+      );
+    };
+
+    render(<DecisionFlow />);
+    const initialAction = screen.getByRole("button", {
+      name: "Request changes",
+    });
+    fireEvent.click(initialAction);
+
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("dialog")).getAllByText("Draft app", {
+        exact: true,
+      }),
+    ).toHaveLength(2);
+    expect(screen.getByText("4 of 5 checks complete")).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("dialog")).getByLabelText(
+        "Formatted developer message",
+      ).textContent,
+    ).toBe(
+      "Fix the Spanish listing.\n\nFailed guideline checks:\n- Listing and localization",
+    );
+    expect(
+      screen.getByLabelText("World App draft QR code"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Confirm request changes" }),
+    ).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    await waitFor(() => expect(initialAction).toHaveFocus());
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it("uses the approval-specific final confirmation label", () => {
+    render(
+      <ReviewerDecisionConfirmation
+        checklistProgress={{ completed: 5, total: 5 }}
+        decision="approved"
+        developerMessage=""
+        failedLabels={[]}
+        onConfirm={jest.fn()}
+        onOpenChange={jest.fn()}
+        open
+        testTarget={testTarget}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Confirm approval" }),
+    ).toBeEnabled();
+  });
+
+  it("uses a 360-pixel desktop rail and a compact mobile target with bottom dock", () => {
+    render(
+      <ReviewerActionRail
+        checklistProgress={{ completed: 3, total: 5 }}
+        onOpenComposer={jest.fn()}
+        saveState="saved"
+        testTarget={testTarget}
+      >
+        <p>Decision actions</p>
+      </ReviewerActionRail>,
+    );
+
+    expect(screen.getByTestId("reviewer-desktop-action-rail")).toHaveClass(
+      "lg:w-[360px]",
+    );
+    expect(screen.getByTestId("reviewer-mobile-test-target")).toHaveClass(
+      "lg:hidden",
+    );
+    expect(screen.getByText("3 of 5 checks complete")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Message and decide" }),
+    ).toBeEnabled();
   });
 });
