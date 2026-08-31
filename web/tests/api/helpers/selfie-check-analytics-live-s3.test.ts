@@ -1,7 +1,7 @@
 /**
  * Live S3 smoke test: lists, downloads, and parses the newest totals CSV from
- * the real bucket — the exact pipeline production runs, allowlist not
- * involved. Runs only when the bucket env vars (and AWS credentials) are
+ * the real bucket — the same input pipeline used by the Redis publisher.
+ * Runs only when the bucket env vars (and AWS credentials) are
  * present; skipped everywhere else, including CI.
  *
  * Run against staging:

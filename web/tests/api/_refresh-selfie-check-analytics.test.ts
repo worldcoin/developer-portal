@@ -25,14 +25,14 @@ jest.mock("@/lib/logger", () => ({
 
 import { POST } from "@/api/_refresh-selfie-check-analytics";
 import {
-  getAppFromRedis,
+  getDailyAppSnapshot,
   getDatasetMetadata,
+  getTotalsAppSnapshot,
   markDatasetChecked,
   releaseAnalyticsRefreshLock,
   tryAcquireAnalyticsRefreshLock,
 } from "@/api/helpers/selfie-check-analytics/redis-store";
 import type { TableObjectDescriptor } from "@/api/helpers/selfie-check-analytics/s3";
-import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
 
 const { logger: mockLogger } = jest.requireMock("@/lib/logger") as {
   logger: { info: jest.Mock; warn: jest.Mock; error: jest.Mock };
@@ -149,18 +149,18 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
     expect(dailyMeta?.appCount).toBe(2);
     expect(totalsMeta?.appCount).toBe(2);
 
-    await expect(
-      getAppFromRedis<readonly DailyRow[]>(
-        "daily",
-        dailyMeta!.snapshotUID,
-        APP_ID_A,
-      ),
-    ).resolves.toEqual(
-      expect.arrayContaining([expect.objectContaining({ appId: APP_ID_A })]),
+    await expect(getDailyAppSnapshot(APP_ID_A)).resolves.toEqual(
+      expect.objectContaining({
+        data: expect.arrayContaining([
+          expect.objectContaining({ appId: APP_ID_A }),
+        ]),
+      }),
     );
-    await expect(
-      getAppFromRedis<TotalsRow>("totals", totalsMeta!.snapshotUID, APP_ID_A),
-    ).resolves.toEqual(expect.objectContaining({ appId: APP_ID_A }));
+    await expect(getTotalsAppSnapshot(APP_ID_A)).resolves.toEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({ appId: APP_ID_A }),
+      }),
+    );
   });
 
   it("skips downloads when both S3 identities are already published", async () => {
@@ -204,9 +204,7 @@ describe("/_refresh-selfie-check-analytics [publication]", () => {
     expect(response.status).toBe(204);
     expect(currentMeta?.snapshotUID).not.toBe(firstMeta?.snapshotUID);
     expect(currentMeta?.appCount).toBe(1);
-    await expect(
-      getAppFromRedis("totals", currentMeta!.snapshotUID, APP_ID_B),
-    ).resolves.toBeNull();
+    await expect(getTotalsAppSnapshot(APP_ID_B)).resolves.toBeNull();
   });
 
   it("does not publish totals when the daily CSV is invalid", async () => {

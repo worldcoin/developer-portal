@@ -2,20 +2,28 @@ import "server-only";
 
 /**
  * Shared Redis storage for analytics tables. S3 is only the CSV exporter;
- * runtime eligibility is presence in the snapshot referenced by `meta`.
+ * runtime eligibility is presence in the snapshot referenced by `metadata`.
  *
- *   selfie-check-analytics:v2:{<dataset>}:meta
+ *   selfie-check-analytics:v2:{<dataset>}:metadata
  *   selfie-check-analytics:v2:{<dataset>}:refresh-lock
  *   selfie-check-analytics:v2:<dataset>:<snapshotUID>:<appId>
  */
 
 import { logger } from "@/lib/logger";
+import {
+  pickDailyRow,
+  pickTotalsRow,
+  type DailyRow,
+  type TotalsRow,
+} from "@/lib/selfie-check-analytics";
 import { createHash, randomUUID } from "node:crypto";
 import type { TableObjectDescriptor } from "./s3";
 
 const KEY_PREFIX = "selfie-check-analytics:v2";
 
-const LOCK_TTL_MS = 60_000;
+// Outlive the cron trigger's 120-second request deadline so a timed-out worker
+// cannot overlap another publisher while it is still finishing Redis writes.
+const LOCK_TTL_MS = 3 * 60_000;
 const META_TTL_SECONDS = 24 * 60 * 60;
 // Rows must outlive meta so a live pointer never references expired keys.
 const ROW_TTL_SECONDS = 25 * 60 * 60;
@@ -63,6 +71,11 @@ export type AnalyticsDatasetMetadata = Readonly<{
   }>;
 }>;
 
+export type AnalyticsAppSnapshot<TAppData> = Readonly<{
+  data: TAppData;
+  metadata: AnalyticsDatasetMetadata;
+}>;
+
 const metadataKey = (dataset: AnalyticsDataset) =>
   `${KEY_PREFIX}:{${dataset}}:metadata`;
 
@@ -86,7 +99,22 @@ const requireRedis = () => {
   return redis;
 };
 
-const parseDatasetMetadata = (raw: string): AnalyticsDatasetMetadata | null => {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const isNonEmptyString = (value: unknown): value is string =>
+  typeof value === "string" && value.length > 0;
+
+const isIsoDate = (value: unknown): value is string => {
+  if (typeof value !== "string") return false;
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString() === value;
+};
+
+const parseDatasetMetadata = (
+  raw: string,
+  dataset: AnalyticsDataset,
+): AnalyticsDatasetMetadata | null => {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -94,19 +122,73 @@ const parseDatasetMetadata = (raw: string): AnalyticsDatasetMetadata | null => {
     return null;
   }
 
-  const candidate = parsed as AnalyticsDatasetMetadata;
-  const looksValid =
-    candidate !== null &&
-    typeof candidate === "object" &&
-    typeof candidate.snapshotUID === "string" &&
-    candidate.snapshotUID.length > 0 &&
-    typeof candidate.appCount === "number" &&
-    typeof candidate.lastCheckedAt === "string" &&
-    typeof candidate.source === "object" &&
-    candidate.source !== null &&
-    typeof candidate.source.identity === "string";
+  if (!isRecord(parsed) || !isRecord(parsed.source)) return null;
 
-  return looksValid ? candidate : null;
+  const validMetadata =
+    parsed.dataset === dataset &&
+    isNonEmptyString(parsed.snapshotUID) &&
+    typeof parsed.appCount === "number" &&
+    Number.isSafeInteger(parsed.appCount) &&
+    parsed.appCount > 0 &&
+    isIsoDate(parsed.publishedAt) &&
+    isIsoDate(parsed.lastCheckedAt) &&
+    (parsed.source.etag === undefined ||
+      typeof parsed.source.etag === "string") &&
+    isNonEmptyString(parsed.source.identity) &&
+    isNonEmptyString(parsed.source.key) &&
+    isIsoDate(parsed.source.dataAsOf) &&
+    isIsoDate(parsed.source.lastModified) &&
+    typeof parsed.source.sizeBytes === "number" &&
+    Number.isSafeInteger(parsed.source.sizeBytes) &&
+    parsed.source.sizeBytes >= 0;
+
+  return validMetadata ? (parsed as AnalyticsDatasetMetadata) : null;
+};
+
+const parseStoredJson = (
+  raw: string,
+  dataset: AnalyticsDataset,
+  appId: string,
+): unknown => {
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch (error) {
+    throw new AnalyticsRedisDataError(
+      `Stored ${dataset} analytics data is invalid for app ${appId}`,
+      { cause: error },
+    );
+  }
+};
+
+const pickStoredTotalsRow = (raw: string, appId: string): TotalsRow => {
+  const row = pickTotalsRow(parseStoredJson(raw, "totals", appId));
+  if (!row || row.appId !== appId) {
+    throw new AnalyticsRedisDataError(
+      `Stored totals analytics data is invalid for app ${appId}`,
+    );
+  }
+  return row;
+};
+
+const pickStoredDailyRows = (
+  raw: string,
+  appId: string,
+): readonly DailyRow[] => {
+  const value = parseStoredJson(raw, "daily", appId);
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new AnalyticsRedisDataError(
+      `Stored daily analytics data is invalid for app ${appId}`,
+    );
+  }
+
+  const rows = value.map(pickDailyRow);
+  if (rows.some((row) => !row || row.appId !== appId)) {
+    throw new AnalyticsRedisDataError(
+      `Stored daily analytics data is invalid for app ${appId}`,
+    );
+  }
+
+  return rows as DailyRow[];
 };
 
 const mapInBatches = async <T>(
@@ -200,63 +282,83 @@ export const getDatasetMetadata = async (
   }
   if (raw === null) return null;
 
-  const meta = parseDatasetMetadata(raw);
+  const meta = parseDatasetMetadata(raw, dataset);
   if (!meta) {
     throw new AnalyticsRedisDataError("Analytics dataset metadata is corrupt");
   }
   return meta;
 };
 
-export const getAppFromRedis = async <TRecord>(
+const getAppFromRedis = async (
   dataset: AnalyticsDataset,
   snapshotUID: string,
   appId: string,
-): Promise<TRecord | null> => {
+): Promise<string | null> => {
   const redis = requireRedis();
 
-  let raw: string | null;
   try {
-    raw = await redis.get(rowKey(dataset, snapshotUID, appId));
+    return await redis.get(rowKey(dataset, snapshotUID, appId));
   } catch (error) {
     throw new AnalyticsRedisUnavailableError(
       "Failed to read an analytics record",
       { cause: error },
     );
   }
+};
+
+export const getTotalsAppSnapshot = async (
+  appId: string,
+): Promise<AnalyticsAppSnapshot<TotalsRow> | null> => {
+  const metadata = await getDatasetMetadata("totals");
+  if (!metadata) return null;
+
+  const raw = await getAppFromRedis("totals", metadata.snapshotUID, appId);
   if (raw === null) return null;
 
-  try {
-    return JSON.parse(raw) as TRecord;
-  } catch (error) {
-    throw new AnalyticsRedisDataError("Analytics record is corrupt", {
-      cause: error,
-    });
-  }
+  return { data: pickStoredTotalsRow(raw, appId), metadata };
 };
 
-export const getTotalsRow = async <TRecord>(
+export const getDailyAppSnapshot = async (
   appId: string,
-): Promise<TRecord | null> => {
-  const meta = await getDatasetMetadata("totals");
-  if (!meta) return null;
-  return getAppFromRedis<TRecord>("totals", meta.snapshotUID, appId);
+): Promise<AnalyticsAppSnapshot<readonly DailyRow[]> | null> => {
+  const metadata = await getDatasetMetadata("daily");
+  if (!metadata) return null;
+
+  const raw = await getAppFromRedis("daily", metadata.snapshotUID, appId);
+  if (raw === null) return null;
+
+  return { data: pickStoredDailyRows(raw, appId), metadata };
 };
 
-export const appExistsInRedis = async (
-  dataset: AnalyticsDataset,
-  snapshotUID: string,
-  appId: string,
-): Promise<boolean> => {
+/** Returns the input app IDs that have valid rows in the live totals snapshot. */
+export const filterAppsWithTotalsData = async (
+  appIds: readonly string[],
+): Promise<string[]> => {
+  if (appIds.length === 0) return [];
+
+  const metadata = await getDatasetMetadata("totals");
+  if (!metadata) return [];
+
   const redis = requireRedis();
+  let values: (string | null)[];
 
   try {
-    return (await redis.exists(rowKey(dataset, snapshotUID, appId))) === 1;
+    values = await redis.mget(
+      ...appIds.map((appId) => rowKey("totals", metadata.snapshotUID, appId)),
+    );
   } catch (error) {
     throw new AnalyticsRedisUnavailableError(
-      "Failed to check an analytics record",
+      "Failed to read analytics records",
       { cause: error },
     );
   }
+
+  return appIds.filter((appId, index) => {
+    const raw = values[index];
+    if (raw === null) return false;
+    pickStoredTotalsRow(raw, appId);
+    return true;
+  });
 };
 
 // #endregion
@@ -286,8 +388,18 @@ export const publishAnalyticsSnapshot = async (params: {
   const redis = requireRedis();
   const snapshotUID = createSnapshotUID(source.identity);
 
-  const existingRaw = await redis.get(metadataKey(dataset));
-  const existing = existingRaw ? parseDatasetMetadata(existingRaw) : null;
+  let existingRaw: string | null;
+  try {
+    existingRaw = await redis.get(metadataKey(dataset));
+  } catch (error) {
+    throw new AnalyticsRedisUnavailableError(
+      "Failed to read existing analytics metadata before publication",
+      { cause: error },
+    );
+  }
+  const existing = existingRaw
+    ? parseDatasetMetadata(existingRaw, dataset)
+    : null;
   if (existing && existing.snapshotUID !== snapshotUID) {
     const incomingIsNewer =
       source.dataAsOf.toISOString() > existing.source.dataAsOf ||
@@ -308,15 +420,23 @@ export const publishAnalyticsSnapshot = async (params: {
     Array.from(records.entries()),
     MAX_CONCURRENT_PUBLISH_WRITES,
     async ([appId, record]) => {
-      const result = await redis.set(
-        rowKey(dataset, snapshotUID, appId),
-        JSON.stringify(record),
-        "EX",
-        ROW_TTL_SECONDS,
-      );
-      if (result !== "OK") {
+      try {
+        const result = await redis.set(
+          rowKey(dataset, snapshotUID, appId),
+          JSON.stringify(record),
+          "EX",
+          ROW_TTL_SECONDS,
+        );
+        if (result !== "OK") {
+          throw new AnalyticsRedisUnavailableError(
+            "Redis rejected an analytics record write",
+          );
+        }
+      } catch (error) {
+        if (error instanceof AnalyticsRedisUnavailableError) throw error;
         throw new AnalyticsRedisUnavailableError(
           "Failed to write an analytics record",
+          { cause: error },
         );
       }
     },
@@ -340,19 +460,27 @@ export const publishAnalyticsSnapshot = async (params: {
   };
 
   // Same-slot EVAL: do not expose this snapshot unless we still own the lock.
-  const committed = await redis.eval(
-    `if redis.call("get", KEYS[1]) ~= ARGV[1] then
-       return 0
-     end
-     redis.call("set", KEYS[2], ARGV[2], "EX", ARGV[3])
-     return 1`,
-    2,
-    lockKey(dataset),
-    metadataKey(dataset),
-    lock.owner,
-    JSON.stringify(meta),
-    String(META_TTL_SECONDS),
-  );
+  let committed: unknown;
+  try {
+    committed = await redis.eval(
+      `if redis.call("get", KEYS[1]) ~= ARGV[1] then
+         return 0
+       end
+       redis.call("set", KEYS[2], ARGV[2], "EX", ARGV[3])
+       return 1`,
+      2,
+      lockKey(dataset),
+      metadataKey(dataset),
+      lock.owner,
+      JSON.stringify(meta),
+      String(META_TTL_SECONDS),
+    );
+  } catch (error) {
+    throw new AnalyticsRedisUnavailableError(
+      "Failed to publish analytics dataset metadata",
+      { cause: error },
+    );
+  }
   if (committed !== 1) {
     throw new AnalyticsRedisUnavailableError(
       "Lost the analytics refresh lock before publishing the snapshot",
@@ -375,7 +503,7 @@ export const markDatasetChecked = async (
 
   try {
     const raw = await redis.get(datasetMetadataKey);
-    const meta = raw ? parseDatasetMetadata(raw) : null;
+    const meta = raw ? parseDatasetMetadata(raw, lock.dataset) : null;
     if (!raw || !meta || meta.source.identity !== sourceIdentity) return false;
 
     const updated = await redis.eval(
