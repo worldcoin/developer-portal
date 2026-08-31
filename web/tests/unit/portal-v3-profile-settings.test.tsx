@@ -225,6 +225,40 @@ describe("PortalV3 profile settings [data states]", () => {
     ).toBeNull();
   });
 
+  it("waits for the network result before initializing cached profile fields", async () => {
+    let meQueryResult = {
+      user: loadedUser,
+      loading: true,
+      error: undefined as Error | undefined,
+      refetch: mockRefetchMe,
+    };
+    mockUseMeQuery.mockImplementation(() => meQueryResult);
+
+    const { rerender } = render(<ProfilePage />);
+
+    expect(screen.getByTestId("profile-loading-state")).toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).toBeNull();
+
+    meQueryResult = {
+      ...meQueryResult,
+      user: {
+        ...loadedUser,
+        name: "Ada King",
+        nameToDisplay: "Ada King",
+        is_allow_tracking: true,
+      },
+      loading: false,
+    };
+    rerender(<ProfilePage />);
+
+    expect(
+      await screen.findByRole("textbox", { name: "Display name" }),
+    ).toHaveValue("Ada King");
+    expect(
+      screen.getByRole("switch", { name: "Allow analytics" }),
+    ).toHaveAttribute("aria-checked", "true");
+  });
+
   it("shows a retryable error instead of an endless loading state", async () => {
     mockUseMeQuery.mockReturnValue({
       user: undefined,

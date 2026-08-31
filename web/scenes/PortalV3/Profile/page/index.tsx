@@ -75,7 +75,11 @@ export const ProfilePage = () => {
   });
 
   useEffect(() => {
-    if (!user?.id || hasInitializedProfile) {
+    // cache-and-network can expose an older cached user while the fresh result
+    // is still in flight. Wait for that refresh before establishing the form's
+    // defaults so saving one field cannot overwrite a newer value in another.
+    // If the refresh failed, the cached record is our explicit degraded mode.
+    if (!user?.id || hasInitializedProfile || (loading && !error)) {
       return;
     }
 
@@ -84,7 +88,7 @@ export const ProfilePage = () => {
       isAllowTracking: user.is_allow_tracking ?? false,
     });
     setHasInitializedProfile(true);
-  }, [hasInitializedProfile, reset, user]);
+  }, [error, hasInitializedProfile, loading, reset, user]);
 
   const submitProfile = useCallback(
     async (values: DisplayNameFormValues) => {
