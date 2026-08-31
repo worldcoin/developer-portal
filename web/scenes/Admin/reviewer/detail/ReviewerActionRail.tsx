@@ -62,6 +62,7 @@ export const ReviewerActionRail = ({
             <p
               aria-live="assertive"
               className="text-11 text-system-error-700"
+              id="reviewer-decision-save-error"
               role="alert"
             >
               Checklist save failed. Decisions are unavailable.
@@ -69,7 +70,11 @@ export const ReviewerActionRail = ({
           ) : null}
         </div>
         <button
+          aria-describedby={
+            saveState === "error" ? "reviewer-decision-save-error" : undefined
+          }
           className="rounded-8 bg-grey-900 px-3 py-2.5 text-13 font-semibold text-grey-0"
+          disabled={saveState === "error"}
           onClick={onOpenComposer}
           type="button"
         >

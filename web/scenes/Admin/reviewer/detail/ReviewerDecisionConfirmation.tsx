@@ -91,8 +91,13 @@ export const ReviewerDecisionConfirmation = ({
                 aria-label="Formatted developer message"
                 className="mt-2 rounded-8 border border-grey-200 bg-grey-50 p-3 font-sans text-13 leading-5 whitespace-pre-wrap text-grey-900"
               >
-                {preview || "No message will be sent."}
+                {preview}
               </pre>
+              {!preview ? (
+                <p className="mt-2 text-12 text-grey-500">
+                  This approval has no message to the developer.
+                </p>
+              ) : null}
             </section>
 
             <ReviewerTestTarget {...testTarget} />

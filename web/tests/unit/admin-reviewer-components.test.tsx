@@ -2393,7 +2393,7 @@ describe("reviewer decision composer", () => {
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
-  it("uses the approval-specific final confirmation label", () => {
+  it("renders an empty approval preview exactly as formatted", () => {
     render(
       <ReviewerDecisionConfirmation
         checklistProgress={{ completed: 5, total: 5 }}
@@ -2410,6 +2410,9 @@ describe("reviewer decision composer", () => {
     expect(
       screen.getByRole("button", { name: "Confirm approval" }),
     ).toBeEnabled();
+    expect(
+      screen.getByLabelText("Formatted developer message").textContent,
+    ).toBe("");
   });
 
   it("uses a 360-pixel desktop rail and a compact mobile target with bottom dock", () => {
@@ -2434,5 +2437,29 @@ describe("reviewer decision composer", () => {
     expect(
       screen.getByRole("button", { name: "Message and decide" }),
     ).toBeEnabled();
+  });
+
+  it("blocks the mobile composer while the checklist save is in error", () => {
+    const onOpenComposer = jest.fn();
+    render(
+      <ReviewerActionRail
+        checklistProgress={{ completed: 3, total: 5 }}
+        onOpenComposer={onOpenComposer}
+        saveState="error"
+        testTarget={testTarget}
+      >
+        <p>Decision actions</p>
+      </ReviewerActionRail>,
+    );
+
+    const messageAndDecide = screen.getByRole("button", {
+      name: "Message and decide",
+    });
+    expect(messageAndDecide).toBeDisabled();
+    expect(messageAndDecide).toHaveAccessibleDescription(
+      "Checklist save failed. Decisions are unavailable.",
+    );
+    fireEvent.click(messageAndDecide);
+    expect(onOpenComposer).not.toHaveBeenCalled();
   });
 });
