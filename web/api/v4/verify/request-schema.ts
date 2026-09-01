@@ -74,6 +74,15 @@ const v4ResponseItemSchema = yup.object({
     .of(yup.string().required())
     .length(5, "proof must have exactly 5 elements")
     .required("proof is required for v4"),
+  // Self Check 4.0 discloses its z-score as a protocol field element. IDKit
+  // decodes that value before sending it to this endpoint.
+  sybil_score: yup
+    .number()
+    .strict()
+    .integer()
+    .min(0)
+    .max(Number.MAX_SAFE_INTEGER)
+    .optional(),
 });
 
 // Session proof response item schema
@@ -105,6 +114,14 @@ const sessionResponseItemSchema = yup.object({
     .of(yup.string().required())
     .length(5, "proof must have exactly 5 elements")
     .required("proof is required for v4"),
+  // See the v4 uniqueness response schema above.
+  sybil_score: yup
+    .number()
+    .strict()
+    .integer()
+    .min(0)
+    .max(Number.MAX_SAFE_INTEGER)
+    .optional(),
 });
 
 export type IntegrityBundleSignatureFormat =
@@ -124,7 +141,7 @@ const integrityBundleSchema = yup
     version: yup
       .number()
       .strict()
-      .oneOf([1])
+      .oneOf([1, 2])
       .required("integrity_bundle.version is required"),
     signature_format: yup
       .string()
@@ -265,6 +282,41 @@ export const schema = yup
       }
       return true;
     },
+  )
+  .test(
+    "selfie-check-claims",
+    "Invalid Self Check 4.0 response",
+    function (value) {
+      if (value?.protocol_version !== "4.0" || !value.responses) {
+        return true;
+      }
+
+      for (let i = 0; i < value.responses.length; i++) {
+        const response = value.responses[i] as {
+          issuer_schema_id?: unknown;
+          sybil_score?: unknown;
+        };
+        const isSelfieCheck = response.issuer_schema_id === 11;
+        const hasSybilScore = response.sybil_score !== undefined;
+
+        if (isSelfieCheck && !hasSybilScore) {
+          return this.createError({
+            path: `responses[${i}].sybil_score`,
+            message: "sybil_score is required for Self Check 4.0 responses",
+          });
+        }
+
+        if (!isSelfieCheck && hasSybilScore) {
+          return this.createError({
+            path: `responses[${i}].sybil_score`,
+            message:
+              "sybil_score is only supported for Self Check 4.0 responses",
+          });
+        }
+      }
+
+      return true;
+    },
   );
 
 export interface UniquenessProofResponseV3 {
@@ -295,6 +347,8 @@ export interface UniquenessProofResponseV4 {
   expires_at_min: string;
   credential_genesis_issued_at_min?: string;
   proof: [string, string, string, string, string];
+  /** Self Check 4.0 z-score, decoded from its signed field-element claim. */
+  sybil_score?: number;
 }
 
 export interface UniquenessProofRequestV4 {
@@ -315,6 +369,8 @@ export interface SessionResponseItem {
   expires_at_min: string;
   credential_genesis_issued_at_min?: string;
   proof: [string, string, string, string, string];
+  /** Self Check 4.0 z-score, decoded from its signed field-element claim. */
+  sybil_score?: number;
 }
 
 export interface SessionProofRequest {

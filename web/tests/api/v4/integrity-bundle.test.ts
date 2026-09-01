@@ -52,6 +52,13 @@ const response = {
   ],
 };
 
+const selfieResponse = {
+  ...response,
+  identifier: "selfie",
+  issuer_schema_id: "11",
+  sybil_score: 10,
+};
+
 function createAgKey(): AgKey {
   const { privateKey, publicKey } = generateKeyPairSync("ec", {
     namedCurve: "P-256",
@@ -114,6 +121,8 @@ async function createBundle(params?: {
   signedTimestamp?: number;
   signatureFormat?: "android_keystore" | "apple_app_attest";
   timestamp?: number;
+  version?: 1 | 2;
+  signedResponses?: (typeof response)[] | (typeof selfieResponse)[];
 }) {
   const agKey = params?.agKey ?? createAgKey();
   const deviceKey = createDeviceKey();
@@ -134,9 +143,10 @@ async function createBundle(params?: {
   });
 
   const digest = computeProofIntegrityDigest({
+    integrityBundleVersion: params?.version,
     nonce,
     protocolVersion: "4.0",
-    responses: [response],
+    responses: params?.signedResponses ?? [response],
   });
   const timestamp = params?.timestamp ?? Math.floor(Date.now() / 1000);
   const signatureDigest = computeIntegritySignatureDigest({
@@ -169,7 +179,7 @@ async function createBundle(params?: {
   }
 
   const integrityBundle = {
-    version: 1,
+    version: params?.version ?? 1,
     signature_format: signatureFormat,
     timestamp,
     signature: signatureHex,
@@ -208,6 +218,53 @@ describe("integrity bundle verification", () => {
       timestamp: 1772638272,
       signatureHex: "abcd",
       jwt: "aaa.bbb.ccc==",
+    });
+  });
+
+  it("verifies a version 2 bundle over the Self Check sybil_score", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      version: 2,
+      signedResponses: [selfieResponse],
+    });
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const result = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [selfieResponse],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({ success: true });
+  });
+
+  it("rejects a changed Self Check sybil_score in a version 2 bundle", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      version: 2,
+      signedResponses: [selfieResponse],
+    });
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const result = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [{ ...selfieResponse, sybil_score: 11 }],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({
+      success: false,
+      reason: "invalid_device_signature",
     });
   });
 

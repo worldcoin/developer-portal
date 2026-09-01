@@ -147,6 +147,28 @@ export async function POST(
         ? "staging"
         : parsedParams.environment;
 
+    const requiresSelfieCheckIntegrity =
+      parsedParams.protocol_version === "4.0" &&
+      (parsedParams.responses as Array<{ issuer_schema_id?: unknown }>).some(
+        (response) => Number(response.issuer_schema_id) === 11,
+      );
+
+    if (
+      requiresSelfieCheckIntegrity &&
+      (!parsedParams.integrity_bundle ||
+        parsedParams.integrity_bundle.version !== 2)
+    ) {
+      return errorResponse({
+        statusCode: 403,
+        code: INTEGRITY_VERIFICATION_ERROR_CODE,
+        detail:
+          "Self Check 4.0 responses require an integrity bundle signed with version 2.",
+        attribute: "integrity_bundle",
+        req,
+        app_id: appId,
+      });
+    }
+
     if (parsedParams.integrity_bundle) {
       const integrityResult = await verifyIntegrityBundle({
         environment: verifierEnvironment,
