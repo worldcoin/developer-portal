@@ -6,8 +6,8 @@ import { ExternalLinkIcon } from "@/components/Icons/ExternalLinkIcon";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import {
-  getMcpEndpoint,
   getProviderSnippets,
+  MCP_ENDPOINT,
   PROVIDERS,
   type ProviderId,
 } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/mcp-snippets";
@@ -93,9 +93,8 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
   const apiKeyPreview = getApiKeyPreview(apiKey);
   const [selectedProvider, setSelectedProvider] = useState<ProviderId>("codex");
   const [showRawConfig, setShowRawConfig] = useState(false);
-  // Only ever rendered post-mutation inside CreateKeyModal, so `window` exists.
   const snippets = useMemo(
-    () => getProviderSnippets(apiKey, getMcpEndpoint(window.location.origin)),
+    () => getProviderSnippets(apiKey, MCP_ENDPOINT()),
     [apiKey],
   );
   const provider = PROVIDERS.find((item) => item.id === selectedProvider)!;

@@ -51,6 +51,9 @@ type ShellNavigation = {
   pendingHref: string | null;
   isNavigating: boolean;
   navigate: (href: string) => void;
+  /** App IDs whose latest server verdict says analytics is enabled. */
+  analyticsAppIds: readonly string[];
+  setAnalyticsAppEligibility: (appId: string, enabled: boolean) => void;
 };
 
 const ShellNavigationContext = createContext<ShellNavigation | null>(null);
@@ -73,6 +76,7 @@ export const SidebarAnimationShell = (props: { children: ReactNode }) => {
   const router = useRouter();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [isNavigating, startTransition] = useTransition();
+  const [analyticsAppIds, setAnalyticsAppIds] = useState<readonly string[]>([]);
 
   const navigate = useCallback(
     (href: string) => {
@@ -82,9 +86,33 @@ export const SidebarAnimationShell = (props: { children: ReactNode }) => {
     [router],
   );
 
+  const setAnalyticsAppEligibility = useCallback(
+    (appId: string, enabled: boolean) => {
+      setAnalyticsAppIds((current) => {
+        if (enabled) {
+          return current.includes(appId) ? current : [...current, appId];
+        }
+        return current.filter((candidate) => candidate !== appId);
+      });
+    },
+    [],
+  );
+
   const value = useMemo(
-    () => ({ pendingHref, isNavigating, navigate }),
-    [pendingHref, isNavigating, navigate],
+    () => ({
+      pendingHref,
+      isNavigating,
+      navigate,
+      analyticsAppIds,
+      setAnalyticsAppEligibility,
+    }),
+    [
+      pendingHref,
+      isNavigating,
+      navigate,
+      analyticsAppIds,
+      setAnalyticsAppEligibility,
+    ],
   );
 
   return (
@@ -92,6 +120,23 @@ export const SidebarAnimationShell = (props: { children: ReactNode }) => {
       {props.children}
     </ShellNavigationContext.Provider>
   );
+};
+
+/** Publishes a server-side app eligibility verdict to the sidebar. */
+export const AnalyticsAppEligibility = (props: {
+  appId: string;
+  enabled: boolean;
+}) => {
+  const setAnalyticsAppEligibility = useContext(
+    ShellNavigationContext,
+  )?.setAnalyticsAppEligibility;
+
+  useEffect(
+    () => setAnalyticsAppEligibility?.(props.appId, props.enabled),
+    [setAnalyticsAppEligibility, props.appId, props.enabled],
+  );
+
+  return null;
 };
 
 const sidebarPreloadIcons = [
@@ -133,7 +178,8 @@ export const SidebarNav = (props: {
   const routeAppId = params?.appId;
   const { setOpenMobile } = useSidebar();
 
-  const { pendingHref, isNavigating, navigate } = useShellNavigation();
+  const { pendingHref, isNavigating, navigate, analyticsAppIds } =
+    useShellNavigation();
   const optimisticHref =
     isNavigating && pendingHref !== null ? pendingHref : null;
   const currentHref = optimisticHref ?? pathname;
@@ -247,6 +293,9 @@ export const SidebarNav = (props: {
     onWorldIdActionsRoute ||
     onLegacyActionsRoute ||
     (onCanonicalWorldId && !worldIdConfigurationActive);
+  const analyticsActive = withinApp("/analytics");
+
+  const analyticsEnabled = Boolean(appId && analyticsAppIds.includes(appId));
   const verificationActive = withinApp("/configuration");
   const developActive =
     currentPathname === (appBase ? `${appBase}/mini-app` : "") ||
@@ -362,6 +411,15 @@ export const SidebarNav = (props: {
                   )}
                   icon={<SidebarGlyph name="nav-home-active" />}
                 />
+                {analyticsEnabled && appBase ? (
+                  <NavItem
+                    label="Analytics"
+                    href={`${appBase}/analytics`}
+                    active={analyticsActive}
+                    onNavigate={beginNavigation(`${appBase}/analytics`)}
+                    icon={<SidebarGlyph name="stats-down-square" />}
+                  />
+                ) : null}
                 <NavItem
                   label="World ID Configuration"
                   href={urls.worldIdTab({
@@ -447,16 +505,16 @@ export const SidebarNav = (props: {
       {!ids && !teamId ? (
         <div className="mt-auto pt-3 group-data-[collapsible=icon]:hidden">
           <SandboxButton
-            className="-ml-1 w-[calc(100%_+_8px)]"
+            className="-ml-1 w-[calc(100%_+_13px)]"
             initialRequest={props.initialSandboxRequest}
           />
         </div>
       ) : null}
 
       {teamId ? (
-        <div className="mt-auto px-4 pt-3 pb-3 group-data-[collapsible=icon]:hidden">
+        <div className="mt-auto px-4 pt-3 pb-1 group-data-[collapsible=icon]:hidden">
           <SandboxButton
-            className="-ml-1 w-[calc(100%_+_8px)]"
+            className="-ml-3 w-[calc(100%_+_21px)]"
             teamId={teamId}
             initialRequest={props.initialSandboxRequest}
           />

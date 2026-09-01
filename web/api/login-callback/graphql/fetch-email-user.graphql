@@ -16,7 +16,7 @@ query FetchEmailUser($auth0Id: String, $email: String) {
     }
   }
 
-  userByEmail: user(where: { email: { _eq: $email } }) {
+  userByEmail: user(where: { email: { _ilike: $email } }) {
     id
     email
     name
