@@ -122,7 +122,7 @@ export const ReviewerDecisionComposer = ({
             aria-describedby={
               requestChangesReason ? "request-changes-reason" : undefined
             }
-            className="rounded-8 border border-system-error-300 bg-system-error-100 px-3 py-2.5 text-13 font-semibold text-system-error-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-11 min-w-11 rounded-8 border border-system-error-300 bg-system-error-100 px-3 py-2.5 text-13 font-semibold text-system-error-700 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={Boolean(requestChangesReason)}
             onClick={(event) => {
               if (returnFocusRef) returnFocusRef.current = event.currentTarget;
@@ -144,7 +144,7 @@ export const ReviewerDecisionComposer = ({
         <div className="grid gap-1">
           <button
             aria-describedby={approvalReason ? "approve-reason" : undefined}
-            className="rounded-8 bg-system-success-600 px-3 py-2.5 text-13 font-semibold text-grey-0 disabled:cursor-not-allowed disabled:bg-grey-300"
+            className="min-h-11 min-w-11 rounded-8 bg-system-success-600 px-3 py-2.5 text-13 font-semibold text-grey-0 disabled:cursor-not-allowed disabled:bg-grey-300"
             disabled={Boolean(approvalReason)}
             onClick={(event) => {
               if (returnFocusRef) returnFocusRef.current = event.currentTarget;

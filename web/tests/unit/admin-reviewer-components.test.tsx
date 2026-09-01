@@ -229,7 +229,7 @@ describe("review queue workspace", () => {
 
 describe("reviewer test target", () => {
   it("shows the exact Mini App QR, copy, and open target", () => {
-    render(
+    const { container } = render(
       <ReviewerTestTarget
         appId="app_123"
         appName="Draft app"
@@ -252,6 +252,9 @@ describe("reviewer test target", () => {
     expect(
       screen.getByRole("button", { name: "Copy draft link" }),
     ).toBeEnabled();
+    expect(container.firstElementChild).toHaveClass(
+      "md:grid-cols-[minmax(0,1fr)_240px]",
+    );
   });
 
   it.each([
@@ -329,7 +332,7 @@ describe("reviewer test target", () => {
     },
   );
 
-  it("reduces the compact Mini App target to identity, QR, and primary action", () => {
+  it("expands the compact Mini App target from its accessible QR trigger", () => {
     const { container } = render(
       <ReviewerTestTarget
         appId="app_123"
@@ -359,9 +362,41 @@ describe("reviewer test target", () => {
     expect(
       screen.queryByRole("button", { name: "Copy draft link" }),
     ).not.toBeInTheDocument();
+
+    const expandTarget = screen.getByRole("button", {
+      name: "Show full Mini App test target",
+    });
+    expect(expandTarget).toHaveAttribute("aria-expanded", "false");
+    const expandedPanel = document.getElementById(
+      expandTarget.getAttribute("aria-controls")!,
+    );
+    expect(expandedPanel).toHaveAttribute("hidden");
+    fireEvent.click(expandTarget);
+
+    expect(
+      screen.getByRole("button", {
+        name: "Hide full Mini App test target",
+      }),
+    ).toHaveAttribute("aria-expanded", "true");
+    expect(expandedPanel).not.toHaveAttribute("hidden");
+    expect(
+      screen.getByText("Test the exact metadata version"),
+    ).toBeInTheDocument();
+    expect(container.querySelector("code")).toHaveTextContent(
+      "https://world.org/mini-app?app_id=app_123&path=&draft_id=metadata_456",
+    );
+    expect(
+      screen.getByRole("button", { name: "Copy draft link" }),
+    ).toBeEnabled();
+    expect(screen.getAllByLabelText("World App draft QR code")).toHaveLength(2);
   });
 
-  it("reduces the compact external target to identity and primary action", () => {
+  it("shows and copies the validated URL in a compact external target", () => {
+    const writeText = jest.fn();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
     const { container } = render(
       <ReviewerTestTarget
         appId="app_123"
@@ -383,10 +418,17 @@ describe("reviewer test target", () => {
     expect(
       screen.queryByText("Test in a standard browser"),
     ).not.toBeInTheDocument();
-    expect(container.querySelector("code")).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Copy integration URL" }),
-    ).not.toBeInTheDocument();
+    expect(container.querySelector("code")).toHaveTextContent(
+      "https://external.example.com/integration",
+    );
+    const copy = screen.getByRole("button", {
+      name: "Copy integration URL",
+    });
+    expect(copy).toHaveClass("min-h-11", "min-w-11");
+    fireEvent.click(copy);
+    expect(writeText).toHaveBeenCalledWith(
+      "https://external.example.com/integration",
+    );
   });
 });
 
@@ -518,6 +560,10 @@ describe("reviewer mutation controls", () => {
       screen.getByText(/reviewer access is required/i),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Claim review" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Claim review" })).toHaveClass(
+      "min-h-11",
+      "min-w-11",
+    );
   });
 
   it("allows a reviewer to take over an expired claim", () => {
@@ -553,7 +599,30 @@ describe("reviewer mutation controls", () => {
     expect(
       screen.getByText(/recover the claim for this browser/i),
     ).toBeVisible();
-    expect(screen.getByRole("button", { name: "Recover claim" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Recover claim" })).toHaveClass(
+      "min-h-11",
+      "min-w-11",
+    );
+  });
+
+  it("uses a 44-pixel release-claim target", () => {
+    render(
+      <ReviewClaimBar
+        canReview
+        claimExpiresAt="2999-01-01T00:00:00.000Z"
+        claimedByEmail="reviewer@example.com"
+        currentUserEmail="reviewer@example.com"
+        hasActiveClaim
+        reviewId="00000000-0000-4000-8000-000000000001"
+        reviewVersion={4}
+        status="in_review"
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Release claim" })).toHaveClass(
+      "min-h-11",
+      "min-w-11",
+    );
   });
 
   it("makes a claim available after its lease expires without a parent rerender", () => {
@@ -1154,7 +1223,7 @@ describe("review detail workspace", () => {
     ).toHaveLength(1);
   });
 
-  it("sends the unchanged decision payload only after final confirmation and clears local state on success", async () => {
+  it("sends the decision payload only after final confirmation and clears local state on success", async () => {
     const claimToken = "00000000-0000-4000-8000-000000000099";
     const submission = claimedSubmissionFixture({
       checklist: {
@@ -1237,7 +1306,6 @@ describe("review detail workspace", () => {
           expectedMetadataUpdatedAt: submission.metadataUpdatedAt,
           decision: "changes_requested",
           developerMessage: "Please correct the localized listing.",
-          overrideReason: "Policy owner reviewed the remaining exception.",
         }),
       }),
     );
@@ -1251,6 +1319,107 @@ describe("review detail workspace", () => {
     expect(
       window.sessionStorage.getItem(`admin-reviewer-claim:${submission.id}`),
     ).toBeNull();
+  });
+
+  it("clears a stale override and omits it after blocked checks become clean", async () => {
+    const claimToken = "00000000-0000-4000-8000-000000000099";
+    const submission = claimedSubmissionFixture({
+      checklist: {
+        items: groupedChecklistItems.map((item, index) =>
+          index === 0
+            ? { ...item, status: "fail" as const, evidence: "Fix listing" }
+            : item,
+        ),
+        internalNotes: "",
+        definitionSnapshot: createChecklistDefinitionSnapshot(
+          "mini-app",
+          REVIEW_CHECKLIST_VERSION,
+        )!,
+      },
+    });
+    seedClaimSession(submission, claimToken);
+    const workflowResponse = (reviewVersion: number) =>
+      ({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          submission: {
+            status: "in_review",
+            reviewVersion,
+            claimToken,
+            claimExpiresAt: submission.claimExpiresAt,
+          },
+        }),
+      }) as Response;
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockResolvedValueOnce(workflowResponse(8))
+      .mockResolvedValueOnce(workflowResponse(9))
+      .mockResolvedValueOnce(workflowResponse(10))
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          submission: {
+            status: "approved",
+            reviewVersion: 11,
+            claimToken: null,
+            claimExpiresAt: null,
+          },
+        }),
+      } as Response);
+
+    render(
+      <ReviewerWorkspace
+        canReview
+        currentUserEmail="reviewer@example.com"
+        submission={submission}
+      />,
+    );
+    await screen.findByText("Claimed by you");
+
+    fireEvent.change(screen.getByLabelText("Override reason"), {
+      target: { value: "This override must not survive clean checks." },
+    });
+    const getListingStatus = () =>
+      within(
+        screen.getByRole("group", {
+          name: "Listing and localization check status",
+        }),
+      );
+
+    fireEvent.click(getListingStatus().getByRole("button", { name: "Pass" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(screen.queryByLabelText("Override reason")).not.toBeInTheDocument();
+
+    fireEvent.click(getListingStatus().getByRole("button", { name: "Issue" }));
+    expect(screen.getByLabelText("Override reason")).toHaveValue("");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    fireEvent.click(getListingStatus().getByRole("button", { name: "Pass" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Approve" })).toBeEnabled(),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Approve" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm approval" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(4));
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      `/api/admin/reviewer/submissions/${submission.id}/decision`,
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          claimToken,
+          expectedReviewVersion: 10,
+          appMetadataId: submission.appMetadataId,
+          expectedMetadataUpdatedAt: submission.metadataUpdatedAt,
+          decision: "approved",
+          developerMessage: "",
+        }),
+      }),
+    );
   });
 
   it("waits for a deferred checklist save and decides with its new workflow version", async () => {
@@ -2987,6 +3156,9 @@ describe("grouped reviewer checklist", () => {
     expect(
       screen.getByLabelText("Accurate metadata check status"),
     ).toBeEnabled();
+    expect(screen.getByLabelText("Accurate metadata check status")).toHaveClass(
+      "min-h-11",
+    );
   });
 
   it("renders five grouped checks with pressed status buttons and accessible progress", () => {
@@ -2998,6 +3170,13 @@ describe("grouped reviewer checklist", () => {
     expect(screen.getAllByRole("button", { name: "Pass" })).toHaveLength(5);
     expect(screen.getAllByRole("button", { name: "Issue" })).toHaveLength(5);
     expect(screen.getAllByRole("button", { name: "N/A" })).toHaveLength(5);
+    expect(screen.getAllByRole("button", { name: "Pass" })[0]).toHaveClass(
+      "min-h-11",
+      "min-w-11",
+    );
+    expect(
+      screen.getAllByRole("link", { name: "Open source guidance" })[0],
+    ).toHaveClass("min-h-11", "min-w-11");
     expect(screen.getAllByRole("button", { name: "Pass" })[0]).toHaveAttribute(
       "aria-pressed",
       "false",
@@ -3120,9 +3299,11 @@ describe("grouped reviewer checklist", () => {
       onAddNote,
     });
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Add note to message" }),
-    );
+    const addNote = screen.getByRole("button", {
+      name: "Add note to message",
+    });
+    expect(addNote).toHaveClass("min-h-11", "min-w-11");
+    fireEvent.click(addNote);
     expect(onAddNote).toHaveBeenCalledWith("Correct the Spanish listing copy.");
   });
 
@@ -3135,12 +3316,25 @@ describe("grouped reviewer checklist", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent(announcement);
     if (saveState === "error") {
-      expect(screen.getByRole("button", { name: "Retry save" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Retry save" })).toHaveClass(
+        "min-h-11",
+        "min-w-11",
+      );
     }
   });
 
-  it("renders a retired checklist snapshot as read-only labels", () => {
+  it("renders a retired failed snapshot result with stored evidence", () => {
     renderChecklist({
+      checklist: {
+        items: [
+          {
+            id: "retired.check",
+            status: "fail",
+            evidence: "The preserved test flow failed at checkout.",
+          },
+        ],
+        internalNotes: "",
+      },
       definitionSnapshot: {
         mode: "mini-app",
         items: [
@@ -3159,7 +3353,55 @@ describe("grouped reviewer checklist", () => {
     expect(screen.getByText("Retired check label")).toBeInTheDocument();
     expect(screen.getByText(/read-only/i)).toBeInTheDocument();
     expect(
+      screen.getByLabelText("Retired check label stored status"),
+    ).toHaveTextContent("Issue");
+    expect(
+      screen.getByText("The preserved test flow failed at checkout."),
+    ).toBeInTheDocument();
+    expect(
       screen.queryByRole("button", { name: "Pass" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders a retired N/A snapshot result with its preserved notes", () => {
+    renderChecklist({
+      checklist: {
+        items: [
+          {
+            id: "retired.check",
+            status: "na",
+            evidence: "The capability was not submitted.",
+            applicabilityNote: "This integration has no payment flow.",
+          },
+        ],
+        internalNotes: "",
+      },
+      definitionSnapshot: {
+        mode: "mini-app",
+        items: [
+          {
+            id: "retired.check",
+            label: "Retired check label",
+            description: "Preserved guidance.",
+            sourceUrl: "https://example.com/guidance",
+            conditional: true,
+          },
+        ],
+      },
+      version: "retired-version",
+    });
+
+    expect(
+      screen.getByLabelText("Retired check label stored status"),
+    ).toHaveTextContent("N/A");
+    expect(
+      screen.getByText("The capability was not submitted."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("This integration has no payment flow."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "N/A" }),
     ).not.toBeInTheDocument();
   });
 });
@@ -3214,6 +3456,8 @@ describe("reviewer decision composer", () => {
     const approve = screen.getByRole("button", { name: "Approve" });
     expect(requestChanges).toBeDisabled();
     expect(approve).toBeEnabled();
+    expect(requestChanges).toHaveClass("min-h-11", "min-w-11");
+    expect(approve).toHaveClass("min-h-11", "min-w-11");
     expect(requestChanges).toHaveAccessibleDescription(
       "A message to the developer is required to request changes.",
     );
@@ -3383,16 +3627,24 @@ describe("reviewer decision composer", () => {
       </ReviewerActionRail>,
     );
 
-    expect(screen.getByTestId("reviewer-desktop-action-rail")).toHaveClass(
-      "lg:w-[360px]",
-    );
+    const desktopRail = screen.getByTestId("reviewer-desktop-action-rail");
+    expect(desktopRail).toHaveClass("lg:w-[360px]");
+    const railTarget = within(desktopRail)
+      .getByRole("heading", { name: "Test the exact metadata version" })
+      .closest("section");
+    expect(railTarget).not.toHaveClass("md:grid-cols-[minmax(0,1fr)_240px]");
+    expect(railTarget).toHaveClass("grid-cols-1");
+    expect(
+      within(desktopRail).getByLabelText("World App draft QR code")
+        .parentElement,
+    ).toHaveClass("min-h-[160px]", "min-w-[160px]");
     expect(screen.getByTestId("reviewer-mobile-test-target")).toHaveClass(
       "lg:hidden",
     );
     expect(screen.getByText("3 of 5 checks complete")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Message and decide" }),
-    ).toBeEnabled();
+    ).toHaveClass("min-h-11", "min-w-11");
   });
 
   it("blocks the mobile composer while the checklist save is in error", () => {

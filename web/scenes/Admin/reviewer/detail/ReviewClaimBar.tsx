@@ -77,7 +77,7 @@ export const ReviewClaimBar = ({
 
         {hasActiveClaim ? (
           <button
-            className="rounded-8 border border-grey-300 bg-grey-0 px-3 py-2 text-12 font-semibold text-grey-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-11 min-w-11 rounded-8 border border-grey-300 bg-grey-0 px-3 py-2 text-12 font-semibold text-grey-700 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={busy || !canReview}
             onClick={onRelease}
             type="button"
@@ -86,7 +86,7 @@ export const ReviewClaimBar = ({
           </button>
         ) : (
           <button
-            className="rounded-8 bg-grey-900 px-3 py-2 text-12 font-semibold text-grey-0 disabled:cursor-not-allowed disabled:bg-grey-300"
+            className="min-h-11 min-w-11 rounded-8 bg-grey-900 px-3 py-2 text-12 font-semibold text-grey-0 disabled:cursor-not-allowed disabled:bg-grey-300"
             disabled={
               busy ||
               !canReview ||

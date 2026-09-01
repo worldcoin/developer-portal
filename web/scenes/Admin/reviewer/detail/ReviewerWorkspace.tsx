@@ -80,6 +80,9 @@ type ReviewerWorkspaceProps = {
   submission: ReviewerSubmissionDetail;
 };
 
+const BLOCKED_APPROVAL_OVERRIDE_ERROR =
+  "Override reason is required when checks fail or remain incomplete";
+
 type StatefulReviewerWorkspaceProps = ReviewerWorkspaceProps & {
   activePanel: ReviewerPanel;
   onPanelChange: (panel: ReviewerPanel) => void;
@@ -605,6 +608,17 @@ const StatefulReviewerWorkspace = ({
         rejectDecision(checklistErrors[0]);
         return;
       }
+      const approvalBlocked =
+        decision === "approved" &&
+        validateApprovalChecklist(
+          checklistContext.appMode,
+          currentChecklist,
+          "",
+          checklistContext.version,
+        ).includes(BLOCKED_APPROVAL_OVERRIDE_ERROR);
+      const decisionOverrideReason = approvalBlocked
+        ? currentOverrideReason
+        : "";
       if (
         currentDeveloperMessage.length > REVIEWER_DEVELOPER_MESSAGE_MAX_LENGTH
       ) {
@@ -617,7 +631,7 @@ const StatefulReviewerWorkspace = ({
         );
         return;
       }
-      if (currentOverrideReason.length > REVIEWER_OVERRIDE_REASON_MAX_LENGTH) {
+      if (decisionOverrideReason.length > REVIEWER_OVERRIDE_REASON_MAX_LENGTH) {
         rejectDecision("The override reason is too long.");
         return;
       }
@@ -625,7 +639,7 @@ const StatefulReviewerWorkspace = ({
         const currentApprovalErrors = validateApprovalChecklist(
           checklistContext.appMode,
           currentChecklist,
-          currentOverrideReason,
+          decisionOverrideReason,
           checklistContext.version,
         );
         if (currentApprovalErrors.length) {
@@ -645,8 +659,8 @@ const StatefulReviewerWorkspace = ({
           expectedMetadataUpdatedAt: submission.metadataUpdatedAt,
           decision,
           developerMessage: currentDeveloperMessage,
-          ...(currentOverrideReason.trim()
-            ? { overrideReason: currentOverrideReason }
+          ...(approvalBlocked && decisionOverrideReason.trim()
+            ? { overrideReason: decisionOverrideReason }
             : {}),
         },
       });
@@ -703,10 +717,15 @@ const StatefulReviewerWorkspace = ({
     checklistVersion,
   );
   const blockedApprovalReason = approvalWithoutOverride.includes(
-    "Override reason is required when checks fail or remain incomplete",
+    BLOCKED_APPROVAL_OVERRIDE_ERROR,
   )
-    ? "Override reason is required when checks fail or remain incomplete"
+    ? BLOCKED_APPROVAL_OVERRIDE_ERROR
     : null;
+  useEffect(() => {
+    if (blockedApprovalReason || !overrideReasonRef.current) return;
+    overrideReasonRef.current = "";
+    setOverrideReason("");
+  }, [blockedApprovalReason]);
   const decisionDisabledReason = !hasActiveClaim
     ? "Claim or recover this review before deciding."
     : Boolean(busyAction)
@@ -723,9 +742,7 @@ const StatefulReviewerWorkspace = ({
   const approvalDisabledReason =
     decisionDisabledReason ??
     approvalWithoutOverride.find(
-      (error) =>
-        error !==
-        "Override reason is required when checks fail or remain incomplete",
+      (error) => error !== BLOCKED_APPROVAL_OVERRIDE_ERROR,
     ) ??
     null;
   const failedLabels = getChecklistDefinitions(

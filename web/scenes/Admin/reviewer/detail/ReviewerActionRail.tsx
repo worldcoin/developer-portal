@@ -35,7 +35,7 @@ export const ReviewerActionRail = ({
         data-testid="reviewer-desktop-action-rail"
       >
         <div className="grid gap-4 rounded-16 border border-grey-200 bg-grey-0/90 p-4 backdrop-blur-md">
-          <ReviewerTestTarget {...testTarget} />
+          <ReviewerTestTarget {...testTarget} layout="stacked" />
           {children}
         </div>
       </aside>
@@ -73,7 +73,7 @@ export const ReviewerActionRail = ({
           aria-describedby={
             saveState === "error" ? "reviewer-decision-save-error" : undefined
           }
-          className="rounded-8 bg-grey-900 px-3 py-2.5 text-13 font-semibold text-grey-0"
+          className="min-h-11 min-w-11 rounded-8 bg-grey-900 px-3 py-2.5 text-13 font-semibold text-grey-0"
           disabled={saveState === "error"}
           onClick={onOpenComposer}
           type="button"

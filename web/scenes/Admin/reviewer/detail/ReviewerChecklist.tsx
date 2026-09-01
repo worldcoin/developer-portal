@@ -39,6 +39,15 @@ const saveStateMessage: Record<ChecklistSaveState, string> = {
   error: "Checklist save failed. Retry save.",
 };
 
+const checklistStatusLabel: Record<
+  ReviewChecklist["items"][number]["status"],
+  string
+> = {
+  pass: "Pass",
+  fail: "Issue",
+  na: "N/A",
+};
+
 const ChecklistSaveStatus = ({
   onRetrySave,
   saveState,
@@ -47,7 +56,7 @@ const ChecklistSaveStatus = ({
     {saveStateMessage[saveState]}
     {saveState === "error" ? (
       <button
-        className="ml-2 font-semibold text-blue-500 hover:text-blue-600"
+        className="ml-2 inline-flex min-h-11 min-w-11 items-center justify-center font-semibold text-blue-500 hover:text-blue-600"
         onClick={onRetrySave}
         type="button"
       >
@@ -151,7 +160,7 @@ const LegacyReviewerChecklist = ({
                     {definition.description}
                   </p>
                   <a
-                    className="mt-2 inline-flex text-11 font-medium text-blue-500 hover:text-blue-600"
+                    className="mt-2 inline-flex min-h-11 min-w-11 items-center text-11 font-medium text-blue-500 hover:text-blue-600"
                     href={definition.sourceUrl}
                     rel="noreferrer"
                     target="_blank"
@@ -163,7 +172,7 @@ const LegacyReviewerChecklist = ({
                   Check status
                   <select
                     aria-label={`${definition.title} check status`}
-                    className="h-10 rounded-8 border border-grey-200 bg-grey-0 px-3 text-12 font-normal tracking-normal text-grey-900 normal-case disabled:bg-grey-100"
+                    className="min-h-11 rounded-8 border border-grey-200 bg-grey-0 px-3 text-12 font-normal tracking-normal text-grey-900 normal-case disabled:bg-grey-100"
                     disabled={disabled}
                     onChange={(event) => {
                       const status = event.target.value;
@@ -371,7 +380,7 @@ export const ReviewerChecklist = ({
                     {definition.description}
                   </p>
                   <a
-                    className="mt-2 inline-flex text-11 font-medium text-blue-500 hover:text-blue-600"
+                    className="mt-2 inline-flex min-h-11 min-w-11 items-center text-11 font-medium text-blue-500 hover:text-blue-600"
                     href={definition.sourceUrl}
                     rel="noreferrer"
                     target="_blank"
@@ -394,7 +403,7 @@ export const ReviewerChecklist = ({
                     ).map(([status, label]) => (
                       <button
                         aria-pressed={result?.status === status}
-                        className="rounded-8 border border-grey-200 bg-grey-0 px-3 py-2 text-12 font-medium text-grey-700 disabled:bg-grey-100"
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-8 border border-grey-200 bg-grey-0 px-3 py-2 text-12 font-medium text-grey-700 disabled:bg-grey-100"
                         disabled={controlsDisabled}
                         key={status}
                         onClick={() => updateStatus(definition.id, status)}
@@ -406,6 +415,41 @@ export const ReviewerChecklist = ({
                   </div>
                 ) : null}
               </div>
+
+              {readOnly && result ? (
+                <div className="mt-4 grid gap-3 border-t border-grey-200 pt-3">
+                  <p
+                    aria-label={`${definition.title} stored status`}
+                    className="text-grey-600 flex items-center justify-between gap-3 text-12"
+                  >
+                    <span>Stored result</span>
+                    <span className="font-semibold text-grey-900">
+                      {checklistStatusLabel[result.status]}
+                    </span>
+                  </p>
+                  {result.evidence.trim() ? (
+                    <div>
+                      <p className="text-11 font-medium text-grey-500">
+                        Evidence note
+                      </p>
+                      <p className="mt-1 text-12 whitespace-pre-wrap text-grey-700">
+                        {result.evidence}
+                      </p>
+                    </div>
+                  ) : null}
+                  {result.status === "na" &&
+                  result.applicabilityNote?.trim() ? (
+                    <div>
+                      <p className="text-11 font-medium text-grey-500">
+                        Not applicable note
+                      </p>
+                      <p className="mt-1 text-12 whitespace-pre-wrap text-grey-700">
+                        {result.applicabilityNote}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
 
               {result?.status === "fail" && !readOnly ? (
                 <label className="mt-4 grid gap-1 text-11 font-medium text-grey-500">
@@ -422,7 +466,7 @@ export const ReviewerChecklist = ({
                   />
                   {result.evidence.trim() ? (
                     <button
-                      className="justify-self-start text-12 font-semibold text-blue-500 hover:text-blue-600"
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center justify-self-start text-12 font-semibold text-blue-500 hover:text-blue-600"
                       disabled={controlsDisabled}
                       onClick={() => onAddNote(result.evidence)}
                       type="button"
