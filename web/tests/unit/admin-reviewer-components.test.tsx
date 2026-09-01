@@ -3662,9 +3662,15 @@ describe("reviewer decision composer", () => {
       "lg:hidden",
     );
     expect(screen.getByText("3 of 5 checks complete")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Message and decide" }),
-    ).toHaveClass("min-h-11", "min-w-11");
+    const messageAndDecide = screen.getByRole("button", {
+      name: "Message and decide",
+    });
+    expect(messageAndDecide).toHaveClass("min-h-11", "min-w-11");
+    expect(messageAndDecide.parentElement).toHaveClass(
+      "sticky",
+      "bottom-24",
+      "z-20",
+    );
   });
 
   it("blocks the mobile composer while the checklist save is in error", () => {

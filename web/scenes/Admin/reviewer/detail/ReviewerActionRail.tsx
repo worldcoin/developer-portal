@@ -46,7 +46,7 @@ export const ReviewerActionRail = ({
       >
         <ReviewerTestTarget {...testTarget} compact />
       </div>
-      <div className="sticky bottom-0 z-20 order-3 flex items-center justify-between gap-3 border-t border-grey-200 bg-grey-0/95 p-3 backdrop-blur-md lg:hidden">
+      <div className="sticky bottom-24 z-20 order-3 flex items-center justify-between gap-3 border-t border-grey-200 bg-grey-0/95 p-3 backdrop-blur-md lg:hidden">
         <div>
           <p className="text-12 font-medium text-grey-900">{completion}</p>
           {saveMessage ? (
