@@ -91,7 +91,6 @@ export const DailyMetricChart = (props: {
             <BarChart
               data={[...points]}
               margin={{ top: 4, left: 12, right: 12, bottom: 0 }}
-              barGap={2}
               barCategoryGap="15%"
             >
               <CartesianGrid vertical={false} stroke="#f1f1f1" />
@@ -116,10 +115,13 @@ export const DailyMetricChart = (props: {
                   key={os.dataKey}
                   dataKey={os.dataKey}
                   name={os.osName}
+                  stackId="os"
                   fill={osColor(os.osName, index)}
                   isAnimationActive={false}
                   maxBarSize={20}
-                  radius={[3, 3, 0, 0]}
+                  radius={
+                    index === operatingSystems.length - 1 ? [3, 3, 0, 0] : 0
+                  }
                 />
               ))}
             </BarChart>
