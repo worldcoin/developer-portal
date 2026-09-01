@@ -131,14 +131,14 @@ export const ReviewerDecisionConfirmation = ({
         <SheetFooter>
           <SheetClose asChild>
             <button
-              className="rounded-8 border border-grey-300 bg-grey-0 px-3 py-2.5 text-13 font-semibold text-grey-700"
+              className="min-h-11 rounded-8 border border-grey-300 bg-grey-0 px-3 py-2.5 text-13 font-semibold text-grey-700"
               type="button"
             >
               Cancel
             </button>
           </SheetClose>
           <button
-            className="rounded-8 bg-grey-900 px-3 py-2.5 text-13 font-semibold text-grey-0"
+            className="min-h-11 rounded-8 bg-grey-900 px-3 py-2.5 text-13 font-semibold text-grey-0"
             disabled={busy}
             onClick={() => {
               if (decision) onConfirm(decision);

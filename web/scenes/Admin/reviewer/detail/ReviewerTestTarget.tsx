@@ -92,7 +92,7 @@ export const ReviewerTestTarget = ({
         {safeUrl ? (
           <div className="mt-5 flex flex-wrap items-center gap-2">
             <a
-              className="rounded-8 bg-grey-900 px-4 py-2.5 text-13 font-semibold text-grey-0"
+              className="inline-flex min-h-11 items-center rounded-8 bg-grey-900 px-4 py-2.5 text-13 font-semibold text-grey-0"
               href={safeUrl}
               rel="noreferrer"
               target="_blank"
@@ -100,7 +100,7 @@ export const ReviewerTestTarget = ({
               Open integration
             </a>
             <CopyButton
-              className="rounded-8 border border-grey-200 bg-grey-0 p-2.5 pr-2.5"
+              className="min-h-11 min-w-11 rounded-8 border border-grey-200 bg-grey-0 p-2.5 pr-2.5"
               fieldName="integration URL"
               fieldValue={safeUrl}
             />
@@ -196,7 +196,7 @@ export const ReviewerTestTarget = ({
         </code>
         <div className="mt-4 flex gap-2">
           <a
-            className="rounded-8 bg-grey-900 px-4 py-2.5 text-13 font-semibold text-grey-0"
+            className="inline-flex min-h-11 items-center rounded-8 bg-grey-900 px-4 py-2.5 text-13 font-semibold text-grey-0"
             href={draftUrl}
             rel="noreferrer"
             target="_blank"
@@ -204,7 +204,7 @@ export const ReviewerTestTarget = ({
             Open in World App
           </a>
           <CopyButton
-            className="rounded-8 border border-grey-200 bg-grey-0 p-2.5 pr-2.5"
+            className="min-h-11 min-w-11 rounded-8 border border-grey-200 bg-grey-0 p-2.5 pr-2.5"
             fieldName="draft link"
             fieldValue={draftUrl}
           />

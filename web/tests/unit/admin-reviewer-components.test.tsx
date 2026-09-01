@@ -246,12 +246,16 @@ describe("reviewer test target", () => {
     expect(
       screen.getByLabelText("World App draft QR code"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Open in World App" }),
-    ).toHaveAttribute("href", expected);
-    expect(
-      screen.getByRole("button", { name: "Copy draft link" }),
-    ).toBeEnabled();
+    const openTarget = screen.getByRole("link", {
+      name: "Open in World App",
+    });
+    expect(openTarget).toHaveAttribute("href", expected);
+    expect(openTarget).toHaveClass("min-h-11");
+    const copyTarget = screen.getByRole("button", {
+      name: "Copy draft link",
+    });
+    expect(copyTarget).toBeEnabled();
+    expect(copyTarget).toHaveClass("min-h-11", "min-w-11");
     expect(container.firstElementChild).toHaveClass(
       "md:grid-cols-[minmax(0,1fr)_240px]",
     );
@@ -301,12 +305,19 @@ describe("reviewer test target", () => {
     expect(
       screen.queryByLabelText("World App draft QR code"),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Open integration" }),
-    ).toHaveAttribute("href", "https://external.example.com/integration");
-    expect(
-      screen.getByRole("button", { name: "Copy integration URL" }),
-    ).toBeEnabled();
+    const openTarget = screen.getByRole("link", {
+      name: "Open integration",
+    });
+    expect(openTarget).toHaveAttribute(
+      "href",
+      "https://external.example.com/integration",
+    );
+    expect(openTarget).toHaveClass("min-h-11");
+    const copyTarget = screen.getByRole("button", {
+      name: "Copy integration URL",
+    });
+    expect(copyTarget).toBeEnabled();
+    expect(copyTarget).toHaveClass("min-h-11", "min-w-11");
   });
 
   it.each([
@@ -714,9 +725,11 @@ describe("review history", () => {
     expect(eventHeadings[0]).toContain("Claimed");
     expect(eventHeadings[1]).toContain("Submitted");
     expect(screen.getByText(/mcp-api-key:key_123/)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Retry email notification" }),
-    ).toBeDisabled();
+    const retryNotification = screen.getByRole("button", {
+      name: "Retry email notification",
+    });
+    expect(retryNotification).toBeDisabled();
+    expect(retryNotification).toHaveClass("min-h-11");
 
     fireEvent.click(screen.getByText("Delivery attempts"));
     expect(screen.getByText("Provider unavailable")).toBeInTheDocument();
@@ -749,9 +762,11 @@ describe("review history", () => {
     );
 
     expect(screen.getByText(/stopped after 8 attempts/i)).toBeInTheDocument();
-    fireEvent.click(
-      screen.getByRole("button", { name: "Retry submitted assets" }),
-    );
+    const retryAssets = screen.getByRole("button", {
+      name: "Retry submitted assets",
+    });
+    expect(retryAssets).toHaveClass("min-h-11");
+    fireEvent.click(retryAssets);
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
         "/api/admin/reviewer/submissions/00000000-0000-4000-8000-000000000001/assets/retry",
@@ -1127,9 +1142,14 @@ describe("review detail workspace", () => {
         "World App draft QR code",
       ),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Confirm request changes" }),
-    ).toBeEnabled();
+    const confirm = screen.getByRole("button", {
+      name: "Confirm request changes",
+    });
+    expect(confirm).toBeEnabled();
+    expect(confirm).toHaveClass("min-h-11");
+    expect(screen.getByRole("button", { name: "Cancel" })).toHaveClass(
+      "min-h-11",
+    );
   });
 
   it("keeps a safe external target visible without rendering a World App QR", () => {

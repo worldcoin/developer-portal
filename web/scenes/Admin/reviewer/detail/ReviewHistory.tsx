@@ -178,7 +178,7 @@ export const ReviewHistory = ({
             assetSnapshotRepair.deadLetteredAt &&
             !assetsQueued ? (
               <button
-                className="rounded-8 border border-grey-300 bg-grey-0 px-3 py-2 text-11 font-semibold text-grey-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-h-11 rounded-8 border border-grey-300 bg-grey-0 px-3 py-2 text-11 font-semibold text-grey-700 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={!canReview || retryingAssets}
                 onClick={retryAssets}
                 type="button"
@@ -289,7 +289,7 @@ export const ReviewHistory = ({
                   notification.retryable !== false &&
                   !queuedIds.has(notification.id) ? (
                     <button
-                      className="rounded-8 border border-grey-300 bg-grey-0 px-3 py-2 text-11 font-semibold text-grey-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="min-h-11 rounded-8 border border-grey-300 bg-grey-0 px-3 py-2 text-11 font-semibold text-grey-700 disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={!canReview || retryingId === notification.id}
                       onClick={() => retry(notification)}
                       type="button"
