@@ -59,7 +59,11 @@ export const NavItem = (props: {
           onClick={onNavigate}
           aria-current={active ? "page" : undefined}
         >
-          {icon ? <span className="shrink-0 text-current">{icon}</span> : null}
+          {icon ? (
+            <span className="shrink-0 -translate-y-[2px] text-current">
+              {icon}
+            </span>
+          ) : null}
           <span>{label}</span>
         </Link>
       </SidebarMenuButton>

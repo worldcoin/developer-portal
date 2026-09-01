@@ -49,6 +49,7 @@ jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
 // #endregion
 
 import {
+  AnalyticsAppEligibility,
   SidebarAnimationShell,
   SidebarNav,
 } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
@@ -79,16 +80,14 @@ const makeWorldIdNavigationData = (options?: { rp?: boolean }) => ({
 
 const renderSidebar = (
   apiKeyTeamIds = [teamId],
-  analyticsAppIds: string[] = [],
+  eligibility?: { appId: string; enabled: boolean },
 ) =>
   render(
     <TooltipProvider>
       <SidebarProvider>
         <SidebarAnimationShell>
-          <SidebarNav
-            apiKeyTeamIds={apiKeyTeamIds}
-            analyticsAppIds={analyticsAppIds}
-          />
+          {eligibility ? <AnalyticsAppEligibility {...eligibility} /> : null}
+          <SidebarNav apiKeyTeamIds={apiKeyTeamIds} />
         </SidebarAnimationShell>
       </SidebarProvider>
     </TooltipProvider>,
@@ -113,16 +112,43 @@ beforeEach(() => {
 });
 
 // #region Analytics allowlist gate
-it("shows and activates the Analytics entry for an eligible app", () => {
+it("shows and activates Analytics after the app layout signals eligibility", () => {
   usePathname.mockReturnValue(`${base}/analytics`);
-  renderSidebar([teamId], [appId]);
+  renderSidebar([teamId], { appId, enabled: true });
 
   expect(screen.getByRole("link", { name: "Analytics" })).toBeInTheDocument();
   expect(isCurrent("Analytics")).toBe(true);
 });
 
-it("hides the Analytics entry when the app is outside the allowlist", () => {
-  renderSidebar([teamId], ["app_someoneelse0000000000000000000"]);
+it("hides Analytics when only another app was signaled as eligible", () => {
+  renderSidebar([teamId], {
+    appId: "app_someoneelse0000000000000000000",
+    enabled: true,
+  });
+
+  noLink("Analytics");
+});
+
+it("clears Analytics when a later verdict disables the current app", () => {
+  const view = renderSidebar([teamId], { appId, enabled: true });
+  expect(link("Analytics")).toBeInTheDocument();
+
+  view.rerender(
+    <TooltipProvider>
+      <SidebarProvider>
+        <SidebarAnimationShell>
+          <AnalyticsAppEligibility appId={appId} enabled={false} />
+          <SidebarNav apiKeyTeamIds={[teamId]} />
+        </SidebarAnimationShell>
+      </SidebarProvider>
+    </TooltipProvider>,
+  );
+
+  noLink("Analytics");
+});
+
+it("hides Analytics when no app was signaled as eligible", () => {
+  renderSidebar();
 
   noLink("Analytics");
 });
@@ -242,6 +268,19 @@ describe("v3 SidebarNav [Figma navigation contract]", () => {
     noLink("Get verified");
   });
 
+  it("optically aligns every navigation icon with its label", () => {
+    renderSidebar([teamId], { appId, enabled: true });
+
+    const iconLinks = screen
+      .getAllByRole("link")
+      .filter((item) => item.querySelector("img"));
+
+    expect(iconLinks.length).toBeGreaterThan(0);
+    for (const item of iconLinks) {
+      expect(item.firstElementChild).toHaveClass("-translate-y-[2px]");
+    }
+  });
+
   it.each([
     [base, "Dashboard"],
     [`${base}/world-id`, "Dashboard"],
@@ -298,6 +337,14 @@ describe("v3 SidebarNav [Figma navigation contract]", () => {
 
 // #region persistent app context
 describe("v3 SidebarNav [persistent app context]", () => {
+  it("keeps the team sandbox tile close to the profile footer", () => {
+    renderSidebar();
+
+    expect(
+      screen.getByRole("button", { name: /World ID Sandbox/i }).parentElement,
+    ).toHaveClass("pb-1");
+  });
+
   it("highlights Projects on the canonical team page with the view-grid icon", () => {
     useParams.mockReturnValue({ teamId });
     usePathname.mockReturnValue(`/teams/${teamId}`);

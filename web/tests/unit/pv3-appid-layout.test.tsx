@@ -5,9 +5,33 @@ import React from "react";
 
 // #region Mocks
 const getIsUserAllowedToReadApp = jest.fn();
+const isSelfieCheckAnalyticsEnabledForApp = jest.fn();
+const loggerWarn = jest.fn();
 jest.mock("@/lib/permissions", () => ({
   getIsUserAllowedToReadApp: (...args: unknown[]) =>
     getIsUserAllowedToReadApp(...args),
+}));
+
+jest.mock("@/api/helpers/selfie-check-analytics/eligibility", () => ({
+  isSelfieCheckAnalyticsEnabledForApp: (...args: unknown[]) =>
+    isSelfieCheckAnalyticsEnabledForApp(...args),
+}));
+
+jest.mock("@/lib/logger", () => ({
+  logger: {
+    info: jest.fn(),
+    warn: (...args: unknown[]) => loggerWarn(...args),
+  },
+}));
+
+jest.mock("@/scenes/PortalV3/layout/Shell/SidebarNav", () => ({
+  AnalyticsAppEligibility: (props: { appId: string; enabled: boolean }) => (
+    <div
+      data-testid="analytics-eligibility"
+      data-app-id={props.appId}
+      data-enabled={props.enabled}
+    />
+  ),
 }));
 
 jest.mock("@/components/ErrorPage", () => ({
@@ -31,21 +55,68 @@ const renderLayout = async (value?: string) =>
 beforeEach(() => {
   jest.clearAllMocks();
   getIsUserAllowedToReadApp.mockResolvedValue(true);
+  isSelfieCheckAnalyticsEnabledForApp.mockResolvedValue(false);
 });
 
-it("renders the app for a member", async () => {
+it("publishes a false sidebar verdict when analytics is disabled", async () => {
   await renderLayout(appId);
+
+  expect(isSelfieCheckAnalyticsEnabledForApp).toHaveBeenCalledWith(appId);
   expect(screen.getByTestId("page")).toBeInTheDocument();
+  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
+    "data-enabled",
+    "false",
+  );
+});
+
+it("signals the sidebar when analytics is enabled for the app", async () => {
+  isSelfieCheckAnalyticsEnabledForApp.mockResolvedValue(true);
+
+  await renderLayout(appId);
+
+  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
+    "data-enabled",
+    "true",
+  );
+});
+
+it("keeps the app available and hides analytics when eligibility fails", async () => {
+  const error = new Error("SSM unavailable");
+  isSelfieCheckAnalyticsEnabledForApp.mockRejectedValue(error);
+
+  await renderLayout(appId);
+
+  expect(screen.getByTestId("page")).toBeInTheDocument();
+  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
+    "data-enabled",
+    "false",
+  );
+  expect(loggerWarn).toHaveBeenCalledWith(
+    "Failed to resolve analytics eligibility for the sidebar",
+    expect.objectContaining({
+      appId,
+      dependency: "selfie-check-analytics-eligibility",
+      failureClass: "Error",
+      error,
+    }),
+  );
 });
 
 it("returns 404 when the user cannot read the app", async () => {
   getIsUserAllowedToReadApp.mockResolvedValue(false);
   await renderLayout(appId);
+
+  expect(isSelfieCheckAnalyticsEnabledForApp).not.toHaveBeenCalled();
+  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
+    "data-enabled",
+    "false",
+  );
   expect(screen.getByTestId("error")).toHaveAttribute("data-status", "404");
 });
 
 it("returns 404 without querying when appId is missing", async () => {
   await renderLayout();
   expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
+  expect(screen.queryByTestId("analytics-eligibility")).not.toBeInTheDocument();
   expect(screen.getByTestId("error")).toHaveAttribute("data-status", "404");
 });
