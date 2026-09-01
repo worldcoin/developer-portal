@@ -8,8 +8,8 @@ jest.mock("next/navigation", () => ({
 
 jest.mock("@/lib/urls", () => ({
   urls: {
-    teamSettings: ({ team_id }: { team_id: string }) =>
-      `/teams/${team_id}/settings`,
+    teamSettings: ({ team_id, tab }: { team_id: string; tab?: string }) =>
+      `/teams/${team_id}/settings${tab ? `?tab=${tab}` : ""}`,
   },
 }));
 import RoutePage from "../../app/(portal)/teams/[teamId]/(team)/api-keys/page";
@@ -22,5 +22,5 @@ beforeEach(() => jest.clearAllMocks());
 
 it("redirects the legacy api-keys route to consolidated team settings", async () => {
   await RoutePage(props());
-  expect(redirect).toHaveBeenCalledWith("/teams/team_1/settings");
+  expect(redirect).toHaveBeenCalledWith("/teams/team_1/settings?tab=api-keys");
 });

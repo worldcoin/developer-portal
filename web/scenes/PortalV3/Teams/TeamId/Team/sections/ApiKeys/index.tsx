@@ -1,19 +1,18 @@
 "use client";
-import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { CombinedGraphQLErrors } from "@apollo/client";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useCallback, useState } from "react";
-import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { ApiKeysTable } from "./ApiKeyTable";
 import { RotateKeyModal } from "./ApiKeyTable/RotateKeyModal";
 import { CreateKeyModal } from "./CreateKeyModal";
+import { ApiKeysLoadingState } from "./LoadingState";
 import { ResetApiKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
 import {
   FetchKeysDocument,
   FetchKeysQuery,
 } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
-import { SettingsPanel } from "@/scenes/PortalV3/Teams/TeamId/Team/common/SettingsPanel";
+import { ApiKeysHeader } from "./Header";
 
 export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
   const { teamId, canWrite } = props;
@@ -112,12 +111,8 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
     setRotatedSecret(null);
   }, []);
 
-  return (
-    <SettingsPanel>
-      <SettingsPanel.Header>
-        <SettingsPanel.Title>API keys</SettingsPanel.Title>
-      </SettingsPanel.Header>
-
+  const dialogs = (
+    <>
       {canWrite ? (
         <CreateKeyModal
           teamId={teamId ?? ""}
@@ -137,67 +132,66 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
           afterLeave={clearRotateKeyModal}
         />
       ) : null}
+    </>
+  );
 
-      {isInitialLoad ? (
-        <>
-          <div className="grid grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-y border-grey-100 bg-grey-25 px-5 py-2.5 font-gta text-12 leading-4 text-grey-400">
-            <span>Name</span>
-            <span>Status</span>
-            <span aria-hidden="true" />
-          </div>
+  if (isInitialLoad) {
+    return (
+      <>
+        {dialogs}
+        <ApiKeysLoadingState canCreate={canWrite} />
+      </>
+    );
+  }
 
-          <div className="max-h-[229px] overflow-hidden">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div
-                key={index}
-                className="grid min-h-16 grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-b border-grey-100 px-5 py-3 last:border-b-0"
-              >
-                <div className="grid min-w-0 gap-1">
-                  <Skeleton width="60%" />
-                  <Skeleton width="85%" />
-                </div>
-                <Skeleton width={56} height={24} borderRadius={999} />
-                <Skeleton circle width={24} height={24} />
+  if (apiKeys?.length === 0) {
+    return (
+      <>
+        {dialogs}
+
+        <div className="w-full px-4 pt-5 pb-28 sm:px-6">
+          <div className="w-full max-w-[800px] min-w-0">
+            <ApiKeysHeader
+              canCreate={canWrite}
+              onCreate={() => setShowCreateKeyModal(true)}
+            />
+
+            <section className="mt-4 flex h-[300px] items-center justify-center rounded-[10px] border border-portal-border bg-white px-6 text-center sm:px-[120px]">
+              <div className="w-full font-world">
+                <h2 className="text-17 leading-[1.2] font-[450] tracking-[-0.01em] text-portal-ink">
+                  No API keys
+                </h2>
+                <p className="mt-1 text-13 leading-[1.3] font-[350] text-[#7d7d7d]">
+                  You don’t have any API key associated with your workspace
+                </p>
               </div>
-            ))}
+            </section>
           </div>
-        </>
-      ) : (
-        <>
-          <ApiKeysTable
-            teamId={teamId}
-            apiKeys={apiKeys}
-            openRotateKeyModal={openRotateKeyModal}
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {dialogs}
+
+      <div className="w-full px-4 pt-5 pb-28 sm:px-6">
+        <div className="w-full max-w-[800px] min-w-0">
+          <ApiKeysHeader
+            canCreate={canWrite}
+            onCreate={() => setShowCreateKeyModal(true)}
           />
-          {apiKeys?.length === 0 ? (
-            <div className="flex h-36 items-center justify-center font-gta text-13 text-grey-400">
-              No API keys found
-            </div>
-          ) : null}
-        </>
-      )}
 
-      <SettingsPanel.Footer>
-        {isInitialLoad ? (
-          <Skeleton width={48} />
-        ) : (
-          <span className="font-gta text-12 text-grey-400">
-            {apiKeys?.length ?? 0} {apiKeys?.length === 1 ? "key" : "keys"}
-          </span>
-        )}
-
-        {canWrite ? (
-          <button
-            type="button"
-            onClick={() => setShowCreateKeyModal(true)}
-            disabled={isInitialLoad}
-            className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-8 bg-portal-ink px-3 font-world text-13 leading-none font-medium text-white transition-colors hover:bg-portal-ink-hover focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-500"
-          >
-            <PlusIcon className="size-4" />
-            New key
-          </button>
-        ) : null}
-      </SettingsPanel.Footer>
-    </SettingsPanel>
+          <div className="mt-4">
+            <ApiKeysTable
+              teamId={teamId}
+              apiKeys={apiKeys}
+              openRotateKeyModal={openRotateKeyModal}
+            />
+          </div>
+        </div>
+      </div>
+    </>
   );
 };

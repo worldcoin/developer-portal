@@ -8,9 +8,10 @@ import { TeamSettingsPage } from "@/scenes/PortalV3/Teams/TeamId/Team/Settings/p
 // #region Mocks
 const teamId = "team_cd7aa5f3c2a797a06e66eb6eefbf2f48";
 let mockSession: unknown;
+let mockUserLoading = false;
 
 jest.mock("@auth0/nextjs-auth0/client", () => ({
-  useUser: () => ({ user: mockSession }),
+  useUser: () => ({ user: mockSession, isLoading: mockUserLoading }),
 }));
 
 jest.mock("@/lib/utils", () => ({
@@ -41,6 +42,7 @@ jest.mock("@apollo/client/react", () => ({
 }));
 
 const queryResult = {
+  loading: false,
   data: {
     team_by_pk: {
       id: teamId,
@@ -86,7 +88,37 @@ const sessionWithRole = (role: Role_Enum) => ({
 describe("Team settings permissions", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUserLoading = false;
     useQuery.mockReturnValue(queryResult);
+  });
+
+  it("mirrors the redesigned General layout while the team is loading", () => {
+    mockSession = sessionWithRole(Role_Enum.Owner);
+    useQuery.mockReturnValue({
+      data: undefined,
+      loading: true,
+      refetch: jest.fn(),
+    });
+
+    const { container } = render(<TeamSettingsPage />);
+
+    expect(
+      screen.getByRole("heading", { name: "General", level: 1 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Team name", level: 2 }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("MCP setup")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Danger zone", level: 2 }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Loading team settings",
+    );
+    expect(screen.queryByLabelText("Team profile")).not.toBeInTheDocument();
+    expect(container.querySelectorAll(".react-loading-skeleton")).toHaveLength(
+      2,
+    );
   });
 
   it.each([
@@ -162,6 +194,26 @@ describe("Team settings permissions", () => {
       expect(screen.queryByLabelText("Team profile")).not.toBeInTheDocument();
     },
   );
+
+  it("keeps the API Keys loading screen visible while access is resolving", () => {
+    mockSession = undefined;
+    mockUserLoading = true;
+
+    render(<TeamSettingsPage requestedTab={TEAM_SETTINGS_TABS.ApiKeys} />);
+
+    expect(
+      screen.getByRole("heading", { name: "API Keys", level: 1 }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Loading API keys");
+    expect(
+      screen.queryByRole("heading", { name: "General", level: 1 }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Team profile")).not.toBeInTheDocument();
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ skip: true }),
+    );
+  });
 
   it("falls back to General when a member requests credentials directly", () => {
     mockSession = sessionWithRole(Role_Enum.Member);

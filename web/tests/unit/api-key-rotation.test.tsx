@@ -87,8 +87,14 @@ const renderSection = (mocks: Mocks, canWrite = true) =>
     </MockedProvider>,
   );
 
-const findRotateTrigger = () =>
-  screen.findByRole("button", { name: /reset to view/i });
+const findRotateTrigger = async () => {
+  fireEvent.keyDown(
+    await screen.findByRole("button", { name: `Manage ${API_KEY.name}` }),
+    { key: "Enter" },
+  );
+
+  return screen.findByRole("menuitem", { name: /rotate key/i });
+};
 
 const confirmation = () => screen.getByRole("dialog");
 const confirmRotation = () =>
@@ -103,6 +109,64 @@ const closeButton = () =>
 beforeEach(() => {
   jest.clearAllMocks();
   mockSession = sessionWithRole(Role_Enum.Owner);
+});
+// #endregion
+
+// #region Initial and empty states
+describe("API keys initial and empty states", () => {
+  it("mirrors the redesigned API keys shell during the initial load", () => {
+    const { container } = renderSection([{ ...fetchKeysMock([]), delay: 100 }]);
+
+    expect(
+      screen.getByRole("heading", { name: "API Keys", level: 1 }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "New key" })).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Loading API keys");
+    expect(screen.getByRole("columnheader", { name: "Name" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "Created" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "Status" })).toBeVisible();
+    expect(container.querySelectorAll(".react-loading-skeleton")).toHaveLength(
+      9,
+    );
+  });
+
+  it("shows the API keys empty-state copy instead of an empty table", async () => {
+    renderSection([fetchKeysMock([])]);
+
+    expect(
+      await screen.findByRole("heading", { name: "No API keys", level: 2 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "API Keys", level: 1 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "You don’t have any API key associated with your workspace",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Name")).not.toBeInTheDocument();
+    expect(screen.queryByText("0 keys")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "New key" })).toBeEnabled();
+  });
+
+  it("renders populated keys in the four-column Figma table", async () => {
+    renderSection([fetchKeysMock([API_KEY])]);
+
+    expect(await screen.findByText(API_KEY.name)).toBeVisible();
+    expect(screen.getByRole("table", { name: "API keys" })).toBeVisible();
+    expect(
+      screen
+        .getAllByRole("columnheader")
+        .map(
+          (header) => header.getAttribute("aria-label") ?? header.textContent,
+        ),
+    ).toEqual(["Name", "Created", "Status", "Actions"]);
+    expect(screen.getByText("Active")).toHaveClass("text-[#00c230]");
+    expect(
+      screen.getByRole("button", { name: `Manage ${API_KEY.name}` }),
+    ).toBeVisible();
+    expect(screen.queryByText("1 key")).not.toBeInTheDocument();
+  });
 });
 // #endregion
 
@@ -302,7 +366,7 @@ describe("API key rotation flow", () => {
       screen.queryByRole("button", { name: /^rotate key$/i }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /reset to view/i }),
+      screen.queryByRole("button", { name: `Manage ${API_KEY.name}` }),
     ).not.toBeInTheDocument();
   });
 });
