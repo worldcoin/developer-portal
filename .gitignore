@@ -33,3 +33,6 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 **/.claude/settings.local.json
+
+# auth0 page template deploy backups
+auth0/universal-login/backup-*.html
