@@ -20,29 +20,12 @@ jest.mock("next/headers", () => ({
   headers: async () => ({ get: () => "/profile" }),
 }));
 
-const teamAppIds = jest.fn();
-const filterEnabledApps = jest.fn();
-jest.mock("@/api/helpers/graphql", () => ({
-  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
-}));
-jest.mock(
-  "@/scenes/PortalV3/layout/graphql/server/team-app-ids.generated",
-  () => ({
-    getSdk: () => ({ TeamAppIds: (...args: unknown[]) => teamAppIds(...args) }),
-  }),
-);
-jest.mock("@/api/helpers/selfie-check-analytics/eligibility", () => ({
-  filterSelfieCheckAnalyticsEnabledApps: (...args: unknown[]) =>
-    filterEnabledApps(...args),
-}));
-
 // Stub the shell so we test only PortalLayout's session -> shell wiring.
 jest.mock("@/scenes/PortalV3/layout/Shell", () => ({
   PortalShell: (props: {
     user: { name?: string | null };
     teams: { id: string }[];
     apiKeyTeamIds: string[];
-    analyticsAppIds: string[];
     sandboxRequest: { email: string } | null;
     children: React.ReactNode;
   }) => (
@@ -50,7 +33,6 @@ jest.mock("@/scenes/PortalV3/layout/Shell", () => ({
       data-testid="shell"
       data-team-count={props.teams.length}
       data-api-key-team-ids={props.apiKeyTeamIds.join(",")}
-      data-analytics-app-ids={props.analyticsAppIds.join(",")}
       data-sandbox-email={props.sandboxRequest?.email}
       data-user-name={props.user.name}
     >
@@ -64,8 +46,6 @@ import { PortalLayout } from "@/scenes/PortalV3/layout";
 beforeEach(() => {
   jest.clearAllMocks();
   fetchSandboxAccessRequest.mockResolvedValue(null);
-  teamAppIds.mockResolvedValue({ app: [] });
-  filterEnabledApps.mockResolvedValue([]);
 });
 
 it("mounts the shell with teams from the session", async () => {
@@ -129,50 +109,5 @@ it("labels World ID sessions without exposing their nullifier-like name", async 
   expect(screen.getByTestId("shell")).toHaveAttribute(
     "data-user-name",
     "Anonymous user",
-  );
-});
-
-it("passes the allowlisted subset of the user's apps to the shell", async () => {
-  getSession.mockResolvedValue({
-    user: {
-      sub: "auth0|ada",
-      name: "Ada",
-      hasura: {
-        id: "usr_abc123",
-        memberships: [{ role: "OWNER", team: { id: "team_1", name: "Acme" } }],
-      },
-    },
-  });
-  teamAppIds.mockResolvedValue({ app: [{ id: "app_a" }, { id: "app_b" }] });
-  filterEnabledApps.mockResolvedValue(["app_b"]);
-
-  render(await PortalLayout({ children: null }));
-
-  expect(teamAppIds).toHaveBeenCalledWith({ teamIds: ["team_1"] });
-  expect(filterEnabledApps).toHaveBeenCalledWith(["app_a", "app_b"]);
-  expect(screen.getByTestId("shell")).toHaveAttribute(
-    "data-analytics-app-ids",
-    "app_b",
-  );
-});
-
-it("mounts the shell even when app eligibility resolution fails", async () => {
-  getSession.mockResolvedValue({
-    user: {
-      sub: "auth0|ada",
-      name: "Ada",
-      hasura: {
-        id: "usr_abc123",
-        memberships: [{ role: "OWNER", team: { id: "team_1", name: "Acme" } }],
-      },
-    },
-  });
-  teamAppIds.mockRejectedValue(new Error("hasura down"));
-
-  render(await PortalLayout({ children: null }));
-
-  expect(screen.getByTestId("shell")).toHaveAttribute(
-    "data-analytics-app-ids",
-    "",
   );
 });
