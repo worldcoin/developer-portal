@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { act } from "react";
+import { MCP_ENDPOINT } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/mcp-snippets";
 import { ApiKeySecretFields } from "@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys/ApiKeySecretFields";
 
 // #region Mocks
@@ -57,13 +58,11 @@ afterEach(() => {
 
 // #region Endpoint
 describe("ApiKeySecretFields [endpoint]", () => {
-  it("renders the endpoint for the browser's current origin", () => {
+  it("renders the canonical endpoint instead of the browser origin", () => {
     const { container } = render(<ApiKeySecretFields apiKey={SHORT_KEY} />);
 
-    expect(snippetText(container)).toContain(
-      "https://staging.example.test:8443/api/mcp",
-    );
-    expect(snippetText(container)).not.toContain("developer.world.org");
+    expect(snippetText(container)).toContain(MCP_ENDPOINT());
+    expect(snippetText(container)).not.toContain("staging.example.test");
     expect(global.fetch).not.toHaveBeenCalled();
     expect(xhrOpen).not.toHaveBeenCalled();
   });
@@ -116,7 +115,7 @@ describe("ApiKeySecretFields [module boundary]", () => {
       Object.keys(
         require("@/scenes/common/Teams/TeamId/Team/ApiKeys/page/mcp-snippets"),
       ).sort(),
-    ).toEqual(["PROVIDERS", "getMcpEndpoint", "getProviderSnippets"].sort());
+    ).toEqual(["MCP_ENDPOINT", "PROVIDERS", "getProviderSnippets"].sort());
   });
 });
 // #endregion
