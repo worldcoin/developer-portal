@@ -20,19 +20,13 @@ jest.mock("@/scenes/common/me-query/client", () => ({
   useMeQuery: () => ({
     user: {
       id: "user_123",
-      name: "Ada Lovelace",
       nameToDisplay: "Ada Lovelace",
-      email: "ada@example.com",
       is_allow_tracking: false,
       world_id_nullifier: null,
-      memberships: [
-        {
-          role: "OWNER",
-          team: { id: "team_123", name: "Analytical Engines" },
-        },
-      ],
+      memberships: [],
     },
     loading: false,
+    error: undefined,
     refetch: mockRefetchMe,
   }),
 }));
@@ -58,33 +52,23 @@ beforeEach(() => {
   mockUpdateUser.mockResolvedValue({});
 });
 
-// #region Consolidated settings cards
 describe("PortalV3 profile settings", () => {
-  it("renders the cards in priority order and only enables a dirty form", async () => {
+  it("renders the new sections and saves dirty profile fields", async () => {
     render(<ProfilePage />);
 
     expect(
-      screen
-        .getAllByRole("heading", { level: 2 })
-        .map((heading) => heading.textContent),
-    ).toEqual(["Teams", "Display name"]);
-    expect(
-      screen.queryByText("Manage your teams, display name, and account."),
-    ).not.toBeInTheDocument();
+      await screen.findByRole("heading", { level: 1, name: "Profile" }),
+    ).toBeVisible();
     expect(screen.getByTestId("teams-list")).toBeInTheDocument();
     expect(screen.getByTestId("world-id-migration")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Danger zone" })).toBeVisible();
 
-    const nameInput = screen.getByRole("textbox");
-    await waitFor(() => expect(nameInput).toHaveValue("Ada Lovelace"));
-
-    const saveButton = screen.getByRole("button", { name: "Save" });
-    expect(saveButton).toHaveClass("text-[length:var(--text-13)]");
-    expect(saveButton).toBeDisabled();
+    const nameInput = screen.getByRole("textbox", { name: "Display name" });
+    expect(nameInput).toHaveValue("Ada Lovelace");
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
 
     fireEvent.change(nameInput, { target: { value: "Ada Byron" } });
-    await waitFor(() => expect(saveButton).toBeEnabled());
-
-    fireEvent.click(saveButton);
+    fireEvent.click(await screen.findByRole("button", { name: "Save" }));
 
     await waitFor(() =>
       expect(mockUpdateUser).toHaveBeenCalledWith({
@@ -97,21 +81,15 @@ describe("PortalV3 profile settings", () => {
         },
       }),
     );
-    await waitFor(() => expect(saveButton).toBeDisabled());
   });
 
-  it("opens the delete dialog from a standalone account action", () => {
+  it("opens the delete dialog from the danger-zone card", async () => {
     render(<ProfilePage />);
 
-    const deleteAccountButton = screen.getByRole("button", {
-      name: "Delete account",
-    });
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Delete account" }),
+    );
 
-    expect(deleteAccountButton).toHaveClass("text-13");
-    expect(deleteAccountButton.closest("section")).toBeNull();
-
-    fireEvent.click(deleteAccountButton);
     expect(screen.getByTestId("delete-account-dialog")).toBeInTheDocument();
   });
 });
-// #endregion
