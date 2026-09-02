@@ -220,7 +220,7 @@ export const MetricsFrame = (props: { appId: string }) => {
             id="daily-metrics-heading"
             className="font-world text-14 font-medium text-portal-heading"
           >
-            Daily Metrics
+            Daily
           </h2>
           {daily.kind === "ready" ? (
             <div className="grid gap-4 sm:grid-cols-2">

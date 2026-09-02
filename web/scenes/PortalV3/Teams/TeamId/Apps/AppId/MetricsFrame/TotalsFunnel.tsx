@@ -131,13 +131,6 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
                 <p className="mt-1 font-world text-24 leading-none font-medium text-portal-heading">
                   {formatCount(values[index])}
                 </p>
-                <p className="mt-1 font-world text-12 text-portal-subtle">
-                  {index === 0
-                    ? " "
-                    : index === 1
-                      ? "of started sessions"
-                      : conversionFromPrevious(values, index) ?? "—"}
-                </p>
               </div>
               {index === 1 && (
                 <CompletionRing value={props.row.p_face_auth_completion} />
