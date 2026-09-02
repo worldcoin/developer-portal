@@ -96,7 +96,7 @@ export const DailyMetricChart = (props: {
             aria-hidden
             className="absolute top-0 bottom-8 left-0 flex w-8 rotate-180 items-center justify-center font-world text-12 text-portal-muted [writing-mode:vertical-rl]"
           >
-            {props.kind === "rate" ? "Users (%)" : "Users (#)"}
+            {props.kind === "rate" ? "Sessions (%)" : "Users (#)"}
           </span>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
@@ -121,6 +121,7 @@ export const DailyMetricChart = (props: {
                 tickFormatter={formatTickDate}
               />
               <YAxis
+                allowDecimals={props.kind === "rate"}
                 axisLine={false}
                 {...(props.kind === "rate"
                   ? {

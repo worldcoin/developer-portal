@@ -30,11 +30,13 @@ jest.mock("recharts", () => ({
   Tooltip: () => null,
   XAxis: () => <div data-testid="x-axis" />,
   YAxis: (props: {
+    allowDecimals: boolean;
     domain?: [number, number];
     tickFormatter?: (value: number) => string;
   }) => (
     <div
       data-testid="y-axis"
+      data-allow-decimals={props.allowDecimals}
       data-domain={props.domain?.join(",")}
       data-midpoint-label={props.tickFormatter?.(0.5)}
     />
@@ -80,6 +82,10 @@ describe("DailyMetricChart", () => {
     expect(bars.every((bar) => bar.dataset.stackId === "os")).toBe(true);
     expect(screen.getByText("Day")).toBeInTheDocument();
     expect(screen.getByText("Users (#)")).toBeInTheDocument();
+    expect(screen.getByTestId("y-axis")).toHaveAttribute(
+      "data-allow-decimals",
+      "false",
+    );
   });
 
   it("draws completion rates as straight OS lines on a zero-to-100-percent axis", () => {
@@ -105,7 +111,11 @@ describe("DailyMetricChart", () => {
       "data-domain",
       "0,1.05",
     );
-    expect(screen.getByText("Users (%)")).toBeInTheDocument();
+    expect(screen.getByText("Sessions (%)")).toBeInTheDocument();
+    expect(screen.getByTestId("y-axis")).toHaveAttribute(
+      "data-allow-decimals",
+      "true",
+    );
     expect(screen.getByTestId("y-axis")).toHaveAttribute(
       "data-midpoint-label",
       "50%",
