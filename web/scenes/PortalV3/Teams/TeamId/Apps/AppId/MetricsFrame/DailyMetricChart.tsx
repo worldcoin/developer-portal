@@ -20,17 +20,13 @@ import {
 
 // Color follows the OS, not its position. Android uses a golden amber that
 // stays distinct from iOS blue while retaining 3:1 contrast on the white card.
-// Unknown OSes fall back to purple, then muted gray.
 const OS_COLORS: Readonly<Record<string, string>> = {
   Android: "#b88700",
   iOS: "#007aff",
 };
-const FALLBACK_OS_COLORS = ["#6600cc", "#757575"] as const;
 const RATE_TICKS = [0, 0.25, 0.5, 0.75, 1] as const;
 
-const osColor = (osName: string, index: number) =>
-  OS_COLORS[osName] ??
-  FALLBACK_OS_COLORS[Math.min(index, FALLBACK_OS_COLORS.length - 1)];
+const osColor = (osName: string) => OS_COLORS[osName];
 
 const formatTickDate = (value: string) =>
   new Date(`${value}T00:00:00.000Z`).toLocaleDateString("en-US", {
@@ -67,7 +63,7 @@ export const DailyMetricChart = (props: {
         </h3>
         {operatingSystems.length > 0 && (
           <ul className="flex shrink-0 items-center gap-3">
-            {operatingSystems.map((os, index) => (
+            {operatingSystems.map((os) => (
               <li
                 key={os.dataKey}
                 className="flex items-center gap-1.5 font-world text-12 text-portal-muted"
@@ -75,7 +71,7 @@ export const DailyMetricChart = (props: {
                 <span
                   aria-hidden
                   className="size-2 rounded-full"
-                  style={{ backgroundColor: osColor(os.osName, index) }}
+                  style={{ backgroundColor: osColor(os.osName) }}
                 />
                 {os.osName}
               </li>
@@ -139,7 +135,7 @@ export const DailyMetricChart = (props: {
                     dot={false}
                     isAnimationActive={false}
                     name={os.osName}
-                    stroke={osColor(os.osName, index)}
+                    stroke={osColor(os.osName)}
                     strokeWidth={2}
                     type="monotone"
                   />
@@ -149,7 +145,7 @@ export const DailyMetricChart = (props: {
                     dataKey={os.dataKey}
                     name={os.osName}
                     stackId="os"
-                    fill={osColor(os.osName, index)}
+                    fill={osColor(os.osName)}
                     isAnimationActive={false}
                     maxBarSize={20}
                     radius={

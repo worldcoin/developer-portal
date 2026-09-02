@@ -2,6 +2,7 @@
 
 import { type TotalsRow } from "@/lib/selfie-check-analytics";
 import { useState } from "react";
+import { CompletionRing } from "./CompletionRing";
 
 /** Conversion stages, left to right, computed from the totals row. */
 const FUNNEL_STAGES = [
@@ -25,85 +26,8 @@ const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
 
-const COMPLETION_RING_SIZE = 56;
-const COMPLETION_RING_STROKE = 5;
-const COMPLETION_RING_RADIUS =
-  (COMPLETION_RING_SIZE - COMPLETION_RING_STROKE) / 2;
-const COMPLETION_RING_CIRCUMFERENCE = 2 * Math.PI * COMPLETION_RING_RADIUS;
-
 const formatCount = (value: number | null) =>
   typeof value === "number" ? countFormatter.format(value) : "—";
-
-/** Compact progress treatment for the funnel's completion rate. */
-const CompletionRing = (props: { value: number | null }) => {
-  // The analytics contract supplies a normalized rate (0.94 means 94%).
-  // Clamp defensively before using it in either the SVG or ARIA percentage.
-  const completion =
-    typeof props.value === "number"
-      ? Math.min(Math.max(props.value, 0), 1)
-      : null;
-  const percentage =
-    completion === null ? null : Number((completion * 100).toFixed(1));
-  const formatted =
-    completion === null ? "—" : percentFormatter.format(completion);
-
-  return (
-    <div className="grid shrink-0 justify-items-center gap-1.5">
-      <div
-        aria-label={
-          completion === null
-            ? "Selfie Check completion unavailable"
-            : "Selfie Check completion"
-        }
-        aria-valuemax={completion === null ? undefined : 100}
-        aria-valuemin={completion === null ? undefined : 0}
-        aria-valuenow={percentage ?? undefined}
-        aria-valuetext={
-          completion === null
-            ? undefined
-            : `${formatted} of started sessions completed`
-        }
-        className="relative size-14"
-        role={completion === null ? "img" : "progressbar"}
-      >
-        <svg
-          aria-hidden
-          className="size-full"
-          viewBox={`0 0 ${COMPLETION_RING_SIZE} ${COMPLETION_RING_SIZE}`}
-        >
-          <circle
-            className="fill-none stroke-portal-border"
-            cx={COMPLETION_RING_SIZE / 2}
-            cy={COMPLETION_RING_SIZE / 2}
-            r={COMPLETION_RING_RADIUS}
-            strokeWidth={COMPLETION_RING_STROKE}
-          />
-          {completion !== null && (
-            <circle
-              className="fill-none stroke-portal-blue"
-              cx={COMPLETION_RING_SIZE / 2}
-              cy={COMPLETION_RING_SIZE / 2}
-              r={COMPLETION_RING_RADIUS}
-              strokeDasharray={COMPLETION_RING_CIRCUMFERENCE}
-              strokeDashoffset={
-                COMPLETION_RING_CIRCUMFERENCE * (1 - completion)
-              }
-              strokeLinecap="round"
-              strokeWidth={COMPLETION_RING_STROKE}
-              transform={`rotate(-90 ${COMPLETION_RING_SIZE / 2} ${COMPLETION_RING_SIZE / 2})`}
-            />
-          )}
-        </svg>
-        <span className="absolute inset-0 flex items-center justify-center font-world text-11 font-medium text-portal-heading tabular-nums">
-          {formatted}
-        </span>
-      </div>
-      <span className="font-world text-11 whitespace-nowrap text-portal-muted">
-        Completion rate
-      </span>
-    </div>
-  );
-};
 
 const conversionFromPrevious = (
   values: readonly (number | null)[],
