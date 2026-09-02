@@ -12,7 +12,6 @@ import {
 } from "@/lib/selfie-check-analytics";
 import { useEffect, useState } from "react";
 import { DailyMetricChart } from "./DailyMetricChart";
-import { getMockAnalytics } from "./mock-data";
 import { TotalsFunnel } from "./TotalsFunnel";
 import { TotalsOverview } from "./TotalsOverview";
 
@@ -74,21 +73,11 @@ const PlaceholderCard = (props: { label: string; message: string }) => (
 );
 
 /** Fetches the app's analytics: overview and funnel above the daily charts. */
-export const MetricsFrame = (props: { appId: string; mock?: boolean }) => {
+export const MetricsFrame = (props: { appId: string }) => {
   const [daily, setDaily] = useState<DailyState>({ kind: "loading" });
   const [totals, setTotals] = useState<TotalsState>({ kind: "loading" });
 
   useEffect(() => {
-    if (props.mock) {
-      const fixture = getMockAnalytics(props.appId);
-      setDaily({ kind: "ready", rows: fixture.daily });
-      setTotals({ kind: "ready", row: fixture.totals });
-      return;
-    }
-
-    setDaily({ kind: "loading" });
-    setTotals({ kind: "loading" });
-
     let active = true;
     const controller = new AbortController();
     const timeout = window.setTimeout(
@@ -197,7 +186,7 @@ export const MetricsFrame = (props: { appId: string; mock?: boolean }) => {
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [props.appId, props.mock]);
+  }, [props.appId]);
 
   return (
     <SizingWrapper className="py-8">

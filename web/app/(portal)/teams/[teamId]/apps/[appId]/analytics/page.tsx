@@ -10,29 +10,16 @@ export const metadata: Metadata = {
 
 type Props = {
   params: Promise<{ teamId: string; appId: string }>;
-  searchParams?: Promise<AnalyticsSearchParams>;
 };
 
-type AnalyticsSearchParams = { mock?: string | string[] };
-
 export default async function Page(props: Props) {
-  const [{ appId }, searchParams]: [
-    { teamId: string; appId: string },
-    AnalyticsSearchParams,
-  ] = await Promise.all([
-    props.params,
-    props.searchParams ?? Promise.resolve({}),
-  ]);
-  // Local visual preview only. Production always enforces the rollout gate;
-  // the parent app layout still enforces membership in development.
-  const useMock =
-    process.env.NODE_ENV === "development" && searchParams.mock === "1";
+  const { appId } = await props.params;
 
   // The parent app layout already renders non-members as "App not found";
   // members outside the analytics rollout get an explicit Forbidden screen.
-  if (!useMock && !(await isSelfieCheckAnalyticsEnabledForApp(appId))) {
+  if (!(await isSelfieCheckAnalyticsEnabledForApp(appId))) {
     return <ErrorPage statusCode={403} title="Forbidden" />;
   }
 
-  return <MetricsFrame appId={appId} mock={useMock} />;
+  return <MetricsFrame appId={appId} />;
 }
