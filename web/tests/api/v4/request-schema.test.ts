@@ -129,4 +129,44 @@ describe("v4 verify request schema", () => {
       }),
     ).rejects.toThrow();
   });
+
+  it("requires the signed sybil_score for Self Check 4.0 responses", async () => {
+    const parsed = await schema.validate({
+      protocol_version: "4.0",
+      nonce: "0x01",
+      action: "test-action",
+      integrity_bundle: { ...integrityBundle, version: 2 },
+      responses: [
+        {
+          identifier: "selfie",
+          issuer_schema_id: 11,
+          nullifier: "0x02",
+          expires_at_min: 1772584197,
+          proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+          sybil_score: 10,
+        },
+      ],
+    });
+
+    expect(parsed.responses[0]?.sybil_score).toBe(10);
+  });
+
+  it("rejects a Self Check 4.0 response without sybil_score", async () => {
+    await expect(
+      schema.validate({
+        protocol_version: "4.0",
+        nonce: "0x01",
+        action: "test-action",
+        responses: [
+          {
+            identifier: "selfie",
+            issuer_schema_id: 11,
+            nullifier: "0x02",
+            expires_at_min: 1772584197,
+            proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+          },
+        ],
+      }),
+    ).rejects.toThrow("sybil_score is required for Self Check 4.0 responses");
+  });
 });
