@@ -85,13 +85,25 @@ export const DailyMetricChart = (props: {
           No daily data yet.
         </p>
       ) : (
-        <div className="mt-4 aspect-video w-full outline-none [&_*]:outline-none">
+        <div className="relative mt-4 aspect-video w-full pb-8 pl-12 outline-none [&_*]:outline-none">
+          <span
+            aria-hidden
+            className="absolute right-0 bottom-0 left-12 text-center font-world text-12 text-portal-muted"
+          >
+            Day
+          </span>
+          <span
+            aria-hidden
+            className="absolute top-0 bottom-8 left-0 flex w-8 rotate-180 items-center justify-center font-world text-12 text-portal-muted [writing-mode:vertical-rl]"
+          >
+            {props.kind === "rate" ? "Users (%)" : "Users (#)"}
+          </span>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={[...points]}
               margin={{
                 top: 4,
-                left: props.kind === "rate" ? 0 : 12,
+                left: 0,
                 right: 12,
                 bottom: 0,
               }}
@@ -102,22 +114,26 @@ export const DailyMetricChart = (props: {
                 dataKey="date"
                 tickLine={false}
                 axisLine={false}
+                height={32}
                 tickMargin={8}
                 minTickGap={32}
                 tick={{ fill: "#757575", fontSize: 12 }}
                 tickFormatter={formatTickDate}
               />
-              {props.kind === "rate" && (
-                <YAxis
-                  axisLine={false}
-                  domain={[0, 1]}
-                  tick={{ fill: "#757575", fontSize: 12 }}
-                  tickFormatter={formatRateTick}
-                  tickLine={false}
-                  ticks={[...RATE_TICKS]}
-                  width={40}
-                />
-              )}
+              <YAxis
+                axisLine={false}
+                {...(props.kind === "rate"
+                  ? {
+                      domain: [0, 1.05] as const,
+                      tickFormatter: formatRateTick,
+                      ticks: [...RATE_TICKS],
+                      width: 52,
+                    }
+                  : { width: 52 })}
+                tick={{ fill: "#757575", fontSize: 12 }}
+                tickMargin={8}
+                tickLine={false}
+              />
               <Tooltip
                 cursor={{ fill: "rgba(24, 24, 24, 0.04)" }}
                 labelFormatter={(value) => formatTickDate(String(value))}
@@ -132,12 +148,12 @@ export const DailyMetricChart = (props: {
                     activeDot={{ r: 4 }}
                     connectNulls={false}
                     dataKey={os.dataKey}
-                    dot={false}
+                    dot={{ r: 3 }}
                     isAnimationActive={false}
                     name={os.osName}
                     stroke={osColor(os.osName)}
                     strokeWidth={2}
-                    type="monotone"
+                    type="linear"
                   />
                 ) : (
                   <Bar

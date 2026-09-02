@@ -7,7 +7,7 @@ const OVERVIEW_METRICS = [
   },
   {
     key: "n_users_started_selfie_check_flow",
-    label: "Sessions Created",
+    label: "Users who started Selfie Check",
   },
 ] as const satisfies readonly {
   key: keyof Omit<TotalsRow, "appId">;
