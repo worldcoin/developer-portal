@@ -21,19 +21,19 @@ const REQUEST_TIMEOUT_MS = 8_000;
 const CHART_METRICS = [
   {
     metric: "n_users_started_selfie_check_flow",
-    title: "Number of users who started the Selfie Check flow",
+    title: "Selfie Check flow users",
   },
   {
     metric: "n_proof_users",
-    title: "Number of users sharing a Selfie Check proof",
+    title: "Selfie Check proof users",
   },
   {
     metric: "cumulative_n_proof_users",
-    title: "Cumulative number of users who shared 1+ Selfie Check proof",
+    title: "Cumulative Selfie Check proof users",
   },
   {
     metric: "p_face_auth_completion",
-    title: "Average face capture completion rate",
+    title: "Face Capture Completion Rate",
   },
 ] as const satisfies readonly { metric: DailyChartMetric; title: string }[];
 

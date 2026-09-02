@@ -24,7 +24,9 @@ describe("TotalsOverview", () => {
       name: "Analytics overview",
     });
     expect(within(overview).getByText("Proof users")).toBeInTheDocument();
-    expect(within(overview).getByText("Sessions Created")).toBeInTheDocument();
+    expect(
+      within(overview).getByText("Users who started Selfie Check"),
+    ).toBeInTheDocument();
     expect(within(overview).getByText("1,234")).toBeInTheDocument();
     expect(within(overview).getByText("6,789")).toBeInTheDocument();
     expect(

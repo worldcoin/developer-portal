@@ -16,22 +16,27 @@ jest.mock("recharts", () => ({
   ComposedChart: (props: { children: ReactNode }) => (
     <div>{props.children}</div>
   ),
-  Line: (props: { name: string; stroke: string }) => (
-    <div data-testid="line" data-name={props.name} data-stroke={props.stroke} />
+  Line: (props: { name: string; stroke: string; type: string }) => (
+    <div
+      data-testid="line"
+      data-name={props.name}
+      data-stroke={props.stroke}
+      data-type={props.type}
+    />
   ),
   ResponsiveContainer: (props: { children: ReactNode }) => (
     <div>{props.children}</div>
   ),
   Tooltip: () => null,
-  XAxis: () => null,
+  XAxis: () => <div data-testid="x-axis" />,
   YAxis: (props: {
-    domain: [number, number];
-    tickFormatter: (value: number) => string;
+    domain?: [number, number];
+    tickFormatter?: (value: number) => string;
   }) => (
     <div
       data-testid="y-axis"
-      data-domain={props.domain.join(",")}
-      data-midpoint-label={props.tickFormatter(0.5)}
+      data-domain={props.domain?.join(",")}
+      data-midpoint-label={props.tickFormatter?.(0.5)}
     />
   ),
 }));
@@ -61,7 +66,7 @@ describe("DailyMetricChart", () => {
   it("stacks each day's OS series for count metrics", () => {
     render(
       <DailyMetricChart
-        title="Number of users sharing a Selfie Check proof"
+        title="Selfie Check proof users"
         rows={rows}
         metric="n_proof_users"
         kind="count"
@@ -73,14 +78,14 @@ describe("DailyMetricChart", () => {
     expect(bars.map((bar) => bar.dataset.name)).toEqual(["Android", "iOS"]);
     expect(bars.map((bar) => bar.dataset.fill)).toEqual(["#b88700", "#007aff"]);
     expect(bars.every((bar) => bar.dataset.stackId === "os")).toBe(true);
-    expect(screen.queryByTestId("line")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("y-axis")).not.toBeInTheDocument();
+    expect(screen.getByText("Day")).toBeInTheDocument();
+    expect(screen.getByText("Users (#)")).toBeInTheDocument();
   });
 
-  it("draws completion rates as OS lines on a zero-to-100-percent axis", () => {
+  it("draws completion rates as straight OS lines on a zero-to-100-percent axis", () => {
     render(
       <DailyMetricChart
-        title="Average face capture completion rate"
+        title="Face Capture Completion Rate"
         rows={rows}
         metric="p_face_auth_completion"
         kind="rate"
@@ -93,8 +98,14 @@ describe("DailyMetricChart", () => {
       "#b88700",
       "#007aff",
     ]);
+    expect(lines.every((line) => line.dataset.type === "linear")).toBe(true);
     expect(screen.queryByTestId("bar")).not.toBeInTheDocument();
-    expect(screen.getByTestId("y-axis")).toHaveAttribute("data-domain", "0,1");
+    expect(screen.getByText("Day")).toBeInTheDocument();
+    expect(screen.getByTestId("y-axis")).toHaveAttribute(
+      "data-domain",
+      "0,1.05",
+    );
+    expect(screen.getByText("Users (%)")).toBeInTheDocument();
     expect(screen.getByTestId("y-axis")).toHaveAttribute(
       "data-midpoint-label",
       "50%",
