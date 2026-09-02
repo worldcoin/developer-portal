@@ -2,6 +2,7 @@
 
 import { type TotalsRow } from "@/lib/selfie-check-analytics";
 import { useState } from "react";
+import { CompletionRing } from "./CompletionRing";
 
 /** Conversion stages, left to right, computed from the totals row. */
 const FUNNEL_STAGES = [
@@ -110,27 +111,31 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
       aria-label="Selfie Check funnel"
       className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
     >
-      <h3 className="font-world text-14 font-medium text-portal-heading">
-        Selfie Check Funnel
-      </h3>
-
-      <div className="mt-4 grid grid-cols-3">
+      <div className="grid grid-cols-3">
         {FUNNEL_STAGES.map((stage, index) => (
           <div
             key={stage.key}
             className={
-              index > 0 ? "border-l border-portal-border pl-4" : undefined
+              index === 0
+                ? "pr-4"
+                : index === FUNNEL_STAGES.length - 1
+                  ? "border-l border-portal-border pl-4"
+                  : "border-l border-portal-border px-4"
             }
           >
-            <p className="font-world text-13 text-portal-muted">
-              {stage.label}
-            </p>
-            <p className="mt-1 font-world text-24 leading-none font-medium text-portal-heading">
-              {formatCount(values[index])}
-            </p>
-            <p className="mt-1 font-world text-12 text-portal-subtle">
-              {index === 0 ? " " : conversionFromPrevious(values, index) ?? "—"}
-            </p>
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="font-world text-13 text-portal-muted">
+                  {stage.label}
+                </p>
+                <p className="mt-1 font-world text-24 leading-none font-medium text-portal-heading">
+                  {formatCount(values[index])}
+                </p>
+              </div>
+              {index === 1 && (
+                <CompletionRing value={props.row.p_face_auth_completion} />
+              )}
+            </div>
           </div>
         ))}
       </div>
