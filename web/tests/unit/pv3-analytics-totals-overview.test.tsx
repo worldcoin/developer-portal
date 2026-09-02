@@ -17,16 +17,20 @@ const row = (overrides: Partial<TotalsRow> = {}): TotalsRow => ({
 });
 
 describe("TotalsOverview", () => {
-  it("shows proof users alongside the totals represented by the daily charts", () => {
+  it("shows the unique-user and session totals without repeating proofs shared", () => {
     render(<TotalsOverview row={row()} />);
 
     const overview = screen.getByRole("region", {
       name: "Analytics overview",
     });
     expect(within(overview).getByText("Proof users")).toBeInTheDocument();
+    expect(within(overview).getByText("Sessions Created")).toBeInTheDocument();
     expect(within(overview).getByText("1,234")).toBeInTheDocument();
     expect(within(overview).getByText("6,789")).toBeInTheDocument();
-    expect(within(overview).getByText("2,345")).toBeInTheDocument();
+    expect(
+      within(overview).queryByText("Proofs shared"),
+    ).not.toBeInTheDocument();
+    expect(within(overview).queryByText("2,345")).not.toBeInTheDocument();
   });
 
   it("shows an unavailable value when the proof-user total is null", () => {
