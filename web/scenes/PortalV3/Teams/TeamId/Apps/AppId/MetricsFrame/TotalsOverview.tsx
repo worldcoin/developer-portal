@@ -4,22 +4,18 @@ const OVERVIEW_METRICS = [
   {
     key: "n_proof_users",
     label: "Proof users",
-    detail: "Completed at least one proof",
   },
   {
     key: "n_users_started_selfie_check_flow",
     label: "Selfie checks started",
-    detail: "All-time total",
   },
   {
     key: "n_proofs",
     label: "Proofs shared",
-    detail: "All-time total",
   },
 ] as const satisfies readonly {
   key: keyof Omit<TotalsRow, "appId">;
   label: string;
-  detail: string;
 }[];
 
 const countFormatter = new Intl.NumberFormat("en-US", {
@@ -47,9 +43,6 @@ export const TotalsOverview = (props: { row: TotalsRow }) => (
         <p className="font-world text-13 text-portal-muted">{metric.label}</p>
         <p className="mt-3 font-world text-24 leading-none font-medium tracking-[-0.01em] text-portal-heading tabular-nums">
           {formatCount(props.row[metric.key])}
-        </p>
-        <p className="mt-2 font-world text-12 text-portal-subtle">
-          {metric.detail}
         </p>
       </article>
     ))}

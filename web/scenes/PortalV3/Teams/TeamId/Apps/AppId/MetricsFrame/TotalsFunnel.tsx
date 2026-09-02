@@ -25,8 +25,85 @@ const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
 
+const COMPLETION_RING_SIZE = 56;
+const COMPLETION_RING_STROKE = 5;
+const COMPLETION_RING_RADIUS =
+  (COMPLETION_RING_SIZE - COMPLETION_RING_STROKE) / 2;
+const COMPLETION_RING_CIRCUMFERENCE = 2 * Math.PI * COMPLETION_RING_RADIUS;
+
 const formatCount = (value: number | null) =>
   typeof value === "number" ? countFormatter.format(value) : "—";
+
+/** Compact progress treatment for the funnel's completion rate. */
+const CompletionRing = (props: { value: number | null }) => {
+  // The analytics contract supplies a normalized rate (0.94 means 94%).
+  // Clamp defensively before using it in either the SVG or ARIA percentage.
+  const completion =
+    typeof props.value === "number"
+      ? Math.min(Math.max(props.value, 0), 1)
+      : null;
+  const percentage =
+    completion === null ? null : Number((completion * 100).toFixed(1));
+  const formatted =
+    completion === null ? "—" : percentFormatter.format(completion);
+
+  return (
+    <div className="grid shrink-0 justify-items-center gap-1.5">
+      <div
+        aria-label={
+          completion === null
+            ? "Selfie Check completion unavailable"
+            : "Selfie Check completion"
+        }
+        aria-valuemax={completion === null ? undefined : 100}
+        aria-valuemin={completion === null ? undefined : 0}
+        aria-valuenow={percentage ?? undefined}
+        aria-valuetext={
+          completion === null
+            ? undefined
+            : `${formatted} of started sessions completed`
+        }
+        className="relative size-14"
+        role={completion === null ? "img" : "progressbar"}
+      >
+        <svg
+          aria-hidden
+          className="size-full"
+          viewBox={`0 0 ${COMPLETION_RING_SIZE} ${COMPLETION_RING_SIZE}`}
+        >
+          <circle
+            className="fill-none stroke-portal-border"
+            cx={COMPLETION_RING_SIZE / 2}
+            cy={COMPLETION_RING_SIZE / 2}
+            r={COMPLETION_RING_RADIUS}
+            strokeWidth={COMPLETION_RING_STROKE}
+          />
+          {completion !== null && (
+            <circle
+              className="fill-none stroke-portal-blue"
+              cx={COMPLETION_RING_SIZE / 2}
+              cy={COMPLETION_RING_SIZE / 2}
+              r={COMPLETION_RING_RADIUS}
+              strokeDasharray={COMPLETION_RING_CIRCUMFERENCE}
+              strokeDashoffset={
+                COMPLETION_RING_CIRCUMFERENCE * (1 - completion)
+              }
+              strokeLinecap="round"
+              strokeWidth={COMPLETION_RING_STROKE}
+              transform={`rotate(-90 ${COMPLETION_RING_SIZE / 2} ${COMPLETION_RING_SIZE / 2})`}
+            />
+          )}
+        </svg>
+        <span className="absolute inset-0 flex items-center justify-center font-world text-11 font-medium text-portal-heading tabular-nums">
+          {formatted}
+        </span>
+      </div>
+      <span className="font-world text-11 whitespace-nowrap text-portal-muted">
+        Completion rate
+      </span>
+    </div>
+  );
+};
 
 const conversionFromPrevious = (
   values: readonly (number | null)[],
@@ -110,27 +187,38 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
       aria-label="Selfie Check funnel"
       className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
     >
-      <h3 className="font-world text-14 font-medium text-portal-heading">
-        Selfie Check Funnel
-      </h3>
-
-      <div className="mt-4 grid grid-cols-3">
+      <div className="grid grid-cols-3">
         {FUNNEL_STAGES.map((stage, index) => (
           <div
             key={stage.key}
             className={
-              index > 0 ? "border-l border-portal-border pl-4" : undefined
+              index === 0
+                ? "pr-4"
+                : index === FUNNEL_STAGES.length - 1
+                  ? "border-l border-portal-border pl-4"
+                  : "border-l border-portal-border px-4"
             }
           >
-            <p className="font-world text-13 text-portal-muted">
-              {stage.label}
-            </p>
-            <p className="mt-1 font-world text-24 leading-none font-medium text-portal-heading">
-              {formatCount(values[index])}
-            </p>
-            <p className="mt-1 font-world text-12 text-portal-subtle">
-              {index === 0 ? " " : conversionFromPrevious(values, index) ?? "—"}
-            </p>
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="font-world text-13 text-portal-muted">
+                  {stage.label}
+                </p>
+                <p className="mt-1 font-world text-24 leading-none font-medium text-portal-heading">
+                  {formatCount(values[index])}
+                </p>
+                <p className="mt-1 font-world text-12 text-portal-subtle">
+                  {index === 0
+                    ? " "
+                    : index === 1
+                      ? "of started sessions"
+                      : conversionFromPrevious(values, index) ?? "—"}
+                </p>
+              </div>
+              {index === 1 && (
+                <CompletionRing value={props.row.p_face_auth_completion} />
+              )}
+            </div>
           </div>
         ))}
       </div>
