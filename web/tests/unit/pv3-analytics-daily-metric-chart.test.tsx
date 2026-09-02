@@ -4,20 +4,36 @@ import { render, screen } from "@testing-library/react";
 import React, { type ReactNode } from "react";
 
 jest.mock("recharts", () => ({
-  Bar: (props: { name: string; stackId?: string }) => (
+  Bar: (props: { fill: string; name: string; stackId?: string }) => (
     <div
       data-testid="bar"
+      data-fill={props.fill}
       data-name={props.name}
       data-stack-id={props.stackId}
     />
   ),
-  BarChart: (props: { children: ReactNode }) => <div>{props.children}</div>,
   CartesianGrid: () => null,
+  ComposedChart: (props: { children: ReactNode }) => (
+    <div>{props.children}</div>
+  ),
+  Line: (props: { name: string; stroke: string }) => (
+    <div data-testid="line" data-name={props.name} data-stroke={props.stroke} />
+  ),
   ResponsiveContainer: (props: { children: ReactNode }) => (
     <div>{props.children}</div>
   ),
   Tooltip: () => null,
   XAxis: () => null,
+  YAxis: (props: {
+    domain: [number, number];
+    tickFormatter: (value: number) => string;
+  }) => (
+    <div
+      data-testid="y-axis"
+      data-domain={props.domain.join(",")}
+      data-midpoint-label={props.tickFormatter(0.5)}
+    />
+  ),
 }));
 
 import { DailyMetricChart } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MetricsFrame/DailyMetricChart";
@@ -39,18 +55,49 @@ const row = (osName: string, proofs: number): DailyRow => ({
   p_face_auth_completion: 0.8,
 });
 
-it("stacks each day's OS series into one bar", () => {
-  render(
-    <DailyMetricChart
-      title="# of Proofs Shared"
-      rows={[row("iOS", 6), row("Android", 4)]}
-      metric="n_proofs"
-      kind="count"
-    />,
-  );
+const rows = [row("iOS", 6), row("Android", 4)];
 
-  const bars = screen.getAllByTestId("bar");
-  expect(bars).toHaveLength(2);
-  expect(bars.map((bar) => bar.dataset.name)).toEqual(["Android", "iOS"]);
-  expect(bars.every((bar) => bar.dataset.stackId === "os")).toBe(true);
+describe("DailyMetricChart", () => {
+  it("stacks each day's OS series for count metrics", () => {
+    render(
+      <DailyMetricChart
+        title="Number of users sharing a Selfie Check proof"
+        rows={rows}
+        metric="n_proof_users"
+        kind="count"
+      />,
+    );
+
+    const bars = screen.getAllByTestId("bar");
+    expect(bars).toHaveLength(2);
+    expect(bars.map((bar) => bar.dataset.name)).toEqual(["Android", "iOS"]);
+    expect(bars.map((bar) => bar.dataset.fill)).toEqual(["#b88700", "#007aff"]);
+    expect(bars.every((bar) => bar.dataset.stackId === "os")).toBe(true);
+    expect(screen.queryByTestId("line")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("y-axis")).not.toBeInTheDocument();
+  });
+
+  it("draws completion rates as OS lines on a zero-to-100-percent axis", () => {
+    render(
+      <DailyMetricChart
+        title="Average face capture completion rate"
+        rows={rows}
+        metric="p_face_auth_completion"
+        kind="rate"
+      />,
+    );
+
+    const lines = screen.getAllByTestId("line");
+    expect(lines.map((line) => line.dataset.name)).toEqual(["Android", "iOS"]);
+    expect(lines.map((line) => line.dataset.stroke)).toEqual([
+      "#b88700",
+      "#007aff",
+    ]);
+    expect(screen.queryByTestId("bar")).not.toBeInTheDocument();
+    expect(screen.getByTestId("y-axis")).toHaveAttribute("data-domain", "0,1");
+    expect(screen.getByTestId("y-axis")).toHaveAttribute(
+      "data-midpoint-label",
+      "50%",
+    );
+  });
 });

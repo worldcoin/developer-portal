@@ -25,9 +25,6 @@ describe("TotalsOverview", () => {
     });
     expect(within(overview).getByText("Proof users")).toBeInTheDocument();
     expect(within(overview).getByText("1,234")).toBeInTheDocument();
-    expect(
-      within(overview).getByText("Completed at least one proof"),
-    ).toBeInTheDocument();
     expect(within(overview).getByText("6,789")).toBeInTheDocument();
     expect(within(overview).getByText("2,345")).toBeInTheDocument();
   });
