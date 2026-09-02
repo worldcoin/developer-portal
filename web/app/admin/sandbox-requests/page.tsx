@@ -1,5 +1,5 @@
 import { requireAdminUser } from "@/lib/admin-auth";
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 import { AdminSandboxRequestsPage } from "@/scenes/Admin/sandbox-requests/page";
 import { Metadata } from "next";
 

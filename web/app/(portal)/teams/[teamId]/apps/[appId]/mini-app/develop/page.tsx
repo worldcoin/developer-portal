@@ -1,4 +1,4 @@
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 import { DevelopPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MiniApp/Develop/page";
 import type { Metadata } from "next";
 
