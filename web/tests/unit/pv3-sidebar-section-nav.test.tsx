@@ -268,6 +268,19 @@ describe("v3 SidebarNav [Figma navigation contract]", () => {
     noLink("Get verified");
   });
 
+  it("optically aligns every navigation icon with its label", () => {
+    renderSidebar([teamId], { appId, enabled: true });
+
+    const iconLinks = screen
+      .getAllByRole("link")
+      .filter((item) => item.querySelector("img"));
+
+    expect(iconLinks.length).toBeGreaterThan(0);
+    for (const item of iconLinks) {
+      expect(item.firstElementChild).toHaveClass("-translate-y-[2px]");
+    }
+  });
+
   it.each([
     [base, "Dashboard"],
     [`${base}/world-id`, "Dashboard"],
@@ -324,6 +337,14 @@ describe("v3 SidebarNav [Figma navigation contract]", () => {
 
 // #region persistent app context
 describe("v3 SidebarNav [persistent app context]", () => {
+  it("keeps the team sandbox tile close to the profile footer", () => {
+    renderSidebar();
+
+    expect(
+      screen.getByRole("button", { name: /World ID Sandbox/i }).parentElement,
+    ).toHaveClass("pb-1");
+  });
+
   it("highlights Projects on the canonical team page with the view-grid icon", () => {
     useParams.mockReturnValue({ teamId });
     usePathname.mockReturnValue(`/teams/${teamId}`);

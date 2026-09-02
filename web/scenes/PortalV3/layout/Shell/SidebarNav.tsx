@@ -505,16 +505,16 @@ export const SidebarNav = (props: {
       {!ids && !teamId ? (
         <div className="mt-auto pt-3 group-data-[collapsible=icon]:hidden">
           <SandboxButton
-            className="-ml-1 w-[calc(100%_+_8px)]"
+            className="-ml-1 w-[calc(100%_+_13px)]"
             initialRequest={props.initialSandboxRequest}
           />
         </div>
       ) : null}
 
       {teamId ? (
-        <div className="mt-auto px-4 pt-3 pb-3 group-data-[collapsible=icon]:hidden">
+        <div className="mt-auto px-4 pt-3 pb-1 group-data-[collapsible=icon]:hidden">
           <SandboxButton
-            className="-ml-1 w-[calc(100%_+_8px)]"
+            className="-ml-3 w-[calc(100%_+_21px)]"
             teamId={teamId}
             initialRequest={props.initialSandboxRequest}
           />
