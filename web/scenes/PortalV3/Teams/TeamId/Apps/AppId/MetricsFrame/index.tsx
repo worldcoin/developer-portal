@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { DailyMetricChart } from "./DailyMetricChart";
 import { TotalsFunnel } from "./TotalsFunnel";
+import { TotalsOverview } from "./TotalsOverview";
 
 const REQUEST_TIMEOUT_MS = 8_000;
 
@@ -20,9 +21,20 @@ const REQUEST_TIMEOUT_MS = 8_000;
 const CHART_METRICS = [
   {
     metric: "n_users_started_selfie_check_flow",
-    title: "# of Selfie Checks Started",
+    title: "Number of users who started the Selfie Check flow",
   },
-  { metric: "n_proofs", title: "# of Proofs Shared" },
+  {
+    metric: "n_proof_users",
+    title: "Number of users sharing a Selfie Check proof",
+  },
+  {
+    metric: "cumulative_n_proof_users",
+    title: "Cumulative number of users who shared 1+ Selfie Check proof",
+  },
+  {
+    metric: "p_face_auth_completion",
+    title: "Average face capture completion rate",
+  },
 ] as const satisfies readonly { metric: DailyChartMetric; title: string }[];
 
 // Eligibility controls the tab and page; these only describe the view's data.
@@ -60,7 +72,7 @@ const PlaceholderCard = (props: { label: string; message: string }) => (
   </section>
 );
 
-/** Fetches the app's analytics: totals funnel above the daily charts. */
+/** Fetches the app's analytics: overview and funnel above the daily charts. */
 export const MetricsFrame = (props: { appId: string }) => {
   const [daily, setDaily] = useState<DailyState>({ kind: "loading" });
   const [totals, setTotals] = useState<TotalsState>({ kind: "loading" });
@@ -178,42 +190,61 @@ export const MetricsFrame = (props: { appId: string }) => {
 
   return (
     <SizingWrapper className="py-8">
-      <div className="grid w-[920px] max-w-full gap-4">
-        {totals.kind === "ready" ? (
-          <TotalsFunnel row={totals.row} />
-        ) : (
-          <PlaceholderCard
-            label="Face Authentication Verification funnel"
-            message={
-              totals.kind === "loading"
-                ? "Loading total analytics…"
-                : totals.message
-            }
-          />
-        )}
+      <div className="grid w-[920px] max-w-full gap-6">
+        <section aria-labelledby="all-time-heading" className="grid gap-4">
+          <h2
+            id="all-time-heading"
+            className="font-world text-14 font-medium text-portal-heading"
+          >
+            All time
+          </h2>
+          {totals.kind === "ready" ? (
+            <>
+              <TotalsOverview row={totals.row} />
+              <TotalsFunnel row={totals.row} />
+            </>
+          ) : (
+            <PlaceholderCard
+              label="Face Authentication Verification funnel"
+              message={
+                totals.kind === "loading"
+                  ? "Loading total analytics…"
+                  : totals.message
+              }
+            />
+          )}
+        </section>
 
-        {daily.kind === "ready" ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {CHART_METRICS.map(({ metric, title }) => (
-              <DailyMetricChart
-                key={metric}
-                title={title}
-                rows={daily.rows}
-                metric={metric}
-                kind={metricKind(metric)}
-              />
-            ))}
-          </div>
-        ) : (
-          <PlaceholderCard
-            label="Daily selfie check charts"
-            message={
-              daily.kind === "loading"
-                ? "Loading daily analytics…"
-                : daily.message
-            }
-          />
-        )}
+        <section aria-labelledby="daily-metrics-heading" className="grid gap-4">
+          <h2
+            id="daily-metrics-heading"
+            className="font-world text-14 font-medium text-portal-heading"
+          >
+            Daily
+          </h2>
+          {daily.kind === "ready" ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {CHART_METRICS.map(({ metric, title }) => (
+                <DailyMetricChart
+                  key={metric}
+                  title={title}
+                  rows={daily.rows}
+                  metric={metric}
+                  kind={metricKind(metric)}
+                />
+              ))}
+            </div>
+          ) : (
+            <PlaceholderCard
+              label="Daily selfie check charts"
+              message={
+                daily.kind === "loading"
+                  ? "Loading daily analytics…"
+                  : daily.message
+              }
+            />
+          )}
+        </section>
       </div>
     </SizingWrapper>
   );

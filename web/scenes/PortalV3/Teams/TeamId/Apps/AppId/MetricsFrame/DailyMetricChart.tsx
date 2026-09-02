@@ -9,26 +9,24 @@ import {
 import { useMemo } from "react";
 import {
   Bar,
-  BarChart,
   CartesianGrid,
+  ComposedChart,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
+  YAxis,
 } from "recharts";
 
-// Color follows the OS, not its position: classic Android Green (#A4C639
-// deepened along its own hue until it passes the lightness band and 3:1
-// contrast on the white card) and Apple system blue for iOS. The pair clears
-// every palette check. Unknown OSes fall back to purple, then muted gray.
+// Color follows the OS, not its position. Android uses a golden amber that
+// stays distinct from iOS blue while retaining 3:1 contrast on the white card.
 const OS_COLORS: Readonly<Record<string, string>> = {
-  Android: "#7d992b",
+  Android: "#b88700",
   iOS: "#007aff",
 };
-const FALLBACK_OS_COLORS = ["#6600cc", "#757575"] as const;
+const RATE_TICKS = [0, 0.25, 0.5, 0.75, 1] as const;
 
-const osColor = (osName: string, index: number) =>
-  OS_COLORS[osName] ??
-  FALLBACK_OS_COLORS[Math.min(index, FALLBACK_OS_COLORS.length - 1)];
+const osColor = (osName: string) => OS_COLORS[osName];
 
 const formatTickDate = (value: string) =>
   new Date(`${value}T00:00:00.000Z`).toLocaleDateString("en-US", {
@@ -36,6 +34,9 @@ const formatTickDate = (value: string) =>
     day: "numeric",
     timeZone: "UTC",
   });
+
+const formatRate = (value: number) => `${(value * 100).toFixed(1)}%`;
+const formatRateTick = (value: number) => `${Math.round(value * 100)}%`;
 
 export const DailyMetricChart = (props: {
   title: string;
@@ -49,22 +50,20 @@ export const DailyMetricChart = (props: {
   );
 
   const formatValue = (value: number) =>
-    props.kind === "rate"
-      ? `${(value * 100).toFixed(1)}%`
-      : value.toLocaleString("en-US");
+    props.kind === "rate" ? formatRate(value) : value.toLocaleString("en-US");
 
   return (
     <section
       aria-label={props.title}
       className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
     >
-      <div className="flex items-baseline justify-between gap-4">
-        <h3 className="font-world text-14 font-medium text-portal-heading">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+        <h3 className="min-w-[220px] flex-1 font-world text-14 font-medium text-portal-heading">
           {props.title}
         </h3>
         {operatingSystems.length > 0 && (
-          <ul className="flex items-center gap-3">
-            {operatingSystems.map((os, index) => (
+          <ul className="flex shrink-0 items-center gap-3">
+            {operatingSystems.map((os) => (
               <li
                 key={os.dataKey}
                 className="flex items-center gap-1.5 font-world text-12 text-portal-muted"
@@ -72,7 +71,7 @@ export const DailyMetricChart = (props: {
                 <span
                   aria-hidden
                   className="size-2 rounded-full"
-                  style={{ backgroundColor: osColor(os.osName, index) }}
+                  style={{ backgroundColor: osColor(os.osName) }}
                 />
                 {os.osName}
               </li>
@@ -88,10 +87,14 @@ export const DailyMetricChart = (props: {
       ) : (
         <div className="mt-4 aspect-video w-full outline-none [&_*]:outline-none">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
+            <ComposedChart
               data={[...points]}
-              margin={{ top: 4, left: 12, right: 12, bottom: 0 }}
-              barGap={2}
+              margin={{
+                top: 4,
+                left: props.kind === "rate" ? 0 : 12,
+                right: 12,
+                bottom: 0,
+              }}
               barCategoryGap="15%"
             >
               <CartesianGrid vertical={false} stroke="#f1f1f1" />
@@ -104,6 +107,17 @@ export const DailyMetricChart = (props: {
                 tick={{ fill: "#757575", fontSize: 12 }}
                 tickFormatter={formatTickDate}
               />
+              {props.kind === "rate" && (
+                <YAxis
+                  axisLine={false}
+                  domain={[0, 1]}
+                  tick={{ fill: "#757575", fontSize: 12 }}
+                  tickFormatter={formatRateTick}
+                  tickLine={false}
+                  ticks={[...RATE_TICKS]}
+                  width={40}
+                />
+              )}
               <Tooltip
                 cursor={{ fill: "rgba(24, 24, 24, 0.04)" }}
                 labelFormatter={(value) => formatTickDate(String(value))}
@@ -111,18 +125,36 @@ export const DailyMetricChart = (props: {
                   typeof value === "number" ? formatValue(value) : "—"
                 }
               />
-              {operatingSystems.map((os, index) => (
-                <Bar
-                  key={os.dataKey}
-                  dataKey={os.dataKey}
-                  name={os.osName}
-                  fill={osColor(os.osName, index)}
-                  isAnimationActive={false}
-                  maxBarSize={20}
-                  radius={[3, 3, 0, 0]}
-                />
-              ))}
-            </BarChart>
+              {operatingSystems.map((os, index) =>
+                props.kind === "rate" ? (
+                  <Line
+                    key={os.dataKey}
+                    activeDot={{ r: 4 }}
+                    connectNulls={false}
+                    dataKey={os.dataKey}
+                    dot={false}
+                    isAnimationActive={false}
+                    name={os.osName}
+                    stroke={osColor(os.osName)}
+                    strokeWidth={2}
+                    type="monotone"
+                  />
+                ) : (
+                  <Bar
+                    key={os.dataKey}
+                    dataKey={os.dataKey}
+                    name={os.osName}
+                    stackId="os"
+                    fill={osColor(os.osName)}
+                    isAnimationActive={false}
+                    maxBarSize={20}
+                    radius={
+                      index === operatingSystems.length - 1 ? [3, 3, 0, 0] : 0
+                    }
+                  />
+                ),
+              )}
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       )}
