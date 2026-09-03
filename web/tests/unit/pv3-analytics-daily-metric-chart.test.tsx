@@ -4,6 +4,20 @@ import { render, screen } from "@testing-library/react";
 import React, { type ReactNode } from "react";
 
 jest.mock("recharts", () => ({
+  Area: (props: {
+    fill: string;
+    name: string;
+    stackId?: string;
+    stroke: string;
+  }) => (
+    <div
+      data-testid="area"
+      data-fill={props.fill}
+      data-name={props.name}
+      data-stack-id={props.stackId}
+      data-stroke={props.stroke}
+    />
+  ),
   Bar: (props: { fill: string; name: string; stackId?: string }) => (
     <div
       data-testid="bar"
@@ -16,22 +30,27 @@ jest.mock("recharts", () => ({
   ComposedChart: (props: { children: ReactNode }) => (
     <div>{props.children}</div>
   ),
-  Line: (props: { name: string; stroke: string }) => (
-    <div data-testid="line" data-name={props.name} data-stroke={props.stroke} />
+  Line: (props: { name: string; stroke: string; type: string }) => (
+    <div
+      data-testid="line"
+      data-name={props.name}
+      data-stroke={props.stroke}
+      data-type={props.type}
+    />
   ),
   ResponsiveContainer: (props: { children: ReactNode }) => (
     <div>{props.children}</div>
   ),
   Tooltip: () => null,
-  XAxis: () => null,
+  XAxis: () => <div data-testid="x-axis" />,
   YAxis: (props: {
-    domain: [number, number];
-    tickFormatter: (value: number) => string;
+    domain?: [number, number];
+    tickFormatter?: (value: number) => string;
   }) => (
     <div
       data-testid="y-axis"
-      data-domain={props.domain.join(",")}
-      data-midpoint-label={props.tickFormatter(0.5)}
+      data-domain={props.domain?.join(",")}
+      data-midpoint-label={props.tickFormatter?.(0.5)}
     />
   ),
 }));
@@ -46,13 +65,9 @@ const row = (osName: string, proofs: number): DailyRow => ({
   day: "2026-08-31",
   os_name: osName,
   n_users_started_selfie_check_flow: 10,
-  n_proofs: proofs,
-  n_proof_users: 4,
-  cumulative_n_proofs: 30,
-  cumulative_n_proof_users: 20,
-  n_face_auth_started_sessions: 10,
-  n_face_auth_completed_sessions: 8,
-  p_face_auth_completion: 0.8,
+  n_users_shared_a_proof: proofs,
+  cumulative_n_users_shared_a_proof: 20,
+  p_face_capture_completion: 0.8,
 });
 
 const rows = [row("iOS", 6), row("Android", 4)];
@@ -61,43 +76,73 @@ describe("DailyMetricChart", () => {
   it("stacks each day's OS series for count metrics", () => {
     render(
       <DailyMetricChart
-        title="Number of users sharing a Selfie Check proof"
+        title="Number of users who shared a Selfie Check proof, by day and OS"
         rows={rows}
-        metric="n_proof_users"
+        metric="n_users_shared_a_proof"
         kind="count"
+        chartType="bar"
       />,
     );
 
     const bars = screen.getAllByTestId("bar");
     expect(bars).toHaveLength(2);
     expect(bars.map((bar) => bar.dataset.name)).toEqual(["Android", "iOS"]);
-    expect(bars.map((bar) => bar.dataset.fill)).toEqual(["#b88700", "#007aff"]);
+    expect(bars.map((bar) => bar.dataset.fill)).toEqual(["#1F6F78", "#345995"]);
     expect(bars.every((bar) => bar.dataset.stackId === "os")).toBe(true);
-    expect(screen.queryByTestId("line")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("y-axis")).not.toBeInTheDocument();
+    expect(screen.getByText("Day")).toBeInTheDocument();
+    expect(screen.getByText("Users (#)")).toBeInTheDocument();
   });
 
-  it("draws completion rates as OS lines on a zero-to-100-percent axis", () => {
+  it("draws completion rates as straight OS lines on a zero-to-100-percent axis", () => {
     render(
       <DailyMetricChart
-        title="Average face capture completion rate"
+        title="Average face capture completion rate, by day and OS"
         rows={rows}
-        metric="p_face_auth_completion"
+        metric="p_face_capture_completion"
         kind="rate"
+        chartType="line"
       />,
     );
 
     const lines = screen.getAllByTestId("line");
     expect(lines.map((line) => line.dataset.name)).toEqual(["Android", "iOS"]);
     expect(lines.map((line) => line.dataset.stroke)).toEqual([
-      "#b88700",
-      "#007aff",
+      "#1F6F78",
+      "#345995",
     ]);
+    expect(lines.every((line) => line.dataset.type === "linear")).toBe(true);
     expect(screen.queryByTestId("bar")).not.toBeInTheDocument();
-    expect(screen.getByTestId("y-axis")).toHaveAttribute("data-domain", "0,1");
+    expect(screen.getByText("Day")).toBeInTheDocument();
+    expect(screen.getByTestId("y-axis")).toHaveAttribute(
+      "data-domain",
+      "0,1.05",
+    );
+    expect(screen.getByText("Users (%)")).toBeInTheDocument();
     expect(screen.getByTestId("y-axis")).toHaveAttribute(
       "data-midpoint-label",
       "50%",
     );
+  });
+
+  it("draws the cumulative users metric as stacked OS areas", () => {
+    render(
+      <DailyMetricChart
+        title="Cumulative number of unique users who shared a Selfie Check proof, by day and OS"
+        rows={rows}
+        metric="cumulative_n_users_shared_a_proof"
+        kind="count"
+        chartType="area"
+      />,
+    );
+
+    const areas = screen.getAllByTestId("area");
+    expect(areas.map((area) => area.dataset.name)).toEqual(["Android", "iOS"]);
+    expect(areas.map((area) => area.dataset.fill)).toEqual([
+      "#1F6F78",
+      "#345995",
+    ]);
+    expect(areas.every((area) => area.dataset.stackId === "os")).toBe(true);
+    expect(screen.queryByTestId("bar")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("line")).not.toBeInTheDocument();
   });
 });

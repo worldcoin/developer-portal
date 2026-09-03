@@ -3,20 +3,26 @@ import {
   parseTotalsTable,
   TableValidationError,
 } from "@/api/helpers/selfie-check-analytics/format-tables";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 // #region Test Data
 const appIdA = "app_0123456789abcdef0123456789abcdef";
 const appIdB = "app_staging_fedcba9876543210fedcba9876543210";
 
-const totalsCsv = (proofsA = 3, proofsB = 7) =>
+const totalsCsv = (
+  proofSharedA: number | string = 3,
+  proofSharedB: number | string = 7,
+  completionB = "",
+) =>
   [
-    "PARTNER_APP_ID,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_PROOFS,N_PROOF_USERS,N_FACE_AUTH_STARTED_SESSIONS,N_FACE_AUTH_COMPLETED_SESSIONS,P_FACE_AUTH_COMPLETION",
-    `${appIdA},10,${proofsA},8,10,8,"0.75"`,
-    `${appIdB},10,${proofsB},8,10,8,`,
+    "PARTNER_APP_ID,N_USERS_STARTED_AT_LEAST_ONE_SELFIE_CHECK_FLOW,N_USERS_SHARED_AT_LEAST_ONE_PROOF,N_SELFIE_CHECK_STARTED_SESSIONS,N_FACE_CAPTURE_STARTED_SESSIONS,N_FACE_CAPTURE_COMPLETED_SESSIONS,N_PROOF_SHARED_SESSIONS,P_SELFIE_CHECK_TO_FACE_CAPTURE_STARTED_COMPLETION,P_FACE_CAPTURE_STARTED_TO_COMPLETED_COMPLETION,P_FACE_CAPTURE_COMPLETED_TO_PROOF_SHARED_COMPLETION",
+    `${appIdA},10,8,10,9,8,${proofSharedA},0.9,"0.75",0.5`,
+    `${appIdB},10,8,10,9,8,${proofSharedB},0.9,${completionB},0.5`,
   ].join("\n");
 
 const dailyHeader =
-  "PARTNER_APP_ID,DAY,OS_NAME,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_PROOFS,N_PROOF_USERS,CUMULATIVE_N_PROOFS,CUMULATIVE_N_PROOF_USERS,N_FACE_AUTH_STARTED_SESSIONS,N_FACE_AUTH_COMPLETED_SESSIONS,P_FACE_AUTH_COMPLETION";
+  "PARTNER_APP_ID,DAY,OS_NAME,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_USERS_SHARED_A_PROOF,CUMULATIVE_N_USERS_SHARED_A_PROOF,P_FACE_CAPTURE_COMPLETION";
 
 const dailyCsv = (...rows: string[]) => [dailyHeader, ...rows].join("\n");
 
@@ -32,7 +38,7 @@ const dailyRow = ({
   osName?: string;
   proofs?: number | string;
   completion?: string;
-} = {}) => `${appId},${day},${osName},10,${proofs},8,30,20,10,8,${completion}`;
+} = {}) => `${appId},${day},${osName},10,${proofs},20,${completion}`;
 // #endregion
 
 // #region Totals table
@@ -42,60 +48,77 @@ describe("parseTotalsTable", () => {
 
     expect(result.headers).toEqual([
       "PARTNER_APP_ID",
-      "N_USERS_STARTED_SELFIE_CHECK_FLOW",
-      "N_PROOFS",
-      "N_PROOF_USERS",
-      "N_FACE_AUTH_STARTED_SESSIONS",
-      "N_FACE_AUTH_COMPLETED_SESSIONS",
-      "P_FACE_AUTH_COMPLETION",
+      "N_USERS_STARTED_AT_LEAST_ONE_SELFIE_CHECK_FLOW",
+      "N_USERS_SHARED_AT_LEAST_ONE_PROOF",
+      "N_SELFIE_CHECK_STARTED_SESSIONS",
+      "N_FACE_CAPTURE_STARTED_SESSIONS",
+      "N_FACE_CAPTURE_COMPLETED_SESSIONS",
+      "N_PROOF_SHARED_SESSIONS",
+      "P_SELFIE_CHECK_TO_FACE_CAPTURE_STARTED_COMPLETION",
+      "P_FACE_CAPTURE_STARTED_TO_COMPLETED_COMPLETION",
+      "P_FACE_CAPTURE_COMPLETED_TO_PROOF_SHARED_COMPLETION",
     ]);
     expect(result.records.get(appIdA)).toEqual({
       appId: appIdA,
-      n_users_started_selfie_check_flow: 10,
-      n_proofs: 3,
-      n_proof_users: 8,
-      n_face_auth_started_sessions: 10,
-      n_face_auth_completed_sessions: 8,
-      p_face_auth_completion: 0.75,
+      n_users_started_at_least_one_selfie_check_flow: 10,
+      n_users_shared_at_least_one_proof: 8,
+      n_selfie_check_started_sessions: 10,
+      n_face_capture_started_sessions: 9,
+      n_face_capture_completed_sessions: 8,
+      n_proof_shared_sessions: 3,
+      p_selfie_check_to_face_capture_started_completion: 0.9,
+      p_face_capture_started_to_completed_completion: 0.75,
+      p_face_capture_completed_to_proof_shared_completion: 0.5,
     });
   });
 
   it("represents an empty metric as null", () => {
-    const result = parseTotalsTable(
-      totalsCsv(3).replace(`${appIdB},10,7,8,10,8,`, `${appIdB},10,,8,10,8,`),
-    );
+    const result = parseTotalsTable(totalsCsv(3, ""));
 
-    expect(result.records.get(appIdB)?.n_proofs).toBeNull();
+    expect(result.records.get(appIdB)?.n_proof_shared_sessions).toBeNull();
   });
 
   it("represents both Snowflake null marker escapes as null", () => {
     for (const marker of ["\\N", "\\\\N"]) {
-      const result = parseTotalsTable(
-        totalsCsv().replace(
-          `${appIdB},10,7,8,10,8,`,
-          `${appIdB},10,7,8,10,8,${marker}`,
-        ),
-      );
+      const result = parseTotalsTable(totalsCsv(3, 7, marker));
 
-      expect(result.records.get(appIdB)?.p_face_auth_completion).toBeNull();
+      expect(
+        result.records.get(appIdB)
+          ?.p_face_capture_started_to_completed_completion,
+      ).toBeNull();
     }
   });
 
   it("rejects non-numeric metric values", () => {
-    expect(() =>
-      parseTotalsTable(
-        totalsCsv().replace(
-          `${appIdA},10,3,8,10,8,"0.75"`,
-          `${appIdA},10,not-a-number,8,10,8,"0.75"`,
-        ),
-      ),
-    ).toThrow("is not a non-negative number");
+    expect(() => parseTotalsTable(totalsCsv("not-a-number"))).toThrow(
+      "is not a non-negative number",
+    );
   });
 
   it("rejects duplicate app IDs", () => {
     expect(() => parseTotalsTable(totalsCsv().replace(appIdB, appIdA))).toThrow(
       "duplicate app ID",
     );
+  });
+
+  it("accepts legacy totals metric names during the schema rollout", () => {
+    const legacyCsv = [
+      "PARTNER_APP_ID,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_PROOFS,N_PROOF_USERS,N_FACE_AUTH_STARTED_SESSIONS,N_FACE_AUTH_COMPLETED_SESSIONS,P_FACE_AUTH_COMPLETION",
+      `${appIdA},10,3,8,9,8,0.75`,
+    ].join("\n");
+
+    expect(parseTotalsTable(legacyCsv).records.get(appIdA)).toEqual({
+      appId: appIdA,
+      n_users_started_at_least_one_selfie_check_flow: 10,
+      n_users_shared_at_least_one_proof: 8,
+      n_selfie_check_started_sessions: null,
+      n_face_capture_started_sessions: 9,
+      n_face_capture_completed_sessions: 8,
+      n_proof_shared_sessions: 3,
+      p_selfie_check_to_face_capture_started_completion: null,
+      p_face_capture_started_to_completed_completion: 0.75,
+      p_face_capture_completed_to_proof_shared_completion: null,
+    });
   });
 });
 // #endregion
@@ -119,13 +142,13 @@ describe("parseDailyTable", () => {
         appId: appIdA,
         day: "2026-08-25",
         os_name: "iOS",
-        n_proofs: 2,
+        n_users_shared_a_proof: 2,
       }),
       expect.objectContaining({
         appId: appIdA,
         day: "2026-08-26",
         os_name: "Android",
-        n_proofs: 3,
+        n_users_shared_a_proof: 3,
       }),
     ]);
     expect(result.records.get(appIdB)).toHaveLength(1);
@@ -155,6 +178,28 @@ describe("parseDailyTable", () => {
     expect(() =>
       parseDailyTable(dailyCsv(dailyRow({ day: "2026-02-30" }))),
     ).toThrow("invalid required daily column");
+  });
+
+  it("accepts legacy daily metric names during the schema rollout", () => {
+    const legacyHeader =
+      "PARTNER_APP_ID,DAY,OS_NAME,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_PROOF_USERS,CUMULATIVE_N_PROOF_USERS,P_FACE_AUTH_COMPLETION";
+    const result = parseDailyTable(
+      [legacyHeader, `${appIdA},2026-08-26,iOS,10,8,20,0.75`].join("\n"),
+    );
+
+    expect(result.records.get(appIdA)?.[0]).toEqual(
+      expect.objectContaining({
+        n_users_shared_a_proof: 8,
+        cumulative_n_users_shared_a_proof: 20,
+        p_face_capture_completion: 0.75,
+      }),
+    );
+  });
+
+  it("rejects ambiguous legacy and current names for the same metric", () => {
+    expect(() =>
+      parseDailyTable(`${dailyHeader},N_PROOF_USERS\n${dailyRow()},8`),
+    ).toThrow("multiple columns for metric n_users_shared_a_proof");
   });
 });
 // #endregion
@@ -192,6 +237,46 @@ describe("analytics CSV validation", () => {
     expect(() =>
       parseTotalsTable(`PARTNER_APP_ID,N_PROOFS\n${appIdA},"unterminated\n`),
     ).toThrow(TableValidationError);
+  });
+});
+// #endregion
+
+// #region Current warehouse exports
+describe("current selfie-check warehouse exports", () => {
+  const repoRoot = path.resolve(__dirname, "../../../../");
+
+  it("parses and keys the new totals CSV by PARTNER_APP_ID", () => {
+    const csv = readFileSync(
+      path.join(repoRoot, "new_totals_tables.csv"),
+      "utf8",
+    );
+    const table = parseTotalsTable(csv);
+
+    expect(table.headers).toEqual(totalsCsv().split("\n")[0]!.split(","));
+    expect(table.records.size).toBeGreaterThan(0);
+    for (const [appId, row] of table.records) {
+      expect(row.appId).toBe(appId);
+      expect(row).toHaveProperty(
+        "p_face_capture_started_to_completed_completion",
+      );
+    }
+  });
+
+  it("parses and groups the new daily CSV by PARTNER_APP_ID", () => {
+    const csv = readFileSync(
+      path.join(repoRoot, "data_20260903_220231.csv"),
+      "utf8",
+    );
+    const table = parseDailyTable(csv);
+
+    expect(table.headers).toEqual(dailyHeader.split(","));
+    expect(table.records.size).toBeGreaterThan(0);
+    for (const [appId, rows] of table.records) {
+      expect(rows.length).toBeGreaterThan(0);
+      expect(rows.every((row) => row.appId === appId)).toBe(true);
+      expect(rows[0]).toHaveProperty("n_users_shared_a_proof");
+      expect(rows[0]).toHaveProperty("p_face_capture_completion");
+    }
   });
 });
 // #endregion

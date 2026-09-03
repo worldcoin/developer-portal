@@ -6,9 +6,12 @@ import { CompletionRing } from "./CompletionRing";
 
 /** Conversion stages, left to right, computed from the totals row. */
 const FUNNEL_STAGES = [
-  { key: "n_face_auth_started_sessions", label: "Selfie Check started" },
-  { key: "n_face_auth_completed_sessions", label: "Selfie Check completed" },
-  { key: "n_proofs", label: "Proofs shared" },
+  { key: "n_face_capture_started_sessions", label: "Face Capture started" },
+  {
+    key: "n_face_capture_completed_sessions",
+    label: "Face Capture completed",
+  },
+  { key: "n_proof_shared_sessions", label: "Proofs shared" },
 ] as const satisfies readonly {
   key: keyof Omit<TotalsRow, "appId">;
   label: string;
@@ -133,7 +136,11 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
                 </p>
               </div>
               {index === 1 && (
-                <CompletionRing value={props.row.p_face_auth_completion} />
+                <CompletionRing
+                  value={
+                    props.row.p_face_capture_started_to_completed_completion
+                  }
+                />
               )}
             </div>
           </div>

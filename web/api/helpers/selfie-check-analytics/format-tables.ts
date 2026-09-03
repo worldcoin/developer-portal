@@ -217,11 +217,13 @@ function validateFieldLengths(
 function parseMetricFields({
   excludedColumns,
   headers,
+  aliases = {},
   record,
   rowNumber,
 }: {
   excludedColumns: ReadonlySet<string>;
   headers: readonly string[];
+  aliases?: Readonly<Record<string, string>>;
   record: Readonly<Record<string, string>>;
   rowNumber: number;
 }): Record<string, number | null> {
@@ -229,7 +231,13 @@ function parseMetricFields({
 
   for (const header of headers) {
     if (excludedColumns.has(header)) continue;
-    fields[normalizeMetricName(header)] = parseMetricValue({
+    const metricName = aliases[header] ?? normalizeMetricName(header);
+    if (Object.prototype.hasOwnProperty.call(fields, metricName)) {
+      throw new TableValidationError(
+        `Table contains multiple columns for metric ${metricName}.`,
+      );
+    }
+    fields[metricName] = parseMetricValue({
       column: header,
       rowNumber,
       value: record[header] ?? "",
@@ -244,6 +252,16 @@ function parseMetricFields({
 // ============================================================================
 
 const TOTALS_NON_METRIC_COLUMNS = new Set<string>(APP_ID_COLUMNS);
+const TOTALS_METRIC_ALIASES = {
+  N_USERS_STARTED_SELFIE_CHECK_FLOW:
+    "n_users_started_at_least_one_selfie_check_flow",
+  N_USERS_SHARED_A_PROOF: "n_users_shared_at_least_one_proof",
+  N_PROOF_USERS: "n_users_shared_at_least_one_proof",
+  N_PROOFS: "n_proof_shared_sessions",
+  N_FACE_AUTH_COMPLETED_SESSIONS: "n_face_capture_completed_sessions",
+  P_FACE_CAPTURE_COMPLETION: "p_face_capture_started_to_completed_completion",
+  P_FACE_AUTH_COMPLETION: "p_face_capture_started_to_completed_completion",
+} as const;
 
 /** Parses a totals CSV into exactly one typed row per app ID. */
 export function parseTotalsTable(csv: string): ParsedTotalsTable {
@@ -261,6 +279,7 @@ export function parseTotalsTable(csv: string): ParsedTotalsTable {
     }
 
     const fields = parseMetricFields({
+      aliases: TOTALS_METRIC_ALIASES,
       excludedColumns: TOTALS_NON_METRIC_COLUMNS,
       headers: parsedCsv.headers,
       record,
@@ -289,6 +308,12 @@ const DAILY_NON_METRIC_COLUMNS = new Set<string>([
   DAY_COLUMN,
   OS_NAME_COLUMN,
 ]);
+const DAILY_METRIC_ALIASES = {
+  // Legacy names remain readable during a rolling warehouse/app deployment.
+  N_PROOF_USERS: "n_users_shared_a_proof",
+  CUMULATIVE_N_PROOF_USERS: "cumulative_n_users_shared_a_proof",
+  P_FACE_AUTH_COMPLETION: "p_face_capture_completion",
+} as const;
 
 /**
  * Parses a daily CSV into ordered row arrays per app ID.
@@ -303,6 +328,7 @@ export function parseDailyTable(csv: string): ParsedDailyTable {
     validateFieldLengths(parsedCsv.headers, record, info.lines);
     const appId = record[parsedCsv.appIdColumn] ?? "";
     const fields = parseMetricFields({
+      aliases: DAILY_METRIC_ALIASES,
       excludedColumns: DAILY_NON_METRIC_COLUMNS,
       headers: parsedCsv.headers,
       record,

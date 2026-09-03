@@ -11,7 +11,10 @@ import {
   type TotalsRow,
 } from "@/lib/selfie-check-analytics";
 import { useEffect, useState } from "react";
-import { DailyMetricChart } from "./DailyMetricChart";
+import {
+  DailyMetricChart,
+  type DailyMetricChartType,
+} from "./DailyMetricChart";
 import { TotalsFunnel } from "./TotalsFunnel";
 import { TotalsOverview } from "./TotalsOverview";
 
@@ -21,21 +24,30 @@ const REQUEST_TIMEOUT_MS = 8_000;
 const CHART_METRICS = [
   {
     metric: "n_users_started_selfie_check_flow",
-    title: "Number of users who started the Selfie Check flow",
+    title: "Number of users who started a Selfie Check flow, by day and OS",
+    chartType: "bar",
   },
   {
-    metric: "n_proof_users",
-    title: "Number of users sharing a Selfie Check proof",
+    metric: "p_face_capture_completion",
+    title: "Average face capture completion rate, by day and OS",
+    chartType: "line",
   },
   {
-    metric: "cumulative_n_proof_users",
-    title: "Cumulative number of users who shared 1+ Selfie Check proof",
+    metric: "n_users_shared_a_proof",
+    title: "Number of users who shared a Selfie Check proof, by day and OS",
+    chartType: "bar",
   },
   {
-    metric: "p_face_auth_completion",
-    title: "Average face capture completion rate",
+    metric: "cumulative_n_users_shared_a_proof",
+    title:
+      "Cumulative number of unique users who shared a Selfie Check proof, by day and OS",
+    chartType: "area",
   },
-] as const satisfies readonly { metric: DailyChartMetric; title: string }[];
+] as const satisfies readonly {
+  metric: DailyChartMetric;
+  title: string;
+  chartType: DailyMetricChartType;
+}[];
 
 // Eligibility controls the tab and page; these only describe the view's data.
 const requestFailureMessage = (scope: string, status: number) => {
@@ -224,13 +236,14 @@ export const MetricsFrame = (props: { appId: string }) => {
           </h2>
           {daily.kind === "ready" ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              {CHART_METRICS.map(({ metric, title }) => (
+              {CHART_METRICS.map(({ metric, title, chartType }) => (
                 <DailyMetricChart
                   key={metric}
                   title={title}
                   rows={daily.rows}
                   metric={metric}
                   kind={metricKind(metric)}
+                  chartType={chartType}
                 />
               ))}
             </div>

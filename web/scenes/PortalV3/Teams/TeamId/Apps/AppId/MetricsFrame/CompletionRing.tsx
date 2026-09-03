@@ -27,8 +27,8 @@ export const CompletionRing = (props: { value: number | null }) => {
       <div
         aria-label={
           completion === null
-            ? "Selfie Check completion unavailable"
-            : "Selfie Check completion"
+            ? "Face capture completion unavailable"
+            : "Face capture completion"
         }
         aria-valuemax={completion === null ? undefined : 100}
         aria-valuemin={completion === null ? undefined : 0}
@@ -36,7 +36,7 @@ export const CompletionRing = (props: { value: number | null }) => {
         aria-valuetext={
           completion === null
             ? undefined
-            : `${formatted} of started sessions completed`
+            : `${formatted} of face capture sessions completed`
         }
         className="relative size-14"
         role={completion === null ? "img" : "progressbar"}
