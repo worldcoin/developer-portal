@@ -10,7 +10,10 @@ const percentFormatter = new Intl.NumberFormat("en-US", {
 });
 
 /** Compact progress treatment for the funnel's completion rate. */
-export const CompletionRing = (props: { value: number | null }) => {
+export const CompletionRing = (props: {
+  value: number | null;
+  label: string;
+}) => {
   // The analytics contract supplies a normalized rate (0.94 means 94%).
   // Clamp defensively before using it in either the SVG or ARIA percentage.
   const completion =
@@ -26,9 +29,7 @@ export const CompletionRing = (props: { value: number | null }) => {
     <div className="grid shrink-0 justify-items-center gap-1.5">
       <div
         aria-label={
-          completion === null
-            ? "Selfie Check completion unavailable"
-            : "Selfie Check completion"
+          completion === null ? `${props.label} unavailable` : props.label
         }
         aria-valuemax={completion === null ? undefined : 100}
         aria-valuemin={completion === null ? undefined : 0}
@@ -36,7 +37,7 @@ export const CompletionRing = (props: { value: number | null }) => {
         aria-valuetext={
           completion === null
             ? undefined
-            : `${formatted} of started sessions completed`
+            : `${formatted} of sessions reached this step`
         }
         className="relative size-14"
         role={completion === null ? "img" : "progressbar"}
@@ -72,7 +73,7 @@ export const CompletionRing = (props: { value: number | null }) => {
         </span>
       </div>
       <span className="font-world text-11 whitespace-nowrap text-portal-muted">
-        Completion rate
+        From previous
       </span>
     </div>
   );

@@ -8,6 +8,7 @@ import {
 } from "@/lib/selfie-check-analytics";
 import { useMemo } from "react";
 import {
+  Area,
   Bar,
   CartesianGrid,
   ComposedChart,
@@ -18,15 +19,14 @@ import {
   YAxis,
 } from "recharts";
 
-// Color follows the OS, not its position. Android uses a golden amber that
-// stays distinct from iOS blue while retaining 3:1 contrast on the white card.
+// Color follows the OS, not its position.
 const OS_COLORS: Readonly<Record<string, string>> = {
-  Android: "#b88700",
-  iOS: "#007aff",
+  Android: "#1F6F78",
+  iOS: "#345995",
 };
 const RATE_TICKS = [0, 0.25, 0.5, 0.75, 1] as const;
 
-const osColor = (osName: string) => OS_COLORS[osName];
+const osColor = (osName: string) => OS_COLORS[osName] ?? "#757575";
 
 const formatTickDate = (value: string) =>
   new Date(`${value}T00:00:00.000Z`).toLocaleDateString("en-US", {
@@ -43,6 +43,8 @@ export const DailyMetricChart = (props: {
   rows: readonly DailyRow[];
   metric: DailyChartMetric;
   kind: MetricKind;
+  chartType: DailyMetricChartType;
+  yAxisLabel: string;
 }) => {
   const { points, operatingSystems } = useMemo(
     () => buildDailyChartData(props.rows, props.metric),
@@ -96,7 +98,7 @@ export const DailyMetricChart = (props: {
             aria-hidden
             className="absolute top-0 bottom-8 left-0 flex w-8 rotate-180 items-center justify-center font-world text-12 text-portal-muted [writing-mode:vertical-rl]"
           >
-            {props.kind === "rate" ? "Sessions (%)" : "Users (#)"}
+            {props.yAxisLabel}
           </span>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
@@ -143,7 +145,7 @@ export const DailyMetricChart = (props: {
                 }
               />
               {operatingSystems.map((os, index) =>
-                props.kind === "rate" ? (
+                props.chartType === "line" ? (
                   <Line
                     key={os.dataKey}
                     activeDot={{ r: 4 }}
@@ -152,6 +154,20 @@ export const DailyMetricChart = (props: {
                     dot={{ r: 3 }}
                     isAnimationActive={false}
                     name={os.osName}
+                    stroke={osColor(os.osName)}
+                    strokeWidth={2}
+                    type="linear"
+                  />
+                ) : props.chartType === "area" ? (
+                  <Area
+                    key={os.dataKey}
+                    connectNulls={false}
+                    dataKey={os.dataKey}
+                    fill={osColor(os.osName)}
+                    fillOpacity={0.72}
+                    isAnimationActive={false}
+                    name={os.osName}
+                    stackId="os"
                     stroke={osColor(os.osName)}
                     strokeWidth={2}
                     type="linear"
@@ -178,3 +194,5 @@ export const DailyMetricChart = (props: {
     </section>
   );
 };
+
+export type DailyMetricChartType = "area" | "bar" | "line";
