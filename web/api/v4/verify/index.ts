@@ -17,6 +17,11 @@ import {
   INTEGRITY_VERIFICATION_ERROR_CODE,
   verifyIntegrityBundle,
 } from "./integrity-bundle";
+import {
+  findUnrecognizedIssuers,
+  isIssuerAllowlistEnforced,
+  UNRECOGNIZED_ISSUER_ERROR_CODE,
+} from "./issuer-schema";
 import { handleSessionProofVerification } from "./session-proof/handler";
 import { handleUniquenessProofVerification } from "./uniqueness-proof/handler";
 
@@ -146,6 +151,41 @@ export async function POST(
       parsedParams.environment === "sandbox"
         ? "staging"
         : parsedParams.environment;
+
+    // World ID 4.0 proofs name their credential issuer. The on-chain Verifier
+    // only checks that the issuer schema is registered, and registration is
+    // permissionless, so a self-registered issuer would otherwise be reported to
+    // the relying party as a verified credential.
+    if (parsedParams.protocol_version === "4.0") {
+      const unrecognizedIssuers = findUnrecognizedIssuers(
+        parsedParams.responses as Array<{ issuer_schema_id?: unknown }>,
+      );
+
+      if (unrecognizedIssuers.length > 0) {
+        const enforced = isIssuerAllowlistEnforced();
+
+        logger.warn("Unrecognized credential issuer in v4 verify request", {
+          rp_id: rpId,
+          app_id: appId,
+          enforced,
+          issuer_schema_ids: unrecognizedIssuers.map(
+            (issuer) => issuer.issuerSchemaId,
+          ),
+        });
+
+        if (enforced) {
+          return errorResponse({
+            statusCode: 400,
+            code: UNRECOGNIZED_ISSUER_ERROR_CODE,
+            detail:
+              "The credential issuer is not recognized by World ID. Only credentials issued by recognized issuers can be verified.",
+            attribute: `responses[${unrecognizedIssuers[0]!.index}].issuer_schema_id`,
+            req,
+            app_id: appId,
+          });
+        }
+      }
+    }
 
     const requiresSelfieCheckIntegrity =
       parsedParams.protocol_version === "4.0" &&

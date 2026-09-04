@@ -169,4 +169,42 @@ describe("v4 verify request schema", () => {
       }),
     ).rejects.toThrow("sybil_score is required for Self Check 4.0 responses");
   });
+
+  it("accepts a v4 identifier at the length limit", async () => {
+    const parsed = await schema.validate({
+      protocol_version: "4.0",
+      nonce: "0x01",
+      action: "test-action",
+      responses: [
+        {
+          identifier: "a".repeat(256),
+          issuer_schema_id: 1,
+          nullifier: "0x02",
+          expires_at_min: 1772584197,
+          proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+        },
+      ],
+    });
+
+    expect(parsed.responses[0]?.identifier).toHaveLength(256);
+  });
+
+  it("rejects a v4 identifier longer than the length limit", async () => {
+    await expect(
+      schema.validate({
+        protocol_version: "4.0",
+        nonce: "0x01",
+        action: "test-action",
+        responses: [
+          {
+            identifier: "a".repeat(257),
+            issuer_schema_id: 1,
+            nullifier: "0x02",
+            expires_at_min: 1772584197,
+            proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+          },
+        ],
+      }),
+    ).rejects.toThrow("identifier must be at most 256 characters");
+  });
 });

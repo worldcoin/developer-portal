@@ -46,7 +46,13 @@ const v3ResponseItemSchema = yup.object({
 
 // V4 uniqueness proof response item schema
 const v4ResponseItemSchema = yup.object({
-  identifier: yup.string().required("identifier is required"),
+  // A caller-chosen label used to pair this item with the relying party's
+  // request item. It is echoed back verbatim and carries no trust: the verified
+  // credential is identified by issuer_schema_id, not by this string.
+  identifier: yup
+    .string()
+    .max(256, "identifier must be at most 256 characters")
+    .required("identifier is required"),
   // V4 default signal_hash is zero (unlike v3 which uses keccak256 of empty string)
   signal_hash: yup
     .string()
@@ -87,7 +93,11 @@ const v4ResponseItemSchema = yup.object({
 
 // Session proof response item schema
 const sessionResponseItemSchema = yup.object({
-  identifier: yup.string().required("identifier is required"),
+  // See the v4 uniqueness response schema above.
+  identifier: yup
+    .string()
+    .max(256, "identifier must be at most 256 characters")
+    .required("identifier is required"),
   signal_hash: yup
     .string()
     .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
