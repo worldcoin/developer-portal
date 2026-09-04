@@ -6,7 +6,7 @@ import {
 } from "@/api/helpers/rp-utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import {
   isProtocolVersionBelowMinimum,
   schema,
@@ -113,6 +113,15 @@ export async function POST(
       app_id: routeId,
     });
   }
+
+  let testVerification = false;
+  const withTestProvenance = async (response: NextResponse) => {
+    if (!testVerification) return response;
+    return NextResponse.json(
+      { ...(await response.json()), test: true },
+      { status: response.status, headers: response.headers },
+    );
+  };
 
   try {
     // Resolve app_id/rp_id to rp_registration
@@ -236,7 +245,7 @@ export async function POST(
     }
 
     // Handle uniqueness proofs
-    return await handleUniquenessProofVerification(
+    const response = await handleUniquenessProofVerification(
       client,
       rpId,
       appId,
@@ -251,7 +260,11 @@ export async function POST(
         environment: parsedParams.environment,
       },
       req,
+      () => {
+        testVerification = true;
+      },
     );
+    return await withTestProvenance(response);
   } catch (error) {
     logger.error("Unhandled error in v4/verify", {
       error: error instanceof Error ? error.message : String(error),
@@ -259,13 +272,15 @@ export async function POST(
       app_id: routeId,
     });
 
-    return errorResponse({
-      statusCode: 500,
-      code: "internal_error",
-      detail: "Internal server error.",
-      attribute: null,
-      req,
-      app_id: routeId,
-    });
+    return withTestProvenance(
+      errorResponse({
+        statusCode: 500,
+        code: "internal_error",
+        detail: "Internal server error.",
+        attribute: null,
+        req,
+        app_id: routeId,
+      }),
+    );
   }
 }

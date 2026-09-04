@@ -73,6 +73,7 @@ export async function handleUniquenessProofVerification(
     environment?: "production" | "staging" | "sandbox";
   },
   req: NextRequest,
+  onTestVerification?: () => void,
 ): Promise<NextResponse<UniquenessProofResponse | ErrorResponseBody>> {
   // Resolve sandbox to staging for verifier/storage while preserving the
   // requested environment for API responses.
@@ -132,6 +133,8 @@ export async function handleUniquenessProofVerification(
       parsedParams.action!,
       parsedParams.responses as UniquenessProofResponseV4[],
       verifierAddress,
+      requestedEnvironment,
+      onTestVerification,
     );
   }
 

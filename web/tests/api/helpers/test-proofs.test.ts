@@ -1,0 +1,342 @@
+import {
+  getTestProofVerdict,
+  mintTestProof,
+  recordTestVerificationMetric,
+  withTestVerificationTimeout,
+} from "@/api/helpers/test-proofs";
+import { VERIFIER_ERROR_MAP } from "@/api/helpers/verifier-errors";
+import { schema } from "@/api/v4/verify/request-schema";
+import { logger } from "@/lib/logger";
+import tracer from "dd-trace";
+
+// #region Mocks
+jest.mock("@/lib/logger", () => ({
+  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+}));
+jest.mock("@/api/helpers/graphql", () => ({
+  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
+}));
+jest.mock("dd-trace", () => ({ dogstatsd: { increment: jest.fn() } }));
+// #endregion
+
+// #region Test Data
+const redis = global.RedisClient!;
+const params = {
+  rpId: "rp_1234567890abcdef",
+  action: "test-action",
+  teamId: "team_1234567890abcdef1234567890abcdef",
+  outcome: "success" as const,
+};
+const lookup = (nullifier: string) => ({
+  rpId: BigInt(`0x${params.rpId.slice(3)}`),
+  action: params.action,
+  environment: "staging",
+  nullifier: BigInt(nullifier),
+});
+const storeKey = (nullifier: string) =>
+  `test_proof:${BigInt(nullifier).toString()}`;
+// #endregion
+
+beforeEach(async () => {
+  jest.clearAllMocks();
+  global.RedisClient = redis;
+  await redis.flushall();
+  process.env.ENABLE_AGENT_TEST_VERIFICATIONS = "true";
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+  jest.useRealTimers();
+  global.RedisClient = redis;
+  delete process.env.ENABLE_AGENT_TEST_VERIFICATIONS;
+});
+
+// #region Minting and immutable verdicts
+describe("test proof minting", () => {
+  it("mints a schema-valid staging payload with a canonical, expiring record", async () => {
+    const before = Date.now();
+    const minted = await mintTestProof({
+      ...params,
+      rpId: params.rpId.toUpperCase().replace("RP_", "rp_"),
+    });
+    const response = minted.payload.responses[0];
+    const key = storeKey(response.nullifier);
+
+    await expect(schema.validate(minted.payload)).resolves.toMatchObject({
+      protocol_version: "4.0",
+      environment: "staging",
+      responses: [
+        {
+          identifier: "proof_of_human",
+          issuer_schema_id: 1,
+          proof: response.proof,
+        },
+      ],
+    });
+    expect(response.proof).toHaveLength(5);
+    expect(response.nullifier).toMatch(/^0x[\da-f]{64}$/);
+    expect(minted.payload.nonce).toMatch(/^0x[\da-f]{64}$/);
+    for (const element of response.proof) {
+      expect(element).toMatch(/^0x[\da-f]{64}$/);
+    }
+    expect(BigInt(minted.payload.nonce)).toBeGreaterThanOrEqual(0n);
+    expect(Date.parse(minted.expires_at)).toBeGreaterThanOrEqual(
+      before + 600_000,
+    );
+    expect(Date.parse(minted.expires_at)).toBeLessThanOrEqual(
+      Date.now() + 600_000,
+    );
+    const wireExpiryMs = response.expires_at_min * 1000;
+    expect(wireExpiryMs).toBeGreaterThan(before);
+    expect(Date.parse(minted.expires_at) - wireExpiryMs).toBeGreaterThanOrEqual(
+      0,
+    );
+    expect(Date.parse(minted.expires_at) - wireExpiryMs).toBeLessThan(1000);
+    expect(await redis.ttl(key)).toBeGreaterThan(0);
+    expect(await redis.ttl(key)).toBeLessThanOrEqual(600);
+    expect(JSON.parse((await redis.get(key))!)).toEqual({
+      rp_id: params.rpId,
+      action: params.action,
+      team_id: params.teamId,
+      outcome: "success",
+      expires_at: minted.expires_at,
+    });
+  });
+
+  it("returns the same verdict on repeated canonical lookups without consuming or extending the record", async () => {
+    const { payload } = await mintTestProof(params);
+    const nullifier = payload.responses[0].nullifier;
+    const key = storeKey(nullifier);
+    const record = await redis.get(key);
+    const ttl = await redis.pttl(key);
+
+    await expect(getTestProofVerdict(lookup(nullifier))).resolves.toEqual({
+      success: true,
+      test: true,
+    });
+    await expect(
+      getTestProofVerdict(lookup(`0x000${nullifier.slice(2).toUpperCase()}`)),
+    ).resolves.toEqual({ success: true, test: true });
+    expect(await redis.get(key)).toBe(record);
+    expect(await redis.pttl(key)).toBeLessThanOrEqual(ttl);
+    expect(await redis.pttl(key)).toBeGreaterThan(0);
+  });
+
+  it.each([
+    ["expired", VERIFIER_ERROR_MAP.OutdatedNullifier],
+    ["invalid_proof", VERIFIER_ERROR_MAP.ProofInvalid],
+  ] as const)(
+    "maps %s to the actual verifier error",
+    async (outcome, error) => {
+      const { payload } = await mintTestProof({ ...params, outcome });
+      const request = lookup(payload.responses[0].nullifier);
+      const expected = { success: false, test: true, error };
+      await expect(getTestProofVerdict(request)).resolves.toEqual(expected);
+      await expect(getTestProofVerdict(request)).resolves.toEqual(expected);
+    },
+  );
+
+  it("does not overwrite an existing key when the atomic insert is refused", async () => {
+    const set = jest.spyOn(redis, "set").mockResolvedValueOnce(null);
+    await expect(mintTestProof(params)).rejects.toThrow(
+      "storage is unavailable",
+    );
+    expect(set).toHaveBeenCalledWith(
+      expect.stringMatching(/^test_proof:\d+$/),
+      expect.any(String),
+      "EX",
+      600,
+      "NX",
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      "Failed to store test verification",
+      expect.objectContaining({ error_category: "store_refused" }),
+    );
+  });
+
+  it("refuses malformed RP IDs and unsupported outcomes before writing", async () => {
+    const set = jest.spyOn(redis, "set");
+    await expect(mintTestProof({ ...params, rpId: "rp_bad" })).rejects.toThrow(
+      "Invalid test verification parameters",
+    );
+    await expect(
+      mintTestProof({ ...params, outcome: "unsupported" as "success" }),
+    ).rejects.toThrow("Invalid test verification parameters");
+    expect(set).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Fences and lookup failures
+describe("test proof acceptance fences", () => {
+  it("does not read Redis outside the exact staging environment", async () => {
+    const get = jest.spyOn(redis, "get");
+    for (const environment of ["production", "sandbox", undefined]) {
+      await expect(
+        getTestProofVerdict({ ...lookup("0x1"), environment }),
+      ).resolves.toBeNull();
+    }
+    expect(get).not.toHaveBeenCalled();
+  });
+
+  it("gates both mint and accept before Redis when the flag is absent or not true", async () => {
+    const get = jest.spyOn(redis, "get");
+    const set = jest.spyOn(redis, "set");
+    for (const enabled of [undefined, "false", "1", "TRUE"]) {
+      if (enabled === undefined)
+        delete process.env.ENABLE_AGENT_TEST_VERIFICATIONS;
+      else process.env.ENABLE_AGENT_TEST_VERIFICATIONS = enabled;
+      await expect(mintTestProof(params)).rejects.toThrow("disabled");
+      await expect(getTestProofVerdict(lookup("0x1"))).resolves.toBeNull();
+    }
+    expect(get).not.toHaveBeenCalled();
+    expect(set).not.toHaveBeenCalled();
+  });
+
+  it("returns a miss without treating real proofs as lookup errors", async () => {
+    await expect(getTestProofVerdict(lookup("0x1"))).resolves.toBeNull();
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it("refuses another RP or an action with a different exact spelling", async () => {
+    const { payload } = await mintTestProof(params);
+    const request = lookup(payload.responses[0].nullifier);
+    await expect(
+      getTestProofVerdict({ ...request, rpId: request.rpId + 1n }),
+    ).resolves.toBeNull();
+    await expect(
+      getTestProofVerdict({ ...request, action: params.action.toUpperCase() }),
+    ).resolves.toBeNull();
+    await expect(getTestProofVerdict(request)).resolves.toMatchObject({
+      test: true,
+    });
+  });
+
+  it("honors absolute expiry even when the Redis key survives beyond its TTL", async () => {
+    const { payload } = await mintTestProof(params);
+    const request = lookup(payload.responses[0].nullifier);
+    const key = storeKey(payload.responses[0].nullifier);
+    const record = JSON.parse((await redis.get(key))!);
+    const now = Date.now();
+    await redis.set(
+      key,
+      JSON.stringify({ ...record, expires_at: new Date(now).toISOString() }),
+    );
+    jest.spyOn(Date, "now").mockReturnValue(now);
+    await expect(getTestProofVerdict(request)).resolves.toBeNull();
+    expect(await redis.get(key)).not.toBeNull();
+  });
+
+  it.each([
+    "not JSON",
+    "null",
+    JSON.stringify({ outcome: "success" }),
+    "invalid-outcome",
+  ])("falls through safely for malformed stored data: %s", async (value) => {
+    const { payload } = await mintTestProof(params);
+    const key = storeKey(payload.responses[0].nullifier);
+    const stored =
+      value === "invalid-outcome"
+        ? JSON.stringify({
+            ...JSON.parse((await redis.get(key))!),
+            outcome: "invalid_rp_signature",
+          })
+        : value;
+    await redis.set(key, stored);
+    await expect(
+      getTestProofVerdict(lookup(payload.responses[0].nullifier)),
+    ).resolves.toBeNull();
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ error_category: "malformed_record" }),
+    );
+    expect(tracer.dogstatsd.increment).toHaveBeenCalledWith(
+      "world_id.test_verification",
+      1,
+      { outcome: "unknown", result: "lookup_error", tool_mode: "accept" },
+    );
+  });
+
+  it("fails mint but falls through on accept when Redis is missing", async () => {
+    global.RedisClient = undefined;
+    await expect(mintTestProof(params)).rejects.toThrow(
+      "storage is unavailable",
+    );
+    await expect(getTestProofVerdict(lookup("0x1"))).resolves.toBeNull();
+    expect(logger.warn).toHaveBeenCalledTimes(2);
+    expect(logger.warn).toHaveBeenLastCalledWith(
+      expect.any(String),
+      expect.objectContaining({ error_category: "redis_unavailable" }),
+    );
+  });
+
+  it("does not expose Redis error details while falling through on lookup failure", async () => {
+    const secret = "redis://private-credential@host";
+    jest.spyOn(redis, "get").mockRejectedValueOnce(new Error(secret));
+    await expect(getTestProofVerdict(lookup("0x1"))).resolves.toBeNull();
+    expect(JSON.stringify(jest.mocked(logger.warn).mock.calls)).not.toContain(
+      secret,
+    );
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ error_category: "redis_error" }),
+    );
+  });
+
+  it("bounds a stuck Redis lookup to one second", async () => {
+    jest.useFakeTimers();
+    jest.spyOn(redis, "get").mockReturnValueOnce(new Promise(() => {}));
+    const result = getTestProofVerdict(lookup("0x1"));
+    await jest.advanceTimersByTimeAsync(1000);
+    await expect(result).resolves.toBeNull();
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ error_category: "timeout" }),
+    );
+  });
+
+  it("fails rather than returning a payload when a Redis write times out", async () => {
+    jest.useFakeTimers();
+    jest.spyOn(redis, "set").mockReturnValueOnce(new Promise(() => {}));
+    const assertion = expect(mintTestProof(params)).rejects.toThrow(
+      "storage is unavailable",
+    );
+    await jest.advanceTimersByTimeAsync(1000);
+    await assertion;
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ error_category: "timeout" }),
+    );
+  });
+});
+// #endregion
+
+// #region Shared timeout and observability
+describe("test proof infrastructure", () => {
+  it("clears timeout timers after both success and rejection", async () => {
+    jest.useFakeTimers();
+    await expect(withTestVerificationTimeout(Promise.resolve(1))).resolves.toBe(
+      1,
+    );
+    await expect(
+      withTestVerificationTimeout(Promise.reject(new Error("failed"))),
+    ).rejects.toThrow("failed");
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
+  it("does not make verification depend on metric delivery", () => {
+    jest.mocked(tracer.dogstatsd.increment).mockImplementationOnce(() => {
+      throw new Error("metrics unavailable");
+    });
+    expect(() =>
+      recordTestVerificationMetric("success", "matched", "accept"),
+    ).not.toThrow();
+    expect(logger.warn).toHaveBeenCalledWith(
+      "Failed to record test verification metric",
+      { error_category: "metric_error" },
+    );
+  });
+});
+// #endregion
