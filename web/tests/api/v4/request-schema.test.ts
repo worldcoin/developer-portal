@@ -46,6 +46,82 @@ describe("v4 verify request schema", () => {
     expect(parsed.responses[0]?.identifier).toBe("selfie");
   });
 
+  it("preserves min_protocol_version after schema validation", async () => {
+    const parsed = await schema.validate({
+      protocol_version: "3.0",
+      min_protocol_version: "4.0",
+      nonce: "0x01",
+      action: "test-action",
+      responses: [
+        {
+          identifier: "orb",
+          merkle_root: "0x01",
+          nullifier: "0x02",
+          proof: "0x03",
+        },
+      ],
+    });
+
+    expect(parsed.min_protocol_version).toBe("4.0");
+  });
+
+  it("rejects an unsupported min_protocol_version", async () => {
+    await expect(
+      schema.validate({
+        protocol_version: "4.0",
+        min_protocol_version: "5.0",
+        nonce: "0x01",
+        action: "test-action",
+        responses: [
+          {
+            identifier: "credential",
+            issuer_schema_id: 128,
+            nullifier: "0x02",
+            expires_at_min: 1772584197,
+            proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+          },
+        ],
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("rejects a session proof that declares protocol_version 3.0", async () => {
+    await expect(
+      schema.validate({
+        protocol_version: "3.0",
+        nonce: "0x01",
+        session_id: "session_test",
+        responses: [
+          {
+            identifier: "orb",
+            merkle_root: "0x01",
+            nullifier: "0x02",
+            proof: "0x03",
+          },
+        ],
+      }),
+    ).rejects.toThrow("session proofs require protocol_version 4.0");
+  });
+
+  it("accepts a session proof on protocol_version 4.0", async () => {
+    const parsed = await schema.validate({
+      protocol_version: "4.0",
+      nonce: "0x01",
+      session_id: "session_test",
+      responses: [
+        {
+          identifier: "credential",
+          issuer_schema_id: 128,
+          session_nullifier: ["0x01", "0x02"],
+          expires_at_min: 1772584197,
+          proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+        },
+      ],
+    });
+
+    expect(parsed.session_id).toBe("session_test");
+  });
+
   it('preserves the "sandbox" environment after schema validation', async () => {
     const parsed = await schema.validate({
       protocol_version: "4.0",
