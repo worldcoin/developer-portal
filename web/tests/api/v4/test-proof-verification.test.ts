@@ -99,7 +99,6 @@ const verify = (body: unknown, routeId = rpId) =>
 beforeEach(async () => {
   jest.restoreAllMocks();
   jest.clearAllMocks();
-  process.env.ENABLE_AGENT_TEST_VERIFICATIONS = "true";
   process.env.VERIFIER_CONTRACT_ADDRESS = "0xproduction";
   process.env.VERIFIER_CONTRACT_ADDRESS_STAGING = "0xstaging";
   await global.RedisClient!.flushall();
@@ -249,16 +248,6 @@ describe("/api/v4/verify [synthetic fences]", () => {
       expect(mockVerifyProofOnChain).toHaveBeenCalledTimes(1);
     },
   );
-
-  it("falls through without reading Redis when the flag is disabled", async () => {
-    const payload = await mint();
-    process.env.ENABLE_AGENT_TEST_VERIFICATIONS = "false";
-    const get = jest.spyOn(global.RedisClient!, "get");
-    const response = await verify(payload);
-    expect(await response.json()).not.toHaveProperty("test");
-    expect(get).not.toHaveBeenCalled();
-    expect(mockVerifyProofOnChain).toHaveBeenCalledTimes(1);
-  });
 
   it.each(["rp", "action"])(
     "refuses a record for a different %s",
