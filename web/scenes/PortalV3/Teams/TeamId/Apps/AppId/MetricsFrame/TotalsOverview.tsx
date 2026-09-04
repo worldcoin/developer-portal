@@ -3,11 +3,11 @@ import { type TotalsRow } from "@/lib/selfie-check-analytics";
 const OVERVIEW_METRICS = [
   {
     key: "n_users_shared_at_least_one_proof",
-    label: "Number of users who shared 1+ selfie check proof",
+    label: "Number of users who shared 1+ Selfie Check proof",
   },
   {
     key: "n_users_started_at_least_one_selfie_check_flow",
-    label: "Number of users who started the selfie check flow 1+ times",
+    label: "Number of users who started 1+ Selfie Check flow",
   },
 ] as const satisfies readonly {
   key: keyof Omit<TotalsRow, "appId">;
