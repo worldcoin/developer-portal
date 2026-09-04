@@ -299,7 +299,7 @@ export const MetricsFrame = (props: { appId: string }) => {
                   </select>
                 </label>
                 <label className="grid gap-1 font-world text-11 text-portal-muted">
-                  Operating system
+                  Operating System
                   <select
                     aria-label="Operating system"
                     className="h-9 rounded-8 border border-portal-border bg-white px-3 font-world text-13 text-portal-heading"
