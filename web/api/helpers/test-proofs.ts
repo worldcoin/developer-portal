@@ -1,9 +1,10 @@
 import "server-only";
 
 import { logger } from "@/lib/logger";
-import { randomBytes } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import tracer from "dd-trace";
-import type { VerifyProofResult } from "./temporal-rpc";
+import type { VerifyProofParams, VerifyProofResult } from "./temporal-rpc";
+import { toUniquenessProofParams } from "./uniqueness-proof-params";
 import { VERIFIER_ERROR_MAP } from "./verifier-errors";
 
 export const TEST_VERIFICATION_OUTCOMES = [
@@ -61,7 +62,24 @@ type TestProofRecord = {
   team_id: string;
   outcome: TestVerificationOutcome;
   expires_at: string;
+  proof_digest: string;
 };
+
+function proofDigest(params: VerifyProofParams): string {
+  const canonical: Record<keyof VerifyProofParams, string | string[]> = {
+    nullifier: params.nullifier.toString(),
+    action: params.action.toString(),
+    rpId: params.rpId.toString(),
+    nonce: params.nonce.toString(),
+    signalHash: params.signalHash.toString(),
+    expiresAtMin: params.expiresAtMin.toString(),
+    issuerSchemaId: params.issuerSchemaId.toString(),
+    credentialGenesisIssuedAtMin:
+      params.credentialGenesisIssuedAtMin.toString(),
+    zeroKnowledgeProof: params.zeroKnowledgeProof.map(String),
+  };
+  return createHash("sha256").update(JSON.stringify(canonical)).digest("hex");
+}
 
 const isOutcome = (value: unknown): value is TestVerificationOutcome =>
   TEST_VERIFICATION_OUTCOMES.some((outcome) => outcome === value);
@@ -129,12 +147,43 @@ export async function mintTestProof(params: {
   const expires_at = new Date(expiresAt).toISOString();
   // Keep 248 random bits within the field, encoded as a full 32-byte value.
   const nullifier = `0x00${randomBytes(31).toString("hex")}`;
+  const payload: TestVerificationPayload = {
+    protocol_version: "4.0",
+    environment: "staging",
+    action: params.action,
+    nonce: `0x00${randomBytes(31).toString("hex")}`,
+    responses: [
+      {
+        identifier: "proof_of_human",
+        issuer_schema_id: 1,
+        nullifier,
+        signal_hash: "0x0",
+        expires_at_min: Math.floor(expiresAt / 1000),
+        credential_genesis_issued_at_min: 0,
+        proof: [
+          ZERO_FIELD_ELEMENT,
+          ZERO_FIELD_ELEMENT,
+          ZERO_FIELD_ELEMENT,
+          ZERO_FIELD_ELEMENT,
+          ZERO_FIELD_ELEMENT,
+        ],
+      },
+    ],
+  };
   const record: TestProofRecord = {
     rp_id: params.rpId.toLowerCase(),
     action: params.action,
     team_id: params.teamId,
     outcome: params.outcome,
     expires_at,
+    proof_digest: proofDigest(
+      toUniquenessProofParams(
+        BigInt(`0x${params.rpId.slice(3)}`),
+        payload.nonce,
+        payload.action,
+        payload.responses[0],
+      ),
+    ),
   };
 
   try {
@@ -172,43 +221,20 @@ export async function mintTestProof(params: {
 
   return {
     expires_at,
-    payload: {
-      protocol_version: "4.0",
-      environment: "staging",
-      action: params.action,
-      nonce: `0x00${randomBytes(31).toString("hex")}`,
-      responses: [
-        {
-          identifier: "proof_of_human",
-          issuer_schema_id: 1,
-          nullifier,
-          signal_hash: "0x0",
-          expires_at_min: Math.floor(expiresAt / 1000),
-          credential_genesis_issued_at_min: 0,
-          proof: [
-            ZERO_FIELD_ELEMENT,
-            ZERO_FIELD_ELEMENT,
-            ZERO_FIELD_ELEMENT,
-            ZERO_FIELD_ELEMENT,
-            ZERO_FIELD_ELEMENT,
-          ],
-        },
-      ],
-    },
+    payload,
   };
 }
 
 export async function getTestProofVerdict(params: {
-  rpId: bigint;
   action: string;
-  nullifier: bigint;
+  proofParams: VerifyProofParams;
   environment: string | undefined;
 }): Promise<(VerifyProofResult & { test: true }) | null> {
   if (params.environment !== "staging") {
     return null;
   }
 
-  const rpId = `rp_${params.rpId.toString(16).padStart(16, "0")}`;
+  const rpId = `rp_${params.proofParams.rpId.toString(16).padStart(16, "0")}`;
   try {
     const redis = global.RedisClient;
     if (!redis) {
@@ -218,7 +244,7 @@ export async function getTestProofVerdict(params: {
       );
     }
     const value = await withTestVerificationTimeout(
-      redis.get(`test_proof:${params.nullifier.toString()}`),
+      redis.get(`test_proof:${params.proofParams.nullifier.toString()}`),
     );
     if (value === null) return null;
 
@@ -239,7 +265,10 @@ export async function getTestProofVerdict(params: {
       !isOutcome(record.outcome) ||
       !("expires_at" in record) ||
       typeof record.expires_at !== "string" ||
-      !Number.isFinite(Date.parse(record.expires_at))
+      !Number.isFinite(Date.parse(record.expires_at)) ||
+      !("proof_digest" in record) ||
+      typeof record.proof_digest !== "string" ||
+      !/^[\da-f]{64}$/.test(record.proof_digest)
     ) {
       throw new TestVerificationFailure(
         "malformed_record",
@@ -251,7 +280,8 @@ export async function getTestProofVerdict(params: {
     if (
       record.rp_id !== rpId ||
       record.action !== params.action ||
-      expiresAt <= Date.now()
+      expiresAt <= Date.now() ||
+      record.proof_digest !== proofDigest(params.proofParams)
     ) {
       return null;
     }

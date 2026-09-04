@@ -1,4 +1,7 @@
-import { mintTestProof } from "@/api/helpers/test-proofs";
+import {
+  mintTestProof,
+  TestVerificationPayload,
+} from "@/api/helpers/test-proofs";
 import { POST } from "@/api/v4/verify";
 import { NextRequest } from "next/server";
 import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
@@ -236,6 +239,146 @@ describe("/api/v4/verify [synthetic chain verdicts]", () => {
 
 // #region Fences and unchanged request guards
 describe("/api/v4/verify [synthetic fences]", () => {
+  const tamperCases: Array<
+    [string, (payload: TestVerificationPayload) => void]
+  > = [
+    [
+      "nonce",
+      (payload) => {
+        payload.nonce = `0x${(BigInt(payload.nonce) + 1n).toString(16)}`;
+      },
+    ],
+    [
+      "signal",
+      (payload) => {
+        payload.responses[0].signal_hash = "0x1";
+      },
+    ],
+    [
+      "expiry",
+      (payload) => {
+        payload.responses[0].expires_at_min += 1;
+      },
+    ],
+    [
+      "issuer",
+      (payload) => {
+        payload.responses[0].issuer_schema_id = 9303;
+      },
+    ],
+    [
+      "credential timestamp",
+      (payload) => {
+        payload.responses[0].credential_genesis_issued_at_min = 1;
+      },
+    ],
+    [
+      "nullifier",
+      (payload) => {
+        payload.responses[0].nullifier = `0x${(BigInt(payload.responses[0].nullifier) + 1n).toString(16)}`;
+      },
+    ],
+    ...[0, 1, 2, 3, 4].map(
+      (index): [string, (payload: TestVerificationPayload) => void] => [
+        `proof element ${index}`,
+        (payload) => {
+          payload.responses[0].proof[index] = "0x1";
+        },
+      ],
+    ),
+  ];
+
+  it.each(tamperCases)(
+    "sends a changed %s to real RPC without inserting a row",
+    async (_, tamper) => {
+      const payload = await mint();
+      tamper(payload);
+      mockVerifyProofOnChain.mockResolvedValue({
+        success: false,
+        error: { code: "invalid_proof", detail: "The proof is invalid." },
+      });
+
+      const response = await verify(payload);
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      expect(body).not.toHaveProperty("test");
+      expect(body).toMatchObject({
+        code: "all_verifications_failed",
+        results: [
+          expect.objectContaining({ success: false, code: "invalid_proof" }),
+        ],
+      });
+      expect(mockVerifyProofOnChain).toHaveBeenCalledTimes(1);
+      expect(mockVerifyProofOnChain).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nonce: BigInt(payload.nonce),
+          signalHash: BigInt(payload.responses[0].signal_hash),
+          expiresAtMin: BigInt(payload.responses[0].expires_at_min),
+          issuerSchemaId: BigInt(payload.responses[0].issuer_schema_id),
+          credentialGenesisIssuedAtMin: BigInt(
+            payload.responses[0].credential_genesis_issued_at_min,
+          ),
+          nullifier: BigInt(payload.responses[0].nullifier),
+          zeroKnowledgeProof: payload.responses[0].proof.map(BigInt),
+        }),
+        "0xstaging",
+      );
+      expect(CreateActionV4).not.toHaveBeenCalled();
+      expect(InsertNullifierV4).not.toHaveBeenCalled();
+    },
+  );
+
+  it("accepts numerically equivalent encodings and unbound presentation labels", async () => {
+    const payload = await mint();
+    const equivalentHex = (value: string) =>
+      `0x000${BigInt(value).toString(16).toUpperCase()}`;
+    const response = await verify({
+      ...payload,
+      nonce: BigInt(payload.nonce).toString(),
+      action_description: "A different description",
+      responses: [
+        {
+          ...payload.responses[0],
+          identifier: "display-label",
+          nullifier: equivalentHex(payload.responses[0].nullifier),
+          signal_hash: "0x0000",
+          credential_genesis_issued_at_min: undefined,
+          proof: payload.responses[0].proof.map(equivalentHex),
+        },
+      ],
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      test: true,
+      results: [
+        expect.objectContaining({ identifier: "display-label", success: true }),
+      ],
+    });
+    expect(mockVerifyProofOnChain).not.toHaveBeenCalled();
+    expect(InsertNullifierV4).toHaveBeenCalledWith({
+      action_v4_id: actionRecord.id,
+      nullifier: BigInt(payload.responses[0].nullifier).toString(),
+    });
+  });
+
+  it("sends old records without a digest to real RPC", async () => {
+    const payload = await mint();
+    const key = `test_proof:${BigInt(payload.responses[0].nullifier).toString()}`;
+    const record = JSON.parse((await global.RedisClient!.get(key))!);
+    delete record.proof_digest;
+    await global.RedisClient!.set(key, JSON.stringify(record));
+    mockVerifyProofOnChain.mockResolvedValue({
+      success: false,
+      error: { code: "invalid_proof", detail: "The proof is invalid." },
+    });
+    const response = await verify(payload);
+    expect(response.status).toBe(400);
+    expect(await response.json()).not.toHaveProperty("test");
+    expect(mockVerifyProofOnChain).toHaveBeenCalledTimes(1);
+    expect(InsertNullifierV4).not.toHaveBeenCalled();
+  });
+
   it.each(["production", undefined, "sandbox"])(
     "never reads the store for environment %s",
     async (environment) => {
