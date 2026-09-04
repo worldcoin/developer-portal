@@ -24,35 +24,66 @@ export const DEFAULT_RECOGNIZED_ISSUER_SCHEMA_IDS: readonly number[] = [
 export const UNRECOGNIZED_ISSUER_ERROR_CODE = "unrecognized_credential_issuer";
 
 /**
- * Deployment override for the recognized set, as a comma-separated list of
- * integers (e.g. an environment whose registry assigns different ids). Ignored
- * when empty or unparseable so a malformed value cannot silently widen the
- * allowlist.
+ * The staging Verifier is backed by a different registry contract than the
+ * production one, so the same numeric id can name a different (issuer, schema)
+ * pair in each. Overrides are therefore scoped per verifier environment.
  */
-function readConfiguredIds(): number[] | null {
-  const raw = process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS;
+export type VerifierEnvironment = "production" | "staging";
+
+function overrideVariableName(environment: VerifierEnvironment) {
+  return environment === "staging"
+    ? "V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS_STAGING"
+    : "V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS";
+}
+
+/**
+ * Deployment override for the recognized set, as a comma-separated list of
+ * integers. A malformed list is rejected whole rather than partially applied:
+ * dropping the bad entry would silently narrow the allowlist and reject
+ * legitimate credentials.
+ */
+function readConfiguredIds(environment: VerifierEnvironment): number[] | null {
+  const variableName = overrideVariableName(environment);
+  const raw = process.env[variableName];
   if (!raw) return null;
 
-  const parsed = raw
+  const entries = raw
     .split(",")
     .map((entry) => entry.trim())
-    .filter(Boolean)
-    .map((entry) => Number(entry))
-    .filter((value) => Number.isSafeInteger(value) && value >= 0);
+    .filter(Boolean);
 
-  if (parsed.length === 0) {
+  if (entries.length === 0) {
     logger.warn(
-      "V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS is set but holds no valid ids; using the built-in recognized set",
+      `${variableName} is set but holds no ids; using the built-in recognized set`,
     );
 
     return null;
   }
 
+  const parsed: number[] = [];
+
+  for (const entry of entries) {
+    const value = Number(entry);
+
+    if (!Number.isSafeInteger(value) || value < 0) {
+      logger.warn(
+        `${variableName} holds an invalid id; using the built-in recognized set`,
+        { entry },
+      );
+
+      return null;
+    }
+
+    parsed.push(value);
+  }
+
   return parsed;
 }
 
-export function getRecognizedIssuerSchemaIds(): readonly number[] {
-  return readConfiguredIds() ?? DEFAULT_RECOGNIZED_ISSUER_SCHEMA_IDS;
+export function getRecognizedIssuerSchemaIds(
+  environment: VerifierEnvironment,
+): readonly number[] {
+  return readConfiguredIds(environment) ?? DEFAULT_RECOGNIZED_ISSUER_SCHEMA_IDS;
 }
 
 /**
@@ -76,8 +107,9 @@ export interface UnrecognizedIssuer {
  */
 export function findUnrecognizedIssuers(
   responses: ReadonlyArray<{ issuer_schema_id?: unknown }>,
+  environment: VerifierEnvironment,
 ): UnrecognizedIssuer[] {
-  const recognized = getRecognizedIssuerSchemaIds();
+  const recognized = getRecognizedIssuerSchemaIds(environment);
   const unrecognized: UnrecognizedIssuer[] = [];
 
   responses.forEach((response, index) => {

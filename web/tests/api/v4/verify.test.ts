@@ -77,6 +77,7 @@ const createRequest = (body: Record<string, unknown>) =>
 beforeEach(() => {
   jest.clearAllMocks();
   delete process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS;
+  delete process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS_STAGING;
   delete process.env.V4_VERIFY_ISSUER_ALLOWLIST_ENFORCED;
   mockResolveRpRegistration.mockResolvedValue({
     success: true,
@@ -275,6 +276,51 @@ describe("/api/v4/verify [credential issuer allowlist]", () => {
     );
 
     expect(rejected.status).toBe(400);
+  });
+
+  it("keeps the staging override out of production requests", async () => {
+    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS_STAGING = "777";
+
+    const staging = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        environment: "staging",
+        responses: [{ ...v4Response, issuer_schema_id: 777 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(staging.status).toBe(200);
+
+    const production = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...v4Response, issuer_schema_id: 777 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(production.status).toBe(400);
+  });
+
+  it("ignores an override holding an invalid id instead of applying it partially", async () => {
+    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS = "1,11,128,9303,931O";
+
+    const recognized = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...v4Response, issuer_schema_id: 9310 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(recognized.status).toBe(200);
   });
 
   it("falls back to log-only mode when enforcement is switched off", async () => {

@@ -157,8 +157,14 @@ export async function POST(
     // permissionless, so a self-registered issuer would otherwise be reported to
     // the relying party as a verified credential.
     if (parsedParams.protocol_version === "4.0") {
+      // Scoped to the verifier this request will actually hit: staging and
+      // production registries assign ids independently.
+      const issuerEnvironment =
+        verifierEnvironment === "staging" ? "staging" : "production";
+
       const unrecognizedIssuers = findUnrecognizedIssuers(
         parsedParams.responses as Array<{ issuer_schema_id?: unknown }>,
+        issuerEnvironment,
       );
 
       if (unrecognizedIssuers.length > 0) {
@@ -167,6 +173,7 @@ export async function POST(
         logger.warn("Unrecognized credential issuer in v4 verify request", {
           rp_id: rpId,
           app_id: appId,
+          environment: issuerEnvironment,
           enforced,
           issuer_schema_ids: unrecognizedIssuers.map(
             (issuer) => issuer.issuerSchemaId,
