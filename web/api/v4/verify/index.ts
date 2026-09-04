@@ -155,8 +155,11 @@ export async function POST(
       const stagingAccess = authorizeStagingVerification({
         req,
         appId,
+        rpId,
         stagingVerificationExpiresAt:
           rpRegistration.staging_verification_expires_at,
+        stagingVerificationTokenHash:
+          rpRegistration.staging_verification_token_hash,
       });
 
       if (!stagingAccess.authorized) {

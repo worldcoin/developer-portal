@@ -16,12 +16,15 @@ import {
   type ManagedRotationResult,
 } from "@/api/helpers/rp-registration-flows";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
-import { verifyHashedSecret } from "@/api/helpers/utils";
+import { generateHashedSecret, verifyHashedSecret } from "@/api/helpers/utils";
 import { getSdk as getMcpAppContextSdk } from "@/api/mcp/graphql/app-context.generated";
 import { getSdk as getMcpAuthenticateTeamSdk } from "@/api/mcp/graphql/authenticate-team.generated";
 import { getSdk as getMcpCreateAppSdk } from "@/api/mcp/graphql/create-app.generated";
 import { getSdk as getMcpSetStagingVerificationWindowSdk } from "@/api/mcp/graphql/set-staging-verification-window.generated";
-import { STAGING_VERIFICATION_WINDOW_MS } from "@/api/v4/verify/staging-access";
+import {
+  STAGING_VERIFICATION_TOKEN_HEADER,
+  STAGING_VERIFICATION_WINDOW_MS,
+} from "@/api/v4/verify/staging-access";
 import { getSdk as getMcpSubmitAppForReviewSdk } from "@/api/mcp/graphql/submit-app-for-review.generated";
 import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.generated";
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
@@ -208,7 +211,7 @@ const toolDefinitions = [
   {
     name: "set_world_id_staging_verification",
     description:
-      "Open or close a temporary staging verification window for an app. While the window is open, /api/v4/verify accepts staging and sandbox proofs for this app; it closes automatically after 24 hours.",
+      "Open or close a temporary staging verification window for an app, and issue the one-time token that staging verifications must present. The window closes automatically after 24 hours.",
     inputSchema: {
       type: "object",
       properties: {
@@ -1250,6 +1253,11 @@ const tools = {
       throw new McpError("World ID is not configured for this app.", -32004);
     }
 
+    // The token is issued here and returned once; only its HMAC is stored, so a
+    // window cannot be re-opened for the developer by reading the database.
+    const { secret: stagingToken, hashed_secret: stagingTokenHash } =
+      generateHashedSecret(registration.rp_id);
+
     const expiresAt = args.enabled
       ? new Date(Date.now() + STAGING_VERIFICATION_WINDOW_MS).toISOString()
       : null;
@@ -1259,6 +1267,7 @@ const tools = {
     ).McpSetStagingVerificationWindow({
       rp_id: registration.rp_id,
       expires_at: expiresAt,
+      token_hash: args.enabled ? stagingTokenHash : null,
     });
 
     logPortalEvent({
@@ -1278,9 +1287,10 @@ const tools = {
       staging_verification_expires_at:
         data.update_rp_registration_by_pk?.staging_verification_expires_at ??
         null,
+      staging_verification_token: args.enabled ? stagingToken : null,
       message: args.enabled
-        ? "Staging and sandbox proofs are accepted for this app until the timestamp above. Production verification is unaffected."
-        : "Staging verification is closed. /api/v4/verify now accepts production proofs only.",
+        ? `Send this token as the ${STAGING_VERIFICATION_TOKEN_HEADER} header on /api/v4/verify calls that carry staging or sandbox proofs. It is shown once, works until the timestamp above, and is not needed for production verification. Opening another window replaces it.`
+        : "Staging verification is closed. /api/v4/verify now accepts production proofs only, and the previous token no longer works.",
     });
   },
 

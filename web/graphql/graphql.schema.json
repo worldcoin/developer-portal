@@ -81289,11 +81289,23 @@
           },
           {
             "name": "staging_verification_expires_at",
-            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "description": "While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
             "args": [],
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_token_hash",
+            "description": "HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -82041,6 +82053,18 @@
             "deprecationReason": null
           },
           {
+            "name": "staging_verification_token_hash",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
             "description": null,
             "type": {
@@ -82244,10 +82268,22 @@
           },
           {
             "name": "staging_verification_expires_at",
-            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "description": "While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_token_hash",
+            "description": "HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored.",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -82398,11 +82434,23 @@
           },
           {
             "name": "staging_verification_expires_at",
-            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "description": "While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
             "args": [],
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_token_hash",
+            "description": "HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -82554,7 +82602,19 @@
           },
           {
             "name": "staging_verification_expires_at",
-            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "description": "While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_token_hash",
+            "description": "HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored.",
             "type": {
               "kind": "ENUM",
               "name": "order_by",
@@ -82708,11 +82768,23 @@
           },
           {
             "name": "staging_verification_expires_at",
-            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "description": "While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
             "args": [],
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_token_hash",
+            "description": "HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -82864,7 +82936,19 @@
           },
           {
             "name": "staging_verification_expires_at",
-            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "description": "While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_token_hash",
+            "description": "HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored.",
             "type": {
               "kind": "ENUM",
               "name": "order_by",
@@ -83364,6 +83448,18 @@
             "deprecationReason": null
           },
           {
+            "name": "staging_verification_token_hash",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
             "description": null,
             "type": {
@@ -83489,6 +83585,12 @@
           },
           {
             "name": "staging_verification_expires_at",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_token_hash",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -83670,10 +83772,22 @@
           },
           {
             "name": "staging_verification_expires_at",
-            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "description": "While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_token_hash",
+            "description": "HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored.",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -84021,10 +84135,22 @@
           },
           {
             "name": "staging_verification_expires_at",
-            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "description": "While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
             "type": {
               "kind": "SCALAR",
               "name": "timestamptz",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_token_hash",
+            "description": "HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored.",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -84130,6 +84256,12 @@
           },
           {
             "name": "staging_verification_expires_at",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_token_hash",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

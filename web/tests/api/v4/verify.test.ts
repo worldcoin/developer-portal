@@ -7,6 +7,7 @@ const mockResolveRpRegistration = jest.fn();
 const mockVerifyIntegrityBundle = jest.fn();
 const mockHandleUniquenessProofVerification = jest.fn();
 const mockHandleSessionProofVerification = jest.fn();
+const mockVerifyHashedSecret = jest.fn();
 
 jest.mock("../../../lib/logger", () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
@@ -20,6 +21,11 @@ jest.mock("../../../api/helpers/rp-utils", () => ({
   RpRegistrationStatus: { Registered: "registered" },
   resolveRpRegistration: (...args: unknown[]) =>
     mockResolveRpRegistration(...args),
+}));
+
+jest.mock("../../../api/helpers/utils", () => ({
+  ...jest.requireActual("../../../api/helpers/utils"),
+  verifyHashedSecret: (...args: unknown[]) => mockVerifyHashedSecret(...args),
 }));
 
 jest.mock("../../../api/v4/verify/integrity-bundle", () => ({
@@ -67,20 +73,30 @@ const selfieCheckV4Response = {
   sybil_score: 10,
 };
 
-const createRequest = (body: Record<string, unknown>) =>
+const stagingToken = "sk_staging_token";
+const stagingTokenHash = "hash-of-sk_staging_token";
+
+const createRequest = (body: Record<string, unknown>, token?: string) =>
   new NextRequest(new URL(`/api/v4/verify/${appId}`, "http://localhost:3000"), {
     method: "POST",
     body: JSON.stringify(body),
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      ...(token ? { "x-staging-verification-token": token } : {}),
+    },
   });
 
-const registration = (stagingVerificationExpiresAt: string | null = null) => ({
+const registration = (
+  stagingVerificationExpiresAt: string | null = null,
+  stagingVerificationTokenHash: string | null = stagingTokenHash,
+) => ({
   success: true,
   registration: {
     app_id: appId,
     rp_id: rpId,
     status: "registered",
     staging_verification_expires_at: stagingVerificationExpiresAt,
+    staging_verification_token_hash: stagingVerificationTokenHash,
     app: {
       status: "active",
       is_archived: false,
@@ -99,6 +115,10 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockResolveRpRegistration.mockResolvedValue(registration());
   mockVerifyIntegrityBundle.mockResolvedValue({ success: true });
+  mockVerifyHashedSecret.mockImplementation(
+    (_identifier: string, secret: string, hash: string) =>
+      hash === `hash-of-${secret}`,
+  );
   mockHandleUniquenessProofVerification.mockResolvedValue(
     NextResponse.json({ success: true }),
   );
@@ -114,14 +134,17 @@ describe("/api/v4/verify [integrity bundle]", () => {
       registration(openStagingWindow()),
     );
 
-    const req = createRequest({
-      protocol_version: "4.0",
-      nonce: "1",
-      action: "verify",
-      environment: "sandbox",
-      integrity_bundle: integrityBundle,
-      responses: [v4Response],
-    });
+    const req = createRequest(
+      {
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        environment: "sandbox",
+        integrity_bundle: integrityBundle,
+        responses: [v4Response],
+      },
+      stagingToken,
+    );
 
     const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
 
@@ -234,18 +257,21 @@ describe("/api/v4/verify [staging environment]", () => {
     expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
   });
 
-  it("refuses sandbox once the staging window has expired", async () => {
+  it("refuses sandbox once the staging window has expired, token or not", async () => {
     mockResolveRpRegistration.mockResolvedValue(
       registration(closedStagingWindow()),
     );
 
-    const req = createRequest({
-      protocol_version: "4.0",
-      nonce: "1",
-      action: "verify",
-      environment: "sandbox",
-      responses: [v4Response],
-    });
+    const req = createRequest(
+      {
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        environment: "sandbox",
+        responses: [v4Response],
+      },
+      stagingToken,
+    );
 
     const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
 
@@ -256,18 +282,21 @@ describe("/api/v4/verify [staging environment]", () => {
     expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
   });
 
-  it("verifies a uniqueness proof while the staging window is open", async () => {
+  it("verifies a uniqueness proof with an open window and its token", async () => {
     mockResolveRpRegistration.mockResolvedValue(
       registration(openStagingWindow()),
     );
 
-    const req = createRequest({
-      protocol_version: "4.0",
-      nonce: "1",
-      action: "verify",
-      environment: "staging",
-      responses: [v4Response],
-    });
+    const req = createRequest(
+      {
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        environment: "staging",
+        responses: [v4Response],
+      },
+      stagingToken,
+    );
 
     const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
 
@@ -299,18 +328,21 @@ describe("/api/v4/verify [staging environment]", () => {
     expect(mockHandleSessionProofVerification).not.toHaveBeenCalled();
   });
 
-  it("verifies a session proof while the staging window is open", async () => {
+  it("verifies a session proof with an open window and its token", async () => {
     mockResolveRpRegistration.mockResolvedValue(
       registration(openStagingWindow()),
     );
 
-    const req = createRequest({
-      protocol_version: "4.0",
-      nonce: "1",
-      session_id: "session_1",
-      environment: "staging",
-      responses: [sessionResponse],
-    });
+    const req = createRequest(
+      {
+        protocol_version: "4.0",
+        nonce: "1",
+        session_id: "session_1",
+        environment: "staging",
+        responses: [sessionResponse],
+      },
+      stagingToken,
+    );
 
     const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
 
@@ -320,6 +352,78 @@ describe("/api/v4/verify [staging environment]", () => {
       appId,
       expect.objectContaining({ environment: "staging" }),
     );
+  });
+
+  it("refuses staging inside an open window without the token", async () => {
+    mockResolveRpRegistration.mockResolvedValue(
+      registration(openStagingWindow()),
+    );
+
+    const req = createRequest({
+      protocol_version: "4.0",
+      nonce: "1",
+      action: "verify",
+      environment: "staging",
+      responses: [v4Response],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(403);
+    await expect(res.json()).resolves.toMatchObject({
+      code: "environment_not_allowed",
+    });
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+  });
+
+  it("refuses staging when the token does not match the open window", async () => {
+    mockResolveRpRegistration.mockResolvedValue(
+      registration(openStagingWindow()),
+    );
+
+    const req = createRequest(
+      {
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        environment: "staging",
+        responses: [v4Response],
+      },
+      "sk_someone_elses_token",
+    );
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(403);
+    expect(mockVerifyHashedSecret).toHaveBeenCalledWith(
+      rpId,
+      "sk_someone_elses_token",
+      stagingTokenHash,
+    );
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+  });
+
+  it("refuses staging when the window is open but no token was ever issued", async () => {
+    mockResolveRpRegistration.mockResolvedValue(
+      registration(openStagingWindow(), null),
+    );
+
+    const req = createRequest(
+      {
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        environment: "staging",
+        responses: [v4Response],
+      },
+      stagingToken,
+    );
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(403);
+    expect(mockVerifyHashedSecret).not.toHaveBeenCalled();
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
   });
 
   it("verifies production proofs whether or not a staging window is open", async () => {

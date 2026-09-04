@@ -60,6 +60,7 @@ select_permissions:
         - staging_status
         - staging_operation_hash
         - staging_verification_expires_at
+        - staging_verification_token_hash
       filter: {}
   - role: user
     permission:
@@ -97,6 +98,7 @@ update_permissions:
         - staging_status
         - staging_operation_hash
         - staging_verification_expires_at
+        - staging_verification_token_hash
         - updated_at
       filter: {}
       check: {}

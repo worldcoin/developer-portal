@@ -1,4 +1,4 @@
-import { generateHashedSecret } from "@/api/helpers/utils";
+import { generateHashedSecret, verifyHashedSecret } from "@/api/helpers/utils";
 import { GET, OPTIONS, POST } from "@/api/mcp";
 import { logger } from "@/lib/logger";
 import { generateRpIdString } from "@/lib/rp";
@@ -662,7 +662,20 @@ describe("/api/mcp", () => {
     expect(mutation?.[1]).toEqual({
       rp_id: rpId,
       expires_at: payload.staging_verification_expires_at,
+      token_hash: expect.any(String),
     });
+    // The token is returned once and only its HMAC is stored.
+    expect(payload.staging_verification_token).toMatch(/^sk_/);
+    expect(mutation?.[1].token_hash).not.toBe(
+      payload.staging_verification_token,
+    );
+    expect(
+      verifyHashedSecret(
+        rpId,
+        payload.staging_verification_token,
+        mutation?.[1].token_hash,
+      ),
+    ).toBe(true);
     expect(mockLoggerInfo).toHaveBeenCalledWith(
       "portal_staging_verification_window",
       expect.objectContaining({ actor: "mcp", app_id: appId, enabled: true }),
@@ -681,10 +694,16 @@ describe("/api/mcp", () => {
     const payload = JSON.parse((await res.json()).result.content[0].text);
     expect(payload.staging_verification_expires_at).toBeNull();
 
+    expect(payload.staging_verification_token).toBeNull();
+
     const mutation = requestMock.mock.calls.find(([query]) =>
       getOperationName(query).includes("McpSetStagingVerificationWindow"),
     );
-    expect(mutation?.[1]).toEqual({ rp_id: rpId, expires_at: null });
+    expect(mutation?.[1]).toEqual({
+      rp_id: rpId,
+      expires_at: null,
+      token_hash: null,
+    });
   });
 
   it("refuses to open a staging window for an app without World ID", async () => {

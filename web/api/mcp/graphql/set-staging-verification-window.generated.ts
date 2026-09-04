@@ -7,6 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type McpSetStagingVerificationWindowMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
   expires_at?: Types.InputMaybe<Types.Scalars["timestamptz"]["input"]>;
+  token_hash?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type McpSetStagingVerificationWindowMutation = {
@@ -22,10 +23,14 @@ export const McpSetStagingVerificationWindowDocument = gql`
   mutation McpSetStagingVerificationWindow(
     $rp_id: String!
     $expires_at: timestamptz
+    $token_hash: String
   ) {
     update_rp_registration_by_pk(
       pk_columns: { rp_id: $rp_id }
-      _set: { staging_verification_expires_at: $expires_at }
+      _set: {
+        staging_verification_expires_at: $expires_at
+        staging_verification_token_hash: $token_hash
+      }
     ) {
       rp_id
       staging_verification_expires_at
