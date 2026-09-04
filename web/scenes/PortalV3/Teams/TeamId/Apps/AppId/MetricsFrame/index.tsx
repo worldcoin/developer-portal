@@ -247,7 +247,7 @@ export const MetricsFrame = (props: { appId: string }) => {
         <section aria-labelledby="all-time-heading" className="grid gap-4">
           <h2
             id="all-time-heading"
-            className="font-world text-16 font-semibold text-portal-heading"
+            className="font-world text-18 font-semibold text-portal-heading"
           >
             All time
           </h2>
@@ -272,7 +272,7 @@ export const MetricsFrame = (props: { appId: string }) => {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <h2
               id="daily-metrics-heading"
-              className="font-world text-16 font-semibold text-portal-heading"
+              className="font-world text-18 font-semibold text-portal-heading"
             >
               Daily
             </h2>
