@@ -1,6 +1,7 @@
 import { verifyProofOnChain } from "@/api/helpers/temporal-rpc";
+import { getTestProofVerdict } from "@/api/helpers/test-proofs";
+import { toUniquenessProofParams } from "@/api/helpers/uniqueness-proof-params";
 import { logger } from "@/lib/logger";
-import { hashSignal } from "@worldcoin/idkit/hashing";
 import { UniquenessProofResponseV4 } from "../request-schema";
 import { UniquenessResult } from "./handler";
 
@@ -14,33 +15,22 @@ export async function processUniquenessProofV4(
   action: string,
   responses: UniquenessProofResponseV4[],
   verifierAddress: string,
+  environment?: string,
+  onTestVerification?: () => void,
 ): Promise<UniquenessResult[]> {
   const results = await Promise.all(
     responses.map(async (item): Promise<UniquenessResult> => {
       try {
-        const verifyResult = await verifyProofOnChain(
-          {
-            nullifier: BigInt(item.nullifier),
-            // Note: `hashSignal` is same as `hashToField` from previous idkit versions
-            action: BigInt(hashSignal(action)),
-            rpId,
-            nonce: BigInt(nonce),
-            signalHash: BigInt(item.signal_hash),
-            expiresAtMin: BigInt(item.expires_at_min),
-            issuerSchemaId: BigInt(item.issuer_schema_id),
-            credentialGenesisIssuedAtMin: BigInt(
-              item.credential_genesis_issued_at_min || "0",
-            ),
-            zeroKnowledgeProof: item.proof.map((p) => BigInt(p)) as [
-              bigint,
-              bigint,
-              bigint,
-              bigint,
-              bigint,
-            ],
-          },
-          verifierAddress,
-        );
+        const chainParams = toUniquenessProofParams(rpId, nonce, action, item);
+        const testVerdict = await getTestProofVerdict({
+          action,
+          proofParams: chainParams,
+          environment,
+        });
+        if (testVerdict) onTestVerification?.();
+        const verifyResult =
+          testVerdict ??
+          (await verifyProofOnChain(chainParams, verifierAddress));
 
         if (!verifyResult.success) {
           return {

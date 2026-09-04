@@ -10,6 +10,7 @@ import ERC20_ABI from "./abi/erc20.json";
 import RP_REGISTRY_ABI from "./abi/rp-registry.json";
 import VERIFIER_ABI from "./abi/verifier.json";
 import { UserOperation } from "./user-operation";
+import { VERIFIER_ERROR_MAP } from "./verifier-errors";
 
 // =============================================================================
 // Types & Interfaces
@@ -94,34 +95,6 @@ const RPC_TIMEOUT_MS = 10_000;
 const RPC_MAX_RETRIES = 2;
 const WORLD_CHAIN_ID = 480;
 const WORLD_CHAIN_NETWORK = "worldchain";
-
-/** Maps Verifier contract revert reasons to user-friendly error codes. */
-const VERIFIER_ERROR_MAP: Record<string, { code: string; detail: string }> = {
-  OutdatedNullifier: {
-    code: "outdated_nullifier",
-    detail: "The proof has expired. Please generate a new proof.",
-  },
-  NullifierFromFuture: {
-    code: "nullifier_from_future",
-    detail: "The proof timestamp is in the future.",
-  },
-  InvalidMerkleRoot: {
-    code: "invalid_root",
-    detail: "The authenticator root is not valid.",
-  },
-  UnregisteredIssuerSchemaId: {
-    code: "invalid_credential_issuer",
-    detail: "The credential issuer is not registered.",
-  },
-  ProofInvalid: {
-    code: "invalid_proof",
-    detail: "The proof is invalid.",
-  },
-  PublicInputNotInField: {
-    code: "invalid_public_input",
-    detail: "A public input value is out of range.",
-  },
-};
 
 // =============================================================================
 // Internal Helpers
