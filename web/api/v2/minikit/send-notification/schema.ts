@@ -142,7 +142,6 @@ export const sendNotificationBodySchemaV2 = yup
         },
       ),
     draft_id: yup.string().optional(),
-    expires_at: yup.number().integer().positive().strict().optional(),
     template_key: yup
       .string()
       .oneOf([PULSE_ZOOM_DEEP_FACE_TEMPLATE_KEY])
@@ -196,14 +195,5 @@ export const sendNotificationBodySchemaV2 = yup
     (value) =>
       (value?.template_key === undefined) ===
       (value?.template_args === undefined),
-  )
-  .test(
-    "deep-face-expiration",
-    "expires_at is required for Deep Face notifications",
-    (value) =>
-      !value?.mini_app_path ||
-      (!isValidDeepFaceUniversalLink(value.mini_app_path) &&
-        !isValidDeepFaceDeepLink(value.mini_app_path)) ||
-      value.expires_at !== undefined,
   )
   .noUnknown();

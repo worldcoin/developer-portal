@@ -218,9 +218,6 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
         },
         body: JSON.stringify({
           ...v2RequestBody,
-          mini_app_path:
-            "worldid://verify?t=deepface&i=request-123&expires_at=1786560330&count=1",
-          expires_at: 1786560330,
           template_key: "pulse_zoom_deep_face",
           template_args: { app_name: "Zoom", is_self: "yes" },
         }),
@@ -234,7 +231,6 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
     expect(JSON.parse(options.body)).toMatchObject({
       templateKey: "pulse_zoom_deep_face",
       templateArgs: { app_name: "Zoom", is_self: "yes" },
-      expiresAt: 1786560330,
     });
   });
 
@@ -384,32 +380,6 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     expect(res.status).toBe(400);
     expect((await res.json()).detail).toBe(
       "template_key and template_args must be provided together",
-    );
-    expect(mockSignedFetcher).not.toHaveBeenCalled();
-  });
-
-  it("rejects Deep Face notifications without an expiration", async () => {
-    mockSignedFetcher.mockClear();
-    const mockReq = new NextRequest(
-      "http://localhost:3000/api/v2/minikit/send-notification",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${validApiKey}`,
-        },
-        body: JSON.stringify({
-          ...v2RequestBody,
-          mini_app_path: "worldid://verify?t=deepface&i=request-123",
-        }),
-      },
-    );
-
-    const res = await POST(mockReq);
-
-    expect(res.status).toBe(400);
-    expect((await res.json()).detail).toBe(
-      "expires_at is required for Deep Face notifications",
     );
     expect(mockSignedFetcher).not.toHaveBeenCalled();
   });

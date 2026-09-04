@@ -377,10 +377,6 @@ export const POST = async (req: NextRequest) => {
           miniAppPath: mini_app_path,
           teamId: teamId,
           localisations: (parsedParams as SendNotificationBodyV2).localisations,
-          ...((parsedParams as SendNotificationBodyV2).expires_at !==
-            undefined && {
-            expiresAt: (parsedParams as SendNotificationBodyV2).expires_at,
-          }),
           ...((parsedParams as SendNotificationBodyV2).template_key !==
             undefined && {
             templateKey: (parsedParams as SendNotificationBodyV2).template_key,
