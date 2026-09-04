@@ -1,6 +1,5 @@
 import "server-only";
 
-import { isAgentTestVerificationsEnabled } from "@/lib/feature-flags/agent-test-verifications";
 import { logger } from "@/lib/logger";
 import { randomBytes } from "crypto";
 import tracer from "dd-trace";
@@ -117,9 +116,6 @@ export async function mintTestProof(params: {
   teamId: string;
   outcome: TestVerificationOutcome;
 }): Promise<{ payload: TestVerificationPayload; expires_at: string }> {
-  if (!isAgentTestVerificationsEnabled()) {
-    throw new Error("Agent test verifications are disabled");
-  }
   if (
     !/^rp_[\da-f]{16}$/i.test(params.rpId) ||
     !params.action ||
@@ -208,7 +204,7 @@ export async function getTestProofVerdict(params: {
   nullifier: bigint;
   environment: string | undefined;
 }): Promise<(VerifyProofResult & { test: true }) | null> {
-  if (params.environment !== "staging" || !isAgentTestVerificationsEnabled()) {
+  if (params.environment !== "staging") {
     return null;
   }
 

@@ -41,14 +41,12 @@ beforeEach(async () => {
   jest.clearAllMocks();
   global.RedisClient = redis;
   await redis.flushall();
-  process.env.ENABLE_AGENT_TEST_VERIFICATIONS = "true";
 });
 
 afterEach(() => {
   jest.restoreAllMocks();
   jest.useRealTimers();
   global.RedisClient = redis;
-  delete process.env.ENABLE_AGENT_TEST_VERIFICATIONS;
 });
 
 // #region Minting and immutable verdicts
@@ -177,20 +175,6 @@ describe("test proof acceptance fences", () => {
       ).resolves.toBeNull();
     }
     expect(get).not.toHaveBeenCalled();
-  });
-
-  it("gates both mint and accept before Redis when the flag is absent or not true", async () => {
-    const get = jest.spyOn(redis, "get");
-    const set = jest.spyOn(redis, "set");
-    for (const enabled of [undefined, "false", "1", "TRUE"]) {
-      if (enabled === undefined)
-        delete process.env.ENABLE_AGENT_TEST_VERIFICATIONS;
-      else process.env.ENABLE_AGENT_TEST_VERIFICATIONS = enabled;
-      await expect(mintTestProof(params)).rejects.toThrow("disabled");
-      await expect(getTestProofVerdict(lookup("0x1"))).resolves.toBeNull();
-    }
-    expect(get).not.toHaveBeenCalled();
-    expect(set).not.toHaveBeenCalled();
   });
 
   it("returns a miss without treating real proofs as lookup errors", async () => {
