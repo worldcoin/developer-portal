@@ -366,6 +366,14 @@ beforeEach(async () => {
         },
       };
     }
+    if (operationName.includes("McpSetStagingVerificationWindow")) {
+      return {
+        update_rp_registration_by_pk: {
+          rp_id: variables.rp_id,
+          staging_verification_expires_at: variables.expires_at,
+        },
+      };
+    }
     if (operationName.includes("McpUpsertRpRegistration")) {
       return {
         insert_rp_registration_one: {
@@ -628,6 +636,76 @@ describe("/api/mcp", () => {
         action: "verify-account",
       }),
     );
+  });
+
+  it("opens a 24h staging verification window", async () => {
+    const before = Date.now();
+
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: true,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    const expiresAt = Date.parse(payload.staging_verification_expires_at);
+    expect(expiresAt).toBeGreaterThanOrEqual(before + 24 * 60 * 60 * 1000);
+    expect(expiresAt).toBeLessThanOrEqual(
+      Date.now() + 24 * 60 * 60 * 1000 + 5000,
+    );
+
+    const mutation = requestMock.mock.calls.find(([query]) =>
+      getOperationName(query).includes("McpSetStagingVerificationWindow"),
+    );
+    expect(mutation?.[1]).toEqual({
+      rp_id: rpId,
+      expires_at: payload.staging_verification_expires_at,
+    });
+    expect(mockLoggerInfo).toHaveBeenCalledWith(
+      "portal_staging_verification_window",
+      expect.objectContaining({ actor: "mcp", app_id: appId, enabled: true }),
+    );
+  });
+
+  it("closes the staging verification window immediately", async () => {
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: false,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    expect(payload.staging_verification_expires_at).toBeNull();
+
+    const mutation = requestMock.mock.calls.find(([query]) =>
+      getOperationName(query).includes("McpSetStagingVerificationWindow"),
+    );
+    expect(mutation?.[1]).toEqual({ rp_id: rpId, expires_at: null });
+  });
+
+  it("refuses to open a staging window for an app without World ID", async () => {
+    currentAppContextResponse = {
+      app: [{ ...appContextResponse.app[0], rp_registration: [] }],
+    };
+
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: true,
+      }),
+    );
+
+    const body = await res.json();
+    expect(body.error.message).toBe("World ID is not configured for this app.");
+    expect(
+      requestMock.mock.calls.some(([query]) =>
+        getOperationName(query).includes("McpSetStagingVerificationWindow"),
+      ),
+    ).toBe(false);
   });
 
   it("configures World ID via the managed flow and returns a one-time signing key", async () => {
