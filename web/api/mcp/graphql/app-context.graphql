@@ -11,6 +11,7 @@ query McpAppContext($team_id: String!, $app_id: String!) {
     name
     engine
     is_staging
+    is_archived
     status
     app_metadata(
       where: { verification_status: { _neq: "verified" } }

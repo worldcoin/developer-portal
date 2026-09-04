@@ -6,6 +6,8 @@ import { NextRequest } from "next/server";
 import { resolveManagerAddress } from "../../api/helpers/rp-manager";
 import { getRpFromContract } from "../../api/helpers/temporal-rpc";
 
+jest.mock("dd-trace", () => ({ dogstatsd: { increment: jest.fn() } }));
+
 const requestMock = jest.fn();
 const s3SendMock = jest.fn();
 
@@ -134,6 +136,7 @@ const appContextResponse = {
       name: "Test App",
       engine: "cloud",
       is_staging: false,
+      is_archived: false,
       status: "active",
       app_metadata: [
         {
@@ -476,6 +479,18 @@ describe("/api/mcp", () => {
     expect(body.result.tools.map((tool: any) => tool.name)).toContain(
       "get_world_id_registration_status",
     );
+    const testVerification = body.result.tools.find(
+      (tool: any) => tool.name === "run_test_verification",
+    );
+    expect(testVerification.inputSchema.properties.outcome.enum).toEqual([
+      "success",
+      "expired",
+      "invalid_proof",
+    ]);
+    expect(testVerification.inputSchema.properties).not.toHaveProperty(
+      "environment",
+    );
+    expect(testVerification.inputSchema.properties).not.toHaveProperty("uses");
     const createApp = body.result.tools.find(
       (tool: any) => tool.name === "create_app",
     );

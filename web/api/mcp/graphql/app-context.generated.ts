@@ -17,6 +17,7 @@ export type McpAppContextQuery = {
     name: string;
     engine: string;
     is_staging: boolean;
+    is_archived: boolean;
     status: string;
     app_metadata: Array<{
       __typename?: "app_metadata";
@@ -111,6 +112,7 @@ export const McpAppContextDocument = gql`
       name
       engine
       is_staging
+      is_archived
       status
       app_metadata(
         where: { verification_status: { _neq: "verified" } }
