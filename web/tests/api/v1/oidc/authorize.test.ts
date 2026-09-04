@@ -51,12 +51,18 @@ jest.mock("@/api/helpers/oidc/graphql/insert-auth-code.generated", () => ({
   }),
 }));
 
-// Mock the verifyProof function
+// Mock verifyProof (I/O boundary — hits the sequencer). Keep the real
+// canonicalizeNullifierHash: it is a pure helper and the exact behavior under
+// test, so mocking it out would hide the canonicalization the handler relies on.
 const mockVerifyProof = jest.fn().mockResolvedValue({ error: null });
-jest.mock("@/api/helpers/verify", () => ({
-  verifyProof: (...args: unknown[]) => mockVerifyProof(...args),
-  encodeNullifierForStorage: jest.fn().mockReturnValue("0x123"),
-}));
+jest.mock("@/api/helpers/verify", () => {
+  const actual = jest.requireActual("@/api/helpers/verify");
+  return {
+    verifyProof: (...args: unknown[]) => mockVerifyProof(...args),
+    encodeNullifierForStorage: jest.fn().mockReturnValue("0x123"),
+    canonicalizeNullifierHash: actual.canonicalizeNullifierHash,
+  };
+});
 
 beforeEach(async () => {
   await global.RedisClient?.flushall();
@@ -488,5 +494,85 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
     expect(iatDiff).toBeLessThan(2); // 2 sec
     expect(expDiff).toBeLessThan(2); // 2 sec
     expect(payload.iat!.toString().length).toEqual(10); // timestamp in seconds has 10 digits
+  });
+});
+
+// Regression for HackerOne #3896406: verifyProof normalizes the nullifier_hash
+// internally (case / prefix / leading-zero), but the raw request value used to
+// flow into the lookup, the stored row and the id_token sub/email. One human
+// could therefore re-encode a single nullifier into multiple stable OIDC
+// subjects and sibling nullifier rows (RP-side Sybil). The handler now
+// canonicalizes before every identity-forming use.
+describe("/api/v1/oidc/authorize [nullifier canonicalization]", () => {
+  // The mock is already canonical (0x + 64 lowercase hex), so canonicalizing
+  // any re-encoding of it must collapse back to exactly this value.
+  const canonical = semaphoreProofParamsMock.nullifier_hash;
+  const reEncodings: Record<string, string> = {
+    "uppercase hex": `0x${canonical.slice(2).toUpperCase()}`,
+    "stripped leading zero": `0x${canonical.slice(2).replace(/^0+/, "")}`,
+  };
+
+  const authorizeWith = async (nullifier_hash: string) => {
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+      method: "POST",
+      body: JSON.stringify({
+        ...VALID_REQUEST,
+        response_type: "id_token",
+        nullifier_hash,
+      }),
+    });
+    return POST(req);
+  };
+
+  for (const [label, variant] of Object.entries(reEncodings)) {
+    test(`issues the canonical sub for a re-encoded nullifier (${label})`, async () => {
+      // Guard: the re-encoded input is genuinely byte-distinct from canonical,
+      // so a passing assertion proves canonicalization, not a no-op.
+      expect(variant).not.toBe(canonical);
+
+      const response = await authorizeWith(variant);
+      expect(response.status).toBe(200);
+
+      const { id_token } = await response.json();
+      const publicKey = createPublicKey({ format: "jwk", key: publicJwk });
+      const { payload } = await jwtVerify(id_token, publicKey);
+
+      expect(payload.sub).toBe(canonical);
+      expect(payload.sub).not.toBe(variant);
+    });
+  }
+
+  test("looks up and inserts the nullifier in canonical form", async () => {
+    // Drop accumulated call history (this suite does not clearAllMocks) so the
+    // assertions below reflect only the re-encoded request under test.
+    Nullifier.mockClear();
+    UpsertNullifier.mockClear();
+
+    const response = await authorizeWith(reEncodings["uppercase hex"]);
+    expect(response.status).toBe(200);
+
+    expect(Nullifier).toHaveBeenCalledWith({ nullifier_hash: canonical });
+    expect(UpsertNullifier).toHaveBeenCalledWith(
+      expect.objectContaining({
+        object: expect.objectContaining({ nullifier_hash: canonical }),
+      }),
+    );
+  });
+
+  test("does not create a sibling row when the canonical nullifier already exists", async () => {
+    // This suite's beforeEach does not clearAllMocks, so drop accumulated call
+    // history to make the "no insert" assertion specific to this request.
+    Nullifier.mockClear();
+    UpsertNullifier.mockClear();
+
+    // A re-encoded nullifier of an already-registered human: the canonical
+    // lookup finds the existing row, so no second row is inserted.
+    Nullifier.mockResolvedValueOnce({ nullifier: [{ id: "nil_existing" }] });
+
+    const response = await authorizeWith(reEncodings["stripped leading zero"]);
+    expect(response.status).toBe(200);
+
+    expect(Nullifier).toHaveBeenCalledWith({ nullifier_hash: canonical });
+    expect(UpsertNullifier).not.toHaveBeenCalled();
   });
 });
