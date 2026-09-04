@@ -46,7 +46,7 @@ const CHART_METRICS = [
   },
   {
     metric: "p_face_capture_completion",
-    title: "Average face capture completion rate, by day and OS",
+    title: "Average Face capture completion rate, by day and OS",
     chartType: "line",
     yAxisLabel: "Average completion rate",
   },
@@ -164,8 +164,8 @@ export const MetricsFrame = (props: { appId: string }) => {
 
         const rawRows =
           typeof payload === "object" &&
-          payload !== null &&
-          Array.isArray((payload as { rows?: unknown }).rows)
+            payload !== null &&
+            Array.isArray((payload as { rows?: unknown }).rows)
             ? ((payload as { rows: unknown[] }).rows as unknown[])
             : null;
         const rows = rawRows?.map(pickDailyRow) ?? null;
