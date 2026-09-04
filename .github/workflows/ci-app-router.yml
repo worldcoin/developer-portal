@@ -134,7 +134,7 @@ jobs:
 
       - name: Run API tests
         run: |
-          pnpm test:api
+          pnpm test:api --maxWorkers=2
 
   integration-tests:
     name: Integration Tests
