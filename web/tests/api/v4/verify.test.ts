@@ -132,6 +132,7 @@ describe("/api/v4/verify [integrity bundle]", () => {
       appId,
       expect.objectContaining({ environment: "sandbox" }),
       req,
+      expect.any(Function),
     );
     expect(mockHandleSessionProofVerification).not.toHaveBeenCalled();
   });
@@ -235,6 +236,7 @@ describe("/api/v4/verify [min_protocol_version]", () => {
       appId,
       expect.objectContaining({ protocol_version: "3.0" }),
       req,
+      expect.any(Function),
     );
   });
 
@@ -270,6 +272,7 @@ describe("/api/v4/verify [min_protocol_version]", () => {
       appId,
       expect.objectContaining({ protocol_version: "4.0" }),
       req,
+      expect.any(Function),
     );
   });
 });
