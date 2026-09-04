@@ -186,12 +186,14 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
             <p className="font-world text-13 font-medium text-portal-heading">
               {formatCount(values[hover.index])}
             </p>
-            <p className="font-world text-12 whitespace-nowrap text-portal-subtle">
-              {formatShareOfStartingSessions(
-                values[hover.index],
-                startingValue,
-              )}
-            </p>
+            {hover.index > 0 && (
+              <p className="font-world text-12 whitespace-nowrap text-portal-subtle">
+                {formatShareOfStartingSessions(
+                  values[hover.index],
+                  startingValue,
+                )}
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -209,11 +211,13 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
             }
           >
             <p className="font-world text-13 font-medium text-portal-heading tabular-nums">
-              {formatShareOfStartingSessions(values[index], startingValue)}
-            </p>
-            <p className="mt-1 font-world text-12 text-portal-muted tabular-nums">
               {formatCount(values[index])} sessions
             </p>
+            {index > 0 && (
+              <p className="mt-1 font-world text-12 text-portal-muted tabular-nums">
+                {formatShareOfStartingSessions(values[index], startingValue)}
+              </p>
+            )}
           </div>
         ))}
       </div>

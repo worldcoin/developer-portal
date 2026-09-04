@@ -32,7 +32,7 @@ describe("TotalsFunnel", () => {
     expect(screen.getByText("Proof shared")).toBeInTheDocument();
     expect(screen.getByText("2,345 sessions")).toBeInTheDocument();
 
-    expect(screen.getByText("100.0%")).toBeInTheDocument();
+    expect(screen.queryByText("100.0%")).not.toBeInTheDocument();
     expect(screen.getByText("91.7%")).toBeInTheDocument();
     expect(screen.getByText("83.3%")).toBeInTheDocument();
     expect(screen.getByText("39.1%")).toBeInTheDocument();
@@ -49,6 +49,6 @@ describe("TotalsFunnel", () => {
       />,
     );
 
-    expect(screen.getAllByText("—")).toHaveLength(4);
+    expect(screen.getAllByText("—")).toHaveLength(3);
   });
 });
