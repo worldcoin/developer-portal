@@ -50,6 +50,32 @@ const schema = yup
 
 export type JoinBody = yup.InferType<typeof schema>;
 
+const normalizeEmail = (email: string): string => email.toLowerCase().trim();
+
+/**
+ * The email address this session has *proven* it controls, or `null` when it has
+ * proven none.
+ *
+ * Only email-OTP and username/password identities carry an address Auth0 has
+ * verified. A Sign-in-with-World-ID (wallet) identity has no `email` claim at
+ * all — `Auth0WorldUser` types it as `never` — so it can never satisfy an
+ * invite's ownership requirement, and neither can an identity whose address
+ * Auth0 has not marked verified.
+ */
+const verifiedEmailOf = (
+  auth0User: Auth0User | NonNullable<Auth0SessionUser["user"]>,
+): string | null => {
+  if (!isEmailUser(auth0User) && !isPasswordUser(auth0User)) {
+    return null;
+  }
+
+  if (!auth0User.email_verified || !auth0User.email) {
+    return null;
+  }
+
+  return auth0User.email;
+};
+
 type PortalUser =
   | FetchEmailUserQuery["userByAuth0Id"][number]
   | FetchEmailUserQuery["userByEmail"][number]
@@ -173,12 +199,26 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    if (
-      (isEmailUser(auth0User) || isPasswordUser(auth0User)) &&
-      auth0User.email_verified &&
-      auth0User.email &&
-      invite.email.toLowerCase().trim() !== auth0User.email.toLowerCase().trim()
-    ) {
+    // An invite names exactly one address, so the session consuming it has to
+    // prove control of that address. State the requirement positively: the
+    // earlier form ("refuse when a verified email mismatches") silently waved
+    // through every session that had no verified email to compare against —
+    // Sign-in-with-World-ID sessions carry no email at all, so any holder of an
+    // invite_id could join an arbitrary team from an unrelated wallet account.
+    const verifiedEmail = verifiedEmailOf(auth0User);
+
+    if (!verifiedEmail) {
+      return errorResponse({
+        statusCode: 403,
+        code: "invite_requires_verified_email",
+        detail:
+          "This invite can only be accepted by the email address it was sent to. Sign out, sign in with that email address, then open the invite link again.",
+        req,
+        team_id: invite.team.id,
+      });
+    }
+
+    if (normalizeEmail(invite.email) !== normalizeEmail(verifiedEmail)) {
       return errorResponse({
         statusCode: 403,
         code: "invite_email_mismatch",

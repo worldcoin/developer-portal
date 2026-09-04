@@ -438,7 +438,13 @@ describe("test /join-callback", () => {
     expect(membershipRows).toEqual([{ role: "MEMBER" }]);
   });
 
-  it("adds membership for an existing World ID user", async () => {
+  // Regression test for HackerOne #3967911. A Sign-in-with-World-ID session
+  // carries no email claim, so it can never demonstrate control of the address
+  // an invite names. It used to skip the ownership check altogether, letting any
+  // holder of an invite_id join an arbitrary team from an unrelated wallet
+  // account. The invite must survive the refusal so the rightful invitee can
+  // still use it.
+  it("refuses a World ID session, which has no email to match the invite", async () => {
     const inviteEmail = "invited-world-user@example.com";
     const team_id = "team_2222214f17eda7e0ededba7ded6b4222";
 
@@ -460,9 +466,11 @@ describe("test /join-callback", () => {
       createMockRequest({ invite_id: insertedInvite[0].id }),
     );
 
-    expect(response.status).toEqual(200);
-    expect(await response.json()).toEqual({ returnTo: `/teams/${team_id}` });
-    expect(IroncladActivityApi).not.toHaveBeenCalled();
+    expect(response.status).toEqual(403);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({ code: "invite_requires_verified_email" }),
+    );
+    expect(updateSession).not.toHaveBeenCalled();
 
     const { rows: membershipRows } = (await integrationDBExecuteQuery(
       `SELECT m.role
@@ -471,7 +479,13 @@ describe("test /join-callback", () => {
         WHERE m.team_id = $1 AND u.world_id_nullifier = '0x123'`,
       [team_id],
     )) as { rows: { role: string }[] };
-    expect(membershipRows).toEqual([{ role: "MEMBER" }]);
+    expect(membershipRows).toEqual([]);
+
+    const { rowCount: remainingInvites } = await integrationDBExecuteQuery(
+      `SELECT id FROM public.invite WHERE id = $1`,
+      [insertedInvite[0].id],
+    );
+    expect(remainingInvites).toBe(1);
   });
 
   it("rejects when invite email does not match the logged-in email user", async () => {
@@ -512,16 +526,23 @@ describe("test /join-callback", () => {
   // membership before deleting the invite, so a null result from the losing
   // delete still committed a second membership. The DB function deletes first
   // and only the request that consumes the invite may insert a membership.
-  it("creates only one membership when two new users accept the same invite concurrently", async () => {
+  //
+  // The racers are now necessarily the same person: since #3967911 an invite can
+  // only be accepted by a session holding the verified address it names, and
+  // `user.email` is UNIQUE, so two distinct accounts can no longer contend for
+  // one invite at all. What is left to prove is that a double submit (two tabs,
+  // a retried request) still yields exactly one membership. The loser blocks on
+  // the winner's row lock, then finds the invite gone and returns the membership
+  // the winner just created rather than inserting a second one.
+  it("creates only one membership when the same invitee accepts twice concurrently", async () => {
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
-    const firstAuth0Id = "oauth2|worldcoin|join-race-first";
-    const secondAuth0Id = "oauth2|worldcoin|join-race-second";
+    const email = "test1-member@team2.example.com";
 
     const { rows: insertedInvite } = (await integrationDBExecuteQuery(
       `INSERT INTO public.invite (team_id, expires_at, email)
-       VALUES ($1, '2030-01-01 00:00:00+00', 'join-race@example.com')
+       VALUES ($1, '2030-01-01 00:00:00+00', $2)
        RETURNING id`,
-      [team_id],
+      [team_id, email],
     )) as { rows: { id: string }[] };
 
     const firstRequest = createMockRequest({
@@ -531,65 +552,29 @@ describe("test /join-callback", () => {
       invite_id: insertedInvite[0].id,
     });
 
-    const firstSession = {
-      user: {
-        ...validSessionUser,
-        email: undefined,
-        email_verified: false,
-        sub: firstAuth0Id,
-        name: "Race User One",
-      },
-    };
-    const secondSession = {
-      user: {
-        ...validSessionUser,
-        email: undefined,
-        email_verified: false,
-        sub: secondAuth0Id,
-        name: "Race User Two",
-      },
-    };
-
-    getSession
-      .mockResolvedValueOnce(firstSession)
-      .mockResolvedValueOnce(secondSession);
+    getSession.mockResolvedValue({
+      user: { ...validSessionUser, email, sub: "email|join-race" },
+    });
 
     const responses = await Promise.all([
       POST(firstRequest),
       POST(secondRequest),
     ]);
-    const successResponse = responses.find(
-      (response) => response.status === 200,
-    );
-    const rejectedResponse = responses.find(
-      (response) => response.status === 400,
-    );
 
-    expect(responses.map((response) => response.status).sort()).toEqual([
-      200, 400,
-    ]);
-    expect(await successResponse?.json()).toEqual({
+    expect(responses.map((response) => response.status)).toEqual([200, 200]);
+    expect(await responses[0].json()).toEqual({
       returnTo: `/teams/${team_id}`,
     });
-    expect(await rejectedResponse?.json()).toEqual(
-      expect.objectContaining({ code: "invalid_invite" }),
-    );
 
     const { rows: membershipRows } = (await integrationDBExecuteQuery(
-      `SELECT m.role, u."auth0Id"
+      `SELECT m.role
          FROM public.membership m
          JOIN public."user" u ON u.id = m.user_id
-        WHERE m.team_id = $1 AND u."auth0Id" = ANY($2::text[])`,
-      [team_id, [firstAuth0Id, secondAuth0Id]],
-    )) as { rows: { role: string; auth0Id: string }[] };
+        WHERE m.team_id = $1 AND u.email = $2`,
+      [team_id, email],
+    )) as { rows: { role: string }[] };
 
-    expect(membershipRows).toHaveLength(1);
-    expect(membershipRows[0]).toEqual({
-      role: "MEMBER",
-      auth0Id: expect.stringMatching(
-        /^(oauth2\|worldcoin\|join-race-first|oauth2\|worldcoin\|join-race-second)$/,
-      ),
-    });
+    expect(membershipRows).toEqual([{ role: "MEMBER" }]);
 
     const { rowCount: remainingInvites } = await integrationDBExecuteQuery(
       `SELECT id FROM public.invite WHERE id = $1`,
@@ -597,12 +582,10 @@ describe("test /join-callback", () => {
     );
     expect(remainingInvites).toBe(0);
 
-    expect(updateSession).toHaveBeenCalledTimes(1);
     expect(updateSession.mock.calls[0][2]).toEqual(
       expect.objectContaining({
         user: expect.objectContaining({
           hasura: expect.objectContaining({
-            auth0Id: membershipRows[0].auth0Id,
             memberships: expect.arrayContaining([
               expect.objectContaining({
                 role: "MEMBER",
