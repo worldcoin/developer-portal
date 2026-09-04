@@ -8,6 +8,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 import {
+  isProtocolVersionBelowMinimum,
   schema,
   SessionProofRequest,
   UniquenessProofResponseV3,
@@ -63,6 +64,35 @@ export async function POST(
 
   if (!isValid) {
     return handleError(req);
+  }
+
+  // `protocol_version` describes the proof that was supplied, not the
+  // integration that asked for it, so a relying party forwarding an IDKit
+  // result verbatim forwards whichever version the credential holder chose to
+  // mint. `min_protocol_version` is the RP's own floor. It is enforced before
+  // any verification work so a rejected downgrade costs no sequencer or RPC
+  // call.
+  if (
+    parsedParams.min_protocol_version &&
+    isProtocolVersionBelowMinimum(
+      parsedParams.protocol_version,
+      parsedParams.min_protocol_version,
+    )
+  ) {
+    logger.warn("Rejected proof below the relying party's minimum protocol", {
+      app_id: routeId,
+      protocol_version: parsedParams.protocol_version,
+      min_protocol_version: parsedParams.min_protocol_version,
+    });
+
+    return errorResponse({
+      statusCode: 400,
+      code: "protocol_version_not_allowed",
+      detail: `This proof uses protocol version ${parsedParams.protocol_version}, but this request requires at least ${parsedParams.min_protocol_version}.`,
+      attribute: "protocol_version",
+      req,
+      app_id: routeId,
+    });
   }
 
   let client;
