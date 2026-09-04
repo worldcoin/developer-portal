@@ -20,51 +20,35 @@ const row = (overrides: Partial<TotalsRow> = {}): TotalsRow => ({
 });
 
 describe("TotalsFunnel", () => {
-  it("shows all four supplied session stages and three transition rates", () => {
+  it("shows all four session stages as a percentage of the starting count", () => {
     render(<TotalsFunnel row={row()} />);
 
     expect(screen.getByText("Selfie Check started")).toBeInTheDocument();
-    expect(screen.getByText("6,000")).toBeInTheDocument();
+    expect(screen.getByText("6,000 sessions")).toBeInTheDocument();
     expect(screen.getByText("Face capture started")).toBeInTheDocument();
-    expect(screen.getByText("5,500")).toBeInTheDocument();
+    expect(screen.getByText("5,500 sessions")).toBeInTheDocument();
     expect(screen.getByText("Face capture completed")).toBeInTheDocument();
-    expect(screen.getByText("5,000")).toBeInTheDocument();
+    expect(screen.getByText("5,000 sessions")).toBeInTheDocument();
     expect(screen.getByText("Proof shared")).toBeInTheDocument();
-    expect(screen.getByText("2,345")).toBeInTheDocument();
+    expect(screen.getByText("2,345 sessions")).toBeInTheDocument();
 
-    const rates = screen.getAllByRole("progressbar");
-    expect(rates).toHaveLength(3);
-    expect(rates.map((rate) => rate.getAttribute("aria-valuenow"))).toEqual([
-      "91.7",
-      "83.4",
-      "46.9",
-    ]);
+    expect(screen.getByText("100.0%")).toBeInTheDocument();
     expect(screen.getByText("91.7%")).toBeInTheDocument();
-    expect(screen.getByText("83.4%")).toBeInTheDocument();
-    expect(screen.getByText("46.9%")).toBeInTheDocument();
-    expect(screen.getAllByText("From previous")).toHaveLength(3);
+    expect(screen.getByText("83.3%")).toBeInTheDocument();
+    expect(screen.getByText("39.1%")).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 
-  it("shows an unavailable completion ring when the rate is null", () => {
+  it("shows an unavailable percentage when the starting count is zero", () => {
     render(
       <TotalsFunnel
         row={{
           ...row(),
-          p_face_capture_started_to_completed_completion: null,
+          n_selfie_check_started_sessions: 0,
         }}
       />,
     );
 
-    expect(
-      screen.getByRole("img", {
-        name: "Face capture started to completed completion unavailable",
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("progressbar", {
-        name: "Face capture started to completed completion",
-      }),
-    ).not.toBeInTheDocument();
-    expect(screen.getAllByRole("progressbar")).toHaveLength(2);
+    expect(screen.getAllByText("—")).toHaveLength(4);
   });
 });

@@ -2,39 +2,28 @@
 
 import { type TotalsRow } from "@/lib/selfie-check-analytics";
 import { useState } from "react";
-import { CompletionRing } from "./CompletionRing";
 
 /** Conversion stages, left to right, computed from the totals row. */
 const FUNNEL_STAGES = [
   {
     key: "n_selfie_check_started_sessions",
     label: "Selfie Check started",
-    rateKey: null,
-    rateLabel: null,
   },
   {
     key: "n_face_capture_started_sessions",
     label: "Face capture started",
-    rateKey: "p_selfie_check_to_face_capture_started_completion",
-    rateLabel: "Selfie Check to face capture started completion",
   },
   {
     key: "n_face_capture_completed_sessions",
     label: "Face capture completed",
-    rateKey: "p_face_capture_started_to_completed_completion",
-    rateLabel: "Face capture started to completed completion",
   },
   {
     key: "n_proof_shared_sessions",
     label: "Proof shared",
-    rateKey: "p_face_capture_completed_to_proof_shared_completion",
-    rateLabel: "Face capture completed to proof shared completion",
   },
 ] as const satisfies readonly {
   key: keyof Omit<TotalsRow, "appId">;
   label: string;
-  rateKey: keyof Omit<TotalsRow, "appId"> | null;
-  rateLabel: string | null;
 }[];
 
 // Sequential single-hue steps (light -> dark portal blue) down the funnel.
@@ -52,10 +41,15 @@ const percentFormatter = new Intl.NumberFormat("en-US", {
 const formatCount = (value: number | null) =>
   typeof value === "number" ? countFormatter.format(value) : "—";
 
-const formatConversion = (value: number | null) =>
-  typeof value === "number"
-    ? `${percentFormatter.format(value)} of previous`
-    : null;
+const formatShareOfStartingSessions = (
+  value: number | null,
+  startingValue: number | null,
+) =>
+  typeof value === "number" &&
+  typeof startingValue === "number" &&
+  startingValue > 0
+    ? percentFormatter.format(value / startingValue)
+    : "—";
 
 // Funnel geometry in viewBox units: four 100-wide stages centered on y=50.
 // Stage one is a rectangle; each later stage eases from the previous
@@ -108,9 +102,7 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
   const [hover, setHover] = useState<Hover | null>(null);
 
   const values = FUNNEL_STAGES.map((stage) => props.row[stage.key]);
-  const rates = FUNNEL_STAGES.map((stage) =>
-    stage.rateKey ? props.row[stage.rateKey] : null,
-  );
+  const startingValue = values[0];
   const max = Math.max(...values.map((value) => value ?? 0));
   const halves = values.map((value) => halfThickness(value, max));
 
@@ -143,22 +135,9 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
                   : "border-l border-portal-border px-4"
             }
           >
-            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
-                <p className="font-world text-13 text-portal-muted">
-                  {stage.label}
-                </p>
-                <p className="mt-1 font-world text-24 leading-none font-medium text-portal-heading">
-                  {formatCount(values[index])}
-                </p>
-              </div>
-              {stage.rateKey && stage.rateLabel && (
-                <CompletionRing
-                  value={props.row[stage.rateKey]}
-                  label={stage.rateLabel}
-                />
-              )}
-            </div>
+            <p className="font-world text-13 text-portal-muted">
+              {stage.label}
+            </p>
           </div>
         ))}
       </div>
@@ -207,13 +186,36 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
             <p className="font-world text-13 font-medium text-portal-heading">
               {formatCount(values[hover.index])}
             </p>
-            {formatConversion(rates[hover.index]) && (
-              <p className="font-world text-12 whitespace-nowrap text-portal-subtle">
-                {formatConversion(rates[hover.index])}
-              </p>
-            )}
+            <p className="font-world text-12 whitespace-nowrap text-portal-subtle">
+              {formatShareOfStartingSessions(
+                values[hover.index],
+                startingValue,
+              )}
+            </p>
           </div>
         )}
+      </div>
+
+      <div className="grid grid-cols-4">
+        {FUNNEL_STAGES.map((stage, index) => (
+          <div
+            key={stage.key}
+            className={
+              index === 0
+                ? "pr-4"
+                : index === FUNNEL_STAGES.length - 1
+                  ? "border-l border-portal-border pl-4"
+                  : "border-l border-portal-border px-4"
+            }
+          >
+            <p className="font-world text-13 font-medium text-portal-heading tabular-nums">
+              {formatShareOfStartingSessions(values[index], startingValue)}
+            </p>
+            <p className="mt-1 font-world text-12 text-portal-muted tabular-nums">
+              {formatCount(values[index])} sessions
+            </p>
+          </div>
+        ))}
       </div>
     </section>
   );
