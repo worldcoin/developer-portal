@@ -1,4 +1,5 @@
 import {
+  canonicalizeProof,
   decodeProof,
   decodeToHexString,
   encodeNullifierForStorage,
@@ -232,6 +233,61 @@ describe("verify helpers", () => {
       expect(() => {
         decodeProof(invalidPreDecodedProof);
       }).toThrow();
+    });
+  });
+
+  describe("canonicalizeProof", () => {
+    const leaves = decodeProof(encodedProof).flat(2);
+    const asNestedJson = (l: string[]) =>
+      JSON.stringify([
+        [l[0], l[1]],
+        [
+          [l[2], l[3]],
+          [l[4], l[5]],
+        ],
+        [l[6], l[7]],
+      ]);
+    const canonical = canonicalizeProof(encodedProof);
+
+    // Every encoding decodeProof accepts has to collapse to one value, else a
+    // used proof can be re-encoded past a lock keyed on the request string.
+    it.each([
+      ["an uppercase ABI blob", `0x${encodedProof.slice(2).toUpperCase()}`],
+      [
+        "an ABI blob with trailing padding",
+        `${encodedProof}${"00".repeat(32)}`,
+      ],
+      ["nested JSON", asNestedJson(leaves)],
+      ["nested JSON with whitespace", asNestedJson(leaves).replace(/,/g, ", ")],
+      [
+        "nested JSON with decimal leaves",
+        asNestedJson(leaves.map((leaf) => BigInt(leaf).toString())),
+      ],
+      [
+        "nested JSON with zero-padded leaves",
+        asNestedJson(leaves.map((leaf) => `0x0000${leaf.slice(2)}`)),
+      ],
+      ["escaped JSON", JSON.stringify(asNestedJson(leaves)).slice(1, -1)],
+    ])("collapses %s to the same canonical proof", (_label, reencoded) => {
+      expect(canonicalizeProof(reencoded)).toBe(canonical);
+    });
+
+    it("returns a different canonical proof when a leaf differs", () => {
+      const tampered = [...leaves];
+      tampered[3] = toBeHex(BigInt(tampered[3]) + 1n);
+
+      expect(canonicalizeProof(asNestedJson(tampered))).not.toBe(canonical);
+    });
+
+    it("throws for a proof that cannot be decoded", () => {
+      expect(() => canonicalizeProof("0x123")).toThrow();
+    });
+
+    it("throws for a decodable proof carrying an over-wide leaf", () => {
+      const overWide = [...leaves];
+      overWide[0] = `0x${"f".repeat(66)}`;
+
+      expect(() => canonicalizeProof(asNestedJson(overWide))).toThrow();
     });
   });
 

@@ -6,8 +6,10 @@ import { semaphoreProofParamsMock } from "tests/api/__mocks__/proof.mock";
 import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 import { testGetDefaultApp } from "../test-utils";
 
-// Mock the verifyProof function
+// Mock the verifyProof function. The rest of the module stays real — the
+// handler also uses canonicalizeProof to key its replay lock.
 jest.mock("@/api/helpers/verify", () => ({
+  ...jest.requireActual("@/api/helpers/verify"),
   verifyProof: jest.fn().mockResolvedValue({ error: null }),
 }));
 
