@@ -40,6 +40,12 @@ import {
 } from "@/api/helpers/app-image-storage";
 import { checkRateLimit } from "@/api/helpers/rate-limit";
 import {
+  mintTestProof,
+  recordTestVerificationMetric,
+  TEST_VERIFICATION_OUTCOMES,
+  withTestVerificationTimeout,
+} from "@/api/helpers/test-proofs";
+import {
   CategoryNameIterable,
   resolveAppStoreCategory,
 } from "@/lib/categories";
@@ -89,12 +95,29 @@ class McpError extends Error {
     message: string,
     public code = -32000,
     public data?: unknown,
+    public status?: number,
   ) {
     super(message);
   }
 }
 
 const toolDefinitions = [
+  {
+    name: "run_test_verification",
+    description:
+      "Mint a synthetic staging World ID 4.0 verification payload for your backend. Only the chain verdict is simulated. direct=true tests portal configuration only. Supported outcomes: success, expired, invalid_proof; invalid_rp_signature and below_sybil_threshold await verified mappings.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        app_id: { type: "string" },
+        action: { type: "string" },
+        outcome: { type: "string", enum: [...TEST_VERIFICATION_OUTCOMES] },
+        direct: { type: "boolean", default: false },
+      },
+      required: ["app_id", "action"],
+      additionalProperties: false,
+    },
+  },
   {
     name: "get_team_context",
     description: "Fetch the Dev Portal team and app context for this API key.",
@@ -481,6 +504,21 @@ const uploadAppImageSchema = yup
   )
   .noUnknown();
 
+const runTestVerificationSchema = yup
+  .object({
+    app_id: yup.string().strict().required(),
+    action: yup.string().strict().required(),
+    outcome: yup
+      .mixed<(typeof TEST_VERIFICATION_OUTCOMES)[number]>()
+      .oneOf(
+        [...TEST_VERIFICATION_OUTCOMES],
+        "Supported outcomes are success, expired, invalid_proof. invalid_rp_signature and below_sybil_threshold are unavailable until their chain-verifier mappings are confirmed.",
+      )
+      .default("success"),
+    direct: yup.boolean().strict().default(false),
+  })
+  .noUnknown();
+
 const parseApiKey = (authorization: string | null) => {
   if (!authorization) return null;
   const [scheme, token] = authorization.split(" ");
@@ -578,6 +616,217 @@ const requireApp = async (
     throw new McpError("App not found for this API key.", -32004);
   }
   return app;
+};
+
+const testVerificationUrl = (rpId: string): string => {
+  try {
+    const origin = new URL(process.env.NEXT_PUBLIC_APP_URL ?? "");
+    const localDevelopment =
+      process.env.NODE_ENV === "development" &&
+      ["localhost", "127.0.0.1", "[::1]"].includes(origin.hostname);
+    if (
+      origin.username ||
+      origin.password ||
+      (origin.protocol !== "https:" &&
+        !(localDevelopment && origin.protocol === "http:"))
+    ) {
+      throw new Error("Invalid verification origin");
+    }
+    return new URL(`/api/v4/verify/${rpId}`, origin.origin).toString();
+  } catch {
+    throw new McpError(
+      "The server verification origin is not configured correctly.",
+      -32603,
+      { reason: "verification_origin_unavailable" },
+      503,
+    );
+  }
+};
+
+const runTestVerification = async (input: unknown, ctx: ToolContext) => {
+  const args = await parseInput(runTestVerificationSchema, input);
+  const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
+  if (app.is_staging || app.status !== "active" || app.is_archived) {
+    throw new McpError(
+      "Test verifications require an active production app; the payload uses staging.",
+      -32004,
+      { reason: app.is_staging ? "staging_not_supported" : "app_not_active" },
+      409,
+    );
+  }
+  const registration = app.rp_registration[0];
+  if (registration?.status !== RpRegistrationStatus.Registered) {
+    throw new McpError(
+      "The app's primary RP registration must be registered.",
+      -32004,
+      {
+        reason: "rp_not_registered",
+        rp_id: registration?.rp_id ?? null,
+        status: registration?.status ?? null,
+        staging_status: registration?.staging_status ?? null,
+        status_endpoint: registration
+          ? rpStatusEndpoint(registration.rp_id)
+          : null,
+        next_step: registration
+          ? "Use get_world_id_registration_status to sync registration. A failed staging mirror can be retried from the app's World ID configuration; it does not block synthetic tests."
+          : "Use configure_world_id, then poll get_world_id_registration_status.",
+      },
+      409,
+    );
+  }
+
+  const toolMode = args.direct ? "direct" : "payload";
+  const verifyUrl = testVerificationUrl(registration.rp_id);
+  let limit;
+  try {
+    limit = await withTestVerificationTimeout(
+      checkRateLimit({
+        scope: "mcp_run_test_verification",
+        key: ctx.apiKeyId,
+        windows: [
+          { label: "minute", limit: 30, periodSeconds: 60 },
+          { label: "day", limit: 500, periodSeconds: 86_400 },
+        ],
+      }),
+    );
+  } catch (error) {
+    recordTestVerificationMetric(args.outcome, "rate_limit_error", toolMode);
+    logger.warn("Test verification rate limiter failed open", {
+      error,
+      app_id: app.id,
+      team_id: ctx.teamId,
+    });
+  }
+  if (limit && !limit.ok) {
+    recordTestVerificationMetric(args.outcome, "rate_limited", toolMode);
+    throw new McpError(
+      "Test verification rate limit exceeded.",
+      -32029,
+      {
+        retry_after_seconds: limit.resetIn,
+        window: limit.window.label,
+      },
+      429,
+    );
+  }
+
+  let minted;
+  try {
+    minted = await mintTestProof({
+      rpId: registration.rp_id,
+      action: args.action,
+      teamId: ctx.teamId,
+      outcome: args.outcome,
+    });
+  } catch (error) {
+    recordTestVerificationMetric(args.outcome, "mint_error", toolMode);
+    logger.warn("Test verification mint failed", {
+      error,
+      app_id: app.id,
+      team_id: ctx.teamId,
+    });
+    throw new McpError(
+      "Test verification storage is unavailable.",
+      -32603,
+      {
+        reason: "test_proof_store_unavailable",
+      },
+      503,
+    );
+  }
+  const result = { test: true as const, ...minted, verify_url: verifyUrl };
+  if (!args.direct) {
+    recordTestVerificationMetric(args.outcome, "minted", toolMode);
+    return result;
+  }
+
+  let receivedResponse = false;
+  try {
+    const response = await fetch(verifyUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(result.payload),
+      signal: AbortSignal.timeout(10_000),
+      redirect: "error",
+      credentials: "omit",
+    });
+    receivedResponse = true;
+    const body: unknown = await response.json();
+    recordTestVerificationMetric(args.outcome, "completed", toolMode);
+    return { ...result, direct_result: { status: response.status, body } };
+  } catch (error) {
+    const timeout =
+      error instanceof Error &&
+      ["TimeoutError", "AbortError"].includes(error.name);
+    const reason = timeout
+      ? "direct_timeout"
+      : receivedResponse
+        ? "direct_invalid_response"
+        : "direct_request_failed";
+    recordTestVerificationMetric(args.outcome, reason, toolMode);
+    logger.warn("Direct test verification did not return a result", {
+      reason,
+      app_id: app.id,
+      team_id: ctx.teamId,
+    });
+    throw new McpError(
+      "Direct verification did not return a usable result. Its outcome is unknown; it may already have recorded the staging nullifier.",
+      -32603,
+      { ...result, reason, verification_outcome: "unknown" },
+      503,
+    );
+  }
+};
+
+export const POST_TEST_VERIFICATION = async (req: NextRequest) => {
+  try {
+    const auth = await authenticate(req);
+    let input: unknown;
+    try {
+      input = await req.json();
+    } catch {
+      throw new McpError("Invalid JSON request body.", -32602);
+    }
+    const client = await getAPIServiceGraphqlClient();
+    return NextResponse.json(
+      await runTestVerification(input, { ...auth, client }),
+    );
+  } catch (error) {
+    const known = error instanceof McpError;
+    if (!known)
+      logger.error("Unhandled test verification API error", { error });
+    const mapped = known
+      ? error
+      : new McpError("Test verification is unavailable.", -32603);
+    const status =
+      mapped.status ??
+      {
+        [-32602]: 400,
+        [-32001]: 401,
+        [-32004]: 404,
+        [-32029]: 429,
+      }[mapped.code] ??
+      503;
+    const headers = new Headers();
+    if (status === 429) {
+      headers.set(
+        "Retry-After",
+        String(
+          (mapped.data as { retry_after_seconds: number }).retry_after_seconds,
+        ),
+      );
+    }
+    return NextResponse.json(
+      {
+        error: {
+          code: mapped.code,
+          message: mapped.message,
+          data: mapped.data,
+        },
+      },
+      { status, headers },
+    );
+  }
 };
 
 const fileNameForDraft = (
@@ -1035,6 +1284,8 @@ const rotateWorldIdSigningKey = async (input: unknown, ctx: ToolContext) => {
 };
 
 const tools = {
+  run_test_verification: async (input, ctx) =>
+    content(await runTestVerification(input, ctx)),
   get_team_context: async (_input, ctx) => {
     const data = await getMcpTeamContextSdk(ctx.client).McpTeamContext({
       team_id: ctx.teamId,
@@ -1652,6 +1903,7 @@ const parseMcpMethod = (value: unknown): McpMethod => {
 
 const parseToolName = (value: unknown): ToolName => {
   switch (value) {
+    case "run_test_verification":
     case "get_team_context":
     case "get_app_config":
     case "create_app":
@@ -1675,6 +1927,8 @@ const executeTool = async (
   ctx: ToolContext,
 ) => {
   switch (name) {
+    case "run_test_verification":
+      return tools.run_test_verification(input, ctx);
     case "get_team_context":
       return tools.get_team_context(input, ctx);
     case "get_app_config":

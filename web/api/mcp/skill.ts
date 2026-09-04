@@ -8,12 +8,13 @@
 
 export const SKILL_INSTRUCTIONS = `# World ID developer portal MCP
 
-This MCP authenticates with a developer-portal team API key and exposes 11 tools for the full app lifecycle. Always use \`get_team_context\` first if the user hasn't given you an \`app_id\` — it returns the team and any existing apps so you can pick or confirm.
+This MCP authenticates with a developer-portal team API key and exposes 12 tools for the full app lifecycle. Always use \`get_team_context\` first if the user hasn't given you an \`app_id\` — it returns the team and any existing apps so you can pick or confirm.
 
 ## Tool reference
 
 | Tool                               | Purpose                                                                                                       | Key inputs                                                                                                                                               |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| \`run_test_verification\`            | Mint a synthetic staging v4 payload for a backend test; optionally run a portal smoke test                    | \`app_id\`, \`action\`; optional \`outcome\` (\`success\`, \`expired\`, \`invalid_proof\`), \`direct\`                                                                 |
 | \`get_team_context\`                 | List the team's apps + status                                                                                 | (none)                                                                                                                                                   |
 | \`get_app_config\`                   | Snapshot of an app: World ID config, store metadata, mini-app settings                                        | \`app_id\`                                                                                                                                                 |
 | \`create_app\`                       | Create a new production app                                                                                   | \`name\`; optional \`app_mode\` (\`external\` \\| \`mini-app\`), \`verification\` (\`cloud\` \\| \`on-chain\`), \`category\`, \`integration_url\`                            |
@@ -141,7 +142,7 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
 ## Pitfalls and constraints
 
 - **\`configure_world_id\` is asynchronous.** The on-chain registration is submitted to the bundler and returns immediately with \`status: "pending"\` and an \`operation_hash\`. Watch \`status_endpoint\` until it returns \`production_status: "registered"\` before relying on the RP for verifications.
-- **\`configure_world_id\` is available by default.** There is no team-level World ID 4.0 feature flag gate. Staging apps return \`-32004\` with \`data.reason: "staging_not_supported"\` — use a production app instead. If the app already has an RP registration, the tool returns the existing record (use \`rotate_world_id_signing_key\` to change keys).
+- **\`configure_world_id\` is available by default.** Staging apps return \`-32004\` with \`data.reason: "staging_not_supported"\` — use a production app instead. If the app already has an RP registration, the tool returns the existing record (use \`rotate_world_id_signing_key\` to change keys).
 - **Private keys are returned once.** If the user loses the value from \`configure_world_id\` / \`rotate_world_id_signing_key\`, they must rotate again. The portal does not store private keys.
 - **Submission preconditions are strict.** \`submit_app_for_review\` runs the same Yup completeness check as the dashboard. The full required set:
   - **Always required**: \`name\`, \`logo_img_url\`, \`app_website_url\`, \`is_android_only\`, \`is_for_humans_only\`, \`supported_countries\` (≥1), \`supported_languages\` (must include \`"en"\`), \`description_overview\` (encoded into the description JSON), and at least one entry in \`showcase_img_urls\` for the English locale.
@@ -152,6 +153,23 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
 - **MCP-created apps are production apps.** The MCP no longer exposes staging app creation; use the dashboard or existing internal tooling for legacy staging-only sandbox flows.
 - **\`is_developer_allow_listing\` is optional on submit.** If you omit it, the existing value on \`app_metadata\` is preserved — the MCP will not silently un-list a previously listed app.
 - **Don't re-run \`configure_world_id\` on an already-configured app.** It returns the existing registration without rotating. Use \`rotate_world_id_signing_key\` if the user actually wants a new key.
+
+## Test a World ID integration without a phone
+
+1. Reuse a team-owned production app or create one. Configure World ID and poll \`get_world_id_registration_status\` until the primary RP is \`registered\`. App-store approval is not required for verification.
+2. Call \`run_test_verification { app_id, action }\`. The result contains \`payload\`, \`expires_at\`, \`verify_url\`, and \`test: true\`.
+3. Submit \`payload\` unchanged to the developer's backend under test, which forwards it to \`verify_url\`. Check the backend's response and side effects, repair issues, and repeat.
+4. Rehearse \`outcome: "expired"\` (the existing \`outdated_nullifier\` verdict) and \`outcome: "invalid_proof"\`. The real verify endpoint returns its normal failure body with \`test: true\`.
+
+The tool requires an active, non-archived production app and a registered primary RP. Its payload always uses \`environment: "staging"\`; legacy staging apps are refused. Managed registration mirrors to the staging registry best-effort. A failed staging mirror does not block these synthetic tests; real staging proofs require a registered staging mirror. Use the registration-status tool and the app's World ID configuration to inspect or retry it.
+
+Three outcomes have confirmed chain-verifier mappings: \`success\`, \`expired\`, and \`invalid_proof\`. Requests for \`invalid_rp_signature\` or \`below_sybil_threshold\` fail validation with an explicit explanation; those mappings are not yet implemented.
+
+Only the chain verdict is simulated. The stored verdict is bound to the returned verifier inputs. Request validation, app/RP checks, action creation and nullifier storage run normally. This does not test client signing, widget/phone behavior, credential issuance or cryptographic proof generation. The same payload remains usable for ten minutes. Current v4 replay returns HTTP 200 with nullifier reuse, and v4 has no action use counter; assert that existing behavior rather than expecting replay rejection. Database records, counts and retention behave like ordinary staging verifications.
+
+\`direct: true\` sends the payload to the portal's normal verify route and adds \`direct_result: { status, body }\`. This tests portal configuration only, not the developer's backend. An expected verification failure (such as HTTP 400) remains a successful tool call containing that response. A timeout or network failure reports an unknown outcome and includes the minted payload; the request may already have recorded a staging nullifier. Do not automatically retry direct calls.
+
+The REST twin is \`POST /api/v4/test-verifications\`, with the same bearer team API key, JSON input and raw result. Limits are shared across both transports: 30 requests/minute and 500/day per API key. Throttling returns MCP \`-32029\`, or HTTP 429 with \`Retry-After\`, and \`retry_after_seconds\` in error details. No environment, destination URL, RP ID or \`uses\` argument is accepted.
 
 ## When in doubt
 
