@@ -250,9 +250,9 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
     expect(await response.json()).toEqual({ success: false });
   });
 
-  it("returns 409 when another user already requested the ASC email", async () => {
+  it("returns 409 when another user holds a live claim on the ASC email", async () => {
     InsertSandboxAccessRequestIos.mockRejectedValue(
-      uniqueConstraintError("unique_sandbox_access_request_ios_asc_email"),
+      uniqueConstraintError("sandbox_access_request_ios_live_asc_email_key"),
     );
     GetSandboxAccessRequestIos.mockResolvedValue({
       sandbox_access_request_ios: [],
@@ -264,6 +264,31 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
     expect(await response.json()).toEqual({ success: false });
     expect(GetSandboxAccessRequestIos).toHaveBeenCalledWith({
       user_id: USER_ID,
+    });
+  });
+
+  it("lets the owner claim an ASC email a rejected request released", async () => {
+    // Only a live claim occupies the partial unique index, so the insert from
+    // the address owner reaches Hasura instead of being answered with a 409.
+    const OWNER_ID = "usr_fedcba0987654321";
+    getSession.mockResolvedValue({
+      user: {
+        email: "owner@example.com",
+        hasura: { id: OWNER_ID, memberships: [{ team: { id: TEAM_ID } }] },
+      },
+    });
+    GetSandboxAccessRequestIos.mockResolvedValue({
+      sandbox_access_request_ios: [storedRequest],
+    });
+
+    const response = await POST(makeJsonRequest(validBody));
+
+    expect(response.status).toBe(200);
+    expect(InsertSandboxAccessRequestIos).toHaveBeenCalledWith({
+      asc_email: "asc@example.com",
+      portal_email: "owner@example.com",
+      team_id: TEAM_ID,
+      user_id: OWNER_ID,
     });
   });
 

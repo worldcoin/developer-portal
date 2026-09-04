@@ -7,8 +7,10 @@ import { getSdk as getInsertSandboxAccessRequestIosSdk } from "./graphql/insert-
 import { fetchSandboxAccessRequestIos } from "./server/fetch-sandbox-access-request-ios";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Partial unique index: only rows that still hold a live claim on the Apple
+// Account occupy it, so a rejected or revoked request releases the address.
 const ASC_EMAIL_UNIQUE_CONSTRAINT =
-  "unique_sandbox_access_request_ios_asc_email";
+  "sandbox_access_request_ios_live_asc_email_key";
 const USER_ID_UNIQUE_CONSTRAINT = "unique_sandbox_access_request_ios_user_id";
 
 const normalizeEmail = (email: unknown) => {
@@ -83,7 +85,9 @@ export async function GET() {
  * A repeat POST returns the stored request without changing it, including
  * after rejection. The caller supplies the ASC email and active team. Identity
  * and portal email always come from the authenticated session, and the team
- * must belong to the authenticated user.
+ * must belong to the authenticated user. An ASC email is reserved only while
+ * some request still holds a live claim on it (pending, approving, approved or
+ * revoking); rejecting or revoking that request frees it for its owner.
  */
 export async function POST(req: NextRequest) {
   const authenticatedUser = await getAuthenticatedUser();
@@ -152,7 +156,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (emailConflict) {
-        logger.warn("iOS sandbox ASC email is already requested", {
+        logger.warn("iOS sandbox ASC email is held by a live request", {
           userId: authenticatedUser.userId,
           failureClass: "asc_email_conflict",
         });
