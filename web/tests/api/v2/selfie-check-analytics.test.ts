@@ -46,23 +46,29 @@ const userId = "user_0123456789abcdef0123456789abcdef";
 
 const completeRow = {
   appId,
-  n_users_started_selfie_check_flow: 10,
-  n_proofs: 3,
-  n_proof_users: 8,
-  n_face_auth_started_sessions: 10,
-  n_face_auth_completed_sessions: 8,
-  p_face_auth_completion: 0.75,
+  n_users_started_at_least_one_selfie_check_flow: 10,
+  n_users_shared_at_least_one_proof: 8,
+  n_selfie_check_started_sessions: 10,
+  n_face_capture_started_sessions: 9,
+  n_face_capture_completed_sessions: 8,
+  n_proof_shared_sessions: 3,
+  p_selfie_check_to_face_capture_started_completion: 0.9,
+  p_face_capture_started_to_completed_completion: 0.75,
+  p_face_capture_completed_to_proof_shared_completion: 0.5,
 };
 
 const snapshot = (isFallback = false) => ({
   headers: [
     "PARTNER_APP_ID",
-    "N_USERS_STARTED_SELFIE_CHECK_FLOW",
-    "N_PROOFS",
-    "N_PROOF_USERS",
-    "N_FACE_AUTH_STARTED_SESSIONS",
-    "N_FACE_AUTH_COMPLETED_SESSIONS",
-    "P_FACE_AUTH_COMPLETION",
+    "N_USERS_STARTED_AT_LEAST_ONE_SELFIE_CHECK_FLOW",
+    "N_USERS_SHARED_AT_LEAST_ONE_PROOF",
+    "N_SELFIE_CHECK_STARTED_SESSIONS",
+    "N_FACE_CAPTURE_STARTED_SESSIONS",
+    "N_FACE_CAPTURE_COMPLETED_SESSIONS",
+    "N_PROOF_SHARED_SESSIONS",
+    "P_SELFIE_CHECK_TO_FACE_CAPTURE_STARTED_COMPLETION",
+    "P_FACE_CAPTURE_STARTED_TO_COMPLETED_COMPLETION",
+    "P_FACE_CAPTURE_COMPLETED_TO_PROOF_SHARED_COMPLETION",
   ],
   records: new Map([[appId, completeRow]]),
   isFallback,
@@ -84,18 +90,23 @@ const dailyRows = [
     day: "2026-08-25",
     os_name: "iOS",
     n_users_started_selfie_check_flow: 10,
-    n_proofs: 2,
-    n_proof_users: 8,
-    cumulative_n_proofs: 27,
-    cumulative_n_proof_users: 20,
-    n_face_auth_started_sessions: 10,
-    n_face_auth_completed_sessions: 8,
-    p_face_auth_completion: 0.8,
+    n_users_shared_a_proof: 8,
+    cumulative_n_users_shared_a_proof: 20,
+    p_face_capture_completion: 0.8,
   },
 ];
 
 const dailySnapshot = () => ({
   ...snapshot(),
+  headers: [
+    "PARTNER_APP_ID",
+    "DAY",
+    "OS_NAME",
+    "N_USERS_STARTED_SELFIE_CHECK_FLOW",
+    "N_USERS_SHARED_A_PROOF",
+    "CUMULATIVE_N_USERS_SHARED_A_PROOF",
+    "P_FACE_CAPTURE_COMPLETION",
+  ],
   records: new Map([[appId, dailyRows]]),
 });
 

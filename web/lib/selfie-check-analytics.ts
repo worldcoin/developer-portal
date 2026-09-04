@@ -1,11 +1,14 @@
 export type TotalsRow = Readonly<{
   appId: string;
-  n_users_started_selfie_check_flow: number | null;
-  n_proofs: number | null;
-  n_proof_users: number | null;
-  n_face_auth_started_sessions: number | null;
-  n_face_auth_completed_sessions: number | null;
-  p_face_auth_completion: number | null;
+  n_users_started_at_least_one_selfie_check_flow: number | null;
+  n_users_shared_at_least_one_proof: number | null;
+  n_selfie_check_started_sessions: number | null;
+  n_face_capture_started_sessions: number | null;
+  n_face_capture_completed_sessions: number | null;
+  n_proof_shared_sessions: number | null;
+  p_selfie_check_to_face_capture_started_completion: number | null;
+  p_face_capture_started_to_completed_completion: number | null;
+  p_face_capture_completed_to_proof_shared_completion: number | null;
 }>;
 
 export type DailyRow = Readonly<{
@@ -13,13 +16,9 @@ export type DailyRow = Readonly<{
   day: string;
   os_name: string;
   n_users_started_selfie_check_flow: number | null;
-  n_proofs: number | null;
-  n_proof_users: number | null;
-  cumulative_n_proofs: number | null;
-  cumulative_n_proof_users: number | null;
-  n_face_auth_started_sessions: number | null;
-  n_face_auth_completed_sessions: number | null;
-  p_face_auth_completion: number | null;
+  n_users_shared_a_proof: number | null;
+  cumulative_n_users_shared_a_proof: number | null;
+  p_face_capture_completion: number | null;
 }>;
 
 export type TableColumnsTotal = Omit<TotalsRow, "appId">;
@@ -48,29 +47,57 @@ export type TableColumnDailySpec = Readonly<{
  */
 export const TABLE_COLUMNS_TOTAL = [
   {
-    key: "n_users_started_selfie_check_flow",
+    key: "n_users_started_at_least_one_selfie_check_flow",
     kind: "count",
-    label: "Users started selfie check",
-    visible: true,
-  },
-  { key: "n_proofs", kind: "count", label: "Proofs", visible: true },
-  { key: "n_proof_users", kind: "count", label: "Proof users", visible: true },
-  {
-    key: "n_face_auth_started_sessions",
-    kind: "count",
-    label: "Face auth started sessions",
+    label: "Users started at least one selfie check flow",
     visible: true,
   },
   {
-    key: "n_face_auth_completed_sessions",
+    key: "n_users_shared_at_least_one_proof",
     kind: "count",
-    label: "Face auth completed sessions",
+    label: "Users shared at least one proof",
     visible: true,
   },
   {
-    key: "p_face_auth_completion",
+    key: "n_selfie_check_started_sessions",
+    kind: "count",
+    label: "Selfie check started sessions",
+    visible: true,
+  },
+  {
+    key: "n_face_capture_started_sessions",
+    kind: "count",
+    label: "Face capture started sessions",
+    visible: true,
+  },
+  {
+    key: "n_face_capture_completed_sessions",
+    kind: "count",
+    label: "Face capture completed sessions",
+    visible: true,
+  },
+  {
+    key: "n_proof_shared_sessions",
+    kind: "count",
+    label: "Proof shared sessions",
+    visible: true,
+  },
+  {
+    key: "p_selfie_check_to_face_capture_started_completion",
     kind: "rate",
-    label: "Face auth completion",
+    label: "Selfie check to face capture started completion",
+    visible: true,
+  },
+  {
+    key: "p_face_capture_started_to_completed_completion",
+    kind: "rate",
+    label: "Face capture started to completed completion",
+    visible: true,
+  },
+  {
+    key: "p_face_capture_completed_to_proof_shared_completion",
+    kind: "rate",
+    label: "Face capture completed to proof shared completion",
     visible: true,
   },
 ] as const satisfies readonly TableColumnTotalSpec[];
@@ -85,41 +112,22 @@ export const TABLE_COLUMNS_DAILY = [
     label: "Users started selfie check",
     visible: true,
   },
-  { key: "n_proofs", kind: "count", label: "Proofs", visible: true },
   {
-    key: "n_proof_users",
+    key: "n_users_shared_a_proof",
     kind: "count",
-    label: "Proof users",
+    label: "Users shared a proof",
     visible: true,
   },
   {
-    key: "cumulative_n_proofs",
+    key: "cumulative_n_users_shared_a_proof",
     kind: "count",
-    label: "Cumulative proofs",
+    label: "Cumulative users shared a proof",
     visible: true,
   },
   {
-    key: "cumulative_n_proof_users",
-    kind: "count",
-    label: "Cumulative proof users",
-    visible: true,
-  },
-  {
-    key: "n_face_auth_started_sessions",
-    kind: "count",
-    label: "Face auth started sessions",
-    visible: true,
-  },
-  {
-    key: "n_face_auth_completed_sessions",
-    kind: "count",
-    label: "Face auth completed sessions",
-    visible: true,
-  },
-  {
-    key: "p_face_auth_completion",
+    key: "p_face_capture_completion",
     kind: "rate",
-    label: "Face auth completion",
+    label: "Face capture completion",
     visible: true,
   },
 ] as const satisfies readonly TableColumnDailySpec[];
@@ -136,13 +144,51 @@ const isNullableMetric = (
   return value <= 1;
 };
 
+const LEGACY_TOTAL_METRIC_KEYS: Partial<
+  Record<keyof TableColumnsTotal, string>
+> = {
+  n_users_started_at_least_one_selfie_check_flow:
+    "n_users_started_selfie_check_flow",
+  n_users_shared_at_least_one_proof: "n_proof_users",
+  n_face_capture_started_sessions: "n_face_auth_started_sessions",
+  n_face_capture_completed_sessions: "n_face_auth_completed_sessions",
+  n_proof_shared_sessions: "n_proofs",
+  p_face_capture_started_to_completed_completion: "p_face_auth_completion",
+};
+const LEGACY_TOTAL_METRIC_NAMES = Object.values(LEGACY_TOTAL_METRIC_KEYS);
+const LEGACY_OPTIONAL_TOTAL_KEYS = new Set<keyof TableColumnsTotal>([
+  "n_selfie_check_started_sessions",
+  "p_selfie_check_to_face_capture_started_completion",
+  "p_face_capture_completed_to_proof_shared_completion",
+]);
+
+const LEGACY_DAILY_METRIC_KEYS: Partial<
+  Record<keyof TableColumnsDaily, string>
+> = {
+  n_users_shared_a_proof: "n_proof_users",
+  cumulative_n_users_shared_a_proof: "cumulative_n_proof_users",
+  p_face_capture_completion: "p_face_auth_completion",
+};
+
 /** Validates and copies the required fields of a public, flat totals row. */
 export const pickTotalsRow = (value: unknown): TotalsRow | null => {
   if (!isRecord(value) || typeof value.appId !== "string") return null;
   const row = { appId: value.appId } as Record<keyof TotalsRow, unknown>;
+  const isLegacyRow = LEGACY_TOTAL_METRIC_NAMES.some(
+    (legacyKey) =>
+      legacyKey !== undefined &&
+      Object.prototype.hasOwnProperty.call(value, legacyKey),
+  );
 
   for (const column of TABLE_COLUMNS_TOTAL) {
-    const metric = value[column.key];
+    const legacyKey = LEGACY_TOTAL_METRIC_KEYS[column.key];
+    const metric = Object.prototype.hasOwnProperty.call(value, column.key)
+      ? value[column.key]
+      : legacyKey && Object.prototype.hasOwnProperty.call(value, legacyKey)
+        ? value[legacyKey]
+        : isLegacyRow && LEGACY_OPTIONAL_TOTAL_KEYS.has(column.key)
+          ? null
+          : undefined;
     if (!isNullableMetric(metric, column.kind)) return null;
     row[column.key] = metric;
   }
@@ -180,10 +226,17 @@ export const pickDailyRow = (value: unknown): DailyRow | null => {
     os_name: value.os_name,
   } as Record<keyof DailyRow, unknown>;
 
+  // Accept rows cached by an older deployment while the renamed warehouse
+  // columns roll out. Returned rows always use the new public field names.
   for (const column of TABLE_COLUMNS_DAILY) {
     if (column.kind === "date" || column.kind === "category") continue;
 
-    const metric = value[column.key];
+    const legacyKey = LEGACY_DAILY_METRIC_KEYS[column.key];
+    const metric = Object.prototype.hasOwnProperty.call(value, column.key)
+      ? value[column.key]
+      : legacyKey
+        ? value[legacyKey]
+        : undefined;
     if (!isNullableMetric(metric, column.kind)) return null;
     row[column.key] = metric;
   }
@@ -222,6 +275,35 @@ export type DailyChartData = Readonly<{
   /** One entry per OS, alphabetical for stable colors across metrics. */
   operatingSystems: readonly DailyChartOs[];
 }>;
+
+export type DailyTimeframeDays = 7 | 14 | 30 | null;
+
+/** Applies the daily chart controls relative to the newest available data day. */
+export const filterDailyRows = (
+  rows: readonly DailyRow[],
+  filters: Readonly<{
+    days: DailyTimeframeDays;
+    osName: string | null;
+  }>,
+): readonly DailyRow[] => {
+  const latestDay = rows.reduce<string | null>(
+    (latest, row) => (latest === null || row.day > latest ? row.day : latest),
+    null,
+  );
+
+  let cutoffDay: string | null = null;
+  if (filters.days !== null && latestDay !== null) {
+    const cutoff = new Date(`${latestDay}T00:00:00.000Z`);
+    cutoff.setUTCDate(cutoff.getUTCDate() - (filters.days - 1));
+    cutoffDay = cutoff.toISOString().slice(0, 10);
+  }
+
+  return rows.filter(
+    (row) =>
+      (cutoffDay === null || row.day >= cutoffDay) &&
+      (filters.osName === null || row.os_name === filters.osName),
+  );
+};
 
 /**
  * Pivots per-app daily rows (one per day+OS) into the flat one-object-per-day
