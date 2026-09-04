@@ -111,7 +111,7 @@ jobs:
   api-tests:
     name: API Tests
     runs-on:
-      group: arc-public-large-amd64-runner
+      group: arc-public-xlarge-amd64-runner
     timeout-minutes: 3
     defaults:
       run:
