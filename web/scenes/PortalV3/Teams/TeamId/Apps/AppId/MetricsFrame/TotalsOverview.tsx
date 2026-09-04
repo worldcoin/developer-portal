@@ -3,7 +3,7 @@ import { type TotalsRow } from "@/lib/selfie-check-analytics";
 const OVERVIEW_METRICS = [
   {
     key: "n_users_shared_at_least_one_proof",
-    label: "Number of users who shared 1+ selfie check",
+    label: "Number of users who shared 1+ selfie check proof",
   },
   {
     key: "n_users_started_at_least_one_selfie_check_flow",
