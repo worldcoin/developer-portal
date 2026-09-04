@@ -59,6 +59,7 @@ select_permissions:
         - operation_hash
         - staging_status
         - staging_operation_hash
+        - staging_verification_expires_at
       filter: {}
   - role: user
     permission:
@@ -73,6 +74,7 @@ select_permissions:
         - operation_hash
         - staging_status
         - staging_operation_hash
+        - staging_verification_expires_at
       filter:
         app:
           _and:
@@ -94,6 +96,7 @@ update_permissions:
         - operation_hash
         - staging_status
         - staging_operation_hash
+        - staging_verification_expires_at
         - updated_at
       filter: {}
       check: {}

@@ -1,0 +1,12 @@
+mutation McpSetStagingVerificationWindow(
+  $rp_id: String!
+  $expires_at: timestamptz
+) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: { staging_verification_expires_at: $expires_at }
+  ) {
+    rp_id
+    staging_verification_expires_at
+  }
+}

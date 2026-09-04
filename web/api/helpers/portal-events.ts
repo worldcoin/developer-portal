@@ -7,7 +7,8 @@ type PortalEventName =
   | "app_draft_creation"
   | "action_creation"
   | "app_submission"
-  | "action_verification";
+  | "action_verification"
+  | "staging_verification_window";
 
 type PortalEventParams = {
   event: PortalEventName;

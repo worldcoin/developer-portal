@@ -81288,6 +81288,18 @@
             "deprecationReason": null
           },
           {
+            "name": "staging_verification_expires_at",
+            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamptz",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
             "description": null,
             "args": [],
@@ -82017,6 +82029,18 @@
             "deprecationReason": null
           },
           {
+            "name": "staging_verification_expires_at",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "timestamptz_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
             "description": null,
             "type": {
@@ -82219,6 +82243,18 @@
             "deprecationReason": null
           },
           {
+            "name": "staging_verification_expires_at",
+            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamptz",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
             "description": null,
             "type": {
@@ -82361,6 +82397,18 @@
             "deprecationReason": null
           },
           {
+            "name": "staging_verification_expires_at",
+            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamptz",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
             "description": null,
             "args": [],
@@ -82495,6 +82543,18 @@
           {
             "name": "staging_status",
             "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_expires_at",
+            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
             "type": {
               "kind": "ENUM",
               "name": "order_by",
@@ -82647,6 +82707,18 @@
             "deprecationReason": null
           },
           {
+            "name": "staging_verification_expires_at",
+            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamptz",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
             "description": null,
             "args": [],
@@ -82781,6 +82853,18 @@
           {
             "name": "staging_status",
             "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_expires_at",
+            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
             "type": {
               "kind": "ENUM",
               "name": "order_by",
@@ -83268,6 +83352,18 @@
             "deprecationReason": null
           },
           {
+            "name": "staging_verification_expires_at",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
             "description": null,
             "type": {
@@ -83387,6 +83483,12 @@
           },
           {
             "name": "staging_status",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_expires_at",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -83560,6 +83662,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "rp_registration_status",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_expires_at",
+            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamptz",
               "ofType": null
             },
             "defaultValue": null,
@@ -83906,6 +84020,18 @@
             "deprecationReason": null
           },
           {
+            "name": "staging_verification_expires_at",
+            "description": "While this timestamp is in the future, /api/v4/verify accepts staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only.",
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamptz",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
             "description": null,
             "type": {
@@ -83998,6 +84124,12 @@
           },
           {
             "name": "staging_status",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "staging_verification_expires_at",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

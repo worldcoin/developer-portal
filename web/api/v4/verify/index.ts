@@ -152,9 +152,11 @@ export async function POST(
     // / verifier contract the proof is checked against and the attestation
     // service the integrity bundle is anchored to.
     if (verifierEnvironment === "staging") {
-      const stagingAccess = await authorizeStagingVerification({
+      const stagingAccess = authorizeStagingVerification({
         req,
         appId,
+        stagingVerificationExpiresAt:
+          rpRegistration.staging_verification_expires_at,
       });
 
       if (!stagingAccess.authorized) {

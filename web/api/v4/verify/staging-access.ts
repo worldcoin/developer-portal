@@ -1,12 +1,40 @@
-import { verifyApiKey } from "@/api/helpers/auth/verify-api-key";
 import { errorResponse } from "@/api/helpers/errors";
 import { NextRequest, NextResponse } from "next/server";
 
 export const ENVIRONMENT_NOT_ALLOWED_ERROR_CODE = "environment_not_allowed";
 
+/**
+ * How long a staging verification window stays open once a developer opens it.
+ * Short enough that an app that was left in test mode heals on its own, long
+ * enough to cover a working session.
+ */
+export const STAGING_VERIFICATION_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 export type StagingAccessResult =
   | { authorized: true }
   | { authorized: false; response: NextResponse };
+
+/**
+ * Whether this RP is currently in a developer-opened staging window.
+ *
+ * `staging_verification_expires_at` is written only by `set_world_id_staging_verification`,
+ * which authenticates the app's team. Anything else — never opened, already
+ * expired, or unparseable — means closed: the decision fails towards production.
+ */
+export function isStagingVerificationOpen(
+  stagingVerificationExpiresAt: unknown,
+  now: number = Date.now(),
+): boolean {
+  if (typeof stagingVerificationExpiresAt !== "string") {
+    return false;
+  }
+
+  const expiresAt = new Date(stagingVerificationExpiresAt).getTime();
+
+  // NaN from an unparseable timestamp fails every comparison, which is the
+  // direction we want.
+  return expiresAt > now;
+}
 
 /**
  * Decides whether this request may be verified against the staging environment.
@@ -20,44 +48,36 @@ export type StagingAccessResult =
  * request therefore buys a fresh, distinct nullifier against a production RP and
  * defeats the one-person-one-nullifier guarantee the endpoint exists to provide.
  *
- * Staging cannot simply be refused: every World ID 4.0 RP belongs to a
- * production app (`register_rp` rejects staging apps) and is duplicated onto the
- * staging registry precisely so its developer can test against the simulator.
- * It is instead a privileged mode — available only to a caller who proves it is
- * the app's developer by presenting one of the team's API keys, which an end
- * user submitting a proof never holds.
+ * The environment is therefore not authorized by anything in the request — a
+ * credential on the request would still be attached by a backend that forwards
+ * its user's `environment` field, which is the same confused deputy. It is
+ * authorized by server state the app's own team set out of band: a time-boxed
+ * staging window on the RP registration. Staging cannot simply be refused,
+ * because every World ID 4.0 RP belongs to a production app (`register_rp`
+ * rejects staging apps) and is duplicated onto the staging registry precisely so
+ * its developer can test against the simulator.
  */
-export async function authorizeStagingVerification(params: {
+export function authorizeStagingVerification(params: {
   req: NextRequest;
   appId: string;
-}): Promise<StagingAccessResult> {
-  const { req, appId } = params;
+  stagingVerificationExpiresAt: unknown;
+}): StagingAccessResult {
+  const { req, appId, stagingVerificationExpiresAt } = params;
 
-  // An unauthenticated caller gets the rule spelled out rather than the generic
-  // "API key is required": production integrations reach this branch by
-  // forwarding a client-supplied `environment`, and that is what they must stop
-  // doing. Callers that did present a key fall through to verifyApiKey's own
-  // errors, which say which part of the key was wrong.
-  if (!req.headers.get("authorization")) {
-    return {
-      authorized: false,
-      response: errorResponse({
-        statusCode: 403,
-        code: ENVIRONMENT_NOT_ALLOWED_ERROR_CODE,
-        detail:
-          "Verifying against the staging environment requires an API key for this app. Omit `environment` (or set it to `production`) to verify production proofs.",
-        attribute: "environment",
-        req,
-        app_id: appId,
-      }),
-    };
+  if (isStagingVerificationOpen(stagingVerificationExpiresAt)) {
+    return { authorized: true };
   }
 
-  const apiKeyResult = await verifyApiKey({ req, appId });
-
-  if (!apiKeyResult.success) {
-    return { authorized: false, response: apiKeyResult.errorResponse };
-  }
-
-  return { authorized: true };
+  return {
+    authorized: false,
+    response: errorResponse({
+      statusCode: 403,
+      code: ENVIRONMENT_NOT_ALLOWED_ERROR_CODE,
+      detail:
+        "Staging verification is not enabled for this app. Open a staging window with the set_world_id_staging_verification tool, or omit `environment` (or set it to `production`) to verify production proofs.",
+      attribute: "environment",
+      req,
+      app_id: appId,
+    }),
+  };
 }

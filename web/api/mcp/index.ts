@@ -20,6 +20,8 @@ import { verifyHashedSecret } from "@/api/helpers/utils";
 import { getSdk as getMcpAppContextSdk } from "@/api/mcp/graphql/app-context.generated";
 import { getSdk as getMcpAuthenticateTeamSdk } from "@/api/mcp/graphql/authenticate-team.generated";
 import { getSdk as getMcpCreateAppSdk } from "@/api/mcp/graphql/create-app.generated";
+import { getSdk as getMcpSetStagingVerificationWindowSdk } from "@/api/mcp/graphql/set-staging-verification-window.generated";
+import { STAGING_VERIFICATION_WINDOW_MS } from "@/api/v4/verify/staging-access";
 import { getSdk as getMcpSubmitAppForReviewSdk } from "@/api/mcp/graphql/submit-app-for-review.generated";
 import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.generated";
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
@@ -204,6 +206,20 @@ const toolDefinitions = [
     },
   },
   {
+    name: "set_world_id_staging_verification",
+    description:
+      "Open or close a temporary staging verification window for an app. While the window is open, /api/v4/verify accepts staging and sandbox proofs for this app; it closes automatically after 24 hours.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        app_id: { type: "string" },
+        enabled: { type: "boolean" },
+      },
+      required: ["app_id", "enabled"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "configure_mini_app",
     description:
       "Update Mini App portal settings, app store metadata, and Advanced/Permissions configuration (contracts, permit2 tokens, notification limits, etc.).",
@@ -355,6 +371,13 @@ const createActionSchema = yup
       .string()
       .oneOf(["production", "staging"])
       .default("production"),
+  })
+  .noUnknown();
+
+const setStagingVerificationSchema = yup
+  .object({
+    app_id: yup.string().required(),
+    enabled: yup.boolean().required(),
   })
   .noUnknown();
 
@@ -1216,6 +1239,48 @@ const tools = {
     return content({
       action: data.insert_action_v4_one,
       registration_status: registration.status,
+    });
+  },
+
+  set_world_id_staging_verification: async (input, ctx) => {
+    const args = await parseInput(setStagingVerificationSchema, input);
+    const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
+    const registration = app.rp_registration[0];
+    if (!registration?.rp_id) {
+      throw new McpError("World ID is not configured for this app.", -32004);
+    }
+
+    const expiresAt = args.enabled
+      ? new Date(Date.now() + STAGING_VERIFICATION_WINDOW_MS).toISOString()
+      : null;
+
+    const data = await getMcpSetStagingVerificationWindowSdk(
+      ctx.client,
+    ).McpSetStagingVerificationWindow({
+      rp_id: registration.rp_id,
+      expires_at: expiresAt,
+    });
+
+    logPortalEvent({
+      event: "staging_verification_window",
+      actor: "mcp",
+      team_id: ctx.teamId,
+      app_id: args.app_id,
+      metadata: {
+        rp_id: registration.rp_id,
+        enabled: args.enabled,
+        expires_at: expiresAt,
+      },
+    });
+
+    return content({
+      rp_id: registration.rp_id,
+      staging_verification_expires_at:
+        data.update_rp_registration_by_pk?.staging_verification_expires_at ??
+        null,
+      message: args.enabled
+        ? "Staging and sandbox proofs are accepted for this app until the timestamp above. Production verification is unaffected."
+        : "Staging verification is closed. /api/v4/verify now accepts production proofs only.",
     });
   },
 
