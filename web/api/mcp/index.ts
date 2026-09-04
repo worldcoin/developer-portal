@@ -1725,6 +1725,7 @@ const parseToolName = (value: unknown): ToolName => {
     case "get_world_id_registration_status":
     case "rotate_world_id_signing_key":
     case "create_world_id_action":
+    case "set_world_id_staging_verification":
     case "configure_mini_app":
     case "upload_app_image":
     case "submit_app_for_review":
@@ -1756,6 +1757,8 @@ const executeTool = async (
       return tools.rotate_world_id_signing_key(input, ctx);
     case "create_world_id_action":
       return tools.create_world_id_action(input, ctx);
+    case "set_world_id_staging_verification":
+      return tools.set_world_id_staging_verification(input, ctx);
     case "configure_mini_app":
       return tools.configure_mini_app(input, ctx);
     case "upload_app_image":

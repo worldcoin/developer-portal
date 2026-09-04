@@ -491,6 +491,26 @@ describe("/api/mcp", () => {
     );
   });
 
+  it("dispatches every advertised tool through tools/call", async () => {
+    const listed = await POST(
+      createRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+    );
+    const names: string[] = (await listed.json()).result.tools.map(
+      (tool: any) => tool.name,
+    );
+    expect(names.length).toBeGreaterThan(0);
+
+    for (const name of names) {
+      const res = await POST(callTool(name, {}));
+      const body = await res.json();
+      // The arguments are deliberately empty, so most tools answer with a
+      // validation error. What must never happen is the dispatch switch not
+      // knowing a name it advertises.
+      expect(body.error?.code).not.toBe(-32601);
+      expect(body.error?.message ?? "").not.toContain("Unknown tool");
+    }
+  });
+
   it("creates an app and logs MCP app creation", async () => {
     const res = await POST(
       callTool("create_app", {
