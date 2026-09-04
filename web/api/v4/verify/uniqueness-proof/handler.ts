@@ -23,6 +23,13 @@ import { processUniquenessProofV4 } from "./verify-v4";
 // Unified result type for both v3 and v4
 export interface UniquenessResult {
   identifier: string;
+  /**
+   * Credential issuer the proof was verified against. Echoed back so the relying
+   * party can bind the result to the issuer it expects — `identifier` is a
+   * caller-chosen label and carries no trust. Absent for v3 proofs, which have
+   * no issuer schema.
+   */
+  issuer_schema_id?: number;
   success: boolean;
   nullifier?: string;
   code?: string;

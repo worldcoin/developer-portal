@@ -17,6 +17,10 @@ export async function processUniquenessProofV4(
 ): Promise<UniquenessResult[]> {
   const results = await Promise.all(
     responses.map(async (item): Promise<UniquenessResult> => {
+      // Echoed back on every result so the relying party can check which
+      // credential issuer the proof was actually verified against.
+      const issuerSchemaId = Number(item.issuer_schema_id);
+
       try {
         const verifyResult = await verifyProofOnChain(
           {
@@ -45,6 +49,7 @@ export async function processUniquenessProofV4(
         if (!verifyResult.success) {
           return {
             identifier: item.identifier,
+            issuer_schema_id: issuerSchemaId,
             success: false,
             // Defaulting to "generic_error" for backwards compatibility.
             code: verifyResult.error?.code || "generic_error",
@@ -56,6 +61,7 @@ export async function processUniquenessProofV4(
 
         return {
           identifier: item.identifier,
+          issuer_schema_id: issuerSchemaId,
           success: true,
           nullifier: item.nullifier,
         };
@@ -74,6 +80,7 @@ export async function processUniquenessProofV4(
         });
         return {
           identifier: item.identifier,
+          issuer_schema_id: issuerSchemaId,
           success: false,
           code: "verification_error",
           detail: errorMessage,

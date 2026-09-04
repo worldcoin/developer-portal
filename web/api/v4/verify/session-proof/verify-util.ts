@@ -5,6 +5,12 @@ import { getSessionCommitment } from "@worldcoin/idkit-server";
 
 export interface SessionResult {
   identifier: string;
+  /**
+   * Credential issuer the proof was verified against. Echoed back so the relying
+   * party can bind the result to the issuer it expects — `identifier` is a
+   * caller-chosen label and carries no trust.
+   */
+  issuer_schema_id?: number;
   sessionId: string;
   success: boolean;
   nullifier?: string;
@@ -27,6 +33,8 @@ export async function processSessionProof(
 ): Promise<SessionResult[]> {
   const sessionResults = await Promise.all(
     sessionProofRequest.responses.map(async (item): Promise<SessionResult> => {
+      const issuerSchemaId = Number(item.issuer_schema_id);
+
       try {
         const verifyResult = await verifySessionProofOnChain(
           {
@@ -57,6 +65,7 @@ export async function processSessionProof(
         if (!verifyResult.success) {
           return {
             identifier: item.identifier,
+            issuer_schema_id: issuerSchemaId,
             sessionId: sessionProofRequest.session_id,
             success: false,
             // Defaulting to "generic_error" for backwards compatibility.
@@ -70,6 +79,7 @@ export async function processSessionProof(
         // For session proofs, use session_nullifier[0] as the nullifier for deduplication
         return {
           identifier: item.identifier,
+          issuer_schema_id: issuerSchemaId,
           sessionId: sessionProofRequest.session_id,
           success: true,
           nullifier: item.session_nullifier[0],
@@ -90,6 +100,7 @@ export async function processSessionProof(
         });
         return {
           identifier: item.identifier,
+          issuer_schema_id: issuerSchemaId,
           sessionId: sessionProofRequest.session_id,
           success: false,
           code: "verification_error",

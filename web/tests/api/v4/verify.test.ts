@@ -76,6 +76,9 @@ const createRequest = (body: Record<string, unknown>) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  delete process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS;
+  delete process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS_STAGING;
+  delete process.env.V4_VERIFY_ISSUER_ALLOWLIST_ENFORCED;
   mockResolveRpRegistration.mockResolvedValue({
     success: true,
     registration: {
@@ -182,6 +185,179 @@ describe("/api/v4/verify [integrity bundle]", () => {
         responses: [selfieCheckV4Response],
       }),
     );
+  });
+});
+// #endregion
+
+// #region Credential issuer allowlist
+describe("/api/v4/verify [credential issuer allowlist]", () => {
+  it("verifies responses from a recognized credential issuer", async () => {
+    const req = createRequest({
+      protocol_version: "4.0",
+      nonce: "1",
+      action: "verify",
+      responses: [{ ...v4Response, issuer_schema_id: 9303 }],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(200);
+    expect(mockHandleUniquenessProofVerification).toHaveBeenCalled();
+  });
+
+  it("rejects responses from a self-registered credential issuer", async () => {
+    const req = createRequest({
+      protocol_version: "4.0",
+      nonce: "1",
+      action: "verify",
+      responses: [{ ...v4Response, issuer_schema_id: 424242 }],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      code: "unrecognized_credential_issuer",
+      attribute: "responses[0].issuer_schema_id",
+    });
+    expect(mockVerifyIntegrityBundle).not.toHaveBeenCalled();
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+  });
+
+  it("rejects session proofs from a self-registered credential issuer", async () => {
+    const req = createRequest({
+      protocol_version: "4.0",
+      nonce: "1",
+      session_id: "session_1",
+      responses: [
+        {
+          identifier: "orb",
+          issuer_schema_id: 424242,
+          signal_hash: "0x0",
+          session_nullifier: ["0x1", "0x2"],
+          expires_at_min: 1772584197,
+          proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+        },
+      ],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      code: "unrecognized_credential_issuer",
+    });
+    expect(mockHandleSessionProofVerification).not.toHaveBeenCalled();
+  });
+
+  it("uses the configured issuer schema ids when the override is set", async () => {
+    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS = "777, 778";
+
+    const accepted = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...v4Response, issuer_schema_id: 777 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(accepted.status).toBe(200);
+
+    const rejected = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...v4Response, issuer_schema_id: 1 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(rejected.status).toBe(400);
+  });
+
+  it("keeps the staging override out of production requests", async () => {
+    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS_STAGING = "777";
+
+    const staging = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        environment: "staging",
+        responses: [{ ...v4Response, issuer_schema_id: 777 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(staging.status).toBe(200);
+
+    const production = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...v4Response, issuer_schema_id: 777 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(production.status).toBe(400);
+  });
+
+  it("ignores an override holding an invalid id instead of applying it partially", async () => {
+    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS = "1,11,128,9303,931O";
+
+    const recognized = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...v4Response, issuer_schema_id: 9310 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(recognized.status).toBe(200);
+  });
+
+  it("falls back to log-only mode when enforcement is switched off", async () => {
+    process.env.V4_VERIFY_ISSUER_ALLOWLIST_ENFORCED = "false";
+
+    const req = createRequest({
+      protocol_version: "4.0",
+      nonce: "1",
+      action: "verify",
+      responses: [{ ...v4Response, issuer_schema_id: 424242 }],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(200);
+    expect(mockHandleUniquenessProofVerification).toHaveBeenCalled();
+  });
+
+  it("does not apply the allowlist to v3 proofs, which carry no issuer schema", async () => {
+    const req = createRequest({
+      protocol_version: "3.0",
+      nonce: "1",
+      action: "verify",
+      responses: [
+        {
+          identifier: "orb",
+          merkle_root: "0x01",
+          nullifier: "0x02",
+          proof: "0x03",
+        },
+      ],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(200);
+    expect(mockHandleUniquenessProofVerification).toHaveBeenCalled();
   });
 });
 // #endregion
