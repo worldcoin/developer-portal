@@ -1,4 +1,4 @@
-import { generateHashedSecret } from "@/api/helpers/utils";
+import { generateHashedSecret, verifyHashedSecret } from "@/api/helpers/utils";
 import { GET, OPTIONS, POST } from "@/api/mcp";
 import { logger } from "@/lib/logger";
 import { generateRpIdString } from "@/lib/rp";
@@ -366,6 +366,14 @@ beforeEach(async () => {
         },
       };
     }
+    if (operationName.includes("McpSetStagingVerificationWindow")) {
+      return {
+        update_rp_registration_by_pk: {
+          rp_id: variables.rp_id,
+          staging_verification_expires_at: variables.expires_at,
+        },
+      };
+    }
     if (operationName.includes("McpUpsertRpRegistration")) {
       return {
         insert_rp_registration_one: {
@@ -491,6 +499,26 @@ describe("/api/mcp", () => {
     );
   });
 
+  it("dispatches every advertised tool through tools/call", async () => {
+    const listed = await POST(
+      createRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+    );
+    const names: string[] = (await listed.json()).result.tools.map(
+      (tool: any) => tool.name,
+    );
+    expect(names.length).toBeGreaterThan(0);
+
+    for (const name of names) {
+      const res = await POST(callTool(name, {}));
+      const body = await res.json();
+      // The arguments are deliberately empty, so most tools answer with a
+      // validation error. What must never happen is the dispatch switch not
+      // knowing a name it advertises.
+      expect(body.error?.code).not.toBe(-32601);
+      expect(body.error?.message ?? "").not.toContain("Unknown tool");
+    }
+  });
+
   it("creates an app and logs MCP app creation", async () => {
     const res = await POST(
       callTool("create_app", {
@@ -608,6 +636,95 @@ describe("/api/mcp", () => {
         action: "verify-account",
       }),
     );
+  });
+
+  it("opens a 24h staging verification window", async () => {
+    const before = Date.now();
+
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: true,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    const expiresAt = Date.parse(payload.staging_verification_expires_at);
+    expect(expiresAt).toBeGreaterThanOrEqual(before + 24 * 60 * 60 * 1000);
+    expect(expiresAt).toBeLessThanOrEqual(
+      Date.now() + 24 * 60 * 60 * 1000 + 5000,
+    );
+
+    const mutation = requestMock.mock.calls.find(([query]) =>
+      getOperationName(query).includes("McpSetStagingVerificationWindow"),
+    );
+    expect(mutation?.[1]).toEqual({
+      rp_id: rpId,
+      expires_at: payload.staging_verification_expires_at,
+      token_hash: expect.any(String),
+    });
+    // The token is returned once and only its HMAC is stored.
+    expect(payload.staging_verification_token).toMatch(/^sk_/);
+    expect(mutation?.[1].token_hash).not.toBe(
+      payload.staging_verification_token,
+    );
+    expect(
+      verifyHashedSecret(
+        rpId,
+        payload.staging_verification_token,
+        mutation?.[1].token_hash,
+      ),
+    ).toBe(true);
+    expect(mockLoggerInfo).toHaveBeenCalledWith(
+      "portal_staging_verification_window",
+      expect.objectContaining({ actor: "mcp", app_id: appId, enabled: true }),
+    );
+  });
+
+  it("closes the staging verification window immediately", async () => {
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: false,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    expect(payload.staging_verification_expires_at).toBeNull();
+
+    expect(payload.staging_verification_token).toBeNull();
+
+    const mutation = requestMock.mock.calls.find(([query]) =>
+      getOperationName(query).includes("McpSetStagingVerificationWindow"),
+    );
+    expect(mutation?.[1]).toEqual({
+      rp_id: rpId,
+      expires_at: null,
+      token_hash: null,
+    });
+  });
+
+  it("refuses to open a staging window for an app without World ID", async () => {
+    currentAppContextResponse = {
+      app: [{ ...appContextResponse.app[0], rp_registration: [] }],
+    };
+
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: true,
+      }),
+    );
+
+    const body = await res.json();
+    expect(body.error.message).toBe("World ID is not configured for this app.");
+    expect(
+      requestMock.mock.calls.some(([query]) =>
+        getOperationName(query).includes("McpSetStagingVerificationWindow"),
+      ),
+    ).toBe(false);
   });
 
   it("configures World ID via the managed flow and returns a one-time signing key", async () => {

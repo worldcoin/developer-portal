@@ -18,6 +18,7 @@ import {
   verifyIntegrityBundle,
 } from "./integrity-bundle";
 import { handleSessionProofVerification } from "./session-proof/handler";
+import { authorizeStagingVerification } from "./staging-access";
 import { handleUniquenessProofVerification } from "./uniqueness-proof/handler";
 
 /**
@@ -146,6 +147,25 @@ export async function POST(
       parsedParams.environment === "sandbox"
         ? "staging"
         : parsedParams.environment;
+
+    // Gate staging before anything trusts it: it selects both the identity tree
+    // / verifier contract the proof is checked against and the attestation
+    // service the integrity bundle is anchored to.
+    if (verifierEnvironment === "staging") {
+      const stagingAccess = authorizeStagingVerification({
+        req,
+        appId,
+        rpId,
+        stagingVerificationExpiresAt:
+          rpRegistration.staging_verification_expires_at,
+        stagingVerificationTokenHash:
+          rpRegistration.staging_verification_token_hash,
+      });
+
+      if (!stagingAccess.authorized) {
+        return stagingAccess.response;
+      }
+    }
 
     const requiresSelfieCheckIntegrity =
       parsedParams.protocol_version === "4.0" &&
