@@ -1,6 +1,6 @@
 # World Developer
 
-Install World documentation, coding workflows, and Developer Portal tools in Codex. The plugin uses the existing World servers; you do not need to run or build the Developer Portal.
+Connect Codex to World documentation and the hosted Developer Portal to build, debug, and configure World integrations.
 
 ## Install from a checkout
 
