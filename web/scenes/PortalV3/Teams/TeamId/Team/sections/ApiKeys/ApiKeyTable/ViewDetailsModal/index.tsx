@@ -22,7 +22,7 @@ import { UpdateKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/pag
 const schema = yup
   .object()
   .shape({
-    name: yup.string().required("A key name is required"),
+    name: yup.string().trim().required("A key name is required"),
     isActive: yup.boolean().default(true),
   })
   .noUnknown();
@@ -59,13 +59,15 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
     },
   });
 
-  // Add use effect here so default values update when the props change
+  // Start each edit session with saved values, discarding any canceled edits.
   useEffect(() => {
+    if (!isOpen) return;
+
     reset({
       name: name,
       isActive: isActive,
     });
-  }, [name, isActive, reset]);
+  }, [isOpen, keyId, name, isActive, reset]);
 
   const submit = async (values: ViewDetailsFormValues) => {
     if (updatingKey || !keyId) return;
