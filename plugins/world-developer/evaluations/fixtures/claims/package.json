@@ -1,7 +1,0 @@
-{
-  "name": "fixture-claims",
-  "private": true,
-  "type": "module",
-  "dependencies": { "@worldcoin/idkit": "4.2.0" },
-  "scripts": { "test": "node --test claim.test.mjs" }
-}

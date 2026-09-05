@@ -8,17 +8,12 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "prettier": "3.2.5",
-    "yaml": "2.8.1"
+    "prettier": "3.2.5"
   },
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "node scripts/check-package.mjs",
-    "check:installed": "node scripts/check-installed.mjs",
-    "release:archive": "node scripts/build-release.mjs",
-    "doctor": "node scripts/portal.mjs doctor",
-    "evaluate": "node evaluations/run.mjs"
+    "doctor": "node scripts/portal.mjs doctor"
   }
 }

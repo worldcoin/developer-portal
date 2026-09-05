@@ -16,7 +16,7 @@ This MCP authenticates with a developer-portal team API key and exposes 12 tools
 | `get_app_config`                   | Snapshot of an app: World ID config, store metadata, mini-app settings                                        | `app_id`                                                                                                                                                 |
 | `create_app`                       | Create a new production app                                                                                   | `name`; optional `app_mode` (`external` \| `mini-app`), `verification` (`cloud` \| `on-chain`), `category`, `integration_url`                            |
 | `configure_world_id`               | Create a managed World ID 4.0 RP for the app: KMS manager key, on-chain registration, signer wallet           | `app_id`; optional `signer_private_key` (else the server generates one and returns it once)                                                              |
-| `get_world_id_signing_key`         | Read the public signer. `rotate_if_unavailable: true` can rotate and return a private key once.               | `app_id`; optional `rotate_if_unavailable`                                                                                                               |
+| `get_world_id_signing_key`         | Read the signer address for an app. Private key is never returned here.                                       | `app_id`; optional `rotate_if_unavailable`                                                                                                               |
 | `rotate_world_id_signing_key`      | Generate a new World ID signing key. Returns the private key once.                                            | `app_id`; optional `signer_private_key`                                                                                                                  |
 | `get_world_id_registration_status` | Sync the on-chain registry status for an RP                                                                   | `app_id`                                                                                                                                                 |
 | `create_world_id_action`           | Create / update a v4 action (the thing you `verify` against)                                                  | `app_id`, `action`; optional `description`, `environment`                                                                                                |
@@ -30,7 +30,7 @@ This MCP authenticates with a developer-portal team API key and exposes 12 tools
 
 ```
 1. create_app             { name, app_mode: "external", verification: "cloud" }
-2. configure_world_id     { app_id }      ← capture private_key, it's one-time
+2. configure_world_id     { app_id, generate_signing_key: true }      ← capture private_key, it's one-time
 3. create_world_id_action { app_id, action: "verify-account" }
 4. upload_app_image       { app_id, image_type: "logo",       source_url }   ← required: logo_img_url
 5. upload_app_image       { app_id, image_type: "showcase_1", source_url }   ← required: ≥1 showcase per locale
@@ -52,7 +52,7 @@ After step 2, store the returned `private_key` in the developer's app environmen
 
 ```
 1. create_app             { name, app_mode: "mini-app" }
-2. configure_world_id     { app_id }      ← only if the mini app verifies proofs itself
+2. configure_world_id     { app_id, generate_signing_key: true }      ← only if the mini app verifies proofs itself
 3. upload_app_image       { app_id, image_type: "logo",         source_url }   ← required
 4. upload_app_image       { app_id, image_type: "content_card", source_url }   ← required for Mini Apps
 5. upload_app_image       { app_id, image_type: "showcase_1",   source_url }   ← required: ≥1 showcase per locale

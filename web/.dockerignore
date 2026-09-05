@@ -14,7 +14,3 @@ scripts/*
 !scripts/rp-manager-key-migration/**
 !scripts/cleanup-rp-manager-keys.ts
 !scripts/rp-manager-key-cleanup/**
-# Imported by unit tests during the Docker build's TypeScript check.
-!scripts/lib/
-scripts/lib/*
-!scripts/lib/static-mcp-contract.ts
