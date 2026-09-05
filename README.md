@@ -12,7 +12,7 @@ All the technical docs for the World SDK, World ID Protocol, examples, guides ca
 
 ## World Developer agent plugin
 
-Install the [World Developer plugin](plugins/world-developer/README.md) in Codex to search World docs, build integrations, and configure Developer Portal apps. It uses the existing World services; running the Portal locally is not required.
+Install the [World Developer plugin](plugins/world-developer/README.md) in Codex to search World documentation, build integrations, and configure apps in the hosted Developer Portal.
 
 ```sh
 codex plugin marketplace add worldcoin/developer-portal \
