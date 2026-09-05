@@ -285,9 +285,6 @@ export const MetricsFrame = (props: { appId: string }) => {
                       <h2 className="font-world text-14 font-medium text-portal-heading">
                         Session conversion funnel
                       </h2>
-                      <p className="font-world text-12 text-portal-muted">
-                        Percentages are relative to Selfie Check starts
-                      </p>
                     </div>
                     <TotalsFunnel row={totals.row} />
                   </div>
