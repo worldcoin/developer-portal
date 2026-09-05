@@ -1,0 +1,232 @@
+[
+  {
+    "name": "run_test_verification",
+    "description": "Mint a synthetic staging World ID 4.0 verification payload for your backend. Only the chain verdict is simulated. direct=true tests portal configuration only. Supported outcomes: success, expired, invalid_proof; invalid_rp_signature and below_sybil_threshold await verified mappings.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app_id": { "type": "string" },
+        "action": { "type": "string" },
+        "outcome": {
+          "type": "string",
+          "enum": ["success", "expired", "invalid_proof"]
+        },
+        "direct": { "type": "boolean", "default": false }
+      },
+      "required": ["app_id", "action"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_team_context",
+    "description": "Fetch the Dev Portal team and app context for this API key.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_app_config",
+    "description": "Fetch app, World ID, Mini App, and app store configuration.",
+    "inputSchema": {
+      "type": "object",
+      "properties": { "app_id": { "type": "string" } },
+      "required": ["app_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_app",
+    "description": "Create a production external World ID app or Mini App.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "app_mode": { "type": "string", "enum": ["external", "mini-app"] },
+        "integration_url": { "type": "string" },
+        "category": { "type": "string" },
+        "verification": { "type": "string", "enum": ["cloud", "on-chain"] }
+      },
+      "required": ["name"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "configure_world_id",
+    "description": "Create a managed World ID 4.0 RP for an app. The platform creates a KMS-backed manager key, submits the on-chain registration transaction, and (on production) duplicates to the staging contract. A new signer wallet is generated server-side; its private key is returned ONCE in the response — the portal does not retain it.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app_id": { "type": "string" },
+        "signer_private_key": {
+          "type": "string",
+          "description": "Optional. If provided, the resulting wallet's address is registered as the on-chain signer. If omitted, a fresh wallet is generated server-side and the private key is returned once."
+        }
+      },
+      "required": ["app_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_world_id_signing_key",
+    "description": "Fetch signer address. Private keys are only returned on MCP generation/rotation.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app_id": { "type": "string" },
+        "rotate_if_unavailable": { "type": "boolean" }
+      },
+      "required": ["app_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_world_id_registration_status",
+    "description": "Fetch and sync World ID RP registration status from the registry contracts for an app.",
+    "inputSchema": {
+      "type": "object",
+      "properties": { "app_id": { "type": "string" } },
+      "required": ["app_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "rotate_world_id_signing_key",
+    "description": "Generate or set a new World ID signing key for an app.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app_id": { "type": "string" },
+        "signer_private_key": { "type": "string" }
+      },
+      "required": ["app_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_world_id_action",
+    "description": "Create or update a World ID 4.0 action for an app.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app_id": { "type": "string" },
+        "action": { "type": "string" },
+        "description": { "type": "string" },
+        "environment": { "type": "string", "enum": ["production", "staging"] }
+      },
+      "required": ["app_id", "action"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "configure_mini_app",
+    "description": "Update Mini App portal settings, app store metadata, and Advanced/Permissions configuration (contracts, permit2 tokens, notification limits, etc.).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app_id": { "type": "string" },
+        "name": { "type": "string" },
+        "short_name": { "type": "string" },
+        "integration_url": { "type": "string" },
+        "category": { "type": "string" },
+        "app_website_url": { "type": "string" },
+        "support_link": { "type": "string" },
+        "description": {
+          "type": "string",
+          "description": "Stored verbatim. Prefer description_overview for the human-readable text shown in the app store; the server will JSON-encode it for you."
+        },
+        "description_overview": {
+          "type": "string",
+          "description": "App store overview shown to users. Required for review submission. Server JSON-encodes this (with description_how_it_works / description_connect) into app_metadata.description."
+        },
+        "description_how_it_works": { "type": "string" },
+        "description_connect": { "type": "string" },
+        "world_app_description": { "type": "string" },
+        "world_app_button_text": { "type": "string" },
+        "supported_countries": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "supported_languages": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "is_android_only": { "type": "boolean" },
+        "is_developer_allow_listing": { "type": "boolean" },
+        "is_for_humans_only": { "type": "boolean" },
+        "app_mode": {
+          "type": "string",
+          "enum": ["external", "mini-app", "native"]
+        },
+        "contracts": { "type": "array", "items": { "type": "string" } },
+        "permit2_tokens": { "type": "array", "items": { "type": "string" } },
+        "whitelisted_addresses": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Wallet addresses allowed to interact with the mini app. Pass an empty array to disable the whitelist."
+        },
+        "associated_domains": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "can_import_all_contacts": { "type": "boolean" },
+        "can_use_attestation": { "type": "boolean" },
+        "max_notifications_per_day": {
+          "type": "string",
+          "enum": ["0", "1", "2", "unlimited"],
+          "description": "How many notifications the mini app may send per day. Pass \"unlimited\" for no cap (automatically sets is_allowed_unlimited_notifications: true)."
+        }
+      },
+      "required": ["app_id"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "upload_app_image",
+    "description": "Upload an app image (logo, hero, content_card, meta_tag, showcase_1/2/3) from a public HTTPS source URL or base64 data and set the corresponding app_metadata field. Image must be PNG or JPEG, ≤500KB. Required for app store submissions which gate on logo_img_url and (for Mini Apps) content_card_image_url.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app_id": { "type": "string" },
+        "image_type": {
+          "type": "string",
+          "enum": [
+            "logo",
+            "hero",
+            "content_card",
+            "meta_tag",
+            "showcase_1",
+            "showcase_2",
+            "showcase_3"
+          ]
+        },
+        "source_url": {
+          "type": "string",
+          "description": "Public HTTPS URL the server fetches. Must resolve to a public address (loopback/private/link-local rejected). Redirects are not followed. Use this OR image_base64."
+        },
+        "image_base64": {
+          "type": "string",
+          "description": "Base64-encoded PNG/JPEG bytes. Use this OR source_url. The server detects the format from magic bytes; no separate content_type input is needed."
+        }
+      },
+      "required": ["app_id", "image_type"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "submit_app_for_review",
+    "description": "Submit an app for review after explicit confirmation from the user.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app_id": { "type": "string" },
+        "confirm_submission": { "type": "boolean" },
+        "changelog": { "type": "string" },
+        "is_developer_allow_listing": { "type": "boolean" }
+      },
+      "required": ["app_id", "confirm_submission"],
+      "additionalProperties": false
+    }
+  }
+]

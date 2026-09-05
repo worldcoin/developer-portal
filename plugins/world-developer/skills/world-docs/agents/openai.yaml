@@ -1,0 +1,4 @@
+interface:
+  display_name: "World Docs"
+  short_description: "Find version-matched World documentation"
+  default_prompt: "Use $world-docs to explain the World integration supported by this project's SDK version."

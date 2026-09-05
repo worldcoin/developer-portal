@@ -1,0 +1,7 @@
+node_modules/
+__pycache__/
+*.pyc
+.env*
+evaluations/results.json
+evaluations/LIVE-RESULTS.md
+*.tgz

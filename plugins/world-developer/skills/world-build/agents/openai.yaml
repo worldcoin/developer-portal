@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build with World"
+  short_description: "Implement and diagnose World integrations"
+  default_prompt: "Use $world-build to add World ID to this project and verify the resulting integration."

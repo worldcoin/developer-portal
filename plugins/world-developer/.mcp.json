@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "world-docs": {
+      "type": "http",
+      "url": "https://docs.world.org/mcp",
+      "default_tools_approval_mode": "writes",
+      "disabled_tools": ["submit_feedback"]
+    },
+    "world-portal": {
+      "command": "node",
+      "args": ["./scripts/portal.mjs"],
+      "cwd": "./",
+      "default_tools_approval_mode": "prompt",
+      "tools": {
+        "portal_connection_status": { "approval_mode": "approve" },
+        "get_world_id_signing_key": { "approval_mode": "approve" },
+        "get_team_context": {
+          "approval_mode": "approve"
+        },
+        "get_app_config": {
+          "approval_mode": "approve"
+        }
+      }
+    }
+  }
+}

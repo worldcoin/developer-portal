@@ -1,0 +1,20 @@
+{
+  "name": "world",
+  "interface": {
+    "displayName": "World"
+  },
+  "plugins": [
+    {
+      "name": "world-developer",
+      "source": {
+        "source": "local",
+        "path": "./plugins/world-developer"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
