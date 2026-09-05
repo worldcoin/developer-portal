@@ -31,7 +31,7 @@
       "Diagnose why my Mini App fails inside World App.",
       "Prepare this app's Portal configuration for review."
     ],
-    "brandColor": "#1F1F1F",
+    "brandColor": "#191C20",
     "composerIcon": "./assets/world-developer.svg",
     "logo": "./assets/world-developer.svg"
   }
