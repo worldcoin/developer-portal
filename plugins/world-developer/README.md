@@ -70,7 +70,9 @@ The generator reads literal definitions and imported constants without executing
 
 ## Evaluations and release
 
-`npm run evaluate` runs isolated Codex fixture tasks with fake Docs/Portal boundaries, using account quota. It does not contact World services. Baseline results are comparisons; the combined run's exit code reflects the plugin cases. Generated transcripts/results are local artifacts, not release contents. See [VALIDATION.md](VALIDATION.md) for the v1 evidence and limitations.
+`npm run evaluate` runs Codex fixture tasks with fake Docs/Portal boundaries, using account quota. Its independent claim grader requires Docker: first run `docker pull node:20-alpine`. Model-written code is graded only in a network-disabled, read-only, non-root container with resource limits and no host environment or credentials. If Docker or the image is unavailable, grading fails; it never falls back to host execution. The model task itself uses Codex's normal workspace-write permissions, not the grader container; do not treat this harness as a general adversarial-agent sandbox.
+
+The fixture servers do not contact World services. Case-specific structured assessments and observed tool responses determine success; an empty answer or arbitrary tool call is not sufficient. Baseline results are comparisons; the combined run's exit code reflects the plugin cases. Generated transcripts/results are local artifacts, not release contents. See [VALIDATION.md](VALIDATION.md) for the evidence and limitations; historical runs with the old permissive grader are not counted.
 
 Merge a reviewed version change to `main` to release it. The plugin workflow checks the package and contract, then creates `world-developer-v<version>` and its archive if that release does not exist. It never overwrites a release or replaces the Portal application's “latest” release. The root catalog and plugin must be released together.
 

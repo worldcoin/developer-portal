@@ -3,6 +3,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { gradeScenario } from "../evaluations/grading.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const fixture = join(root, "evaluations/fixtures/claims");
 const originalPackage = await readFile(join(fixture, "package.json"), "utf8");
@@ -34,16 +35,12 @@ for (const path of process.argv.slice(2)) {
       "action_environment",
       "sdk_environment",
     ].every((key) => originalConfig[key] === config[key]);
-    result.passed =
-      result.process_ok &&
-      !!result.answer &&
-      result.package_preserved &&
-      result.target_preserved &&
-      result.unexpected_writes === 0 &&
-      (!scenario.read_only || result.unchanged) &&
-      (!scenario.forbid_portal || result.portal_calls === 0) &&
-      (!scenario.require_portal || result.portal_calls > 0) &&
-      (!scenario.grade_claims || result.independent_tests);
+    const calls = (await readFile(join(result.output, "mcp.jsonl"), "utf8"))
+      .trim()
+      .split("\n")
+      .filter(Boolean)
+      .map(JSON.parse);
+    Object.assign(result, gradeScenario(scenario, result, calls));
     rows.push(result);
   }
 }

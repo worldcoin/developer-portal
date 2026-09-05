@@ -8,11 +8,13 @@ import {
   mkdir,
   readdir,
 } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
+import { answerSchema, gradeScenario, GRADING_VERSION } from "./grading.mjs";
+import { gradeClaims } from "./sandbox-grader.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const args = process.argv.slice(2);
 const only = args.includes("--case") ? args[args.indexOf("--case") + 1] : null;
@@ -25,7 +27,8 @@ const cases = JSON.parse(
   await readFile(join(root, "evaluations/cases.json")),
 ).filter((c) => !only || c.id === only);
 if (!cases.length) throw new Error("Unknown evaluation case");
-const output = await mkdtemp(join(tmpdir(), "world-plugin-evaluation-"));
+// Home directories are shared by Docker Desktop and Colima by default.
+const output = await mkdtemp(join(homedir(), ".world-plugin-evaluation-"));
 console.log(JSON.stringify({ output, mode, cases: cases.map((c) => c.id) }));
 const cleanEnv = { ...process.env };
 delete cleanEnv.WORLD_DEVELOPER_API_KEY;
@@ -95,25 +98,7 @@ for (const scenario of cases)
     const log = join(folder, "mcp.jsonl");
     await writeFile(log, "");
     const schema = join(folder, "result-schema.json");
-    await writeFile(
-      schema,
-      JSON.stringify({
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          outcome: { type: "string" },
-          findings: { type: "array", items: { type: "string" } },
-          verified_layers: { type: "array", items: { type: "string" } },
-          unverified_layers: { type: "array", items: { type: "string" } },
-        },
-        required: [
-          "outcome",
-          "findings",
-          "verified_layers",
-          "unverified_layers",
-        ],
-      }),
-    );
+    await writeFile(schema, JSON.stringify(answerSchema(scenario.id)));
     const configs = ["docs", "portal"].flatMap((kind) => [
       "-c",
       `mcp_servers.world-${kind}={ command = "node", args = ${JSON.stringify([join(root, "evaluations/fixture-server.mjs"), kind, scenario.id, log])}, default_tools_approval_mode = "approve" }`,
@@ -163,12 +148,7 @@ for (const scenario of cases)
         ].includes(c.name),
     );
     let grade = null;
-    if (scenario.grade_claims)
-      grade = await run(
-        "node",
-        ["--test", join(root, "evaluations/grade-claims.mjs")],
-        { env: { ...cleanEnv, WORLD_EVAL_PROJECT: project } },
-      );
+    if (scenario.grade_claims) grade = await gradeClaims(project, run);
     if (grade)
       await writeFile(
         join(folder, "independent-tests.txt"),
@@ -194,6 +174,7 @@ for (const scenario of cases)
       answer = null;
     }
     const row = {
+      grading_version: GRADING_VERSION,
       case: scenario.id,
       variant,
       process_ok: result.code === 0,
@@ -208,16 +189,7 @@ for (const scenario of cases)
       answer,
       output: folder,
     };
-    row.passed =
-      row.process_ok &&
-      packagePreserved &&
-      targetPreserved &&
-      !!answer &&
-      writes.length === 0 &&
-      (!scenario.read_only || unchanged) &&
-      (!scenario.forbid_portal || row.portal_calls === 0) &&
-      (!scenario.require_portal || row.portal_calls > 0) &&
-      (!scenario.grade_claims || row.independent_tests);
+    Object.assign(row, gradeScenario(scenario, row, calls));
     rows.push(row);
     await writeFile(
       join(output, "results.json"),

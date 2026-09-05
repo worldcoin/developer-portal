@@ -2,7 +2,7 @@
 
 ## Completed before repository packaging
 
-The local implementation passed 28 adapter/secret-storage tests, five credential-setup tests, and 77 Portal handler/documentation tests. A five-scenario model smoke evaluation covered documentation-only access, read-only diagnosis, concurrent claims, review readiness and interrupted registration. The plugin passed five scenarios; the two-MCP baseline passed four. This small sample is not a statistical performance claim.
+The local implementation passed 28 adapter/secret-storage tests, five credential-setup tests, and 77 Portal handler/documentation tests. Historical five-scenario model smoke runs used permissive grading and are not counted as behavioral pass evidence. The revised grader checks case-specific structured assessments against fixture responses, requires observed registration completion, and rejects empty answers, unsupported verification claims and old grading versions. Its regression tests are automated; a fresh baseline/plugin model comparison with the revised grader remains to be run.
 
 A live test used a dedicated credential and test resources to confirm:
 

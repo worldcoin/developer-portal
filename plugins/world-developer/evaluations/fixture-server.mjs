@@ -11,7 +11,7 @@ const RP = "rp_0123456789abcdef";
 let polls = 0;
 const docs = {
   "/world-id/idkit/integrate.mdx":
-    "# IDKit integration (evaluation snapshot)\nFor IDKit 4.2, sign RP context only on the backend. Forward the complete IDKit result to POST /api/v4/verify/{rp_id}. The code action, Portal action and environment must agree. Validate expected context before granting the protected operation. For one-time claims, atomically enforce action-scoped nullifier uniqueness with the grant. For repeatable sign-in, consume a fresh per-session challenge, not a permanent one-use-per-human ban. An existing v3 application can be diagnosed without migration. Follow its installed SDK reference. These fixture APIs are provided as a deterministic evaluation snapshot.\n",
+    "# IDKit integration (evaluation snapshot)\nDocumentation is public: no Portal account or team connection is required to read it. For IDKit 4.2, sign RP context only on the backend. Forward the complete IDKit result to POST /api/v4/verify/{rp_id}. The code action, Portal action and environment must agree. Validate expected context before granting the protected operation. For one-time claims, atomically enforce action-scoped nullifier uniqueness with the grant. For repeatable sign-in, consume a fresh per-session challenge, not a permanent one-use-per-human ban. An existing v3 application can be diagnosed without migration. Follow its installed SDK reference. These fixture APIs are provided as a deterministic evaluation snapshot.\n",
   "/mini-apps/quick-start/app-store.mdx":
     "# Review preparation (evaluation snapshot)\nA Mini App draft needs a reachable HTTPS integration URL, support link, overview, logo, content card, showcase, and supported locales. Preparation does not authorize submission. Desktop checks do not establish World App device behavior. Missing images must be supplied or separately generated before upload.\n",
   "/world-chain/quick-start/info.mdx":
@@ -61,7 +61,6 @@ async function handle(req) {
     return { tools: kind === "docs" ? docsTools : contract };
   if (req.method !== "tools/call") return {};
   const { name, arguments: args = {} } = req.params;
-  await appendFile(log, JSON.stringify({ kind, name, arguments: args }) + "\n");
   if (kind === "docs") {
     if (name === "search_world_documentation")
       return text(
@@ -139,11 +138,22 @@ for await (const line of createInterface({ input: process.stdin })) {
   try {
     req = JSON.parse(line);
     if (req.id === undefined) continue;
+    const result = await handle(req);
+    if (req.method === "tools/call")
+      await appendFile(
+        log,
+        JSON.stringify({
+          kind,
+          name: req.params.name,
+          arguments: req.params.arguments ?? {},
+          result,
+        }) + "\n",
+      );
     process.stdout.write(
       JSON.stringify({
         jsonrpc: "2.0",
         id: req.id,
-        result: await handle(req),
+        result,
       }) + "\n",
     );
   } catch {
