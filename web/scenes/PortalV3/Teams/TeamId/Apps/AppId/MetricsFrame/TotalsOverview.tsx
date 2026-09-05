@@ -2,12 +2,12 @@ import { type TotalsRow } from "@/lib/selfie-check-analytics";
 
 const OVERVIEW_METRICS = [
   {
-    key: "n_users_shared_at_least_one_proof",
-    label: "Number of users who shared 1+ Selfie Check proof",
+    key: "n_users_started_at_least_one_selfie_check_flow",
+    label: "Users who started Selfie Check",
   },
   {
-    key: "n_users_started_at_least_one_selfie_check_flow",
-    label: "Number of users who started 1+ Selfie Check flow",
+    key: "n_users_shared_at_least_one_proof",
+    label: "Users who shared a proof",
   },
 ] as const satisfies readonly {
   key: keyof Omit<TotalsRow, "appId">;
@@ -21,7 +21,7 @@ const countFormatter = new Intl.NumberFormat("en-US", {
 const formatCount = (value: number | null) =>
   typeof value === "number" ? countFormatter.format(value) : "—";
 
-/** All-time app totals shown before the funnel and daily charts. */
+/** Lifetime unique users, ordered to match the conversion funnel. */
 export const TotalsOverview = (props: { row: TotalsRow }) => (
   <section
     aria-label="Analytics overview"

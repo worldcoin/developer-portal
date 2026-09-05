@@ -12,6 +12,7 @@ import {
   type MetricKind,
   type TotalsRow,
 } from "@/lib/selfie-check-analytics";
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useEffect, useMemo, useState } from "react";
 import {
   DailyMetricChart,
@@ -40,31 +41,35 @@ type TimeframeValue = (typeof TIMEFRAME_OPTIONS)[number]["value"];
 const CHART_METRICS = [
   {
     metric: "n_users_started_selfie_check_flow",
-    title: "Number of users who started a Selfie Check flow, by day and OS",
+    label: "Users Starting 1+ Selfie Check",
+    title: "Users starting Selfie Check, by day",
     chartType: "bar",
     yAxisLabel: "Number of users",
   },
   {
     metric: "p_face_capture_completion",
-    title: "Average Face capture completion rate, by day and OS",
+    label: "Completion Rate",
+    title: "Average face capture completion rate, by day",
     chartType: "line",
     yAxisLabel: "Average completion rate",
   },
   {
     metric: "n_users_shared_a_proof",
-    title: "Number of users who shared a Selfie Check proof, by day and OS",
+    label: "Users Shared 1+ Proof",
+    title: "Users sharing a Selfie Check proof, by day",
     chartType: "bar",
     yAxisLabel: "Number of users",
   },
   {
     metric: "cumulative_n_users_shared_a_proof",
-    title:
-      "Cumulative number of unique users who shared a Selfie Check proof, by day and OS",
+    label: "Cumulative users Shared 1+ proof",
+    title: "Cumulative unique users who shared a proof, by day",
     chartType: "area",
     yAxisLabel: "Cumulative number of users",
   },
 ] as const satisfies readonly {
   metric: DailyChartMetric;
+  label: string;
   title: string;
   chartType: DailyMetricChartType;
   yAxisLabel: string;
@@ -105,12 +110,18 @@ const PlaceholderCard = (props: { label: string; message: string }) => (
   </section>
 );
 
-/** Fetches the app's analytics: overview and funnel above the daily charts. */
+/** Separate lifetime performance from daily exploration without shrinking charts. */
 export const MetricsFrame = (props: { appId: string }) => {
   const [daily, setDaily] = useState<DailyState>({ kind: "loading" });
   const [totals, setTotals] = useState<TotalsState>({ kind: "loading" });
   const [timeframe, setTimeframe] = useState<TimeframeValue>("14");
   const [osName, setOsName] = useState(ALL_OPERATING_SYSTEMS);
+  const [selectedMetric, setSelectedMetric] = useState<DailyChartMetric>(
+    CHART_METRICS[0].metric,
+  );
+  const activeChart = CHART_METRICS.find(
+    ({ metric }) => metric === selectedMetric,
+  )!;
 
   const operatingSystems = useMemo(
     () =>
@@ -125,12 +136,15 @@ export const MetricsFrame = (props: { appId: string }) => {
       (option) => option.value === timeframe,
     );
     return filterDailyRows(daily.rows, {
-      days: timeframeOption?.days ?? 14,
+      days: timeframeOption ? timeframeOption.days : 14,
       osName: osName === ALL_OPERATING_SYSTEMS ? null : osName,
     });
   }, [daily, osName, timeframe]);
 
   useEffect(() => {
+    setDaily({ kind: "loading" });
+    setTotals({ kind: "loading" });
+
     let active = true;
     const controller = new AbortController();
     const timeout = window.setTimeout(
@@ -164,8 +178,8 @@ export const MetricsFrame = (props: { appId: string }) => {
 
         const rawRows =
           typeof payload === "object" &&
-            payload !== null &&
-            Array.isArray((payload as { rows?: unknown }).rows)
+          payload !== null &&
+          Array.isArray((payload as { rows?: unknown }).rows)
             ? ((payload as { rows: unknown[] }).rows as unknown[])
             : null;
         const rows = rawRows?.map(pickDailyRow) ?? null;
@@ -242,106 +256,139 @@ export const MetricsFrame = (props: { appId: string }) => {
   }, [props.appId]);
 
   return (
-    <SizingWrapper className="py-8">
-      <div className="grid w-[920px] max-w-full gap-6">
-        <section aria-labelledby="all-time-heading" className="grid gap-4">
-          <h2
-            id="all-time-heading"
-            className="font-world text-18 font-semibold text-portal-heading"
+    <SizingWrapper className="py-6">
+      <div className="mx-auto grid w-full max-w-[920px] gap-4">
+        <h1 className="font-world text-24 font-semibold text-portal-heading">
+          Selfie Check analytics
+        </h1>
+        <TabGroup>
+          <TabList
+            aria-label="Analytics views"
+            className="flex gap-6 border-b border-portal-border"
           >
-            All time
-          </h2>
-          {totals.kind === "ready" ? (
-            <>
-              <TotalsOverview row={totals.row} />
-              <TotalsFunnel row={totals.row} />
-            </>
-          ) : (
-            <PlaceholderCard
-              label="Face Authentication Verification funnel"
-              message={
-                totals.kind === "loading"
-                  ? "Loading total analytics…"
-                  : totals.message
-              }
-            />
-          )}
-        </section>
-
-        <section aria-labelledby="daily-metrics-heading" className="grid gap-4">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <h2
-              id="daily-metrics-heading"
-              className="font-world text-18 font-semibold text-portal-heading"
-            >
-              Daily
-            </h2>
-            {daily.kind === "ready" && (
-              <div
-                aria-label="Daily analytics filters"
-                className="flex flex-wrap gap-2"
+            {["All time", "Daily trends"].map((label) => (
+              <Tab
+                key={label}
+                className="-mb-px border-b-2 border-transparent py-3 font-world text-14 font-medium text-portal-muted transition-colors hover:text-portal-heading focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-portal-heading aria-selected:border-portal-heading aria-selected:text-portal-heading"
               >
-                <label className="grid gap-1 font-world text-11 text-portal-muted">
-                  Timeframe
-                  <select
-                    aria-label="Timeframe"
-                    className="h-9 rounded-8 border border-portal-border bg-white px-3 font-world text-13 text-portal-heading"
-                    value={timeframe}
-                    onChange={(event) =>
-                      setTimeframe(event.target.value as TimeframeValue)
-                    }
-                  >
-                    {TIMEFRAME_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="grid gap-1 font-world text-11 text-portal-muted">
-                  Operating System
-                  <select
-                    aria-label="Operating system"
-                    className="h-9 rounded-8 border border-portal-border bg-white px-3 font-world text-13 text-portal-heading"
-                    value={osName}
-                    onChange={(event) => setOsName(event.target.value)}
-                  >
-                    <option value={ALL_OPERATING_SYSTEMS}>All</option>
-                    {operatingSystems.map((operatingSystem) => (
-                      <option key={operatingSystem} value={operatingSystem}>
-                        {operatingSystem}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-            )}
-          </div>
-          {daily.kind === "ready" ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {CHART_METRICS.map(({ metric, title, chartType, yAxisLabel }) => (
-                <DailyMetricChart
-                  key={metric}
-                  title={title}
-                  rows={filteredDailyRows}
-                  metric={metric}
-                  kind={metricKind(metric)}
-                  chartType={chartType}
-                  yAxisLabel={yAxisLabel}
+                {label}
+              </Tab>
+            ))}
+          </TabList>
+          <TabPanels className="mt-5">
+            <TabPanel className="grid gap-4">
+              {totals.kind === "ready" ? (
+                <>
+                  <TotalsOverview row={totals.row} />
+                  <div className="grid gap-3">
+                    <div className="flex flex-wrap items-baseline justify-between gap-1">
+                      <h2 className="font-world text-14 font-medium text-portal-heading">
+                        Session conversion funnel
+                      </h2>
+                      <p className="font-world text-12 text-portal-muted">
+                        Percentages are relative to Selfie Check starts
+                      </p>
+                    </div>
+                    <TotalsFunnel row={totals.row} />
+                  </div>
+                </>
+              ) : (
+                <PlaceholderCard
+                  label="Face Authentication Verification funnel"
+                  message={
+                    totals.kind === "loading"
+                      ? "Loading total analytics…"
+                      : totals.message
+                  }
                 />
-              ))}
-            </div>
-          ) : (
-            <PlaceholderCard
-              label="Daily selfie check charts"
-              message={
-                daily.kind === "loading"
-                  ? "Loading daily analytics…"
-                  : daily.message
-              }
-            />
-          )}
-        </section>
+              )}
+            </TabPanel>
+            <TabPanel className="grid gap-4">
+              <div className="flex flex-wrap items-end justify-end gap-3">
+                {daily.kind === "ready" && (
+                  <div
+                    aria-label="Daily analytics filters"
+                    className="flex flex-wrap gap-2"
+                  >
+                    <label className="grid gap-1 font-world text-11 text-portal-muted sm:flex sm:items-center sm:gap-2">
+                      Timeframe
+                      <select
+                        aria-label="Timeframe"
+                        className="h-9 rounded-8 border border-portal-border bg-white px-3 font-world text-13 text-portal-heading"
+                        value={timeframe}
+                        onChange={(event) =>
+                          setTimeframe(event.target.value as TimeframeValue)
+                        }
+                      >
+                        {TIMEFRAME_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="grid gap-1 font-world text-11 text-portal-muted sm:flex sm:items-center sm:gap-2">
+                      Operating system
+                      <select
+                        aria-label="Operating system"
+                        className="h-9 rounded-8 border border-portal-border bg-white px-3 font-world text-13 text-portal-heading"
+                        value={osName}
+                        onChange={(event) => setOsName(event.target.value)}
+                      >
+                        <option value={ALL_OPERATING_SYSTEMS}>
+                          All systems
+                        </option>
+                        {operatingSystems.map((operatingSystem) => (
+                          <option key={operatingSystem} value={operatingSystem}>
+                            {operatingSystem}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                )}
+              </div>
+              {daily.kind === "ready" ? (
+                <>
+                  <div
+                    role="group"
+                    aria-label="Daily metric"
+                    className="grid grid-cols-2 gap-1 rounded-[10px] border border-portal-border bg-grey-50 p-1 sm:grid-cols-4"
+                  >
+                    {CHART_METRICS.map(({ metric, label }) => (
+                      <button
+                        key={metric}
+                        type="button"
+                        aria-pressed={selectedMetric === metric}
+                        onClick={() => setSelectedMetric(metric)}
+                        className="min-h-9 rounded-[7px] px-3 py-2 font-world text-13 leading-[18px] font-medium text-balance text-portal-muted transition-colors hover:text-portal-heading focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-portal-heading aria-pressed:bg-white aria-pressed:text-portal-heading aria-pressed:shadow-sm"
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <DailyMetricChart
+                    title={activeChart.title}
+                    rows={filteredDailyRows}
+                    metric={activeChart.metric}
+                    kind={metricKind(activeChart.metric)}
+                    chartType={activeChart.chartType}
+                    yAxisLabel={activeChart.yAxisLabel}
+                  />
+                </>
+              ) : (
+                <PlaceholderCard
+                  label="Daily selfie check charts"
+                  message={
+                    daily.kind === "loading"
+                      ? "Loading daily analytics…"
+                      : daily.message
+                  }
+                />
+              )}
+            </TabPanel>
+          </TabPanels>
+        </TabGroup>
       </div>
     </SizingWrapper>
   );
