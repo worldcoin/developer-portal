@@ -2,13 +2,14 @@
 
 Connect Codex to World documentation and the hosted Developer Portal to build, debug, and configure World integrations.
 
-## Install from a checkout
+## Install
 
 Requires a Codex version with plugin support and Node.js 20+. Private credential/key-file storage supports macOS and Linux; Windows is not supported by this release. Python 3 is needed only for the optional interactive team connection.
 
 ```sh
-# Run from the repository root.
-codex plugin marketplace add .
+codex plugin marketplace add worldcoin/developer-portal \
+  --ref world-developer-v1.0.0 \
+  --sparse .agents/plugins --sparse plugins/world-developer
 codex plugin add world-developer@world
 ```
 
@@ -18,7 +19,7 @@ Start a new task and ask:
 - “Add World ID to this project and test the complete flow.”
 - “Prepare this Mini App's Portal configuration for review.”
 
-The catalog is a small install index hosted in this repository. This is a desktop/CLI plugin, not an OpenAI public-directory listing. Versioned distribution and release automation are provided separately; this checkout can be installed without them.
+The catalog is a small install index hosted in this repository. This release is a desktop/CLI plugin distributed from GitHub, not an OpenAI public-directory listing. Pinning the version tag keeps installation reproducible; update the tag in the command when adopting a later release.
 
 ## Connect your Portal team
 
@@ -28,7 +29,7 @@ Run the bundled `scripts/connect.py` with Python 3 in your own terminal. It uses
 
 Alternatively provide `WORLD_DEVELOPER_API_KEY` through the Codex host's secret environment. A nonempty environment value takes precedence over the saved file. File changes are picked up on the next operation; host environment changes require restarting Codex.
 
-From a checkout, run `python3 plugins/world-developer/scripts/connect.py` from the repository root. The resulting credential is independent of the installation path.
+You can also download the release archive, extract it, and run `python3 plugins/world-developer/scripts/connect.py` there. The resulting credential is independent of the installation path.
 
 ## Capabilities
 
@@ -51,12 +52,28 @@ From this directory:
 ```sh
 npm ci
 npm test
+npm run check
 npm run format:check
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
-`node scripts/portal.mjs doctor` checks live team access without returning team data or secrets.
+`node scripts/portal.mjs doctor` checks live team access without returning team data or secrets. `npm run check:installed` verifies the installed `world` catalog through Codex's runtime without an LLM turn. For a local catalog, pass `-- --marketplace-path /absolute/path/to/.agents/plugins/marketplace.json`. It calls only connection status and documentation search.
 
-The checked-in `contracts/portal-tools.json` snapshot describes the expected Portal tools. The adapter checks the deployed schemas before forwarding operations and tolerates the optional synthetic verification tool being absent. Contract-generation tooling, model evaluations, archive checks and release publishing are maintained separately from the core runtime and its regression tests.
+From the repository's `web/` directory, synchronize the contract after changing MCP tools or instructions:
+
+```sh
+pnpm exec tsx scripts/generate-mcp-contract.ts
+pnpm exec tsx scripts/generate-mcp-contract.ts --check
+```
+
+The generator reads literal definitions and imported constants without executing API/helper modules. It writes this package's tool snapshot and the Portal's embedded instructions from `web/api/mcp/SKILL.md`. CI compares the snapshot with the actual handler's tool listing.
+
+## Evaluations and release
+
+`npm run evaluate` runs Codex fixture tasks with fake Docs/Portal boundaries, using account quota. Its independent claim grader requires Docker: first run `docker pull node:20-alpine`. Model-written code is graded only in a network-disabled, read-only, non-root container with resource limits and no host environment or credentials. If Docker or the image is unavailable, grading fails; it never falls back to host execution. The model task itself uses Codex's normal workspace-write permissions, not the grader container; do not treat this harness as a general adversarial-agent sandbox.
+
+The fixture servers do not contact World services. Case-specific structured assessments and observed tool responses determine success; an empty answer or arbitrary tool call is not sufficient. Baseline results are comparisons; the combined run's exit code reflects the plugin cases. Generated transcripts/results are local artifacts, not release contents. See [VALIDATION.md](VALIDATION.md) for the evidence and limitations; historical runs with the old permissive grader are not counted.
+
+Merge a reviewed version change to `main` to release it. The plugin workflow checks the package and contract, then creates `world-developer-v<version>` and its archive if that release does not exist. It never overwrites a release or replaces the Portal application's “latest” release. The root catalog and plugin must be released together.
 
 Report reproducible issues through this repository, or contact [World developer support](mailto:developers@toolsforhumanity.com). Never include credentials or raw personal proof payloads in a report.

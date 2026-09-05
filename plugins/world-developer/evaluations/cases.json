@@ -1,0 +1,35 @@
+[
+  {
+    "id": "docs",
+    "skill": "world-docs",
+    "prompt": "Explain whether adding World ID requires a Portal account just to read the documentation. Do not edit this project or connect a team.",
+    "read_only": true,
+    "forbid_portal": true
+  },
+  {
+    "id": "diagnose",
+    "skill": "world-build",
+    "prompt": "My World ID requests fail with an action mismatch. Diagnose the cause by comparing this project's configuration with the Portal and docs. Do not implement a fix.",
+    "read_only": true,
+    "require_portal": true
+  },
+  {
+    "id": "claims",
+    "skill": "world-build",
+    "prompt": "Fix concurrent duplicate claim redemption in this existing World ID app. Keep the exported handler interface, package versions, and the existing configured Portal app. Add meaningful tests and run them. The verifier is the I/O boundary and returns {valid, nullifier}. This fixture is single-process; explain what a production database would need.",
+    "grade_claims": true
+  },
+  {
+    "id": "review",
+    "skill": "world-portal",
+    "prompt": "Inspect my Mini App's Portal draft and identify what is missing before review. Do not change metadata, upload images, or submit. No device test has been done.",
+    "read_only": true,
+    "require_portal": true
+  },
+  {
+    "id": "resume",
+    "skill": "world-portal",
+    "prompt": "Resume World ID registration for the app in world-config.json. The previous request was interrupted after submission. Check whether the existing registration completes; reuse this app and signer. Do not rotate or create anything.",
+    "require_portal": true
+  }
+]

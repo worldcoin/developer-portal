@@ -473,6 +473,18 @@ describe("/api/mcp", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const pluginContract = JSON.parse(
+      readFileSync(
+        resolve(
+          __dirname,
+          "../../../plugins/world-developer/contracts/portal-tools.json",
+        ),
+        "utf8",
+      ),
+    );
+    expect(body.result.tools).toEqual(pluginContract);
     expect(body.result.tools.map((tool: any) => tool.name)).toContain(
       "create_app",
     );

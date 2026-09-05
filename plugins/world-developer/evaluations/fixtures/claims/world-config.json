@@ -1,0 +1,8 @@
+{
+  "app_id": "app_0123456789abcdef0123456789abcdef",
+  "rp_id": "rp_0123456789abcdef",
+  "action": "claim",
+  "action_environment": "staging",
+  "sdk_environment": "sandbox",
+  "registration_operation": "fixture-pending-operation"
+}

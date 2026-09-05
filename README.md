@@ -10,6 +10,19 @@ The World Developer Portal provides tools to interact with the [World ID Protoco
 
 All the technical docs for the World SDK, World ID Protocol, examples, guides can be found at https://docs.world.org/
 
+## World Developer agent plugin
+
+Install the [World Developer plugin](plugins/world-developer/README.md) in Codex to search World documentation, build integrations, and configure apps in the hosted Developer Portal.
+
+```sh
+codex plugin marketplace add worldcoin/developer-portal \
+  --ref world-developer-v1.0.0 \
+  --sparse .agents/plugins --sparse plugins/world-developer
+codex plugin add world-developer@world
+```
+
+Start a new task after installation. Documentation works without credentials; connect your own team only when Portal access is needed. See the [setup instructions](plugins/world-developer/README.md#connect-your-portal-team) and [validation scope](plugins/world-developer/VALIDATION.md).
+
 ## 🧑‍💻 Developing Locally
 
 The Developer Portal uses some external services to operate. You do **not** need all the real credentials to run locally.
@@ -25,16 +38,19 @@ cp .env.example .env
 
 2. Edit any environment variables for which you have real credentials.
 3. AWS access is required to run the Developer Portal locally. The following AWS services are used:
+
    - **KMS** - for signing/encryption (Sign in with World ID, RP Registry)
    - **SSM Parameter Store** - for feature flags (e.g., World ID 4.0 enabled teams)
    - **S3** - for asset storage
 
    **For Worldcoin team members:** Use the `worldcoin-consumer-stage` AWS profile:
+
    ```bash
    export AWS_PROFILE=worldcoin-consumer-stage
    ```
 
    Or run the app with the profile:
+
    ```bash
    AWS_PROFILE=worldcoin-consumer-stage pnpm dev
    ```
