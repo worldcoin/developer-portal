@@ -1,0 +1,38 @@
+{
+  "name": "world-developer",
+  "version": "1.0.0",
+  "description": "Build, diagnose, and operate World integrations with matching code, documentation, and Portal configuration.",
+  "author": {
+    "name": "World"
+  },
+  "homepage": "https://docs.world.org/",
+  "repository": "https://github.com/worldcoin/developer-portal",
+  "license": "MIT",
+  "keywords": [
+    "world-id",
+    "idkit",
+    "minikit",
+    "world-chain",
+    "agentkit",
+    "developer-portal"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "World Developer",
+    "shortDescription": "Connect World docs, code, and Portal",
+    "longDescription": "Find current World documentation without credentials. Implement and debug World ID, Mini Apps, World Chain, and AgentKit with focused workflow guides. Connect a Portal team when needed; generated signing keys are handed off through private local files. Requires Node.js 20+; private file storage supports macOS and Linux.",
+    "developerName": "World",
+    "category": "Developer Tools",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://docs.world.org/",
+    "defaultPrompt": [
+      "Add World ID to this project and test the complete flow.",
+      "Diagnose why my Mini App fails inside World App.",
+      "Prepare this app's Portal configuration for review."
+    ],
+    "brandColor": "#191C20",
+    "composerIcon": "./assets/world-developer.svg",
+    "logo": "./assets/world-developer.svg"
+  }
+}

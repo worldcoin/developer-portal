@@ -1,0 +1,4 @@
+interface:
+  display_name: "World Portal"
+  short_description: "Inspect and configure World Portal apps"
+  default_prompt: "Use $world-portal to inspect this project's app and explain its configuration."
