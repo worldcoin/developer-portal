@@ -1,5 +1,5 @@
 import { requireAdminUser } from "@/lib/admin-auth";
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 import { AdminAppsPage } from "@/scenes/Admin/apps/page";
 import { Metadata } from "next";
 

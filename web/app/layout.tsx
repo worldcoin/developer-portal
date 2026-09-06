@@ -1,4 +1,4 @@
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 import { RootLayout } from "@/scenes/Root/layout";
 import { Metadata } from "next";
 

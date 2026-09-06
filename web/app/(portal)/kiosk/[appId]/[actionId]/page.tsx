@@ -1,4 +1,4 @@
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 import { ActionIdKioskPage } from "@/scenes/PortalV3/Kiosk";
 import { Metadata } from "next";
 
