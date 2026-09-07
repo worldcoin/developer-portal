@@ -66,6 +66,13 @@ const selfieCheckV4Response = {
   sybil_score: 10,
 };
 
+const v3Response = {
+  identifier: "orb",
+  merkle_root: "0x01",
+  nullifier: "0x02",
+  proof: "0x03",
+};
+
 const createRequest = (body: Record<string, unknown>) =>
   new NextRequest(new URL(`/api/v4/verify/${appId}`, "http://localhost:3000"), {
     method: "POST",
@@ -181,6 +188,88 @@ describe("/api/v4/verify [integrity bundle]", () => {
         integrityBundle: { ...integrityBundle, version: 2 },
         responses: [selfieCheckV4Response],
       }),
+    );
+  });
+});
+// #endregion
+
+// #region Protocol version floor
+describe("/api/v4/verify [min_protocol_version]", () => {
+  it("rejects a 3.0 proof when the relying party requires 4.0", async () => {
+    const req = createRequest({
+      protocol_version: "3.0",
+      min_protocol_version: "4.0",
+      nonce: "1",
+      action: "verify",
+      responses: [v3Response],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      code: "protocol_version_not_allowed",
+      attribute: "protocol_version",
+    });
+    // The floor is enforced before any verification work is done.
+    expect(mockResolveRpRegistration).not.toHaveBeenCalled();
+    expect(mockVerifyIntegrityBundle).not.toHaveBeenCalled();
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+  });
+
+  it("accepts a 3.0 proof when the relying party still allows 3.0", async () => {
+    const req = createRequest({
+      protocol_version: "3.0",
+      min_protocol_version: "3.0",
+      nonce: "1",
+      action: "verify",
+      responses: [v3Response],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(200);
+    expect(mockHandleUniquenessProofVerification).toHaveBeenCalledWith(
+      expect.anything(),
+      rpId,
+      appId,
+      expect.objectContaining({ protocol_version: "3.0" }),
+      req,
+    );
+  });
+
+  it("accepts a 3.0 proof when no floor is declared", async () => {
+    const req = createRequest({
+      protocol_version: "3.0",
+      nonce: "1",
+      action: "verify",
+      responses: [v3Response],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(200);
+    expect(mockHandleUniquenessProofVerification).toHaveBeenCalled();
+  });
+
+  it("accepts a 4.0 proof when the relying party requires 4.0", async () => {
+    const req = createRequest({
+      protocol_version: "4.0",
+      min_protocol_version: "4.0",
+      nonce: "1",
+      action: "verify",
+      responses: [v4Response],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(200);
+    expect(mockHandleUniquenessProofVerification).toHaveBeenCalledWith(
+      expect.anything(),
+      rpId,
+      appId,
+      expect.objectContaining({ protocol_version: "4.0" }),
+      req,
     );
   });
 });

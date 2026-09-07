@@ -1,4 +1,5 @@
 import {
+  computeIntegrityPayloadFingerprint,
   computeIntegritySignatureDigest,
   computeProofIntegrityDigest,
   normalizeIntegrityBundle,
@@ -58,6 +59,33 @@ const selfieResponse = {
   issuer_schema_id: "11",
   sybil_score: 10,
 };
+
+// A second, unrelated proof under the same nonce — what a stolen bundle would
+// be paired with.
+const otherResponse = {
+  ...response,
+  nullifier: "0x99",
+  proof: ["0x9", "0x8", "0x7", "0x6", "0x5"] as [
+    string,
+    string,
+    string,
+    string,
+    string,
+  ],
+};
+
+/**
+ * Flips `s` to `n - s`. Signatures are verified with `lowS: false`, so the
+ * result still verifies while having different bytes — the reason the
+ * single-use key is derived from the device key and digest rather than from
+ * the client-supplied signature.
+ */
+function malleateAndroidSignature(signatureHex: string) {
+  const signature = p256.Signature.fromDER(signatureHex);
+  const flipped = new p256.Signature(signature.r, p256.CURVE.n - signature.s);
+
+  return Buffer.from(flipped.toDERRawBytes()).toString("hex");
+}
 
 function createAgKey(): AgKey {
   const { privateKey, publicKey } = generateKeyPairSync("ec", {
@@ -528,6 +556,200 @@ describe("integrity bundle verification", () => {
         error: expect.stringContaining('unexpected "aud" claim value'),
         reason: "invalid_integrity_token",
         rp_id: RP_ID,
+      }),
+    );
+  });
+
+  // The device signs a digest that does not cover the proofs, so the signature
+  // alone cannot tell the two payloads apart. Pinned so a future digest change
+  // that closes this (bundle version 3) shows up as a failure here.
+  it("still accepts a first use against responses the device never signed", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      signedResponses: [response],
+    });
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const result = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [otherResponse],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({ success: true });
+  });
+
+  it("allows an identical retry of the same bundle and responses", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle();
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const firstResult = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+    const retryResult = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+
+    expect(firstResult).toEqual({ success: true });
+    expect(retryResult).toEqual({ success: true });
+  });
+
+  it("rejects a bundle reused for a different set of responses", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle();
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const firstResult = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+    const replayResult = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [otherResponse],
+      rpId: RP_ID,
+    });
+
+    expect(firstResult).toEqual({ success: true });
+    expect(replayResult).toEqual({
+      success: false,
+      reason: "integrity_bundle_already_used",
+    });
+  });
+
+  it("rejects a re-encoded signature reused for different responses", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle();
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const firstResult = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+
+    const malleatedSignature = malleateAndroidSignature(
+      integrityBundle.signature,
+    );
+    expect(malleatedSignature).not.toBe(integrityBundle.signature);
+
+    const replayResult = await verifyIntegrityBundle({
+      integrityBundle: { ...integrityBundle, signature: malleatedSignature },
+      nonce,
+      protocolVersion: "4.0",
+      responses: [otherResponse],
+      rpId: RP_ID,
+    });
+
+    expect(firstResult).toEqual({ success: true });
+    expect(replayResult).toEqual({
+      success: false,
+      reason: "integrity_bundle_already_used",
+    });
+  });
+
+  it("falls open on the single-use check when Redis is unavailable", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle();
+    // Without Redis there is no JWKS cache either, so every call refetches and
+    // needs its own unconsumed Response body.
+    jest.spyOn(global, "fetch").mockImplementation(async () =>
+      Promise.resolve(
+        new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+          status: 200,
+        }),
+      ),
+    );
+
+    const redis = global.RedisClient;
+    global.RedisClient = undefined;
+
+    try {
+      const firstResult = await verifyIntegrityBundle({
+        integrityBundle,
+        nonce,
+        protocolVersion: "4.0",
+        responses: [response],
+        rpId: RP_ID,
+      });
+      const replayResult = await verifyIntegrityBundle({
+        integrityBundle,
+        nonce,
+        protocolVersion: "4.0",
+        responses: [otherResponse],
+        rpId: RP_ID,
+      });
+
+      expect(firstResult).toEqual({ success: true });
+      expect(replayResult).toEqual({ success: true });
+    } finally {
+      global.RedisClient = redis;
+    }
+  });
+
+  it("fingerprints responses independently of object key order", () => {
+    const reordered = {
+      proof: response.proof,
+      expires_at_min: response.expires_at_min,
+      nullifier: response.nullifier,
+      issuer_schema_id: response.issuer_schema_id,
+      signal_hash: response.signal_hash,
+      identifier: response.identifier,
+    };
+
+    expect(
+      computeIntegrityPayloadFingerprint({
+        nonce: "0x01",
+        protocolVersion: "4.0",
+        responses: [reordered],
+      }),
+    ).toBe(
+      computeIntegrityPayloadFingerprint({
+        nonce: "0x01",
+        protocolVersion: "4.0",
+        responses: [response],
+      }),
+    );
+
+    expect(
+      computeIntegrityPayloadFingerprint({
+        nonce: "0x01",
+        protocolVersion: "4.0",
+        responses: [otherResponse],
+      }),
+    ).not.toBe(
+      computeIntegrityPayloadFingerprint({
+        nonce: "0x01",
+        protocolVersion: "4.0",
+        responses: [response],
       }),
     );
   });
