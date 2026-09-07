@@ -118,8 +118,9 @@ const appStoreError = (status?: number) =>
   });
 // #endregion
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
+  await global.RedisClient?.flushall();
   authenticateAdminRequest.mockResolvedValue(admin);
   mockRequestStatuses("pending");
   mockTransitions();
@@ -385,6 +386,60 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [concurrency]", () =>
     expect(retried.status).toBe(200);
     expect(storedStatus).toBe("approved");
     expect(addSandboxBetaTester).toHaveBeenCalledTimes(2);
+  });
+
+  it("refuses a concurrent revocation instead of removing the tester twice", async () => {
+    // A rejected or revoked request releases its Apple Account, so a second
+    // in-flight revocation could finish its removal after the address was
+    // re-claimed and re-approved, stripping the new owner's TestFlight access.
+    let releaseAppleCall: () => void = () => {};
+    removeSandboxBetaTester.mockImplementationOnce(
+      () => new Promise<void>((resolve) => (releaseAppleCall = resolve)),
+    );
+
+    const first = POST(createRequest({ status: "revoked" }), createContext());
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const second = await POST(
+      createRequest({ status: "revoked" }),
+      createContext(),
+    );
+
+    expect(second.status).toBe(409);
+    expect(await second.json()).toEqual({
+      error: "Revocation already in progress",
+    });
+    expect(removeSandboxBetaTester).toHaveBeenCalledTimes(1);
+
+    releaseAppleCall();
+    expect((await first).status).toBe(200);
+  });
+
+  it("releases the revocation lock so a later revocation can run", async () => {
+    mockRequestStatuses("approved");
+
+    const first = await POST(
+      createRequest({ status: "revoked" }),
+      createContext(),
+    );
+    expect(first.status).toBe(200);
+
+    mockTransitionConflict();
+    mockRequestStatuses("revoked");
+
+    const second = await POST(
+      createRequest({ status: "revoked" }),
+      createContext(),
+    );
+
+    expect(second.status).toBe(200);
+    expect(await second.json()).toEqual({
+      success: true,
+      changed: false,
+      status: "revoked",
+    });
   });
 });
 // #endregion

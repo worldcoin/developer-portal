@@ -11,6 +11,10 @@ import { getSdk as getStatusSdk } from "./graphql/update-sandbox-request-ios-sta
 
 const REQUEST_ID_PATTERN = /^sbx_req_[a-zA-Z0-9]+$/;
 const MAX_REJECTION_REASON_LENGTH = 500;
+const REVOCATION_LOCK_KEY_PREFIX = "sandbox_access_request_ios:revoking:";
+// Comfortably above the App Store Connect helper's worst case (two idempotent
+// calls, three 10s attempts each), so the lock only survives a crashed caller.
+const REVOCATION_LOCK_TTL_SECONDS = 90;
 
 type RequestedStatus = "approved" | "rejected" | "revoked";
 type StoredStatus = "pending" | "approving" | RequestedStatus | "revoking";
@@ -26,6 +30,65 @@ type ProcessingStage =
 type StatusCommand = {
   status: RequestedStatus;
   rejectionReason: string | null;
+};
+
+/**
+ * Serializes revocations of one request so only a single caller ever drives the
+ * App Store Connect removal.
+ *
+ * Rejecting or revoking a request releases its Apple Account for re-enrollment,
+ * so a duplicate in-flight revocation is no longer harmless: it can finish its
+ * removal after the address was released, re-claimed and re-approved, and strip
+ * the new owner's TestFlight access while the row still reads `approved`.
+ *
+ * The lock expires on its own, so a caller that dies mid-revocation still
+ * leaves the row resumable instead of stranding it in `revoking` — which would
+ * reserve the address forever, the very defect this flow now avoids.
+ *
+ * Degraded mode: with no Redis, or if Redis errors, revocation proceeds
+ * unserialized. Revocation withdraws access, so blocking it on a cache outage
+ * is worse than reopening a narrow race.
+ */
+const acquireRevocationLock = async (id: string) => {
+  const redis = global.RedisClient;
+  if (!redis) return { acquired: true, release: async () => {} };
+
+  const key = `${REVOCATION_LOCK_KEY_PREFIX}${id}`;
+  try {
+    const claimed = await redis.set(
+      key,
+      "1",
+      "EX",
+      REVOCATION_LOCK_TTL_SECONDS,
+      "NX",
+    );
+    if (claimed !== "OK") return { acquired: false, release: async () => {} };
+  } catch (error) {
+    logger.warn("iOS sandbox revocation lock unavailable", {
+      requestId: id,
+      dependency: "redis",
+      failureClass: "revocation_lock_unavailable",
+      error,
+    });
+    return { acquired: true, release: async () => {} };
+  }
+
+  return {
+    acquired: true,
+    release: async () => {
+      try {
+        await redis.del(key);
+      } catch (error) {
+        // The TTL still frees it; a retry is only delayed, never lost.
+        logger.warn("Failed to release iOS sandbox revocation lock", {
+          requestId: id,
+          dependency: "redis",
+          failureClass: "revocation_lock_release_failed",
+          error,
+        });
+      }
+    },
+  };
 };
 
 const isStoredStatus = (value: unknown): value is StoredStatus =>
@@ -203,34 +266,51 @@ export async function POST(
       throw new Error("iOS sandbox approval changed before finalization");
     }
 
-    processingStage = "revocation_claim";
-    let revocation = await transition("approved", { status: "revoking" });
-
-    if (!revocation) {
-      processingStage = "status_check";
-      const current = await readRequest();
-      if (!current) return respond(false, null);
-      if (current.status === "revoked") return respond(false, "revoked");
-      if (current.status !== "revoking") {
-        return unsupportedTransition(current.status);
-      }
-      revocation = current;
+    const revocationLock = await acquireRevocationLock(id);
+    if (!revocationLock.acquired) {
+      logger.warn("iOS sandbox revocation is already in progress", {
+        requestId: id,
+        adminSubject: admin.subject,
+        failureClass: "revocation_in_progress",
+      });
+      return NextResponse.json(
+        { error: "Revocation already in progress" },
+        { status: 409 },
+      );
     }
 
-    processingStage = "testflight_update";
-    await removeSandboxBetaTester(revocation.asc_email);
+    try {
+      processingStage = "revocation_claim";
+      let revocation = await transition("approved", { status: "revoking" });
 
-    processingStage = "revocation_finalize";
-    const revoked = await transition("revoking", {
-      status: "revoked",
-      revoked_at: new Date().toISOString(),
-    });
-    if (revoked) return respond(true, "revoked");
+      if (!revocation) {
+        processingStage = "status_check";
+        const current = await readRequest();
+        if (!current) return respond(false, null);
+        if (current.status === "revoked") return respond(false, "revoked");
+        if (current.status !== "revoking") {
+          return unsupportedTransition(current.status);
+        }
+        revocation = current;
+      }
 
-    processingStage = "status_check";
-    const current = await readRequest();
-    if (current?.status === "revoked") return respond(false, "revoked");
-    throw new Error("iOS sandbox revocation changed before finalization");
+      processingStage = "testflight_update";
+      await removeSandboxBetaTester(revocation.asc_email);
+
+      processingStage = "revocation_finalize";
+      const revoked = await transition("revoking", {
+        status: "revoked",
+        revoked_at: new Date().toISOString(),
+      });
+      if (revoked) return respond(true, "revoked");
+
+      processingStage = "status_check";
+      const current = await readRequest();
+      if (current?.status === "revoked") return respond(false, "revoked");
+      throw new Error("iOS sandbox revocation changed before finalization");
+    } finally {
+      await revocationLock.release();
+    }
   } catch (error) {
     logger.error("Failed to update iOS sandbox request status", {
       requestId: id,
