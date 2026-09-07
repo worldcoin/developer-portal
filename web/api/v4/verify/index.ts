@@ -19,7 +19,9 @@ import {
 } from "./integrity-bundle";
 import {
   findUnrecognizedIssuers,
+  ISSUER_ALLOWLIST_MISCONFIGURED_ERROR_CODE,
   isIssuerAllowlistEnforced,
+  resolveRecognizedIssuerSchemaIds,
   UNRECOGNIZED_ISSUER_ERROR_CODE,
 } from "./issuer-schema";
 import { handleSessionProofVerification } from "./session-proof/handler";
@@ -162,14 +164,48 @@ export async function POST(
       const issuerEnvironment =
         verifierEnvironment === "staging" ? "staging" : "production";
 
-      const unrecognizedIssuers = findUnrecognizedIssuers(
-        parsedParams.responses as Array<{ issuer_schema_id?: unknown }>,
-        issuerEnvironment,
-      );
+      const enforced = isIssuerAllowlistEnforced();
+
+      const recognizedIssuers =
+        resolveRecognizedIssuerSchemaIds(issuerEnvironment);
+
+      // A malformed override states a policy we cannot read. Guessing either way
+      // is unsafe — partially applying it rejects legitimate credentials, and
+      // falling back to the built-in set re-authorizes any issuer the override
+      // was written to exclude — so enforcement fails closed and says why.
+      if (recognizedIssuers.status === "misconfigured") {
+        if (enforced) {
+          return errorResponse({
+            statusCode: 500,
+            code: ISSUER_ALLOWLIST_MISCONFIGURED_ERROR_CODE,
+            detail: `The credential issuer allowlist is misconfigured: ${recognizedIssuers.variable} — ${recognizedIssuers.reason}.`,
+            attribute: null,
+            req,
+            app_id: appId,
+          });
+        }
+
+        logger.warn(
+          "Credential issuer allowlist is misconfigured; enforcement is switched off",
+          {
+            rp_id: rpId,
+            app_id: appId,
+            environment: issuerEnvironment,
+            variable: recognizedIssuers.variable,
+            reason: recognizedIssuers.reason,
+          },
+        );
+      }
+
+      const unrecognizedIssuers =
+        recognizedIssuers.status === "ok"
+          ? findUnrecognizedIssuers(
+              parsedParams.responses as Array<{ issuer_schema_id?: unknown }>,
+              recognizedIssuers.ids,
+            )
+          : [];
 
       if (unrecognizedIssuers.length > 0) {
-        const enforced = isIssuerAllowlistEnforced();
-
         logger.warn("Unrecognized credential issuer in v4 verify request", {
           rp_id: rpId,
           app_id: appId,

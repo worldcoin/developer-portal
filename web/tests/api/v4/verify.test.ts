@@ -307,10 +307,34 @@ describe("/api/v4/verify [credential issuer allowlist]", () => {
     expect(production.status).toBe(400);
   });
 
-  it("ignores an override holding an invalid id instead of applying it partially", async () => {
-    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS = "1,11,128,9303,931O";
+  it("fails closed on an override holding an invalid id rather than applying it partially", async () => {
+    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS = "1,11,931O";
 
-    const recognized = await POST(
+    // The entries that do parse must not be applied on their own: that would
+    // silently narrow the allowlist and reject legitimate credentials.
+    const listed = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...v4Response, issuer_schema_id: 1 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(listed.status).toBe(500);
+    await expect(listed.json()).resolves.toMatchObject({
+      code: "issuer_allowlist_misconfigured",
+    });
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+  });
+
+  it("does not restore the built-in issuer set when an override is malformed", async () => {
+    // A narrowing override that excludes 9310 must not re-authorize it just
+    // because a later entry is a typo.
+    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS = "1,invalid";
+
+    const res = await POST(
       createRequest({
         protocol_version: "4.0",
         nonce: "1",
@@ -320,7 +344,90 @@ describe("/api/v4/verify [credential issuer allowlist]", () => {
       { params: Promise.resolve({ app_id: appId }) },
     );
 
-    expect(recognized.status).toBe(200);
+    expect(res.status).toBe(500);
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+  });
+
+  it("fails closed on an override that parses to an empty list", async () => {
+    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS = " , ";
+
+    const res = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...v4Response, issuer_schema_id: 1 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toMatchObject({
+      code: "issuer_allowlist_misconfigured",
+    });
+  });
+
+  it("keeps a malformed override scoped to its own verifier environment", async () => {
+    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS_STAGING = "1,invalid";
+
+    const production = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...v4Response, issuer_schema_id: 1 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(production.status).toBe(200);
+
+    const staging = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        environment: "staging",
+        responses: [{ ...v4Response, issuer_schema_id: 1 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(staging.status).toBe(500);
+  });
+
+  it("downgrades a malformed override to log-only when enforcement is switched off", async () => {
+    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS = "1,invalid";
+    process.env.V4_VERIFY_ISSUER_ALLOWLIST_ENFORCED = "false";
+
+    const res = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...v4Response, issuer_schema_id: 424242 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockHandleUniquenessProofVerification).toHaveBeenCalled();
+  });
+
+  it("treats a whitespace-only override as unset", async () => {
+    process.env.V4_VERIFY_ALLOWED_ISSUER_SCHEMA_IDS = "   ";
+
+    const res = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...v4Response, issuer_schema_id: 9310 }],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(res.status).toBe(200);
   });
 
   it("falls back to log-only mode when enforcement is switched off", async () => {

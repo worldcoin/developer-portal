@@ -1,5 +1,3 @@
-import { logger } from "@/lib/logger";
-
 /**
  * World ID 4.0 credentials carry an `issuer_schema_id`, which the
  * CredentialSchemaIssuerRegistry assigns to an (issuer, schema) pair. Registering
@@ -23,6 +21,9 @@ export const DEFAULT_RECOGNIZED_ISSUER_SCHEMA_IDS: readonly number[] = [
 
 export const UNRECOGNIZED_ISSUER_ERROR_CODE = "unrecognized_credential_issuer";
 
+export const ISSUER_ALLOWLIST_MISCONFIGURED_ERROR_CODE =
+  "issuer_allowlist_misconfigured";
+
 /**
  * The staging Verifier is backed by a different registry contract than the
  * production one, so the same numeric id can name a different (issuer, schema)
@@ -37,15 +38,34 @@ function overrideVariableName(environment: VerifierEnvironment) {
 }
 
 /**
- * Deployment override for the recognized set, as a comma-separated list of
- * integers. A malformed list is rejected whole rather than partially applied:
- * dropping the bad entry would silently narrow the allowlist and reject
- * legitimate credentials.
+ * Resolution of the recognized set for one verifier environment.
+ *
+ * `misconfigured` is deliberately distinct from "not configured": an operator
+ * who sets the override is stating a policy, and the two ways that policy can
+ * fail are not symmetric. Applying a malformed list partially would silently
+ * *narrow* the set and reject legitimate credentials; falling back to the
+ * built-in set would silently *broaden* it, re-authorizing an issuer the
+ * override was written to exclude. Neither is safe to guess at, so a malformed
+ * override resolves to `misconfigured` and the caller fails closed.
  */
-function readConfiguredIds(environment: VerifierEnvironment): number[] | null {
-  const variableName = overrideVariableName(environment);
-  const raw = process.env[variableName];
-  if (!raw) return null;
+export type IssuerAllowlistResolution =
+  | { status: "ok"; ids: readonly number[] }
+  | { status: "misconfigured"; variable: string; reason: string };
+
+/**
+ * Deployment override for the recognized set, as a comma-separated list of
+ * integers. Absent (unset, empty, or whitespace) means "no override"; anything
+ * else must parse completely.
+ */
+export function resolveRecognizedIssuerSchemaIds(
+  environment: VerifierEnvironment,
+): IssuerAllowlistResolution {
+  const variable = overrideVariableName(environment);
+  const raw = process.env[variable]?.trim();
+
+  if (!raw) {
+    return { status: "ok", ids: DEFAULT_RECOGNIZED_ISSUER_SCHEMA_IDS };
+  }
 
   const entries = raw
     .split(",")
@@ -53,44 +73,39 @@ function readConfiguredIds(environment: VerifierEnvironment): number[] | null {
     .filter(Boolean);
 
   if (entries.length === 0) {
-    logger.warn(
-      `${variableName} is set but holds no ids; using the built-in recognized set`,
-    );
-
-    return null;
+    return {
+      status: "misconfigured",
+      variable,
+      reason: "the override is set but holds no issuer schema ids",
+    };
   }
 
-  const parsed: number[] = [];
+  const ids: number[] = [];
 
   for (const entry of entries) {
     const value = Number(entry);
 
     if (!Number.isSafeInteger(value) || value < 0) {
-      logger.warn(
-        `${variableName} holds an invalid id; using the built-in recognized set`,
-        { entry },
-      );
-
-      return null;
+      return {
+        status: "misconfigured",
+        variable,
+        reason: `the override holds an invalid issuer schema id: ${JSON.stringify(entry)}`,
+      };
     }
 
-    parsed.push(value);
+    ids.push(value);
   }
 
-  return parsed;
-}
-
-export function getRecognizedIssuerSchemaIds(
-  environment: VerifierEnvironment,
-): readonly number[] {
-  return readConfiguredIds(environment) ?? DEFAULT_RECOGNIZED_ISSUER_SCHEMA_IDS;
+  return { status: "ok", ids };
 }
 
 /**
  * Kill switch. Enforcement is on by default; setting
  * `V4_VERIFY_ISSUER_ALLOWLIST_ENFORCED=false` falls back to log-only mode
  * without a code rollback, in case a legitimate issuer schema turns out to be
- * missing from the recognized set.
+ * missing from the recognized set. It also covers a malformed override, so a
+ * configuration typo has a documented escape hatch that is not "trust every
+ * registered issuer".
  */
 export function isIssuerAllowlistEnforced(): boolean {
   return process.env.V4_VERIFY_ISSUER_ALLOWLIST_ENFORCED !== "false";
@@ -107,9 +122,8 @@ export interface UnrecognizedIssuer {
  */
 export function findUnrecognizedIssuers(
   responses: ReadonlyArray<{ issuer_schema_id?: unknown }>,
-  environment: VerifierEnvironment,
+  recognized: readonly number[],
 ): UnrecognizedIssuer[] {
-  const recognized = getRecognizedIssuerSchemaIds(environment);
   const unrecognized: UnrecognizedIssuer[] = [];
 
   responses.forEach((response, index) => {
