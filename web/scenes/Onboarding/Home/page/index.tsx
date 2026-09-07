@@ -4,6 +4,7 @@ import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { ComponentType } from "react";
 import { LazyBasePixelStrip } from "../components/BasePixelStrip/lazy";
@@ -110,33 +111,35 @@ const NestedLinkConnector = () => (
   </svg>
 );
 
-// Developer tool cards. Each card keeps the hover-to-play background video from
-// the previous landing page: the muted Prismic clip fades in and plays while
-// the pointer is over the card (see HoverVideo). The card content must stay
-// `pointer-events-none` so the video element receives the hover events.
-const DEVELOPER_TOOL_CARDS: Array<{
+// Developer tool cards. World ID uses the prior static artwork, while the
+// remaining cards retain their hover-to-play backgrounds. Card content must
+// stay `pointer-events-none` so the video element receives hover events.
+type DeveloperToolCard = {
   description: string;
   href: string;
   icon: ComponentType<IconProps>;
   label: string;
-  poster?: string;
-  video: string;
-}> = [
+} & (
+  | { image: string; kind: "image" }
+  | { kind: "video"; poster?: string; video: string }
+);
+
+const DEVELOPER_TOOL_CARDS: DeveloperToolCard[] = [
   {
     description:
       "Verify unique humans while preserving privacy. Add proof of human to your app, platform, or protocol.",
     href: "https://docs.world.org/world-id/overview",
+    image: "/posters/World-ID-thumbnail.png",
     icon: HumanBadgeIcon,
+    kind: "image",
     label: "World ID",
-    poster: "/posters/World-ID-thumbnail-800.webp",
-    video:
-      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
   },
   {
     description:
       "A simple integration toolkit for adding World ID verification flows to web and mobile experiences.",
     href: "https://docs.world.org/world-id/idkit/integrate",
     icon: ViewGridIcon,
+    kind: "video",
     label: "IDKit",
     video:
       "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeIixp1ZCF7ETSvj_dithr-2026-4-14_16-17-58-1-.mp4",
@@ -146,6 +149,7 @@ const DEVELOPER_TOOL_CARDS: Array<{
       "Build AI agents that can interact with verified humans and take trusted actions across digital environments.",
     href: "https://docs.world.org/agents/agent-kit/integrate",
     icon: CursorPointerIcon,
+    kind: "video",
     label: "Agent Kit",
     video:
       "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ablVSrbci2UF6Hcw_AgentKitDither-Video-web-.mp4",
@@ -362,41 +366,50 @@ export const HomePage = async () => {
           </div>
 
           <div className="grid gap-3 md:grid-cols-3 md:gap-6">
-            {DEVELOPER_TOOL_CARDS.map(
-              ({ description, href, icon: Icon, label, poster, video }) => (
-                <a
-                  className="group relative flex min-h-[300px] flex-col justify-between gap-10 overflow-hidden rounded-2xl border border-[#edece9] bg-white p-6 md:min-h-[340px] md:p-8"
-                  href={href}
-                  key={label}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
+            {DEVELOPER_TOOL_CARDS.map((card) => (
+              <a
+                className="group relative flex min-h-[300px] flex-col justify-between gap-10 overflow-hidden rounded-2xl border border-[#edece9] bg-white p-6 md:min-h-[340px] md:p-8"
+                href={card.href}
+                key={card.label}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {card.kind === "image" ? (
+                  <Image
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 size-full object-cover"
+                    fill
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                    src={card.image}
+                  />
+                ) : (
                   <HoverVideo
                     className="absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 motion-reduce:transition-none"
-                    poster={poster}
-                    src={video}
+                    poster={card.poster}
+                    src={card.video}
                   />
+                )}
 
-                  <Icon className="pointer-events-none relative z-10 size-6 md:size-8" />
+                <card.icon className="pointer-events-none relative z-10 size-6 md:size-8" />
 
-                  <span className="pointer-events-none relative z-10 flex flex-col gap-2 md:gap-3">
-                    <span className="text-[24px] leading-[1.3] tracking-[-0.48px] md:text-[32px] md:tracking-[-0.64px]">
-                      {label}
+                <span className="pointer-events-none relative z-10 flex flex-col gap-2 md:gap-3">
+                  <span className="text-[24px] leading-[1.3] tracking-[-0.48px] md:text-[32px] md:tracking-[-0.64px]">
+                    {card.label}
+                  </span>
+
+                  <span className="flex flex-col items-start gap-6">
+                    <span className="text-[18px] leading-[1.4] md:text-[20px]">
+                      {card.description}
                     </span>
 
-                    <span className="flex flex-col items-start gap-6">
-                      <span className="text-[18px] leading-[1.4] md:text-[20px]">
-                        {description}
-                      </span>
-
-                      <span className="hidden text-[20px] leading-[1.4] underline md:inline">
-                        Explore
-                      </span>
+                    <span className="hidden text-[20px] leading-[1.4] underline md:inline">
+                      Explore
                     </span>
                   </span>
-                </a>
-              ),
-            )}
+                </span>
+              </a>
+            ))}
           </div>
         </div>
       </section>
