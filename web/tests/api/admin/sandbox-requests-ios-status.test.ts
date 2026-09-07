@@ -111,6 +111,33 @@ const mockTransitionConflict = () => {
   );
 };
 
+const redisClient = () => {
+  const redis = global.RedisClient;
+  if (!redis) throw new Error("jest.setup did not provide a Redis client");
+  return redis as unknown as {
+    set: (...args: unknown[]) => Promise<unknown>;
+    get: (key: string) => Promise<string | null>;
+  };
+};
+
+/**
+ * Holds the next App Store Connect removal open so a second caller can race the
+ * first one, and resolves `started` once the handler has reached that call.
+ */
+const pendingAppleRemoval = () => {
+  let signalStarted: () => void = () => {};
+  let finish: () => void = () => {};
+  const started = new Promise<void>((resolve) => (signalStarted = resolve));
+  const held = new Promise<void>((resolve) => (finish = resolve));
+
+  removeSandboxBetaTester.mockImplementationOnce(() => {
+    signalStarted();
+    return held;
+  });
+
+  return { started, finish: () => finish() };
+};
+
 const appStoreError = (status?: number) =>
   Object.assign(new Error("App Store Connect failed"), {
     name: "AppStoreConnectRequestError",
@@ -392,15 +419,10 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [concurrency]", () =>
     // A rejected or revoked request releases its Apple Account, so a second
     // in-flight revocation could finish its removal after the address was
     // re-claimed and re-approved, stripping the new owner's TestFlight access.
-    let releaseAppleCall: () => void = () => {};
-    removeSandboxBetaTester.mockImplementationOnce(
-      () => new Promise<void>((resolve) => (releaseAppleCall = resolve)),
-    );
+    const appleCall = pendingAppleRemoval();
 
     const first = POST(createRequest({ status: "revoked" }), createContext());
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await appleCall.started;
 
     const second = await POST(
       createRequest({ status: "revoked" }),
@@ -413,7 +435,7 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [concurrency]", () =>
     });
     expect(removeSandboxBetaTester).toHaveBeenCalledTimes(1);
 
-    releaseAppleCall();
+    appleCall.finish();
     expect((await first).status).toBe(200);
   });
 
@@ -440,6 +462,43 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [concurrency]", () =>
       changed: false,
       status: "revoked",
     });
+  });
+
+  it("fails a revocation closed when the lock is unavailable", async () => {
+    // Without the lease the Apple removal is not safe to run, so refuse it
+    // rather than proceeding unserialized and reopening the stale-removal race.
+    const set = jest
+      .spyOn(redisClient(), "set")
+      .mockRejectedValue(new Error("redis down"));
+
+    try {
+      const response = await POST(
+        createRequest({ status: "revoked" }),
+        createContext(),
+      );
+
+      expect(response.status).toBe(503);
+      expect(removeSandboxBetaTester).not.toHaveBeenCalled();
+      expect(TransitionSandboxRequestIosStatus).not.toHaveBeenCalled();
+    } finally {
+      set.mockRestore();
+    }
+  });
+
+  it("leaves a successor's lock alone when its own lease expired", async () => {
+    const redis = redisClient();
+    const lockKey = `sandbox_access_request_ios:revoking:${REQUEST_ID}`;
+    const appleCall = pendingAppleRemoval();
+
+    const first = POST(createRequest({ status: "revoked" }), createContext());
+    await appleCall.started;
+
+    // Simulate the lease expiring and a successor taking the lock over.
+    await redis.set(lockKey, "successor-owner");
+
+    appleCall.finish();
+    expect((await first).status).toBe(200);
+    expect(await redis.get(lockKey)).toBe("successor-owner");
   });
 });
 // #endregion

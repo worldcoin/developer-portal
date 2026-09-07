@@ -5,6 +5,7 @@ import {
 import { getInternalDashboardGraphqlClientForUser } from "@/api/helpers/graphql";
 import { authenticateAdminRequest } from "@/lib/admin-auth";
 import { logger } from "@/lib/logger";
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getRequestSdk } from "./graphql/get-sandbox-request-ios-for-processing.generated";
 import { getSdk as getStatusSdk } from "./graphql/update-sandbox-request-ios-status.generated";
@@ -12,9 +13,21 @@ import { getSdk as getStatusSdk } from "./graphql/update-sandbox-request-ios-sta
 const REQUEST_ID_PATTERN = /^sbx_req_[a-zA-Z0-9]+$/;
 const MAX_REJECTION_REASON_LENGTH = 500;
 const REVOCATION_LOCK_KEY_PREFIX = "sandbox_access_request_ios:revoking:";
-// Comfortably above the App Store Connect helper's worst case (two idempotent
-// calls, three 10s attempts each), so the lock only survives a crashed caller.
-const REVOCATION_LOCK_TTL_SECONDS = 90;
+// Must outlive the slowest legitimate revocation, or a second caller could
+// acquire the lease while the first is still talking to Apple. Worst case is
+// ~186s: an App Store Connect removal of ~64s (two idempotent calls, three 10s
+// attempts each plus backoff) between Hasura round trips that cost up to 15s
+// per mutation and 45s per retried query. 240s clears that with margin; the
+// only cost of the margin is that a caller which dies mid-revocation delays
+// the resuming retry by that much.
+const REVOCATION_LOCK_TTL_MS = 240_000;
+
+// Release only our own lease: if the TTL elapsed and another caller took over,
+// a blind DEL would drop that caller's lock instead.
+const RELEASE_LOCK_SCRIPT = `if redis.call("get", KEYS[1]) == ARGV[1] then
+  return redis.call("del", KEYS[1])
+end
+return 0`;
 
 type RequestedStatus = "approved" | "rejected" | "revoked";
 type StoredStatus = "pending" | "approving" | RequestedStatus | "revoking";
@@ -32,6 +45,11 @@ type StatusCommand = {
   rejectionReason: string | null;
 };
 
+type RevocationLock =
+  | { status: "acquired"; owner: string }
+  | { status: "busy" }
+  | { status: "unavailable"; error?: unknown };
+
 /**
  * Serializes revocations of one request so only a single caller ever drives the
  * App Store Connect removal.
@@ -41,54 +59,55 @@ type StatusCommand = {
  * removal after the address was released, re-claimed and re-approved, and strip
  * the new owner's TestFlight access while the row still reads `approved`.
  *
- * The lock expires on its own, so a caller that dies mid-revocation still
+ * The lease expires on its own, so a caller that dies mid-revocation still
  * leaves the row resumable instead of stranding it in `revoking` — which would
  * reserve the address forever, the very defect this flow now avoids.
  *
- * Degraded mode: with no Redis, or if Redis errors, revocation proceeds
- * unserialized. Revocation withdraws access, so blocking it on a cache outage
- * is worse than reopening a narrow race.
+ * Without the lease the removal is not safe to run, so an unreachable Redis
+ * fails the request closed (503) rather than proceeding unserialized. The row
+ * keeps its current status and the caller can retry; nothing is lost.
  */
-const acquireRevocationLock = async (id: string) => {
+const acquireRevocationLock = async (id: string): Promise<RevocationLock> => {
   const redis = global.RedisClient;
-  if (!redis) return { acquired: true, release: async () => {} };
+  if (!redis) return { status: "unavailable" };
 
-  const key = `${REVOCATION_LOCK_KEY_PREFIX}${id}`;
+  const owner = randomUUID();
   try {
     const claimed = await redis.set(
-      key,
-      "1",
-      "EX",
-      REVOCATION_LOCK_TTL_SECONDS,
+      `${REVOCATION_LOCK_KEY_PREFIX}${id}`,
+      owner,
+      "PX",
+      REVOCATION_LOCK_TTL_MS,
       "NX",
     );
-    if (claimed !== "OK") return { acquired: false, release: async () => {} };
+    return claimed === "OK"
+      ? { status: "acquired", owner }
+      : { status: "busy" };
   } catch (error) {
-    logger.warn("iOS sandbox revocation lock unavailable", {
+    return { status: "unavailable", error };
+  }
+};
+
+const releaseRevocationLock = async (id: string, owner: string) => {
+  const redis = global.RedisClient;
+  if (!redis) return;
+
+  try {
+    await redis.eval(
+      RELEASE_LOCK_SCRIPT,
+      1,
+      `${REVOCATION_LOCK_KEY_PREFIX}${id}`,
+      owner,
+    );
+  } catch (error) {
+    // The TTL still frees it; a retry is only delayed, never lost.
+    logger.warn("Failed to release iOS sandbox revocation lock", {
       requestId: id,
       dependency: "redis",
-      failureClass: "revocation_lock_unavailable",
+      failureClass: "revocation_lock_release_failed",
       error,
     });
-    return { acquired: true, release: async () => {} };
   }
-
-  return {
-    acquired: true,
-    release: async () => {
-      try {
-        await redis.del(key);
-      } catch (error) {
-        // The TTL still frees it; a retry is only delayed, never lost.
-        logger.warn("Failed to release iOS sandbox revocation lock", {
-          requestId: id,
-          dependency: "redis",
-          failureClass: "revocation_lock_release_failed",
-          error,
-        });
-      }
-    },
-  };
 };
 
 const isStoredStatus = (value: unknown): value is StoredStatus =>
@@ -267,7 +286,7 @@ export async function POST(
     }
 
     const revocationLock = await acquireRevocationLock(id);
-    if (!revocationLock.acquired) {
+    if (revocationLock.status === "busy") {
       logger.warn("iOS sandbox revocation is already in progress", {
         requestId: id,
         adminSubject: admin.subject,
@@ -276,6 +295,19 @@ export async function POST(
       return NextResponse.json(
         { error: "Revocation already in progress" },
         { status: 409 },
+      );
+    }
+    if (revocationLock.status === "unavailable") {
+      logger.error("Redis unavailable for iOS sandbox revocation lock", {
+        requestId: id,
+        adminSubject: admin.subject,
+        dependency: "redis",
+        failureClass: "revocation_lock_unavailable",
+        error: revocationLock.error,
+      });
+      return NextResponse.json(
+        { error: "Unable to update iOS sandbox request" },
+        { status: 503 },
       );
     }
 
@@ -309,7 +341,7 @@ export async function POST(
       if (current?.status === "revoked") return respond(false, "revoked");
       throw new Error("iOS sandbox revocation changed before finalization");
     } finally {
-      await revocationLock.release();
+      await releaseRevocationLock(id, revocationLock.owner);
     }
   } catch (error) {
     logger.error("Failed to update iOS sandbox request status", {
