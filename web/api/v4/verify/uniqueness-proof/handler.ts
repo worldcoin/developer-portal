@@ -37,6 +37,10 @@ type UniquenessProofSuccessResponse = {
   nullifier: string; // Hex format `0x` prefixed
   created_at?: string;
   environment: string;
+  // The protocol the accepted proof was actually verified under. Only 4.0
+  // binds `nonce` as a circuit public input, so a relying party that has
+  // migrated must check this to reject a proof it cannot bind to a session.
+  protocol_version: "3.0" | "4.0";
   results: UniquenessResult[];
   message: string;
 };
@@ -137,6 +141,10 @@ export async function handleUniquenessProofVerification(
 
   // If no successful verifications, return 400 with all results
   if (!anySuccess) {
+    const firstEnvironmentMismatch = verificationResults.find(
+      (result) => result.code === "environment_mismatch",
+    );
+
     await captureEvent({
       event: "action_verify_v4_failed",
       distinctId: rpId,
@@ -157,8 +165,13 @@ export async function handleUniquenessProofVerification(
     return NextResponse.json<UniquenessProofErrorResponse>(
       {
         success: false,
-        code: "all_verifications_failed",
-        detail: "All proof verifications failed.",
+        code: firstEnvironmentMismatch
+          ? "environment_mismatch"
+          : "all_verifications_failed",
+        detail: firstEnvironmentMismatch
+          ? firstEnvironmentMismatch?.detail ||
+            "The proof was generated for a different environment."
+          : "All proof verifications failed.",
         results: verificationResults,
       },
       { status: 400 },
@@ -258,6 +271,7 @@ export async function handleUniquenessProofVerification(
         nullifier: normalizedNullifier,
         created_at: existingNullifier.created_at,
         environment: requestedEnvironment,
+        protocol_version: protocolVersion,
         results: verificationResults,
         message: "Proof verified successfully (nullifier reuse)",
       },
@@ -318,6 +332,7 @@ export async function handleUniquenessProofVerification(
         nullifier: normalizedNullifier,
         created_at: insertResult.insert_nullifier_v4_one.created_at,
         environment: requestedEnvironment,
+        protocol_version: protocolVersion,
         results: verificationResults,
         message: "Proof verified successfully",
       },
@@ -347,6 +362,7 @@ export async function handleUniquenessProofVerification(
           action: actionV4.action,
           nullifier: normalizedNullifier,
           environment: requestedEnvironment,
+          protocol_version: protocolVersion,
           results: verificationResults,
           message: "Proof verified successfully (nullifier reuse)",
         },

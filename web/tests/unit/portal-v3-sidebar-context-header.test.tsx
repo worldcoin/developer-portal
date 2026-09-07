@@ -25,10 +25,10 @@ jest.mock("@/scenes/PortalV3/layout/Shell/TeamsDropdown", () => ({
 
 import { SidebarContextHeader } from "@/scenes/PortalV3/layout/Shell/SidebarContextHeader";
 
-const renderHeader = () =>
+const renderHeader = (teams = [{ id: "team_1", name: "Team 1" }]) =>
   render(
     <SidebarProvider>
-      <SidebarContextHeader teams={[]} />
+      <SidebarContextHeader teams={teams} />
     </SidebarProvider>,
   );
 
@@ -43,6 +43,17 @@ describe("SidebarContextHeader [route context]", () => {
     const link = screen.getByRole("link", { name: "Back to dashboard" });
     expect(link).toHaveAttribute("href", "/dashboard");
     expect(link.querySelector("svg")).toHaveClass("-translate-y-px");
+    expect(screen.queryByTestId("teams-dropdown")).not.toBeInTheDocument();
+  });
+
+  it("hides the dashboard link on profile routes when the user has no teams", () => {
+    usePathname.mockReturnValue("/profile");
+
+    renderHeader([]);
+
+    expect(
+      screen.queryByRole("link", { name: "Back to dashboard" }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByTestId("teams-dropdown")).not.toBeInTheDocument();
   });
 

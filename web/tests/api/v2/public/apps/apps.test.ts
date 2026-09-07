@@ -5,10 +5,22 @@ import { NextRequest } from "next/server";
 import { getSdk as getAppsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-rankings.generated";
 import { getSdk as getWebHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-web-highlights.generated";
 import { getSdk as getHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-highlighted-apps.generated";
+import { fetchMetrics } from "@/api/helpers/fetch-metrics";
 
 // Mock the external dependencies
 jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(),
+}));
+
+// The handler fetches app metrics over HTTP from NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT,
+// which .env.test points at the real metrics service. Left unmocked, every test here
+// makes a live request that fetchWithRetry retries 3x with a 5s timeout each — so a
+// slow or blocked egress path blows Jest's 5s budget and the suite fails on the
+// network rather than on the behaviour under test. None of these tests are about
+// metrics: the fixtures use synthetic app_ids that never appear in the real response,
+// so an empty result is exactly what they already exercise.
+jest.mock("@/api/helpers/fetch-metrics", () => ({
+  fetchMetrics: jest.fn().mockResolvedValue([]),
 }));
 
 jest.mock(
@@ -46,6 +58,9 @@ jest.mock(
 
 beforeEach(() => {
   jest.resetAllMocks();
+  // resetAllMocks strips implementations, so restore this one here rather than
+  // only at declaration — otherwise fetchMetrics resolves undefined.
+  jest.mocked(fetchMetrics).mockResolvedValue([]);
 });
 
 describe("/api/v2/public/apps", () => {

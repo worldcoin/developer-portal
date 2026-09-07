@@ -151,6 +151,9 @@ describe("/_migrate-rp-manager-keys [guards]", () => {
 
     expect(response.status).toBe(204);
     expect(getAPIServiceGraphqlClientMock).not.toHaveBeenCalled();
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      "RP manager key migration skipped, global lock held",
+    );
   });
 
   it("fails closed when Redis is unavailable", async () => {
@@ -190,7 +193,7 @@ describe("/_migrate-rp-manager-keys [guards]", () => {
 // #region Migration attempt
 
 describe("/_migrate-rp-manager-keys [attempt]", () => {
-  it("migrates exactly one candidate with deployment-local configuration", async () => {
+  it("migrates locked candidates with deployment-local configuration", async () => {
     arrangeCandidate();
 
     const response = await POST(request());
@@ -202,20 +205,55 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
         sharedManagerKeyId: SHARED_KEY,
         pollIntervalMs: 2_000,
         confirmationTimeoutMs: 15_000,
+        concurrency: 15,
         attemptId: expect.any(String),
       }),
     );
     const attemptId = migrateRpManagersToSharedKeyMock.mock.calls[0][0]
       .attemptId as string;
     expect(mockLogger.info).toHaveBeenCalledWith(
-      "RP manager key migration attempt started",
-      expect.objectContaining({ attempt_id: attemptId, rp_id: RP_ID }),
+      "RP manager key migration batch started",
+      expect.objectContaining({
+        attempt_id: attemptId,
+        rp_ids: [RP_ID],
+        candidates: [
+          {
+            rp_id: RP_ID,
+            app_id: APP_ID,
+            old_manager_kms_key_id: OLD_KEY,
+          },
+        ],
+      }),
     );
     expect(mockLogger.info).toHaveBeenCalledWith(
-      "RP manager key migration attempt finished",
-      expect.objectContaining({ attempt_id: attemptId, rp_id: RP_ID }),
+      "RP manager key migration batch finished",
+      expect.objectContaining({
+        attempt_id: attemptId,
+        batch_outcome: "all_succeeded",
+        rp_ids: [RP_ID],
+        succeeded_rp_ids: [RP_ID],
+        failed_rp_ids: [],
+        results: [
+          expect.objectContaining({
+            rp_id: RP_ID,
+            app_id: APP_ID,
+            old_manager_kms_key_id: OLD_KEY,
+            outcome: "migrated",
+            operation_hashes: { primary: "0xoperation" },
+          }),
+        ],
+      }),
     );
     expect(graphqlRequestMock).toHaveBeenCalledTimes(1);
+    await expect(response.json()).resolves.toEqual({
+      results: [
+        {
+          rp_id: RP_ID,
+          outcome: "migrated",
+          operation_hashes: { primary: "0xoperation" },
+        },
+      ],
+    });
     await expect(global.RedisClient?.get(GLOBAL_LOCK_KEY)).resolves.toBeNull();
   });
 
@@ -228,7 +266,7 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
       before: string;
       limit: number;
     };
-    expect(variables.limit).toBeGreaterThan(1);
+    expect(variables.limit).toBe(20);
     const cooldownMs = Date.now() - Date.parse(variables.before);
     expect(cooldownMs).toBeGreaterThanOrEqual(RP_MIGRATION_LOCK_TTL_MS);
   });
@@ -339,15 +377,274 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
 
     expect(response.status).toBe(200);
     expect(migrateRpManagersToSharedKeyMock).toHaveBeenCalledWith(
-      expect.objectContaining({ rpIds: [secondRpId] }),
+      expect.objectContaining({ rpIds: [secondRpId], concurrency: 15 }),
     );
-    await expect(response.json()).resolves.toEqual(
-      expect.objectContaining({ rp_id: secondRpId, outcome: "migrated" }),
-    );
+    await expect(response.json()).resolves.toEqual({
+      results: [
+        {
+          rp_id: secondRpId,
+          outcome: "migrated",
+          operation_hashes: { primary: "0xoperation" },
+        },
+      ],
+    });
     await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBe(
       "other-owner",
     );
     await expect(global.RedisClient?.get(secondLockKey)).resolves.toBeNull();
+  });
+
+  it("migrates every unlocked candidate in one invocation", async () => {
+    const secondRpId = "rp_abcdef1234567890";
+    const secondAppId = "app_abcdef1234567890abcdef1234567890";
+    const secondLockKey = `rp-manager-key-migration:rp:${secondRpId}`;
+    const secondCandidate = {
+      rp_id: secondRpId,
+      app_id: secondAppId,
+      manager_kms_key_id: OLD_KEY,
+    };
+
+    arrangeCandidates([candidate, secondCandidate]);
+    migrateRpManagersToSharedKeyMock.mockResolvedValue({
+      candidateCount: 2,
+      results: [
+        successResult,
+        {
+          ...successResult,
+          rpId: secondRpId,
+          appId: secondAppId,
+        },
+      ],
+    });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    expect(migrateRpManagersToSharedKeyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rpIds: [RP_ID, secondRpId],
+        concurrency: 15,
+      }),
+    );
+    await expect(response.json()).resolves.toEqual({
+      results: [
+        {
+          rp_id: RP_ID,
+          outcome: "migrated",
+          operation_hashes: { primary: "0xoperation" },
+        },
+        {
+          rp_id: secondRpId,
+          outcome: "migrated",
+          operation_hashes: { primary: "0xoperation" },
+        },
+      ],
+    });
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBeNull();
+    await expect(global.RedisClient?.get(secondLockKey)).resolves.toBeNull();
+  });
+
+  it("releases, retains, or cools down per-RP locks independently in a mixed batch", async () => {
+    const pendingRpId = "rp_abcdef1234567890";
+    const pendingAppId = "app_abcdef1234567890abcdef1234567890";
+    const failedRpId = "rp_aaaabbbbccccdddd";
+    const failedAppId = "app_aaaabbbbccccddddaaaabbbbccccdddd";
+    const pendingLockKey = `rp-manager-key-migration:rp:${pendingRpId}`;
+    const failedLockKey = `rp-manager-key-migration:rp:${failedRpId}`;
+
+    arrangeCandidates([
+      candidate,
+      {
+        rp_id: pendingRpId,
+        app_id: pendingAppId,
+        manager_kms_key_id: OLD_KEY,
+      },
+      {
+        rp_id: failedRpId,
+        app_id: failedAppId,
+        manager_kms_key_id: OLD_KEY,
+      },
+    ]);
+    migrateRpManagersToSharedKeyMock.mockResolvedValue({
+      candidateCount: 3,
+      results: [
+        successResult,
+        {
+          ...successResult,
+          rpId: pendingRpId,
+          appId: pendingAppId,
+          status: "failed" as const,
+          eligibleForCleanup: false,
+          operationHashes: { primary: "0xpending" },
+          failure: {
+            stage: "wait_for_confirmation",
+            detail: "Timed out waiting for manager update",
+          },
+        },
+        {
+          ...successResult,
+          rpId: failedRpId,
+          appId: failedAppId,
+          status: "failed" as const,
+          eligibleForCleanup: false,
+          operationHashes: {},
+          failure: { stage: "read_registry", detail: "RPC unavailable" },
+        },
+      ],
+    });
+    graphqlRequestMock.mockResolvedValue({
+      update_rp_registration: { affected_rows: 1 },
+    });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBeNull();
+    await expect(global.RedisClient?.get(pendingLockKey)).resolves.toEqual(
+      expect.any(String),
+    );
+    await expect(global.RedisClient?.get(failedLockKey)).resolves.toBeNull();
+    const cooldownCalls = graphqlRequestMock.mock.calls.slice(1);
+    expect(cooldownCalls.map((call) => call[1])).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ rp_id: pendingRpId }),
+        expect.objectContaining({ rp_id: failedRpId }),
+      ]),
+    );
+    expect(cooldownCalls).toHaveLength(2);
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      "RP manager key migration batch finished",
+      expect.objectContaining({
+        batch_outcome: "partial_failure",
+        succeeded_rp_ids: [RP_ID],
+        failed_rp_ids: [pendingRpId, failedRpId],
+        results: expect.arrayContaining([
+          expect.objectContaining({
+            rp_id: RP_ID,
+            app_id: APP_ID,
+            old_manager_kms_key_id: OLD_KEY,
+            outcome: "migrated",
+          }),
+          expect.objectContaining({
+            rp_id: pendingRpId,
+            app_id: pendingAppId,
+            old_manager_kms_key_id: OLD_KEY,
+            outcome: "failed",
+            operation_hashes: { primary: "0xpending" },
+            retain_rp_lock: true,
+            failure: expect.objectContaining({
+              stage: "wait_for_confirmation",
+            }),
+          }),
+          expect.objectContaining({
+            rp_id: failedRpId,
+            app_id: failedAppId,
+            old_manager_kms_key_id: OLD_KEY,
+            outcome: "failed",
+            retain_rp_lock: false,
+            failure: expect.objectContaining({ stage: "read_registry" }),
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it("does not retain settled RP locks when a cooldown write fails", async () => {
+    const failedRpId = "rp_aaaabbbbccccdddd";
+    const failedAppId = "app_aaaabbbbccccddddaaaabbbbccccdddd";
+    const otherFailedRpId = "rp_1111222233334444";
+    const otherFailedAppId = "app_11112222333344441111222233334444";
+    const failedLockKey = `rp-manager-key-migration:rp:${failedRpId}`;
+    const otherFailedLockKey = `rp-manager-key-migration:rp:${otherFailedRpId}`;
+
+    arrangeCandidates([
+      candidate,
+      {
+        rp_id: failedRpId,
+        app_id: failedAppId,
+        manager_kms_key_id: OLD_KEY,
+      },
+      {
+        rp_id: otherFailedRpId,
+        app_id: otherFailedAppId,
+        manager_kms_key_id: OLD_KEY,
+      },
+    ]);
+    migrateRpManagersToSharedKeyMock.mockResolvedValue({
+      candidateCount: 3,
+      results: [
+        successResult,
+        {
+          ...successResult,
+          rpId: failedRpId,
+          appId: failedAppId,
+          status: "failed" as const,
+          eligibleForCleanup: false,
+          operationHashes: {},
+          failure: { stage: "read_registry", detail: "RPC unavailable" },
+        },
+        {
+          ...successResult,
+          rpId: otherFailedRpId,
+          appId: otherFailedAppId,
+          status: "failed" as const,
+          eligibleForCleanup: false,
+          operationHashes: {},
+          failure: { stage: "read_registry", detail: "RPC unavailable" },
+        },
+      ],
+    });
+    graphqlRequestMock
+      .mockRejectedValueOnce(new Error("Hasura unavailable"))
+      .mockResolvedValueOnce({
+        update_rp_registration: { affected_rows: 1 },
+      });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      results: [
+        {
+          rp_id: RP_ID,
+          outcome: "migrated",
+          operation_hashes: { primary: "0xoperation" },
+        },
+        {
+          rp_id: failedRpId,
+          outcome: "failed",
+          operation_hashes: {},
+        },
+        {
+          rp_id: otherFailedRpId,
+          outcome: "failed",
+          operation_hashes: {},
+        },
+      ],
+    });
+    await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBeNull();
+    await expect(global.RedisClient?.get(failedLockKey)).resolves.toBeNull();
+    await expect(
+      global.RedisClient?.get(otherFailedLockKey),
+    ).resolves.toBeNull();
+    expect(
+      graphqlRequestMock.mock.calls.slice(1).map((call) => call[1]),
+    ).toEqual([
+      expect.objectContaining({ rp_id: failedRpId }),
+      expect.objectContaining({ rp_id: otherFailedRpId }),
+    ]);
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      "Failed to apply RP migration cooldown",
+      expect.objectContaining({
+        rp_id: failedRpId,
+        app_id: failedAppId,
+        old_manager_kms_key_id: OLD_KEY,
+      }),
+    );
+    expect(mockLogger.error).not.toHaveBeenCalledWith(
+      "Unexpected RP manager migration cron failure",
+      expect.anything(),
+    );
   });
 
   it("holds the per-RP lock for the duration of the migration and releases it", async () => {
@@ -398,12 +695,23 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
     expect(ttlMs).toBeGreaterThan(30 * 60 * 1000);
   });
 
-  it("retains the per-RP lock when the migration invocation throws", async () => {
-    arrangeCandidate();
+  it("retains every per-RP lock when the migration invocation throws", async () => {
+    const secondRpId = "rp_abcdef1234567890";
+    const secondAppId = "app_abcdef1234567890abcdef1234567890";
+    const secondLockKey = `rp-manager-key-migration:rp:${secondRpId}`;
+
+    arrangeCandidates([
+      candidate,
+      {
+        rp_id: secondRpId,
+        app_id: secondAppId,
+        manager_kms_key_id: OLD_KEY,
+      },
+    ]);
     migrateRpManagersToSharedKeyMock.mockRejectedValue(
       new Error("unexpected migration failure"),
     );
-    graphqlRequestMock.mockResolvedValueOnce({
+    graphqlRequestMock.mockResolvedValue({
       update_rp_registration: { affected_rows: 1 },
     });
 
@@ -413,8 +721,31 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
     await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toEqual(
       expect.any(String),
     );
+    await expect(global.RedisClient?.get(secondLockKey)).resolves.toEqual(
+      expect.any(String),
+    );
     const ttlMs = await global.RedisClient?.pttl(RP_LOCK_KEY);
     expect(ttlMs).toBeGreaterThan(30 * 60 * 1000);
+    await expect(global.RedisClient?.get(GLOBAL_LOCK_KEY)).resolves.toBeNull();
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      "Unexpected RP manager migration cron failure",
+      expect.objectContaining({
+        rp_ids: [RP_ID, secondRpId],
+        candidates: [
+          {
+            rp_id: RP_ID,
+            app_id: APP_ID,
+            old_manager_kms_key_id: OLD_KEY,
+          },
+          {
+            rp_id: secondRpId,
+            app_id: secondAppId,
+            old_manager_kms_key_id: OLD_KEY,
+          },
+        ],
+        migration_invocation_started: true,
+      }),
+    );
   });
 
   it("releases the per-RP lock when failure happens before any transfer submit", async () => {
@@ -439,6 +770,23 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
 
     expect(response.status).toBe(200);
     await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBeNull();
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      "RP manager key migration batch finished",
+      expect.objectContaining({
+        batch_outcome: "all_failed",
+        failed_rp_ids: [RP_ID],
+        succeeded_rp_ids: [],
+        results: [
+          expect.objectContaining({
+            rp_id: RP_ID,
+            app_id: APP_ID,
+            old_manager_kms_key_id: OLD_KEY,
+            outcome: "failed",
+            failure: expect.objectContaining({ stage: "read_registry" }),
+          }),
+        ],
+      }),
+    );
   });
 
   it("reports ineligible when the candidate is no longer eligible after the lock", async () => {
@@ -456,11 +804,30 @@ describe("/_migrate-rp-manager-keys [attempt]", () => {
 
     expect(response.status).toBe(200);
     expect(body).toEqual({
-      rp_id: RP_ID,
-      outcome: "ineligible",
-      operation_hashes: {},
+      results: [
+        {
+          rp_id: RP_ID,
+          outcome: "ineligible",
+          operation_hashes: {},
+        },
+      ],
     });
     await expect(global.RedisClient?.get(RP_LOCK_KEY)).resolves.toBeNull();
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      "RP manager key migration batch finished",
+      expect.objectContaining({
+        batch_outcome: "all_failed",
+        ineligible_rp_ids: [RP_ID],
+        results: [
+          expect.objectContaining({
+            rp_id: RP_ID,
+            app_id: APP_ID,
+            old_manager_kms_key_id: OLD_KEY,
+            outcome: "ineligible",
+          }),
+        ],
+      }),
+    );
   });
 });
 

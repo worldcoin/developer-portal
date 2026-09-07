@@ -157,7 +157,10 @@ export function migrationMayHaveInFlightOperation(
 ): boolean {
   if (!result || result.status !== "failed") return false;
   if (Object.keys(result.operationHashes ?? {}).length > 0) return true;
-  return result.failure?.stage === "submit_transfer";
+  return (
+    result.failure?.stage === "submit_transfer" ||
+    result.failure?.stage === "unexpected"
+  );
 }
 
 /**
@@ -223,10 +226,19 @@ export type ResolvedManagerKey =
 
 export async function resolveManagerKeyForRegistration({
   kmsClient,
+  kmsRegion,
   rpIdString,
   appId,
 }: {
   kmsClient: KMSClient;
+  /**
+   * Region the RP registry's manager keys live in. Required whenever it differs
+   * from AWS_REGION_NAME: a bare key ID is expanded to an ARN that carries its
+   * own region, so omitting it derives the address from a key in the wrong
+   * region — and it must agree with the address `resolveManagerAddress` derives
+   * for the on-chain ownership check.
+   */
+  kmsRegion?: string;
   rpIdString: string;
   appId: string;
 }): Promise<ResolvedManagerKey> {
@@ -244,7 +256,11 @@ export async function resolveManagerKeyForRegistration({
     }
 
     try {
-      const managerAddress = await getEthAddressFromKMS(kmsClient, sharedKeyId);
+      const managerAddress = await getEthAddressFromKMS(
+        kmsClient,
+        sharedKeyId,
+        kmsRegion,
+      );
       return {
         ok: true,
         managerKmsKeyId: sharedKeyId,
@@ -288,6 +304,7 @@ export type DeactivationManagerKeys = {
 
 async function getSharedManagerKeyConfig(
   kmsClient: KMSClient,
+  kmsRegion?: string,
 ): Promise<
   | { ok: true; keyId: string; address: string }
   | { ok: false; code: "kms_error"; detail: string }
@@ -306,7 +323,7 @@ async function getSharedManagerKeyConfig(
   }
 
   try {
-    const address = await getEthAddressFromKMS(kmsClient, keyId);
+    const address = await getEthAddressFromKMS(kmsClient, keyId, kmsRegion);
     cachedSharedManagerKeyId = keyId;
     cachedSharedManagerAddress = address;
     return { ok: true, keyId, address };
@@ -323,6 +340,7 @@ async function getSharedManagerKeyConfig(
 export async function resolveManagerKeyForDeactivation({
   client,
   kmsClient,
+  kmsRegion,
   rpIdString,
   dbManagerKmsKeyId,
   primaryOnChainManager,
@@ -333,6 +351,8 @@ export async function resolveManagerKeyForDeactivation({
 }: {
   client: GraphQLClient;
   kmsClient: KMSClient;
+  /** See resolveManagerKeyForRegistration — same region requirement. */
+  kmsRegion?: string;
   rpIdString: string;
   dbManagerKmsKeyId: string;
   primaryOnChainManager: string;
@@ -355,7 +375,7 @@ export async function resolveManagerKeyForDeactivation({
     };
   }
 
-  const shared = await getSharedManagerKeyConfig(kmsClient);
+  const shared = await getSharedManagerKeyConfig(kmsClient, kmsRegion);
   if (!shared.ok) return shared;
 
   const keyForRegistry = (

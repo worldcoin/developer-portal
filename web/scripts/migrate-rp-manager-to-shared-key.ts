@@ -37,6 +37,7 @@ export type RpManagerMigrationInput = {
   attemptId?: string;
   pollIntervalMs?: number;
   confirmationTimeoutMs?: number;
+  concurrency?: number;
 };
 
 export type RpManagerMigrationFailureStage =
@@ -47,7 +48,8 @@ export type RpManagerMigrationFailureStage =
   | "submit_transfer"
   | "wait_for_confirmation"
   | "verify_final_state"
-  | "update_database";
+  | "update_database"
+  | "unexpected";
 
 export type RpManagerMigrationItemResult = {
   rpId: string;
@@ -138,6 +140,7 @@ const MIGRATION_CANDIDATE_FIELDS = gql`
 
 const DEFAULT_POLL_INTERVAL_MS = 2_000;
 const DEFAULT_CONFIRMATION_TIMEOUT_MS = 120_000;
+const DEFAULT_CONCURRENCY = 1;
 
 function addressesEqual(left: string, right: string): boolean {
   return left.toLowerCase() === right.toLowerCase();
@@ -195,6 +198,39 @@ function assertValidInput(input: RpManagerMigrationInput): void {
   if ((input.confirmationTimeoutMs ?? DEFAULT_CONFIRMATION_TIMEOUT_MS) < 0) {
     throw new Error("confirmationTimeoutMs must not be negative");
   }
+
+  const concurrency = input.concurrency ?? DEFAULT_CONCURRENCY;
+  if (!Number.isInteger(concurrency) || concurrency < 1) {
+    throw new Error("concurrency must be an integer >= 1");
+  }
+}
+
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<R>,
+): Promise<R[]> {
+  if (items.length === 0) {
+    return [];
+  }
+
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+
+  async function worker(): Promise<void> {
+    while (true) {
+      const index = nextIndex;
+      nextIndex += 1;
+      if (index >= items.length) {
+        return;
+      }
+      results[index] = await mapper(items[index]);
+    }
+  }
+
+  const workerCount = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -212,8 +248,11 @@ function failedResult(
     attempt_id: candidate.attempt_id,
     rp_id: candidate.rp_id,
     app_id: candidate.app_id,
+    old_manager_kms_key_id: candidate.manager_kms_key_id,
     stage,
     detail,
+    operation_hashes: operationHashes,
+    skipped_registries: skippedRegistries,
   });
 
   return {
@@ -669,7 +708,9 @@ async function migrateCandidate(
     attempt_id: candidate.attempt_id,
     rp_id: candidate.rp_id,
     app_id: candidate.app_id,
+    old_manager_kms_key_id: candidate.manager_kms_key_id,
     status,
+    operation_hashes: operationHashes,
     migrated_registries: Object.keys(operationHashes),
     skipped_registries: skippedRegistries,
   });
@@ -700,8 +741,9 @@ async function migrateCandidate(
  * If that configuration contains a staging mirror, the migration verifies and
  * migrates it too; historical RPs that genuinely predate the mirror may skip
  * it. The function never schedules old KMS keys for deletion. Run only one
- * instance at a time and prevent concurrent manager operations for the
- * selected RPs while it runs.
+ * invocation at a time. Candidates inside one invocation may migrate in
+ * parallel when concurrency > 1. Prevent concurrent manager operations for
+ * the selected RPs while it runs.
  */
 export async function migrateRpManagersToSharedKey(
   input: RpManagerMigrationInput,
@@ -710,6 +752,7 @@ export async function migrateRpManagersToSharedKey(
 
   const sharedManagerKeyId = input.sharedManagerKeyId.trim();
   const attemptId = input.attemptId ?? randomUUID();
+  const concurrency = input.concurrency ?? DEFAULT_CONCURRENCY;
   const sharedManagerAddress = await getEthAddressFromKMS(
     input.kmsClient,
     sharedManagerKeyId,
@@ -728,15 +771,18 @@ export async function migrateRpManagersToSharedKey(
       input.confirmationTimeoutMs ?? DEFAULT_CONFIRMATION_TIMEOUT_MS,
   };
 
-  const results: RpManagerMigrationItemResult[] = [];
-  for (const candidate of candidates) {
-    results.push(
-      await migrateCandidate(context, {
-        ...candidate,
-        attempt_id: attemptId,
-      }),
-    );
-  }
+  const results = await mapWithConcurrency(
+    candidates,
+    concurrency,
+    async (candidate) => {
+      const withAttempt = { ...candidate, attempt_id: attemptId };
+      try {
+        return await migrateCandidate(context, withAttempt);
+      } catch (error) {
+        return failedResult(withAttempt, {}, "unexpected", errorMessage(error));
+      }
+    },
+  );
 
   return {
     sharedManagerKeyId,

@@ -1,6 +1,6 @@
 import {
-  getMcpEndpoint,
   getProviderSnippets,
+  MCP_ENDPOINT,
   PROVIDERS,
   type ProviderId,
 } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/mcp-snippets";
@@ -23,46 +23,35 @@ const allStrings = (apiKey = KEY, endpoint = ENDPOINT) =>
   ]);
 // #endregion
 
-// #region getMcpEndpoint
-describe("getMcpEndpoint()", () => {
-  it("appends the MCP path to a bare origin", () => {
-    expect(getMcpEndpoint("https://staging.example.test")).toBe(
-      "https://staging.example.test/api/mcp",
-    );
+// #region Canonical endpoint
+describe("MCP_ENDPOINT", () => {
+  const originalAppEnv = process.env.NEXT_PUBLIC_APP_ENV;
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_APP_ENV = originalAppEnv;
   });
 
-  it.each([
-    ["https://x.test/", "https://x.test/api/mcp"],
-    ["https://x.test//", "https://x.test/api/mcp"],
-    ["http://localhost:3000", "http://localhost:3000/api/mcp"],
-    ["https://x.test:8443/", "https://x.test:8443/api/mcp"],
-  ])(
-    "collapses trailing slashes and keeps scheme and port (%s)",
-    (origin, expected) => {
-      const result = getMcpEndpoint(origin);
+  it("uses the production MCP host in production", () => {
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
 
-      expect(result).toBe(expected);
-      // An unanchored /\/+/g would mangle "https://" into "https:/".
-      expect(result).not.toContain("//api");
+    expect(MCP_ENDPOINT()).toBe("https://developer.world.org/api/mcp");
+  });
+
+  it.each(["staging", "dev"] as const)(
+    "uses the staging MCP host when NEXT_PUBLIC_APP_ENV is %s",
+    (appEnv) => {
+      process.env.NEXT_PUBLIC_APP_ENV = appEnv;
+
+      expect(MCP_ENDPOINT()).toBe(
+        "https://staging-developer.world.org/api/mcp",
+      );
     },
   );
 
-  it.each([["" as const], ["null" as const], [undefined]])(
-    "degrades to a relative path rather than throwing on a degenerate origin (%s)",
-    (origin) => {
-      expect(() => getMcpEndpoint(origin)).not.toThrow();
+  it("uses the staging MCP host when NEXT_PUBLIC_APP_ENV is unset", () => {
+    delete process.env.NEXT_PUBLIC_APP_ENV;
 
-      const result = getMcpEndpoint(origin);
-      expect(result).toBe("/api/mcp");
-      expect(result).not.toContain("null/api/mcp");
-      expect(result).not.toContain("undefined");
-    },
-  );
-
-  it("passes a worldcoin.org origin through instead of canonicalising it", () => {
-    expect(getMcpEndpoint("https://developer.worldcoin.org")).toBe(
-      "https://developer.worldcoin.org/api/mcp",
-    );
+    expect(MCP_ENDPOINT()).toBe("https://staging-developer.world.org/api/mcp");
   });
 });
 // #endregion

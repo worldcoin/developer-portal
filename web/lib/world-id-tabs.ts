@@ -24,10 +24,6 @@ export const resolveAvailableWorldIdTab = (options: {
     ? WORLD_ID_TABS.Actions
     : WORLD_ID_TABS.Configuration;
 
-  if (requestedTab === WORLD_ID_TABS.Actions && !options.hasRpRegistration) {
-    return WORLD_ID_TABS.Configuration;
-  }
-
   if (
     requestedTab === WORLD_ID_TABS.LegacyActions &&
     !options.hasLegacyActions

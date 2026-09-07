@@ -79,6 +79,7 @@ async function submitWldApprovalTransaction(
     kmsClient,
     config.safeOwnerKmsKeyId,
     getBytes(safeOpHash),
+    config.kmsRegion,
   );
 
   if (!signature) {
@@ -165,6 +166,7 @@ export async function submitRegisterRpTransaction(
     params.kmsClient,
     config.safeOwnerKmsKeyId,
     getBytes(safeOpHash),
+    config.kmsRegion,
   );
 
   if (!signature) {
@@ -218,6 +220,7 @@ export async function submitRotateSignerTransaction(
     params.kmsClient,
     params.managerKmsKeyId,
     getBytes(updateRpHash),
+    config.kmsRegion,
   );
 
   if (!managerSignature) {
@@ -262,6 +265,7 @@ export async function submitRotateSignerTransaction(
     params.kmsClient,
     config.safeOwnerKmsKeyId,
     getBytes(safeOpHash),
+    config.kmsRegion,
   );
 
   if (!safeOwnerSignature) {
@@ -315,6 +319,7 @@ export async function submitTransferManagerTransaction(
     params.kmsClient,
     params.managerKmsKeyId,
     getBytes(updateRpHash),
+    config.kmsRegion,
   );
 
   if (!managerSignature) {
@@ -356,6 +361,7 @@ export async function submitTransferManagerTransaction(
     params.kmsClient,
     config.safeOwnerKmsKeyId,
     getBytes(safeOpHash),
+    config.kmsRegion,
   );
 
   if (!safeOwnerSignature) {
@@ -406,6 +412,7 @@ export async function submitToggleRpActiveTransaction(
     params.kmsClient,
     params.managerKmsKeyId,
     getBytes(updateRpHash),
+    config.kmsRegion,
   );
 
   if (!managerSignature) {
@@ -446,6 +453,7 @@ export async function submitToggleRpActiveTransaction(
     params.kmsClient,
     config.safeOwnerKmsKeyId,
     getBytes(safeOpHash),
+    config.kmsRegion,
   );
 
   if (!safeOwnerSignature) {

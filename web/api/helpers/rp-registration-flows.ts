@@ -64,6 +64,7 @@ export type ManagedRegistrationResult =
         | "staging_not_supported"
         | "config_error"
         | "already_registered"
+        | "rp_id_taken"
         | "kms_error"
         | "submission_error"
         | "db_error";
@@ -108,9 +109,18 @@ export async function submitManagedRpRegistration({
   }
 
   const rpIdString = generateRpIdString(appId);
+  const rpId = parseRpId(rpIdString);
 
-  // Claim the registration slot. on_conflict with empty update_columns
+  // Claim the registration slot FIRST. on_conflict with empty update_columns
   // means: if a row already exists, return null and we bail.
+  //
+  // Order matters. The on-chain collision check below cannot distinguish "a
+  // stranger claimed this rp_id" from "we registered this app ourselves and it
+  // is live on-chain" — both read as initialized. Running it first would answer a
+  // repeat registration of a perfectly healthy app with `rp_id_taken` and a
+  // contact-support message instead of the accurate `already_registered`. Letting
+  // the DB claim go first means only apps with no Portal row reach that check, so
+  // an initialized reading really is someone else's.
   const { insert_rp_registration_one: claimedSlot } = await getClaimRpSdk(
     client,
   ).ClaimRpRegistration({
@@ -127,11 +137,74 @@ export async function submitManagedRpRegistration({
     };
   }
 
-  const rpId = parseRpId(rpIdString);
-
   // Slot is now claimed; any failure between here and the final DB write
   // must release it so retries don't bounce off `already_registered`.
 
+  // rp_id is a pure function of the public app_id (uint64(keccak256(app_id))),
+  // and on-chain `register()` is permissionless and first-come — so anyone can
+  // compute an app's rp_id and claim it before the app migrates. Read the
+  // registry before spending a KMS manager key on a UserOp that the contract
+  // would reject with IdAlreadyInUse, and give the caller an actionable conflict
+  // instead of a row wedged behind a doomed operation.
+  //
+  // A failed READ is deliberately non-fatal: this check prevents a wasted
+  // submission and a confusing error, it is not the security boundary. That
+  // lives in the status reconciliation (evaluateOnChainTrust), which refuses to
+  // promote a row whose on-chain manager/signer aren't ours no matter how the
+  // registration was submitted. Hard-failing here would add a new RPC
+  // dependency to a flow that works fine without it.
+  //
+  // Only the read is inside the try. A wider catch would swallow a failure from
+  // the slot release below and fall through to KMS and a UserOp for an rp_id we
+  // have already proven is taken — the exact wedged row this check exists to
+  // avoid.
+  let existingOnChainRp: Awaited<ReturnType<typeof getRpFromContract>> | null =
+    null;
+  try {
+    existingOnChainRp = await getRpFromContract(
+      rpId,
+      primaryConfig.contractAddress,
+    );
+  } catch (error) {
+    logger.warn("Could not pre-check on-chain RP ownership; continuing", {
+      error,
+      app_id: appId,
+      rpIdString,
+    });
+  }
+
+  if (existingOnChainRp?.initialized) {
+    logger.warn("rp_id already registered on-chain by a foreign manager", {
+      app_id: appId,
+      rpIdString,
+      onChainManager: existingOnChainRp.manager,
+      onChainSigner: existingOnChainRp.signer,
+    });
+    // Release the slot: the app is not registered, and holding the row would
+    // make every later attempt report `already_registered` instead. A failure
+    // here leaves the row wedged, which is an ops problem — but the id really is
+    // taken, so that stays the answer either way, and continuing is not an
+    // option.
+    try {
+      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    } catch (error) {
+      logger.error("Failed to release the slot for a taken rp_id", {
+        error,
+        app_id: appId,
+        rpIdString,
+      });
+    }
+    return {
+      ok: false,
+      code: "rp_id_taken",
+      detail:
+        "This app's RP ID is already registered on-chain by another party. Portal cannot manage it — contact support.",
+    };
+  }
+
+  // is_unique_manager_key is written together with the manager key at the end
+  // of this flow. If the migration adding it has not been applied yet, fail
+  // here rather than after the on-chain transaction has been submitted.
   // TODO: remove after the RP manager key migration completes
   if (!(await assertManagerKeySchemaReady(client, rpIdString, appId))) {
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
@@ -159,8 +232,14 @@ export async function submitManagedRpRegistration({
   }
 
   // TODO: remove after the RP manager key migration completes
+  //
+  // kmsRegion must be the registry's own region: the shared key's address is
+  // derived here and again later by resolveManagerAddress for the ownership
+  // check. If only one of them expands a bare key ID against the registry
+  // region, the two addresses disagree and every managed RP reads as `unknown`.
   const managerKey = await resolveManagerKeyForRegistration({
     kmsClient,
+    kmsRegion: primaryConfig.kmsRegion,
     rpIdString,
     appId,
   });
@@ -928,6 +1007,7 @@ export async function submitManagedRpDeactivation({
   const resolvedKeys = await resolveManagerKeyForDeactivation({
     client,
     kmsClient,
+    kmsRegion: primaryConfig.kmsRegion,
     rpIdString,
     dbManagerKmsKeyId,
     primaryOnChainManager,

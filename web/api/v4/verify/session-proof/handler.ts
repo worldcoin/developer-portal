@@ -10,6 +10,10 @@ type SessionProofSuccessResponse = {
   success: true;
   session_id: string;
   environment: "production" | "staging" | "sandbox";
+  // Always 4.0: the session nullifier and session id are 4.0 circuit public
+  // inputs, and the request schema rejects any other version for session
+  // proofs. Reported so relying parties can assert on it uniformly.
+  protocol_version: "4.0";
   results: SessionResult[];
   message: string;
 };
@@ -127,6 +131,7 @@ export async function handleSessionProofVerification(
       success: true,
       session_id: sessionId,
       environment: requestedEnvironment,
+      protocol_version: "4.0",
       results: verificationResults,
       message: "Session proof verified successfully",
     },

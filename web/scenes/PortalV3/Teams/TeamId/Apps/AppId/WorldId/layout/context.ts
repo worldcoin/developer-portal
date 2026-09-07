@@ -18,10 +18,13 @@ export type WorldIdLayoutContextValue = {
   appEngine?: EngineType;
   actions: WorldIdActionItem[];
   actionsSearch: string;
+  hasRpRegistration: boolean;
   hasActiveRp: boolean;
+  isStaging: boolean;
   shouldOpenCreateAction: boolean;
   consumeCreateAction: () => void;
   refreshOverview: () => void;
+  waitForOverviewRefresh: () => Promise<void>;
 };
 
 export const WorldIdLayoutContext =

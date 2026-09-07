@@ -1,6 +1,15 @@
 const MCP_SERVER_NAME = "worldcoin-developer-portal";
 const MCP_API_KEY_ENV_VAR = "WORLD_DEVELOPER_API_KEY";
-const MCP_PATH = "/api/mcp";
+
+const PRODUCTION_MCP_ENDPOINT = "https://developer.world.org/api/mcp";
+const STAGING_MCP_ENDPOINT = "https://staging-developer.world.org/api/mcp";
+
+// Public MCP host for this deployment. Never inherit the portal origin
+// (localhost, preview deployments, or custom hosts).
+export const MCP_ENDPOINT = () =>
+  process.env.NEXT_PUBLIC_APP_ENV === "production"
+    ? PRODUCTION_MCP_ENDPOINT
+    : STAGING_MCP_ENDPOINT;
 
 export type ProviderId = "codex" | "claude" | "cursor" | "chatgpt" | "zed";
 
@@ -18,16 +27,6 @@ export type ProviderSnippet = {
 const shellQuote = (value: string) => `'${value.replace(/'/g, "'\\''")}'`;
 const envReference = (name: string) => `\${${name}}`;
 const tomlString = (value: string) => JSON.stringify(value);
-
-// Renders inside the useMemo that shows a one-shot secret, so it must never
-// throw: "" and "null" are real origins and would blow up `new URL`.
-export const getMcpEndpoint = (origin?: string | null): string => {
-  if (!origin || origin === "null") {
-    return MCP_PATH;
-  }
-
-  return `${origin.replace(/\/+$/, "")}${MCP_PATH}`;
-};
 
 const getClaudeMcpCommand = (apiKey: string, endpoint: string) =>
   `claude mcp add ${MCP_SERVER_NAME} ${endpoint} --transport http --header "Authorization: Bearer ${apiKey}"`;

@@ -14,6 +14,7 @@ import { cleanupRpManagerKeys } from "../../scripts/cleanup-rp-manager-keys";
 
 const GLOBAL_LOCK_KEY = "rp-manager-key-cleanup:run";
 const GLOBAL_LOCK_TTL_MS = 5 * 60 * 1000;
+const CLEANUP_PER_RUN = 15;
 
 type RedisLockClient = {
   set(
@@ -142,27 +143,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       stagingMirrorRegistry: stagingConfig
         ? { name: "staging", config: stagingConfig }
         : undefined,
-      limit: 1,
+      limit: CLEANUP_PER_RUN,
     });
 
-    const result = report.results[0];
-    if (!result) {
+    if (report.results.length === 0) {
       return new NextResponse(null, { status: 204 });
     }
 
+    const countsByStatus: Record<string, number> = {};
+    for (const result of report.results) {
+      countsByStatus[result.status] = (countsByStatus[result.status] ?? 0) + 1;
+    }
+
     logger.info("RP manager key cleanup attempt finished", {
-      rp_id: result.rpId,
-      app_id: result.appId,
-      old_manager_kms_key_arn: result.oldManagerKeyArn,
-      cleanup_status: result.status,
-      detail: result.detail,
+      candidate_count: report.candidateCount,
+      result_count: report.results.length,
+      counts_by_status: countsByStatus,
       duration_ms: Date.now() - startedAt,
     });
 
     return NextResponse.json({
-      rp_id: result.rpId,
-      outcome: result.status,
-      detail: result.detail,
+      candidate_count: report.candidateCount,
+      result_count: report.results.length,
+      counts_by_status: countsByStatus,
     });
   } catch (error) {
     logger.error("Unexpected RP manager key cleanup cron failure", {

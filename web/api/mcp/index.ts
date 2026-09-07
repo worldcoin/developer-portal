@@ -1,9 +1,13 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
+import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import {
+  evaluateOnChainTrust,
   mapOnChainToDbStatus,
-  normalizeAddress,
+  type OnChainTrust,
   parseRpId,
+  RpRegistrationStatus,
+  shouldFailUntrustedRegistration,
 } from "@/api/helpers/rp-utils";
 import {
   submitManagedRpRegistration,
@@ -750,6 +754,23 @@ const syncWorldIdRegistrationStatus = async (
 
   let productionStatus = currentProductionStatus;
   let productionInitialized = false;
+  // How far the on-chain production reading can be trusted — see
+  // evaluateOnChainTrust. Mirrors both the staging branch below and the
+  // /api/v4/rp-status endpoint: promoting a managed RP off `initialized &&
+  // active` alone would let whoever won the permissionless on-chain register()
+  // for this rp_id flip the row to `registered`, binding the app's verified
+  // proof-context branding to a foreign OPRF signer.
+  let productionTrust: OnChainTrust = "unknown";
+
+  // Same manager key backs both contracts, so resolve it once. The region must
+  // be the one the key was created in (RP_REGISTRY_KMS_REGION) — getKMSClient
+  // otherwise defaults to AWS_REGION_NAME and every verdict becomes `unknown`.
+  const expectedManager = registration.manager_kms_key_id
+    ? await resolveManagerAddress(
+        registration.manager_kms_key_id,
+        process.env.RP_REGISTRY_KMS_REGION,
+      )
+    : null;
 
   try {
     const productionRp = await getRpFromContract(
@@ -759,10 +780,35 @@ const syncWorldIdRegistrationStatus = async (
     productionInitialized = productionRp.initialized;
 
     if (productionRp.initialized) {
-      productionStatus = mapOnChainToDbStatus(
-        productionRp.initialized,
-        productionRp.active,
-      );
+      productionTrust = evaluateOnChainTrust({
+        mode: registration.mode,
+        onChainManager: productionRp.manager,
+        onChainSigner: productionRp.signer,
+        expectedSigner: registration.signer_address,
+        expectedManager,
+      });
+
+      if (productionTrust === "trusted") {
+        productionStatus = mapOnChainToDbStatus(
+          productionRp.initialized,
+          productionRp.active,
+        );
+      } else {
+        logger.warn(
+          "On-chain RP is not provably Portal-owned; preserving DB status",
+          {
+            app_id,
+            rp_id: rpId,
+            trust: productionTrust,
+            mode: registration.mode,
+            dbStatus: currentProductionStatus,
+            expectedManager,
+            onChainManager: productionRp.manager,
+            expectedSigner: registration.signer_address,
+            onChainSigner: productionRp.signer,
+          },
+        );
+      }
     }
   } catch (error) {
     logger.error("Failed to fetch MCP RP status from production contract", {
@@ -773,11 +819,58 @@ const syncWorldIdRegistrationStatus = async (
     throw new McpError("Failed to fetch production RP status.", -32603);
   }
 
-  if (productionInitialized && productionStatus !== currentProductionStatus) {
+  const productionSynced =
+    productionInitialized &&
+    productionTrust === "trusted" &&
+    productionStatus !== currentProductionStatus;
+
+  if (productionSynced) {
     await getUpdateRpStatusSdk(ctx.client).UpdateRpStatus({
       rp_id: rpId,
       status: productionStatus,
     });
+  }
+
+  // Same timeout /api/v4/rp-status applies, via the same helper. Without it an
+  // MCP-only client polls `pending` forever after its registration is front-run
+  // on-chain, and the surviving pending row keeps follow-up MCP registration and
+  // rotation calls from reaching a recoverable state.
+  if (!productionSynced) {
+    const { shouldFail, missingManagerKey } = shouldFailUntrustedRegistration({
+      trust: productionTrust,
+      dbStatus: currentProductionStatus,
+      mode: registration.mode,
+      managerKmsKeyId: registration.manager_kms_key_id,
+      isInitializedOnChain: productionInitialized,
+      updatedAt: registration.updated_at,
+      // The MCP app lookup already filters deleted apps out, so reaching here
+      // means the app is live.
+      isAppDeleted: false,
+    });
+
+    if (shouldFail) {
+      if (missingManagerKey) {
+        logger.error(
+          "Managed RP is initialized on-chain but has no manager key recorded",
+          { app_id, rp_id: rpId, updatedAt: registration.updated_at },
+        );
+      }
+      logger.warn(
+        "RP untrusted-initialized past grace — transitioning to failed",
+        {
+          app_id,
+          rp_id: rpId,
+          trust: productionTrust,
+          updatedAt: registration.updated_at,
+        },
+      );
+
+      await getUpdateRpStatusSdk(ctx.client).UpdateRpStatus({
+        rp_id: rpId,
+        status: RpRegistrationStatus.Failed,
+      });
+      productionStatus = RpRegistrationStatus.Failed;
+    }
   }
 
   const stagingContractAddress =
@@ -795,21 +888,27 @@ const syncWorldIdRegistrationStatus = async (
       stagingInitialized = stagingRp.initialized;
 
       if (stagingRp.initialized) {
-        const expectedSigner = registration.signer_address;
-        const canTrustOnChainStaging =
-          !expectedSigner ||
-          normalizeAddress(stagingRp.signer).toLowerCase() ===
-            normalizeAddress(expectedSigner).toLowerCase();
+        const stagingTrusted =
+          evaluateOnChainTrust({
+            mode: registration.mode,
+            onChainManager: stagingRp.manager,
+            onChainSigner: stagingRp.signer,
+            expectedSigner: registration.signer_address,
+            expectedManager,
+          }) === "trusted";
 
         const mappedStagingStatus = mapOnChainToDbStatus(
           stagingRp.initialized,
           stagingRp.active,
         );
-        stagingStatus = canTrustOnChainStaging
+        // Same rule as /api/v4/rp-status: when the reading is not provably ours,
+        // report the stored value even if it is null, rather than surfacing a
+        // squatter's staging registration as this app's own.
+        stagingStatus = stagingTrusted
           ? mappedStagingStatus
-          : currentStagingStatus ?? mappedStagingStatus;
+          : currentStagingStatus;
 
-        if (canTrustOnChainStaging && stagingStatus !== currentStagingStatus) {
+        if (stagingTrusted && stagingStatus !== currentStagingStatus) {
           await getUpdateStagingStatusSdk(ctx.client).UpdateStagingStatus({
             rp_id: rpId,
             staging_status: stagingStatus,
@@ -836,8 +935,7 @@ const syncWorldIdRegistrationStatus = async (
     production_status: productionStatus,
     staging_status: stagingStatus,
     synced: {
-      production:
-        productionInitialized && productionStatus !== currentProductionStatus,
+      production: productionSynced,
       staging: stagingSynced,
     },
     on_chain: {
@@ -876,6 +974,7 @@ const REGISTRATION_FLOW_RPC_CODE: Record<
 > = {
   staging_not_supported: -32004,
   already_registered: -32004,
+  rp_id_taken: -32004,
   config_error: -32603,
   kms_error: -32603,
   submission_error: -32603,

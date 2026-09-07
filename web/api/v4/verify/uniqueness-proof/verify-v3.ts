@@ -30,6 +30,7 @@ export async function processUniquenessProofV3(
           },
           {
             is_staging: isStaging,
+            detect_environment_mismatch: true,
             // identifier uses VerificationLevel values (legacy term for credential type)
             verification_level: item.identifier as LegacyVerificationLevel,
             max_age: item.max_age,

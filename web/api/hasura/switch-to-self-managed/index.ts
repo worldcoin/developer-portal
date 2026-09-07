@@ -7,6 +7,7 @@ import { submitTransferManagerTransaction } from "@/api/helpers/rp-transactions"
 import {
   getRpRegistryConfig,
   getStagingRpRegistryConfig,
+  isZeroAddress,
   normalizeAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
@@ -20,8 +21,6 @@ import { getSdk as getClaimSlotSdk } from "./graphql/claim-mode-switch-slot.gene
 import { getSdk as getRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
 import { getSdk as getRevertStatusSdk } from "./graphql/revert-mode-switch-status.generated";
 import { getSdk as getUpdateResultSdk } from "./graphql/update-mode-switch-result.generated";
-
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const schema = yup
   .object({
@@ -39,7 +38,7 @@ const schema = yup
       .test(
         "not-zero",
         "Cannot use zero address",
-        (value) => value !== ZERO_ADDRESS,
+        (value) => !value || !isZeroAddress(value),
       ),
   })
   .noUnknown();
