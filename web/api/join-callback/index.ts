@@ -61,6 +61,8 @@ const normalizeEmail = (email: string): string => email.toLowerCase().trim();
  * all — `Auth0WorldUser` types it as `never` — so it can never satisfy an
  * invite's ownership requirement, and neither can an identity whose address
  * Auth0 has not marked verified.
+ *
+ * The returned address is not normalized; compare with {@link normalizeEmail}.
  */
 const verifiedEmailOf = (
   auth0User: Auth0User | NonNullable<Auth0SessionUser["user"]>,
@@ -200,11 +202,8 @@ export const POST = async (req: NextRequest) => {
     }
 
     // An invite names exactly one address, so the session consuming it has to
-    // prove control of that address. State the requirement positively: the
-    // earlier form ("refuse when a verified email mismatches") silently waved
-    // through every session that had no verified email to compare against —
-    // Sign-in-with-World-ID sessions carry no email at all, so any holder of an
-    // invite_id could join an arbitrary team from an unrelated wallet account.
+    // prove control of that address. The requirement is stated positively: a
+    // session that proves no address is refused rather than waved through.
     const verifiedEmail = verifiedEmailOf(auth0User);
 
     if (!verifiedEmail) {

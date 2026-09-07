@@ -527,13 +527,18 @@ describe("test /join-callback", () => {
   // delete still committed a second membership. The DB function deletes first
   // and only the request that consumes the invite may insert a membership.
   //
-  // The racers are now necessarily the same person: since #3967911 an invite can
-  // only be accepted by a session holding the verified address it names, and
-  // `user.email` is UNIQUE, so two distinct accounts can no longer contend for
-  // one invite at all. What is left to prove is that a double submit (two tabs,
-  // a retried request) still yields exactly one membership. The loser blocks on
-  // the winner's row lock, then finds the invite gone and returns the membership
-  // the winner just created rather than inserting a second one.
+  // The racers are necessarily the same person: an invite can only be accepted
+  // by a session holding the verified address it names, and `user.email` is
+  // UNIQUE, so two distinct accounts cannot contend for one invite. What is left
+  // to prove is that a double submit (two tabs, a retried request) still yields
+  // exactly one membership.
+  //
+  // Which status the loser gets depends on where it is when the winner commits,
+  // and both outcomes are correct: if it already passed the invite lookup it
+  // blocks on the winner's row lock and the DB function hands back the winner's
+  // membership (200); if it had not yet looked the invite up it finds it gone
+  // and returns `invalid_invite` (400). Only the membership count is invariant,
+  // so that — not a fixed status pair — is what this asserts.
   it("creates only one membership when the same invitee accepts twice concurrently", async () => {
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
     const email = "test1-member@team2.example.com";
@@ -561,8 +566,15 @@ describe("test /join-callback", () => {
       POST(secondRequest),
     ]);
 
-    expect(responses.map((response) => response.status)).toEqual([200, 200]);
-    expect(await responses[0].json()).toEqual({
+    for (const response of responses) {
+      expect([200, 400]).toContain(response.status);
+    }
+
+    const successResponse = responses.find(
+      (response) => response.status === 200,
+    );
+    expect(successResponse).toBeDefined();
+    expect(await successResponse!.json()).toEqual({
       returnTo: `/teams/${team_id}`,
     });
 
@@ -596,5 +608,48 @@ describe("test /join-callback", () => {
         }),
       }),
     );
+  });
+
+  // The deterministic half of the case above: once the invite row is gone the
+  // lookup that precedes the DB function fails, so a resubmitted invite_id is
+  // refused rather than silently joining the team a second time. A single-use
+  // invite stays single-use even for the person who already used it.
+  it("refuses a resubmitted invite once it has been consumed", async () => {
+    const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
+    const email = "test1-member@team2.example.com";
+
+    const { rows: insertedInvite } = (await integrationDBExecuteQuery(
+      `INSERT INTO public.invite (team_id, expires_at, email)
+       VALUES ($1, '2030-01-01 00:00:00+00', $2)
+       RETURNING id`,
+      [team_id, email],
+    )) as { rows: { id: string }[] };
+
+    getSession.mockResolvedValue({
+      user: { ...validSessionUser, email, sub: "email|join-retry" },
+    });
+
+    const firstResponse = await POST(
+      createMockRequest({ invite_id: insertedInvite[0].id }),
+    );
+    expect(firstResponse.status).toEqual(200);
+
+    const secondResponse = await POST(
+      createMockRequest({ invite_id: insertedInvite[0].id }),
+    );
+    expect(secondResponse.status).toEqual(400);
+    expect(await secondResponse.json()).toEqual(
+      expect.objectContaining({ code: "invalid_invite" }),
+    );
+
+    const { rows: membershipRows } = (await integrationDBExecuteQuery(
+      `SELECT m.role
+         FROM public.membership m
+         JOIN public."user" u ON u.id = m.user_id
+        WHERE m.team_id = $1 AND u.email = $2`,
+      [team_id, email],
+    )) as { rows: { role: string }[] };
+
+    expect(membershipRows).toEqual([{ role: "MEMBER" }]);
   });
 });
