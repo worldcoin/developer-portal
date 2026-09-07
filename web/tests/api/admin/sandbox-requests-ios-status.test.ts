@@ -117,6 +117,7 @@ const redisClient = () => {
   return redis as unknown as {
     set: (...args: unknown[]) => Promise<unknown>;
     get: (key: string) => Promise<string | null>;
+    eval: (...args: unknown[]) => Promise<unknown>;
   };
 };
 
@@ -481,6 +482,34 @@ describe("POST /api/admin/sandbox-requests-ios/[id]/status [concurrency]", () =>
       expect(removeSandboxBetaTester).not.toHaveBeenCalled();
       expect(TransitionSandboxRequestIosStatus).not.toHaveBeenCalled();
     } finally {
+      set.mockRestore();
+    }
+  });
+
+  it("fails a revocation closed when the lock command never answers", async () => {
+    // A SET whose reply outlives the lease could return "OK" after a successor
+    // already took the expired lease over, so never wait for one indefinitely.
+    const redis = redisClient();
+    const set = jest.spyOn(redis, "set").mockReturnValue(new Promise(() => {}));
+    const evalSpy = jest.spyOn(redis, "eval").mockResolvedValue(0);
+    jest.useFakeTimers();
+
+    try {
+      const pending = POST(
+        createRequest({ status: "revoked" }),
+        createContext(),
+      );
+      await jest.advanceTimersByTimeAsync(2_000);
+      const response = await pending;
+
+      expect(response.status).toBe(503);
+      expect(removeSandboxBetaTester).not.toHaveBeenCalled();
+      expect(TransitionSandboxRequestIosStatus).not.toHaveBeenCalled();
+      // The SET may still have landed, so the orphaned lease is cleaned up.
+      expect(evalSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+      evalSpy.mockRestore();
       set.mockRestore();
     }
   });

@@ -22,6 +22,37 @@ const REVOCATION_LOCK_KEY_PREFIX = "sandbox_access_request_ios:revoking:";
 // the resuming retry by that much.
 const REVOCATION_LOCK_TTL_MS = 240_000;
 
+// The Redis client sets no command deadline, so bound the wait here. Without
+// it a SET whose reply stalls past the lease could return "OK" after another
+// caller already took the expired lease over, putting two revocations on the
+// same Apple Account again. Two seconds is far below the lease, so any reply we
+// do accept still leaves effectively the whole lease for the work.
+const REDIS_COMMAND_TIMEOUT_MS = 2_000;
+
+class RedisCommandTimeout extends Error {
+  constructor(command: string) {
+    super(`Redis ${command} exceeded ${REDIS_COMMAND_TIMEOUT_MS}ms`);
+    this.name = "RedisCommandTimeout";
+  }
+}
+
+const withRedisTimeout = <T>(command: string, pending: Promise<T>) => {
+  // Losing the race leaves `pending` unsettled; swallow its late outcome so a
+  // slow reply cannot surface as an unhandled rejection.
+  pending.catch(() => {});
+
+  let timer: ReturnType<typeof setTimeout>;
+  return Promise.race([
+    pending,
+    new Promise<never>((_, reject) => {
+      timer = setTimeout(
+        () => reject(new RedisCommandTimeout(command)),
+        REDIS_COMMAND_TIMEOUT_MS,
+      );
+    }),
+  ]).finally(() => clearTimeout(timer));
+};
+
 // Release only our own lease: if the TTL elapsed and another caller took over,
 // a blind DEL would drop that caller's lock instead.
 const RELEASE_LOCK_SCRIPT = `if redis.call("get", KEYS[1]) == ARGV[1] then
@@ -50,6 +81,31 @@ type RevocationLock =
   | { status: "busy" }
   | { status: "unavailable"; error?: unknown };
 
+const releaseRevocationLock = async (id: string, owner: string) => {
+  const redis = global.RedisClient;
+  if (!redis) return;
+
+  try {
+    await withRedisTimeout(
+      "EVAL",
+      redis.eval(
+        RELEASE_LOCK_SCRIPT,
+        1,
+        `${REVOCATION_LOCK_KEY_PREFIX}${id}`,
+        owner,
+      ),
+    );
+  } catch (error) {
+    // The TTL still frees it; a retry is only delayed, never lost.
+    logger.warn("Failed to release iOS sandbox revocation lock", {
+      requestId: id,
+      dependency: "redis",
+      failureClass: "revocation_lock_release_failed",
+      error,
+    });
+  }
+};
+
 /**
  * Serializes revocations of one request so only a single caller ever drives the
  * App Store Connect removal.
@@ -63,9 +119,9 @@ type RevocationLock =
  * leaves the row resumable instead of stranding it in `revoking` — which would
  * reserve the address forever, the very defect this flow now avoids.
  *
- * Without the lease the removal is not safe to run, so an unreachable Redis
- * fails the request closed (503) rather than proceeding unserialized. The row
- * keeps its current status and the caller can retry; nothing is lost.
+ * Without the lease the removal is not safe to run, so a Redis that is missing,
+ * erroring or too slow to answer fails the request closed (503) rather than
+ * proceeding unserialized. The row keeps its status and the caller can retry.
  */
 const acquireRevocationLock = async (id: string): Promise<RevocationLock> => {
   const redis = global.RedisClient;
@@ -73,40 +129,25 @@ const acquireRevocationLock = async (id: string): Promise<RevocationLock> => {
 
   const owner = randomUUID();
   try {
-    const claimed = await redis.set(
-      `${REVOCATION_LOCK_KEY_PREFIX}${id}`,
-      owner,
-      "PX",
-      REVOCATION_LOCK_TTL_MS,
-      "NX",
+    const claimed = await withRedisTimeout(
+      "SET",
+      redis.set(
+        `${REVOCATION_LOCK_KEY_PREFIX}${id}`,
+        owner,
+        "PX",
+        REVOCATION_LOCK_TTL_MS,
+        "NX",
+      ),
     );
     return claimed === "OK"
       ? { status: "acquired", owner }
       : { status: "busy" };
   } catch (error) {
+    // A timed-out SET may still have landed. Drop it if so, or the orphaned
+    // lease would answer every retry with 409 until it expires. Best effort,
+    // and keyed on our own token, so it can never take a successor's lock.
+    await releaseRevocationLock(id, owner);
     return { status: "unavailable", error };
-  }
-};
-
-const releaseRevocationLock = async (id: string, owner: string) => {
-  const redis = global.RedisClient;
-  if (!redis) return;
-
-  try {
-    await redis.eval(
-      RELEASE_LOCK_SCRIPT,
-      1,
-      `${REVOCATION_LOCK_KEY_PREFIX}${id}`,
-      owner,
-    );
-  } catch (error) {
-    // The TTL still frees it; a retry is only delayed, never lost.
-    logger.warn("Failed to release iOS sandbox revocation lock", {
-      requestId: id,
-      dependency: "redis",
-      failureClass: "revocation_lock_release_failed",
-      error,
-    });
   }
 };
 
