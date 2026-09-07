@@ -1270,6 +1270,28 @@ const tools = {
       token_hash: args.enabled ? stagingTokenHash : null,
     });
 
+    const updated = data.update_rp_registration_by_pk;
+
+    // `update_..._by_pk` returns null when it matched no row — the RP can be
+    // deleted between the team check above and this write. Falling through
+    // would hand the developer a token that authorizes nothing, and would
+    // record an audit event asserting a window state the database never took.
+    // On close it would be worse: reporting "staging is closed" while the
+    // window is still open.
+    if (updated?.rp_id !== registration.rp_id) {
+      logger.error("Staging verification window update matched no RP", {
+        app_id: args.app_id,
+        team_id: ctx.teamId,
+        rp_id: registration.rp_id,
+        enabled: args.enabled,
+      });
+
+      throw new McpError(
+        "Could not update the staging verification window for this app. Nothing was changed; please retry.",
+        -32603,
+      );
+    }
+
     logPortalEvent({
       event: "staging_verification_window",
       actor: "mcp",
@@ -1285,8 +1307,7 @@ const tools = {
     return content({
       rp_id: registration.rp_id,
       staging_verification_expires_at:
-        data.update_rp_registration_by_pk?.staging_verification_expires_at ??
-        null,
+        updated.staging_verification_expires_at ?? null,
       staging_verification_token: args.enabled ? stagingToken : null,
       message: args.enabled
         ? `Send this token as the ${STAGING_VERIFICATION_TOKEN_HEADER} header on /api/v4/verify calls that carry staging or sandbox proofs. It is shown once, works until the timestamp above, and is not needed for production verification. Opening another window replaces it.`

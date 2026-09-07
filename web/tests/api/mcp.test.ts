@@ -190,6 +190,8 @@ const reviewMetadata = {
 };
 const reviewLocalisations: Array<Record<string, unknown>> = [];
 let currentAppContextResponse = appContextResponse;
+/** When true, the staging-window mutation matches no row (RP already gone). */
+let stagingVerificationWindowUpdateMissesRow = false;
 
 const verifiedMetadataForDraft = (overrides: Record<string, unknown> = {}) => ({
   ...reviewMetadata,
@@ -295,6 +297,7 @@ beforeEach(async () => {
     }),
   );
   currentAppContextResponse = appContextResponse;
+  stagingVerificationWindowUpdateMissesRow = false;
   mockResolveManagerAddress.mockResolvedValue(
     "0x0000000000000000000000000000000000000002",
   );
@@ -367,6 +370,10 @@ beforeEach(async () => {
       };
     }
     if (operationName.includes("McpSetStagingVerificationWindow")) {
+      // Hasura returns null from `update_..._by_pk` when it matched no row.
+      if (stagingVerificationWindowUpdateMissesRow) {
+        return { update_rp_registration_by_pk: null };
+      }
       return {
         update_rp_registration_by_pk: {
           rp_id: variables.rp_id,
@@ -704,6 +711,47 @@ describe("/api/mcp", () => {
       expires_at: null,
       token_hash: null,
     });
+  });
+
+  it("fails loudly when opening the window matched no RP row", async () => {
+    stagingVerificationWindowUpdateMissesRow = true;
+
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: true,
+      }),
+    );
+
+    const body = await res.json();
+    expect(body.error.message).toContain("Nothing was changed");
+    // No token may be handed out for a window that was never persisted, and
+    // the audit trail must not claim a state change that did not happen.
+    expect(JSON.stringify(body)).not.toContain("sk_");
+    expect(mockLoggerInfo).not.toHaveBeenCalledWith(
+      "portal_staging_verification_window",
+      expect.anything(),
+    );
+  });
+
+  it("fails loudly when closing the window matched no RP row", async () => {
+    stagingVerificationWindowUpdateMissesRow = true;
+
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: false,
+      }),
+    );
+
+    const body = await res.json();
+    // Reporting a successful close while the window may still be open is the
+    // dangerous direction of this failure.
+    expect(body.error.message).toContain("Nothing was changed");
+    expect(mockLoggerInfo).not.toHaveBeenCalledWith(
+      "portal_staging_verification_window",
+      expect.anything(),
+    );
   });
 
   it("refuses to open a staging window for an app without World ID", async () => {
