@@ -25,6 +25,9 @@ const INTEGRITY_BUNDLE_VERSIONS = [1, 2] as const;
 const JWKS_CACHE_TTL_SECONDS = 24 * 60 * 60;
 const SIGNATURE_TIMESTAMP_THRESHOLD_SECONDS = 5 * 60;
 const JWKS_FETCH_TIMEOUT_MS = 4_000;
+// Outlives the window in which a bundle timestamp is still accepted, so a
+// bundle can never survive its single-use record.
+const BUNDLE_SINGLE_USE_TTL_SECONDS = SIGNATURE_TIMESTAMP_THRESHOLD_SECONDS * 2;
 
 type IntegrityEnvironment = "production" | "staging";
 
@@ -287,6 +290,149 @@ export function computeProofIntegrityDigest(params: {
   }
 
   return hasher.digest();
+}
+
+/**
+ * Deterministic serialization of an arbitrary parsed-request value. Object keys
+ * are sorted so that two structurally identical response arrays always produce
+ * the same bytes regardless of the key order they arrived in.
+ */
+function stableSerialize(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableSerialize).join(",")}]`;
+  }
+
+  if (typeof value === "object" && value !== null) {
+    const record = value as Record<string, unknown>;
+
+    const entries = Object.keys(record)
+      .filter((key) => record[key] !== undefined)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableSerialize(record[key])}`);
+
+    return `{${entries.join(",")}}`;
+  }
+
+  return JSON.stringify(value) ?? "null";
+}
+
+/**
+ * Identifies the exact proof payload a bundle is being spent on. Everything the
+ * digest fails to cover (nullifiers, proof elements, signal hashes, schema ids)
+ * is included here, so reusing one attestation for a different payload is
+ * detectable even though the signature itself still verifies.
+ */
+export function computeIntegrityPayloadFingerprint(params: {
+  nonce: string;
+  protocolVersion: "3.0" | "4.0";
+  responses:
+    | UniquenessProofResponseV3[]
+    | UniquenessProofResponseV4[]
+    | SessionResponseItem[];
+}) {
+  return createHash("sha256")
+    .update(
+      stableSerialize({
+        nonce: params.nonce,
+        protocol_version: params.protocolVersion,
+        responses: params.responses,
+      }),
+    )
+    .digest("hex");
+}
+
+/**
+ * Single-use key for one device attestation.
+ *
+ * Derived from values the caller cannot re-encode: the device public key comes
+ * from the attestation-service-signed JWT, and the signature digest is computed
+ * server-side. Keying on the raw `signature` bytes instead would be bypassable —
+ * signatures are verified with `lowS: false`, so an attacker can flip `s` to
+ * `n - s` (or re-encode the DER/CBOR wrapper) and present the same attestation
+ * under a different key.
+ */
+function integrityBundleUseKey(params: {
+  devicePublicKey: Uint8Array;
+  rpId: string;
+  signatureDigest: Uint8Array;
+}) {
+  const hasher = createHash("sha256");
+  addLengthPrefixedString(hasher, params.rpId);
+  hasher.update(u32be(params.devicePublicKey.length));
+  hasher.update(params.devicePublicKey);
+  hasher.update(params.signatureDigest);
+
+  return `integrity_bundle_use:v1:${hasher.digest("hex")}`;
+}
+
+/**
+ * Binds one verified attestation to one proof payload.
+ *
+ * The digest the device signs does not cover the proofs themselves, so a bundle
+ * that verifies for one set of responses also verifies for any other set under
+ * the same nonce. Claiming the bundle atomically caps that at a single payload:
+ * an identical retry (same responses, e.g. after a transient downstream error)
+ * still succeeds, while the same attestation carrying different proofs is
+ * rejected.
+ *
+ * Fails open when Redis is unavailable, matching `checkRateLimit`: this is
+ * defence in depth layered on top of signature verification, and hard-failing
+ * would take verification down on a single infra dependency.
+ */
+async function claimIntegrityBundleUse(params: {
+  fingerprint: string;
+  key: string;
+  rpId: string;
+}) {
+  const redis = global.RedisClient;
+
+  if (!redis) {
+    logger.warn("Integrity bundle single-use check skipped — Redis missing", {
+      rp_id: params.rpId,
+    });
+    return;
+  }
+
+  let claimed: "OK" | null;
+  try {
+    claimed = await redis.set(
+      params.key,
+      params.fingerprint,
+      "EX",
+      BUNDLE_SINGLE_USE_TTL_SECONDS,
+      "NX",
+    );
+  } catch (error) {
+    logger.warn("Integrity bundle single-use check failed — Redis error", {
+      error: error instanceof Error ? error.message : String(error),
+      rp_id: params.rpId,
+    });
+    return;
+  }
+
+  if (claimed === "OK") {
+    return;
+  }
+
+  let claimedFingerprint: string | null;
+  try {
+    claimedFingerprint = await redis.get(params.key);
+  } catch (error) {
+    logger.warn("Integrity bundle single-use lookup failed — Redis error", {
+      error: error instanceof Error ? error.message : String(error),
+      rp_id: params.rpId,
+    });
+    return;
+  }
+
+  // Expired between the SET and the GET: nothing left to compare against.
+  if (claimedFingerprint === null) {
+    return;
+  }
+
+  if (claimedFingerprint !== params.fingerprint) {
+    throw new IntegrityBundleError("integrity_bundle_already_used");
+  }
 }
 
 export function computeIntegritySignatureDigest(params: {
@@ -657,8 +803,11 @@ function verifyIOSSignature(params: {
 export async function verifyIntegrityBundle(
   params: IntegrityVerificationParams,
 ): Promise<IntegrityVerificationResult> {
+  let bundleVersion: number | undefined;
+
   try {
     const bundle = normalizeIntegrityBundle(params.integrityBundle);
+    bundleVersion = bundle.version;
     validateTimestamp(bundle.timestamp);
 
     const isSelfieCheckV4 =
@@ -702,6 +851,22 @@ export async function verifyIntegrityBundle(
       });
     }
 
+    // Only reached once the attestation itself is verified, so an attacker
+    // cannot burn a key for someone else's bundle.
+    await claimIntegrityBundleUse({
+      fingerprint: computeIntegrityPayloadFingerprint({
+        nonce: params.nonce,
+        protocolVersion: params.protocolVersion,
+        responses: params.responses,
+      }),
+      key: integrityBundleUseKey({
+        devicePublicKey,
+        rpId: params.rpId,
+        signatureDigest,
+      }),
+      rpId: params.rpId,
+    });
+
     return { success: true };
   } catch (error) {
     const reason =
@@ -713,6 +878,8 @@ export async function verifyIntegrityBundle(
       error: error instanceof Error ? error.message : String(error),
       environment: params.environment ?? DEFAULT_INTEGRITY_ENVIRONMENT,
       reason,
+      bundle_version: bundleVersion,
+      response_count: params.responses.length,
       protocol_version: params.protocolVersion,
       rp_id: params.rpId,
     });
