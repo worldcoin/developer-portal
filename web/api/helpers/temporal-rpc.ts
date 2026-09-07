@@ -56,6 +56,8 @@ export interface OnChainRelyingParty {
 
 export interface VerifyProofParams {
   nullifier: bigint;
+  /** Optional session commitment bound by the same uniqueness proof. */
+  sessionId?: bigint;
   action: bigint;
   rpId: bigint;
   nonce: bigint;
@@ -380,7 +382,7 @@ export async function verifyProofOnChain(
     const provider = createProvider();
     const contract = new Contract(contractAddress, VERIFIER_ABI, provider);
 
-    await contract.verify(
+    const args = [
       params.nullifier,
       params.action,
       params.rpId,
@@ -389,8 +391,27 @@ export async function verifyProofOnChain(
       params.expiresAtMin,
       params.issuerSchemaId,
       params.credentialGenesisIssuedAtMin,
-      params.zeroKnowledgeProof,
-    );
+    ];
+    if (params.sessionId !== undefined) {
+      if (params.sessionId === 0n) {
+        return {
+          success: false,
+          error: {
+            code: "invalid_session_id",
+            detail: "Session commitment must be nonzero.",
+          },
+        };
+      }
+      // Never verify uniqueness and session separately: they could belong
+      // to different humans. Bind both outputs in one circuit verification.
+      await contract.verifyProofAndSignals(
+        ...args,
+        params.sessionId,
+        params.zeroKnowledgeProof,
+      );
+    } else {
+      await contract.verify(...args, params.zeroKnowledgeProof);
+    }
 
     logger.info("Proof verified successfully", {
       rpId: params.rpId.toString(),
