@@ -527,11 +527,9 @@ describe("test /join-callback", () => {
   // delete still committed a second membership. The DB function deletes first
   // and only the request that consumes the invite may insert a membership.
   //
-  // The racers are necessarily the same person: an invite can only be accepted
-  // by a session holding the verified address it names, and `user.email` is
-  // UNIQUE, so two distinct accounts cannot contend for one invite. What is left
-  // to prove is that a double submit (two tabs, a retried request) still yields
-  // exactly one membership.
+  // Every racer holds the verified address the invite names, so the ordinary
+  // shape of this race is one person double submitting (two tabs, a retried
+  // request). What has to hold is that it still yields exactly one membership.
   //
   // Which status the loser gets depends on where it is when the winner commits,
   // and both outcomes are correct: if it already passed the invite lookup it
@@ -652,6 +650,63 @@ describe("test /join-callback", () => {
          JOIN public."user" u ON u.id = m.user_id
         WHERE m.team_id = $1 AND u.email = $2`,
       [team_id, email],
+    )) as { rows: { role: string }[] };
+    expect(membershipRows).toEqual([{ role: "MEMBER" }]);
+
+    const { rowCount: remainingInvites } = await integrationDBExecuteQuery(
+      `SELECT id FROM public.invite WHERE id = $1`,
+      [insertedInvite[0].id],
+    );
+    expect(remainingInvites).toBe(0);
+  });
+
+  // `user.email` is UNIQUE but case-sensitive, while the ownership guard treats
+  // casing and surrounding whitespace as the same address. Two Auth0 identities
+  // whose verified claims differ only in case therefore both satisfy one invite
+  // and can both insert a user row. The membership invariant must not depend on
+  // that: `accept_team_invite` locks and deletes the invite row, so whichever
+  // account wins it is the only one that gets a membership. The duplicate user
+  // rows this can leave behind are a separate, pre-existing normalization gap in
+  // how emails are stored, not something the invite path decides.
+  it("grants one membership when case-variant identities race for one invite", async () => {
+    const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
+    const email = "case-variant-race@example.com";
+
+    const { rows: insertedInvite } = (await integrationDBExecuteQuery(
+      `INSERT INTO public.invite (team_id, expires_at, email)
+       VALUES ($1, '2030-01-01 00:00:00+00', $2)
+       RETURNING id`,
+      [team_id, email],
+    )) as { rows: { id: string }[] };
+
+    getSession
+      .mockResolvedValueOnce({
+        user: { ...validSessionUser, email, sub: "email|case-variant-lower" },
+      })
+      .mockResolvedValueOnce({
+        user: {
+          ...validSessionUser,
+          email: email.toUpperCase(),
+          sub: "email|case-variant-upper",
+        },
+      });
+
+    const responses = await Promise.all([
+      POST(createMockRequest({ invite_id: insertedInvite[0].id })),
+      POST(createMockRequest({ invite_id: insertedInvite[0].id })),
+    ]);
+
+    for (const response of responses) {
+      expect([200, 400]).toContain(response.status);
+    }
+    expect(responses.some((response) => response.status === 200)).toBe(true);
+
+    const { rows: membershipRows } = (await integrationDBExecuteQuery(
+      `SELECT m.role
+         FROM public.membership m
+         JOIN public."user" u ON u.id = m.user_id
+        WHERE m.team_id = $1 AND u."auth0Id" = ANY($2::text[])`,
+      [team_id, ["email|case-variant-lower", "email|case-variant-upper"]],
     )) as { rows: { role: string }[] };
     expect(membershipRows).toEqual([{ role: "MEMBER" }]);
 

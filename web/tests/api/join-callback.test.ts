@@ -305,10 +305,9 @@ describe("/api/join-callback [first-time invitee]", () => {
     );
   });
 
-  // Two tabs, or a retried request. `user.email` is UNIQUE and the ownership
-  // guard admits only sessions holding the invited address, so both racers
-  // carry the same address and one insert loses. The loser must still contend
-  // for the invite rather than surface the duplicate as a server error.
+  // Two tabs, or a retried request: `user.email` is UNIQUE, so one insert
+  // loses. The loser must still go on to contend for the invite rather than
+  // surface the duplicate as a server error.
   it("adopts the account a concurrent first-time join already created", async () => {
     getSession.mockResolvedValue(emailSession());
     FetchEmailUser.mockResolvedValueOnce({
