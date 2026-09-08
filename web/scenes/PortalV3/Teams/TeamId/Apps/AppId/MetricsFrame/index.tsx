@@ -29,7 +29,7 @@ const TIMEFRAME_OPTIONS = [
   { label: "Past 7 days", value: "7", days: 7 },
   { label: "Past 14 days", value: "14", days: 14 },
   { label: "Past 30 days", value: "30", days: 30 },
-  { label: "All available", value: "all", days: null },
+  { label: "All time", value: "all", days: null },
 ] as const satisfies readonly {
   label: string;
   value: string;
@@ -250,13 +250,13 @@ export const MetricsFrame = (props: { appId: string }) => {
 
   return (
     <SizingWrapper className="py-6">
-      <div className="mx-auto w-full max-w-[1120px] space-y-10">
+      <div className="mx-auto w-full max-w-[1120px] space-y-6">
         <div className="space-y-2">
           <h1 className="font-world text-24 font-semibold text-portal-heading">
             Selfie Check analytics
           </h1>
           <div className="font-world text-12 text-portal-muted">
-            Hourly Updates
+            * Data updates every hour
           </div>
         </div>
         <TabGroup>
@@ -273,7 +273,7 @@ export const MetricsFrame = (props: { appId: string }) => {
               </Tab>
             ))}
           </TabList>
-          <TabPanels className="mt-5">
+          <TabPanels className="mt-4">
             <TabPanel className="space-y-4 outline-none">
               {totals.kind === "ready" ? (
                 <div className="space-y-4">
@@ -302,7 +302,7 @@ export const MetricsFrame = (props: { appId: string }) => {
                   aria-label="Daily analytics filters"
                   className="flex flex-wrap justify-start gap-2"
                 >
-                  <label className="grid gap-1 font-world text-11 text-portal-muted sm:flex sm:items-center sm:gap-2">
+                  <label className="grid gap-1 font-world text-13 text-portal-heading sm:flex sm:items-center sm:gap-2">
                     Timeframe
                     <select
                       aria-label="Timeframe"
@@ -319,7 +319,7 @@ export const MetricsFrame = (props: { appId: string }) => {
                       ))}
                     </select>
                   </label>
-                  <label className="grid gap-1 font-world text-11 text-portal-muted sm:flex sm:items-center sm:gap-2">
+                  <label className="grid gap-1 font-world text-13 text-portal-heading sm:flex sm:items-center sm:gap-2">
                     Operating System
                     <select
                       aria-label="Operating System"
@@ -327,7 +327,7 @@ export const MetricsFrame = (props: { appId: string }) => {
                       value={osName}
                       onChange={(event) => setOsName(event.target.value)}
                     >
-                      <option value={ALL_OPERATING_SYSTEMS}>All systems</option>
+                      <option value={ALL_OPERATING_SYSTEMS}>All</option>
                       {operatingSystems.map((operatingSystem) => (
                         <option key={operatingSystem} value={operatingSystem}>
                           {operatingSystem}
@@ -338,7 +338,7 @@ export const MetricsFrame = (props: { appId: string }) => {
                 </div>
               )}
               {daily.kind === "ready" ? (
-                <div className="grid min-w-0 gap-6 lg:w-[calc(100%+9vw)] lg:grid-cols-2">
+                <div className="grid min-w-0 gap-6 lg:grid-cols-2">
                   {CHART_METRICS.map((chart) => (
                     <DailyMetricChart
                       key={chart.metric}
