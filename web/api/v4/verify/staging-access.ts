@@ -11,7 +11,10 @@ export const ENVIRONMENT_NOT_ALLOWED_ERROR_CODE = "environment_not_allowed";
  */
 export const STAGING_VERIFICATION_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-/** Header carrying the token issued when the staging window was opened. */
+/**
+ * Header carrying the token issued when the staging window was opened. Valid
+ * for the lifetime of that window, not for a single request.
+ */
 export const STAGING_VERIFICATION_TOKEN_HEADER = "x-staging-verification-token";
 
 export type StagingAccessResult =
@@ -59,7 +62,7 @@ export function isStagingVerificationOpen(
  * client's word:
  *
  * 1. the app's own team opened a time-boxed staging window out of band, and
- * 2. this request carries the one-time token that opening it issued.
+ * 2. this request carries the token that opening that window issued.
  *
  * The window alone would leave the app's production endpoint accepting simulator
  * proofs from anyone for as long as it is open — the developer's test session
@@ -68,6 +71,16 @@ export function isStagingVerificationOpen(
  * traffic while forwarding its user's `environment`, which is the confused
  * deputy this endpoint started with. Together, a staging verification has to be
  * both currently sanctioned and individually authorized.
+ *
+ * The token is shown once at issuance but is NOT consumed per request: it stays
+ * valid for the rest of the window. Anyone who obtains the header can therefore
+ * replay it against this RP until the window closes. That bound is accepted, not
+ * overlooked — the token travels server-to-server on the integration's own
+ * verify calls and never reaches the party it defends against (whoever produced
+ * the proof), the window is short and self-healing, and re-opening a window
+ * issues a fresh token that strands the previous one. Binding a token to a
+ * single proof would narrow the bound further; that is the escalation path if
+ * staging windows ever need to outlive one supervised test session.
  */
 export function authorizeStagingVerification(params: {
   req: NextRequest;

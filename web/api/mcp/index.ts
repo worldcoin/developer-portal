@@ -211,7 +211,7 @@ const toolDefinitions = [
   {
     name: "set_world_id_staging_verification",
     description:
-      "Open or close a temporary staging verification window for an app, and issue the one-time token that staging verifications must present. The window closes automatically after 24 hours.",
+      "Open or close a temporary staging verification window for an app, and issue the token that staging verifications must present. The token is shown once here and then works for every staging verification until the window closes automatically after 24 hours.",
     inputSchema: {
       type: "object",
       properties: {
@@ -1253,8 +1253,10 @@ const tools = {
       throw new McpError("World ID is not configured for this app.", -32004);
     }
 
-    // The token is issued here and returned once; only its HMAC is stored, so a
-    // window cannot be re-opened for the developer by reading the database.
+    // The token is displayed here and never again; only its HMAC is stored, so
+    // the value cannot be recovered by reading the database. It stays valid for
+    // the whole window — see authorizeStagingVerification for why that bound is
+    // the accepted one.
     const { secret: stagingToken, hashed_secret: stagingTokenHash } =
       generateHashedSecret(registration.rp_id);
 
