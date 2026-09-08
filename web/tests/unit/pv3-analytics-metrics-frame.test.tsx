@@ -83,12 +83,12 @@ it("separates totals from daily metrics and switches the visible chart", async (
   expect(screen.queryByText("20 sessions")).not.toBeInTheDocument();
   expect(screen.getAllByTestId("daily-chart")).toHaveLength(1);
   expect(screen.getByTestId("daily-chart")).toHaveTextContent(
-    "Users starting Selfie Check, by day",
+    "Number of users who started 1+ Selfie Check flow",
   );
 
   fireEvent.click(screen.getByRole("button", { name: "Completion Rate" }));
   expect(screen.getByTestId("daily-chart")).toHaveTextContent(
-    "Average face capture completion rate, by day",
+    "Average Face capture",
   );
 
   await act(async () => {
@@ -115,7 +115,7 @@ it("shows all available history and preserves daily selections across views", as
     Number(screen.getByTestId("daily-chart").getAttribute("data-row-count")),
   ).toBe(3);
 
-  fireEvent.change(screen.getByRole("combobox", { name: "Operating system" }), {
+  fireEvent.change(screen.getByRole("combobox", { name: "Operating System" }), {
     target: { value: "iOS" },
   });
   const filteredRowCount = screen
@@ -135,7 +135,7 @@ it("shows all available history and preserves daily selections across views", as
     "all",
   );
   expect(
-    screen.getByRole("combobox", { name: "Operating system" }),
+    screen.getByRole("combobox", { name: "Operating System" }),
   ).toHaveValue("iOS");
   expect(
     screen.getByRole("button", { name: "Cumulative users Shared 1+ proof" }),

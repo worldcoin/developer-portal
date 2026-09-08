@@ -42,14 +42,14 @@ const CHART_METRICS = [
   {
     metric: "n_users_started_selfie_check_flow",
     label: "Users Starting 1+ Selfie Check",
-    title: "Users starting Selfie Check, by day",
+    title: "Number of users who started 1+ Selfie Check flow",
     chartType: "bar",
     yAxisLabel: "Number of users",
   },
   {
     metric: "p_face_capture_completion",
     label: "Completion Rate",
-    title: "Average face capture completion rate, by day",
+    title: "Average Face capture",
     chartType: "line",
     yAxisLabel: "Average completion rate",
   },
@@ -257,7 +257,7 @@ export const MetricsFrame = (props: { appId: string }) => {
 
   return (
     <SizingWrapper className="py-6">
-      <div className="mx-auto grid w-full max-w-[920px] gap-4">
+      <div className="mx-auto grid w-full max-w-[1120px] gap-4">
         <h1 className="font-world text-24 font-semibold text-portal-heading">
           Selfie Check analytics
         </h1>
@@ -269,14 +269,14 @@ export const MetricsFrame = (props: { appId: string }) => {
             {["All time", "Daily trends"].map((label) => (
               <Tab
                 key={label}
-                className="-mb-px border-b-2 border-transparent py-3 font-world text-14 font-medium text-portal-muted transition-colors hover:text-portal-heading focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-portal-heading aria-selected:border-portal-heading aria-selected:text-portal-heading"
+                className="-mb-px border-b-2 border-transparent py-3 font-world text-14 font-medium text-portal-muted transition-colors outline-none hover:text-portal-heading aria-selected:border-portal-heading aria-selected:text-portal-heading data-focus:rounded-sm data-focus:outline-2 data-focus:outline-offset-4 data-focus:outline-portal-heading data-focus:outline-solid"
               >
                 {label}
               </Tab>
             ))}
           </TabList>
           <TabPanels className="mt-5">
-            <TabPanel className="grid gap-4">
+            <TabPanel className="grid gap-4 outline-none">
               {totals.kind === "ready" ? (
                 <>
                   <TotalsOverview row={totals.row} />
@@ -291,7 +291,7 @@ export const MetricsFrame = (props: { appId: string }) => {
                 </>
               ) : (
                 <PlaceholderCard
-                  label="Face Authentication Verification funnel"
+                  label="Selfie Check funnel"
                   message={
                     totals.kind === "loading"
                       ? "Loading total analytics…"
@@ -300,7 +300,7 @@ export const MetricsFrame = (props: { appId: string }) => {
                 />
               )}
             </TabPanel>
-            <TabPanel className="grid gap-4">
+            <TabPanel className="grid gap-4 outline-none">
               <div className="flex flex-wrap items-end justify-end gap-3">
                 {daily.kind === "ready" && (
                   <div
@@ -325,9 +325,9 @@ export const MetricsFrame = (props: { appId: string }) => {
                       </select>
                     </label>
                     <label className="grid gap-1 font-world text-11 text-portal-muted sm:flex sm:items-center sm:gap-2">
-                      Operating system
+                      Operating System
                       <select
-                        aria-label="Operating system"
+                        aria-label="Operating System"
                         className="h-9 rounded-8 border border-portal-border bg-white px-3 font-world text-13 text-portal-heading"
                         value={osName}
                         onChange={(event) => setOsName(event.target.value)}
@@ -375,7 +375,7 @@ export const MetricsFrame = (props: { appId: string }) => {
                 </>
               ) : (
                 <PlaceholderCard
-                  label="Daily selfie check charts"
+                  label="Daily Selfie Check charts"
                   message={
                     daily.kind === "loading"
                       ? "Loading daily analytics…"

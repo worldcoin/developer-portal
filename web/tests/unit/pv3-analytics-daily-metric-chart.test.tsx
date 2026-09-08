@@ -90,7 +90,7 @@ describe("DailyMetricChart", () => {
     const bars = screen.getAllByTestId("bar");
     expect(bars).toHaveLength(2);
     expect(bars.map((bar) => bar.dataset.name)).toEqual(["Android", "iOS"]);
-    expect(bars.map((bar) => bar.dataset.fill)).toEqual(["#1F6F78", "#345995"]);
+    expect(bars.map((bar) => bar.dataset.fill)).toEqual(["#2E7D32", "#1565C0"]);
     expect(bars.every((bar) => bar.dataset.stackId === "os")).toBe(true);
     expect(screen.getByText("Day")).toBeInTheDocument();
     expect(screen.getByText("Number of users")).toBeInTheDocument();
@@ -103,7 +103,7 @@ describe("DailyMetricChart", () => {
   it("draws completion rates as straight OS lines on a zero-to-100-percent axis", () => {
     render(
       <DailyMetricChart
-        title="Average face capture completion rate, by day and OS"
+        title="Average Face capture"
         rows={rows}
         metric="p_face_capture_completion"
         kind="rate"
@@ -115,8 +115,8 @@ describe("DailyMetricChart", () => {
     const lines = screen.getAllByTestId("line");
     expect(lines.map((line) => line.dataset.name)).toEqual(["Android", "iOS"]);
     expect(lines.map((line) => line.dataset.stroke)).toEqual([
-      "#1F6F78",
-      "#345995",
+      "#2E7D32",
+      "#1565C0",
     ]);
     expect(lines.every((line) => line.dataset.type === "linear")).toBe(true);
     expect(screen.queryByTestId("bar")).not.toBeInTheDocument();
@@ -151,8 +151,8 @@ describe("DailyMetricChart", () => {
     const areas = screen.getAllByTestId("area");
     expect(areas.map((area) => area.dataset.name)).toEqual(["Android", "iOS"]);
     expect(areas.map((area) => area.dataset.fill)).toEqual([
-      "#1F6F78",
-      "#345995",
+      "#2E7D32",
+      "#1565C0",
     ]);
     expect(areas.every((area) => area.dataset.stackId === "os")).toBe(true);
     expect(screen.queryByTestId("bar")).not.toBeInTheDocument();
