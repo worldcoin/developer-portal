@@ -5,6 +5,7 @@ type SwitchProps = {
   enabled: boolean;
   disabled?: boolean;
   setEnabled: (enabled: boolean) => void;
+  "aria-label"?: string;
 };
 export const Switcher = (props: SwitchProps) => {
   const { enabled, disabled, setEnabled } = props;
@@ -13,6 +14,7 @@ export const Switcher = (props: SwitchProps) => {
       checked={enabled}
       disabled={disabled}
       onChange={setEnabled}
+      aria-label={props["aria-label"]}
       className={clsx(
         {
           "bg-grey-900": enabled,

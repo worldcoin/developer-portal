@@ -25,34 +25,51 @@ export const List = (props: {
 
   return (
     <>
-      <div>
-        {props.loading && <Item />}
+      <section aria-labelledby="profile-teams-heading">
+        <header className="flex h-8 items-center justify-between gap-4">
+          <h2
+            id="profile-teams-heading"
+            className="font-twk text-17 leading-5 font-[550] tracking-[-0.17px] text-portal-ink"
+          >
+            Your teams
+          </h2>
 
-        {!props.loading &&
-          props.memberships?.map((membership) => (
-            <Item
-              key={membership.team.id}
-              item={membership}
-              onClickTransfer={() => setTeamForTransfer(membership.team)}
-              onClickDelete={() => setTeamForDelete(membership.team)}
-              onClickLeave={() => setTeamForLeave(membership.team)}
-            />
-          ))}
-      </div>
+          <InkButton
+            href={PROFILE_CREATE_TEAM_DIALOG_URL}
+            className="h-8"
+            icon={<PlusIcon className="size-4" />}
+          >
+            New team
+          </InkButton>
+        </header>
 
-      <footer className="flex min-h-14 flex-col gap-3 border-t border-grey-100 bg-grey-25 px-5 py-3 sm:flex-row sm:items-center sm:justify-between md:px-6">
-        <p className="font-gta text-13 leading-5 text-grey-400">
-          You belong to {props.memberships?.length ?? 0} teams.
-        </p>
+        <div className="mt-2.5 overflow-hidden rounded-[10px] border border-portal-border">
+          {props.loading ? (
+            <>
+              <Item />
+              <Item />
+            </>
+          ) : null}
 
-        <InkButton
-          href={PROFILE_CREATE_TEAM_DIALOG_URL}
-          className="h-8"
-          icon={<PlusIcon className="size-4" />}
-        >
-          New team
-        </InkButton>
-      </footer>
+          {!props.loading && (props.memberships?.length ?? 0) === 0 ? (
+            <p className="flex min-h-[69px] items-center px-4 font-world text-13 leading-[1.3] font-[350] text-portal-subtle">
+              You don&apos;t belong to any teams yet.
+            </p>
+          ) : null}
+
+          {!props.loading
+            ? props.memberships?.map((membership) => (
+                <Item
+                  key={membership.team.id}
+                  item={membership}
+                  onClickTransfer={() => setTeamForTransfer(membership.team)}
+                  onClickDelete={() => setTeamForDelete(membership.team)}
+                  onClickLeave={() => setTeamForLeave(membership.team)}
+                />
+              ))
+            : null}
+        </div>
+      </section>
 
       <DeleteTeamDialog
         open={!!teamForDelete}
