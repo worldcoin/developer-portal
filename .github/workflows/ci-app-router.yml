@@ -140,7 +140,7 @@ jobs:
     name: Integration Tests
     runs-on:
       group: arc-public-large-amd64-runner
-    timeout-minutes: 3
+    timeout-minutes: 5
     defaults:
       run:
         working-directory: web
@@ -171,6 +171,12 @@ jobs:
       - name: Run integration tests
         run: |
           pnpm test:integration
+
+      - name: Show integration service diagnostics
+        if: failure()
+        run: |
+          docker compose -f ../docker-compose-test.yaml ps -a
+          docker compose -f ../docker-compose-test.yaml logs --no-color --tail=200 hasura_test postgres_test
 
   e2e-tests:
     name: End-to-end Tests
