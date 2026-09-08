@@ -32,9 +32,23 @@
 SET LOCAL lock_timeout = '3s';
 SET LOCAL statement_timeout = '30s';
 
+-- The replacement keeps the old object's name. Postgres surfaces that name in
+-- the unique_violation it raises, and the running application matches on it to
+-- answer a duplicate address with 409 instead of 500. Migrations and pods roll
+-- out independently, so pods predating this migration keep serving against the
+-- new schema; renaming the object would make them misread every expected
+-- conflict as an unexpected error. Holding the name also keeps Hasura's
+-- generated constraint enum stable.
+--
+-- The name is occupied until the constraint is dropped, so build under a
+-- temporary one and rename once it is free. Both catalog statements are
+-- constant-time, so ACCESS EXCLUSIVE still only covers the tail.
 CREATE UNIQUE INDEX IF NOT EXISTS "sandbox_access_request_ios_live_asc_email_key"
     ON "public"."sandbox_access_request_ios" ("asc_email")
     WHERE "status" IN ('pending', 'approving', 'approved', 'revoking');
 
 ALTER TABLE "public"."sandbox_access_request_ios"
     DROP CONSTRAINT IF EXISTS "unique_sandbox_access_request_ios_asc_email";
+
+ALTER INDEX "public"."sandbox_access_request_ios_live_asc_email_key"
+    RENAME TO "unique_sandbox_access_request_ios_asc_email";

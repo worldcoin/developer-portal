@@ -7,19 +7,14 @@ import { getSdk as getInsertSandboxAccessRequestIosSdk } from "./graphql/insert-
 import { fetchSandboxAccessRequestIos } from "./server/fetch-sandbox-access-request-ios";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// Partial unique index: only rows that still hold a live claim on the Apple
-// Account occupy it, so a rejected or revoked request releases the address.
-//
-// Both names must stay recognized: the schema migration and the app roll out
-// independently, so either version of this code can meet either version of the
-// schema mid-deploy (and again if the schema is rolled back). Matching only one
-// turns an expected duplicate-email conflict into a 500 for the whole skew
-// window. Drop the legacy name only once no reachable database still carries
-// the table-wide constraint.
-const ASC_EMAIL_UNIQUE_CONSTRAINTS = [
-  "sandbox_access_request_ios_live_asc_email_key",
-  "unique_sandbox_access_request_ios_asc_email",
-];
+// Now a partial unique index: only rows that still hold a live claim on the
+// Apple Account occupy it, so a rejected or revoked request releases the
+// address. The name is deliberately unchanged across that swap, because it is
+// what Postgres reports in the unique_violation and matching it is what turns a
+// duplicate address into a 409 rather than a 500. Keeping it stable means pods
+// and schema can roll out in either order.
+const ASC_EMAIL_UNIQUE_CONSTRAINT =
+  "unique_sandbox_access_request_ios_asc_email";
 const USER_ID_UNIQUE_CONSTRAINT = "unique_sandbox_access_request_ios_user_id";
 
 const normalizeEmail = (email: unknown) => {
@@ -56,9 +51,7 @@ const isConstraintConflict = (error: unknown, constraint: string) => {
 };
 
 const isAscEmailConflict = (error: unknown) =>
-  ASC_EMAIL_UNIQUE_CONSTRAINTS.some((constraint) =>
-    isConstraintConflict(error, constraint),
-  );
+  isConstraintConflict(error, ASC_EMAIL_UNIQUE_CONSTRAINT);
 
 const isUserIdConflict = (error: unknown) =>
   isConstraintConflict(error, USER_ID_UNIQUE_CONSTRAINT);

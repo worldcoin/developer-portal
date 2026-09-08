@@ -252,7 +252,9 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
 
   it("returns 409 when another user holds a live claim on the ASC email", async () => {
     InsertSandboxAccessRequestIos.mockRejectedValue(
-      uniqueConstraintError("sandbox_access_request_ios_live_asc_email_key"),
+      // The migration keeps this name on the partial index, so it is what
+      // Postgres reports whether or not the schema has rolled yet.
+      uniqueConstraintError("unique_sandbox_access_request_ios_asc_email"),
     );
     GetSandboxAccessRequestIos.mockResolvedValue({
       sandbox_access_request_ios: [],
@@ -265,23 +267,6 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
     expect(GetSandboxAccessRequestIos).toHaveBeenCalledWith({
       user_id: USER_ID,
     });
-  });
-
-  it("returns 409 for an ASC email conflict raised under the table-wide constraint", async () => {
-    // The schema and the app roll out independently, so this code can meet a
-    // database that still carries the table-wide constraint. That skew must
-    // still answer 409 rather than falling through to a 500.
-    InsertSandboxAccessRequestIos.mockRejectedValue(
-      uniqueConstraintError("unique_sandbox_access_request_ios_asc_email"),
-    );
-    GetSandboxAccessRequestIos.mockResolvedValue({
-      sandbox_access_request_ios: [],
-    });
-
-    const response = await POST(makeJsonRequest(validBody));
-
-    expect(response.status).toBe(409);
-    expect(await response.json()).toEqual({ success: false });
   });
 
   it("lets the owner claim an ASC email a rejected request released", async () => {
