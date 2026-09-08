@@ -40,6 +40,79 @@ const schema = yup
 
 type FormValues = yup.InferType<typeof schema>;
 
+const SESSION_REFRESH_MAX_ATTEMPTS = 3;
+const SESSION_REFRESH_TIMEOUT_MS = 4_000;
+const SESSION_REFRESH_BASE_DELAY_MS = 100;
+
+const wait = (durationMs: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, durationMs));
+
+const fetchSessionRefresh = async () => {
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    SESSION_REFRESH_TIMEOUT_MS,
+  );
+
+  try {
+    return await fetch("/api/update-session", {
+      method: "POST",
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const refreshSessionWithRetry = async () => {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < SESSION_REFRESH_MAX_ATTEMPTS; attempt += 1) {
+    let response: Response;
+
+    try {
+      response = await fetchSessionRefresh();
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === SESSION_REFRESH_MAX_ATTEMPTS - 1) {
+        break;
+      }
+
+      const delayMs =
+        SESSION_REFRESH_BASE_DELAY_MS * 2 ** attempt +
+        Math.floor(Math.random() * SESSION_REFRESH_BASE_DELAY_MS);
+      await wait(delayMs);
+      continue;
+    }
+
+    if (response.ok) {
+      return;
+    }
+
+    lastError = new Error(
+      `Session refresh failed with HTTP ${response.status}`,
+    );
+
+    const retryable =
+      response.status === 408 ||
+      response.status === 429 ||
+      response.status >= 500;
+    if (!retryable || attempt === SESSION_REFRESH_MAX_ATTEMPTS - 1) {
+      break;
+    }
+
+    const delayMs =
+      SESSION_REFRESH_BASE_DELAY_MS * 2 ** attempt +
+      Math.floor(Math.random() * SESSION_REFRESH_BASE_DELAY_MS);
+    await wait(delayMs);
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Session refresh failed without an error");
+};
+
 export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
   const { team, onClose: onCloseDialog } = props;
   const router = useRouter();
@@ -86,15 +159,38 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       // an error even though the delete already succeeded.
       await refetch();
 
-      // The action rewrites the cookie itself; this only covers its failure.
+      // The action rewrites the cookie itself; this only retries that
+      // idempotent session refresh, never the destructive deletion.
+      let sessionRefreshError: unknown;
       if (!result.sessionUpdated) {
-        await fetch("/api/update-session", { method: "POST" }).catch(
-          () => null,
+        try {
+          await refreshSessionWithRetry();
+        } catch (error) {
+          sessionRefreshError = error;
+          console.error(
+            "Delete Team Dialog: team deleted but session refresh failed",
+            error,
+          );
+        }
+      }
+
+      try {
+        await invalidate();
+      } catch (error) {
+        sessionRefreshError ??= error;
+        console.error(
+          "Delete Team Dialog: team deleted but Auth0 user invalidation failed",
+          error,
         );
       }
 
-      await invalidate();
-      toast.success("Team deleted");
+      if (sessionRefreshError) {
+        toast.error(
+          "Team deleted, but navigation could not be refreshed. Sign in again if it remains out of date.",
+        );
+      } else {
+        toast.success("Team deleted");
+      }
 
       // Refresh so the session-fed sidebar drops the deleted team; push alone
       // is a no-op when already on /profile (same layout).

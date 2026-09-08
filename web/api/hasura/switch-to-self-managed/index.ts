@@ -1,4 +1,4 @@
-import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.generated";
+import { getSdk as getCheckOwnerSdk } from "@/api/hasura/graphql/checkUserIsOwnerInApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
@@ -7,6 +7,7 @@ import { submitTransferManagerTransaction } from "@/api/helpers/rp-transactions"
 import {
   getRpRegistryConfig,
   getStagingRpRegistryConfig,
+  isZeroAddress,
   normalizeAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
@@ -20,8 +21,6 @@ import { getSdk as getClaimSlotSdk } from "./graphql/claim-mode-switch-slot.gene
 import { getSdk as getRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
 import { getSdk as getRevertStatusSdk } from "./graphql/revert-mode-switch-status.generated";
 import { getSdk as getUpdateResultSdk } from "./graphql/update-mode-switch-result.generated";
-
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const schema = yup
   .object({
@@ -39,7 +38,7 @@ const schema = yup
       .test(
         "not-zero",
         "Cannot use zero address",
-        (value) => value !== ZERO_ADDRESS,
+        (value) => !value || !isZeroAddress(value),
       ),
   })
   .noUnknown();
@@ -48,7 +47,7 @@ const schema = yup
  * POST handler for the switch_to_self_managed Hasura action.
  *
  * This endpoint:
- * 1. Validates the user owns the app (ADMIN/OWNER)
+ * 1. Validates the user is the team OWNER
  * 2. Verifies the RP is in managed mode and registered
  * 3. Claims the mode-switch slot (prevents concurrent operations)
  * 4. Submits an updateRp transaction to transfer the manager on-chain
@@ -123,8 +122,8 @@ export const POST = async (req: NextRequest) => {
   const rpIdString = registration.rp_id;
   const teamId = registration.app.team_id;
 
-  // STEP 2: Verify user has permission (ADMIN or OWNER) before revealing feature state
-  const { team } = await getCheckUserSdk(client).CheckUserInApp({
+  // STEP 2: Verify user is the team OWNER before revealing feature state
+  const { team } = await getCheckOwnerSdk(client).CheckUserIsOwnerInApp({
     team_id: teamId,
     app_id,
     user_id: userId,
@@ -133,7 +132,7 @@ export const POST = async (req: NextRequest) => {
   if (!team || team.length === 0) {
     return errorHasuraQuery({
       req,
-      detail: "User does not have permission to switch mode.",
+      detail: "Only the team owner can switch this RP to self-managed.",
       code: "unauthorized",
       app_id,
     });

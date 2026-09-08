@@ -255,6 +255,12 @@ describe("migrateRpManagersToSharedKey [successful migrations]", () => {
         attempt_id: ATTEMPT_ID,
         rp_id: RP_ID,
         app_id: APP_ID,
+        old_manager_kms_key_id: OLD_KEY_ID,
+        status: "migrated",
+        operation_hashes: {
+          production: "0xproduction-operation",
+          staging: "0xstaging-operation",
+        },
         migrated_registries: ["production", "staging"],
         skipped_registries: [],
       }),
@@ -939,6 +945,153 @@ describe("migrateRpManagersToSharedKey [input]", () => {
 
     expect(getEthAddressFromKMSMock).not.toHaveBeenCalled();
     expect(graphqlRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a non-positive concurrency before making external calls", async () => {
+    await expect(
+      migrateRpManagersToSharedKey({
+        graphqlClient,
+        kmsClient,
+        sharedManagerKeyId: SHARED_KEY_ID,
+        ...deploymentWithStagingMirror,
+        concurrency: 0,
+      }),
+    ).rejects.toThrow("concurrency must be an integer >= 1");
+
+    expect(getEthAddressFromKMSMock).not.toHaveBeenCalled();
+    expect(graphqlRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a fractional concurrency before making external calls", async () => {
+    await expect(
+      migrateRpManagersToSharedKey({
+        graphqlClient,
+        kmsClient,
+        sharedManagerKeyId: SHARED_KEY_ID,
+        ...deploymentWithStagingMirror,
+        concurrency: 1.5,
+      }),
+    ).rejects.toThrow("concurrency must be an integer >= 1");
+
+    expect(getEthAddressFromKMSMock).not.toHaveBeenCalled();
+    expect(graphqlRequestMock).not.toHaveBeenCalled();
+  });
+});
+
+// #endregion
+
+// #region Concurrency
+
+describe("migrateRpManagersToSharedKey [concurrency]", () => {
+  const firstRpId = BigInt("0x" + RP_ID.slice(3));
+  const secondRpId = BigInt("0x" + SECOND_RP_ID.slice(3));
+
+  it("migrates candidates sequentially when concurrency is omitted", async () => {
+    arrangeGraphql([candidate, secondCandidate]);
+    let inFlight = 0;
+    let maxInFlight = 0;
+    getRpFromContractMock.mockImplementation(async () => {
+      inFlight += 1;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      inFlight -= 1;
+      return makeOnChainRp({ manager: SHARED_MANAGER });
+    });
+
+    const report = await migrateRpManagersToSharedKey({
+      graphqlClient,
+      kmsClient,
+      sharedManagerKeyId: SHARED_KEY_ID,
+      ...deploymentWithStagingMirror,
+      rpIds: [RP_ID, SECOND_RP_ID],
+    });
+
+    expect(maxInFlight).toBe(1);
+    expect(report.results.map((result) => result.rpId)).toEqual([
+      RP_ID,
+      SECOND_RP_ID,
+    ]);
+    expect(
+      report.results.every((result) => result.status === "already_migrated"),
+    ).toBe(true);
+  });
+
+  it("migrates candidates concurrently when concurrency is greater than 1", async () => {
+    arrangeGraphql([candidate, secondCandidate]);
+    let firstStarted!: () => void;
+    let secondStarted!: () => void;
+    const firstEntered = new Promise<void>((resolve) => {
+      firstStarted = resolve;
+    });
+    const secondEntered = new Promise<void>((resolve) => {
+      secondStarted = resolve;
+    });
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    getRpFromContractMock.mockImplementation(async (rpId: bigint) => {
+      if (rpId === firstRpId) {
+        firstStarted();
+      } else if (rpId === secondRpId) {
+        secondStarted();
+      }
+      await gate;
+      return makeOnChainRp({ manager: SHARED_MANAGER });
+    });
+
+    const running = migrateRpManagersToSharedKey({
+      graphqlClient,
+      kmsClient,
+      sharedManagerKeyId: SHARED_KEY_ID,
+      ...deploymentWithStagingMirror,
+      rpIds: [RP_ID, SECOND_RP_ID],
+      concurrency: 2,
+    });
+
+    await Promise.all([firstEntered, secondEntered]);
+    release();
+    const report = await running;
+
+    expect(report.results.map((result) => result.rpId)).toEqual([
+      RP_ID,
+      SECOND_RP_ID,
+    ]);
+    expect(
+      report.results.every((result) => result.status === "already_migrated"),
+    ).toBe(true);
+  });
+
+  it("continues remaining candidates when one candidate fails", async () => {
+    arrangeGraphql([candidate, secondCandidate]);
+    getRpFromContractMock.mockImplementation(async (rpId: bigint) => {
+      if (rpId === firstRpId) {
+        throw new Error("RPC unavailable");
+      }
+      return makeOnChainRp({ manager: SHARED_MANAGER });
+    });
+
+    const report = await migrateRpManagersToSharedKey({
+      graphqlClient,
+      kmsClient,
+      sharedManagerKeyId: SHARED_KEY_ID,
+      ...deploymentWithStagingMirror,
+      rpIds: [RP_ID, SECOND_RP_ID],
+      concurrency: 2,
+    });
+
+    expect(report.results).toEqual([
+      expect.objectContaining({
+        rpId: RP_ID,
+        status: "failed",
+        failure: expect.objectContaining({ stage: "read_registry" }),
+      }),
+      expect.objectContaining({
+        rpId: SECOND_RP_ID,
+        status: "already_migrated",
+      }),
+    ]);
   });
 });
 

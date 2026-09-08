@@ -9,6 +9,14 @@ import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { keccak256, toUtf8Bytes } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
+import { USER_OP_MAX_VALIDITY_MS } from "./user-operation";
+
+/**
+ * Grace period on top of the UserOp validity window before an unsettled
+ * operation is treated as dead. Mirrors the pending timeout the status endpoint
+ * applies to registrations that never made it on-chain.
+ */
+const PENDING_TIMEOUT_MS = 5 * 60 * 1000;
 
 // =============================================================================
 // Types
@@ -63,6 +71,177 @@ export function normalizeAddress(address: string): string {
     return address;
   }
   return `0x${address}`;
+}
+
+/** The zero address. `isAddress` accepts it, but it is never a usable role. */
+export const ZERO_ADDRESS = `0x${"0".repeat(40)}`;
+
+/**
+ * Whether an address is the zero address. A zero signer or manager is always a
+ * mistake: the contract would accept it, but no one could then sign proof
+ * requests (signer) or ever update the RP again (manager).
+ */
+export function isZeroAddress(address: string): boolean {
+  return normalizeAddress(address).toLowerCase() === ZERO_ADDRESS;
+}
+
+function addressesEqual(a: string, b: string): boolean {
+  return (
+    normalizeAddress(a).toLowerCase() === normalizeAddress(b).toLowerCase()
+  );
+}
+
+/**
+ * How far an on-chain RP reading may be trusted as authoritative for the
+ * Portal's stored registration.
+ *
+ * - `trusted`   — safe to adopt the on-chain status.
+ * - `untrusted` — provably not ours; preserve the stored status.
+ * - `unknown`   — cannot prove either way (we could not resolve our own manager
+ *                 address). Preserve the stored status, but callers must NOT
+ *                 treat this as a takeover: a KMS outage lands here, and
+ *                 failing registrations on it would be a self-inflicted outage.
+ */
+export type OnChainTrust = "trusted" | "untrusted" | "unknown";
+
+/**
+ * Decides whether an on-chain RP reading describes *our* registration.
+ *
+ * `rp_id` is `uint64(keccak256(app_id))` over a public `app_id` and on-chain
+ * `register()` is permissionless and first-come, so anyone can claim an app's
+ * rp_id. Ownership therefore has to be proven, not assumed.
+ *
+ * The **manager** is the root of that proof: it is the only role the contract
+ * lets update an RP, and only the Portal can sign for its KMS manager key. The
+ * signer alone is NOT sufficient — a Portal registration publishes its intended
+ * signer in the (possibly failed) `register` calldata, so an attacker can
+ * re-register the same rp_id with that same signer but their own manager. A
+ * signer-only check would call that "ours" and promote the row to `registered`,
+ * after which the attacker's manager calls `updateRp` to swap the signer in;
+ * the later mismatch only *preserves* the already-`registered` status, so
+ * proof-context would keep serving the app's verified branding over the
+ * attacker's OPRF signer. Both roles must match.
+ *
+ * A self-managed RP is owned end-to-end by the developer on-chain — the Portal
+ * holds neither role and stores no expected address for either — so there is
+ * nothing to compare against and on-chain is authoritative by definition. That
+ * case keys off `mode` rather than off an absent `signer_address`: today the two
+ * always coincide (the self-managed insert writes a null signer, and
+ * switch-to-self-managed nulls `signer_address` and `manager_kms_key_id` in the
+ * same mutation), but that is a convention spread across several files, and
+ * inferring the mode from it would silently wedge every self-managed row's
+ * status polling at `pending` the day someone starts recording the developer's
+ * on-chain signer for display.
+ */
+export function evaluateOnChainTrust({
+  mode,
+  onChainManager,
+  onChainSigner,
+  expectedSigner,
+  expectedManager,
+}: {
+  /**
+   * `rp_registration.mode` — "managed" or "self_managed". Typed `unknown`
+   * because that is what codegen produces for the Hasura enum; only equality
+   * against the two known values is needed here.
+   */
+  mode: unknown;
+  onChainManager: string;
+  onChainSigner: string;
+  expectedSigner: string | null | undefined;
+  /** Portal's manager address; `null` when it could not be resolved. */
+  expectedManager: string | null | undefined;
+}): OnChainTrust {
+  if (mode === "self_managed") {
+    return "trusted";
+  }
+
+  if (!expectedManager) {
+    return "unknown";
+  }
+
+  if (!addressesEqual(onChainManager, expectedManager)) {
+    return "untrusted";
+  }
+
+  // A managed row always has a signer — register_rp requires one for managed
+  // mode. If it is somehow absent, the manager match above already proved the
+  // registration is ours.
+  if (!expectedSigner) {
+    return "trusted";
+  }
+
+  return addressesEqual(onChainSigner, expectedSigner)
+    ? "trusted"
+    : "untrusted";
+}
+
+/**
+ * Whether a managed row that is initialized on-chain but not provably ours has to
+ * be failed so it stops polling `pending` forever.
+ *
+ * A managed RP initialized on-chain by a manager/signer pair the Portal does not
+ * own can never become a trusted `registered` — either a foreign party won the
+ * permissionless `register()` for this rp_id, or a signer rotation never settled.
+ * The "not initialized on-chain" timeout cannot catch it, because it IS
+ * initialized. Only fail once the UserOp validity window has elapsed: before
+ * that an in-flight rotation could still land, and failing early would cache
+ * `failed` over what then becomes a trusted `registered`.
+ *
+ * `unknown` is normally excluded — it means we could not resolve our own manager
+ * address, i.e. a KMS outage, which is not evidence of a takeover, and failing
+ * healthy registrations because our own dependency is down turns a KMS blip into
+ * a self-inflicted incident. The exception is a managed row with no
+ * `manager_kms_key_id` at all: that is a durable data defect rather than an
+ * outage (submitManagedRpRegistration deliberately keeps the claimed row when the
+ * DB write after a successful on-chain submission throws), and such a row can
+ * never resolve to `trusted`.
+ *
+ * Shared by `/api/v4/rp-status` and the MCP status tool deliberately. Those two
+ * reconcile the same rows, and the original vulnerability here was two copies of
+ * one rule drifting apart.
+ */
+export function shouldFailUntrustedRegistration({
+  trust,
+  dbStatus,
+  mode,
+  managerKmsKeyId,
+  isInitializedOnChain,
+  updatedAt,
+  isAppDeleted,
+}: {
+  trust: OnChainTrust;
+  dbStatus: RpRegistrationStatus | string | null;
+  mode: unknown;
+  managerKmsKeyId: string | null | undefined;
+  isInitializedOnChain: boolean;
+  /** `rp_registration.updated_at`; anything unparseable counts as too recent. */
+  updatedAt: unknown;
+  isAppDeleted: boolean;
+}): { shouldFail: boolean; missingManagerKey: boolean } {
+  const missingManagerKey =
+    trust === "unknown" && mode === "managed" && !managerKmsKeyId;
+
+  // A registration or rotation UserOp stays includable for
+  // USER_OP_MAX_VALIDITY_MS, so an unsettled op is only provably dead once that
+  // window plus the settlement margin has passed. Failing sooner races an op that
+  // can still land. An unparseable timestamp yields NaN, and every comparison
+  // against NaN is false, so the row is left alone — the safe direction.
+  const updatedAgeMs =
+    Date.now() -
+    new Date(typeof updatedAt === "string" ? updatedAt : NaN).getTime();
+  const isPastUserOpValidityWindow =
+    updatedAgeMs > USER_OP_MAX_VALIDITY_MS + PENDING_TIMEOUT_MS;
+
+  const shouldFail =
+    !isAppDeleted &&
+    isInitializedOnChain &&
+    (trust === "untrusted" || missingManagerKey) &&
+    dbStatus === RpRegistrationStatus.Pending &&
+    isPastUserOpValidityWindow &&
+    mode === "managed";
+
+  return { shouldFail, missingManagerKey };
 }
 
 // =============================================================================

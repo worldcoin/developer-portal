@@ -27,7 +27,7 @@ export const PortalSidebar = (props: {
         <SidebarContextHeader teams={teams} />
       </SidebarHeader>
 
-      <SidebarContent className="gap-0 pt-3">
+      <SidebarContent className="gap-0">
         <SidebarNav
           initialSandboxRequest={sandboxRequest}
           apiKeyTeamIds={apiKeyTeamIds}

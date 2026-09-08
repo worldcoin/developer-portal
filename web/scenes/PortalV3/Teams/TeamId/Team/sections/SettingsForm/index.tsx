@@ -1,7 +1,6 @@
 "use client";
 import { teamNameSchema } from "@/lib/schema";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { TextField } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/TextField";
 import {
   AutosaveStatus,
   useAutosave,
@@ -104,24 +103,39 @@ export const TeamSettingsForm = (props: {
   });
 
   return (
-    <div className="w-full max-w-xl">
+    <div className="w-full">
       <Controller
         control={control}
         name="name"
-        render={({ field }) => (
-          <TextField
-            label="Team name"
-            name={field.name}
-            value={field.value}
-            onChange={field.onChange}
-            onBlur={field.onBlur}
-            disabled={!canWrite}
-            error={errors.name?.message}
-            maxLength={128}
-            required
-            hideLabel
-          />
-        )}
+        render={({ field }) => {
+          const errorId = `${field.name}-error`;
+
+          return (
+            <div className="flex w-full flex-col gap-1.5">
+              <input
+                aria-label="Team name"
+                aria-invalid={Boolean(errors.name)}
+                aria-describedby={errors.name ? errorId : undefined}
+                name={field.name}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                disabled={!canWrite}
+                maxLength={128}
+                required
+                className="h-10 w-full rounded-[10px] bg-portal-canvas px-4 font-world text-15 leading-[1.3] font-[350] text-portal-ink outline-hidden transition-shadow focus-visible:ring-2 focus-visible:ring-grey-300 disabled:cursor-not-allowed disabled:text-portal-muted"
+              />
+              {errors.name?.message ? (
+                <p
+                  id={errorId}
+                  className="font-world text-13 leading-[1.3] font-[350] text-[#ea392a]"
+                >
+                  {errors.name.message}
+                </p>
+              ) : null}
+            </div>
+          );
+        }}
       />
     </div>
   );

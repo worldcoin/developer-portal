@@ -11,6 +11,11 @@ export type TeamSettingsTab =
 
 type QueryValue = string | string[] | undefined;
 
+export type PortalAppContext = {
+  teamId: string;
+  appId: string;
+};
+
 const portalOrigin = "https://developer.worldcoin.org";
 
 export const getPortalReturnTo = (value: QueryValue): string | null => {
@@ -31,6 +36,42 @@ export const getPortalReturnTo = (value: QueryValue): string | null => {
     }
 
     return `${returnTo.pathname}${returnTo.search}${returnTo.hash}`;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Recovers the app that launched a team-scoped page from its validated
+ * `return_to` URL. Keeping this context in the URL means the app navigation
+ * survives client transitions, reloads, and copied team-settings links without
+ * trusting hidden client state.
+ */
+export const getPortalAppContext = (
+  value: QueryValue,
+  expectedTeamId?: string,
+): PortalAppContext | null => {
+  const returnTo = getPortalReturnTo(value);
+  if (!returnTo) return null;
+
+  const pathname = new URL(returnTo, portalOrigin).pathname;
+  const match = /^\/teams\/([^/]+)\/apps\/([^/]+)(?:\/|$)/.exec(pathname);
+  if (!match) return null;
+
+  try {
+    const teamId = decodeURIComponent(match[1]);
+    const appId = decodeURIComponent(match[2]);
+    const safeId = /^[A-Za-z0-9_-]+$/;
+
+    if (
+      !safeId.test(teamId) ||
+      !safeId.test(appId) ||
+      (expectedTeamId !== undefined && teamId !== expectedTeamId)
+    ) {
+      return null;
+    }
+
+    return { teamId, appId };
   } catch {
     return null;
   }
