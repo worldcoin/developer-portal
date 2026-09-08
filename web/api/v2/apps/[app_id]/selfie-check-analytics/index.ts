@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 const PRIVATE_CACHE_CONTROL = "private, max-age=60";
 const NO_STORE_HEADERS = { "Cache-Control": "no-store" };
 
-type AnalyticsMeta = {
+type SnapshotMetadata = {
   dataAsOf: string;
   isFallback: boolean;
 };
@@ -22,13 +22,13 @@ type AnalyticsResponse =
       appId: string;
       tablePrefix: "total/";
       row: TotalsRow;
-      meta: AnalyticsMeta;
+      snapshotMetadata: SnapshotMetadata;
     }
   | {
       appId: string;
       tablePrefix: "daily/";
       rows: readonly DailyRow[];
-      meta: AnalyticsMeta;
+      snapshotMetadata: SnapshotMetadata;
     };
 
 const errorResponse = ({
@@ -200,7 +200,7 @@ export async function GET(
     );
   }
 
-  const meta: AnalyticsMeta = {
+  const snapshotMetadata: SnapshotMetadata = {
     dataAsOf: loaded.snapshot.source.dataAsOf,
     isFallback: eligibility.snapshot.isFallback || loaded.snapshot.isFallback,
   };
@@ -208,10 +208,11 @@ export async function GET(
   let response: AnalyticsResponse | null = null;
   if (loaded.table === "daily") {
     const rows = loaded.snapshot.records.get(appId);
-    if (rows) response = { appId, tablePrefix: "daily/", rows, meta };
+    if (rows)
+      response = { appId, tablePrefix: "daily/", rows, snapshotMetadata };
   } else {
     const row = eligibility.entry;
-    if (row) response = { appId, tablePrefix: "total/", row, meta };
+    if (row) response = { appId, tablePrefix: "total/", row, snapshotMetadata };
   }
 
   if (!response) {
@@ -225,7 +226,7 @@ export async function GET(
   const etag = buildResponseEtag({
     appId,
     identity: loaded.snapshot.source.identity,
-    isFallback: meta.isFallback,
+    isFallback: snapshotMetadata.isFallback,
     tablePrefix: response.tablePrefix,
   });
   const headers = responseHeaders(etag);
