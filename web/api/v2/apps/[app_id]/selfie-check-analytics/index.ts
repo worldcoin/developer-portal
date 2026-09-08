@@ -157,9 +157,10 @@ export async function GET(
     eligibility = await resolveSelfieCheckAnalyticsEligibility(appId);
     if (eligibility.entry === undefined) {
       return errorResponse({
-        status: 404,
-        code: "not_found",
-        detail: "Analytics not found.",
+        status: 403,
+        code: "analytics_not_enabled",
+        detail:
+          "Selfie Check analytics aren't available for this app yet. Contact us to learn more.",
       });
     }
     dataset =
