@@ -18,8 +18,8 @@ RUN_AGENT_TEST_VERIFICATION_INTEGRATION=true pnpm test:integration --runTestsByP
 ```
 
 The test uses the compose test services on ports 5433/8081 and Redis on 6381. It
-checks backend forwarding, an ordinary staging insert, existing replay behavior,
-and a direct invalid-proof response. It does not generate a real ZK proof.
+checks success and invalid-proof responses through the backend, an ordinary staging
+insert, and existing replay behavior. It does not generate a real ZK proof.
 
 Stop only these test services when finished:
 

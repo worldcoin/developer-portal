@@ -172,7 +172,7 @@ runIntegration("test verification [local Hasura, PostgreSQL and Redis]", () => {
     Object.assign(process.env, { NODE_ENV: previousNodeEnv });
   });
 
-  it("verifies through a backend, retains real replay behavior and reports a direct failure", async () => {
+  it("verifies success and failure through a backend and retains real replay behavior", async () => {
     const mint = (input: Record<string, unknown>) =>
       fetch(mintUrl, {
         method: "POST",
@@ -209,22 +209,23 @@ runIntegration("test verification [local Hasura, PostgreSQL and Redis]", () => {
       });
     }
 
-    const rejected = await mint({ outcome: "invalid_proof", direct: true });
+    const invalid = await mint({ outcome: "invalid_proof" });
+    expect(invalid.status).toBe(200);
+    const invalidResult = await invalid.json();
+    const rejected = await fetch(backendUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(invalidResult.payload),
+    });
     expect({
       status: rejected.status,
       body: await rejected.json(),
     }).toMatchObject({
-      status: 200,
+      status: 400,
       body: {
+        success: false,
         test: true,
-        direct_result: {
-          status: 400,
-          body: {
-            success: false,
-            test: true,
-            code: "all_verifications_failed",
-          },
-        },
+        code: "all_verifications_failed",
       },
     });
 

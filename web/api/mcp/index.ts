@@ -105,14 +105,13 @@ const toolDefinitions = [
   {
     name: "run_test_verification",
     description:
-      "Mint a synthetic staging World ID 4.0 verification payload for your backend. Only the chain verdict is simulated. direct=true tests portal configuration only. Supported outcomes: success, expired, invalid_proof; invalid_rp_signature and below_sybil_threshold await verified mappings.",
+      "Mint a synthetic staging World ID 4.0 verification payload to submit through your backend under test. Only the chain verdict is simulated. Supported outcomes: success, expired, invalid_proof; invalid_rp_signature and below_sybil_threshold await verified mappings.",
     inputSchema: {
       type: "object",
       properties: {
         app_id: { type: "string" },
         action: { type: "string" },
         outcome: { type: "string", enum: [...TEST_VERIFICATION_OUTCOMES] },
-        direct: { type: "boolean", default: false },
       },
       required: ["app_id", "action"],
       additionalProperties: false,
@@ -515,7 +514,6 @@ const runTestVerificationSchema = yup
         "Supported outcomes are success, expired, invalid_proof. invalid_rp_signature and below_sybil_threshold are unavailable until their chain-verifier mappings are confirmed.",
       )
       .default("success"),
-    direct: yup.boolean().strict().default(false),
   })
   .noUnknown();
 
@@ -675,7 +673,6 @@ const runTestVerification = async (input: unknown, ctx: ToolContext) => {
     );
   }
 
-  const toolMode = args.direct ? "direct" : "payload";
   const verifyUrl = testVerificationUrl(registration.rp_id);
   let limit;
   try {
@@ -690,7 +687,7 @@ const runTestVerification = async (input: unknown, ctx: ToolContext) => {
       }),
     );
   } catch (error) {
-    recordTestVerificationMetric(args.outcome, "rate_limit_error", toolMode);
+    recordTestVerificationMetric(args.outcome, "rate_limit_error", "payload");
     logger.warn("Test verification rate limiter failed open", {
       error,
       app_id: app.id,
@@ -698,7 +695,7 @@ const runTestVerification = async (input: unknown, ctx: ToolContext) => {
     });
   }
   if (limit && !limit.ok) {
-    recordTestVerificationMetric(args.outcome, "rate_limited", toolMode);
+    recordTestVerificationMetric(args.outcome, "rate_limited", "payload");
     throw new McpError(
       "Test verification rate limit exceeded.",
       -32029,
@@ -719,7 +716,7 @@ const runTestVerification = async (input: unknown, ctx: ToolContext) => {
       outcome: args.outcome,
     });
   } catch (error) {
-    recordTestVerificationMetric(args.outcome, "mint_error", toolMode);
+    recordTestVerificationMetric(args.outcome, "mint_error", "payload");
     logger.warn("Test verification mint failed", {
       error,
       app_id: app.id,
@@ -734,48 +731,8 @@ const runTestVerification = async (input: unknown, ctx: ToolContext) => {
       503,
     );
   }
-  const result = { test: true as const, ...minted, verify_url: verifyUrl };
-  if (!args.direct) {
-    recordTestVerificationMetric(args.outcome, "minted", toolMode);
-    return result;
-  }
-
-  let receivedResponse = false;
-  try {
-    const response = await fetch(verifyUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(result.payload),
-      signal: AbortSignal.timeout(10_000),
-      redirect: "error",
-      credentials: "omit",
-    });
-    receivedResponse = true;
-    const body: unknown = await response.json();
-    recordTestVerificationMetric(args.outcome, "completed", toolMode);
-    return { ...result, direct_result: { status: response.status, body } };
-  } catch (error) {
-    const timeout =
-      error instanceof Error &&
-      ["TimeoutError", "AbortError"].includes(error.name);
-    const reason = timeout
-      ? "direct_timeout"
-      : receivedResponse
-        ? "direct_invalid_response"
-        : "direct_request_failed";
-    recordTestVerificationMetric(args.outcome, reason, toolMode);
-    logger.warn("Direct test verification did not return a result", {
-      reason,
-      app_id: app.id,
-      team_id: ctx.teamId,
-    });
-    throw new McpError(
-      "Direct verification did not return a usable result. Its outcome is unknown; it may already have recorded the staging nullifier.",
-      -32603,
-      { ...result, reason, verification_outcome: "unknown" },
-      503,
-    );
-  }
+  recordTestVerificationMetric(args.outcome, "minted", "payload");
+  return { test: true as const, ...minted, verify_url: verifyUrl };
 };
 
 export const POST_TEST_VERIFICATION = async (req: NextRequest) => {

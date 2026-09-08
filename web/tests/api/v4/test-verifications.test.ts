@@ -93,6 +93,7 @@ describe("/api/v4/test-verifications [mint]", () => {
         environment: "production",
         uses: 99,
         verify_url: "https://evil.example",
+        direct: true,
       }),
     );
     const result = await rest.json();
@@ -112,7 +113,7 @@ describe("/api/v4/test-verifications [mint]", () => {
     expect(appContext).toHaveBeenCalledWith({ team_id: teamId, app_id: appId });
     expect(global.fetch).not.toHaveBeenCalled();
 
-    const mcp = await (await callMcp(input)).json();
+    const mcp = await (await callMcp({ ...input, direct: true })).json();
     const mcpResult = JSON.parse(mcp.result.content[0].text);
     expect(mcpResult).toMatchObject({
       test: true,
@@ -123,6 +124,7 @@ describe("/api/v4/test-verifications [mint]", () => {
       environment: "staging",
     });
     expect(await redis.keys("test_proof:*")).toHaveLength(2);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -263,8 +265,8 @@ describe("/api/v4/test-verifications [dependencies]", () => {
 });
 // #endregion
 
-// #region Direct mode
-describe("/api/v4/test-verifications [direct]", () => {
+// #region Verification URL
+describe("/api/v4/test-verifications [verification URL]", () => {
   it.each(["development", "production"] as const)(
     "permits configured HTTP localhost only in development (%s)",
     async (nodeEnv) => {
@@ -281,84 +283,26 @@ describe("/api/v4/test-verifications [direct]", () => {
         );
     },
   );
-  it("preserves a verify 400 as a completed test and posts only to the configured origin", async () => {
-    const failed = {
-      success: false,
-      code: "all_verifications_failed",
-      test: true,
-    };
-    (global.fetch as jest.Mock).mockResolvedValue(
-      new Response(JSON.stringify(failed), { status: 400 }),
-    );
-    const timeout = jest.spyOn(AbortSignal, "timeout");
+  it("uses the configured origin despite untrusted request headers", async () => {
     const res = await POST_TEST_VERIFICATION(
-      request(
-        { ...input, direct: true, outcome: "expired" },
-        {
-          host: "evil.example",
-          "x-forwarded-host": "evil.example",
-        },
-      ),
+      request(input, {
+        host: "evil.example",
+        "x-forwarded-host": "evil.example",
+      }),
     );
     const result = await res.json();
     expect(res.status).toBe(200);
-    expect(result.direct_result).toEqual({ status: 400, body: failed });
-    expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(global.fetch).toHaveBeenCalledWith(result.verify_url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(result.payload),
-      signal: expect.any(AbortSignal),
-      redirect: "error",
-      credentials: "omit",
-    });
     expect(result.verify_url).toBe(
       `https://developer.example/api/v4/verify/${rpId}`,
     );
-    expect(timeout).toHaveBeenCalledWith(10_000);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
-
-  it.each([
-    [
-      "direct_timeout",
-      () =>
-        Promise.reject(
-          Object.assign(new Error("timed out"), { name: "TimeoutError" }),
-        ),
-    ],
-    [
-      "direct_request_failed",
-      () => Promise.reject(new TypeError("redirect or network failure")),
-    ],
-    [
-      "direct_invalid_response",
-      () => Promise.resolve(new Response("not JSON", { status: 502 })),
-    ],
-  ])(
-    "reports %s without retry and retains the payload",
-    async (reason, reply) => {
-      (global.fetch as jest.Mock).mockImplementation(reply);
-      const res = await POST_TEST_VERIFICATION(
-        request({ ...input, direct: true }),
-      );
-      expect(res.status).toBe(503);
-      expect((await res.json()).error.data).toMatchObject({
-        reason,
-        verification_outcome: "unknown",
-        test: true,
-        payload: { environment: "staging" },
-      });
-      expect(global.fetch).toHaveBeenCalledTimes(1);
-    },
-  );
 
   it.each(["", "http://example.com", "https://user:secret@example.com"])(
     "rejects an unsafe configured origin %s before minting",
     async (origin) => {
       process.env.NEXT_PUBLIC_APP_URL = origin;
-      const res = await POST_TEST_VERIFICATION(
-        request({ ...input, direct: true }),
-      );
+      const res = await POST_TEST_VERIFICATION(request(input));
       expect(res.status).toBe(503);
       expect((await res.json()).error.data.reason).toBe(
         "verification_origin_unavailable",

@@ -491,6 +491,9 @@ describe("/api/mcp", () => {
       "environment",
     );
     expect(testVerification.inputSchema.properties).not.toHaveProperty("uses");
+    expect(testVerification.inputSchema.properties).not.toHaveProperty(
+      "direct",
+    );
     const createApp = body.result.tools.find(
       (tool: any) => tool.name === "create_app",
     );
