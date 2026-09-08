@@ -50,7 +50,7 @@ describe("analytics page, sidebar, and API", () => {
       new NextRequest("http://localhost/api/analytics"),
       { params: Promise.resolve({ app_id: appId }) },
     );
-    expect(response.status).toBe(present ? 200 : 404);
+    expect(response.status).toBe(present ? 200 : 403);
     expect(listCsv.mock.calls).toEqual([["total/"]]);
     expect(logger.warn).not.toHaveBeenCalled();
   });

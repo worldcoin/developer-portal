@@ -154,14 +154,19 @@ it("hides Analytics when no app was signaled as eligible", () => {
   noLink("Analytics");
 });
 
-it.each(["total", "daily"])(
-  "clears an existing sidebar verdict only when the %s response confirms totals absence",
-  async (table) => {
+it.each([
+  { table: "total", status: 403 },
+  { table: "total", status: 404 },
+  { table: "daily", status: 403 },
+  { table: "daily", status: 404 },
+])(
+  "clears an existing sidebar verdict only when $table $status confirms loss of access",
+  async ({ table, status }) => {
     const originalFetch = global.fetch;
     global.fetch = jest.fn((url: string) => {
       const requested = url.includes("daily") ? "daily" : "total";
       return requested === table
-        ? Promise.resolve({ ok: false, status: 404 } as Response)
+        ? Promise.resolve({ ok: false, status } as Response)
         : new Promise<Response>(() => {});
     }) as typeof fetch;
     try {
@@ -178,11 +183,14 @@ it.each(["total", "daily"])(
       );
       expect(link("Analytics")).toBeInTheDocument();
       await screen.findByText(
-        table === "total"
-          ? "Analytics not found."
-          : "Analytics data is not available for this view yet.",
+        status === 403
+          ? "Selfie Check analytics aren't available for this app yet. Contact us to learn more."
+          : table === "total"
+            ? "Analytics not found."
+            : "Analytics data is not available for this view yet.",
       );
-      if (table === "total") await waitFor(() => noLink("Analytics"));
+      if (table === "total" || status === 403)
+        await waitFor(() => noLink("Analytics"));
       else expect(link("Analytics")).toBeInTheDocument();
     } finally {
       global.fetch = originalFetch;

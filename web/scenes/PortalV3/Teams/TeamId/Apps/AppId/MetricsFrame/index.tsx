@@ -73,6 +73,8 @@ const CHART_METRICS = [
 
 // Eligibility controls the tab and page; these only describe the view's data.
 const requestFailureMessage = (scope: string, status: number) => {
+  if (status === 403)
+    return "Selfie Check analytics aren't available for this app yet. Contact us to learn more.";
   if (status === 404)
     return "Analytics data is not available for this view yet.";
   if (status === 503)
@@ -90,7 +92,7 @@ const metricKind = (metric: DailyChartMetric): MetricKind => {
 type DailyState =
   | { kind: "loading" }
   | { kind: "ready"; rows: readonly DailyRow[]; isFallback: boolean }
-  | { kind: "error"; message: string };
+  | { kind: "absent" | "error"; message: string };
 
 type TotalsState =
   | { kind: "loading" }
@@ -110,7 +112,8 @@ const PlaceholderCard = (props: { label: string; message: string }) => (
 const isFallbackResponse = (payload: unknown): boolean =>
   typeof payload === "object" &&
   payload !== null &&
-  (payload as { meta?: { isFallback?: unknown } }).meta?.isFallback === true;
+  (payload as { snapshotMetadata?: { isFallback?: unknown } }).snapshotMetadata
+    ?.isFallback === true;
 
 /** Fetches the app's analytics: overview and funnel above the daily charts. */
 export const MetricsFrame = (props: {
@@ -165,7 +168,7 @@ export const MetricsFrame = (props: {
         if (!response.ok) {
           if (!active) return;
           setDaily({
-            kind: "error",
+            kind: response.status === 403 ? "absent" : "error",
             message: requestFailureMessage("Daily analytics", response.status),
           });
           return;
@@ -213,7 +216,10 @@ export const MetricsFrame = (props: {
         if (!response.ok) {
           if (!active) return;
           setTotals({
-            kind: response.status === 404 ? "absent" : "error",
+            kind:
+              response.status === 403 || response.status === 404
+                ? "absent"
+                : "error",
             message:
               response.status === 404
                 ? "Analytics not found."
@@ -266,7 +272,7 @@ export const MetricsFrame = (props: {
 
   return (
     <SizingWrapper className="py-8">
-      {totals.kind === "absent" && (
+      {(totals.kind === "absent" || daily.kind === "absent") && (
         <AnalyticsAppEligibility appId={props.appId} enabled={false} />
       )}
       <div className="grid w-[920px] max-w-full gap-6">

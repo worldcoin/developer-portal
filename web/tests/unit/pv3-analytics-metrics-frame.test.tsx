@@ -24,8 +24,8 @@ const serve = (totalFallback = false, dailyFallback = false) => {
     Promise.resolve(
       response(
         url.includes("daily")
-          ? { rows: [], meta: { isFallback: dailyFallback } }
-          : { row, meta: { isFallback: totalFallback } },
+          ? { rows: [], snapshotMetadata: { isFallback: dailyFallback } }
+          : { row, snapshotMetadata: { isFallback: totalFallback } },
       ),
     ),
   );

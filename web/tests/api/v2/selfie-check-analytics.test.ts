@@ -81,7 +81,7 @@ describe("analytics API [success]", () => {
       expect(first.headers.get("cache-control")).toBe("private, max-age=60");
       const body = await first.json();
       expect(body.appId).toBe(appId);
-      expect(body.meta).toEqual({
+      expect(body.snapshotMetadata).toEqual({
         dataAsOf: "2026-08-26T21:00:00.000Z",
         isFallback: false,
       });
@@ -132,8 +132,14 @@ describe("analytics API [success]", () => {
         }),
       );
       const response = await GET(request(table), context());
-      expect(response.status).toBe(404);
-      expect(await response.json()).toMatchObject({ code: "not_found" });
+      expect(response.status).toBe(403);
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      expect(await response.json()).toEqual({
+        code: "analytics_not_enabled",
+        detail:
+          "Selfie Check analytics aren't available for this app yet. Contact us to learn more.",
+        attribute: null,
+      });
       expect(listCsv.mock.calls).toEqual([["total/"]]);
       expect(logger.warn).not.toHaveBeenCalled();
     },
@@ -158,7 +164,7 @@ describe("analytics API [success]", () => {
       expect(
         (await GET(request(table, first.headers.get("etag")!), context()))
           .status,
-      ).toBe(404);
+      ).toBe(403);
     },
   );
 });
@@ -230,7 +236,7 @@ describe("analytics API [guards]", () => {
       const req = new NextRequest(
         `http://localhost/api/v2/apps/${appId}/selfie-check-analytics?mock=true&preview=true`,
       );
-      expect((await GET(req, context())).status).toBe(404);
+      expect((await GET(req, context())).status).toBe(403);
     } finally {
       Object.defineProperty(process.env, "NODE_ENV", {
         value: previous,
@@ -283,7 +289,7 @@ describe("analytics API [failures]", () => {
       );
       expect(fallback.status).toBe(200);
       expect(await fallback.json()).toMatchObject({
-        meta: { isFallback: true },
+        snapshotMetadata: { isFallback: true },
       });
       expect(
         (await GET(request(table, fallback.headers.get("etag")!), context()))
@@ -299,7 +305,7 @@ describe("analytics API [failures]", () => {
       );
       expect(recovered.status).toBe(200);
       expect(await recovered.json()).toMatchObject({
-        meta: { isFallback: false },
+        snapshotMetadata: { isFallback: false },
       });
     },
   );
@@ -314,7 +320,9 @@ describe("analytics API [failures]", () => {
     refresh();
     const response = await GET(request("daily"), context());
     expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ meta: { isFallback: true } });
+    expect(await response.json()).toMatchObject({
+      snapshotMetadata: { isFallback: true },
+    });
   });
 });
 // #endregion
