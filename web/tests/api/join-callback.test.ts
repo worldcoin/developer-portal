@@ -285,6 +285,68 @@ describe("/api/join-callback [invite email ownership]", () => {
 });
 // #endregion
 
+// #region First-time invitee account creation
+describe("/api/join-callback [first-time invitee]", () => {
+  const NEW_USER_ID = "usr_dddddddddddddddddddddddddddddddd";
+
+  it("creates the account when the invitee has no portal user yet", async () => {
+    getSession.mockResolvedValue(emailSession());
+    FetchEmailUser.mockResolvedValue({ userByAuth0Id: [], userByEmail: [] });
+    InsertUser.mockResolvedValue({
+      insert_user_one: { id: NEW_USER_ID, posthog_id: "ph_2" },
+    });
+
+    const response = await POST(createMockRequest());
+
+    expect(response.status).toBe(200);
+    expect(sendAcceptance).toHaveBeenCalledTimes(1);
+    expect(AcceptTeamInvite).toHaveBeenCalledWith(
+      expect.objectContaining({ user_id: NEW_USER_ID }),
+    );
+  });
+
+  // Two tabs, or a retried request. `user.email` is UNIQUE and the ownership
+  // guard admits only sessions holding the invited address, so both racers
+  // carry the same address and one insert loses. The loser must still contend
+  // for the invite rather than surface the duplicate as a server error.
+  it("adopts the account a concurrent first-time join already created", async () => {
+    getSession.mockResolvedValue(emailSession());
+    FetchEmailUser.mockResolvedValueOnce({
+      userByAuth0Id: [],
+      userByEmail: [],
+    }).mockResolvedValueOnce({
+      userByAuth0Id: [{ id: NEW_USER_ID }],
+      userByEmail: [],
+    });
+    InsertUser.mockRejectedValue(new Error("unique violation on user.email"));
+
+    const response = await POST(createMockRequest());
+
+    expect(response.status).toBe(200);
+    expect(InsertUser).toHaveBeenCalledTimes(1);
+    expect(FetchEmailUser).toHaveBeenCalledTimes(2);
+    expect(AcceptTeamInvite).toHaveBeenCalledWith(
+      expect.objectContaining({ user_id: NEW_USER_ID }),
+    );
+  });
+
+  it("fails the join when no account exists after the insert fails", async () => {
+    getSession.mockResolvedValue(emailSession());
+    FetchEmailUser.mockResolvedValue({ userByAuth0Id: [], userByEmail: [] });
+    InsertUser.mockRejectedValue(new Error("database is down"));
+
+    const response = await POST(createMockRequest());
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({ code: "server_error" }),
+    );
+    expect(AcceptTeamInvite).not.toHaveBeenCalled();
+    expect(updateSession).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
 // #region Guards that must keep holding around the new check
 describe("/api/join-callback [request guards]", () => {
   it("rejects a cross-site request before touching the invite", async () => {

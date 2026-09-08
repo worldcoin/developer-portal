@@ -337,26 +337,36 @@ export const POST = async (req: NextRequest) => {
         },
       });
     } catch (error) {
-      return errorResponse({
-        statusCode: 500,
-        code: "server_error",
-        detail: "Failed to join team",
-        req,
+      logger.error("Error while creating the user for join-callback.", {
+        error,
         team_id: inviteData.team.id,
       });
     }
 
-    if (!insertedUser?.id) {
-      return errorResponse({
-        statusCode: 500,
-        code: "server_error",
-        detail: "Failed to join team",
-        req,
-        team_id: inviteData.team.id,
-      });
-    }
+    if (insertedUser?.id) {
+      userId = insertedUser.id;
+    } else {
+      // `user.email` is UNIQUE and the ownership guard above admits only
+      // sessions holding the invited address, so every request racing for this
+      // invite carries the same address and only one of them can insert. The
+      // loser adopts the row the winner committed and goes on to contend for
+      // the invite itself, which is where single use is actually enforced.
+      const racedUser = await findExistingPortalUser(client, auth0User).catch(
+        () => null,
+      );
 
-    userId = insertedUser.id;
+      if (!racedUser) {
+        return errorResponse({
+          statusCode: 500,
+          code: "server_error",
+          detail: "Failed to join team",
+          req,
+          team_id: inviteData.team.id,
+        });
+      }
+
+      userId = racedUser.id;
+    }
   }
 
   let acceptedMembership:

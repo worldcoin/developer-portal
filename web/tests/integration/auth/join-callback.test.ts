@@ -610,6 +610,58 @@ describe("test /join-callback", () => {
     );
   });
 
+  // The same double submit before the invitee has a portal account. `user.email`
+  // is UNIQUE, so only one of the two requests can create the row; the other has
+  // to adopt it and go on contending for the invite, which is the only place
+  // single use is enforced. Exactly one user and one membership must result, and
+  // neither request may fail with a server error over the duplicate.
+  it("creates one account and one membership when a first-time invitee accepts twice concurrently", async () => {
+    const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
+    const email = "first-time-join-race@example.com";
+
+    const { rows: insertedInvite } = (await integrationDBExecuteQuery(
+      `INSERT INTO public.invite (team_id, expires_at, email)
+       VALUES ($1, '2030-01-01 00:00:00+00', $2)
+       RETURNING id`,
+      [team_id, email],
+    )) as { rows: { id: string }[] };
+
+    getSession.mockResolvedValue({
+      user: { ...validSessionUser, email, sub: "email|first-time-join-race" },
+    });
+
+    const responses = await Promise.all([
+      POST(createMockRequest({ invite_id: insertedInvite[0].id })),
+      POST(createMockRequest({ invite_id: insertedInvite[0].id })),
+    ]);
+
+    for (const response of responses) {
+      expect([200, 400]).toContain(response.status);
+    }
+    expect(responses.some((response) => response.status === 200)).toBe(true);
+
+    const { rows: userRows } = (await integrationDBExecuteQuery(
+      `SELECT id FROM public."user" WHERE email = $1`,
+      [email],
+    )) as { rows: { id: string }[] };
+    expect(userRows).toHaveLength(1);
+
+    const { rows: membershipRows } = (await integrationDBExecuteQuery(
+      `SELECT m.role
+         FROM public.membership m
+         JOIN public."user" u ON u.id = m.user_id
+        WHERE m.team_id = $1 AND u.email = $2`,
+      [team_id, email],
+    )) as { rows: { role: string }[] };
+    expect(membershipRows).toEqual([{ role: "MEMBER" }]);
+
+    const { rowCount: remainingInvites } = await integrationDBExecuteQuery(
+      `SELECT id FROM public.invite WHERE id = $1`,
+      [insertedInvite[0].id],
+    );
+    expect(remainingInvites).toBe(0);
+  });
+
   // The deterministic half of the case above: once the invite row is gone the
   // lookup that precedes the DB function fails, so a resubmitted invite_id is
   // refused rather than silently joining the team a second time. A single-use
