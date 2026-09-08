@@ -1,8 +1,26 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { Role_Enum } from "@/graphql/graphql";
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { RpSummary } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/RpSummary";
+
+jest.mock("@auth0/nextjs-auth0/client", () => ({
+  useUser: () => ({ user: { hasura: { memberships: [] } } }),
+}));
+
+jest.mock("next/navigation", () => ({
+  ...jest.requireActual("next/navigation"),
+  useParams: () => ({ teamId: "team_1", appId: "app_1" }),
+}));
+
+// Loading real utils.ts pulls in idkit/ox, which needs TextEncoder (absent in
+// jsdom) — mock just what this component uses.
+const checkUserPermissionsMock = jest.fn();
+jest.mock("@/lib/utils", () => ({
+  checkUserPermissions: (...args: unknown[]) =>
+    checkUserPermissionsMock(...args),
+}));
 
 let mockProductionStatus = RpRegistrationStatus.Registered;
 let mockStagingStatus: RpRegistrationStatus | null = null;
@@ -60,7 +78,6 @@ const defaultProps = {
   initialStagingStatus: null,
   mode: "managed",
   canManageWorldId: true,
-  canSwitchToSelfManaged: true,
 };
 
 const renderSummary = (
@@ -71,6 +88,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockProductionStatus = RpRegistrationStatus.Registered;
   mockStagingStatus = null;
+  checkUserPermissionsMock.mockReturnValue(true);
 });
 
 it("shows the vertical RP identity fields and separated management controls", () => {
@@ -164,8 +182,14 @@ it("explains self-managed signer ownership and disables Portal controls", () => 
 });
 
 it("keeps the mode switch owner-only while other controls stay admin-usable", () => {
-  renderSummary({ canSwitchToSelfManaged: false });
+  checkUserPermissionsMock.mockReturnValue(false);
+  renderSummary();
 
+  expect(checkUserPermissionsMock).toHaveBeenCalledWith(
+    expect.anything(),
+    "team_1",
+    [Role_Enum.Owner],
+  );
   expect(
     screen.getByRole("button", { name: "Rotate signer key" }),
   ).toBeEnabled();
