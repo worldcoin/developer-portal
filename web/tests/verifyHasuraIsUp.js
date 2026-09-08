@@ -11,12 +11,20 @@ const MAX_WAIT_MS = 120000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const remainingMs = (deadline) => {
+  const remaining = deadline - Date.now();
+  if (remaining <= 0) {
+    throw new Error("Readiness deadline exceeded");
+  }
+  return remaining;
+};
+
 const describeError = (error) => {
   const cause = error?.cause?.message ?? error?.cause;
   return cause ? `${error.message} (${cause})` : error?.message ?? `${error}`;
 };
 
-async function queryOnce() {
+async function queryOnce(deadline) {
   const response = await fetch(GRAPHQL_URL, {
     method: "POST",
     headers: {
@@ -26,7 +34,9 @@ async function queryOnce() {
     body: JSON.stringify({
       query: "query ReadinessProbe { user(limit: 1) { id } }",
     }),
-    signal: AbortSignal.timeout(POLL_INTERVAL_MS),
+    signal: AbortSignal.timeout(
+      Math.min(POLL_INTERVAL_MS, remainingMs(deadline)),
+    ),
   });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
@@ -48,9 +58,9 @@ async function main() {
   for (;;) {
     attempt += 1;
     try {
-      await queryOnce();
-      await sleep(CONFIRM_DELAY_MS);
-      await queryOnce();
+      await queryOnce(deadline);
+      await sleep(Math.min(CONFIRM_DELAY_MS, remainingMs(deadline)));
+      await queryOnce(deadline);
       console.log(`✅ Hasura is query-ready (attempt ${attempt})`);
       return;
     } catch (error) {
@@ -58,14 +68,14 @@ async function main() {
         `Waiting for Hasura to serve queries (attempt ${attempt}): ${describeError(error)}`,
       );
     }
-    if (Date.now() > deadline) {
+    if (Date.now() >= deadline) {
       console.error(
         `Hasura was not query-ready within ${MAX_WAIT_MS / 1000}s. ` +
           "Check `docker compose -f ../docker-compose-test.yaml logs hasura_test`.",
       );
       process.exit(1);
     }
-    await sleep(POLL_INTERVAL_MS);
+    await sleep(Math.min(POLL_INTERVAL_MS, Math.max(0, deadline - Date.now())));
   }
 }
 
