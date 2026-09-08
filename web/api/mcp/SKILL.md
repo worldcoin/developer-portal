@@ -150,6 +150,18 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
 - **`is_developer_allow_listing` is optional on submit.** If you omit it, the existing value on `app_metadata` is preserved — the MCP will not silently un-list a previously listed app.
 - **Don't re-run `configure_world_id` on an already-configured app.** It returns the existing registration without rotating. Use `rotate_world_id_signing_key` if the user actually wants a new key.
 
+## Test native World ID 4.0 with the simulator
+
+The Portal MCP configures the app; the separate Simulator MCP completes its real staging proof request. The simulator's `complete_test_request` tool is not a Portal tool. Connect it separately using the [simulator setup guide](https://github.com/worldcoin/simulator/blob/main/docs/mcp.md) once that endpoint is deployed. If the tool is unavailable, use the existing [simulator browser flow](https://simulator.worldcoin.org/) with the application's connector URL; do not invent a Portal test-payload endpoint.
+
+1. Reuse the app and confirm its RP is registered in the staging registry through `get_world_id_registration_status`. A registered primary RP alone does not establish that real staging proofs will work.
+2. Start the application's actual signed IDKit request with `environment: "staging"` and legacy fallback disabled. Keep RP signing on the application's backend and enforce `min_protocol_version: "4.0"` when testing the native v4 verifier.
+3. Pass its connector URI to the Simulator MCP's `complete_test_request { connect_url }`. The first version supports a single native v4 Proof of Human uniqueness request; the signed request supplies the action and proof context.
+4. Wait for the application's original IDKit polling/callback to receive the generated proof. Check its real backend verification response and business effects. `proof_delivered` from the simulator is delivery acknowledgment, not application acceptance.
+5. Exercise application failure and duplicate-operation rules through that backend. Repair the code and start a fresh request as appropriate. If the simulator reports an unknown outcome, inspect the original IDKit request before attempting another proof.
+
+Never log or repeat connector URLs: they contain a bridge encryption key. The simulator does not need the RP private signing key or the Portal team API key. These tests use real proofs from configured staging test credentials; they do not establish production-phone behavior, credential issuance, or session-proof support. Portal v4 currently accepts nullifier reuse, so application-specific duplicate-operation rules must be checked separately.
+
 ## When in doubt
 
 - `get_team_context` first to see what's already there. Reusing an existing app is almost always cheaper than creating a duplicate.
