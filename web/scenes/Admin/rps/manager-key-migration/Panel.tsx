@@ -115,7 +115,7 @@ const ProcessSummary = ({
             warn
           />
           <Stat
-            hint="Old key lives in another AWS account. Portal cannot delete it."
+            hint="Old key lives in another AWS account. Cleanup retries keys in the configured legacy account."
             label="Other AWS account"
             value={inventory.auditReadyForExternalCleanup}
             warn

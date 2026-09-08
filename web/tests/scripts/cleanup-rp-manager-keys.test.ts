@@ -100,6 +100,7 @@ let databaseState: {
 };
 let recordedOutcomes: Array<Record<string, unknown>> = [];
 let skippedTouches: Array<Record<string, unknown>> = [];
+let originalLegacyAccountId: string | undefined;
 
 const graphqlRequestMock = jest.fn();
 const graphqlClient = {
@@ -205,6 +206,8 @@ const withStagingMirror = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  originalLegacyAccountId = process.env.KMS_LEGACY_ACCOUNT_ID;
+  delete process.env.KMS_LEGACY_ACCOUNT_ID;
   candidates = [candidate];
   databaseState = {
     rp_registration: [
@@ -230,6 +233,14 @@ beforeEach(() => {
     initialized: true,
     manager: SHARED_MANAGER,
   });
+});
+
+afterEach(() => {
+  if (originalLegacyAccountId === undefined) {
+    delete process.env.KMS_LEGACY_ACCOUNT_ID;
+  } else {
+    process.env.KMS_LEGACY_ACCOUNT_ID = originalLegacyAccountId;
+  }
 });
 
 // #endregion
@@ -270,6 +281,48 @@ describe("cleanupRpManagerKeys [pipeline]", () => {
     expect(report.results[0]?.status).toBe(
       CleanupStatus.ReadyForExternalCleanup,
     );
+  });
+
+  it("schedules a key from the configured legacy AWS account", async () => {
+    process.env.KMS_LEGACY_ACCOUNT_ID = "906266994114";
+    arrangeCurrentAccountKms({ AWSAccountId: "906266994114" });
+
+    const report = await cleanupRpManagerKeys(primaryOnly);
+
+    expect(kmsSendMock).toHaveBeenCalledWith(
+      expect.any(ScheduleKeyDeletionCommand),
+    );
+    expect(report.results[0]).toEqual(
+      expect.objectContaining({
+        status: CleanupStatus.DeletionScheduled,
+        expectedDeletionAt: DELETION_DATE.toISOString(),
+      }),
+    );
+  });
+
+  it("retries ready-for-external-cleanup rows in the legacy AWS account", async () => {
+    process.env.KMS_LEGACY_ACCOUNT_ID = "906266994114";
+    candidates = [
+      {
+        ...candidate,
+        cleanup_status: CleanupStatus.ReadyForExternalCleanup,
+      },
+    ];
+    arrangeCurrentAccountKms({ AWSAccountId: "906266994114" });
+
+    const report = await cleanupRpManagerKeys(primaryOnly);
+
+    expect(graphqlRequestMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        retryable_cleanup_statuses: [
+          CleanupStatus.Pending,
+          CleanupStatus.Failed,
+          CleanupStatus.ReadyForExternalCleanup,
+        ],
+      }),
+    );
+    expect(report.results[0]?.status).toBe(CleanupStatus.DeletionScheduled);
   });
 
   it("skips without writing status while the old key is still referenced", async () => {

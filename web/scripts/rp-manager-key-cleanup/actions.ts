@@ -161,7 +161,7 @@ export function assertValidRpManagerKeyCleanupInput(
   }
 }
 
-// ANCHOR: Load audit rows whose cleanup status is pending, failed, or due.
+// ANCHOR: Load audit rows whose cleanup status is pending, failed, external, or due.
 export async function loadCleanupCandidates(
   input: RpManagerKeyCleanupInput,
 ): Promise<ManagerKeyCleanupCandidate[]> {
@@ -172,7 +172,11 @@ export async function loadCleanupCandidates(
   const variables = {
     now: new Date().toISOString(),
     limit: input.limit ?? DEFAULT_CANDIDATE_LIMIT,
-    retryable_cleanup_statuses: [CleanupStatus.Pending, CleanupStatus.Failed],
+    retryable_cleanup_statuses: [
+      CleanupStatus.Pending,
+      CleanupStatus.Failed,
+      CleanupStatus.ReadyForExternalCleanup,
+    ],
     deletion_scheduled_status: CleanupStatus.DeletionScheduled,
   };
 
@@ -481,9 +485,12 @@ async function determineKmsCleanupPlan(
   }
 
   if (oldManagerKey.AWSAccountId !== currentAccountId) {
-    return {
-      nextStep: PlanStep.MarkAsReadyForExternalCleanup,
-    };
+    const legacyAccountId = process.env.KMS_LEGACY_ACCOUNT_ID;
+    if (!legacyAccountId || oldManagerKey.AWSAccountId !== legacyAccountId) {
+      return {
+        nextStep: PlanStep.MarkAsReadyForExternalCleanup,
+      };
+    }
   }
 
   const { Tags = [] } = await input.kmsClient.send(
