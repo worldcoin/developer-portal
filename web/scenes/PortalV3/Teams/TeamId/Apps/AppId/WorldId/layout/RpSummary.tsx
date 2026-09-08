@@ -183,7 +183,7 @@ export const RpSummary = (props: {
                   Danger zone
                 </Typography>
 
-                <div className="flex items-center justify-between gap-4 rounded-[10px] border border-grey-100 px-6 py-4">
+                <div className="flex items-center justify-between gap-4 rounded-2xl border border-system-error-200 bg-grey-0 px-6 py-4">
                   <div className="flex flex-col gap-1">
                     <Typography variant={TYPOGRAPHY.S2}>
                       Switch to self-managed
@@ -200,7 +200,7 @@ export const RpSummary = (props: {
                         id="rp-switch-self-managed-disabled-reason"
                         as="p"
                         variant={TYPOGRAPHY.B4}
-                        className="text-grey-500"
+                        className="text-system-error-700"
                       >
                         {switchDisabledReason}
                       </Typography>
