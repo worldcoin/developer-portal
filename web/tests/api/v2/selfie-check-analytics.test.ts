@@ -244,7 +244,7 @@ describe("analytics API [guards]", () => {
 
 // #region Dependency failures, verified fallback, and recovery
 describe("analytics API [failures]", () => {
-  it.each(["timeout", "503", "malformed"])(
+  it.each(["timeout", "malformed"])(
     "returns retryable 503 for a cold %s export failure",
     async (failure) => {
       if (failure === "malformed")

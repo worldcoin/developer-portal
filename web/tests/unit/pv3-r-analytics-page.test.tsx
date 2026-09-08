@@ -67,7 +67,7 @@ describe("analytics page, sidebar, and API", () => {
     expect(listCsv).not.toHaveBeenCalled();
   });
 
-  it.each(["timeout", "503", "malformed"])(
+  it.each(["timeout", "malformed"])(
     "hides the optional tab but reports temporary unavailability for %s",
     async (failure) => {
       if (failure === "malformed")

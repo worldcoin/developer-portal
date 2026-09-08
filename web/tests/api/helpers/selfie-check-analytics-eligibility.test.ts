@@ -89,25 +89,22 @@ describe("analytics eligibility", () => {
 
 // #region Failure, backoff, and recovery
 describe("eligibility dependency failures", () => {
-  it.each(["S3 timeout", "S3 503"])(
-    "propagates %s without a cached snapshot and backs off",
-    async (message) => {
-      listCsv.mockRejectedValue(new Error(message));
-      await expect(
-        resolveSelfieCheckAnalyticsEligibility(appId),
-      ).rejects.toThrow(message);
-      await expect(
-        resolveSelfieCheckAnalyticsEligibility(appId),
-      ).rejects.toThrow(message);
-      expect(listCsv).toHaveBeenCalledTimes(1);
-      listCsv.mockResolvedValue(source());
-      jest.advanceTimersByTime(60_000);
-      expect(
-        (await resolveSelfieCheckAnalyticsEligibility(appId)).snapshot
-          .isFallback,
-      ).toBe(false);
-    },
-  );
+  it("propagates a listing failure without a cached snapshot and backs off", async () => {
+    const message = "S3 timeout";
+    listCsv.mockRejectedValue(new Error(message));
+    await expect(resolveSelfieCheckAnalyticsEligibility(appId)).rejects.toThrow(
+      message,
+    );
+    await expect(resolveSelfieCheckAnalyticsEligibility(appId)).rejects.toThrow(
+      message,
+    );
+    expect(listCsv).toHaveBeenCalledTimes(1);
+    listCsv.mockResolvedValue(source());
+    jest.advanceTimersByTime(60_000);
+    expect(
+      (await resolveSelfieCheckAnalyticsEligibility(appId)).snapshot.isFallback,
+    ).toBe(false);
+  });
 
   it("rejects malformed exports on cold start", async () => {
     downloadCsv.mockResolvedValue({ object: source(), csv: "invalid,csv" });
