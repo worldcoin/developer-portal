@@ -6,7 +6,7 @@ import {
   type DailyRow,
   type MetricKind,
 } from "@/lib/selfie-check-analytics";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Area,
   Bar,
@@ -25,6 +25,9 @@ const OS_COLORS: Readonly<Record<string, string>> = {
   iOS: "#1C98F7",
 };
 const RATE_TICKS = [0, 0.25, 0.5, 0.75, 1] as const;
+const Y_AXIS_WIDTH = 52;
+const CHART_RIGHT_MARGIN = 12;
+const DATE_LABEL_WIDTH = 44;
 
 const osColor = (osName: string) => OS_COLORS[osName] ?? "#6B7280";
 
@@ -53,24 +56,32 @@ export const DailyMetricChart = (props: {
   chartType: DailyMetricChartType;
   yAxisLabel: string;
 }) => {
+  const [chartWidth, setChartWidth] = useState(0);
   const { points, operatingSystems } = useMemo(
     () => buildDailyChartData(props.rows, props.metric),
     [props.rows, props.metric],
   );
   const formatValue = (value: number) =>
     props.kind === "rate" ? formatRate(value) : value.toLocaleString("en-US");
+  const showEveryDate = points.length <= 14;
+  // Keep every short-range date, turning labels only when they cannot fit.
+  const rotateDates =
+    showEveryDate &&
+    points.length > 1 &&
+    (chartWidth - Y_AXIS_WIDTH - CHART_RIGHT_MARGIN) / points.length <
+      DATE_LABEL_WIDTH;
 
   return (
     <section
       aria-label={props.title}
-      className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
+      className="w-full min-w-0 rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
     >
-      <h3 className="font-world text-14 font-medium whitespace-nowrap text-portal-heading">
+      <h3 className="font-world text-14 font-medium text-portal-heading">
         {props.title}
       </h3>
 
       {operatingSystems.length > 0 && (
-        <ul className="mt-2 flex gap-3">
+        <ul className="mt-2 flex flex-wrap gap-3">
           {operatingSystems.map((os) => (
             <li
               key={os.dataKey}
@@ -105,13 +116,17 @@ export const DailyMetricChart = (props: {
           >
             {props.yAxisLabel}
           </span>
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            onResize={setChartWidth}
+          >
             <ComposedChart
               data={[...points]}
               margin={{
                 top: 4,
                 left: 0,
-                right: 12,
+                right: CHART_RIGHT_MARGIN,
                 bottom: 0,
               }}
               barCategoryGap="2%"
@@ -121,14 +136,17 @@ export const DailyMetricChart = (props: {
                 dataKey="date"
                 tickLine={false}
                 axisLine={false}
-                height={32}
+                height={rotateDates ? 56 : 32}
+                angle={rotateDates ? -90 : 0}
+                textAnchor={rotateDates ? "end" : "middle"}
                 tickMargin={8}
-                minTickGap={points.length <= 14 ? 0 : 32}
-                interval={points.length <= 14 ? 0 : "preserveStartEnd"}
+                minTickGap={showEveryDate ? 0 : 32}
+                interval={showEveryDate ? 0 : "preserveStartEnd"}
                 tick={{ fill: "#757575", fontSize: 12 }}
                 tickFormatter={formatTickDate}
               />
               <YAxis
+                width={Y_AXIS_WIDTH}
                 allowDecimals={props.kind === "rate"}
                 axisLine={false}
                 {...(props.kind === "rate"
@@ -136,9 +154,8 @@ export const DailyMetricChart = (props: {
                       domain: [0, 1.05] as const,
                       tickFormatter: formatRateTick,
                       ticks: [...RATE_TICKS],
-                      width: 52,
                     }
-                  : { width: 52 })}
+                  : {})}
                 tick={{ fill: "#757575", fontSize: 12 }}
                 tickMargin={8}
                 tickLine={false}

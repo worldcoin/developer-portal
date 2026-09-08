@@ -249,7 +249,10 @@ export const MetricsFrame = (props: { appId: string }) => {
   }, [props.appId]);
 
   return (
-    <SizingWrapper className="py-6">
+    <SizingWrapper
+      className="py-6"
+      gridClassName="grid-cols-[minmax(24px,1fr)_minmax(0,1120px)_minmax(24px,1fr)]"
+    >
       <div className="mx-auto w-full max-w-[1120px] space-y-6">
         <div className="space-y-2">
           <h1 className="font-world text-24 font-semibold text-portal-heading">

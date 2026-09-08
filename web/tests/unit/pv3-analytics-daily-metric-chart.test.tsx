@@ -3,6 +3,11 @@ import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import React, { type ReactNode } from "react";
 
+let mockChartWidth = 640;
+beforeEach(() => {
+  mockChartWidth = 640;
+});
+
 jest.mock("recharts", () => ({
   Area: (props: {
     fill: string;
@@ -56,15 +61,30 @@ jest.mock("recharts", () => ({
       {props.children}
     </div>
   ),
-  ResponsiveContainer: (props: { children: ReactNode }) => (
-    <div>{props.children}</div>
-  ),
+  ResponsiveContainer: (props: {
+    children: ReactNode;
+    onResize?: (width: number, height: number) => void;
+  }) => {
+    React.useEffect(() => {
+      props.onResize?.(mockChartWidth, 280);
+    }, [props.onResize, mockChartWidth]);
+    return <div>{props.children}</div>;
+  },
   Tooltip: () => null,
-  XAxis: (props: { interval?: number | string; minTickGap?: number }) => (
+  XAxis: (props: {
+    interval?: number | string;
+    minTickGap?: number;
+    angle?: number;
+    height?: number;
+    textAnchor?: string;
+  }) => (
     <div
       data-testid="x-axis"
       data-interval={props.interval}
       data-min-tick-gap={props.minTickGap}
+      data-angle={props.angle}
+      data-height={props.height}
+      data-text-anchor={props.textAnchor}
     />
   ),
   YAxis: (props: {
@@ -162,6 +182,69 @@ describe("DailyMetricChart", () => {
       "50",
     );
     expect(screen.getByTestId("x-axis")).toHaveAttribute("data-interval", "0");
+  });
+
+  it("keeps every short-range date and rotates crowded labels as the chart resizes", () => {
+    const fourteenDays = Array.from({ length: 14 }, (_, index) =>
+      row("Android", 4, `2026-08-${String(index + 18).padStart(2, "0")}`),
+    );
+    const chart = () => (
+      <DailyMetricChart
+        title="Number of users who shared a Selfie Check proof, by day and OS"
+        rows={fourteenDays}
+        metric="n_users_shared_a_proof"
+        kind="count"
+        chartType="bar"
+        yAxisLabel="Number of users"
+      />
+    );
+    mockChartWidth = 320;
+    const view = render(chart());
+
+    expect(screen.getByTestId("x-axis")).toHaveAttribute("data-interval", "0");
+    expect(screen.getByTestId("x-axis")).toHaveAttribute("data-angle", "-90");
+    expect(screen.getByTestId("x-axis")).toHaveAttribute("data-height", "56");
+    expect(screen.getByTestId("x-axis")).toHaveAttribute(
+      "data-text-anchor",
+      "end",
+    );
+
+    mockChartWidth = 900;
+    view.rerender(chart());
+
+    expect(screen.getByTestId("x-axis")).toHaveAttribute("data-interval", "0");
+    expect(screen.getByTestId("x-axis")).toHaveAttribute("data-angle", "0");
+    expect(screen.getByTestId("x-axis")).toHaveAttribute("data-height", "32");
+    expect(screen.getByTestId("x-axis")).toHaveAttribute(
+      "data-text-anchor",
+      "middle",
+    );
+  });
+
+  it("lets long ranges skip dates instead of forcing crowded labels", () => {
+    mockChartWidth = 320;
+    render(
+      <DailyMetricChart
+        title="Daily users"
+        rows={Array.from({ length: 15 }, (_, index) =>
+          row("Android", 4, `2026-08-${String(index + 1).padStart(2, "0")}`),
+        )}
+        metric="n_users_shared_a_proof"
+        kind="count"
+        chartType="bar"
+        yAxisLabel="Number of users"
+      />,
+    );
+
+    expect(screen.getByTestId("x-axis")).toHaveAttribute(
+      "data-interval",
+      "preserveStartEnd",
+    );
+    expect(screen.getByTestId("x-axis")).toHaveAttribute(
+      "data-min-tick-gap",
+      "32",
+    );
+    expect(screen.getByTestId("x-axis")).toHaveAttribute("data-angle", "0");
   });
 
   it("draws completion rates as straight OS lines on a zero-to-100-percent axis", () => {
