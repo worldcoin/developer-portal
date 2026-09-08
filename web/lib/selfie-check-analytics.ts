@@ -276,6 +276,19 @@ export type DailyChartData = Readonly<{
   operatingSystems: readonly DailyChartOs[];
 }>;
 
+const DAILY_OS_ORDER = ["Android", "iOS", "Unknown"] as const;
+
+/** Keeps the public OS presentation order stable across filters and charts. */
+export const sortDailyOperatingSystems = (osNames: readonly string[]) =>
+  [...osNames].sort((a, b) => {
+    const aIndex = DAILY_OS_ORDER.indexOf(a as (typeof DAILY_OS_ORDER)[number]);
+    const bIndex = DAILY_OS_ORDER.indexOf(b as (typeof DAILY_OS_ORDER)[number]);
+    return (
+      (aIndex === -1 ? DAILY_OS_ORDER.length : aIndex) -
+        (bIndex === -1 ? DAILY_OS_ORDER.length : bIndex) || a.localeCompare(b)
+    );
+  });
+
 export type DailyTimeframeDays = 7 | 14 | 30 | null;
 
 /** Applies the daily chart controls relative to the newest available data day. */
@@ -329,8 +342,9 @@ export const buildDailyChartData = (
     points: [...pointsByDay.values()].sort((a, b) =>
       a.date.localeCompare(b.date),
     ),
-    operatingSystems: [...osNames]
-      .sort()
-      .map((osName) => ({ dataKey: `os:${osName}`, osName })),
+    operatingSystems: sortDailyOperatingSystems([...osNames]).map((osName) => ({
+      dataKey: `os:${osName}`,
+      osName,
+    })),
   };
 };

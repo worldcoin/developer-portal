@@ -21,8 +21,8 @@ import {
 
 // Color follows the OS, not its position.
 const OS_COLORS: Readonly<Record<string, string>> = {
-  Android: "#2E7D32",
-  iOS: "#1565C0",
+  Android: "#A4C639",
+  iOS: "#1C98F7",
 };
 const RATE_TICKS = [0, 0.25, 0.5, 0.75, 1] as const;
 
@@ -38,6 +38,13 @@ const formatTickDate = (value: string) =>
 const formatRate = (value: number) => `${(value * 100).toFixed(1)}%`;
 const formatRateTick = (value: number) => `${Math.round(value * 100)}%`;
 
+/** Keep sparse weekly bars readable while keeping longer ranges compact. */
+const barMaxSize = (pointCount: number) => {
+  if (pointCount <= 7) return 80;
+  if (pointCount <= 14) return 50;
+  return 20;
+};
+
 export const DailyMetricChart = (props: {
   title: string;
   rows: readonly DailyRow[];
@@ -50,7 +57,6 @@ export const DailyMetricChart = (props: {
     () => buildDailyChartData(props.rows, props.metric),
     [props.rows, props.metric],
   );
-
   const formatValue = (value: number) =>
     props.kind === "rate" ? formatRate(value) : value.toLocaleString("en-US");
 
@@ -59,35 +65,34 @@ export const DailyMetricChart = (props: {
       aria-label={props.title}
       className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
     >
-      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-        <h3 className="min-w-[220px] flex-1 font-world text-14 font-medium text-portal-heading">
-          {props.title}
-        </h3>
-        {operatingSystems.length > 0 && (
-          <ul className="flex shrink-0 items-center gap-3">
-            {operatingSystems.map((os) => (
-              <li
-                key={os.dataKey}
-                className="flex items-center gap-1.5 font-world text-12 text-portal-muted"
-              >
-                <span
-                  aria-hidden
-                  className="size-2 rounded-full"
-                  style={{ backgroundColor: osColor(os.osName) }}
-                />
-                {os.osName}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <h3 className="font-world text-14 font-medium whitespace-nowrap text-portal-heading">
+        {props.title}
+      </h3>
+
+      {operatingSystems.length > 0 && (
+        <ul className="mt-2 flex gap-3">
+          {operatingSystems.map((os) => (
+            <li
+              key={os.dataKey}
+              className="flex items-center gap-1.5 font-world text-12 text-portal-muted"
+            >
+              <span
+                aria-hidden
+                className="size-2 rounded-full"
+                style={{ backgroundColor: osColor(os.osName) }}
+              />
+              {os.osName}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {points.length === 0 ? (
         <p className="mt-6 font-world text-13 text-portal-muted">
           No daily data yet.
         </p>
       ) : (
-        <div className="relative mt-4 aspect-video w-full pb-8 pl-12 outline-none [&_*]:outline-none">
+        <div className="relative mt-4 aspect-[13/5] max-h-[360px] min-h-[280px] w-full pb-8 pl-12 outline-none [&_*]:outline-none">
           <span
             aria-hidden
             className="absolute right-0 bottom-0 left-12 text-center font-world text-12 text-portal-muted"
@@ -109,7 +114,7 @@ export const DailyMetricChart = (props: {
                 right: 12,
                 bottom: 0,
               }}
-              barCategoryGap="15%"
+              barCategoryGap="2%"
             >
               <CartesianGrid vertical={false} stroke="#f1f1f1" />
               <XAxis
@@ -118,7 +123,8 @@ export const DailyMetricChart = (props: {
                 axisLine={false}
                 height={32}
                 tickMargin={8}
-                minTickGap={32}
+                minTickGap={points.length <= 14 ? 0 : 32}
+                interval={points.length <= 14 ? 0 : "preserveStartEnd"}
                 tick={{ fill: "#757575", fontSize: 12 }}
                 tickFormatter={formatTickDate}
               />
@@ -139,6 +145,13 @@ export const DailyMetricChart = (props: {
               />
               <Tooltip
                 cursor={{ fill: "rgba(24, 24, 24, 0.04)" }}
+                itemSorter={(item) => {
+                  const osName = String(item.name ?? "");
+                  if (osName === "Android") return 0;
+                  if (osName === "iOS") return 1;
+                  if (osName === "Unknown") return 2;
+                  return 3;
+                }}
                 labelFormatter={(value) => formatTickDate(String(value))}
                 formatter={(value) =>
                   typeof value === "number" ? formatValue(value) : "—"
@@ -164,7 +177,7 @@ export const DailyMetricChart = (props: {
                     connectNulls={false}
                     dataKey={os.dataKey}
                     fill={osColor(os.osName)}
-                    fillOpacity={1}
+                    fillOpacity={0.12}
                     isAnimationActive={false}
                     name={os.osName}
                     stackId="os"
@@ -180,7 +193,7 @@ export const DailyMetricChart = (props: {
                     stackId="os"
                     fill={osColor(os.osName)}
                     isAnimationActive={false}
-                    maxBarSize={20}
+                    maxBarSize={barMaxSize(points.length)}
                     radius={
                       index === operatingSystems.length - 1 ? [3, 3, 0, 0] : 0
                     }
