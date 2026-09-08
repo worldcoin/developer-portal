@@ -122,8 +122,7 @@ export const POST = async (req: NextRequest) => {
   const rpIdString = registration.rp_id;
   const teamId = registration.app.team_id;
 
-  // STEP 2: Verify user is the team OWNER before revealing feature state —
-  // the manager transfer is irreversible, so this is owner-tier (not ADMIN)
+  // STEP 2: Verify user is the team OWNER before revealing feature state
   const { team } = await getCheckOwnerSdk(client).CheckUserIsOwnerInApp({
     team_id: teamId,
     app_id,
