@@ -115,8 +115,7 @@ export const getIsUserAllowedToDeleteApp = async (appId: string) => {
   return false;
 };
 
-// Switching an RP to self-managed irreversibly transfers the on-chain
-// manager, so it is owner-tier like app deletion, not admin-tier.
+// Switching an RP to self-managed irreversibly transfers the on-chain manager.
 export const getIsUserAllowedToSwitchRpMode = async (appId: string) => {
   if (!(await getIsIdValid(appId))) {
     return false;
