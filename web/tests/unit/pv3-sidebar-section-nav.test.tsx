@@ -2,7 +2,7 @@
 import "@testing-library/jest-dom";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
 // #region Mocks
@@ -54,6 +54,7 @@ import {
   SidebarNav,
 } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 import { NavActivePill } from "@/scenes/PortalV3/layout/Shell/NavItem";
+import { MetricsFrame } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MetricsFrame";
 
 // #region Test Data
 const teamId = "team_1";
@@ -111,7 +112,7 @@ beforeEach(() => {
   });
 });
 
-// #region Analytics allowlist gate
+// #region Analytics snapshot membership
 it("shows and activates Analytics after the app layout signals eligibility", () => {
   usePathname.mockReturnValue(`${base}/analytics`);
   renderSidebar([teamId], { appId, enabled: true });
@@ -152,6 +153,42 @@ it("hides Analytics when no app was signaled as eligible", () => {
 
   noLink("Analytics");
 });
+
+it.each(["total", "daily"])(
+  "clears an existing sidebar verdict only when the %s response confirms totals absence",
+  async (table) => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url: string) => {
+      const requested = url.includes("daily") ? "daily" : "total";
+      return requested === table
+        ? Promise.resolve({ ok: false, status: 404 } as Response)
+        : new Promise<Response>(() => {});
+    }) as typeof fetch;
+    try {
+      render(
+        <TooltipProvider>
+          <SidebarProvider>
+            <SidebarAnimationShell>
+              <AnalyticsAppEligibility appId={appId} enabled />
+              <SidebarNav apiKeyTeamIds={[teamId]} />
+              <MetricsFrame appId={appId} />
+            </SidebarAnimationShell>
+          </SidebarProvider>
+        </TooltipProvider>,
+      );
+      expect(link("Analytics")).toBeInTheDocument();
+      await screen.findByText(
+        table === "total"
+          ? "Analytics not found."
+          : "Analytics data is not available for this view yet.",
+      );
+      if (table === "total") await waitFor(() => noLink("Analytics"));
+      else expect(link("Analytics")).toBeInTheDocument();
+    } finally {
+      global.fetch = originalFetch;
+    }
+  },
+);
 // #endregion
 
 // #region active pill animation compartments

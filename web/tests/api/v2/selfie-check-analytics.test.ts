@@ -1,308 +1,320 @@
 import { GET } from "@/api/v2/apps/[app_id]/selfie-check-analytics";
+import { clearTableCaches } from "@/api/helpers/selfie-check-analytics/snapshots";
 import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
+import {
+  appId,
+  otherAppId,
+  userId,
+  source,
+  totalsCsv,
+  dailyCsv,
+} from "../../fixtures/selfie-check-analytics";
 
 // #region Mocks
-const getIsUserAllowedToReadApp = jest.fn();
-const getSessionMock = jest.fn();
-const isEnabledForAppMock = jest.fn();
-const loadLatestTotalsTableSnapshotMock = jest.fn();
-const loadLatestDailyTableSnapshotMock = jest.fn();
-
-jest.mock("@/lib/permissions", () => ({
-  getIsUserAllowedToReadApp: (...args: unknown[]) =>
-    getIsUserAllowedToReadApp(...args),
+const getSession = jest.fn();
+const GetIsUserPermittedToReadApp = jest.fn();
+const listCsv = jest.fn();
+const downloadCsv = jest.fn();
+jest.mock("@/lib/auth0", () => ({ auth0: { getSession: () => getSession() } }));
+jest.mock("@/api/helpers/graphql", () => ({
+  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
 }));
-
-jest.mock("@/lib/auth0", () => ({
-  auth0: { getSession: (...args: unknown[]) => getSessionMock(...args) },
+jest.mock(
+  "@/lib/permissions/graphql/server/get-app-read-permissions.generated",
+  () => ({
+    getSdk: () => ({
+      GetIsUserPermittedToReadApp: (...args: unknown[]) =>
+        GetIsUserPermittedToReadApp(...args),
+    }),
+  }),
+);
+jest.mock("@/api/helpers/selfie-check-analytics/s3", () => ({
+  listCsv: (...args: unknown[]) => listCsv(...args),
+  downloadCsv: (...args: unknown[]) => downloadCsv(...args),
 }));
-
-jest.mock("@/api/helpers/selfie-check-analytics/eligibility", () => ({
-  isSelfieCheckAnalyticsEnabledForApp: (...args: unknown[]) =>
-    isEnabledForAppMock(...args),
-}));
-
-jest.mock("@/api/helpers/selfie-check-analytics/snapshots", () => ({
-  loadLatestTotalsTableSnapshot: (...args: unknown[]) =>
-    loadLatestTotalsTableSnapshotMock(...args),
-  loadLatestDailyTableSnapshot: (...args: unknown[]) =>
-    loadLatestDailyTableSnapshotMock(...args),
-}));
-
 jest.mock("@/lib/logger", () => ({
-  logger: {
-    error: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
+  logger: { error: jest.fn(), warn: jest.fn(), info: jest.fn() },
 }));
 // #endregion
 
 // #region Test Data
-const appId = "app_0123456789abcdef0123456789abcdef";
-const userId = "user_0123456789abcdef0123456789abcdef";
-
-const completeRow = {
-  appId,
-  n_users_started_at_least_one_selfie_check_flow: 10,
-  n_users_shared_at_least_one_proof: 8,
-  n_selfie_check_started_sessions: 10,
-  n_face_capture_started_sessions: 9,
-  n_face_capture_completed_sessions: 8,
-  n_proof_shared_sessions: 3,
-  p_selfie_check_to_face_capture_started_completion: 0.9,
-  p_face_capture_started_to_completed_completion: 0.75,
-  p_face_capture_completed_to_proof_shared_completion: 0.5,
-};
-
-const snapshot = (isFallback = false) => ({
-  headers: [
-    "PARTNER_APP_ID",
-    "N_USERS_STARTED_AT_LEAST_ONE_SELFIE_CHECK_FLOW",
-    "N_USERS_SHARED_AT_LEAST_ONE_PROOF",
-    "N_SELFIE_CHECK_STARTED_SESSIONS",
-    "N_FACE_CAPTURE_STARTED_SESSIONS",
-    "N_FACE_CAPTURE_COMPLETED_SESSIONS",
-    "N_PROOF_SHARED_SESSIONS",
-    "P_SELFIE_CHECK_TO_FACE_CAPTURE_STARTED_COMPLETION",
-    "P_FACE_CAPTURE_STARTED_TO_COMPLETED_COMPLETION",
-    "P_FACE_CAPTURE_COMPLETED_TO_PROOF_SHARED_COMPLETION",
-  ],
-  records: new Map([[appId, completeRow]]),
-  isFallback,
-  loadedAt: "2026-08-26T22:00:00.000Z",
-  lastCheckedAt: "2026-08-26T22:01:00.000Z",
-  source: {
-    etag: '"source-etag"',
-    identity: 'total/run-1.csv:"source-etag"',
-    key: "total/run-1.csv",
-    dataAsOf: "2026-08-26T21:00:00.000Z",
-    lastModified: "2026-08-26T21:00:00.000Z",
-    sizeBytes: 100,
-  },
-});
-
-const dailyRows = [
-  {
-    appId,
-    day: "2026-08-25",
-    os_name: "iOS",
-    n_users_started_selfie_check_flow: 10,
-    n_users_shared_a_proof: 8,
-    cumulative_n_users_shared_a_proof: 20,
-    p_face_capture_completion: 0.8,
-  },
-];
-
-const dailySnapshot = () => ({
-  ...snapshot(),
-  headers: [
-    "PARTNER_APP_ID",
-    "DAY",
-    "OS_NAME",
-    "N_USERS_STARTED_SELFIE_CHECK_FLOW",
-    "N_USERS_SHARED_A_PROOF",
-    "CUMULATIVE_N_USERS_SHARED_A_PROOF",
-    "P_FACE_CAPTURE_COMPLETION",
-  ],
-  records: new Map([[appId, dailyRows]]),
-});
-
-const request = (etag?: string, query = "") =>
+const request = (table = "total", etag?: string) =>
   new NextRequest(
-    `http://localhost:3000/api/v2/apps/${appId}/selfie-check-analytics${query}`,
+    `http://localhost:3000/api/v2/apps/${appId}/selfie-check-analytics?table=${table}`,
     { headers: etag ? { "If-None-Match": etag } : undefined },
   );
-
-const context = (id = appId) => ({
-  params: Promise.resolve({ app_id: id }),
-});
+const context = (id = appId) => ({ params: Promise.resolve({ app_id: id }) });
+const refresh = () => jest.advanceTimersByTime(60_000);
 // #endregion
 
 beforeEach(() => {
   jest.clearAllMocks();
-  getSessionMock.mockResolvedValue({
-    user: { hasura: { id: userId } },
+  clearTableCaches();
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date("2026-08-26T22:00:00Z"));
+  getSession.mockResolvedValue({ user: { hasura: { id: userId } } });
+  GetIsUserPermittedToReadApp.mockResolvedValue({
+    app_by_pk: { team: { memberships: [{ id: "membership" }] } },
   });
-  getIsUserAllowedToReadApp.mockResolvedValue(true);
-  isEnabledForAppMock.mockResolvedValue(true);
-  loadLatestTotalsTableSnapshotMock.mockResolvedValue(snapshot());
-  loadLatestDailyTableSnapshotMock.mockResolvedValue(dailySnapshot());
+  listCsv.mockImplementation((prefix: string) =>
+    Promise.resolve(source(prefix)),
+  );
+  downloadCsv.mockImplementation((object: ReturnType<typeof source>) =>
+    Promise.resolve({
+      object,
+      csv: object.key.startsWith("total/")
+        ? totalsCsv([appId, otherAppId])
+        : dailyCsv(),
+    }),
+  );
 });
+afterEach(() => jest.useRealTimers());
 
-// #region Success and cache behavior
-describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [success]", () => {
-  it("returns only the authorized app's totals row", async () => {
-    const response = await GET(request(), context());
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({
-      appId,
-      tablePrefix: "total/",
-      row: completeRow,
-      meta: {
+// #region Success and conditional requests
+describe("analytics API [success]", () => {
+  it.each(["total", "daily"])(
+    "returns authorized %s data and revalidates with 304",
+    async (table) => {
+      const first = await GET(request(table), context());
+      expect(first.status).toBe(200);
+      expect(first.headers.get("cache-control")).toBe("private, max-age=60");
+      const body = await first.json();
+      expect(body.appId).toBe(appId);
+      expect(body.meta).toEqual({
         dataAsOf: "2026-08-26T21:00:00.000Z",
         isFallback: false,
-      },
-    });
-    expect(response.headers.get("cache-control")).toBe("private, max-age=60");
-    expect(response.headers.get("etag")).toMatch(/^"[A-Za-z0-9_-]+"$/);
-    expect(getIsUserAllowedToReadApp).toHaveBeenCalledWith(appId);
-    expect(isEnabledForAppMock).toHaveBeenCalledWith(appId);
+      });
+      if (table === "total") {
+        expect(body.row.n_proof_shared_sessions).toBe(0);
+        expect(listCsv).toHaveBeenCalledTimes(1);
+      } else {
+        expect(body.rows).toHaveLength(1);
+        expect(listCsv.mock.calls).toEqual([["total/"], ["daily/"]]);
+      }
+      expect(GetIsUserPermittedToReadApp).toHaveBeenCalledWith({
+        appId,
+        userId,
+      });
+      const second = await GET(
+        request(table, first.headers.get("etag")!),
+        context(),
+      );
+      expect(second.status).toBe(304);
+      expect(await second.text()).toBe("");
+      expect(GetIsUserPermittedToReadApp).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it("supports totals-only apps but returns normal absence for missing daily rows", async () => {
+    downloadCsv.mockImplementation((object: ReturnType<typeof source>) =>
+      Promise.resolve({
+        object,
+        csv: object.key.startsWith("total/")
+          ? totalsCsv()
+          : dailyCsv([otherAppId]),
+      }),
+    );
+    expect((await GET(request(), context())).status).toBe(200);
+    expect((await GET(request("daily"), context())).status).toBe(404);
+    expect(logger.warn).not.toHaveBeenCalled();
   });
 
-  it("returns 304 when the app snapshot ETag matches", async () => {
-    const firstResponse = await GET(request(), context());
-    const etag = firstResponse.headers.get("etag")!;
+  it.each(["total", "daily"])(
+    "requires totals membership for %s, including daily-only apps",
+    async (table) => {
+      downloadCsv.mockImplementation((object: ReturnType<typeof source>) =>
+        Promise.resolve({
+          object,
+          csv: object.key.startsWith("total/")
+            ? totalsCsv([otherAppId])
+            : dailyCsv(),
+        }),
+      );
+      const response = await GET(request(table), context());
+      expect(response.status).toBe(404);
+      expect(await response.json()).toMatchObject({ code: "not_found" });
+      expect(listCsv.mock.calls).toEqual([["total/"]]);
+      expect(logger.warn).not.toHaveBeenCalled();
+    },
+  );
 
-    const response = await GET(request(etag), context());
+  it.each(["total", "daily"])(
+    "checks removal after refresh before returning a %s 304",
+    async (table) => {
+      const first = await GET(request(table), context());
+      listCsv.mockImplementation((prefix: string) =>
+        Promise.resolve(source(prefix, 2)),
+      );
+      downloadCsv.mockImplementation((object: ReturnType<typeof source>) =>
+        Promise.resolve({
+          object,
+          csv: object.key.startsWith("total/")
+            ? totalsCsv([otherAppId])
+            : dailyCsv(),
+        }),
+      );
+      refresh();
+      expect(
+        (await GET(request(table, first.headers.get("etag")!), context()))
+          .status,
+      ).toBe(404);
+    },
+  );
+});
+// #endregion
 
-    expect(response.status).toBe(304);
-    expect(await response.text()).toBe("");
-    expect(response.headers.get("etag")).toBe(etag);
+// #region Authorization and validation
+describe("analytics API [guards]", () => {
+  it("rejects invalid input before I/O", async () => {
+    expect((await GET(request(), context("invalid"))).status).toBe(400);
+    expect((await GET(request("weekly"), context())).status).toBe(400);
+    expect(getSession).not.toHaveBeenCalled();
+    expect(listCsv).not.toHaveBeenCalled();
   });
 
-  it("returns the app's daily rows when table=daily is requested", async () => {
-    const response = await GET(request(undefined, "?table=daily"), context());
+  it.each(["total", "daily"])(
+    "checks authentication before %s membership or 304",
+    async (table) => {
+      const first = await GET(request(table), context());
+      listCsv.mockClear();
+      getSession.mockResolvedValue(null);
+      expect(
+        (await GET(request(table, first.headers.get("etag")!), context()))
+          .status,
+      ).toBe(401);
+      expect(listCsv).not.toHaveBeenCalled();
+    },
+  );
 
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({
-      appId,
-      tablePrefix: "daily/",
-      rows: dailyRows,
-      meta: {
-        dataAsOf: "2026-08-26T21:00:00.000Z",
-        isFallback: false,
-      },
+  it.each(["total", "daily"])(
+    "checks app access before %s membership or 304",
+    async (table) => {
+      const first = await GET(request(table), context());
+      clearTableCaches();
+      listCsv.mockClear();
+      GetIsUserPermittedToReadApp.mockResolvedValue({ app_by_pk: null });
+      expect(
+        (await GET(request(table, first.headers.get("etag")!), context()))
+          .status,
+      ).toBe(404);
+      expect(listCsv).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["auth0", "hasura"])(
+    "reports %s outages before snapshot I/O",
+    async (dependency) => {
+      (dependency === "auth0"
+        ? getSession
+        : GetIsUserPermittedToReadApp
+      ).mockRejectedValue(new Error("Unavailable"));
+      const response = await GET(request(), context());
+      expect(response.status).toBe(503);
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      expect(listCsv).not.toHaveBeenCalled();
+    },
+  );
+
+  it("cannot bypass membership with preview query parameters or a production environment", async () => {
+    const previous = process.env.NODE_ENV;
+    Object.defineProperty(process.env, "NODE_ENV", {
+      value: "production",
+      configurable: true,
+      writable: true,
     });
-    expect(loadLatestDailyTableSnapshotMock).toHaveBeenCalled();
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
-  });
-
-  it("surfaces last-known-good fallback metadata", async () => {
-    loadLatestTotalsTableSnapshotMock.mockResolvedValue(snapshot(true));
-
-    const response = await GET(request(), context());
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      meta: { isFallback: true },
-    });
+    try {
+      downloadCsv.mockImplementation((object: ReturnType<typeof source>) =>
+        Promise.resolve({ object, csv: totalsCsv([otherAppId]) }),
+      );
+      const req = new NextRequest(
+        `http://localhost/api/v2/apps/${appId}/selfie-check-analytics?mock=true&preview=true`,
+      );
+      expect((await GET(req, context())).status).toBe(404);
+    } finally {
+      Object.defineProperty(process.env, "NODE_ENV", {
+        value: previous,
+        configurable: true,
+        writable: true,
+      });
+    }
   });
 });
 // #endregion
 
-// #region Guards and failures
-describe("GET /api/v2/apps/[app_id]/selfie-check-analytics [guards]", () => {
-  it("rejects an invalid app ID before any I/O", async () => {
-    const response = await GET(request(), context("invalid"));
+// #region Dependency failures, verified fallback, and recovery
+describe("analytics API [failures]", () => {
+  it.each(["timeout", "503", "malformed"])(
+    "returns retryable 503 for a cold %s export failure",
+    async (failure) => {
+      if (failure === "malformed")
+        downloadCsv.mockResolvedValue({ object: source(), csv: "invalid,csv" });
+      else listCsv.mockRejectedValue(new Error(`S3 ${failure}`));
+      const response = await GET(request(), context());
+      expect(response.status).toBe(503);
+      expect(response.headers.get("retry-after")).toBe("60");
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      expect(await response.json()).toMatchObject({
+        code: "temporarily_unavailable",
+      });
+      expect(logger.error).toHaveBeenCalled();
+    },
+  );
 
-    expect(response.status).toBe(400);
-    expect(getSessionMock).not.toHaveBeenCalled();
-    expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
-  });
-
-  it("rejects an unknown table parameter before any I/O", async () => {
-    const response = await GET(request(undefined, "?table=weekly"), context());
-
-    expect(response.status).toBe(400);
-    await expect(response.json()).resolves.toMatchObject({
-      code: "invalid_table",
-    });
-    expect(getSessionMock).not.toHaveBeenCalled();
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
-    expect(loadLatestDailyTableSnapshotMock).not.toHaveBeenCalled();
-  });
-
-  it("returns 401 without an authenticated session", async () => {
-    getSessionMock.mockResolvedValue(null);
-
-    const response = await GET(request(), context());
-
-    expect(response.status).toBe(401);
-    expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
-    expect(isEnabledForAppMock).not.toHaveBeenCalled();
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
-  });
-
-  it("returns 503 when the authentication dependency is unavailable", async () => {
-    getSessionMock.mockRejectedValue(new Error("Auth0 unavailable"));
-
-    const response = await GET(request(), context());
-
-    expect(response.status).toBe(503);
-    expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
-    expect(logger.error).toHaveBeenCalledWith(
-      "Failed to authenticate selfie-check analytics request",
-      expect.objectContaining({ dependency: "auth0", appId }),
+  it("reports a daily outage without losing available totals", async () => {
+    listCsv.mockImplementation((prefix: string) =>
+      prefix === "daily/"
+        ? Promise.reject(new Error("S3 503"))
+        : Promise.resolve(source(prefix)),
     );
+    expect((await GET(request("daily"), context())).status).toBe(503);
+    expect((await GET(request(), context())).status).toBe(200);
   });
 
-  it("returns 404 when the user is not a member of the app's team", async () => {
-    getIsUserAllowedToReadApp.mockResolvedValue(false);
+  it.each(["total", "daily"])(
+    "changes the %s ETag on fallback and recovery",
+    async (table) => {
+      const first = await GET(request(table), context());
+      listCsv.mockRejectedValue(new Error("S3 timeout"));
+      refresh();
+      const fallback = await GET(
+        request(table, first.headers.get("etag")!),
+        context(),
+      );
+      expect(fallback.status).toBe(200);
+      expect(await fallback.json()).toMatchObject({
+        meta: { isFallback: true },
+      });
+      expect(
+        (await GET(request(table, fallback.headers.get("etag")!), context()))
+          .status,
+      ).toBe(304);
+      listCsv.mockImplementation((prefix: string) =>
+        Promise.resolve(source(prefix)),
+      );
+      refresh();
+      const recovered = await GET(
+        request(table, fallback.headers.get("etag")!),
+        context(),
+      );
+      expect(recovered.status).toBe(200);
+      expect(await recovered.json()).toMatchObject({
+        meta: { isFallback: false },
+      });
+    },
+  );
 
-    const response = await GET(request(), context());
-
-    expect(response.status).toBe(404);
-    expect(isEnabledForAppMock).not.toHaveBeenCalled();
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
-  });
-
-  it("returns 404 without loading S3 when the rollout flag is off", async () => {
-    isEnabledForAppMock.mockResolvedValue(false);
-
-    const response = await GET(request(), context());
-
-    expect(response.status).toBe(404);
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
-  });
-
-  it("returns 404 when the whitelisted app is absent from the table", async () => {
-    loadLatestTotalsTableSnapshotMock.mockResolvedValue({
-      ...snapshot(),
-      records: new Map(),
-    });
-
-    const response = await GET(request(), context());
-
-    expect(response.status).toBe(404);
-    expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining("absent from the snapshot"),
-      expect.objectContaining({ appId }),
+  it("marks daily data stale when only its totals membership check falls back", async () => {
+    await GET(request("daily"), context());
+    listCsv.mockImplementation((prefix: string) =>
+      prefix === "total/"
+        ? Promise.reject(new Error("S3 503"))
+        : Promise.resolve(source(prefix)),
     );
-  });
-
-  it("returns 503 when membership authorization is unavailable", async () => {
-    getIsUserAllowedToReadApp.mockRejectedValue(new Error("Hasura timeout"));
-
-    const response = await GET(request(), context());
-
-    expect(response.status).toBe(503);
-    expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(loadLatestTotalsTableSnapshotMock).not.toHaveBeenCalled();
-  });
-
-  it("returns retryable 503 when no totals snapshot is available", async () => {
-    loadLatestTotalsTableSnapshotMock.mockRejectedValue(
-      new Error("S3 timeout"),
-    );
-
-    const response = await GET(request(), context());
-
-    expect(response.status).toBe(503);
-    expect(response.headers.get("retry-after")).toBe("60");
-    expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(logger.error).toHaveBeenCalledWith(
-      "Failed to load selfie-check analytics table",
-      expect.objectContaining({
-        dependency: "s3",
-        dataset: "selfie_check_totals",
-      }),
-    );
+    refresh();
+    const response = await GET(request("daily"), context());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ meta: { isFallback: true } });
   });
 });
 // #endregion

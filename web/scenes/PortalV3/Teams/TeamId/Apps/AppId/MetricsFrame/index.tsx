@@ -12,6 +12,7 @@ import {
   type MetricKind,
   type TotalsRow,
 } from "@/lib/selfie-check-analytics";
+import { AnalyticsAppEligibility } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 import { useEffect, useMemo, useState } from "react";
 import {
   DailyMetricChart,
@@ -88,12 +89,13 @@ const metricKind = (metric: DailyChartMetric): MetricKind => {
 
 type DailyState =
   | { kind: "loading" }
-  | { kind: "ready"; rows: readonly DailyRow[] }
+  | { kind: "ready"; rows: readonly DailyRow[]; isFallback: boolean }
   | { kind: "error"; message: string };
 
 type TotalsState =
   | { kind: "loading" }
-  | { kind: "ready"; row: TotalsRow }
+  | { kind: "ready"; row: TotalsRow; isFallback: boolean }
+  | { kind: "absent"; message: string }
   | { kind: "error"; message: string };
 
 const PlaceholderCard = (props: { label: string; message: string }) => (
@@ -105,8 +107,16 @@ const PlaceholderCard = (props: { label: string; message: string }) => (
   </section>
 );
 
+const isFallbackResponse = (payload: unknown): boolean =>
+  typeof payload === "object" &&
+  payload !== null &&
+  (payload as { meta?: { isFallback?: unknown } }).meta?.isFallback === true;
+
 /** Fetches the app's analytics: overview and funnel above the daily charts. */
-export const MetricsFrame = (props: { appId: string }) => {
+export const MetricsFrame = (props: {
+  appId: string;
+  initialIsFallback?: boolean;
+}) => {
   const [daily, setDaily] = useState<DailyState>({ kind: "loading" });
   const [totals, setTotals] = useState<TotalsState>({ kind: "loading" });
   const [timeframe, setTimeframe] = useState<TimeframeValue>("14");
@@ -131,6 +141,8 @@ export const MetricsFrame = (props: { appId: string }) => {
   }, [daily, osName, timeframe]);
 
   useEffect(() => {
+    setDaily({ kind: "loading" });
+    setTotals({ kind: "loading" });
     let active = true;
     const controller = new AbortController();
     const timeout = window.setTimeout(
@@ -181,7 +193,11 @@ export const MetricsFrame = (props: { appId: string }) => {
           return;
         }
 
-        setDaily({ kind: "ready", rows: rows as DailyRow[] });
+        setDaily({
+          kind: "ready",
+          rows: rows as DailyRow[],
+          isFallback: isFallbackResponse(payload),
+        });
       } catch {
         if (!active) return;
         setDaily({
@@ -197,8 +213,11 @@ export const MetricsFrame = (props: { appId: string }) => {
         if (!response.ok) {
           if (!active) return;
           setTotals({
-            kind: "error",
-            message: requestFailureMessage("Totals", response.status),
+            kind: response.status === 404 ? "absent" : "error",
+            message:
+              response.status === 404
+                ? "Analytics not found."
+                : requestFailureMessage("Totals", response.status),
           });
           return;
         }
@@ -220,7 +239,11 @@ export const MetricsFrame = (props: { appId: string }) => {
           return;
         }
 
-        setTotals({ kind: "ready", row });
+        setTotals({
+          kind: "ready",
+          row,
+          isFallback: isFallbackResponse(payload),
+        });
       } catch {
         if (!active) return;
         setTotals({
@@ -243,7 +266,19 @@ export const MetricsFrame = (props: { appId: string }) => {
 
   return (
     <SizingWrapper className="py-8">
+      {totals.kind === "absent" && (
+        <AnalyticsAppEligibility appId={props.appId} enabled={false} />
+      )}
       <div className="grid w-[920px] max-w-full gap-6">
+        {((totals.kind === "ready"
+          ? totals.isFallback
+          : totals.kind !== "absent" && props.initialIsFallback) ||
+          (daily.kind === "ready" && daily.isFallback)) && (
+          <p role="status" className="font-world text-13 text-portal-muted">
+            Analytics may be out of date. A refresh failed; showing the last
+            verified data.
+          </p>
+        )}
         <section aria-labelledby="all-time-heading" className="grid gap-4">
           <h2
             id="all-time-heading"
