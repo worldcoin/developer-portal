@@ -9,6 +9,7 @@ import { getSdk as getAppMetadataPermissionsSdk } from "./graphql/server/get-app
 import { getSdk as getAppReadPermissionsSdk } from "./graphql/server/get-app-read-permissions.generated";
 import { getSdk as getAppUpdatePermissionsSdk } from "./graphql/server/get-app-update-permissions.generated";
 import { getSdk as getLocalisationsDeletePermissionsSdk } from "./graphql/server/get-localisations-delete-permissions.generated";
+import { getSdk as getRpModeSwitchPermissionsSdk } from "./graphql/server/get-rp-mode-switch-permissions.generated";
 import { getSdk as getLocalisationsInsertPermissionsSdk } from "./graphql/server/get-localisations-insert-permissions.generated";
 import { getSdk as getLocalisationsUpdatePermissionsSdk } from "./graphql/server/get-localisations-update-permissions.generated";
 import { getSdk as getTeamDeletePermissionsSdk } from "./graphql/server/get-team-delete-permissions.generated";
@@ -107,6 +108,29 @@ export const getIsUserAllowedToDeleteApp = async (appId: string) => {
   const response = await getAppDeletePermissionsSdk(
     await getAPIServiceGraphqlClient(),
   ).GetIsUserPermittedToDeleteApp({ appId, userId });
+
+  if (response.app_by_pk?.team.memberships.length) {
+    return true;
+  }
+  return false;
+};
+
+// Switching an RP to self-managed irreversibly transfers the on-chain
+// manager, so it is owner-tier like app deletion, not admin-tier.
+export const getIsUserAllowedToSwitchRpMode = async (appId: string) => {
+  if (!(await getIsIdValid(appId))) {
+    return false;
+  }
+
+  const session = await auth0.getSession();
+  if (!session) {
+    return false;
+  }
+
+  const userId = session.user.hasura.id;
+  const response = await getRpModeSwitchPermissionsSdk(
+    await getAPIServiceGraphqlClient(),
+  ).GetIsUserPermittedToSwitchRpMode({ appId, userId });
 
   if (response.app_by_pk?.team.memberships.length) {
     return true;

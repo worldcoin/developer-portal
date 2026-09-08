@@ -73,6 +73,7 @@ export const WorldIdLayout = (props: {
   teamId: string;
   appId: string;
   canManageWorldId: boolean;
+  canSwitchToSelfManaged: boolean;
   children: ReactNode;
 }) => {
   const router = useRouter();
@@ -432,6 +433,7 @@ export const WorldIdLayout = (props: {
                     }
                     mode={rp.mode as string}
                     canManageWorldId={props.canManageWorldId}
+                    canSwitchToSelfManaged={props.canSwitchToSelfManaged}
                     onRpChanged={handleRpChanged}
                   />
                 ) : app ? (

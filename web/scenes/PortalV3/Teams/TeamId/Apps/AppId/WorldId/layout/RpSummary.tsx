@@ -23,6 +23,7 @@ export const RpSummary = (props: {
   initialStagingStatus: RpRegistrationStatus | null;
   mode: string;
   canManageWorldId: boolean;
+  canSwitchToSelfManaged: boolean;
   onRpChanged?: (status?: RpRegistrationStatus) => void;
 }) => {
   const [isRotateOpen, setIsRotateOpen] = useState(false);
@@ -54,6 +55,10 @@ export const RpSummary = (props: {
         ? "Signer keys are managed outside the Portal."
         : null
     : null;
+  const switchDisabledReason =
+    isActive && !isSelfManaged && !props.canSwitchToSelfManaged
+      ? "Only the team owner can switch this RP to self-managed."
+      : null;
   const handleConfigurationChanged = () => {
     markProductionPending();
     props.onRpChanged?.(RpRegistrationStatus.Pending);
@@ -179,15 +184,28 @@ export const RpSummary = (props: {
                     >
                       Move this RP to a self-managed configuration
                     </Typography>
+
+                    {switchDisabledReason ? (
+                      <Typography
+                        id="rp-switch-self-managed-disabled-reason"
+                        as="p"
+                        variant={TYPOGRAPHY.B4}
+                        className="text-grey-500"
+                      >
+                        {switchDisabledReason}
+                      </Typography>
+                    ) : null}
                   </div>
 
                   <DestructiveTriggerButton
-                    disabled={!props.canManageWorldId || isSelfManaged}
+                    disabled={!props.canSwitchToSelfManaged || isSelfManaged}
                     className="shrink-0"
                     aria-describedby={
-                      controlsDisabledReason
-                        ? "world-id-configuration-disabled-reason"
-                        : undefined
+                      switchDisabledReason
+                        ? "rp-switch-self-managed-disabled-reason"
+                        : controlsDisabledReason
+                          ? "world-id-configuration-disabled-reason"
+                          : undefined
                     }
                     onClick={() => setIsSwitchOpen(true)}
                   >

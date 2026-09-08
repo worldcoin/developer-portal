@@ -188,7 +188,13 @@ const makeData = (
 });
 
 const el = (over?: Partial<React.ComponentProps<typeof WorldIdLayout>>) => (
-  <WorldIdLayout teamId="team_1" appId="app_1" canManageWorldId {...over}>
+  <WorldIdLayout
+    teamId="team_1"
+    appId="app_1"
+    canManageWorldId
+    canSwitchToSelfManaged
+    {...over}
+  >
     <WorldIdPage />
   </WorldIdLayout>
 );

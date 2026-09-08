@@ -60,6 +60,7 @@ const defaultProps = {
   initialStagingStatus: null,
   mode: "managed",
   canManageWorldId: true,
+  canSwitchToSelfManaged: true,
 };
 
 const renderSummary = (
@@ -160,6 +161,26 @@ it("explains self-managed signer ownership and disables Portal controls", () => 
   expect(
     screen.getByRole("button", { name: "Switch to self-managed" }),
   ).toBeDisabled();
+});
+
+it("keeps the mode switch owner-only while other controls stay admin-usable", () => {
+  renderSummary({ canSwitchToSelfManaged: false });
+
+  expect(
+    screen.getByRole("button", { name: "Rotate signer key" }),
+  ).toBeEnabled();
+
+  const switchButton = screen.getByRole("button", {
+    name: "Switch to self-managed",
+  });
+  expect(switchButton).toBeDisabled();
+  expect(switchButton).toHaveAttribute(
+    "aria-describedby",
+    "rp-switch-self-managed-disabled-reason",
+  );
+  expect(
+    screen.getByText("Only the team owner can switch this RP to self-managed."),
+  ).toBeInTheDocument();
 });
 
 it("refetches the visible RP data after signer rotation", () => {
