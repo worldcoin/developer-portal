@@ -267,6 +267,23 @@ describe("POST /api/v2/sandbox-access-request-ios", () => {
     });
   });
 
+  it("returns 409 for an ASC email conflict raised under the table-wide constraint", async () => {
+    // The schema and the app roll out independently, so this code can meet a
+    // database that still carries the table-wide constraint. That skew must
+    // still answer 409 rather than falling through to a 500.
+    InsertSandboxAccessRequestIos.mockRejectedValue(
+      uniqueConstraintError("unique_sandbox_access_request_ios_asc_email"),
+    );
+    GetSandboxAccessRequestIos.mockResolvedValue({
+      sandbox_access_request_ios: [],
+    });
+
+    const response = await POST(makeJsonRequest(validBody));
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ success: false });
+  });
+
   it("lets the owner claim an ASC email a rejected request released", async () => {
     // Only a live claim occupies the partial unique index, so the insert from
     // the address owner reaches Hasura instead of being answered with a 409.

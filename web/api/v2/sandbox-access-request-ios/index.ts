@@ -9,8 +9,17 @@ import { fetchSandboxAccessRequestIos } from "./server/fetch-sandbox-access-requ
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Partial unique index: only rows that still hold a live claim on the Apple
 // Account occupy it, so a rejected or revoked request releases the address.
-const ASC_EMAIL_UNIQUE_CONSTRAINT =
-  "sandbox_access_request_ios_live_asc_email_key";
+//
+// Both names must stay recognized: the schema migration and the app roll out
+// independently, so either version of this code can meet either version of the
+// schema mid-deploy (and again if the schema is rolled back). Matching only one
+// turns an expected duplicate-email conflict into a 500 for the whole skew
+// window. Drop the legacy name only once no reachable database still carries
+// the table-wide constraint.
+const ASC_EMAIL_UNIQUE_CONSTRAINTS = [
+  "sandbox_access_request_ios_live_asc_email_key",
+  "unique_sandbox_access_request_ios_asc_email",
+];
 const USER_ID_UNIQUE_CONSTRAINT = "unique_sandbox_access_request_ios_user_id";
 
 const normalizeEmail = (email: unknown) => {
@@ -47,7 +56,9 @@ const isConstraintConflict = (error: unknown, constraint: string) => {
 };
 
 const isAscEmailConflict = (error: unknown) =>
-  isConstraintConflict(error, ASC_EMAIL_UNIQUE_CONSTRAINT);
+  ASC_EMAIL_UNIQUE_CONSTRAINTS.some((constraint) =>
+    isConstraintConflict(error, constraint),
+  );
 
 const isUserIdConflict = (error: unknown) =>
   isConstraintConflict(error, USER_ID_UNIQUE_CONSTRAINT);
