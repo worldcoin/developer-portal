@@ -133,7 +133,7 @@ const toolDefinitions = [
   {
     name: "configure_world_id",
     description:
-      "Create a managed World ID 4.0 RP for an app. The platform creates a KMS-backed manager key, submits the on-chain registration transaction, and (on production) duplicates to the staging contract. A new signer wallet is generated server-side; its private key is returned ONCE in the response — the portal does not retain it.",
+      "Create a managed World ID 4.0 RP for an app. The platform creates a KMS-backed manager key, submits the on-chain registration transaction, and (on production) duplicates to the staging contract. A new signer wallet is generated server-side; its private key is returned ONCE, at signing_key.private_key in the result — the portal does not retain it, so store it immediately.",
     inputSchema: {
       type: "object",
       properties: {
@@ -177,7 +177,8 @@ const toolDefinitions = [
   },
   {
     name: "rotate_world_id_signing_key",
-    description: "Generate or set a new World ID signing key for an app.",
+    description:
+      "Generate or set a new World ID signing key for an app. The new private key is returned once, at signing_key.private_key in the result; rotation requires the RP registration to be complete.",
     inputSchema: {
       type: "object",
       properties: {
