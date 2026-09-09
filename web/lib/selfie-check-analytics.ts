@@ -262,32 +262,21 @@ export type DailyChartPoint = {
   [series: string]: number | null | string;
 } & { date: string };
 
-export type DailyChartOs = Readonly<{
-  /** Collision-free point key ("os:" + name); never equals the x-axis key. */
-  dataKey: string;
-  /** The OS name exactly as it appears in the data. */
-  osName: string;
-}>;
+/** Shared presentation order and colors for daily analytics. */
+export const DAILY_OS_SERIES = [
+  { osName: "Android", dataKey: "os:Android", color: "#A4C639" },
+  { osName: "iOS", dataKey: "os:iOS", color: "#1C98F7" },
+  { osName: "Unknown", dataKey: "os:Unknown", color: "#6B7280" },
+] as const;
+
+export type DailyChartOs = (typeof DAILY_OS_SERIES)[number];
 
 export type DailyChartData = Readonly<{
   /** One point per day, ascending. A day missing an OS omits its key. */
   points: readonly DailyChartPoint[];
-  /** One entry per OS, alphabetical for stable colors across metrics. */
+  /** Present OS series in the shared presentation order. */
   operatingSystems: readonly DailyChartOs[];
 }>;
-
-const DAILY_OS_ORDER = ["Android", "iOS", "Unknown"] as const;
-
-/** Keeps the public OS presentation order stable across filters and charts. */
-export const sortDailyOperatingSystems = (osNames: readonly string[]) =>
-  [...osNames].sort((a, b) => {
-    const aIndex = DAILY_OS_ORDER.indexOf(a as (typeof DAILY_OS_ORDER)[number]);
-    const bIndex = DAILY_OS_ORDER.indexOf(b as (typeof DAILY_OS_ORDER)[number]);
-    return (
-      (aIndex === -1 ? DAILY_OS_ORDER.length : aIndex) -
-        (bIndex === -1 ? DAILY_OS_ORDER.length : bIndex) || a.localeCompare(b)
-    );
-  });
 
 export type DailyTimeframeDays = 7 | 14 | 30 | null;
 
@@ -342,9 +331,8 @@ export const buildDailyChartData = (
     points: [...pointsByDay.values()].sort((a, b) =>
       a.date.localeCompare(b.date),
     ),
-    operatingSystems: sortDailyOperatingSystems([...osNames]).map((osName) => ({
-      dataKey: `os:${osName}`,
-      osName,
-    })),
+    operatingSystems: DAILY_OS_SERIES.filter(({ osName }) =>
+      osNames.has(osName),
+    ),
   };
 };

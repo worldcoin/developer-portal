@@ -2,10 +2,10 @@
 
 import { SizingWrapper } from "@/components/SizingWrapper";
 import {
+  DAILY_OS_SERIES,
   filterDailyRows,
   pickDailyRow,
   pickTotalsRow,
-  sortDailyOperatingSystems,
   TABLE_COLUMNS_DAILY,
   type DailyChartMetric,
   type DailyRow,
@@ -117,9 +117,9 @@ export const MetricsFrame = (props: { appId: string }) => {
   const operatingSystems = useMemo(
     () =>
       daily.kind === "ready"
-        ? sortDailyOperatingSystems([
-            ...new Set(daily.rows.map((row) => row.os_name)),
-          ])
+        ? DAILY_OS_SERIES.filter(({ osName }) =>
+            daily.rows.some((row) => row.os_name === osName),
+          ).map(({ osName }) => osName)
         : [],
     [daily],
   );

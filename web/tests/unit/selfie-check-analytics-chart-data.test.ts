@@ -62,9 +62,9 @@ describe("buildDailyChartData", () => {
       "n_users_shared_a_proof",
     );
 
-    expect(result.operatingSystems).toEqual([
-      { dataKey: "os:Android", osName: "Android" },
-      { dataKey: "os:iOS", osName: "iOS" },
+    expect(result.operatingSystems.map(({ osName }) => osName)).toEqual([
+      "Android",
+      "iOS",
     ]);
     expect(result.points).toEqual([
       { date: "2026-08-25", "os:iOS": 2 },
@@ -93,23 +93,36 @@ describe("buildDailyChartData", () => {
     expect(result.points[1]).not.toHaveProperty("os:iOS");
   });
 
-  it("keeps colliding display labels as distinct series keys", () => {
-    const result = buildDailyChartData(
-      [
-        row({ os_name: "date", n_users_shared_a_proof: 7 }),
-        row({ os_name: "date (os)", n_users_shared_a_proof: 9 }),
-      ],
-      "n_users_shared_a_proof",
-    );
+  it("uses the fixed OS order regardless of row order without reordering the input", () => {
+    const rows = [
+      row({ os_name: "Unknown", n_users_shared_a_proof: 1 }),
+      row({ os_name: "iOS", n_users_shared_a_proof: 9 }),
+      row({ os_name: "Android", n_users_shared_a_proof: 7 }),
+    ];
+    const result = buildDailyChartData(rows, "n_users_shared_a_proof");
 
-    expect(result.operatingSystems).toEqual([
-      { dataKey: "os:date", osName: "date" },
-      { dataKey: "os:date (os)", osName: "date (os)" },
+    expect(result.operatingSystems.map(({ osName }) => osName)).toEqual([
+      "Android",
+      "iOS",
+      "Unknown",
+    ]);
+    expect(rows.map(({ os_name }) => os_name)).toEqual([
+      "Unknown",
+      "iOS",
+      "Android",
     ]);
     expect(result.points[0]).toEqual({
       date: "2026-08-26",
-      "os:date": 7,
-      "os:date (os)": 9,
+      "os:Android": 7,
+      "os:iOS": 9,
+      "os:Unknown": 1,
+    });
+  });
+
+  it("does not invent OS series when there are no rows", () => {
+    expect(buildDailyChartData([], "n_users_shared_a_proof")).toEqual({
+      points: [],
+      operatingSystems: [],
     });
   });
 });

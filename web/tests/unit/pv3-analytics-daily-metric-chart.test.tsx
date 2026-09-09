@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import React, { type ReactNode } from "react";
 
 let mockChartWidth = 640;
@@ -38,10 +38,15 @@ jest.mock("recharts", () => ({
     />
   ),
   CartesianGrid: () => null,
-  ComposedChart: (props: { barCategoryGap?: string; children: ReactNode }) => (
+  ComposedChart: (props: {
+    barCategoryGap?: string;
+    children: ReactNode;
+    margin?: { right?: number };
+  }) => (
     <div
       data-testid="composed-chart"
       data-bar-category-gap={props.barCategoryGap}
+      data-right-margin={props.margin?.right}
     >
       {props.children}
     </div>
@@ -70,7 +75,21 @@ jest.mock("recharts", () => ({
     }, [props.onResize, mockChartWidth]);
     return <div>{props.children}</div>;
   },
-  Tooltip: () => null,
+  Tooltip: (props: { itemSorter: (item: { name?: string }) => number }) => {
+    const { DefaultTooltipContent } = jest.requireActual("recharts");
+    return (
+      <div data-testid="tooltip">
+        <DefaultTooltipContent
+          itemSorter={props.itemSorter}
+          payload={[
+            { name: "Unknown", value: 2 },
+            { name: "iOS", value: 6 },
+            { name: "Android", value: 4 },
+          ]}
+        />
+      </div>
+    );
+  },
   XAxis: (props: {
     interval?: number | string;
     minTickGap?: number;
@@ -142,6 +161,11 @@ describe("DailyMetricChart", () => {
       "#1C98F7",
       "#6B7280",
     ]);
+    expect(
+      within(screen.getByTestId("tooltip"))
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual(["Android : 4", "iOS : 6", "Unknown : 2"]);
     expect(bars.map((bar) => bar.dataset.maxBarSize)).toEqual([
       "80",
       "80",
@@ -220,6 +244,50 @@ describe("DailyMetricChart", () => {
       "middle",
     );
   });
+
+  it.each([7, 14])(
+    "reserves space for the last date in a %i-day chart even when narrow",
+    (days) => {
+      const dailyRows = Array.from({ length: days }, (_, index) =>
+        row("Android", 4, `2026-09-${String(index + 1).padStart(2, "0")}`),
+      );
+      const chart = () => (
+        <DailyMetricChart
+          title="Daily completion rate"
+          rows={dailyRows}
+          metric="p_face_capture_completion"
+          kind="rate"
+          chartType="line"
+          yAxisLabel="Average completion rate"
+        />
+      );
+      mockChartWidth = 900;
+      const view = render(chart());
+      const rightMargin = Number(
+        screen.getByTestId("composed-chart").dataset.rightMargin,
+      );
+
+      expect(rightMargin).toBeGreaterThanOrEqual(26);
+      expect(screen.getByTestId("x-axis")).toHaveAttribute(
+        "data-interval",
+        "0",
+      );
+      expect(screen.getByTestId("x-axis")).toHaveAttribute("data-angle", "0");
+
+      mockChartWidth = 180;
+      view.rerender(chart());
+
+      expect(screen.getByTestId("composed-chart")).toHaveAttribute(
+        "data-right-margin",
+        String(rightMargin),
+      );
+      expect(screen.getByTestId("x-axis")).toHaveAttribute(
+        "data-interval",
+        "0",
+      );
+      expect(screen.getByTestId("x-axis")).toHaveAttribute("data-angle", "-90");
+    },
+  );
 
   it("lets long ranges skip dates instead of forcing crowded labels", () => {
     mockChartWidth = 320;

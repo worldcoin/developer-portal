@@ -19,17 +19,11 @@ import {
   YAxis,
 } from "recharts";
 
-// Color follows the OS, not its position.
-const OS_COLORS: Readonly<Record<string, string>> = {
-  Android: "#A4C639",
-  iOS: "#1C98F7",
-};
 const RATE_TICKS = [0, 0.25, 0.5, 0.75, 1] as const;
 const Y_AXIS_WIDTH = 52;
-const CHART_RIGHT_MARGIN = 12;
 const DATE_LABEL_WIDTH = 44;
-
-const osColor = (osName: string) => OS_COLORS[osName] ?? "#6B7280";
+// The final date is centered on the last point, so reserve its right half.
+const CHART_RIGHT_MARGIN = DATE_LABEL_WIDTH / 2 + 4;
 
 const formatTickDate = (value: string) =>
   new Date(`${value}T00:00:00.000Z`).toLocaleDateString("en-US", {
@@ -90,7 +84,7 @@ export const DailyMetricChart = (props: {
               <span
                 aria-hidden
                 className="size-2 rounded-full"
-                style={{ backgroundColor: osColor(os.osName) }}
+                style={{ backgroundColor: os.color }}
               />
               {os.osName}
             </li>
@@ -162,13 +156,9 @@ export const DailyMetricChart = (props: {
               />
               <Tooltip
                 cursor={{ fill: "rgba(24, 24, 24, 0.04)" }}
-                itemSorter={(item) => {
-                  const osName = String(item.name ?? "");
-                  if (osName === "Android") return 0;
-                  if (osName === "iOS") return 1;
-                  if (osName === "Unknown") return 2;
-                  return 3;
-                }}
+                itemSorter={({ name }) =>
+                  operatingSystems.findIndex((os) => os.osName === name)
+                }
                 labelFormatter={(value) => formatTickDate(String(value))}
                 formatter={(value) =>
                   typeof value === "number" ? formatValue(value) : "—"
@@ -184,7 +174,7 @@ export const DailyMetricChart = (props: {
                     dot={{ r: 3 }}
                     isAnimationActive={false}
                     name={os.osName}
-                    stroke={osColor(os.osName)}
+                    stroke={os.color}
                     strokeWidth={2}
                     type="linear"
                   />
@@ -193,12 +183,12 @@ export const DailyMetricChart = (props: {
                     key={os.dataKey}
                     connectNulls={false}
                     dataKey={os.dataKey}
-                    fill={osColor(os.osName)}
+                    fill={os.color}
                     fillOpacity={0.12}
                     isAnimationActive={false}
                     name={os.osName}
                     stackId="os"
-                    stroke={osColor(os.osName)}
+                    stroke={os.color}
                     strokeWidth={2}
                     type="linear"
                   />
@@ -208,7 +198,7 @@ export const DailyMetricChart = (props: {
                     dataKey={os.dataKey}
                     name={os.osName}
                     stackId="os"
-                    fill={osColor(os.osName)}
+                    fill={os.color}
                     isAnimationActive={false}
                     maxBarSize={barMaxSize(points.length)}
                     radius={

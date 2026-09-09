@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import React from "react";
 import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
@@ -85,6 +86,11 @@ it("renders lifetime metrics by default and all daily charts in the daily tab", 
     fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
   });
   expect(screen.getAllByTestId("daily-chart")).toHaveLength(4);
+  expect(
+    within(screen.getByRole("combobox", { name: "Operating System" }))
+      .getAllByRole("option")
+      .map((option) => option.textContent),
+  ).toEqual(["All", "Android", "iOS"]);
   expect(
     screen.getByText("Average Face capture completion rate, by day and OS"),
   ).toBeInTheDocument();
