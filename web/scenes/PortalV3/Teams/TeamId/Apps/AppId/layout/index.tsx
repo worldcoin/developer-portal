@@ -1,8 +1,8 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { getIsUserAllowedToReadApp } from "@/lib/permissions";
 import { AnalyticsAppEligibility } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
-import { getAnalyticsSidebarEligibility } from "@/scenes/PortalV3/layout/server/get-analytics-sidebar-eligibility";
-import { ReactNode } from "react";
+import { AppAnalyticsEligibility } from "@/scenes/PortalV3/layout/server/app-analytics-eligibility";
+import { ReactNode, Suspense } from "react";
 
 type AppIdLayoutProps = {
   params: { teamId?: string; appId?: string };
@@ -25,11 +25,11 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
     );
   }
 
-  const analyticsEnabled = await getAnalyticsSidebarEligibility(appId);
-
   return (
     <>
-      <AnalyticsAppEligibility appId={appId} enabled={analyticsEnabled} />
+      <Suspense fallback={null}>
+        <AppAnalyticsEligibility appId={appId} />
+      </Suspense>
       {props.children}
     </>
   );

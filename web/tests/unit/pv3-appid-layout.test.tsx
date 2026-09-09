@@ -1,122 +1,78 @@
-/** @jest-environment jsdom */
-import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import {
+  listCsv,
+  downloadCsv,
+  GetIsUserPermittedToReadApp,
+} from "../fixtures/selfie-check-analytics-server";
+import {
+  appId,
+  otherAppId,
+  teamId,
+  source,
+  totalsCsv,
+} from "../fixtures/selfie-check-analytics";
+import { logger } from "@/lib/logger";
 import React from "react";
 
-// #region Mocks
-const getIsUserAllowedToReadApp = jest.fn();
-const isSelfieCheckAnalyticsEnabledForApp = jest.fn();
-const loggerWarn = jest.fn();
-jest.mock("@/lib/permissions", () => ({
-  getIsUserAllowedToReadApp: (...args: unknown[]) =>
-    getIsUserAllowedToReadApp(...args),
-}));
-
-jest.mock("@/api/helpers/selfie-check-analytics/eligibility", () => ({
-  isSelfieCheckAnalyticsEnabledForApp: (...args: unknown[]) =>
-    isSelfieCheckAnalyticsEnabledForApp(...args),
-}));
-
-jest.mock("@/lib/logger", () => ({
-  logger: {
-    info: jest.fn(),
-    warn: (...args: unknown[]) => loggerWarn(...args),
-  },
-}));
-
-jest.mock("@/scenes/PortalV3/layout/Shell/SidebarNav", () => ({
-  AnalyticsAppEligibility: (props: { appId: string; enabled: boolean }) => (
-    <div
-      data-testid="analytics-eligibility"
-      data-app-id={props.appId}
-      data-enabled={props.enabled}
-    />
-  ),
-}));
-
-jest.mock("@/components/ErrorPage", () => ({
-  ErrorPage: ({ statusCode }: { statusCode: number }) => (
-    <div data-testid="error" data-status={statusCode} />
-  ),
-}));
-// #endregion
-
 import { AppIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/layout";
+import { AppAnalyticsEligibility } from "@/scenes/PortalV3/layout/server/app-analytics-eligibility";
+import { AnalyticsAppEligibility } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
+import { ErrorPage } from "@/components/ErrorPage";
 
-const appId = "app_9cdd0a714aec9ed17dca660bc9ffe72a";
-const renderLayout = async (value?: string) =>
-  render(
-    await AppIdLayout({
-      params: { teamId: "team_1", appId: value },
-      children: <div data-testid="page" />,
-    }),
-  );
-
-beforeEach(() => {
-  jest.clearAllMocks();
-  getIsUserAllowedToReadApp.mockResolvedValue(true);
-  isSelfieCheckAnalyticsEnabledForApp.mockResolvedValue(false);
+// #region Layout streaming and access
+it("returns the surrounding layout before a cold optional snapshot lookup completes", async () => {
+  listCsv.mockReturnValue(new Promise(() => {}));
+  const child = <div>Surrounding page</div>;
+  const layout = await AppIdLayout({
+    params: { appId, teamId },
+    children: child,
+  });
+  const children = React.Children.toArray(
+    layout.props.children,
+  ) as React.ReactElement[];
+  expect(children[1].props).toBe(child.props);
+  expect(children[0].type).toBe(React.Suspense);
+  expect(children[0].props).toMatchObject({ fallback: null });
+  expect(
+    (children[0].props as { children: React.ReactElement }).children.type,
+  ).toBe(AppAnalyticsEligibility);
+  expect(listCsv).not.toHaveBeenCalled();
 });
 
-it("publishes a false sidebar verdict when analytics is disabled", async () => {
-  await renderLayout(appId);
+it.each([true, false])(
+  "publishes verified sidebar membership %s",
+  async (present) => {
+    downloadCsv.mockResolvedValue({
+      object: source(),
+      csv: totalsCsv(present ? [appId] : [otherAppId]),
+    });
+    const verdict = await AppAnalyticsEligibility({ appId });
+    expect(verdict.type).toBe(AnalyticsAppEligibility);
+    expect(verdict.props).toMatchObject({ appId, enabled: present });
+  },
+);
 
-  expect(isSelfieCheckAnalyticsEnabledForApp).toHaveBeenCalledWith(appId);
-  expect(screen.getByTestId("page")).toBeInTheDocument();
-  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
-    "data-enabled",
-    "false",
-  );
+it("hides the optional tab when no snapshot is available", async () => {
+  listCsv.mockRejectedValue(new Error("S3 timeout"));
+  expect((await AppAnalyticsEligibility({ appId })).props.enabled).toBe(false);
+  expect(logger.warn).toHaveBeenCalled();
 });
 
-it("signals the sidebar when analytics is enabled for the app", async () => {
-  isSelfieCheckAnalyticsEnabledForApp.mockResolvedValue(true);
-
-  await renderLayout(appId);
-
-  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
-    "data-enabled",
-    "true",
-  );
+it("retains the app access check and clears a previous sidebar verdict", async () => {
+  GetIsUserPermittedToReadApp.mockResolvedValue({ app_by_pk: null });
+  const layout = await AppIdLayout({ params: { appId }, children: <div /> });
+  const children = React.Children.toArray(
+    layout.props.children,
+  ) as React.ReactElement<Record<string, unknown>>[];
+  expect(children[0].type).toBe(AnalyticsAppEligibility);
+  expect(children[0].props.enabled).toBe(false);
+  expect(children[1].type).toBe(ErrorPage);
+  expect(listCsv).not.toHaveBeenCalled();
 });
 
-it("keeps the app available and hides analytics when eligibility fails", async () => {
-  const error = new Error("SSM unavailable");
-  isSelfieCheckAnalyticsEnabledForApp.mockRejectedValue(error);
-
-  await renderLayout(appId);
-
-  expect(screen.getByTestId("page")).toBeInTheDocument();
-  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
-    "data-enabled",
-    "false",
-  );
-  expect(loggerWarn).toHaveBeenCalledWith(
-    "Failed to resolve analytics eligibility for the sidebar",
-    expect.objectContaining({
-      appId,
-      dependency: "selfie-check-analytics-eligibility",
-      failureClass: "Error",
-      error,
-    }),
-  );
+it("rejects missing app IDs without I/O", async () => {
+  const layout = await AppIdLayout({ params: {}, children: <div /> });
+  expect(layout.type).toBe(ErrorPage);
+  expect(GetIsUserPermittedToReadApp).not.toHaveBeenCalled();
+  expect(listCsv).not.toHaveBeenCalled();
 });
-
-it("returns 404 when the user cannot read the app", async () => {
-  getIsUserAllowedToReadApp.mockResolvedValue(false);
-  await renderLayout(appId);
-
-  expect(isSelfieCheckAnalyticsEnabledForApp).not.toHaveBeenCalled();
-  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
-    "data-enabled",
-    "false",
-  );
-  expect(screen.getByTestId("error")).toHaveAttribute("data-status", "404");
-});
-
-it("returns 404 without querying when appId is missing", async () => {
-  await renderLayout();
-  expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
-  expect(screen.queryByTestId("analytics-eligibility")).not.toBeInTheDocument();
-  expect(screen.getByTestId("error")).toHaveAttribute("data-status", "404");
-});
+// #endregion

@@ -1,115 +1,59 @@
-/** @jest-environment jsdom */
-import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import {
+  listCsv,
+  downloadCsv,
+  GetIsUserPermittedToReadApp,
+} from "../fixtures/selfie-check-analytics-server";
+import {
+  appId,
+  otherAppId,
+  teamId,
+  source,
+  totalsCsv,
+} from "../fixtures/selfie-check-analytics";
+import { logger } from "@/lib/logger";
 import React from "react";
-
-// #region Mocks
-const getIsUserAllowedToReadApp = jest.fn();
-const getAnalyticsSidebarEligibility = jest.fn();
-const loggerWarn = jest.fn();
-
-jest.mock("@/lib/permissions", () => ({
-  getIsUserAllowedToReadApp: (...args: unknown[]) =>
-    getIsUserAllowedToReadApp(...args),
-}));
-
-jest.mock("@/lib/logger", () => ({
-  logger: {
-    info: jest.fn(),
-    warn: (...args: unknown[]) => loggerWarn(...args),
-  },
-}));
-
-jest.mock(
-  "@/scenes/PortalV3/layout/server/get-analytics-sidebar-eligibility",
-  () => ({
-    getAnalyticsSidebarEligibility: (...args: unknown[]) =>
-      getAnalyticsSidebarEligibility(...args),
-  }),
-);
-
-jest.mock("@/scenes/PortalV3/layout/Shell/SidebarNav", () => ({
-  AnalyticsAppEligibility: (props: { appId: string; enabled: boolean }) => (
-    <div
-      data-testid="analytics-eligibility"
-      data-app-id={props.appId}
-      data-enabled={props.enabled}
-    />
-  ),
-}));
-
-// #endregion
 
 import { TeamSettingsAnalyticsEligibility } from "@/scenes/PortalV3/layout/server/team-settings-analytics-eligibility";
 
-// #region Test Data
-const teamId = "team_1";
-const appId = "app_9cdd0a714aec9ed17dca660bc9ffe72a";
-const renderEligibility = async (returnTo?: string) =>
-  render(
-    await TeamSettingsAnalyticsEligibility({
-      teamId,
-      returnTo,
-    }),
-  );
-// #endregion
+// #region Restored sidebar
+const resolve = (returnTo = `/teams/${teamId}/apps/${appId}/configuration`) =>
+  TeamSettingsAnalyticsEligibility({ teamId, returnTo });
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  getIsUserAllowedToReadApp.mockResolvedValue(true);
-  getAnalyticsSidebarEligibility.mockResolvedValue(true);
+it.each([true, false])(
+  "restores verified totals membership %s",
+  async (present) => {
+    downloadCsv.mockResolvedValue({
+      object: source(),
+      csv: totalsCsv(present ? [appId] : [otherAppId]),
+    });
+    expect((await resolve())?.props).toMatchObject({ appId, enabled: present });
+    expect(listCsv.mock.calls).toEqual([["total/"]]);
+  },
+);
+
+it("does not trust return_to from another team", async () => {
+  expect(
+    await resolve(`/teams/team_other/apps/${appId}/configuration`),
+  ).toBeNull();
+  expect(GetIsUserPermittedToReadApp).not.toHaveBeenCalled();
+  expect(listCsv).not.toHaveBeenCalled();
 });
 
-// #region Analytics return_to eligibility
-it("signals analytics on a direct team-settings load for an eligible readable app", async () => {
-  await renderEligibility(`/teams/${teamId}/apps/${appId}/configuration`);
-
-  expect(getIsUserAllowedToReadApp).toHaveBeenCalledWith(appId);
-  expect(getAnalyticsSidebarEligibility).toHaveBeenCalledWith(appId);
-  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
-    "data-enabled",
-    "true",
-  );
+it("checks app access before eligibility", async () => {
+  GetIsUserPermittedToReadApp.mockResolvedValue({ app_by_pk: null });
+  expect((await resolve())?.props.enabled).toBe(false);
+  expect(listCsv).not.toHaveBeenCalled();
 });
 
-it("does not trust a return_to app from another team", async () => {
-  await renderEligibility(`/teams/team_2/apps/${appId}/configuration`);
-
-  expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
-  expect(getAnalyticsSidebarEligibility).not.toHaveBeenCalled();
-  expect(screen.queryByTestId("analytics-eligibility")).not.toBeInTheDocument();
-});
-
-it("does not check eligibility when the user cannot read the return_to app", async () => {
-  getIsUserAllowedToReadApp.mockResolvedValue(false);
-
-  await renderEligibility(`/teams/${teamId}/apps/${appId}/configuration`);
-
-  expect(getAnalyticsSidebarEligibility).not.toHaveBeenCalled();
-  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
-    "data-enabled",
-    "false",
-  );
-});
-
-it("keeps team settings available when return_to app validation fails", async () => {
-  const error = new Error("Hasura unavailable");
-  getIsUserAllowedToReadApp.mockRejectedValue(error);
-
-  await renderEligibility(`/teams/${teamId}/apps/${appId}/configuration`);
-
-  expect(screen.getByTestId("analytics-eligibility")).toHaveAttribute(
-    "data-enabled",
-    "false",
-  );
-  expect(loggerWarn).toHaveBeenCalledWith(
-    "Failed to validate analytics sidebar app from team settings",
-    expect.objectContaining({
-      appId,
-      dependency: "hasura",
-      failureClass: "Error",
-      error,
-    }),
-  );
-});
+it.each(["hasura", "s3"])(
+  "keeps settings available during a %s outage",
+  async (dependency) => {
+    (dependency === "hasura"
+      ? GetIsUserPermittedToReadApp
+      : listCsv
+    ).mockRejectedValue(new Error("Unavailable"));
+    expect((await resolve())?.props.enabled).toBe(false);
+    expect(logger.warn).toHaveBeenCalled();
+  },
+);
 // #endregion
