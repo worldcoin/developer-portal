@@ -283,32 +283,43 @@ describe("cleanupRpManagerKeys [pipeline]", () => {
     );
   });
 
-  it("schedules a key from the configured legacy AWS account", async () => {
+  it("does not schedule deletion for a key in another AWS account", async () => {
     process.env.KMS_LEGACY_ACCOUNT_ID = "906266994114";
     arrangeCurrentAccountKms({ AWSAccountId: "906266994114" });
 
     const report = await cleanupRpManagerKeys(primaryOnly);
 
-    expect(kmsSendMock).toHaveBeenCalledWith(
+    expect(kmsSendMock).not.toHaveBeenCalledWith(
       expect.any(ScheduleKeyDeletionCommand),
     );
-    expect(report.results[0]).toEqual(
-      expect.objectContaining({
-        status: CleanupStatus.DeletionScheduled,
-        expectedDeletionAt: DELETION_DATE.toISOString(),
-      }),
+    expect(kmsSendMock).not.toHaveBeenCalledWith(
+      expect.any(ListResourceTagsCommand),
+    );
+    expect(report.results[0]?.status).toBe(
+      CleanupStatus.ReadyForExternalCleanup,
     );
   });
 
-  it("retries ready-for-external-cleanup rows in the legacy AWS account", async () => {
-    process.env.KMS_LEGACY_ACCOUNT_ID = "906266994114";
+  it("records PendingDeletion when retrying a ready-for-external-cleanup row", async () => {
     candidates = [
       {
         ...candidate,
         cleanup_status: CleanupStatus.ReadyForExternalCleanup,
       },
     ];
-    arrangeCurrentAccountKms({ AWSAccountId: "906266994114" });
+    arrangeCurrentAccountKms({
+      AWSAccountId: "906266994114",
+      KeyState: "PendingDeletion",
+      DeletionDate: DELETION_DATE,
+    });
+    getEthAddressFromKMSMock.mockImplementation(async (_client, keyId) => {
+      if (keyId === OLD_KEY_ARN) {
+        const error = new Error("pending deletion");
+        error.name = "KMSInvalidStateException";
+        throw error;
+      }
+      return SHARED_MANAGER;
+    });
 
     const report = await cleanupRpManagerKeys(primaryOnly);
 
@@ -322,7 +333,16 @@ describe("cleanupRpManagerKeys [pipeline]", () => {
         ],
       }),
     );
-    expect(report.results[0]?.status).toBe(CleanupStatus.DeletionScheduled);
+    expect(kmsSendMock).not.toHaveBeenCalledWith(
+      expect.any(ScheduleKeyDeletionCommand),
+    );
+    expect(getEthAddressFromKMSMock).not.toHaveBeenCalled();
+    expect(report.results[0]).toEqual(
+      expect.objectContaining({
+        status: CleanupStatus.DeletionScheduled,
+        expectedDeletionAt: DELETION_DATE.toISOString(),
+      }),
+    );
   });
 
   it("skips without writing status while the old key is still referenced", async () => {
@@ -473,6 +493,14 @@ describe("cleanupRpManagerKeys [pipeline]", () => {
       KeyState: "PendingDeletion",
       DeletionDate: DELETION_DATE,
     });
+    getEthAddressFromKMSMock.mockImplementation(async (_client, keyId) => {
+      if (keyId === OLD_KEY_ARN) {
+        const error = new Error("pending deletion");
+        error.name = "KMSInvalidStateException";
+        throw error;
+      }
+      return SHARED_MANAGER;
+    });
 
     const report = await cleanupRpManagerKeys(primaryOnly);
 
@@ -481,6 +509,7 @@ describe("cleanupRpManagerKeys [pipeline]", () => {
         ([command]) => command instanceof ScheduleKeyDeletionCommand,
       ),
     ).toBe(false);
+    expect(getEthAddressFromKMSMock).not.toHaveBeenCalled();
     expect(report.results[0]).toEqual(
       expect.objectContaining({
         status: CleanupStatus.DeletionScheduled,
@@ -492,6 +521,31 @@ describe("cleanupRpManagerKeys [pipeline]", () => {
   it("marks the audit deleted after a scheduled key disappears from KMS", async () => {
     candidates = [
       { ...candidate, cleanup_status: CleanupStatus.DeletionScheduled },
+    ];
+    kmsSendMock.mockImplementation(async (command: unknown) => {
+      if (command instanceof DescribeKeyCommand) {
+        const keyId = command.input.KeyId;
+        if (keyId === OLD_KEY_ARN) {
+          const error = new Error("Key not found");
+          error.name = "NotFoundException";
+          throw error;
+        }
+        return kmsMetadata(keyId ?? "");
+      }
+      throw new Error("Unexpected KMS command");
+    });
+
+    const report = await cleanupRpManagerKeys(primaryOnly);
+
+    expect(report.results[0]?.status).toBe(CleanupStatus.Deleted);
+  });
+
+  it("marks the audit deleted when an external key is already gone", async () => {
+    candidates = [
+      {
+        ...candidate,
+        cleanup_status: CleanupStatus.ReadyForExternalCleanup,
+      },
     ];
     kmsSendMock.mockImplementation(async (command: unknown) => {
       if (command instanceof DescribeKeyCommand) {

@@ -485,12 +485,9 @@ async function determineKmsCleanupPlan(
   }
 
   if (oldManagerKey.AWSAccountId !== currentAccountId) {
-    const legacyAccountId = process.env.KMS_LEGACY_ACCOUNT_ID;
-    if (!legacyAccountId || oldManagerKey.AWSAccountId !== legacyAccountId) {
-      return {
-        nextStep: PlanStep.MarkAsReadyForExternalCleanup,
-      };
-    }
+    return {
+      nextStep: PlanStep.MarkAsReadyForExternalCleanup,
+    };
   }
 
   const { Tags = [] } = await input.kmsClient.send(
@@ -534,7 +531,8 @@ export async function determineCleanupPlan(
   } catch (error) {
     if (
       isKmsNotFound(error) &&
-      candidate.cleanup_status === CleanupStatus.DeletionScheduled
+      (candidate.cleanup_status === CleanupStatus.DeletionScheduled ||
+        candidate.cleanup_status === CleanupStatus.ReadyForExternalCleanup)
     ) {
       return {
         nextStep: PlanStep.MarkAsDeleted,
@@ -542,6 +540,17 @@ export async function determineCleanupPlan(
     }
 
     throw error;
+  }
+
+  if (oldManagerKey.KeyState === "PendingDeletion") {
+    if (!oldManagerKey.DeletionDate) {
+      throw new Error("PendingDeletion key has no deletion date");
+    }
+
+    return {
+      nextStep: PlanStep.RecordExistingDeletionSchedule,
+      deletionDate: oldManagerKey.DeletionDate.toISOString(),
+    };
   }
 
   const protectedOrInvalid = await findProtectedOrInvalidKeyBlocker(

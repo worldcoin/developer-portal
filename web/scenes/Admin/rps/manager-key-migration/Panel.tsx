@@ -115,7 +115,7 @@ const ProcessSummary = ({
             warn
           />
           <Stat
-            hint="Old key lives in another AWS account. Cleanup retries keys in the configured legacy account."
+            hint="Old key lives in another AWS account. Schedule deletion there; cleanup will record PendingDeletion on retry."
             label="Other AWS account"
             value={inventory.auditReadyForExternalCleanup}
             warn
