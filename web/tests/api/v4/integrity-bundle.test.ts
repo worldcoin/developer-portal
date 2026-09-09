@@ -311,14 +311,12 @@ describe("integrity bundle verification", () => {
       version: 2,
       signedResponses: [selfieSessionResponse],
     });
-    jest
-      .spyOn(global, "fetch")
-      .mockImplementation(
-        async () =>
-          new Response(JSON.stringify({ keys: [agPublicJwk] }), {
-            status: 200,
-          }),
-      );
+    jest.spyOn(global, "fetch").mockImplementation(
+      async () =>
+        new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+          status: 200,
+        }),
+    );
 
     await expect(
       verifyIntegrityBundle({
