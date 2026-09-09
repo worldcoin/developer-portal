@@ -13,6 +13,7 @@ import {
   type MetricKind,
   type TotalsRow,
 } from "@/lib/selfie-check-analytics";
+import { AnalyticsAppEligibility } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -74,6 +75,8 @@ const CHART_METRICS = [
 
 // Eligibility controls access to the page; these only describe the view's data.
 const requestFailureMessage = (scope: string, status: number) => {
+  if (status === 403)
+    return "Selfie Check analytics aren't available for this app yet. Contact us to learn more.";
   if (status === 404)
     return "Analytics data is not available for this view yet.";
   if (status === 503)
@@ -90,12 +93,13 @@ const metricKind = (metric: DailyChartMetric): MetricKind => {
 
 type DailyState =
   | { kind: "loading" }
-  | { kind: "ready"; rows: readonly DailyRow[] }
-  | { kind: "error"; message: string };
+  | { kind: "ready"; rows: readonly DailyRow[]; isFallback: boolean }
+  | { kind: "absent" | "error"; message: string };
 
 type TotalsState =
   | { kind: "loading" }
-  | { kind: "ready"; row: TotalsRow }
+  | { kind: "ready"; row: TotalsRow; isFallback: boolean }
+  | { kind: "absent"; message: string }
   | { kind: "error"; message: string };
 
 const PlaceholderCard = (props: { label: string; message: string }) => (
@@ -107,8 +111,17 @@ const PlaceholderCard = (props: { label: string; message: string }) => (
   </section>
 );
 
+const isFallbackResponse = (payload: unknown): boolean =>
+  typeof payload === "object" &&
+  payload !== null &&
+  (payload as { snapshotMetadata?: { isFallback?: unknown } }).snapshotMetadata
+    ?.isFallback === true;
+
 /** Separates lifetime performance from daily exploration in the two view tabs. */
-export const MetricsFrame = (props: { appId: string }) => {
+export const MetricsFrame = (props: {
+  appId: string;
+  initialIsFallback?: boolean;
+}) => {
   const [daily, setDaily] = useState<DailyState>({ kind: "loading" });
   const [totals, setTotals] = useState<TotalsState>({ kind: "loading" });
   const [timeframe, setTimeframe] = useState<TimeframeValue>("14");
@@ -160,7 +173,7 @@ export const MetricsFrame = (props: { appId: string }) => {
         if (!response.ok) {
           if (!active) return;
           setDaily({
-            kind: "error",
+            kind: response.status === 403 ? "absent" : "error",
             message: requestFailureMessage("Daily analytics", response.status),
           });
           return;
@@ -188,7 +201,11 @@ export const MetricsFrame = (props: { appId: string }) => {
           return;
         }
 
-        setDaily({ kind: "ready", rows: rows as DailyRow[] });
+        setDaily({
+          kind: "ready",
+          rows: rows as DailyRow[],
+          isFallback: isFallbackResponse(payload),
+        });
       } catch {
         if (!active) return;
         setDaily({
@@ -204,8 +221,14 @@ export const MetricsFrame = (props: { appId: string }) => {
         if (!response.ok) {
           if (!active) return;
           setTotals({
-            kind: "error",
-            message: requestFailureMessage("Totals", response.status),
+            kind:
+              response.status === 403 || response.status === 404
+                ? "absent"
+                : "error",
+            message:
+              response.status === 404
+                ? "Analytics not found."
+                : requestFailureMessage("Totals", response.status),
           });
           return;
         }
@@ -227,7 +250,11 @@ export const MetricsFrame = (props: { appId: string }) => {
           return;
         }
 
-        setTotals({ kind: "ready", row });
+        setTotals({
+          kind: "ready",
+          row,
+          isFallback: isFallbackResponse(payload),
+        });
       } catch {
         if (!active) return;
         setTotals({
@@ -253,6 +280,9 @@ export const MetricsFrame = (props: { appId: string }) => {
       className="py-6"
       gridClassName="grid-cols-[minmax(24px,1fr)_minmax(0,1120px)_minmax(24px,1fr)]"
     >
+      {(totals.kind === "absent" || daily.kind === "absent") && (
+        <AnalyticsAppEligibility appId={props.appId} enabled={false} />
+      )}
       <div className="mx-auto w-full max-w-[1120px] space-y-6">
         <div className="space-y-2">
           <h1 className="font-world text-24 font-semibold text-portal-heading">
@@ -261,6 +291,15 @@ export const MetricsFrame = (props: { appId: string }) => {
           <div className="font-world text-12 text-portal-muted">
             * Data updates every hour
           </div>
+          {((totals.kind === "ready"
+            ? totals.isFallback
+            : totals.kind !== "absent" && props.initialIsFallback) ||
+            (daily.kind === "ready" && daily.isFallback)) && (
+            <p role="status" className="font-world text-13 text-portal-muted">
+              Analytics may be out of date. A refresh failed; showing the last
+              verified data.
+            </p>
+          )}
         </div>
         <TabGroup>
           <TabList
