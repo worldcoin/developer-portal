@@ -318,15 +318,10 @@ export const buildDailyChartData = (
   metric: DailyChartMetric,
 ): DailyChartData => {
   const pointsByDay = new Map<string, DailyChartPoint>();
-  const visibleOsNames = new Set<string>();
 
   for (const row of rows) {
-    const value = row[metric];
-    if (value !== null && value > 0) {
-      visibleOsNames.add(row.os_name);
-    }
     const point = pointsByDay.get(row.day) ?? { date: row.day };
-    point[`os:${row.os_name}`] = value;
+    point[`os:${row.os_name}`] = row[metric];
     pointsByDay.set(row.day, point);
   }
 
@@ -335,7 +330,7 @@ export const buildDailyChartData = (
       a.date.localeCompare(b.date),
     ),
     operatingSystems: DAILY_OS_SERIES.filter(({ osName }) =>
-      visibleOsNames.has(osName),
+      rows.some((row) => row.os_name === osName && (row[metric] ?? 0) > 0),
     ),
   };
 };

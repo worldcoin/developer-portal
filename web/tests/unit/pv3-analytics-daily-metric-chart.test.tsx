@@ -38,6 +38,7 @@ jest.mock("recharts", () => ({
     />
   ),
   CartesianGrid: () => null,
+  Label: ({ value }: { value: string }) => <span>{value}</span>,
   ComposedChart: (props: {
     barCategoryGap?: string;
     children: ReactNode;
@@ -148,8 +149,14 @@ describe("DailyMetricChart", () => {
       kind: "count",
     },
   ] as const)(
-    "hides inactive OSes from the legend and $chartType series and restores them when data changes",
+    "keeps axes for zero-only $chartType data and shows an OS with a single nonzero day",
     ({ chartType, metric, kind }) => {
+      const zeroRows = ["Android", "Unknown"].flatMap((os) =>
+        Array.from({ length: 7 }, (_, index) => ({
+          ...row(os, 0, `2026-09-0${index + 1}`),
+          [metric]: 0,
+        })),
+      );
       const chart = (dailyRows: readonly DailyRow[]) => (
         <DailyMetricChart
           title="Daily metric"
@@ -160,102 +167,66 @@ describe("DailyMetricChart", () => {
           yAxisLabel="Value"
         />
       );
-      const view = render(
-        chart([
-          { ...row("Unknown", 0), [metric]: 0 },
-          { ...row("iOS", 0), [metric]: null },
-          row("Android", 4),
-        ]),
-      );
-
-      expect(
-        screen.getAllByTestId(chartType).map((series) => series.dataset.name),
-      ).toEqual(["Android"]);
-      expect(
-        within(screen.getAllByRole("list")[0])
-          .getAllByRole("listitem")
-          .map((item) => item.textContent),
-      ).toEqual(["Android"]);
-
-      view.rerender(chart(rows));
-
-      expect(
-        screen.getAllByTestId(chartType).map((series) => series.dataset.name),
-      ).toEqual(["Android", "iOS", "Unknown"]);
-      expect(
-        within(screen.getAllByRole("list")[0])
-          .getAllByRole("listitem")
-          .map((item) => item.textContent),
-      ).toEqual(["Android", "iOS", "Unknown"]);
-    },
-  );
-
-  it.each([
-    {
-      label: "no rows",
-      dailyRows: [],
-      metric: "n_users_shared_a_proof",
-      kind: "count",
-      chartType: "bar",
-      domain: "0,1",
-    },
-    {
-      label: "zero-only counts",
-      dailyRows: [row("Android", 0)],
-      metric: "n_users_shared_a_proof",
-      kind: "count",
-      chartType: "bar",
-      domain: "0,1",
-    },
-    {
-      label: "zero-only rates",
-      dailyRows: [{ ...row("Android", 0), p_face_capture_completion: 0 }],
-      metric: "p_face_capture_completion",
-      kind: "rate",
-      chartType: "line",
-      domain: "0,1.05",
-    },
-  ] as const)(
-    "keeps both axes with an in-plot empty message for $label",
-    ({ dailyRows, metric, kind, chartType, domain }) => {
-      const chart = (chartRows: readonly DailyRow[]) => (
-        <DailyMetricChart
-          title="Daily proofs"
-          rows={chartRows}
-          metric={metric}
-          kind={kind}
-          chartType={chartType}
-          yAxisLabel="Number of users"
-        />
-      );
-      const view = render(chart(dailyRows));
+      const view = render(chart(zeroRows));
 
       expect(screen.getByText("No data available")).toBeInTheDocument();
-      expect(screen.getByTestId("composed-chart")).toBeInTheDocument();
       expect(screen.getByTestId("x-axis")).toBeInTheDocument();
       expect(screen.getByTestId("y-axis")).toHaveAttribute(
         "data-domain",
-        domain,
+        kind === "rate" ? "0,1.05" : "0,1",
       );
       expect(screen.getByTestId("y-axis")).toHaveAttribute(
         "data-allow-data-overflow",
         "true",
       );
       expect(screen.queryByRole("list")).not.toBeInTheDocument();
-      expect(screen.queryByTestId("tooltip")).not.toBeInTheDocument();
       expect(screen.queryByTestId(chartType)).not.toBeInTheDocument();
+      expect(screen.queryByTestId("tooltip")).not.toBeInTheDocument();
 
-      view.rerender(chart([row("Android", 4)]));
+      view.rerender(
+        chart(
+          zeroRows.map((row, index) =>
+            index === 6 ? { ...row, [metric]: 1 } : row,
+          ),
+        ),
+      );
 
       expect(screen.queryByText("No data available")).not.toBeInTheDocument();
-      expect(screen.getByTestId(chartType)).toBeInTheDocument();
-      expect(screen.getByTestId("tooltip")).toBeInTheDocument();
-      expect(screen.getByTestId("y-axis")).toHaveAttribute(
-        "data-allow-data-overflow",
-        "false",
+      expect(screen.getByTestId(chartType)).toHaveAttribute(
+        "data-name",
+        "Android",
       );
+      expect(
+        within(screen.getAllByRole("list")[0]).getByText("Android"),
+      ).toBeInTheDocument();
+      expect(
+        within(screen.getAllByRole("list")[0]).queryByText("Unknown"),
+      ).not.toBeInTheDocument();
+      expect(screen.getByTestId("tooltip")).toBeInTheDocument();
+
+      view.rerender(chart(zeroRows));
+      expect(screen.getByText("No data available")).toBeInTheDocument();
+      expect(screen.queryByTestId(chartType)).not.toBeInTheDocument();
+      expect(screen.queryByRole("list")).not.toBeInTheDocument();
     },
   );
+
+  it("keeps an empty chart when there are no rows", () => {
+    render(
+      <DailyMetricChart
+        title="Daily proofs"
+        rows={[]}
+        metric="n_users_shared_a_proof"
+        kind="count"
+        chartType="bar"
+        yAxisLabel="Number of users"
+      />,
+    );
+    expect(screen.getByText("No data available")).toBeInTheDocument();
+    expect(screen.getByTestId("x-axis")).toBeInTheDocument();
+    expect(screen.getByTestId("y-axis")).toBeInTheDocument();
+    expect(screen.queryByTestId("bar")).not.toBeInTheDocument();
+  });
 
   it("stacks each day's OS series for count metrics", () => {
     render(

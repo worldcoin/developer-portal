@@ -12,6 +12,7 @@ import {
   Bar,
   CartesianGrid,
   ComposedChart,
+  Label,
   Line,
   ResponsiveContainer,
   Tooltip,
@@ -56,8 +57,9 @@ export const DailyMetricChart = (props: {
     [props.rows, props.metric],
   );
   const hasVisibleSeries = operatingSystems.length > 0;
+  const isRate = props.kind === "rate";
   const formatValue = (value: number) =>
-    props.kind === "rate" ? formatRate(value) : value.toLocaleString("en-US");
+    isRate ? formatRate(value) : value.toLocaleString("en-US");
   const showEveryDate = points.length <= 14;
   // Keep every short-range date, turning labels only when they cannot fit.
   const rotateDates =
@@ -65,7 +67,6 @@ export const DailyMetricChart = (props: {
     points.length > 1 &&
     (chartWidth - Y_AXIS_WIDTH - CHART_RIGHT_MARGIN) / points.length <
       DATE_LABEL_WIDTH;
-  const xAxisHeight = rotateDates ? 56 : 32;
 
   return (
     <section
@@ -129,7 +130,7 @@ export const DailyMetricChart = (props: {
               dataKey="date"
               tickLine={false}
               axisLine={false}
-              height={xAxisHeight}
+              height={rotateDates ? 56 : 32}
               angle={rotateDates ? -90 : 0}
               textAnchor={rotateDates ? "end" : "middle"}
               tickMargin={8}
@@ -140,24 +141,18 @@ export const DailyMetricChart = (props: {
             />
             <YAxis
               width={Y_AXIS_WIDTH}
-              allowDecimals={props.kind === "rate"}
+              allowDecimals={isRate}
               // Honor the explicit scale even when there are no plotted series.
               allowDataOverflow={!hasVisibleSeries}
               axisLine={false}
-              {...(props.kind === "rate"
-                ? {
-                    domain: [0, 1.05] as const,
-                    tickFormatter: formatRateTick,
-                    ticks: [...RATE_TICKS],
-                  }
-                : !hasVisibleSeries
-                  ? { domain: [0, 1] as const, ticks: [0, 1] }
-                  : {})}
+              domain={isRate ? [0, 1.05] : [0, hasVisibleSeries ? "auto" : 1]}
+              tickFormatter={isRate ? formatRateTick : undefined}
+              ticks={isRate ? [...RATE_TICKS] : undefined}
               tick={{ fill: "#757575", fontSize: 12 }}
               tickMargin={8}
               tickLine={false}
             />
-            {hasVisibleSeries && (
+            {hasVisibleSeries ? (
               <Tooltip
                 cursor={{ fill: "rgba(24, 24, 24, 0.04)" }}
                 itemSorter={({ name }) =>
@@ -167,6 +162,16 @@ export const DailyMetricChart = (props: {
                 formatter={(value) =>
                   typeof value === "number" ? formatValue(value) : "—"
                 }
+              />
+            ) : (
+              <Label
+                position="center"
+                value="No data available"
+                className="font-world text-13"
+                fill="#757575"
+                stroke="white"
+                strokeWidth={4}
+                paintOrder="stroke"
               />
             )}
             {operatingSystems.map((os, index) =>
@@ -214,21 +219,6 @@ export const DailyMetricChart = (props: {
             )}
           </ComposedChart>
         </ResponsiveContainer>
-        {!hasVisibleSeries && (
-          <div
-            className="pointer-events-none absolute flex items-center justify-center"
-            style={{
-              top: 4,
-              right: CHART_RIGHT_MARGIN,
-              bottom: 32 + xAxisHeight,
-              left: 48 + Y_AXIS_WIDTH,
-            }}
-          >
-            <p className="bg-white px-2 py-1 text-center font-world text-13 text-portal-muted">
-              No data available
-            </p>
-          </div>
-        )}
       </div>
     </section>
   );
