@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import React from "react";
 import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
@@ -67,68 +68,57 @@ afterEach(() => {
   global.fetch = originalFetch;
 });
 
-// #region View navigation and daily filters
+// #region Lifetime and daily analytics
 
-it("separates totals from daily metrics and switches the visible chart", async () => {
+it("renders lifetime metrics by default and all daily charts in the daily tab", async () => {
   render(<MetricsFrame appId={appId} />);
 
   await waitFor(() => expect(screen.getByText("10")).toBeInTheDocument());
   expect(screen.getByText("6")).toBeInTheDocument();
   expect(screen.getByText("20 sessions")).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "All time" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   expect(screen.queryByTestId("daily-chart")).not.toBeInTheDocument();
 
   await act(async () => {
     fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
   });
-  expect(screen.queryByText("20 sessions")).not.toBeInTheDocument();
-  expect(screen.getAllByTestId("daily-chart")).toHaveLength(1);
-  expect(screen.getByTestId("daily-chart")).toHaveTextContent(
-    "Number of users who started 1+ Selfie Check flow",
-  );
-
-  fireEvent.click(screen.getByRole("button", { name: "Completion Rate" }));
-  expect(screen.getByTestId("daily-chart")).toHaveTextContent(
-    "Average Face capture",
-  );
-
-  await act(async () => {
-    fireEvent.click(screen.getByRole("tab", { name: "All time" }));
-  });
-  expect(screen.getByText("20 sessions")).toBeInTheDocument();
+  expect(screen.getAllByTestId("daily-chart")).toHaveLength(4);
+  expect(
+    within(screen.getByRole("combobox", { name: "Operating System" }))
+      .getAllByRole("option")
+      .map((option) => option.textContent),
+  ).toEqual(["All", "Android", "iOS"]);
+  expect(
+    screen.getByText("Average Face capture completion rate, by day and OS"),
+  ).toBeInTheDocument();
   expect(global.fetch).toHaveBeenCalledTimes(2);
 });
 
-it("shows all available history and preserves daily selections across views", async () => {
+it("filters every daily chart without changing the lifetime section", async () => {
   render(<MetricsFrame appId={appId} />);
   await act(async () => {
     fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
   });
-  await screen.findByTestId("daily-chart");
+  await screen.findAllByTestId("daily-chart");
+  expect(screen.getAllByTestId("daily-chart")).toHaveLength(4);
   const initialRowCount = Number(
-    screen.getByTestId("daily-chart").getAttribute("data-row-count"),
+    screen.getAllByTestId("daily-chart")[0].getAttribute("data-row-count"),
   );
   expect(initialRowCount).toBe(2);
   fireEvent.change(screen.getByRole("combobox", { name: "Timeframe" }), {
     target: { value: "all" },
   });
   expect(
-    Number(screen.getByTestId("daily-chart").getAttribute("data-row-count")),
+    Number(
+      screen.getAllByTestId("daily-chart")[0].getAttribute("data-row-count"),
+    ),
   ).toBe(3);
 
   fireEvent.change(screen.getByRole("combobox", { name: "Operating System" }), {
     target: { value: "iOS" },
-  });
-  const filteredRowCount = screen
-    .getByTestId("daily-chart")
-    .getAttribute("data-row-count");
-  fireEvent.click(
-    screen.getByRole("button", { name: "Cumulative users Shared 1+ proof" }),
-  );
-  await act(async () => {
-    fireEvent.click(screen.getByRole("tab", { name: "All time" }));
-  });
-  await act(async () => {
-    fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
   });
 
   expect(screen.getByRole("combobox", { name: "Timeframe" })).toHaveValue(
@@ -137,13 +127,11 @@ it("shows all available history and preserves daily selections across views", as
   expect(
     screen.getByRole("combobox", { name: "Operating System" }),
   ).toHaveValue("iOS");
-  expect(
-    screen.getByRole("button", { name: "Cumulative users Shared 1+ proof" }),
-  ).toHaveAttribute("aria-pressed", "true");
-  expect(screen.getByTestId("daily-chart")).toHaveAttribute(
-    "data-row-count",
-    filteredRowCount,
-  );
+  expect(screen.getAllByTestId("daily-chart")).toHaveLength(4);
+  await act(async () => {
+    fireEvent.click(screen.getByRole("tab", { name: "All time" }));
+  });
+  expect(screen.getByText("20 sessions")).toBeInTheDocument();
 });
 
 // #endregion

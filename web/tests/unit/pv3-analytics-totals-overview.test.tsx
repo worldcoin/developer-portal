@@ -27,10 +27,14 @@ describe("TotalsOverview", () => {
       name: "Analytics overview",
     });
     expect(
-      within(overview).getByText("Users who shared a proof"),
+      within(overview).getByText(
+        "Number of users who've shared 1+ Selfie Check proof",
+      ),
     ).toBeInTheDocument();
     expect(
-      within(overview).getByText("Users who started Selfie Check"),
+      within(overview).getByText(
+        "Number of users who started 1+ Selfie Check flow",
+      ),
     ).toBeInTheDocument();
     expect(within(overview).getByText("1,234")).toBeInTheDocument();
     expect(within(overview).getByText("6,789")).toBeInTheDocument();
@@ -46,7 +50,7 @@ describe("TotalsOverview", () => {
     );
 
     const proofUsers = screen
-      .getByText("Users who shared a proof")
+      .getByText("Number of users who've shared 1+ Selfie Check proof")
       .closest("article");
     expect(proofUsers).not.toBeNull();
     expect(within(proofUsers!).getByText("—")).toBeInTheDocument();
