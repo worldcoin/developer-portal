@@ -268,6 +268,31 @@ describe("integrity bundle verification", () => {
     });
   });
 
+  it("rejects a swapped nullifier in a version 2 bundle", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      version: 2,
+      signedResponses: [selfieResponse],
+    });
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const result = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [{ ...selfieResponse, nullifier: "0x3" }],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({
+      success: false,
+      reason: "invalid_device_signature",
+    });
+  });
+
   it("verifies an android integrity bundle and caches the AG JWK", async () => {
     const { agPublicJwk, integrityBundle, nonce } = await createBundle();
     const fetchSpy = jest.spyOn(global, "fetch").mockResolvedValue(
