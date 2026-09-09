@@ -182,6 +182,9 @@ it.each([
         </TooltipProvider>,
       );
       expect(link("Analytics")).toBeInTheDocument();
+      if (table === "daily") {
+        fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
+      }
       await screen.findByText(
         status === 403
           ? "Selfie Check analytics aren't available for this app yet. Contact us to learn more."

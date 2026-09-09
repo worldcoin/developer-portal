@@ -49,7 +49,7 @@ export const TABLE_COLUMNS_TOTAL = [
   {
     key: "n_users_started_at_least_one_selfie_check_flow",
     kind: "count",
-    label: "Users started at least one selfie check flow",
+    label: "Number of users who started 1+ Selfie Check flow",
     visible: true,
   },
   {
@@ -61,7 +61,7 @@ export const TABLE_COLUMNS_TOTAL = [
   {
     key: "n_selfie_check_started_sessions",
     kind: "count",
-    label: "Selfie check started sessions",
+    label: "Selfie Check started sessions",
     visible: true,
   },
   {
@@ -85,7 +85,7 @@ export const TABLE_COLUMNS_TOTAL = [
   {
     key: "p_selfie_check_to_face_capture_started_completion",
     kind: "rate",
-    label: "Selfie check to face capture started completion",
+    label: "Selfie Check to face capture started completion",
     visible: true,
   },
   {
@@ -109,7 +109,7 @@ export const TABLE_COLUMNS_DAILY = [
   {
     key: "n_users_started_selfie_check_flow",
     kind: "count",
-    label: "Users started selfie check",
+    label: "Users started Selfie Check",
     visible: true,
   },
   {
@@ -262,17 +262,19 @@ export type DailyChartPoint = {
   [series: string]: number | null | string;
 } & { date: string };
 
-export type DailyChartOs = Readonly<{
-  /** Collision-free point key ("os:" + name); never equals the x-axis key. */
-  dataKey: string;
-  /** The OS name exactly as it appears in the data. */
-  osName: string;
-}>;
+/** Shared presentation order and colors for daily analytics. */
+export const DAILY_OS_SERIES = [
+  { osName: "Android", dataKey: "os:Android", color: "#A4C639" },
+  { osName: "iOS", dataKey: "os:iOS", color: "#1C98F7" },
+  { osName: "Unknown", dataKey: "os:Unknown", color: "#6B7280" },
+] as const;
+
+export type DailyChartOs = (typeof DAILY_OS_SERIES)[number];
 
 export type DailyChartData = Readonly<{
   /** One point per day, ascending. A day missing an OS omits its key. */
   points: readonly DailyChartPoint[];
-  /** One entry per OS, alphabetical for stable colors across metrics. */
+  /** OS series with a positive value for this metric, in presentation order. */
   operatingSystems: readonly DailyChartOs[];
 }>;
 
@@ -316,10 +318,8 @@ export const buildDailyChartData = (
   metric: DailyChartMetric,
 ): DailyChartData => {
   const pointsByDay = new Map<string, DailyChartPoint>();
-  const osNames = new Set<string>();
 
   for (const row of rows) {
-    osNames.add(row.os_name);
     const point = pointsByDay.get(row.day) ?? { date: row.day };
     point[`os:${row.os_name}`] = row[metric];
     pointsByDay.set(row.day, point);
@@ -329,8 +329,8 @@ export const buildDailyChartData = (
     points: [...pointsByDay.values()].sort((a, b) =>
       a.date.localeCompare(b.date),
     ),
-    operatingSystems: [...osNames]
-      .sort()
-      .map((osName) => ({ dataKey: `os:${osName}`, osName })),
+    operatingSystems: DAILY_OS_SERIES.filter(({ osName }) =>
+      rows.some((row) => row.os_name === osName && (row[metric] ?? 0) > 0),
+    ),
   };
 };
