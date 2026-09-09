@@ -55,6 +55,7 @@ export const DailyMetricChart = (props: {
     () => buildDailyChartData(props.rows, props.metric),
     [props.rows, props.metric],
   );
+  const hasVisibleSeries = operatingSystems.length > 0;
   const formatValue = (value: number) =>
     props.kind === "rate" ? formatRate(value) : value.toLocaleString("en-US");
   const showEveryDate = points.length <= 14;
@@ -64,6 +65,7 @@ export const DailyMetricChart = (props: {
     points.length > 1 &&
     (chartWidth - Y_AXIS_WIDTH - CHART_RIGHT_MARGIN) / points.length <
       DATE_LABEL_WIDTH;
+  const xAxisHeight = rotateDates ? 56 : 32;
 
   return (
     <section
@@ -74,88 +76,88 @@ export const DailyMetricChart = (props: {
         {props.title}
       </h3>
 
-      {operatingSystems.length > 0 && (
-        <ul className="mt-2 flex flex-wrap gap-3">
-          {operatingSystems.map((os) => (
-            <li
-              key={os.dataKey}
-              className="flex items-center gap-1.5 font-world text-12 text-portal-muted"
-            >
-              <span
-                aria-hidden
-                className="size-2 rounded-full"
-                style={{ backgroundColor: os.color }}
-              />
-              {os.osName}
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="mt-2 min-h-[18px]">
+        {hasVisibleSeries && (
+          <ul className="flex flex-wrap gap-3">
+            {operatingSystems.map((os) => (
+              <li
+                key={os.dataKey}
+                className="flex items-center gap-1.5 font-world text-12 text-portal-muted"
+              >
+                <span
+                  aria-hidden
+                  className="size-2 rounded-full"
+                  style={{ backgroundColor: os.color }}
+                />
+                {os.osName}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
-      {operatingSystems.length === 0 ? (
-        <p className="mt-6 font-world text-13 text-portal-muted">
-          {points.length === 0
-            ? "No daily data yet."
-            : "No nonzero data for this timeframe."}
-        </p>
-      ) : (
-        <div className="relative mt-4 aspect-[13/5] max-h-[360px] min-h-[280px] w-full pb-8 pl-12 outline-none [&_*]:outline-none">
-          <span
-            aria-hidden
-            className="absolute right-0 bottom-0 left-12 text-center font-world text-12 text-portal-muted"
+      <div className="relative mt-4 aspect-[13/5] max-h-[360px] min-h-[280px] w-full pb-8 pl-12 outline-none [&_*]:outline-none">
+        <span
+          aria-hidden
+          className="absolute right-0 bottom-0 left-12 text-center font-world text-12 text-portal-muted"
+        >
+          Day
+        </span>
+        <span
+          aria-hidden
+          className="absolute top-0 bottom-8 left-0 flex w-8 rotate-180 items-center justify-center font-world text-12 text-portal-muted [writing-mode:vertical-rl]"
+        >
+          {props.yAxisLabel}
+        </span>
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          onResize={setChartWidth}
+        >
+          <ComposedChart
+            data={[...points]}
+            margin={{
+              top: 4,
+              left: 0,
+              right: CHART_RIGHT_MARGIN,
+              bottom: 0,
+            }}
+            barCategoryGap="2%"
           >
-            Day
-          </span>
-          <span
-            aria-hidden
-            className="absolute top-0 bottom-8 left-0 flex w-8 rotate-180 items-center justify-center font-world text-12 text-portal-muted [writing-mode:vertical-rl]"
-          >
-            {props.yAxisLabel}
-          </span>
-          <ResponsiveContainer
-            width="100%"
-            height="100%"
-            onResize={setChartWidth}
-          >
-            <ComposedChart
-              data={[...points]}
-              margin={{
-                top: 4,
-                left: 0,
-                right: CHART_RIGHT_MARGIN,
-                bottom: 0,
-              }}
-              barCategoryGap="2%"
-            >
-              <CartesianGrid vertical={false} stroke="#f1f1f1" />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                height={rotateDates ? 56 : 32}
-                angle={rotateDates ? -90 : 0}
-                textAnchor={rotateDates ? "end" : "middle"}
-                tickMargin={8}
-                minTickGap={showEveryDate ? 0 : 32}
-                interval={showEveryDate ? 0 : "preserveStartEnd"}
-                tick={{ fill: "#757575", fontSize: 12 }}
-                tickFormatter={formatTickDate}
-              />
-              <YAxis
-                width={Y_AXIS_WIDTH}
-                allowDecimals={props.kind === "rate"}
-                axisLine={false}
-                {...(props.kind === "rate"
-                  ? {
-                      domain: [0, 1.05] as const,
-                      tickFormatter: formatRateTick,
-                      ticks: [...RATE_TICKS],
-                    }
+            <CartesianGrid vertical={false} stroke="#f1f1f1" />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              height={xAxisHeight}
+              angle={rotateDates ? -90 : 0}
+              textAnchor={rotateDates ? "end" : "middle"}
+              tickMargin={8}
+              minTickGap={showEveryDate ? 0 : 32}
+              interval={showEveryDate ? 0 : "preserveStartEnd"}
+              tick={{ fill: "#757575", fontSize: 12 }}
+              tickFormatter={formatTickDate}
+            />
+            <YAxis
+              width={Y_AXIS_WIDTH}
+              allowDecimals={props.kind === "rate"}
+              // Honor the explicit scale even when there are no plotted series.
+              allowDataOverflow={!hasVisibleSeries}
+              axisLine={false}
+              {...(props.kind === "rate"
+                ? {
+                    domain: [0, 1.05] as const,
+                    tickFormatter: formatRateTick,
+                    ticks: [...RATE_TICKS],
+                  }
+                : !hasVisibleSeries
+                  ? { domain: [0, 1] as const, ticks: [0, 1] }
                   : {})}
-                tick={{ fill: "#757575", fontSize: 12 }}
-                tickMargin={8}
-                tickLine={false}
-              />
+              tick={{ fill: "#757575", fontSize: 12 }}
+              tickMargin={8}
+              tickLine={false}
+            />
+            {hasVisibleSeries && (
               <Tooltip
                 cursor={{ fill: "rgba(24, 24, 24, 0.04)" }}
                 itemSorter={({ name }) =>
@@ -166,53 +168,68 @@ export const DailyMetricChart = (props: {
                   typeof value === "number" ? formatValue(value) : "—"
                 }
               />
-              {operatingSystems.map((os, index) =>
-                props.chartType === "line" ? (
-                  <Line
-                    key={os.dataKey}
-                    activeDot={{ r: 4 }}
-                    connectNulls={false}
-                    dataKey={os.dataKey}
-                    dot={{ r: 3 }}
-                    isAnimationActive={false}
-                    name={os.osName}
-                    stroke={os.color}
-                    strokeWidth={2}
-                    type="linear"
-                  />
-                ) : props.chartType === "area" ? (
-                  <Area
-                    key={os.dataKey}
-                    connectNulls={false}
-                    dataKey={os.dataKey}
-                    fill={os.color}
-                    fillOpacity={0.12}
-                    isAnimationActive={false}
-                    name={os.osName}
-                    stackId="os"
-                    stroke={os.color}
-                    strokeWidth={2}
-                    type="linear"
-                  />
-                ) : (
-                  <Bar
-                    key={os.dataKey}
-                    dataKey={os.dataKey}
-                    name={os.osName}
-                    stackId="os"
-                    fill={os.color}
-                    isAnimationActive={false}
-                    maxBarSize={barMaxSize(points.length)}
-                    radius={
-                      index === operatingSystems.length - 1 ? [3, 3, 0, 0] : 0
-                    }
-                  />
-                ),
-              )}
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+            )}
+            {operatingSystems.map((os, index) =>
+              props.chartType === "line" ? (
+                <Line
+                  key={os.dataKey}
+                  activeDot={{ r: 4 }}
+                  connectNulls={false}
+                  dataKey={os.dataKey}
+                  dot={{ r: 3 }}
+                  isAnimationActive={false}
+                  name={os.osName}
+                  stroke={os.color}
+                  strokeWidth={2}
+                  type="linear"
+                />
+              ) : props.chartType === "area" ? (
+                <Area
+                  key={os.dataKey}
+                  connectNulls={false}
+                  dataKey={os.dataKey}
+                  fill={os.color}
+                  fillOpacity={0.12}
+                  isAnimationActive={false}
+                  name={os.osName}
+                  stackId="os"
+                  stroke={os.color}
+                  strokeWidth={2}
+                  type="linear"
+                />
+              ) : (
+                <Bar
+                  key={os.dataKey}
+                  dataKey={os.dataKey}
+                  name={os.osName}
+                  stackId="os"
+                  fill={os.color}
+                  isAnimationActive={false}
+                  maxBarSize={barMaxSize(points.length)}
+                  radius={
+                    index === operatingSystems.length - 1 ? [3, 3, 0, 0] : 0
+                  }
+                />
+              ),
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+        {!hasVisibleSeries && (
+          <div
+            className="pointer-events-none absolute flex items-center justify-center"
+            style={{
+              top: 4,
+              right: CHART_RIGHT_MARGIN,
+              bottom: 32 + xAxisHeight,
+              left: 48 + Y_AXIS_WIDTH,
+            }}
+          >
+            <p className="bg-white px-2 py-1 text-center font-world text-13 text-portal-muted">
+              No data available
+            </p>
+          </div>
+        )}
+      </div>
     </section>
   );
 };

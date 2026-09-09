@@ -108,12 +108,14 @@ jest.mock("recharts", () => ({
   ),
   YAxis: (props: {
     allowDecimals: boolean;
+    allowDataOverflow?: boolean;
     domain?: [number, number];
     tickFormatter?: (value: number) => string;
   }) => (
     <div
       data-testid="y-axis"
       data-allow-decimals={props.allowDecimals}
+      data-allow-data-overflow={props.allowDataOverflow}
       data-domain={props.domain?.join(",")}
       data-midpoint-label={props.tickFormatter?.(0.5)}
     />
@@ -189,28 +191,69 @@ describe("DailyMetricChart", () => {
   );
 
   it.each([
-    { dailyRows: [], message: "No daily data yet." },
     {
-      dailyRows: [row("Unknown", 0)],
-      message: "No nonzero data for this timeframe.",
+      label: "no rows",
+      dailyRows: [],
+      metric: "n_users_shared_a_proof",
+      kind: "count",
+      chartType: "bar",
+      domain: "0,1",
     },
-  ])(
-    "shows '$message' without an empty graph or legend",
-    ({ dailyRows, message }) => {
-      render(
+    {
+      label: "zero-only counts",
+      dailyRows: [row("Android", 0)],
+      metric: "n_users_shared_a_proof",
+      kind: "count",
+      chartType: "bar",
+      domain: "0,1",
+    },
+    {
+      label: "zero-only rates",
+      dailyRows: [{ ...row("Android", 0), p_face_capture_completion: 0 }],
+      metric: "p_face_capture_completion",
+      kind: "rate",
+      chartType: "line",
+      domain: "0,1.05",
+    },
+  ] as const)(
+    "keeps both axes with an in-plot empty message for $label",
+    ({ dailyRows, metric, kind, chartType, domain }) => {
+      const chart = (chartRows: readonly DailyRow[]) => (
         <DailyMetricChart
           title="Daily proofs"
-          rows={dailyRows}
-          metric="n_users_shared_a_proof"
-          kind="count"
-          chartType="bar"
+          rows={chartRows}
+          metric={metric}
+          kind={kind}
+          chartType={chartType}
           yAxisLabel="Number of users"
-        />,
+        />
       );
+      const view = render(chart(dailyRows));
 
-      expect(screen.getByText(message)).toBeInTheDocument();
-      expect(screen.queryByTestId("composed-chart")).not.toBeInTheDocument();
+      expect(screen.getByText("No data available")).toBeInTheDocument();
+      expect(screen.getByTestId("composed-chart")).toBeInTheDocument();
+      expect(screen.getByTestId("x-axis")).toBeInTheDocument();
+      expect(screen.getByTestId("y-axis")).toHaveAttribute(
+        "data-domain",
+        domain,
+      );
+      expect(screen.getByTestId("y-axis")).toHaveAttribute(
+        "data-allow-data-overflow",
+        "true",
+      );
       expect(screen.queryByRole("list")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("tooltip")).not.toBeInTheDocument();
+      expect(screen.queryByTestId(chartType)).not.toBeInTheDocument();
+
+      view.rerender(chart([row("Android", 4)]));
+
+      expect(screen.queryByText("No data available")).not.toBeInTheDocument();
+      expect(screen.getByTestId(chartType)).toBeInTheDocument();
+      expect(screen.getByTestId("tooltip")).toBeInTheDocument();
+      expect(screen.getByTestId("y-axis")).toHaveAttribute(
+        "data-allow-data-overflow",
+        "false",
+      );
     },
   );
 
