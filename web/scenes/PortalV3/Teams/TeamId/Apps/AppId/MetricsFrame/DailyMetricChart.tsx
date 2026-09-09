@@ -21,12 +21,12 @@ import {
 
 // Color follows the OS, not its position.
 const OS_COLORS: Readonly<Record<string, string>> = {
-  Android: "#1F6F78",
-  iOS: "#345995",
+  Android: "#2E7D32",
+  iOS: "#1565C0",
 };
 const RATE_TICKS = [0, 0.25, 0.5, 0.75, 1] as const;
 
-const osColor = (osName: string) => OS_COLORS[osName] ?? "#757575";
+const osColor = (osName: string) => OS_COLORS[osName] ?? "#6B7280";
 
 const formatTickDate = (value: string) =>
   new Date(`${value}T00:00:00.000Z`).toLocaleDateString("en-US", {
@@ -164,7 +164,7 @@ export const DailyMetricChart = (props: {
                     connectNulls={false}
                     dataKey={os.dataKey}
                     fill={osColor(os.osName)}
-                    fillOpacity={0.72}
+                    fillOpacity={1}
                     isAnimationActive={false}
                     name={os.osName}
                     stackId="os"

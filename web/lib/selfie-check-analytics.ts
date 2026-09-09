@@ -49,7 +49,7 @@ export const TABLE_COLUMNS_TOTAL = [
   {
     key: "n_users_started_at_least_one_selfie_check_flow",
     kind: "count",
-    label: "Users started at least one selfie check flow",
+    label: "Number of users who started 1+ Selfie Check flow",
     visible: true,
   },
   {
@@ -61,7 +61,7 @@ export const TABLE_COLUMNS_TOTAL = [
   {
     key: "n_selfie_check_started_sessions",
     kind: "count",
-    label: "Selfie check started sessions",
+    label: "Selfie Check started sessions",
     visible: true,
   },
   {
@@ -85,7 +85,7 @@ export const TABLE_COLUMNS_TOTAL = [
   {
     key: "p_selfie_check_to_face_capture_started_completion",
     kind: "rate",
-    label: "Selfie check to face capture started completion",
+    label: "Selfie Check to face capture started completion",
     visible: true,
   },
   {
@@ -109,7 +109,7 @@ export const TABLE_COLUMNS_DAILY = [
   {
     key: "n_users_started_selfie_check_flow",
     kind: "count",
-    label: "Users started selfie check",
+    label: "Users started Selfie Check",
     visible: true,
   },
   {

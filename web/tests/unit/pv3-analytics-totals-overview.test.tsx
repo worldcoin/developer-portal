@@ -20,21 +20,17 @@ const row = (overrides: Partial<TotalsRow> = {}): TotalsRow => ({
 });
 
 describe("TotalsOverview", () => {
-  it("shows the unique-user and session totals without repeating proofs shared", () => {
+  it("shows unique-user totals without repeating session totals", () => {
     render(<TotalsOverview row={row()} />);
 
     const overview = screen.getByRole("region", {
       name: "Analytics overview",
     });
     expect(
-      within(overview).getByText(
-        "Number of users who shared 1+ selfie check proof",
-      ),
+      within(overview).getByText("Users who shared a proof"),
     ).toBeInTheDocument();
     expect(
-      within(overview).getByText(
-        "Number of users who started the selfie check flow 1+ times",
-      ),
+      within(overview).getByText("Users who started Selfie Check"),
     ).toBeInTheDocument();
     expect(within(overview).getByText("1,234")).toBeInTheDocument();
     expect(within(overview).getByText("6,789")).toBeInTheDocument();
@@ -50,7 +46,7 @@ describe("TotalsOverview", () => {
     );
 
     const proofUsers = screen
-      .getByText("Number of users who shared 1+ selfie check proof")
+      .getByText("Users who shared a proof")
       .closest("article");
     expect(proofUsers).not.toBeNull();
     expect(within(proofUsers!).getByText("—")).toBeInTheDocument();
