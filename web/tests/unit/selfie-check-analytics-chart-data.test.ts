@@ -125,4 +125,89 @@ describe("buildDailyChartData", () => {
       operatingSystems: [],
     });
   });
+
+  it("hides zero-only series in the selected timeframe without removing zero-valued days", () => {
+    const rows = [
+      row({ day: "2026-08-31", os_name: "Unknown", n_users_shared_a_proof: 2 }),
+      row({ day: "2026-09-01", os_name: "Unknown", n_users_shared_a_proof: 0 }),
+      row({ day: "2026-09-01", os_name: "Android", n_users_shared_a_proof: 0 }),
+      row({ day: "2026-09-07", os_name: "Android", n_users_shared_a_proof: 4 }),
+    ];
+    const filteredRows = filterDailyRows(rows, { days: 7, osName: null });
+    const result = buildDailyChartData(filteredRows, "n_users_shared_a_proof");
+
+    expect(result.operatingSystems.map(({ osName }) => osName)).toEqual([
+      "Android",
+    ]);
+    expect(result.points).toEqual([
+      { date: "2026-09-01", "os:Unknown": 0, "os:Android": 0 },
+      { date: "2026-09-07", "os:Android": 4 },
+    ]);
+    expect(
+      buildDailyChartData(rows, "n_users_shared_a_proof").operatingSystems.map(
+        ({ osName }) => osName,
+      ),
+    ).toEqual(["Android", "Unknown"]);
+  });
+
+  it("evaluates visibility per metric so zero daily counts do not hide positive cumulative counts", () => {
+    const rows = [row({ os_name: "Unknown", n_users_shared_a_proof: 0 })];
+
+    expect(
+      buildDailyChartData(rows, "n_users_shared_a_proof").operatingSystems,
+    ).toEqual([]);
+    expect(
+      buildDailyChartData(
+        rows,
+        "cumulative_n_users_shared_a_proof",
+      ).operatingSystems.map(({ osName }) => osName),
+    ).toEqual(["Unknown"]);
+  });
+
+  it("hides zero and null-only rates but preserves them within a positive series", () => {
+    const result = buildDailyChartData(
+      [
+        row({
+          day: "2026-09-01",
+          os_name: "Unknown",
+          p_face_capture_completion: 0,
+        }),
+        row({
+          day: "2026-09-07",
+          os_name: "Unknown",
+          p_face_capture_completion: null,
+        }),
+        row({
+          day: "2026-09-01",
+          os_name: "iOS",
+          p_face_capture_completion: null,
+        }),
+        row({
+          day: "2026-09-01",
+          os_name: "Android",
+          p_face_capture_completion: 0,
+        }),
+        row({
+          day: "2026-09-02",
+          os_name: "Android",
+          p_face_capture_completion: null,
+        }),
+        row({
+          day: "2026-09-07",
+          os_name: "Android",
+          p_face_capture_completion: 0.01,
+        }),
+      ],
+      "p_face_capture_completion",
+    );
+
+    expect(result.operatingSystems.map(({ osName }) => osName)).toEqual([
+      "Android",
+    ]);
+    expect(result.points.map((point) => point["os:Android"])).toEqual([
+      0,
+      null,
+      0.01,
+    ]);
+  });
 });

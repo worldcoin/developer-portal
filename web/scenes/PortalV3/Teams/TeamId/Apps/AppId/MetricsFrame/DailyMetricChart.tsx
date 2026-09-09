@@ -92,9 +92,11 @@ export const DailyMetricChart = (props: {
         </ul>
       )}
 
-      {points.length === 0 ? (
+      {operatingSystems.length === 0 ? (
         <p className="mt-6 font-world text-13 text-portal-muted">
-          No daily data yet.
+          {points.length === 0
+            ? "No daily data yet."
+            : "No nonzero data for this timeframe."}
         </p>
       ) : (
         <div className="relative mt-4 aspect-[13/5] max-h-[360px] min-h-[280px] w-full pb-8 pl-12 outline-none [&_*]:outline-none">

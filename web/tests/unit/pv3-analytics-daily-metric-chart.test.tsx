@@ -137,6 +137,83 @@ const row = (osName: string, proofs: number, day = "2026-08-31"): DailyRow => ({
 
 const rows = [row("Unknown", 2), row("iOS", 6), row("Android", 4)];
 describe("DailyMetricChart", () => {
+  it.each([
+    { chartType: "bar", metric: "n_users_shared_a_proof", kind: "count" },
+    { chartType: "line", metric: "p_face_capture_completion", kind: "rate" },
+    {
+      chartType: "area",
+      metric: "cumulative_n_users_shared_a_proof",
+      kind: "count",
+    },
+  ] as const)(
+    "hides inactive OSes from the legend and $chartType series and restores them when data changes",
+    ({ chartType, metric, kind }) => {
+      const chart = (dailyRows: readonly DailyRow[]) => (
+        <DailyMetricChart
+          title="Daily metric"
+          rows={dailyRows}
+          metric={metric}
+          kind={kind}
+          chartType={chartType}
+          yAxisLabel="Value"
+        />
+      );
+      const view = render(
+        chart([
+          { ...row("Unknown", 0), [metric]: 0 },
+          { ...row("iOS", 0), [metric]: null },
+          row("Android", 4),
+        ]),
+      );
+
+      expect(
+        screen.getAllByTestId(chartType).map((series) => series.dataset.name),
+      ).toEqual(["Android"]);
+      expect(
+        within(screen.getAllByRole("list")[0])
+          .getAllByRole("listitem")
+          .map((item) => item.textContent),
+      ).toEqual(["Android"]);
+
+      view.rerender(chart(rows));
+
+      expect(
+        screen.getAllByTestId(chartType).map((series) => series.dataset.name),
+      ).toEqual(["Android", "iOS", "Unknown"]);
+      expect(
+        within(screen.getAllByRole("list")[0])
+          .getAllByRole("listitem")
+          .map((item) => item.textContent),
+      ).toEqual(["Android", "iOS", "Unknown"]);
+    },
+  );
+
+  it.each([
+    { dailyRows: [], message: "No daily data yet." },
+    {
+      dailyRows: [row("Unknown", 0)],
+      message: "No nonzero data for this timeframe.",
+    },
+  ])(
+    "shows '$message' without an empty graph or legend",
+    ({ dailyRows, message }) => {
+      render(
+        <DailyMetricChart
+          title="Daily proofs"
+          rows={dailyRows}
+          metric="n_users_shared_a_proof"
+          kind="count"
+          chartType="bar"
+          yAxisLabel="Number of users"
+        />,
+      );
+
+      expect(screen.getByText(message)).toBeInTheDocument();
+      expect(screen.queryByTestId("composed-chart")).not.toBeInTheDocument();
+      expect(screen.queryByRole("list")).not.toBeInTheDocument();
+    },
+  );
+
   it("stacks each day's OS series for count metrics", () => {
     render(
       <DailyMetricChart

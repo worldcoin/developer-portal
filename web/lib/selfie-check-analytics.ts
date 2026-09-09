@@ -274,7 +274,7 @@ export type DailyChartOs = (typeof DAILY_OS_SERIES)[number];
 export type DailyChartData = Readonly<{
   /** One point per day, ascending. A day missing an OS omits its key. */
   points: readonly DailyChartPoint[];
-  /** Present OS series in the shared presentation order. */
+  /** OS series with a positive value for this metric, in presentation order. */
   operatingSystems: readonly DailyChartOs[];
 }>;
 
@@ -318,12 +318,15 @@ export const buildDailyChartData = (
   metric: DailyChartMetric,
 ): DailyChartData => {
   const pointsByDay = new Map<string, DailyChartPoint>();
-  const osNames = new Set<string>();
+  const visibleOsNames = new Set<string>();
 
   for (const row of rows) {
-    osNames.add(row.os_name);
+    const value = row[metric];
+    if (value !== null && value > 0) {
+      visibleOsNames.add(row.os_name);
+    }
     const point = pointsByDay.get(row.day) ?? { date: row.day };
-    point[`os:${row.os_name}`] = row[metric];
+    point[`os:${row.os_name}`] = value;
     pointsByDay.set(row.day, point);
   }
 
@@ -332,7 +335,7 @@ export const buildDailyChartData = (
       a.date.localeCompare(b.date),
     ),
     operatingSystems: DAILY_OS_SERIES.filter(({ osName }) =>
-      osNames.has(osName),
+      visibleOsNames.has(osName),
     ),
   };
 };
