@@ -363,6 +363,27 @@ export const encodeNullifierForStorage = (nullifierHash: string): string => {
 export const canonicalizeNullifierHash = (nullifierHash: string): string =>
   toBeHex(BigInt(normalizeNullifierHash(nullifierHash)), 32);
 
+/**
+ * Canonicalizes a proof into a single deterministic string that depends only on
+ * the eight field elements it carries, not on the wire encoding it arrived in.
+ *
+ * `decodeProof` intentionally accepts many byte-distinct encodings of the same
+ * proof — ABI blob in either hex case or with trailing padding, nested JSON,
+ * escaped JSON, decimal or zero-padded leaves, embedded whitespace — so
+ * anything that identifies a proof (an anti-replay lock, a dedup key) must key
+ * off this value. Keying off the raw request string instead gives one distinct
+ * key per encoding, which defeats the check entirely.
+ *
+ * Throws when the proof cannot be decoded, or when a leaf is not a number or
+ * does not fit in 32 bytes — all cases the sequencer would reject anyway, so
+ * callers should surface them as an invalid-proof 400.
+ */
+export const canonicalizeProof = (proof: string): string =>
+  decodeProof(proof)
+    .flat(2)
+    .map((leaf) => toBeHex(BigInt(leaf), 32))
+    .join(",");
+
 export const verifyProof = async (
   proofParams: IInputParams,
   verifyParams: IVerifyParams,
