@@ -28,7 +28,7 @@ describe("TotalsOverview", () => {
     });
     expect(
       within(overview).getByText(
-        "Number of users who've shared 1+ Selfie Check proof",
+        "Number of users who shared 1+ Selfie Check proof",
       ),
     ).toBeInTheDocument();
     expect(
@@ -50,7 +50,7 @@ describe("TotalsOverview", () => {
     );
 
     const proofUsers = screen
-      .getByText("Number of users who've shared 1+ Selfie Check proof")
+      .getByText("Number of users who shared 1+ Selfie Check proof")
       .closest("article");
     expect(proofUsers).not.toBeNull();
     expect(within(proofUsers!).getByText("—")).toBeInTheDocument();
