@@ -84,15 +84,15 @@
   comment: Once monthly (1st of month). Migrates up to 15 eligible managed RPs when ENABLE_RP_MANAGER_KEY_MIGRATION is true.
 - name: Cleanup RP manager keys
   webhook: "{{NEXT_API_URL}}/_cleanup-rp-manager-keys"
-  schedule: "*/15 * * * *"
+  schedule: "* * * * *"
   include_in_metadata: true
   payload: {}
   retry_conf:
     num_retries: 0
     retry_interval_seconds: 10
-    timeout_seconds: 60
+    timeout_seconds: 120
     tolerance_seconds: 21600
   headers:
     - name: Authorization
       value_from_env: INTERNAL_ENDPOINTS_SECRET
-  comment: Schedule deletion of one leftover per-RP manager KMS key after shared-key migration. No-ops unless ENABLE_RP_MANAGER_KEY_CLEANUP is true.
+  comment: Schedule deletion of up to 15 leftover per-RP manager KMS keys per tick after shared-key migration. No-ops unless ENABLE_RP_MANAGER_KEY_CLEANUP is true.

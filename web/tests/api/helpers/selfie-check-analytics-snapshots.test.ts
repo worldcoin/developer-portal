@@ -46,16 +46,16 @@ const source = (
 
 const totalsCsv = (proofsA = 3) =>
   [
-    "PARTNER_APP_ID,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_PROOFS,N_PROOF_USERS,N_FACE_AUTH_STARTED_SESSIONS,N_FACE_AUTH_COMPLETED_SESSIONS,P_FACE_AUTH_COMPLETION",
-    `${appIdA},10,${proofsA},8,10,8,0.75`,
-    `${appIdB},10,7,8,10,8,0.75`,
+    "PARTNER_APP_ID,N_USERS_STARTED_AT_LEAST_ONE_SELFIE_CHECK_FLOW,N_USERS_SHARED_AT_LEAST_ONE_PROOF,N_SELFIE_CHECK_STARTED_SESSIONS,N_FACE_CAPTURE_STARTED_SESSIONS,N_FACE_CAPTURE_COMPLETED_SESSIONS,N_PROOF_SHARED_SESSIONS,P_SELFIE_CHECK_TO_FACE_CAPTURE_STARTED_COMPLETION,P_FACE_CAPTURE_STARTED_TO_COMPLETED_COMPLETION,P_FACE_CAPTURE_COMPLETED_TO_PROOF_SHARED_COMPLETION",
+    `${appIdA},10,8,10,9,8,${proofsA},0.9,0.75,0.5`,
+    `${appIdB},10,8,10,9,8,7,0.9,0.75,0.5`,
   ].join("\n");
 
 const dailyCsv = () =>
   [
-    "PARTNER_APP_ID,DAY,OS_NAME,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_PROOFS,N_PROOF_USERS,CUMULATIVE_N_PROOFS,CUMULATIVE_N_PROOF_USERS,N_FACE_AUTH_STARTED_SESSIONS,N_FACE_AUTH_COMPLETED_SESSIONS,P_FACE_AUTH_COMPLETION",
-    `${appIdA},2026-08-25,iOS,10,2,8,27,20,10,8,0.8`,
-    `${appIdA},2026-08-26,Android,10,3,8,30,20,10,8,0.8`,
+    "PARTNER_APP_ID,DAY,OS_NAME,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_USERS_SHARED_A_PROOF,CUMULATIVE_N_USERS_SHARED_A_PROOF,P_FACE_CAPTURE_COMPLETION",
+    `${appIdA},2026-08-25,iOS,10,8,20,0.8`,
+    `${appIdA},2026-08-26,Android,10,8,20,0.8`,
   ].join("\n");
 // #endregion
 
@@ -81,7 +81,7 @@ describe("selfie-check analytics table snapshots", () => {
 
     expect(snapshot.isFallback).toBe(false);
     expect(snapshot.loadedAt).toBe("2026-08-26T22:00:00.000Z");
-    expect(snapshot.records.get(appIdA)?.n_proofs).toBe(3);
+    expect(snapshot.records.get(appIdA)?.n_proof_shared_sessions).toBe(3);
     expect(listCsvMock).toHaveBeenCalledWith("total/");
     expect(downloadCsvMock).toHaveBeenCalledWith(object);
   });
@@ -109,7 +109,7 @@ describe("selfie-check analytics table snapshots", () => {
       loadLatestDailyTableSnapshot(),
     ]);
 
-    expect(totals.records.get(appIdA)?.n_proofs).toBe(3);
+    expect(totals.records.get(appIdA)?.n_proof_shared_sessions).toBe(3);
     expect(daily.records.get(appIdA)).toHaveLength(2);
     expect(listCsvMock).toHaveBeenCalledTimes(2);
     expect(downloadCsvMock).toHaveBeenCalledTimes(2);
@@ -151,8 +151,8 @@ describe("table snapshot refresh behavior", () => {
       forceRefresh: true,
     });
 
-    expect(original.records.get(appIdA)?.n_proofs).toBe(3);
-    expect(updated.records.get(appIdA)?.n_proofs).toBe(9);
+    expect(original.records.get(appIdA)?.n_proof_shared_sessions).toBe(3);
+    expect(updated.records.get(appIdA)?.n_proof_shared_sessions).toBe(9);
     expect(updated.source.identity).toBe('total/run-2.csv:"etag-2"');
   });
 

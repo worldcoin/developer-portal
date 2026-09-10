@@ -239,15 +239,58 @@ function parseMetricFields({
   return fields;
 }
 
+function validateExactSchema({
+  expected,
+  headers,
+  label,
+}: {
+  expected: readonly string[];
+  headers: readonly string[];
+  label: string;
+}): void {
+  const actual = new Set(headers);
+  const expectedSet = new Set(expected);
+  const missing = expected.filter((header) => !actual.has(header));
+  const unexpected = headers.filter((header) => !expectedSet.has(header));
+
+  if (missing.length === 0 && unexpected.length === 0) return;
+
+  const details = [
+    missing.length > 0 ? `missing: ${missing.join(", ")}` : null,
+    unexpected.length > 0 ? `unexpected: ${unexpected.join(", ")}` : null,
+  ].filter(Boolean);
+
+  throw new TableValidationError(
+    `${label} table schema does not match the expected columns (${details.join("; ")}).`,
+  );
+}
+
 // ============================================================================
 // Totals Table
 // ============================================================================
 
 const TOTALS_NON_METRIC_COLUMNS = new Set<string>(APP_ID_COLUMNS);
+const TOTALS_COLUMNS = [
+  "PARTNER_APP_ID",
+  "N_USERS_STARTED_AT_LEAST_ONE_SELFIE_CHECK_FLOW",
+  "N_USERS_SHARED_AT_LEAST_ONE_PROOF",
+  "N_SELFIE_CHECK_STARTED_SESSIONS",
+  "N_FACE_CAPTURE_STARTED_SESSIONS",
+  "N_FACE_CAPTURE_COMPLETED_SESSIONS",
+  "N_PROOF_SHARED_SESSIONS",
+  "P_SELFIE_CHECK_TO_FACE_CAPTURE_STARTED_COMPLETION",
+  "P_FACE_CAPTURE_STARTED_TO_COMPLETED_COMPLETION",
+  "P_FACE_CAPTURE_COMPLETED_TO_PROOF_SHARED_COMPLETION",
+] as const;
 
 /** Parses a totals CSV into exactly one typed row per app ID. */
 export function parseTotalsTable(csv: string): ParsedTotalsTable {
   const parsedCsv = parseCsv(csv);
+  validateExactSchema({
+    expected: TOTALS_COLUMNS,
+    headers: parsedCsv.headers,
+    label: "Totals",
+  });
   const records = new Map<string, TotalsRow>();
 
   for (const { info, record } of parsedCsv.records) {
@@ -289,6 +332,15 @@ const DAILY_NON_METRIC_COLUMNS = new Set<string>([
   DAY_COLUMN,
   OS_NAME_COLUMN,
 ]);
+const DAILY_COLUMNS = [
+  "PARTNER_APP_ID",
+  "DAY",
+  "OS_NAME",
+  "N_USERS_STARTED_SELFIE_CHECK_FLOW",
+  "N_USERS_SHARED_A_PROOF",
+  "CUMULATIVE_N_USERS_SHARED_A_PROOF",
+  "P_FACE_CAPTURE_COMPLETION",
+] as const;
 
 /**
  * Parses a daily CSV into ordered row arrays per app ID.
@@ -296,6 +348,11 @@ const DAILY_NON_METRIC_COLUMNS = new Set<string>([
  */
 export function parseDailyTable(csv: string): ParsedDailyTable {
   const parsedCsv = parseCsv(csv);
+  validateExactSchema({
+    expected: DAILY_COLUMNS,
+    headers: parsedCsv.headers,
+    label: "Daily",
+  });
   const mutableRecords = new Map<string, DailyRow[]>();
   const rowKeysByApp = new Map<string, Set<string>>();
 

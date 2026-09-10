@@ -6,29 +6,25 @@ import {
   type DailyRow,
   type MetricKind,
 } from "@/lib/selfie-check-analytics";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
+  Area,
   Bar,
-  BarChart,
   CartesianGrid,
+  ComposedChart,
+  Label,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
+  YAxis,
 } from "recharts";
 
-// Color follows the OS, not its position: classic Android Green (#A4C639
-// deepened along its own hue until it passes the lightness band and 3:1
-// contrast on the white card) and Apple system blue for iOS. The pair clears
-// every palette check. Unknown OSes fall back to purple, then muted gray.
-const OS_COLORS: Readonly<Record<string, string>> = {
-  Android: "#7d992b",
-  iOS: "#007aff",
-};
-const FALLBACK_OS_COLORS = ["#6600cc", "#757575"] as const;
-
-const osColor = (osName: string, index: number) =>
-  OS_COLORS[osName] ??
-  FALLBACK_OS_COLORS[Math.min(index, FALLBACK_OS_COLORS.length - 1)];
+const RATE_TICKS = [0, 0.25, 0.5, 0.75, 1] as const;
+const Y_AXIS_WIDTH = 52;
+const DATE_LABEL_WIDTH = 44;
+// The final date is centered on the last point, so reserve its right half.
+const CHART_RIGHT_MARGIN = DATE_LABEL_WIDTH / 2 + 4;
 
 const formatTickDate = (value: string) =>
   new Date(`${value}T00:00:00.000Z`).toLocaleDateString("en-US", {
@@ -37,34 +33,54 @@ const formatTickDate = (value: string) =>
     timeZone: "UTC",
   });
 
+const formatRate = (value: number) => `${(value * 100).toFixed(1)}%`;
+const formatRateTick = (value: number) => `${Math.round(value * 100)}%`;
+
+/** Keep sparse weekly bars readable while keeping longer ranges compact. */
+const barMaxSize = (pointCount: number) => {
+  if (pointCount <= 7) return 80;
+  if (pointCount <= 14) return 50;
+  return 20;
+};
+
 export const DailyMetricChart = (props: {
   title: string;
   rows: readonly DailyRow[];
   metric: DailyChartMetric;
   kind: MetricKind;
+  chartType: DailyMetricChartType;
+  yAxisLabel: string;
 }) => {
+  const [chartWidth, setChartWidth] = useState(0);
   const { points, operatingSystems } = useMemo(
     () => buildDailyChartData(props.rows, props.metric),
     [props.rows, props.metric],
   );
-
+  const hasVisibleSeries = operatingSystems.length > 0;
+  const isRate = props.kind === "rate";
   const formatValue = (value: number) =>
-    props.kind === "rate"
-      ? `${(value * 100).toFixed(1)}%`
-      : value.toLocaleString("en-US");
+    isRate ? formatRate(value) : value.toLocaleString("en-US");
+  const showEveryDate = points.length <= 14;
+  // Keep every short-range date, turning labels only when they cannot fit.
+  const rotateDates =
+    showEveryDate &&
+    points.length > 1 &&
+    (chartWidth - Y_AXIS_WIDTH - CHART_RIGHT_MARGIN) / points.length <
+      DATE_LABEL_WIDTH;
 
   return (
     <section
       aria-label={props.title}
-      className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
+      className="w-full min-w-0 rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
     >
-      <div className="flex items-baseline justify-between gap-4">
-        <h3 className="font-world text-14 font-medium text-portal-heading">
-          {props.title}
-        </h3>
-        {operatingSystems.length > 0 && (
-          <ul className="flex items-center gap-3">
-            {operatingSystems.map((os, index) => (
+      <h3 className="font-world text-14 font-medium text-portal-heading">
+        {props.title}
+      </h3>
+
+      <div className="mt-2 min-h-[18px]">
+        {hasVisibleSeries && (
+          <ul className="flex flex-wrap gap-3">
+            {operatingSystems.map((os) => (
               <li
                 key={os.dataKey}
                 className="flex items-center gap-1.5 font-world text-12 text-portal-muted"
@@ -72,7 +88,7 @@ export const DailyMetricChart = (props: {
                 <span
                   aria-hidden
                   className="size-2 rounded-full"
-                  style={{ backgroundColor: osColor(os.osName, index) }}
+                  style={{ backgroundColor: os.color }}
                 />
                 {os.osName}
               </li>
@@ -81,51 +97,131 @@ export const DailyMetricChart = (props: {
         )}
       </div>
 
-      {points.length === 0 ? (
-        <p className="mt-6 font-world text-13 text-portal-muted">
-          No daily data yet.
-        </p>
-      ) : (
-        <div className="mt-4 aspect-video w-full outline-none [&_*]:outline-none">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={[...points]}
-              margin={{ top: 4, left: 12, right: 12, bottom: 0 }}
-              barGap={2}
-              barCategoryGap="15%"
-            >
-              <CartesianGrid vertical={false} stroke="#f1f1f1" />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={32}
-                tick={{ fill: "#757575", fontSize: 12 }}
-                tickFormatter={formatTickDate}
-              />
+      <div className="relative mt-4 aspect-[13/5] max-h-[360px] min-h-[280px] w-full pb-8 pl-12 outline-none [&_*]:outline-none">
+        <span
+          aria-hidden
+          className="absolute right-0 bottom-0 left-12 text-center font-world text-12 text-portal-muted"
+        >
+          Day
+        </span>
+        <span
+          aria-hidden
+          className="absolute top-0 bottom-8 left-0 flex w-8 rotate-180 items-center justify-center font-world text-12 text-portal-muted [writing-mode:vertical-rl]"
+        >
+          {props.yAxisLabel}
+        </span>
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          onResize={setChartWidth}
+        >
+          <ComposedChart
+            data={[...points]}
+            margin={{
+              top: 4,
+              left: 0,
+              right: CHART_RIGHT_MARGIN,
+              bottom: 0,
+            }}
+            barCategoryGap="2%"
+          >
+            <CartesianGrid vertical={false} stroke="#f1f1f1" />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              height={rotateDates ? 56 : 32}
+              angle={rotateDates ? -90 : 0}
+              textAnchor={rotateDates ? "end" : "middle"}
+              tickMargin={8}
+              minTickGap={showEveryDate ? 0 : 32}
+              interval={showEveryDate ? 0 : "preserveStartEnd"}
+              tick={{ fill: "#757575", fontSize: 12 }}
+              tickFormatter={formatTickDate}
+            />
+            <YAxis
+              width={Y_AXIS_WIDTH}
+              allowDecimals={isRate}
+              // Honor the explicit scale even when there are no plotted series.
+              allowDataOverflow={!hasVisibleSeries}
+              axisLine={false}
+              domain={isRate ? [0, 1.05] : [0, hasVisibleSeries ? "auto" : 1]}
+              tickFormatter={isRate ? formatRateTick : undefined}
+              ticks={isRate ? [...RATE_TICKS] : undefined}
+              tick={{ fill: "#757575", fontSize: 12 }}
+              tickMargin={8}
+              tickLine={false}
+            />
+            {hasVisibleSeries ? (
               <Tooltip
                 cursor={{ fill: "rgba(24, 24, 24, 0.04)" }}
+                itemSorter={({ name }) =>
+                  operatingSystems.findIndex((os) => os.osName === name)
+                }
                 labelFormatter={(value) => formatTickDate(String(value))}
                 formatter={(value) =>
                   typeof value === "number" ? formatValue(value) : "—"
                 }
               />
-              {operatingSystems.map((os, index) => (
+            ) : (
+              <Label
+                position="center"
+                value="No data available"
+                className="font-world text-13"
+                fill="#757575"
+                stroke="white"
+                strokeWidth={4}
+                paintOrder="stroke"
+              />
+            )}
+            {operatingSystems.map((os, index) =>
+              props.chartType === "line" ? (
+                <Line
+                  key={os.dataKey}
+                  activeDot={{ r: 4 }}
+                  connectNulls={false}
+                  dataKey={os.dataKey}
+                  dot={{ r: 3 }}
+                  isAnimationActive={false}
+                  name={os.osName}
+                  stroke={os.color}
+                  strokeWidth={2}
+                  type="linear"
+                />
+              ) : props.chartType === "area" ? (
+                <Area
+                  key={os.dataKey}
+                  connectNulls={false}
+                  dataKey={os.dataKey}
+                  fill={os.color}
+                  fillOpacity={0.12}
+                  isAnimationActive={false}
+                  name={os.osName}
+                  stackId="os"
+                  stroke={os.color}
+                  strokeWidth={2}
+                  type="linear"
+                />
+              ) : (
                 <Bar
                   key={os.dataKey}
                   dataKey={os.dataKey}
                   name={os.osName}
-                  fill={osColor(os.osName, index)}
+                  stackId="os"
+                  fill={os.color}
                   isAnimationActive={false}
-                  maxBarSize={20}
-                  radius={[3, 3, 0, 0]}
+                  maxBarSize={barMaxSize(points.length)}
+                  radius={
+                    index === operatingSystems.length - 1 ? [3, 3, 0, 0] : 0
+                  }
                 />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+              ),
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
     </section>
   );
 };
+
+export type DailyMetricChartType = "area" | "bar" | "line";

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { isSelfieCheckAnalyticsEnabledForApp } from "@/api/helpers/selfie-check-analytics/eligibility";
+import { resolveSelfieCheckAnalyticsEligibility } from "@/api/helpers/selfie-check-analytics/eligibility";
 import { logger } from "@/lib/logger";
 
 /** Optional sidebar gating must never make the surrounding page unavailable. */
@@ -8,7 +8,8 @@ export const getAnalyticsSidebarEligibility = async (
   appId: string,
 ): Promise<boolean> => {
   try {
-    return await isSelfieCheckAnalyticsEnabledForApp(appId);
+    const { entry } = await resolveSelfieCheckAnalyticsEligibility(appId);
+    return entry !== undefined;
   } catch (error) {
     logger.warn("Failed to resolve analytics eligibility for the sidebar", {
       appId,
