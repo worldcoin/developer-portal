@@ -22,7 +22,7 @@ import { InsertKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/pag
 const schema = yup
   .object()
   .shape({
-    name: yup.string().required("A key name is required"),
+    name: yup.string().trim().required("A key name is required"),
   })
   .noUnknown();
 

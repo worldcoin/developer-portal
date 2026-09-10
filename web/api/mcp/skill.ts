@@ -153,6 +153,19 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
 - **\`is_developer_allow_listing\` is optional on submit.** If you omit it, the existing value on \`app_metadata\` is preserved — the MCP will not silently un-list a previously listed app.
 - **Don't re-run \`configure_world_id\` on an already-configured app.** It returns the existing registration without rotating. Use \`rotate_world_id_signing_key\` if the user actually wants a new key.
 
+## Test native World ID 4.0 with the simulator
+
+The Portal MCP configures the app; the separate Simulator MCP completes its real staging proof request. The simulator's \`complete_test_request\` tool is not a Portal tool: connect it separately using the [simulator setup guide](https://github.com/worldcoin/simulator/blob/main/docs/mcp.md). If the tool is unavailable, fall back to the [simulator browser flow](https://simulator.worldcoin.org/) with the application's connector URL; do not invent a Portal test-payload endpoint.
+
+1. Use an existing production app, or create one first (canonical flow A: \`create_app\` → \`configure_world_id\`). Capture \`result.signing_key.private_key\` from \`configure_world_id\` immediately — it is returned only once. If it is lost, wait until registration completes, then \`rotate_world_id_signing_key\` on that app only.
+2. Poll \`get_world_id_registration_status\` until both \`production_status\` and \`staging_status\` are \`registered\`. While either is \`pending\`, wait and poll again; do not start the simulator request. Treat \`failed\` as a configuration failure (a failed staging mirror can be retried from the app's World ID configuration).
+3. Start the application's actual signed IDKit request: \`environment: "staging"\`, \`allow_legacy_proofs: false\`, RP-signed on the application's backend, and enforce \`min_protocol_version: "4.0"\` at verification. A minimal end-to-end example lives in the simulator setup guide. Actions need no pre-registration — the v4 verify endpoint lazy-creates them on first verification; use \`create_world_id_action\` only to configure one deliberately.
+4. Pass the request's connector URI to the Simulator MCP's \`complete_test_request { connect_url }\`. The first version supports a single native v4 Proof of Human uniqueness request; the signed request supplies the action and proof context.
+5. Wait for the application's own IDKit polling/callback to receive the proof, then check its real backend verification response and business effects. \`proof_delivered\` from the simulator is delivery acknowledgment, not application acceptance.
+6. On failure, follow the simulator's outcome guidance: \`not_completed\` — inspect the reported stage and the IDKit result; \`unknown\` — inspect the original request before another attempt, never retry blindly; \`simulator_busy\` — nothing was started, retry after a short wait. Repair the application and start a fresh request as appropriate.
+
+Never log or repeat connector URLs: they contain a bridge encryption key. The simulator needs neither the RP private signing key nor the Portal team API key. These tests use real proofs from staging test credentials; they do not establish production-phone behavior, credential issuance, or session-proof support. Portal v4 currently accepts nullifier reuse — a repeat verification succeeds with a message noting the reuse — so application-level duplicate-operation rules must be tested separately.
+
 ## When in doubt
 
 - \`get_team_context\` first to see what's already there. Reusing an existing app is almost always cheaper than creating a duplicate.

@@ -1,8 +1,5 @@
-import { isSelfieCheckAnalyticsEnabledForApp } from "@/api/helpers/selfie-check-analytics/eligibility";
-import {
-  loadLatestDailyTableSnapshot,
-  loadLatestTotalsTableSnapshot,
-} from "@/api/helpers/selfie-check-analytics/snapshots";
+import { resolveSelfieCheckAnalyticsEligibility } from "@/api/helpers/selfie-check-analytics/eligibility";
+import { loadLatestDailyTableSnapshot } from "@/api/helpers/selfie-check-analytics/snapshots";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
@@ -15,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 const PRIVATE_CACHE_CONTROL = "private, max-age=60";
 const NO_STORE_HEADERS = { "Cache-Control": "no-store" };
 
-type AnalyticsMeta = {
+type SnapshotMetadata = {
   dataAsOf: string;
   isFallback: boolean;
 };
@@ -25,13 +22,13 @@ type AnalyticsResponse =
       appId: string;
       tablePrefix: "total/";
       row: TotalsRow;
-      meta: AnalyticsMeta;
+      snapshotMetadata: SnapshotMetadata;
     }
   | {
       appId: string;
       tablePrefix: "daily/";
       rows: readonly DailyRow[];
-      meta: AnalyticsMeta;
+      snapshotMetadata: SnapshotMetadata;
     };
 
 const errorResponse = ({
@@ -152,19 +149,22 @@ export async function GET(
     });
   }
 
-  if (!(await isSelfieCheckAnalyticsEnabledForApp(appId))) {
-    return errorResponse({
-      status: 404,
-      code: "not_found",
-      detail: "Analytics not found.",
-    });
-  }
-
-  const dataset =
-    tableParam === "daily" ? "selfie_check_daily" : "selfie_check_totals";
+  let dataset = "selfie_check_totals";
 
   let loaded;
+  let eligibility;
   try {
+    eligibility = await resolveSelfieCheckAnalyticsEligibility(appId);
+    if (eligibility.entry === undefined) {
+      return errorResponse({
+        status: 403,
+        code: "analytics_not_enabled",
+        detail:
+          "Selfie Check analytics aren't available for this app yet. Contact us to learn more.",
+      });
+    }
+    dataset =
+      tableParam === "daily" ? "selfie_check_daily" : "selfie_check_totals";
     loaded =
       tableParam === "daily"
         ? {
@@ -173,7 +173,7 @@ export async function GET(
           }
         : {
             table: "total" as const,
-            snapshot: await loadLatestTotalsTableSnapshot(),
+            snapshot: eligibility.snapshot,
           };
   } catch (error) {
     logger.error("Failed to load selfie-check analytics table", {
@@ -200,29 +200,22 @@ export async function GET(
     );
   }
 
-  const meta: AnalyticsMeta = {
+  const snapshotMetadata: SnapshotMetadata = {
     dataAsOf: loaded.snapshot.source.dataAsOf,
-    isFallback: loaded.snapshot.isFallback,
+    isFallback: eligibility.snapshot.isFallback || loaded.snapshot.isFallback,
   };
 
   let response: AnalyticsResponse | null = null;
   if (loaded.table === "daily") {
     const rows = loaded.snapshot.records.get(appId);
-    if (rows) response = { appId, tablePrefix: "daily/", rows, meta };
+    if (rows)
+      response = { appId, tablePrefix: "daily/", rows, snapshotMetadata };
   } else {
-    const row = loaded.snapshot.records.get(appId);
-    if (row) response = { appId, tablePrefix: "total/", row, meta };
+    const row = eligibility.entry;
+    if (row) response = { appId, tablePrefix: "total/", row, snapshotMetadata };
   }
 
   if (!response) {
-    logger.warn(
-      "Whitelisted selfie-check analytics app is absent from the snapshot",
-      {
-        appId,
-        dataset,
-        snapshotIdentity: loaded.snapshot.source.identity,
-      },
-    );
     return errorResponse({
       status: 404,
       code: "not_found",
@@ -233,7 +226,7 @@ export async function GET(
   const etag = buildResponseEtag({
     appId,
     identity: loaded.snapshot.source.identity,
-    isFallback: loaded.snapshot.isFallback,
+    isFallback: snapshotMetadata.isFallback,
     tablePrefix: response.tablePrefix,
   });
   const headers = responseHeaders(etag);

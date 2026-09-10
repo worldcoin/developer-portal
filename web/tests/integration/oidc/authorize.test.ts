@@ -6,8 +6,9 @@ import { semaphoreProofParamsMock } from "tests/api/__mocks__/proof.mock";
 import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 import { testGetDefaultApp } from "../test-utils";
 
-// Mock the verifyProof function
+// Mock proof verification while preserving the nullifier encoder used by the handler.
 jest.mock("@/api/helpers/verify", () => ({
+  ...jest.requireActual("@/api/helpers/verify"),
   verifyProof: jest.fn().mockResolvedValue({ error: null }),
 }));
 

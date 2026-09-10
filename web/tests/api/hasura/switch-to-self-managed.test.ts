@@ -27,9 +27,9 @@ jest.mock(
   () => ({ getSdk: () => ({ RevertModeSwitchStatus }) }),
 );
 
-const CheckUserInApp = jest.fn();
-jest.mock("@/api/hasura/graphql/checkUserInApp.generated", () => ({
-  getSdk: () => ({ CheckUserInApp }),
+const CheckUserIsOwnerInApp = jest.fn();
+jest.mock("@/api/hasura/graphql/checkUserIsOwnerInApp.generated", () => ({
+  getSdk: () => ({ CheckUserIsOwnerInApp }),
 }));
 
 jest.mock("@/api/helpers/graphql", () => ({
@@ -121,7 +121,7 @@ beforeEach(async () => {
   GetRpRegistration.mockResolvedValue({
     rp_registration: [makeRegistration()],
   });
-  CheckUserInApp.mockResolvedValue({ team: [{ id: teamId }] });
+  CheckUserIsOwnerInApp.mockResolvedValue({ team: [{ id: teamId }] });
   ClaimModeSwitchSlot.mockResolvedValue({
     update_rp_registration: { affected_rows: 1 },
   });
@@ -133,6 +133,29 @@ beforeEach(async () => {
     update_rp_registration_by_pk: { rp_id: rpId },
   });
 });
+
+// #region Authorization
+describe("/api/hasura/switch-to-self-managed [authorization]", () => {
+  it("rejects a non-owner (ADMIN/MEMBER/outsider) before any state change", async () => {
+    CheckUserIsOwnerInApp.mockResolvedValue({ team: [] });
+
+    const res = (await POST(
+      createMockRequest({
+        app_id: appId,
+        new_manager_address: newManagerAddress,
+      }),
+    ))!;
+    const body = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(body.extensions.code).toBe("unauthorized");
+    expect(ClaimModeSwitchSlot).not.toHaveBeenCalled();
+    expect(submitTransferManagerTransactionMock).not.toHaveBeenCalled();
+    expect(UpdateModeSwitchResult).not.toHaveBeenCalled();
+    expect(scheduleKeyDeletion).not.toHaveBeenCalled();
+  });
+});
+// #endregion
 
 // #region KMS key deletion guard
 describe("/api/hasura/switch-to-self-managed [key deletion]", () => {

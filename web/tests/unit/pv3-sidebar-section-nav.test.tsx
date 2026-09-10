@@ -2,7 +2,7 @@
 import "@testing-library/jest-dom";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
 // #region Mocks
@@ -54,6 +54,7 @@ import {
   SidebarNav,
 } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 import { NavActivePill } from "@/scenes/PortalV3/layout/Shell/NavItem";
+import { MetricsFrame } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MetricsFrame";
 
 // #region Test Data
 const teamId = "team_1";
@@ -111,7 +112,7 @@ beforeEach(() => {
   });
 });
 
-// #region Analytics allowlist gate
+// #region Analytics snapshot membership
 it("shows and activates Analytics after the app layout signals eligibility", () => {
   usePathname.mockReturnValue(`${base}/analytics`);
   renderSidebar([teamId], { appId, enabled: true });
@@ -152,6 +153,53 @@ it("hides Analytics when no app was signaled as eligible", () => {
 
   noLink("Analytics");
 });
+
+it.each([
+  { table: "total", status: 403 },
+  { table: "total", status: 404 },
+  { table: "daily", status: 403 },
+  { table: "daily", status: 404 },
+])(
+  "clears an existing sidebar verdict only when $table $status confirms loss of access",
+  async ({ table, status }) => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url: string) => {
+      const requested = url.includes("daily") ? "daily" : "total";
+      return requested === table
+        ? Promise.resolve({ ok: false, status } as Response)
+        : new Promise<Response>(() => {});
+    }) as typeof fetch;
+    try {
+      render(
+        <TooltipProvider>
+          <SidebarProvider>
+            <SidebarAnimationShell>
+              <AnalyticsAppEligibility appId={appId} enabled />
+              <SidebarNav apiKeyTeamIds={[teamId]} />
+              <MetricsFrame appId={appId} />
+            </SidebarAnimationShell>
+          </SidebarProvider>
+        </TooltipProvider>,
+      );
+      expect(link("Analytics")).toBeInTheDocument();
+      if (table === "daily") {
+        fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
+      }
+      await screen.findByText(
+        status === 403
+          ? "Selfie Check analytics aren't available for this app yet. Contact us to learn more."
+          : table === "total"
+            ? "Analytics not found."
+            : "Analytics data is not available for this view yet.",
+      );
+      if (table === "total" || status === 403)
+        await waitFor(() => noLink("Analytics"));
+      else expect(link("Analytics")).toBeInTheDocument();
+    } finally {
+      global.fetch = originalFetch;
+    }
+  },
+);
 // #endregion
 
 // #region active pill animation compartments
