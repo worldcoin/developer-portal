@@ -5,6 +5,8 @@ query FetchRpRegistration($app_id: String!) {
     mode
     signer_address
     status
+    staging_verification_expires_at
+    staging_verification_token_hash
     app {
       id
       status
@@ -24,6 +26,8 @@ query FetchRpRegistrationByRpId($rp_id: String!) {
     mode
     signer_address
     status
+    staging_verification_expires_at
+    staging_verification_token_hash
     app {
       id
       status

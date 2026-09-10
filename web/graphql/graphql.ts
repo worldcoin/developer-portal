@@ -11713,6 +11713,10 @@ export type Rp_Registration = {
   signer_address?: Maybe<Scalars["String"]["output"]>;
   staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
   staging_status?: Maybe<Scalars["rp_registration_status"]["output"]>;
+  /** While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only. */
+  staging_verification_expires_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  /** HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored. */
+  staging_verification_token_hash?: Maybe<Scalars["String"]["output"]>;
   status: Scalars["rp_registration_status"]["output"];
   updated_at: Scalars["timestamptz"]["output"];
 };
@@ -11815,6 +11819,8 @@ export type Rp_Registration_Bool_Exp = {
   signer_address?: InputMaybe<String_Comparison_Exp>;
   staging_operation_hash?: InputMaybe<String_Comparison_Exp>;
   staging_status?: InputMaybe<Rp_Registration_Status_Comparison_Exp>;
+  staging_verification_expires_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  staging_verification_token_hash?: InputMaybe<String_Comparison_Exp>;
   status?: InputMaybe<Rp_Registration_Status_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -11841,6 +11847,10 @@ export type Rp_Registration_Insert_Input = {
   signer_address?: InputMaybe<Scalars["String"]["input"]>;
   staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
   staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
+  /** While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only. */
+  staging_verification_expires_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored. */
+  staging_verification_token_hash?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
@@ -11857,6 +11867,10 @@ export type Rp_Registration_Max_Fields = {
   signer_address?: Maybe<Scalars["String"]["output"]>;
   staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
   staging_status?: Maybe<Scalars["rp_registration_status"]["output"]>;
+  /** While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only. */
+  staging_verification_expires_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  /** HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored. */
+  staging_verification_token_hash?: Maybe<Scalars["String"]["output"]>;
   status?: Maybe<Scalars["rp_registration_status"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
 };
@@ -11872,6 +11886,10 @@ export type Rp_Registration_Max_Order_By = {
   signer_address?: InputMaybe<Order_By>;
   staging_operation_hash?: InputMaybe<Order_By>;
   staging_status?: InputMaybe<Order_By>;
+  /** While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only. */
+  staging_verification_expires_at?: InputMaybe<Order_By>;
+  /** HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored. */
+  staging_verification_token_hash?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -11888,6 +11906,10 @@ export type Rp_Registration_Min_Fields = {
   signer_address?: Maybe<Scalars["String"]["output"]>;
   staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
   staging_status?: Maybe<Scalars["rp_registration_status"]["output"]>;
+  /** While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only. */
+  staging_verification_expires_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  /** HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored. */
+  staging_verification_token_hash?: Maybe<Scalars["String"]["output"]>;
   status?: Maybe<Scalars["rp_registration_status"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
 };
@@ -11903,6 +11925,10 @@ export type Rp_Registration_Min_Order_By = {
   signer_address?: InputMaybe<Order_By>;
   staging_operation_hash?: InputMaybe<Order_By>;
   staging_status?: InputMaybe<Order_By>;
+  /** While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only. */
+  staging_verification_expires_at?: InputMaybe<Order_By>;
+  /** HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored. */
+  staging_verification_token_hash?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -11957,6 +11983,8 @@ export type Rp_Registration_Order_By = {
   signer_address?: InputMaybe<Order_By>;
   staging_operation_hash?: InputMaybe<Order_By>;
   staging_status?: InputMaybe<Order_By>;
+  staging_verification_expires_at?: InputMaybe<Order_By>;
+  staging_verification_token_hash?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -11989,6 +12017,10 @@ export enum Rp_Registration_Select_Column {
   /** column name */
   StagingStatus = "staging_status",
   /** column name */
+  StagingVerificationExpiresAt = "staging_verification_expires_at",
+  /** column name */
+  StagingVerificationTokenHash = "staging_verification_token_hash",
+  /** column name */
   Status = "status",
   /** column name */
   UpdatedAt = "updated_at",
@@ -12018,6 +12050,10 @@ export type Rp_Registration_Set_Input = {
   signer_address?: InputMaybe<Scalars["String"]["input"]>;
   staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
   staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
+  /** While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only. */
+  staging_verification_expires_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored. */
+  staging_verification_token_hash?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
@@ -12055,6 +12091,10 @@ export type Rp_Registration_Stream_Cursor_Value_Input = {
   signer_address?: InputMaybe<Scalars["String"]["input"]>;
   staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
   staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
+  /** While this timestamp is in the future, /api/v4/verify may accept staging (and sandbox) proofs for this RP. NULL, or a timestamp in the past, means production proofs only. */
+  staging_verification_expires_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** HMAC of the one-time token issued when the staging window was opened. A staging verification must present the matching token; the plaintext is returned to the developer once and never stored. */
+  staging_verification_token_hash?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
@@ -12081,6 +12121,10 @@ export enum Rp_Registration_Update_Column {
   StagingOperationHash = "staging_operation_hash",
   /** column name */
   StagingStatus = "staging_status",
+  /** column name */
+  StagingVerificationExpiresAt = "staging_verification_expires_at",
+  /** column name */
+  StagingVerificationTokenHash = "staging_verification_token_hash",
   /** column name */
   Status = "status",
   /** column name */
