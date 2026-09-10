@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import {
   Area,
   Bar,
+  BarStack,
   CartesianGrid,
   ComposedChart,
   Label,
@@ -71,15 +72,15 @@ export const DailyMetricChart = (props: {
   return (
     <section
       aria-label={props.title}
-      className="w-full min-w-0 rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
+      className="w-full min-w-0 rounded-16 border border-portal-border bg-white p-5"
     >
       <h3 className="font-world text-14 font-medium text-portal-heading">
         {props.title}
       </h3>
 
-      <div className="mt-2 min-h-[18px]">
+      <div className="mt-3 min-h-[18px]">
         {hasVisibleSeries && (
-          <ul className="flex flex-wrap gap-3">
+          <ul className="flex flex-wrap gap-x-4 gap-y-2">
             {operatingSystems.map((os) => (
               <li
                 key={os.dataKey}
@@ -97,7 +98,7 @@ export const DailyMetricChart = (props: {
         )}
       </div>
 
-      <div className="relative mt-4 aspect-[13/5] max-h-[360px] min-h-[280px] w-full pb-8 pl-12 outline-none [&_*]:outline-none">
+      <div className="relative mt-4 aspect-[13/5] max-h-[360px] min-h-[280px] w-full pb-8 pl-12 font-world tabular-nums [&_.recharts-surface]:rounded-sm [&_.recharts-surface]:focus-visible:outline-2 [&_.recharts-surface]:focus-visible:outline-offset-4 [&_.recharts-surface]:focus-visible:outline-portal-border">
         <span
           aria-hidden
           className="absolute right-0 bottom-0 left-12 text-center font-world text-12 text-portal-muted"
@@ -116,16 +117,23 @@ export const DailyMetricChart = (props: {
           onResize={setChartWidth}
         >
           <ComposedChart
-            data={[...points]}
+            // Recharts stacks series in registration order. Reset that order
+            // when filters add or remove an OS so it always matches the legend.
+            key={operatingSystems.map((os) => os.dataKey).join(",")}
+            data={points}
             margin={{
-              top: 4,
+              top: 8,
               left: 0,
               right: CHART_RIGHT_MARGIN,
               bottom: 0,
             }}
             barCategoryGap="2%"
           >
-            <CartesianGrid vertical={false} stroke="#f1f1f1" />
+            <CartesianGrid
+              vertical={false}
+              stroke="#EDEEF0"
+              strokeDasharray="3 5"
+            />
             <XAxis
               dataKey="date"
               tickLine={false}
@@ -148,13 +156,31 @@ export const DailyMetricChart = (props: {
               domain={isRate ? [0, 1.05] : [0, hasVisibleSeries ? "auto" : 1]}
               tickFormatter={isRate ? formatRateTick : undefined}
               ticks={isRate ? [...RATE_TICKS] : undefined}
-              tick={{ fill: "#757575", fontSize: 12 }}
+              tick={{ fill: "#757575", fontSize: 11 }}
               tickMargin={8}
               tickLine={false}
             />
             {hasVisibleSeries ? (
               <Tooltip
-                cursor={{ fill: "rgba(24, 24, 24, 0.04)" }}
+                cursor={
+                  props.chartType === "bar"
+                    ? { fill: "rgba(24, 24, 24, 0.025)" }
+                    : { stroke: "#D1D5DB", strokeDasharray: "3 5" }
+                }
+                contentStyle={{
+                  border: "1px solid #EDEEF0",
+                  borderRadius: 12,
+                  padding: "12px 16px",
+                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
+                  fontSize: 12,
+                }}
+                labelStyle={{
+                  color: "#171717",
+                  fontWeight: 500,
+                  marginBottom: 6,
+                }}
+                itemStyle={{ padding: "3px 0" }}
+                separator=": "
                 itemSorter={({ name }) =>
                   operatingSystems.findIndex((os) => os.osName === name)
                 }
@@ -174,49 +200,59 @@ export const DailyMetricChart = (props: {
                 paintOrder="stroke"
               />
             )}
-            {operatingSystems.map((os, index) =>
-              props.chartType === "line" ? (
-                <Line
-                  key={os.dataKey}
-                  activeDot={{ r: 4 }}
-                  connectNulls={false}
-                  dataKey={os.dataKey}
-                  dot={{ r: 3 }}
-                  isAnimationActive={false}
-                  name={os.osName}
-                  stroke={os.color}
-                  strokeWidth={2}
-                  type="linear"
-                />
-              ) : props.chartType === "area" ? (
-                <Area
-                  key={os.dataKey}
-                  connectNulls={false}
-                  dataKey={os.dataKey}
-                  fill={os.color}
-                  fillOpacity={0.12}
-                  isAnimationActive={false}
-                  name={os.osName}
-                  stackId="os"
-                  stroke={os.color}
-                  strokeWidth={2}
-                  type="linear"
-                />
-              ) : (
-                <Bar
-                  key={os.dataKey}
-                  dataKey={os.dataKey}
-                  name={os.osName}
-                  stackId="os"
-                  fill={os.color}
-                  isAnimationActive={false}
-                  maxBarSize={barMaxSize(points.length)}
-                  radius={
-                    index === operatingSystems.length - 1 ? [3, 3, 0, 0] : 0
-                  }
-                />
-              ),
+            {/* Round the whole stack, including days where its last OS is zero or absent. */}
+            {props.chartType === "bar" && (
+              <BarStack radius={[5, 5, 0, 0]}>
+                {operatingSystems.map((os) => (
+                  <Bar
+                    key={os.dataKey}
+                    dataKey={os.dataKey}
+                    name={os.osName}
+                    fill={os.color}
+                    isAnimationActive={false}
+                    maxBarSize={barMaxSize(points.length)}
+                  />
+                ))}
+              </BarStack>
             )}
+            {props.chartType !== "bar" &&
+              operatingSystems.map((os) =>
+                props.chartType === "line" ? (
+                  <Line
+                    key={os.dataKey}
+                    activeDot={{ r: 4, stroke: "white", strokeWidth: 2 }}
+                    connectNulls={false}
+                    dataKey={os.dataKey}
+                    dot={
+                      points.length <= 14 ? { r: 2.5, strokeWidth: 1.5 } : false
+                    }
+                    isAnimationActive={false}
+                    name={os.osName}
+                    stroke={os.color}
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    type="linear"
+                  />
+                ) : (
+                  <Area
+                    key={os.dataKey}
+                    connectNulls={false}
+                    dataKey={os.dataKey}
+                    fill={os.color}
+                    fillOpacity={0.1}
+                    isAnimationActive={false}
+                    name={os.osName}
+                    stackId="os"
+                    stroke={os.color}
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    activeDot={{ r: 4, stroke: "white", strokeWidth: 2 }}
+                    type="linear"
+                  />
+                ),
+              )}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
