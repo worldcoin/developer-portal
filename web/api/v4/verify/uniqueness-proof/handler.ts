@@ -33,6 +33,7 @@ export interface UniquenessResult {
 // Response types
 type UniquenessProofSuccessResponse = {
   success: true;
+  session_id?: string;
   action: string;
   nullifier: string; // Hex format `0x` prefixed
   created_at?: string;
@@ -67,6 +68,7 @@ export async function handleUniquenessProofVerification(
   parsedParams: {
     action: string;
     action_description?: string;
+    session_id?: string;
     nonce?: string;
     protocol_version: "3.0" | "4.0";
     responses: UniquenessProofResponseV3[] | UniquenessProofResponseV4[];
@@ -132,6 +134,7 @@ export async function handleUniquenessProofVerification(
       parsedParams.action!,
       parsedParams.responses as UniquenessProofResponseV4[],
       verifierAddress,
+      parsedParams.session_id,
     );
   }
 
@@ -267,6 +270,7 @@ export async function handleUniquenessProofVerification(
     return NextResponse.json<UniquenessProofSuccessResponse>(
       {
         success: true,
+        session_id: parsedParams.session_id,
         action: actionV4.action,
         nullifier: normalizedNullifier,
         created_at: existingNullifier.created_at,
@@ -328,6 +332,7 @@ export async function handleUniquenessProofVerification(
     return NextResponse.json<UniquenessProofSuccessResponse>(
       {
         success: true,
+        session_id: parsedParams.session_id,
         action: actionV4.action,
         nullifier: normalizedNullifier,
         created_at: insertResult.insert_nullifier_v4_one.created_at,
@@ -359,6 +364,7 @@ export async function handleUniquenessProofVerification(
       return NextResponse.json<UniquenessProofSuccessResponse>(
         {
           success: true,
+          session_id: parsedParams.session_id,
           action: actionV4.action,
           nullifier: normalizedNullifier,
           environment: requestedEnvironment,
