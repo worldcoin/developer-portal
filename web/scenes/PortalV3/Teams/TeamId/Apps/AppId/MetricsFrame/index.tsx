@@ -14,6 +14,7 @@ import {
   type TotalsRow,
 } from "@/lib/selfie-check-analytics";
 import { AnalyticsAppEligibility } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -130,6 +131,8 @@ export const MetricsFrame = (props: {
   const [timeframe, setTimeframe] = useState<TimeframeValue>("14");
   const [osName, setOsName] = useState(ALL_OPERATING_SYSTEMS);
   const teamId = useParams<{ teamId?: string }>()?.teamId;
+  const { user, isLoading } = useUser();
+  const allowTracking = user?.hasura?.is_allow_tracking === true;
   const selectedView = useRef<AnalyticsView>("totals");
   const lastPageEntry = useRef<string | null>(null);
 
@@ -145,6 +148,7 @@ export const MetricsFrame = (props: {
           );
         }
         if (
+          !allowTracking ||
           process.env.NEXT_PUBLIC_POSTHOG_DISABLED === "true" ||
           posthog.has_opted_out_capturing()
         )
@@ -158,17 +162,24 @@ export const MetricsFrame = (props: {
         });
       }
     },
-    [props.appId, teamId],
+    [props.appId, teamId, allowTracking],
   );
 
   useEffect(() => {
-    if (!teamId) return;
+    if (!teamId || isLoading) return;
     const entry = `${teamId}:${props.appId}`;
     if (lastPageEntry.current === entry) return;
-    // Preserve the guard through Strict Mode effect replay, not real remounts.
-    lastPageEntry.current = entry;
-    captureView(selectedView.current, "page_entry");
-  }, [props.appId, teamId, captureView]);
+    let active = true;
+    // Let the ancestor provider reconcile identity/consent before entry capture.
+    queueMicrotask(() => {
+      if (!active) return;
+      lastPageEntry.current = entry;
+      captureView(selectedView.current, "page_entry");
+    });
+    return () => {
+      active = false;
+    };
+  }, [props.appId, teamId, captureView, isLoading]);
 
   const operatingSystems = useMemo(
     () =>

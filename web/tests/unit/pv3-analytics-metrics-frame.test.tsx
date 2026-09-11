@@ -6,10 +6,13 @@ import { MetricsFrame } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MetricsF
 import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
 import { appId } from "../fixtures/selfie-check-analytics";
 import posthog from "posthog-js";
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 
 // #region I/O mocks
-jest.mock("@auth0/nextjs-auth0", () => ({ useUser: jest.fn() }));
+const mockUseUser = jest.fn();
+jest.mock("@auth0/nextjs-auth0/client", () => ({
+  useUser: () => mockUseUser(),
+}));
 jest.mock("next/navigation", () => ({
   useParams: () => ({ teamId: "team_0123456789abcdef0123456789abcdef" }),
 }));
@@ -24,6 +27,7 @@ const originalPostHogDisabled = process.env.NEXT_PUBLIC_POSTHOG_DISABLED;
 // #endregion
 
 // #region Test Data
+const trackingUser = { hasura: { is_allow_tracking: true } };
 const dailyRows: DailyRow[] = [
   { day: "2026-08-01", os_name: "Unknown" },
   { day: "2026-08-17", os_name: "Android" },
@@ -80,6 +84,7 @@ const expectLegends = (names: string[]) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockUseUser.mockReturnValue({ user: trackingUser, isLoading: false });
   delete process.env.NEXT_PUBLIC_POSTHOG_DISABLED;
   jest.mocked(posthog.capture).mockReset();
   jest
@@ -194,9 +199,6 @@ it("captures entry once through Strict Mode, fetch completion, and rerenders", a
     </StrictMode>
   );
   const { rerender } = render(content);
-  expect(selectionEvents()).toEqual([
-    expectedSelection("totals", "page_entry"),
-  ]);
   await screen.findByRole("region", { name: "Analytics overview" });
   rerender(content);
   fireEvent.click(screen.getByRole("tab", { name: "All time" }));
@@ -273,11 +275,16 @@ it("captures a new app entry using the actual selected tab and current app ID", 
   ]);
 });
 
-it.each(["environment", "opt-out"])(
+it.each(["environment", "opt-out", "profile"])(
   "does not capture entry or switches when disabled by %s",
   async (reason) => {
     if (reason === "environment")
       process.env.NEXT_PUBLIC_POSTHOG_DISABLED = "true";
+    else if (reason === "profile")
+      mockUseUser.mockReturnValue({
+        user: { hasura: { is_allow_tracking: false } },
+        isLoading: false,
+      });
     else jest.mocked(posthog.has_opted_out_capturing).mockReturnValue(true);
     render(<MetricsFrame appId={appId} />);
     await screen.findByRole("region", { name: "Analytics overview" });
@@ -289,6 +296,26 @@ it.each(["environment", "opt-out"])(
     expect(posthog.capture).not.toHaveBeenCalled();
   },
 );
+
+it("waits for current user and ancestor consent sync before capturing entry", async () => {
+  mockUseUser.mockReturnValue({ isLoading: true });
+  jest.mocked(posthog.has_opted_out_capturing).mockReturnValue(true);
+  const Parent = () => {
+    useEffect(() => {
+      if (!mockUseUser().isLoading)
+        jest.mocked(posthog.has_opted_out_capturing).mockReturnValue(false);
+    });
+    return <MetricsFrame appId={appId} />;
+  };
+  const { rerender } = render(<Parent />);
+  await screen.findByRole("region", { name: "Analytics overview" });
+  expect(posthog.capture).not.toHaveBeenCalled();
+  mockUseUser.mockReturnValue({ user: trackingUser, isLoading: false });
+  await act(async () => rerender(<Parent />));
+  expect(selectionEvents()).toEqual([
+    expectedSelection("totals", "page_entry"),
+  ]);
+});
 
 it.each(["development", "production"] as const)(
   "handles local previews in %s without sending disabled tracking",
