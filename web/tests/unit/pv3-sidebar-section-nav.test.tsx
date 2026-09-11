@@ -6,6 +6,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
 // #region Mocks
+jest.mock("@auth0/nextjs-auth0/client", () => ({
+  useUser: () => ({ user: null, isLoading: false }),
+}));
 const usePathname = jest.fn();
 const useParams = jest.fn();
 const useSearchParams = jest.fn();
