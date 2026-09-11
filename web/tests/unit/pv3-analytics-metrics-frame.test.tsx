@@ -5,12 +5,22 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { MetricsFrame } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MetricsFrame";
 import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
 import { appId } from "../fixtures/selfie-check-analytics";
+import posthog from "posthog-js";
+import { StrictMode } from "react";
 
 // #region I/O mocks
 jest.mock("@auth0/nextjs-auth0", () => ({ useUser: jest.fn() }));
+jest.mock("next/navigation", () => ({
+  useParams: () => ({ teamId: "team_0123456789abcdef0123456789abcdef" }),
+}));
+jest.mock("posthog-js", () => ({
+  __esModule: true,
+  default: { capture: jest.fn(), has_opted_out_capturing: jest.fn() },
+}));
 const fetchMock = jest.fn();
 const originalFetch = global.fetch;
 const originalResizeObserver = global.ResizeObserver;
+const originalPostHogDisabled = process.env.NEXT_PUBLIC_POSTHOG_DISABLED;
 // #endregion
 
 // #region Test Data
@@ -70,6 +80,12 @@ const expectLegends = (names: string[]) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  delete process.env.NEXT_PUBLIC_POSTHOG_DISABLED;
+  jest.mocked(posthog.capture).mockReset();
+  jest
+    .mocked(posthog.has_opted_out_capturing)
+    .mockReset()
+    .mockReturnValue(false);
   global.fetch = fetchMock;
   // jsdom has no layout engine or ResizeObserver.
   global.ResizeObserver = class {
@@ -91,6 +107,9 @@ beforeEach(() => {
   serve();
 });
 afterEach(() => {
+  if (originalPostHogDisabled === undefined)
+    delete process.env.NEXT_PUBLIC_POSTHOG_DISABLED;
+  else process.env.NEXT_PUBLIC_POSTHOG_DISABLED = originalPostHogDisabled;
   global.fetch = originalFetch;
   global.ResizeObserver = originalResizeObserver;
   jest.restoreAllMocks();
@@ -144,6 +163,146 @@ it("filters every daily chart without changing the lifetime section", async () =
 
   fireEvent.click(screen.getByRole("tab", { name: "All time" }));
   expect(screen.getByText("20 sessions")).toBeInTheDocument();
+});
+// #endregion
+
+// #region Analytics view selection events
+const selectionEvents = () => jest.mocked(posthog.capture).mock.calls;
+const selectTab = async (name: string) => {
+  await act(async () => {
+    fireEvent.click(screen.getByRole("tab", { name }));
+  });
+};
+const expectedSelection = (
+  view: "totals" | "daily",
+  source: "page_entry" | "tab_switch",
+  selectedAppId = appId,
+) => [
+  "selfie_check_analytics_view_selected",
+  {
+    appId: selectedAppId,
+    teamId: "team_0123456789abcdef0123456789abcdef",
+    view,
+    source,
+  },
+];
+
+it("captures entry once through Strict Mode, fetch completion, and rerenders", async () => {
+  const content = (
+    <StrictMode>
+      <MetricsFrame appId={appId} />
+    </StrictMode>
+  );
+  const { rerender } = render(content);
+  expect(selectionEvents()).toEqual([
+    expectedSelection("totals", "page_entry"),
+  ]);
+  await screen.findByRole("region", { name: "Analytics overview" });
+  rerender(content);
+  fireEvent.click(screen.getByRole("tab", { name: "All time" }));
+  expect(selectionEvents()).toEqual([
+    expectedSelection("totals", "page_entry"),
+  ]);
+});
+
+it("captures both directions and revisits, but not filters or the active tab", async () => {
+  const { rerender } = render(<MetricsFrame appId={appId} />);
+  await screen.findByRole("region", { name: "Analytics overview" });
+  await selectTab("Daily trends");
+  await selectTab("Daily trends");
+  fireEvent.change(screen.getByRole("combobox", { name: "Timeframe" }), {
+    target: { value: "7" },
+  });
+  fireEvent.change(screen.getByRole("combobox", { name: "Operating System" }), {
+    target: { value: "iOS" },
+  });
+  rerender(<MetricsFrame appId={appId} initialIsFallback />);
+  await selectTab("All time");
+  await selectTab("Daily trends");
+  expect(selectionEvents()).toEqual([
+    expectedSelection("totals", "page_entry"),
+    expectedSelection("daily", "tab_switch"),
+    expectedSelection("totals", "tab_switch"),
+    expectedSelection("daily", "tab_switch"),
+  ]);
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
+it("captures a fresh entry after leaving and returning to the same app", async () => {
+  const { unmount } = render(<MetricsFrame appId={appId} />);
+  await screen.findByRole("region", { name: "Analytics overview" });
+  unmount();
+  render(<MetricsFrame appId={appId} />);
+  await screen.findByRole("region", { name: "Analytics overview" });
+  expect(selectionEvents()).toEqual([
+    expectedSelection("totals", "page_entry"),
+    expectedSelection("totals", "page_entry"),
+  ]);
+});
+
+it("captures keyboard navigation in both directions", async () => {
+  render(<MetricsFrame appId={appId} />);
+  await screen.findByRole("region", { name: "Analytics overview" });
+  const totalsTab = screen.getByRole("tab", { name: "All time" });
+  act(() => totalsTab.focus());
+  fireEvent.keyDown(totalsTab, { key: "ArrowRight" });
+  const dailyTab = screen.getByRole("tab", { name: "Daily trends" });
+  expect(dailyTab).toHaveAttribute("aria-selected", "true");
+  fireEvent.keyDown(dailyTab, { key: "ArrowLeft" });
+  expect(totalsTab).toHaveAttribute("aria-selected", "true");
+  expect(selectionEvents()).toEqual([
+    expectedSelection("totals", "page_entry"),
+    expectedSelection("daily", "tab_switch"),
+    expectedSelection("totals", "tab_switch"),
+  ]);
+});
+
+it("captures a new app entry using the actual selected tab and current app ID", async () => {
+  const { rerender } = render(<MetricsFrame appId={appId} />);
+  await screen.findByRole("region", { name: "Analytics overview" });
+  fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
+  const nextAppId = "app_fedcba9876543210fedcba9876543210";
+  fetchMock.mockResolvedValue(response({}, 503));
+  await act(async () => rerender(<MetricsFrame appId={nextAppId} />));
+  fireEvent.click(screen.getByRole("tab", { name: "All time" }));
+  expect(selectionEvents()).toEqual([
+    expectedSelection("totals", "page_entry"),
+    expectedSelection("daily", "tab_switch"),
+    expectedSelection("daily", "page_entry", nextAppId),
+    expectedSelection("totals", "tab_switch", nextAppId),
+  ]);
+});
+
+it.each(["environment", "opt-out"])(
+  "does not capture entry or switches when disabled by %s",
+  async (reason) => {
+    if (reason === "environment")
+      process.env.NEXT_PUBLIC_POSTHOG_DISABLED = "true";
+    else jest.mocked(posthog.has_opted_out_capturing).mockReturnValue(true);
+    render(<MetricsFrame appId={appId} />);
+    await screen.findByRole("region", { name: "Analytics overview" });
+    fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
+    expect(screen.getByRole("tab", { name: "Daily trends" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(posthog.capture).not.toHaveBeenCalled();
+  },
+);
+
+it("keeps navigation working when PostHog throws", async () => {
+  jest.mocked(posthog.capture).mockImplementation(() => {
+    throw new Error("PostHog unavailable");
+  });
+  const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+  render(<MetricsFrame appId={appId} />);
+  await screen.findByRole("region", { name: "Analytics overview" });
+  fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
+  expect(screen.getByRole("tab", { name: "Daily trends" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  expect(warn).toHaveBeenCalledTimes(2);
 });
 // #endregion
 

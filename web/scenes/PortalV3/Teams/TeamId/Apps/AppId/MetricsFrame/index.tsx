@@ -15,7 +15,9 @@ import {
 } from "@/lib/selfie-check-analytics";
 import { AnalyticsAppEligibility } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import posthog from "posthog-js";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DailyMetricChart,
   type DailyMetricChartType,
@@ -38,6 +40,7 @@ const TIMEFRAME_OPTIONS = [
 }[];
 
 type TimeframeValue = (typeof TIMEFRAME_OPTIONS)[number]["value"];
+type AnalyticsView = "totals" | "daily";
 
 /** Daily metrics displayed in the same order as the analytics contract. */
 const CHART_METRICS = [
@@ -126,6 +129,44 @@ export const MetricsFrame = (props: {
   const [totals, setTotals] = useState<TotalsState>({ kind: "loading" });
   const [timeframe, setTimeframe] = useState<TimeframeValue>("14");
   const [osName, setOsName] = useState(ALL_OPERATING_SYSTEMS);
+  const teamId = useParams<{ teamId?: string }>()?.teamId;
+  const selectedView = useRef<AnalyticsView>("totals");
+  const lastPageEntry = useRef<string | null>(null);
+
+  const captureView = useCallback(
+    (view: AnalyticsView, source: "page_entry" | "tab_switch") => {
+      try {
+        if (
+          !teamId ||
+          process.env.NEXT_PUBLIC_POSTHOG_DISABLED === "true" ||
+          posthog.has_opted_out_capturing()
+        )
+          return;
+        posthog.capture("selfie_check_analytics_view_selected", {
+          appId: props.appId,
+          teamId,
+          view,
+          source,
+        });
+      } catch (error) {
+        // Telemetry must never prevent entry or tab navigation.
+        console.warn("Failed to capture analytics view selection", {
+          dependency: "posthog",
+          failureClass: error instanceof Error ? error.name : "UnknownError",
+        });
+      }
+    },
+    [props.appId, teamId],
+  );
+
+  useEffect(() => {
+    if (!teamId) return;
+    const entry = `${teamId}:${props.appId}`;
+    if (lastPageEntry.current === entry) return;
+    // Preserve the guard through Strict Mode effect replay, not real remounts.
+    lastPageEntry.current = entry;
+    captureView(selectedView.current, "page_entry");
+  }, [props.appId, teamId, captureView]);
 
   const operatingSystems = useMemo(
     () =>
@@ -301,7 +342,14 @@ export const MetricsFrame = (props: {
             </p>
           )}
         </div>
-        <TabGroup>
+        <TabGroup
+          onChange={(index) => {
+            const view = index === 0 ? "totals" : "daily";
+            if (selectedView.current === view) return;
+            selectedView.current = view;
+            captureView(view, "tab_switch");
+          }}
+        >
           <TabList
             aria-label="Analytics views"
             className="flex gap-6 border-b border-portal-border"
