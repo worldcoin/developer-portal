@@ -290,6 +290,30 @@ it.each(["environment", "opt-out"])(
   },
 );
 
+it.each(["development", "production"] as const)(
+  "handles local previews in %s without sending disabled tracking",
+  async (environment) => {
+    jest.replaceProperty(process.env, "NODE_ENV", environment);
+    process.env.NEXT_PUBLIC_POSTHOG_DISABLED = "true";
+    const info = jest.spyOn(console, "info").mockImplementation(() => {});
+    render(<MetricsFrame appId={appId} />);
+    await screen.findByRole("region", { name: "Analytics overview" });
+    await selectTab("Daily trends");
+    if (environment === "development") {
+      expect(info.mock.calls).toEqual(
+        [
+          expectedSelection("totals", "page_entry"),
+          expectedSelection("daily", "tab_switch"),
+        ].map(([event, properties]) => [
+          `[analytics] ${event} (local preview)`,
+          properties,
+        ]),
+      );
+    } else expect(info).not.toHaveBeenCalled();
+    expect(posthog.capture).not.toHaveBeenCalled();
+  },
+);
+
 it("keeps navigation working when PostHog throws", async () => {
   jest.mocked(posthog.capture).mockImplementation(() => {
     throw new Error("PostHog unavailable");

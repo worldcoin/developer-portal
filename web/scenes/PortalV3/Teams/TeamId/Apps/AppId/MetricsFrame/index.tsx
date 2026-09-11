@@ -136,18 +136,20 @@ export const MetricsFrame = (props: {
   const captureView = useCallback(
     (view: AnalyticsView, source: "page_entry" | "tab_switch") => {
       try {
+        if (!teamId) return;
+        const properties = { appId: props.appId, teamId, view, source };
+        if (process.env.NODE_ENV === "development") {
+          console.info(
+            "[analytics] selfie_check_analytics_view_selected (local preview)",
+            properties,
+          );
+        }
         if (
-          !teamId ||
           process.env.NEXT_PUBLIC_POSTHOG_DISABLED === "true" ||
           posthog.has_opted_out_capturing()
         )
           return;
-        posthog.capture("selfie_check_analytics_view_selected", {
-          appId: props.appId,
-          teamId,
-          view,
-          source,
-        });
+        posthog.capture("selfie_check_analytics_view_selected", properties);
       } catch (error) {
         // Telemetry must never prevent entry or tab navigation.
         console.warn("Failed to capture analytics view selection", {
