@@ -121,7 +121,7 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
   return (
     <section
       aria-label="Selfie Check funnel"
-      className="w-full rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
+      className="w-full rounded-16 border border-portal-border bg-white p-5 sm:p-6"
     >
       <div className="grid grid-cols-4">
         {FUNNEL_STAGES.map((stage, index) => (
@@ -173,7 +173,7 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
 
         {hover && (
           <div
-            className="pointer-events-none absolute z-10 rounded-8 border border-portal-border bg-white px-3 py-2 shadow-portal-card"
+            className="pointer-events-none absolute z-10 rounded-12 border border-portal-border bg-white px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
             style={{
               left: hover.x,
               top: hover.y,

@@ -105,7 +105,7 @@ type TotalsState =
 const PlaceholderCard = (props: { label: string; message: string }) => (
   <section
     aria-label={props.label}
-    className="rounded-[10px] border border-portal-border bg-white p-5 shadow-portal-card"
+    className="rounded-16 border border-portal-border bg-white p-5 sm:p-6"
   >
     <p className="font-world text-13 text-portal-muted">{props.message}</p>
   </section>

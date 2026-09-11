@@ -7,7 +7,7 @@ const OVERVIEW_METRICS = [
   },
   {
     key: "n_users_shared_at_least_one_proof",
-    label: "Number of users who've shared 1+ Selfie Check proof",
+    label: "Number of users who shared 1+ Selfie Check proof",
   },
 ] as const satisfies readonly {
   key: keyof Omit<TotalsRow, "appId">;
@@ -25,15 +25,15 @@ const formatCount = (value: number | null) =>
 export const TotalsOverview = (props: { row: TotalsRow }) => (
   <section
     aria-label="Analytics overview"
-    className="grid overflow-hidden rounded-[10px] border border-portal-border bg-white shadow-portal-card sm:grid-cols-2"
+    className="grid overflow-hidden rounded-16 border border-portal-border bg-white sm:grid-cols-2"
   >
     {OVERVIEW_METRICS.map((metric, index) => (
       <article
         key={metric.key}
         className={
           index > 0
-            ? "border-t border-portal-border p-5 sm:border-t-0 sm:border-l"
-            : "p-5"
+            ? "border-t border-portal-border p-5 sm:border-t-0 sm:border-l sm:p-6"
+            : "p-5 sm:p-6"
         }
       >
         <p className="font-world text-13 text-portal-muted">{metric.label}</p>
