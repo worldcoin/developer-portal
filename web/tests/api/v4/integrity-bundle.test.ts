@@ -59,6 +59,16 @@ const selfieResponse = {
   sybil_score: 10,
 };
 
+const selfieSessionResponse = {
+  identifier: "selfie",
+  signal_hash: "0x0",
+  issuer_schema_id: "11",
+  session_nullifier: ["0x2", "0x7"] as [string, string],
+  expires_at_min: "1772584197",
+  proof: response.proof,
+  sybil_score: 10,
+};
+
 function createAgKey(): AgKey {
   const { privateKey, publicKey } = generateKeyPairSync("ec", {
     namedCurve: "P-256",
@@ -122,7 +132,10 @@ async function createBundle(params?: {
   signatureFormat?: "android_keystore" | "apple_app_attest";
   timestamp?: number;
   version?: 1 | 2;
-  signedResponses?: (typeof response)[] | (typeof selfieResponse)[];
+  signedResponses?:
+    | (typeof response)[]
+    | (typeof selfieResponse)[]
+    | (typeof selfieSessionResponse)[];
 }) {
   const agKey = params?.agKey ?? createAgKey();
   const deviceKey = createDeviceKey();
@@ -266,6 +279,69 @@ describe("integrity bundle verification", () => {
       success: false,
       reason: "invalid_device_signature",
     });
+  });
+
+  it("rejects a swapped nullifier in a version 2 bundle", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      version: 2,
+      signedResponses: [selfieResponse],
+    });
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const result = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [{ ...selfieResponse, nullifier: "0x3" }],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({
+      success: false,
+      reason: "invalid_device_signature",
+    });
+  });
+
+  it("binds session_nullifier[0] for Self Check session proofs in a version 2 bundle", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      version: 2,
+      signedResponses: [selfieSessionResponse],
+    });
+    jest.spyOn(global, "fetch").mockImplementation(
+      async () =>
+        new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+          status: 200,
+        }),
+    );
+
+    await expect(
+      verifyIntegrityBundle({
+        integrityBundle,
+        nonce,
+        protocolVersion: "4.0",
+        responses: [selfieSessionResponse],
+        rpId: RP_ID,
+      }),
+    ).resolves.toEqual({ success: true });
+
+    await expect(
+      verifyIntegrityBundle({
+        integrityBundle,
+        nonce,
+        protocolVersion: "4.0",
+        responses: [
+          {
+            ...selfieSessionResponse,
+            session_nullifier: ["0x3", "0x7"] as [string, string],
+          },
+        ],
+        rpId: RP_ID,
+      }),
+    ).resolves.toEqual({ success: false, reason: "invalid_device_signature" });
   });
 
   it("verifies an android integrity bundle and caches the AG JWK", async () => {

@@ -236,7 +236,14 @@ function claimsForResponse(
     throw new IntegrityBundleError("missing_sybil_score");
   }
 
-  return [encodeClaim(response.sybil_score)];
+  // Bind the identity behind the proof so the signature cannot be reused with
+  // a different proof for the same nonce. Must match the apps' integrityClaims().
+  const nullifier =
+    "nullifier" in response
+      ? response.nullifier
+      : response.session_nullifier[0];
+
+  return [parseNonceToFieldBytes(nullifier), encodeClaim(response.sybil_score)];
 }
 
 export function computeProofIntegrityDigest(params: {
