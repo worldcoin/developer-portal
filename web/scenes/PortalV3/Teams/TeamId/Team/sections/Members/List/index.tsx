@@ -9,7 +9,6 @@ import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { InviteTeamMembersDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/invite-team-members.generated";
 import { EditRoleDialog, editRoleDialogAtom } from "./EditRoleDialog";
 import { PermissionsDialog } from "./PermissionsDialog";
 import { RemoveUserDialog, removeUserDialogAtom } from "./RemoveUserDialog";
@@ -20,16 +19,18 @@ import {
   FetchTeamMembersQueryVariables,
 } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/fetch-team-members.generated";
 import { Item } from "./Item";
+import type { MembersView } from "..";
 
 type ListProps = {
   membersRes: ReturnType<
     typeof useQuery<FetchTeamMembersQuery, FetchTeamMembersQueryVariables>
   >;
   keyword?: string;
+  view: MembersView;
 };
 
 export const List = (props: ListProps) => {
-  const { membersRes } = props;
+  const { membersRes, view } = props;
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const { teamId } = useParams() as { teamId: string };
   const [, setIsRemoveDialogOpened] = useAtom(removeUserDialogAtom);
@@ -51,19 +52,20 @@ export const List = (props: ListProps) => {
     if (!membersRes.data) {
       return [];
     }
-    return [
-      ...membersRes.data.members,
-      ...membersRes.data.invites.map((invite) => ({
-        id: invite.id,
-        role: Role_Enum.Member,
-        user: {
-          id: `invite-${window.crypto.randomUUID()}`,
-          name: invite.email,
-          email: invite.email,
-        },
-      })),
-    ] satisfies FetchTeamMembersQuery["members"][number][];
-  }, [membersRes]);
+    if (view === "members") {
+      return membersRes.data.members;
+    }
+
+    return membersRes.data.invites.map((invite) => ({
+      id: invite.id,
+      role: Role_Enum.Member,
+      user: {
+        id: `invite-${invite.id}`,
+        name: invite.email,
+        email: invite.email,
+      },
+    })) satisfies FetchTeamMembersQuery["members"][number][];
+  }, [membersRes.data, view]);
 
   const onEditUser = useCallback(
     (membership: FetchTeamMembersQuery["members"][number]) => {
@@ -79,30 +81,6 @@ export const List = (props: ListProps) => {
       setIsRemoveDialogOpened(true);
     },
     [setIsRemoveDialogOpened],
-  );
-
-  const [inviteTeamMembers, { loading: resendMutationLoading }] = useMutation(
-    InviteTeamMembersDocument,
-  );
-
-  const resendInvite = useCallback(
-    async (membership: FetchTeamMembersQuery["members"][number]) => {
-      if (!membership.user.email || resendMutationLoading) {
-        return;
-      }
-
-      try {
-        await inviteTeamMembers({
-          variables: { emails: [membership.user.email], team_id: teamId },
-          refetchQueries: [FetchTeamMembersDocument],
-        });
-
-        toast.success(`New invite is sent to ${membership.user.email}`);
-      } catch (error) {
-        toast.error("Error inviting team members");
-      }
-    },
-    [inviteTeamMembers, resendMutationLoading, teamId],
   );
 
   const [deleteInvite, { loading: deleteInviteMutationLoading }] = useMutation(
@@ -147,13 +125,7 @@ export const List = (props: ListProps) => {
 
   return (
     <>
-      <div className="grid grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-y border-grey-100 bg-grey-25 px-5 py-2.5 font-gta text-12 leading-4 text-grey-400">
-        <span>Member</span>
-        <span>Access</span>
-        <span aria-hidden="true" />
-      </div>
-
-      <div className="max-h-[229px] [scrollbar-width:thin] overflow-y-auto">
+      <div className="grid min-w-0 gap-3">
         {membersRes.loading &&
           Array.from({ length: 3 }).map((_, i) => <Item key={i} />)}
 
@@ -165,15 +137,18 @@ export const List = (props: ListProps) => {
             isEnoughPermissions={isEnoughPermissions}
             onEdit={() => onEditUser(item)}
             onRemove={() => onRemoveUser(item)}
-            onResendInvite={() => resendInvite(item)}
             onCancelInvite={() => cancelInvite(item)}
           />
         ))}
 
-        {membersRes.data && items.length === 0 && props.keyword && (
-          <div className="flex h-36 w-full items-center justify-center">
+        {membersRes.data && items.length === 0 && (
+          <div className="flex min-h-[71px] w-full items-center justify-center rounded-[10px] border border-portal-border px-4">
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
-              No results
+              {props.keyword
+                ? "No results"
+                : view === "invites"
+                  ? "No pending invitations"
+                  : "No team members"}
             </Typography>
           </div>
         )}
