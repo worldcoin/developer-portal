@@ -27,6 +27,7 @@ import { TotalsFunnel } from "./TotalsFunnel";
 import { TotalsOverview } from "./TotalsOverview";
 
 const REQUEST_TIMEOUT_MS = 8_000;
+const MAX_PENDING_VIEW_EVENTS = 100;
 const ALL_OPERATING_SYSTEMS = "all";
 
 const TIMEFRAME_OPTIONS = [
@@ -42,6 +43,12 @@ const TIMEFRAME_OPTIONS = [
 
 type TimeframeValue = (typeof TIMEFRAME_OPTIONS)[number]["value"];
 type AnalyticsView = "totals" | "daily";
+type AnalyticsViewEvent = {
+  appId: string;
+  teamId: string;
+  view: AnalyticsView;
+  source: "page_entry" | "tab_switch";
+};
 
 /** Daily metrics displayed in the same order as the analytics contract. */
 const CHART_METRICS = [
@@ -131,55 +138,135 @@ export const MetricsFrame = (props: {
   const [timeframe, setTimeframe] = useState<TimeframeValue>("14");
   const [osName, setOsName] = useState(ALL_OPERATING_SYSTEMS);
   const teamId = useParams<{ teamId?: string }>()?.teamId;
-  const { user, isLoading } = useUser();
+  // useUser already shares the session/preference through Auth0's SWR cache.
+  const { user, isLoading, error: authError } = useUser();
   const allowTracking = user?.hasura?.is_allow_tracking === true;
   const selectedView = useRef<AnalyticsView>("totals");
   const lastPageEntry = useRef<string | null>(null);
+  const pendingViews = useRef<AnalyticsViewEvent[]>([]);
+  const overflowReported = useRef(false);
+  const readyUser = useRef<typeof user>(undefined);
+  const account = useRef({ subject: user?.sub, resolved: !isLoading });
+
+  const flushViews = useCallback(() => {
+    if (isLoading && !authError) return;
+    // Remove before sending: SDK failures must not cause duplicate retries.
+    const events = pendingViews.current.splice(0);
+    overflowReported.current = false;
+    if (!events.length) return;
+    try {
+      if (authError) {
+        console.warn("Discarded analytics views after authentication failed", {
+          dependency: "auth0",
+          failureClass: authError.name,
+          eventCount: events.length,
+        });
+        return;
+      }
+      if (
+        !allowTracking ||
+        process.env.NEXT_PUBLIC_POSTHOG_DISABLED === "true" ||
+        posthog.has_opted_out_capturing()
+      )
+        return;
+      for (const properties of events) {
+        posthog.capture("selfie_check_analytics_view_selected", properties);
+      }
+    } catch (error) {
+      // Telemetry must never prevent entry or tab navigation.
+      console.warn("Failed to capture analytics view selection", {
+        dependency: "posthog",
+        failureClass: error instanceof Error ? error.name : "UnknownError",
+      });
+    }
+  }, [allowTracking, authError, isLoading]);
 
   const captureView = useCallback(
-    (view: AnalyticsView, source: "page_entry" | "tab_switch") => {
+    (view: AnalyticsView, source: AnalyticsViewEvent["source"]) => {
       try {
-        if (!teamId) return;
-        const properties = { appId: props.appId, teamId, view, source };
-        if (process.env.NODE_ENV === "development") {
-          console.info(
-            "[analytics] selfie_check_analytics_view_selected (local preview)",
-            properties,
-          );
+        // Initial resolution owns early clicks; later account changes do not.
+        if (account.current.resolved && account.current.subject !== user?.sub) {
+          pendingViews.current = [];
+          lastPageEntry.current = null;
+          overflowReported.current = false;
+          readyUser.current = undefined;
         }
-        if (
-          !allowTracking ||
-          process.env.NEXT_PUBLIC_POSTHOG_DISABLED === "true" ||
-          posthog.has_opted_out_capturing()
-        )
-          return;
-        posthog.capture("selfie_check_analytics_view_selected", properties);
+        account.current = {
+          subject: user?.sub,
+          resolved: account.current.resolved || !isLoading || !!authError,
+        };
+        const discard =
+          !!authError ||
+          (!isLoading && !allowTracking) ||
+          process.env.NEXT_PUBLIC_POSTHOG_DISABLED === "true";
+        if (discard) {
+          if (authError) flushViews();
+          pendingViews.current = [];
+          overflowReported.current = false;
+        }
+        if (!teamId) return;
+        const enqueue = (
+          view: AnalyticsView,
+          source: AnalyticsViewEvent["source"],
+        ) => {
+          const properties = { appId: props.appId, teamId, view, source };
+          if (process.env.NODE_ENV === "development") {
+            console.info(
+              "[analytics] selfie_check_analytics_view_selected (local preview)",
+              properties,
+            );
+          }
+          if (discard) return;
+          if (pendingViews.current.length < MAX_PENDING_VIEW_EVENTS) {
+            pendingViews.current.push(properties);
+          } else if (!overflowReported.current) {
+            overflowReported.current = true;
+            console.warn("Analytics view queue full; dropping new selections", {
+              dependency: "auth0",
+              failureClass: "PendingQueueOverflow",
+              limit: MAX_PENDING_VIEW_EVENTS,
+            });
+          }
+        };
+        const entry = `${teamId}:${props.appId}`;
+        if (lastPageEntry.current !== entry) {
+          lastPageEntry.current = entry;
+          enqueue(selectedView.current, "page_entry");
+        }
+        if (source === "tab_switch") enqueue(view, source);
+        if (readyUser.current === user) flushViews();
       } catch (error) {
-        // Telemetry must never prevent entry or tab navigation.
-        console.warn("Failed to capture analytics view selection", {
+        console.warn("Failed to queue analytics view selection", {
           dependency: "posthog",
           failureClass: error instanceof Error ? error.name : "UnknownError",
         });
       }
     },
-    [props.appId, teamId, allowTracking],
+    [
+      props.appId,
+      teamId,
+      user,
+      isLoading,
+      authError,
+      allowTracking,
+      flushViews,
+    ],
   );
 
   useEffect(() => {
-    if (!teamId || isLoading) return;
-    const entry = `${teamId}:${props.appId}`;
-    if (lastPageEntry.current === entry) return;
+    captureView(selectedView.current, "page_entry");
     let active = true;
-    // Let the ancestor provider reconcile identity/consent before entry capture.
+    // Let the ancestor provider reconcile identity/consent before draining.
     queueMicrotask(() => {
-      if (!active) return;
-      lastPageEntry.current = entry;
-      captureView(selectedView.current, "page_entry");
+      if (!active || isLoading) return;
+      readyUser.current = user;
+      flushViews();
     });
     return () => {
       active = false;
+      readyUser.current = undefined;
     };
-  }, [props.appId, teamId, captureView, isLoading]);
+  }, [captureView, flushViews, isLoading, user]);
 
   const operatingSystems = useMemo(
     () =>
@@ -359,8 +446,8 @@ export const MetricsFrame = (props: {
           onChange={(index) => {
             const view = index === 0 ? "totals" : "daily";
             if (selectedView.current === view) return;
-            selectedView.current = view;
             captureView(view, "tab_switch");
+            selectedView.current = view;
           }}
         >
           <TabList
