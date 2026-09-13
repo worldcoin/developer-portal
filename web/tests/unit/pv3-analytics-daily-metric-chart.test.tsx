@@ -37,6 +37,9 @@ jest.mock("recharts", () => ({
       data-stack-id={props.stackId}
     />
   ),
+  BarStack: (props: { children: ReactNode }) => (
+    <div data-testid="bar-stack">{props.children}</div>
+  ),
   CartesianGrid: () => null,
   Label: ({ value }: { value: string }) => <span>{value}</span>,
   ComposedChart: (props: {
@@ -71,9 +74,11 @@ jest.mock("recharts", () => ({
     children: ReactNode;
     onResize?: (width: number, height: number) => void;
   }) => {
+    const { onResize } = props;
+    const width = mockChartWidth;
     React.useEffect(() => {
-      props.onResize?.(mockChartWidth, 280);
-    }, [props.onResize, mockChartWidth]);
+      onResize?.(width, 280);
+    }, [onResize, width]);
     return <div>{props.children}</div>;
   },
   Tooltip: (props: { itemSorter: (item: { name?: string }) => number }) => {
@@ -266,7 +271,9 @@ describe("DailyMetricChart", () => {
       "data-bar-category-gap",
       "2%",
     );
-    expect(bars.every((bar) => bar.dataset.stackId === "os")).toBe(true);
+    expect(
+      within(screen.getByTestId("bar-stack")).getAllByTestId("bar"),
+    ).toHaveLength(3);
     expect(screen.getByText("Day")).toBeInTheDocument();
     expect(screen.getByText("Number of users")).toBeInTheDocument();
     expect(screen.getByTestId("y-axis")).toHaveAttribute(
