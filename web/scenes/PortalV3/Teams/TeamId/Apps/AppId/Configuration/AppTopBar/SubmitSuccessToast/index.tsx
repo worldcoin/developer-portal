@@ -38,7 +38,7 @@ export const SubmitSuccessToast = ({
         <Button
           type="button"
           onClick={handleUndo}
-          className="text-content-link-legacy hover:text-blue-700"
+          className="text-content-link-legacy hover:underline"
         >
           <Typography variant={TYPOGRAPHY.R4}>Undo</Typography>
         </Button>
