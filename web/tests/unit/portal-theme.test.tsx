@@ -380,6 +380,8 @@ describe("portal appearance storage events", () => {
       ).toHaveAttribute("aria-checked", "true"),
     );
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("system");
+    fireEvent.click(screen.getByRole("menuitemradio", { name: "Dark" }));
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
     for (const preference of ["light", "dark"]) {
       const option = screen.getByRole("menuitemradio", {
         name: new RegExp(preference, "i"),
