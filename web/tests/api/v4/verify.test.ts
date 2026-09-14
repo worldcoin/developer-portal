@@ -51,7 +51,7 @@ const integrityBundle = {
 };
 
 const v4Response = {
-  identifier: "face",
+  identifier: "proof_of_human",
   signal_hash: "0x0",
   issuer_schema_id: 1,
   nullifier: "0x2",
