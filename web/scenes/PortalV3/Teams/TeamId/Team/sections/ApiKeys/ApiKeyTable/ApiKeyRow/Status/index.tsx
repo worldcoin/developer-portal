@@ -9,7 +9,7 @@ export const Status = memo(function Status(props: { isActive: boolean }) {
       className={clsx(
         "inline-flex rounded-full px-2.5 py-1 font-world text-12 leading-4 font-medium",
         {
-          "bg-additional-green-100 text-content-success-500": isActive,
+          "bg-surface-success-100 text-content-success-500": isActive,
           "bg-surface-muted text-content-secondary": !isActive,
         },
       )}

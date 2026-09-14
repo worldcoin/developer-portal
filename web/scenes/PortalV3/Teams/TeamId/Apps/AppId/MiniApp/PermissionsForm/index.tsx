@@ -172,7 +172,7 @@ const NotificationLimitCard = ({
             <div className="relative h-7">
               <div className="absolute top-1/2 right-0 left-0 h-1 -translate-y-1/2 rounded-full bg-surface-muted" />
               <div
-                className="absolute top-1/2 left-0 h-1 -translate-y-1/2 rounded-full bg-blue-500"
+                className="absolute top-1/2 left-0 h-1 -translate-y-1/2 rounded-full bg-focus"
                 style={{ width: `${(selectedIndex / 3) * 100}%` }}
               />
 
@@ -189,7 +189,7 @@ const NotificationLimitCard = ({
                         ? "size-4 border-focus bg-surface shadow-sm"
                         : "size-3",
                       isPassed
-                        ? "border-focus bg-blue-500"
+                        ? "border-focus bg-focus"
                         : !isSelected && "border-edge bg-surface",
                     )}
                     style={{ left: `${(index / 3) * 100}%` }}
