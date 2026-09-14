@@ -12,8 +12,6 @@ export function isThemePreference(value: unknown): value is ThemePreference {
 
 /** Unmigrated marketing, onboarding, admin and QR kiosk routes stay light. */
 export function isPortalThemeRoute(pathname: string | null): boolean {
-  if (process.env.NODE_ENV === "development" && pathname === "/theme-preview")
-    return true;
   return /^\/(teams|profile|dashboard)(\/|$)/.test(pathname ?? "");
 }
 

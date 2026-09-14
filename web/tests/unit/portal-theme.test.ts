@@ -28,7 +28,7 @@ describe("portal theme rollout", () => {
       "/onboarding",
       "/kiosk",
       "/teams-malicious",
-      "/theme-preview",
+      "/unknown",
     ])
       expect(isPortalThemeRoute(path)).toBe(false);
   });
