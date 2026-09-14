@@ -3,8 +3,8 @@ export const THEME_PREFERENCES = ["light", "dark", "system"] as const;
 export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 
 // Storage validation only; next-themes owns theme application. Without a
-// readable preference, both the provider and the base CSS default to light.
-export const THEME_STORAGE_SANITIZER = `try{var p=localStorage.getItem("${THEME_STORAGE_KEY}");if(p!==null&&p!=="light"&&p!=="dark"&&p!=="system")localStorage.removeItem("${THEME_STORAGE_KEY}")}catch(e){console.warn("Portal appearance storage unavailable; using light theme")}`;
+// readable preference, the provider follows the system; base CSS stays light.
+export const THEME_STORAGE_SANITIZER = `try{var p=localStorage.getItem("${THEME_STORAGE_KEY}");if(p!==null&&p!=="light"&&p!=="dark"&&p!=="system")localStorage.removeItem("${THEME_STORAGE_KEY}")}catch(e){console.warn("Portal appearance storage unavailable; using default theme")}`;
 
 export function isThemePreference(value: unknown): value is ThemePreference {
   return THEME_PREFERENCES.some((preference) => preference === value);

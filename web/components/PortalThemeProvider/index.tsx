@@ -70,7 +70,7 @@ export function PortalThemeProvider({
       <ThemeProvider
         attribute="class"
         storageKey={THEME_STORAGE_KEY}
-        defaultTheme="light"
+        defaultTheme="system"
         value={themeClasses}
         enableSystem
         enableColorScheme
