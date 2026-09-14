@@ -1,6 +1,6 @@
 /* Role aliases keep their original light values. Source primitives remain fixed.
  * Dark neutrals: Grey/900 plus Grey/0 at 3%, 6.5%, 10% (rounded sRGB).
- * See docs/dark-mode/plan.md for palette provenance and rollout semantics. */
+ * See docs/dark-mode/qa-report.md for palette provenance and rollout semantics. */
 @theme inline {
   --color-content-description: var(--content-description);
   --color-content-description-alt: var(--content-description-alt);
