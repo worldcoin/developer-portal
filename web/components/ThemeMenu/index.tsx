@@ -7,9 +7,8 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { isThemePreference } from "@/lib/theme";
 import { portalMenuItemClassName } from "@/lib/portal-menu-styles";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
 
@@ -19,7 +18,7 @@ const serverSnapshot = () => false;
 
 export function ThemeMenu() {
   const enabled = usePortalThemeEnabled();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(
     subscribe,
     clientSnapshot,
@@ -34,9 +33,9 @@ export function ThemeMenu() {
       </DropdownMenuLabel>
       <DropdownMenuRadioGroup
         aria-label="Appearance"
-        value={mounted && isThemePreference(theme) ? theme : ""}
+        value={mounted ? resolvedTheme : ""}
         onValueChange={(value) => {
-          if (isThemePreference(value)) setTheme(value);
+          if (value === "light" || value === "dark") setTheme(value);
         }}
       >
         <DropdownMenuRadioItem
@@ -49,13 +48,6 @@ export function ThemeMenu() {
         <DropdownMenuRadioItem className={portalMenuItemClassName} value="dark">
           <Moon className="size-4" />
           Dark
-        </DropdownMenuRadioItem>
-        <DropdownMenuRadioItem
-          className={portalMenuItemClassName}
-          value="system"
-        >
-          <Monitor className="size-4" />
-          System
         </DropdownMenuRadioItem>
       </DropdownMenuRadioGroup>
     </>

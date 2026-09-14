@@ -1,6 +1,18 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { ThemeMenu } from "@/components/ThemeMenu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   PortalThemeProvider,
   usePortalThemeEnabled,
@@ -13,6 +25,10 @@ jest.mock("next/navigation", () => ({ usePathname: () => mockPathname }));
 jest.mock("react-toastify", () => ({
   ToastContainer: () => null,
   Slide: () => null,
+}));
+// Styling is outside this test; avoid the utility barrel's unrelated IDKit SDK.
+jest.mock("@/lib/utils", () => ({
+  cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
 }));
 // #endregion
 
@@ -40,6 +56,41 @@ function Availability() {
 
 // #region Real next-themes provider behavior
 describe("portal appearance storage events", () => {
+  it("offers only Light/Dark, reflects saved System appearance, and persists explicit choices", async () => {
+    localStorage.setItem(THEME_STORAGE_KEY, "system");
+    render(
+      <PortalThemeProvider enabled>
+        <DropdownMenu open>
+          <DropdownMenuTrigger>Account menu</DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <ThemeMenu />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </PortalThemeProvider>,
+    );
+    expect(
+      screen.getAllByRole("menuitemradio").map((item) => item.textContent),
+    ).toEqual(["Light", "Dark"]);
+    expect(screen.queryByText("System")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("menuitemradio", { name: "Dark" }),
+      ).toHaveAttribute("aria-checked", "true"),
+    );
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("system");
+    for (const preference of ["light", "dark"]) {
+      const option = screen.getByRole("menuitemradio", {
+        name: new RegExp(preference, "i"),
+      });
+      fireEvent.click(option);
+      await waitFor(() =>
+        expect(document.documentElement).toHaveClass(preference),
+      );
+      expect(option).toHaveAttribute("aria-checked", "true");
+      expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe(preference);
+    }
+  });
+
   it.each([true, false])(
     "preserves preference while navigating supported/unsupported routes (flag=%s)",
     async (enabled) => {
