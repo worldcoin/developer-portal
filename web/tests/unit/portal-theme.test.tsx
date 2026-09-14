@@ -56,11 +56,12 @@ jest.mock("react-chartjs-2", () => ({
 
 // #region Rollout and route boundaries
 describe("portal theme rollout", () => {
-  it("defaults on only in development, and honors explicit opt-in and kill switch", () => {
+  it("always enables production appearance and keeps the override development-only", () => {
+    for (const configured of [undefined, "", "true", "false", "TRUE"])
+      expect(isDarkModeEnabled(configured, "production")).toBe(true);
     expect(isDarkModeEnabled(undefined, "development")).toBe(true);
     expect(isDarkModeEnabled("", "development")).toBe(true);
-    expect(isDarkModeEnabled(undefined, "production")).toBe(false);
-    expect(isDarkModeEnabled("true", "production")).toBe(true);
+    expect(isDarkModeEnabled("true", "development")).toBe(true);
     expect(isDarkModeEnabled("false", "development")).toBe(false);
     expect(isDarkModeEnabled("TRUE", "development")).toBe(false);
   });
@@ -141,7 +142,7 @@ describe("portal theme preference storage", () => {
       }),
     ).not.toThrow();
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("using system preference"),
+      expect.stringContaining("using light theme"),
     );
   });
 });
@@ -320,6 +321,45 @@ describe("portal appearance storage events", () => {
     });
   });
 
+  it.each([null, "light", "dark", "system"])(
+    "defaults to light on a dark OS without overwriting saved preference %s",
+    async (preference) => {
+      if (preference !== null)
+        localStorage.setItem(THEME_STORAGE_KEY, preference);
+      render(
+        <PortalThemeProvider enabled>
+          <Availability />
+        </PortalThemeProvider>,
+      );
+      const expected = preference === "system" ? "dark" : preference ?? "light";
+      await waitFor(() =>
+        expect(document.documentElement).toHaveClass(expected),
+      );
+      expect(screen.getByText("Appearance available")).toBeInTheDocument();
+      expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe(preference);
+    },
+  );
+
+  it("renders light when preference storage is blocked", async () => {
+    const getItem = jest
+      .spyOn(Storage.prototype, "getItem")
+      .mockImplementation(() => {
+        throw new Error("Storage blocked");
+      });
+    try {
+      render(
+        <PortalThemeProvider enabled>
+          <Availability />
+        </PortalThemeProvider>,
+      );
+      await waitFor(() =>
+        expect(document.documentElement).toHaveClass("light"),
+      );
+    } finally {
+      getItem.mockRestore();
+    }
+  });
+
   it("offers only Light/Dark, reflects saved System appearance, and persists explicit choices", async () => {
     localStorage.setItem(THEME_STORAGE_KEY, "system");
     render(
@@ -453,6 +493,7 @@ describe("portal appearance storage events", () => {
   it.each(["__proto__", "constructor", "font-class", "dark injected-class"])(
     "safely rejects the cross-tab preference %s and preserves unrelated root classes",
     async (value) => {
+      localStorage.setItem(THEME_STORAGE_KEY, "dark");
       render(
         <PortalThemeProvider enabled>
           <span>Portal content</span>
@@ -468,11 +509,11 @@ describe("portal appearance storage events", () => {
         );
       });
       await waitFor(() =>
-        expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("system"),
+        expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("light"),
       );
-      expect(document.documentElement).toHaveClass("font-class", "dark");
+      expect(document.documentElement).toHaveClass("font-class", "light");
       expect(document.documentElement).not.toHaveClass(
-        "light",
+        "dark",
         "injected-class",
       );
     },

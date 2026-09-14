@@ -648,19 +648,7 @@
 /*
   ---break---
 */
-@custom-variant dark {
-  &:is(.dark, .dark *) {
-    @slot;
-  }
-  @media (prefers-color-scheme: dark) {
-    &:is(
-        html[data-portal-theme="enabled"]:not(.light):not(.dark),
-        html[data-portal-theme="enabled"]:not(.light):not(.dark) *
-      ) {
-      @slot;
-    }
-  }
-}
+@custom-variant dark (&:is(.dark, .dark *));
 
 @theme {
   --breakpoint-3xl: 1920px;

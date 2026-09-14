@@ -1,10 +1,6 @@
 import PostHogPageView from "@/scenes/Root/providers/PostHogPageView";
 import { PortalThemeProvider } from "@/components/PortalThemeProvider";
-import {
-  isDarkModeEnabled,
-  isPortalDarkModeAvailable,
-  THEME_STORAGE_SANITIZER,
-} from "@/lib/theme";
+import { isDarkModeEnabled, THEME_STORAGE_SANITIZER } from "@/lib/theme";
 import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
 import "@/styles/globals.css";
 import { Auth0Provider } from "@auth0/nextjs-auth0/client";
@@ -97,16 +93,7 @@ export const RootLayout = async ({
   const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   return (
-    <html
-      lang="en"
-      className={fontVariables}
-      suppressHydrationWarning
-      data-portal-theme={
-        isPortalDarkModeAvailable(themeEnabled, currentPath)
-          ? "enabled"
-          : undefined
-      }
-    >
+    <html lang="en" className={fontVariables} suppressHydrationWarning>
       <head>
         <script
           nonce={nonce}

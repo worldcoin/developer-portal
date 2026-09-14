@@ -32,7 +32,7 @@ function ThemeSurfaces({ children }: { children: ReactNode }) {
     if (theme !== undefined && !isThemePreference(theme)) {
       // The provider's value map only applies light/dark classes. Never use an
       // untrusted preference to remove unrelated root classes (e.g. fonts).
-      setTheme("system");
+      setTheme("light");
     }
   }, [theme, setTheme]);
 
@@ -70,7 +70,7 @@ export function PortalThemeProvider({
       <ThemeProvider
         attribute="class"
         storageKey={THEME_STORAGE_KEY}
-        defaultTheme="system"
+        defaultTheme="light"
         value={themeClasses}
         enableSystem
         enableColorScheme

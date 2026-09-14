@@ -2,9 +2,9 @@ export const THEME_STORAGE_KEY = "portal-appearance";
 export const THEME_PREFERENCES = ["light", "dark", "system"] as const;
 export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 
-// Storage validation only; next-themes owns theme application. The CSS system
-// fallback also works when storage is blocked and its bootstrap cannot read it.
-export const THEME_STORAGE_SANITIZER = `try{var p=localStorage.getItem("${THEME_STORAGE_KEY}");if(p!==null&&p!=="light"&&p!=="dark"&&p!=="system")localStorage.removeItem("${THEME_STORAGE_KEY}")}catch(e){console.warn("Portal appearance storage unavailable; using system preference")}`;
+// Storage validation only; next-themes owns theme application. Without a
+// readable preference, both the provider and the base CSS default to light.
+export const THEME_STORAGE_SANITIZER = `try{var p=localStorage.getItem("${THEME_STORAGE_KEY}");if(p!==null&&p!=="light"&&p!=="dark"&&p!=="system")localStorage.removeItem("${THEME_STORAGE_KEY}")}catch(e){console.warn("Portal appearance storage unavailable; using light theme")}`;
 
 export function isThemePreference(value: unknown): value is ThemePreference {
   return THEME_PREFERENCES.some((preference) => preference === value);
@@ -18,14 +18,11 @@ export function isPortalDarkModeAvailable(
   return enabled && /^\/(teams|profile|dashboard)(\/|$)/.test(pathname ?? "");
 }
 
-/** Explicit false is the kill switch, including in local development. */
+/** Appearance is always available in production; only development has an override. */
 export function isDarkModeEnabled(
   configured: string | undefined,
   environment: string | undefined,
 ): boolean {
-  return (
-    configured === "true" ||
-    ((configured === undefined || configured === "") &&
-      environment === "development")
-  );
+  if (environment !== "development") return true;
+  return configured === undefined || configured === "" || configured === "true";
 }
