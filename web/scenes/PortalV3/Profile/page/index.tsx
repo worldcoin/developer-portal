@@ -41,7 +41,7 @@ const CardHeader = (props: { title: string }) => (
 );
 
 const CardFooter = (props: { children: ReactNode }) => (
-  <footer className="flex min-h-14 flex-col gap-3 border-t border-grey-100 bg-grey-25 px-5 py-3 sm:flex-row sm:items-center sm:justify-between md:px-6">
+  <footer className="flex min-h-14 flex-col gap-3 border-t border-edge-subtle bg-surface-faint px-5 py-3 sm:flex-row sm:items-center sm:justify-between md:px-6">
     {props.children}
   </footer>
 );
@@ -126,18 +126,18 @@ export const ProfilePage = () => {
           </header>
 
           <div className="grid gap-6">
-            <section className="overflow-hidden rounded-12 border border-grey-200 bg-white">
+            <section className="overflow-hidden rounded-12 border border-edge bg-surface">
               <CardHeader title="Teams" />
               <List memberships={user?.memberships} loading={loading} />
             </section>
 
             <form
-              className="overflow-hidden rounded-12 border border-grey-200 bg-white"
+              className="overflow-hidden rounded-12 border border-edge bg-surface"
               onSubmit={handleDisplayNameSubmit(submitDisplayName)}
             >
               <CardHeader title="Display name" />
 
-              <div className="border-t border-grey-100 px-5 py-5 md:px-6">
+              <div className="border-t border-edge-subtle px-5 py-5 md:px-6">
                 <div className="max-w-[380px]">
                   <Input
                     label="Display name"
@@ -158,10 +158,10 @@ export const ProfilePage = () => {
                   />
 
                   <span className="grid gap-1">
-                    <span className="font-world text-13 leading-5 font-medium text-grey-700">
+                    <span className="font-world text-13 leading-5 font-medium text-content-strong">
                       Allow analytics
                     </span>
-                    <span className="font-gta text-13 leading-5 text-grey-400">
+                    <span className="font-gta text-13 leading-5 text-content-tertiary">
                       We collect analytics in the developer portal to help us
                       provide a better experience to you.
                     </span>
@@ -170,7 +170,7 @@ export const ProfilePage = () => {
               </div>
 
               <CardFooter>
-                <p className="font-gta text-13 leading-5 text-grey-400">
+                <p className="font-gta text-13 leading-5 text-content-tertiary">
                   Please use 32 characters at maximum.
                 </p>
                 <InkButton

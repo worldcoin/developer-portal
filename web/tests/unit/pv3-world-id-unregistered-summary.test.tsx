@@ -60,7 +60,7 @@ it("shows the finalized configuration shape before registration", () => {
     name: "Register relying party",
   });
   expect(registerButton).toBeEnabled();
-  expect(registerButton).toHaveClass("bg-portal-ink", "text-white");
+  expect(registerButton).toHaveClass("bg-action", "text-action-foreground");
   expect(
     screen.queryByRole("button", { name: "Rotate signer key" }),
   ).not.toBeInTheDocument();

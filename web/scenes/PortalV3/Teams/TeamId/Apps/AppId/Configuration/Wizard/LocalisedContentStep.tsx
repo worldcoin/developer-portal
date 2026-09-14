@@ -25,8 +25,10 @@ const dropZoneContent = (
     {/* Copy color is Figma Primary/Grey/500 (#717680) — the repo's grey-500
         is #657080, so no token matches. */}
     <span className="flex flex-col items-center justify-center gap-1 text-center text-13 leading-[1.3] font-[350] whitespace-nowrap">
-      <span className="text-[#717680]">Drop image here to upload</span>
-      <span className="text-[#717680]">
+      <span className="text-content-description-alt">
+        Drop image here to upload
+      </span>
+      <span className="text-content-description-alt">
         or <span className="text-portal-text">browse files</span>
       </span>
     </span>
@@ -92,8 +94,8 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
                   "flex h-8 items-center justify-center gap-1 rounded-2xl py-1.5 pr-3.5 pl-1.5",
                   isActive
                     ? "bg-portal-canvas"
-                    : "border border-portal-border bg-white",
-                  hasErrors && "border border-[#ea392a]",
+                    : "border border-portal-border bg-surface",
+                  hasErrors && "border border-content-validation",
                 )}
               >
                 {flagCode && (
@@ -108,7 +110,7 @@ export const LocalisedContentStep = (props: { isMiniApp: boolean }) => {
                 <span
                   className={clsx(
                     "text-13 leading-[1.2] font-semibold whitespace-nowrap",
-                    hasErrors ? "text-[#ea392a]" : "text-portal-ink",
+                    hasErrors ? "text-content-validation" : "text-content-ink",
                   )}
                 >
                   {localeLabel(locale)}

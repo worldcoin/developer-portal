@@ -31,41 +31,49 @@ export const DecoratedButton = memo(function DecoratedButton(
   const buttonStyles = {
     primary: {
       normal:
-        "bg-grey-900 text-white bg-linear-to-b border-grey-900 from-white/15 to-transparent shadow-button",
-      hover: "hover:bg-linear-to-b hover:from-white/20 hover:to-transparent ",
-      disabled: "bg-grey-100 text-grey-300 pointer-events-none",
-      loading: "bg-grey-100 text-grey-400 pointer-events-none",
+        "bg-grey-900 text-white dark:bg-action dark:text-action-foreground bg-linear-to-b border-edge-ink from-white/15 to-transparent shadow-button",
+      hover:
+        "hover:bg-linear-to-b hover:from-white/20 hover:to-transparent dark:hover:bg-action-hover",
+      disabled: "bg-surface-muted text-content-disabled pointer-events-none",
+      loading: "bg-surface-muted text-content-tertiary pointer-events-none",
     },
     secondary: {
-      normal: "bg-grey-0 text-grey-700 border-grey-200 shadow-button",
-      hover: "hover:bg-grey-100 hover:text-grey-900 ",
-      disabled: "bg-grey-0 text-grey-300 border-grey-100 pointer-events-none",
-      loading: "bg-grey-0 text-grey-400 border-grey-200 pointer-events-none",
+      normal: "bg-surface text-content-strong border-edge shadow-button",
+      hover: "hover:bg-surface-muted hover:text-content-primary ",
+      disabled:
+        "bg-surface text-content-disabled border-edge-subtle pointer-events-none",
+      loading:
+        "bg-surface text-content-tertiary border-edge pointer-events-none",
     },
     danger: {
-      normal: "bg-grey-0 text-system-error-600 border-system-error-400 inset-0",
-      hover: "hover:bg-system-error-50 ",
+      normal: "bg-surface text-content-error-600 border-edge-error-400 inset-0",
+      hover: "hover:bg-surface-error-50 ",
 
       disabled:
-        "border-system-error-200 text-system-error-300 pointer-events-none",
+        "border-edge-error-200 text-content-error-300 pointer-events-none",
 
       loading:
-        "border-system-error-300 text-system-error-400 pointer-events-none",
+        "border-edge-error-300 text-content-error-400 pointer-events-none",
     },
     destructive: {
-      normal: "bg-system-error-500 text-white border-system-error-500",
-      hover: "hover:bg-system-error-600 hover:border-system-error-600",
-      disabled: "bg-grey-200 text-grey-500 border-grey-200 pointer-events-none",
-      loading: "bg-grey-200 text-grey-500 border-grey-200 pointer-events-none",
+      normal:
+        "bg-system-error-500 dark:bg-system-error-600 text-white border-edge-error-500",
+      hover:
+        "hover:bg-system-error-600 dark:hover:bg-system-error-800 hover:border-edge-error-600",
+      disabled:
+        "bg-surface-disabled text-content-secondary border-edge pointer-events-none",
+      loading:
+        "bg-surface-disabled text-content-secondary border-edge pointer-events-none",
     },
   };
 
   return (
     <Button
-      disabled={disabled}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={twMerge(
         clsx(
-          "relative flex items-center justify-center rounded-[100px] border px-6 py-2.5 font-gta font-medium",
+          "relative flex items-center justify-center rounded-[100px] border px-6 py-2.5 font-gta font-medium ring-offset-surface focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:outline-hidden",
           { [buttonStyles[variant].normal]: !disabled && !loading },
           { [buttonStyles[variant].hover]: !disabled && !loading },
           disabled && buttonStyles[variant].disabled,

@@ -48,31 +48,31 @@ export const CategorySelector = (props: {
   );
 
   const parentClassNames = clsx(
-    "rounded-lg border bg-grey-0 text-sm text-grey-700",
+    "rounded-lg border bg-surface text-sm text-content-strong",
     {
-      "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
+      "border-edge focus-within:border-focus focus-within:hover:border-focus hover:border-edge-heavy ":
         !errors && !disabled,
-      "border-system-error-500 text-system-error-500 ": errors && !disabled,
-      "hover:text-grey-700": !disabled,
-      "bg-grey-50 text-grey-400 border-grey-200": disabled,
+      "border-edge-error-500 text-content-error-500 ": errors && !disabled,
+      "hover:text-content-strong": !disabled,
+      "bg-surface-soft text-content-tertiary border-edge": disabled,
     },
   );
   const selectorClassNames = clsx(
     "peer h-full bg-transparent py-1.5 focus:outline-hidden focus:ring-0",
     {
-      "text-grey-400": !errors && !value,
-      "group-hover:placeholder:text-grey-700 focus:group-hover:placeholder:text-blue-400 ":
+      "text-content-tertiary": !errors && !value,
+      "group-hover:placeholder:text-content-strong focus:group-hover:placeholder:text-blue-400 ":
         !disabled,
     },
   );
   const labelClassNames = clsx(
-    "ml-4 whitespace-nowrap px-0.5 peer-focus:text-blue-500",
+    "ml-4 whitespace-nowrap px-0.5 peer-focus:text-content-link-legacy",
     {
-      "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
+      "text-content-tertiary peer-focus:text-content-link-legacy group-hover:text-content-strong":
         !errors && !disabled,
-      "text-system-error-500 peer-focus:text-system-error-500":
+      "text-content-error-500 peer-focus:text-content-error-500":
         errors && !disabled,
-      "text-grey-400": disabled,
+      "text-content-tertiary": disabled,
     },
   );
 
@@ -96,29 +96,34 @@ export const CategorySelector = (props: {
         <div className="grid">
           <SelectButton
             className={clsx(
-              "group flex w-full items-center gap-2 rounded-[10px] bg-grey-50 px-4 py-3 text-left",
+              "group flex w-full items-center gap-2 rounded-[10px] bg-surface-soft px-4 py-3 text-left",
               disabled && "opacity-50",
               className,
             )}
             data-testid="button-select-category"
           >
             <div className="flex flex-1 flex-col justify-center">
-              <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+              <Typography
+                variant={TYPOGRAPHY.B4}
+                className="text-content-secondary"
+              >
                 {label}
                 {required && (
-                  <span className="ml-0.5 text-system-error-500">*</span>
+                  <span className="ml-0.5 text-content-error-500">*</span>
                 )}
               </Typography>
               <Typography
                 variant={TYPOGRAPHY.B3}
-                className={clsx(value ? "text-grey-900" : "text-grey-400")}
+                className={clsx(
+                  value ? "text-content-primary" : "text-content-tertiary",
+                )}
               >
                 {value || "Select a category"}
               </Typography>
             </div>
             <CaretIcon
-              className={clsx("shrink-0 text-grey-500", {
-                "group-hover:text-grey-700": !disabled,
+              className={clsx("shrink-0 text-content-secondary", {
+                "group-hover:text-content-strong": !disabled,
               })}
             />
           </SelectButton>
@@ -128,7 +133,7 @@ export const CategorySelector = (props: {
               <SelectOption
                 key={index}
                 value={index}
-                className="h-full hover:bg-grey-50"
+                className="h-full hover:bg-surface-soft"
               >
                 <div className="grid grid-cols-1fr/auto">
                   <Typography variant={TYPOGRAPHY.R4}>
@@ -140,7 +145,7 @@ export const CategorySelector = (props: {
           </SelectOptions>
           {errors?.message && (
             <Typography
-              className="mt-2 text-system-error-500"
+              className="mt-2 text-content-error-500"
               variant={TYPOGRAPHY.R5}
             >
               {errors.message}
@@ -177,8 +182,8 @@ export const CategorySelector = (props: {
               {value || "Select a category"}
             </Typography>
             <CaretIcon
-              className={clsx("ml-2 text-grey-400", {
-                "group-hover:text-grey-700": !disabled,
+              className={clsx("ml-2 text-content-tertiary", {
+                "group-hover:text-content-strong": !disabled,
               })}
             />
           </SelectButton>
@@ -192,7 +197,7 @@ export const CategorySelector = (props: {
               <SelectOption
                 key={index}
                 value={index}
-                className="h-full hover:bg-grey-50"
+                className="h-full hover:bg-surface-soft"
               >
                 <div className="grid grid-cols-1fr/auto">
                   <Typography variant={TYPOGRAPHY.R4}>
@@ -204,18 +209,21 @@ export const CategorySelector = (props: {
           </SelectOptions>
           <legend className={labelClassNames}>
             <Typography variant={TYPOGRAPHY.R4}>{label}</Typography>{" "}
-            {required && <span className="text-system-error-500">*</span>}
+            {required && <span className="text-content-error-500">*</span>}
           </legend>
         </fieldset>
         <div className={clsx("flex w-full flex-col px-2")}>
           {helperText && (
-            <Typography variant={TYPOGRAPHY.R5} className="mt-2 text-grey-500">
+            <Typography
+              variant={TYPOGRAPHY.R5}
+              className="mt-2 text-content-secondary"
+            >
               {helperText}
             </Typography>
           )}
           {errors?.message && (
             <Typography
-              className="mt-2 text-system-error-500"
+              className="mt-2 text-content-error-500"
               variant={TYPOGRAPHY.R5}
             >
               {errors.message}

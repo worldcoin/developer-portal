@@ -170,12 +170,14 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
     }
   }, [proofResult, verifyProof]);
   return (
-    <div className={clsx("fixed inset-0 grid w-full justify-center bg-white")}>
+    <div
+      className={clsx("fixed inset-0 grid w-full justify-center bg-surface")}
+    >
       <div className="grid h-dvh w-dvw grid-rows-auto/1fr overflow-auto">
         <header className="relative flex min-h-[80px] items-center justify-between">
           <div className="left-0 flex w-1/3 items-center pl-4">
             <Button
-              className="flex size-9 items-center justify-center rounded-full bg-grey-200"
+              className="flex size-9 items-center justify-center rounded-full bg-surface-disabled"
               onClick={() => router.back()}
               type="button"
             >
@@ -207,7 +209,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
                     {resetInterval === 30000 && (
                       <Dropdown.ListItemIcon
-                        className="size-5 text-blue-500"
+                        className="size-5 text-content-link-legacy"
                         asChild
                       >
                         <CheckmarkCircleIcon />
@@ -224,7 +226,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
                     {resetInterval === 60000 && (
                       <Dropdown.ListItemIcon
-                        className="size-5 text-blue-500"
+                        className="size-5 text-content-link-legacy"
                         asChild
                       >
                         <CheckmarkCircleIcon />
@@ -241,7 +243,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
                     {resetInterval === 300000 && (
                       <Dropdown.ListItemIcon
-                        className="size-5 text-blue-500"
+                        className="size-5 text-content-link-legacy"
                         asChild
                       >
                         <CheckmarkCircleIcon />
@@ -258,7 +260,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
                     {resetInterval === 0 && (
                       <Dropdown.ListItemIcon
-                        className="size-5 text-blue-500"
+                        className="size-5 text-content-link-legacy"
                         asChild
                       >
                         <CheckmarkCircleIcon />
@@ -291,10 +293,10 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
         <div
           className={clsx(
-            "grid h-full items-center border border-grey-100 bg-grey-50",
+            "grid h-full items-center border border-edge-subtle bg-surface-soft",
             {
-              "bg-system-success-50": screen === KioskScreen.Success,
-              "bg-system-error-50":
+              "bg-surface-success-50": screen === KioskScreen.Success,
+              "bg-surface-error-50":
                 screen === KioskScreen.ConnectionError ||
                 screen === KioskScreen.VerificationError ||
                 screen === KioskScreen.InvalidRequest ||

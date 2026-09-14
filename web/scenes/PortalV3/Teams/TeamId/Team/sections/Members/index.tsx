@@ -88,7 +88,7 @@ export const Members = (props: { teamId: string }) => {
             register={register("search")}
             type="search"
             label=""
-            addOnLeft={<MagnifierIcon className="text-grey-400" />}
+            addOnLeft={<MagnifierIcon className="text-content-tertiary" />}
             placeholder="Search member by name or email"
             className="w-full px-4 py-2"
           />
@@ -101,7 +101,7 @@ export const Members = (props: { teamId: string }) => {
         {membersRes.loading ? (
           <Skeleton width={72} />
         ) : (
-          <span className="font-gta text-12 text-grey-400">
+          <span className="font-gta text-12 text-content-tertiary">
             {memberCount} {memberCount === 1 ? "member" : "members"}
             {pendingInviteCount > 0 ? ` · ${pendingInviteCount} pending` : null}
           </span>
@@ -114,7 +114,7 @@ export const Members = (props: { teamId: string }) => {
             membersRes.loading ||
             Boolean(membersRes.data && !isEnoughPermissions)
           }
-          className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-8 bg-portal-ink px-3 font-world text-13 leading-none font-medium text-white transition-colors hover:bg-portal-ink-hover focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-500"
+          className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-8 bg-action px-3 font-world text-13 leading-none font-medium text-action-foreground ring-offset-surface transition-colors hover:bg-action-hover focus-visible:ring-2 focus-visible:ring-edge-medium focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:bg-surface-disabled disabled:text-content-secondary"
         >
           <PlusIcon className="size-4" />
           Invite new member

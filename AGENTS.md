@@ -43,9 +43,12 @@ Mock at the **I/O boundary only**: GraphQL SDK calls, external RPC, Redis, third
 ```typescript
 // Good: mock the generated GraphQL SDK
 const GetRpRegistration = jest.fn();
-jest.mock("../../../api/v4/rp-status/[rp_id]/graphql/get-rp-registration.generated", () => ({
-  getSdk: () => ({ GetRpRegistration }),
-}));
+jest.mock(
+  "../../../api/v4/rp-status/[rp_id]/graphql/get-rp-registration.generated",
+  () => ({
+    getSdk: () => ({ GetRpRegistration }),
+  }),
+);
 
 // Good: mock external RPC
 jest.mock("../../../api/helpers/temporal-rpc", () => ({

@@ -76,7 +76,7 @@ export const EmailsInput = memo(function EmailsInput(props: EmailsInputProps) {
     <label
       className={clsx(
         className,
-        "flex min-h-12 flex-wrap items-center gap-1 rounded-xl border border-grey-200 bg-grey-0 p-2 text-grey-900 outline-0",
+        "flex min-h-12 flex-wrap items-center gap-1 rounded-xl border border-edge bg-surface p-2 text-content-primary outline-0",
         { "shadow-input": focused },
         { "": !focused },
         { "": emails.length === 0 },
@@ -85,7 +85,7 @@ export const EmailsInput = memo(function EmailsInput(props: EmailsInputProps) {
       {emails.map((email) => (
         <div
           key={email}
-          className="flex h-8 items-center gap-x-2 rounded-full bg-blue-50 px-2 text-blue-500"
+          className="flex h-8 items-center gap-x-2 rounded-full bg-surface-info-faint px-2 text-content-link-legacy"
           onClick={(e) => e.preventDefault()}
         >
           <Typography variant={TYPOGRAPHY.M4}>{email}</Typography>
@@ -105,8 +105,8 @@ export const EmailsInput = memo(function EmailsInput(props: EmailsInputProps) {
       <input
         className={clsx(
           "h-8 grow bg-transparent px-2 outline-hidden",
-          "font-gta text-base leading-normal font-normal text-grey-900",
-          "placeholder:font-gta placeholder:text-base placeholder:leading-normal placeholder:font-normal placeholder:text-grey-400",
+          "font-gta text-base leading-normal font-normal text-content-primary",
+          "placeholder:font-gta placeholder:text-base placeholder:leading-normal placeholder:font-normal placeholder:text-content-tertiary",
           {
             "w-5": !focused && emails.length === 0,
           },

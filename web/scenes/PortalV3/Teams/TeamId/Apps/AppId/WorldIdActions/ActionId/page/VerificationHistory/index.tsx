@@ -74,7 +74,7 @@ export const VerificationHistory = (props: {
       <section
         aria-hidden
         aria-busy
-        className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card"
+        className="rounded-16 border border-portal-border bg-surface p-6 shadow-portal-card"
       >
         <div className="flex items-center gap-1.5">
           <Typography
@@ -84,7 +84,7 @@ export const VerificationHistory = (props: {
           >
             Verification history
           </Typography>
-          <InformationCircleIcon className="size-4 text-grey-300" />
+          <InformationCircleIcon className="size-4 text-content-disabled" />
         </div>
 
         <div className="flex min-h-44 flex-col items-center justify-center gap-2">
@@ -101,7 +101,7 @@ export const VerificationHistory = (props: {
     <section
       aria-labelledby="verification-history-title"
       aria-busy={loading}
-      className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card"
+      className="rounded-16 border border-portal-border bg-surface p-6 shadow-portal-card"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div className="flex items-center gap-1.5">
@@ -118,7 +118,7 @@ export const VerificationHistory = (props: {
               <button
                 type="button"
                 aria-label="About verification history"
-                className="rounded-full text-grey-300 outline-hidden transition-colors hover:text-grey-500 focus-visible:text-grey-500 focus-visible:ring-2 focus-visible:ring-grey-300"
+                className="rounded-full text-content-disabled outline-hidden transition-colors hover:text-content-secondary focus-visible:text-content-secondary focus-visible:ring-2 focus-visible:ring-edge-medium"
               >
                 <InformationCircleIcon className="size-4" />
               </button>
@@ -166,10 +166,10 @@ export const VerificationHistory = (props: {
       ) : (
         <>
           <div className="mt-6 grid grid-cols-[minmax(0,1fr)_auto]">
-            <div className="border-b border-grey-100 py-3 text-xs text-grey-400">
+            <div className="border-b border-edge-subtle py-3 text-xs text-content-tertiary">
               Nullifier
             </div>
-            <div className="border-b border-grey-100 py-3 pl-4 text-right text-xs text-grey-400">
+            <div className="border-b border-edge-subtle py-3 pl-4 text-right text-xs text-content-tertiary">
               Verified at
             </div>
 
@@ -182,12 +182,12 @@ export const VerificationHistory = (props: {
               return (
                 <div
                   key={nullifier.id}
-                  className="col-span-2 grid grid-cols-subgrid items-center border-b border-grey-100 py-3"
+                  className="col-span-2 grid grid-cols-subgrid items-center border-b border-edge-subtle py-3"
                 >
                   <div className="flex min-w-0 items-center gap-2">
                     <Typography
                       variant={TYPOGRAPHY.R3}
-                      className="truncate font-ibm text-grey-700"
+                      className="truncate font-ibm text-content-strong"
                       title={nullifier.nullifier}
                     >
                       {formatNullifier(nullifier.nullifier)}
@@ -196,12 +196,12 @@ export const VerificationHistory = (props: {
                       fieldName="Nullifier"
                       fieldValue={nullifier.nullifier}
                       className="shrink-0 !pr-0"
-                      iconClassName="size-4 text-grey-500"
+                      iconClassName="size-4 text-content-secondary"
                     />
                   </div>
                   <Typography
                     variant={TYPOGRAPHY.R4}
-                    className="pl-4 text-right whitespace-nowrap text-grey-500"
+                    className="pl-4 text-right whitespace-nowrap text-content-secondary"
                     title={new Date(nullifier.created_at).toLocaleString()}
                   >
                     {verifiedAt}

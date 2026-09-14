@@ -162,8 +162,8 @@ export const MiniAppConfiguration = (props: MiniAppConfigurationProps) => {
   ] as const;
 
   return (
-    <div className="@container grid min-w-0 content-start gap-y-5 rounded-2xl border border-grey-200 bg-grey-0 p-6 shadow-button">
-      <Typography variant={TYPOGRAPHY.M2} className="text-grey-900">
+    <div className="@container grid min-w-0 content-start gap-y-5 rounded-2xl border border-edge bg-surface p-6 shadow-button">
+      <Typography variant={TYPOGRAPHY.M2} className="text-content-primary">
         How does this app reach users?
       </Typography>
 
@@ -176,8 +176,8 @@ export const MiniAppConfiguration = (props: MiniAppConfigurationProps) => {
             className={clsx(
               "flex min-w-0 cursor-pointer items-center gap-x-3 rounded-xl border p-5 transition-colors",
               option.isSelected
-                ? "border-blue-500 bg-blue-50"
-                : "border-grey-200 hover:border-grey-300",
+                ? "border-focus bg-surface-info-faint"
+                : "border-edge hover:border-edge-medium",
               isDisabled && "cursor-default opacity-60",
             )}
           >
@@ -195,7 +195,7 @@ export const MiniAppConfiguration = (props: MiniAppConfigurationProps) => {
             />
             <Typography
               variant={TYPOGRAPHY.R4}
-              className="min-w-0 break-words text-grey-900"
+              className="min-w-0 break-words text-content-primary"
             >
               {option.label}
             </Typography>

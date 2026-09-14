@@ -25,7 +25,7 @@ const formatCount = (value: number | null) =>
 export const TotalsOverview = (props: { row: TotalsRow }) => (
   <section
     aria-label="Analytics overview"
-    className="grid overflow-hidden rounded-16 border border-portal-border bg-white sm:grid-cols-2"
+    className="grid overflow-hidden rounded-16 border border-portal-border bg-surface sm:grid-cols-2"
   >
     {OVERVIEW_METRICS.map((metric, index) => (
       <article

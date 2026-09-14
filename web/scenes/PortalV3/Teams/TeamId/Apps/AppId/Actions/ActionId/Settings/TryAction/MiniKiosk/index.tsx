@@ -116,10 +116,10 @@ export const MiniKiosk = (props: MiniKioskProps) => {
   return (
     <div
       className={clsx(
-        "grid h-full items-center rounded-3xl border border-grey-100 bg-grey-50",
+        "grid h-full items-center rounded-3xl border border-edge-subtle bg-surface-soft",
         {
-          "bg-system-success-50": screen === KioskScreen.Success,
-          "bg-system-error-50":
+          "bg-surface-success-50": screen === KioskScreen.Success,
+          "bg-surface-error-50":
             screen === KioskScreen.ConnectionError ||
             screen === KioskScreen.VerificationError ||
             screen === KioskScreen.InvalidRequest ||

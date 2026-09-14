@@ -12,7 +12,7 @@ export const SaveStatusIndicator = () => {
 
   if (displayStatus.state === "saving") {
     return (
-      <div className="flex items-center gap-x-2 rounded-full border border-blue-500 bg-blue-50 px-3 py-1.5 text-blue-500">
+      <div className="flex items-center gap-x-2 rounded-full border border-focus bg-surface-info-faint px-3 py-1.5 text-content-link-legacy">
         <SpinnerIcon className="size-4 animate-spin" />
         <Typography variant={TYPOGRAPHY.M3}>Saving…</Typography>
       </div>
@@ -21,7 +21,7 @@ export const SaveStatusIndicator = () => {
 
   if (displayStatus.state === "saved") {
     return (
-      <div className="flex items-center gap-x-2 rounded-full border border-system-success-500 bg-system-success-50 px-3 py-1.5 text-system-success-700">
+      <div className="flex items-center gap-x-2 rounded-full border border-edge-success-500 bg-surface-success-50 px-3 py-1.5 text-content-success-700">
         <CheckIcon size="16" />
         <Typography variant={TYPOGRAPHY.M3}>Changes saved</Typography>
       </div>
@@ -29,7 +29,7 @@ export const SaveStatusIndicator = () => {
   }
 
   return (
-    <div className="flex items-center gap-x-2 rounded-full border border-system-error-500 bg-system-error-50 px-3 py-1.5 text-system-error-700">
+    <div className="flex items-center gap-x-2 rounded-full border border-edge-error-500 bg-surface-error-50 px-3 py-1.5 text-content-error-700">
       <span className="size-2 rounded-full bg-system-error-500" aria-hidden />
       <Typography variant={TYPOGRAPHY.M3} title={displayStatus.error.message}>
         Couldn&apos;t save
@@ -37,7 +37,7 @@ export const SaveStatusIndicator = () => {
       <button
         type="button"
         onClick={displayStatus.retry}
-        className="text-system-error-700 underline underline-offset-2"
+        className="text-content-error-700 underline underline-offset-2"
       >
         <Typography variant={TYPOGRAPHY.M3}>Retry</Typography>
       </button>

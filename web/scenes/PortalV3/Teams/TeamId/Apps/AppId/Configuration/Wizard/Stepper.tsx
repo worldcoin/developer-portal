@@ -91,7 +91,7 @@ export const Stepper = (props: {
                     "flex size-5 items-center justify-center rounded-full bg-[#00c230]",
                     opticalIconClassName,
                     isActive
-                      ? "ring-2 ring-portal-ink ring-offset-2"
+                      ? "ring-2 ring-edge-ink ring-offset-2 ring-offset-surface"
                       : "opacity-50",
                   )}
                 >
@@ -103,13 +103,14 @@ export const Stepper = (props: {
                     "flex size-5 items-center justify-center rounded-full text-center text-13 leading-[1.2] font-medium",
                     opticalIconClassName,
                     hasValidationError
-                      ? "border-2 border-[#ea392a] bg-white text-[#ea392a]"
+                      ? "border-2 border-content-validation bg-surface text-content-validation"
                       : isActive
-                        ? "bg-portal-ink text-white"
+                        ? "bg-action text-action-foreground"
                         : "bg-portal-canvas text-portal-subtle",
                     // Same selection ring as complete+active — current step
                     // always reads as selected, complete or not.
-                    isActive && "ring-2 ring-portal-ink ring-offset-2",
+                    isActive &&
+                      "ring-2 ring-edge-ink ring-offset-2 ring-offset-surface",
                   )}
                 >
                   <span className={bubbleDigitClassName}>{index + 1}</span>
@@ -119,9 +120,9 @@ export const Stepper = (props: {
                 className={clsx(
                   stepperLabelClassName,
                   isActive
-                    ? "font-semibold text-portal-ink"
+                    ? "font-semibold text-content-ink"
                     : isCompleted
-                      ? "text-portal-ink"
+                      ? "text-content-ink"
                       : "text-portal-subtle",
                 )}
               >

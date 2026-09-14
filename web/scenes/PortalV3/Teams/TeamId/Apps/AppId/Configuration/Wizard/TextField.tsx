@@ -10,7 +10,7 @@ import Skeleton from "react-loading-skeleton";
  * (and a constant box means focusing never reflows the layout); only the
  * label floats: a single 15px placeholder line when empty + unfocused, the
  * 13px label above the 15px value otherwise. `muted` (the app ID) uses the
- * canvas background instead. The error state keeps `bg-system-error-50` so
+ * canvas background instead. The error state keeps `bg-surface-error-50` so
  * the review flow's scroll-to-first-error (which queries that class) can
  * find the field.
  */
@@ -47,25 +47,27 @@ export const TextField = (props: {
 
   const requiredMark = props.required && (
     // Figma nucleus/status-negative (#ea392a) — no portal token for it yet.
-    <span className="text-[#ea392a]"> *</span>
+    <span className="text-content-validation"> *</span>
   );
 
   return (
-    <div className={clsx("flex w-full flex-col gap-1.5", props.className)}>
+    <div
+      className={clsx("flex w-full min-w-0 flex-col gap-1.5", props.className)}
+    >
       <label
         className={clsx(
           // relative: the empty-state input is `sr-only` (absolute) but keeps
           // w-full, so without a positioned label its 100% resolves against
           // the page-wide inset and the invisible box drags a horizontal
           // scrollbar into whitespace.
-          "relative flex h-14 w-full items-center gap-2 rounded-[10px] border p-4",
+          "relative flex h-14 w-full items-center gap-2 rounded-[10px] border p-4 transition-colors focus-within:ring-2 focus-within:ring-focus",
           isInert ? "cursor-default" : "cursor-text",
           props.disabled && "opacity-60",
           props.error
-            ? "border-[#ea392a] bg-system-error-50"
+            ? "border-content-validation bg-surface-error-50"
             : props.muted
-              ? "border-portal-border bg-portal-canvas"
-              : "border-portal-border bg-white",
+              ? "border-portal-border bg-portal-canvas dark:border-control-border"
+              : "border-portal-border bg-surface dark:border-control-border",
         )}
       >
         <span className="flex min-w-0 flex-1 flex-col overflow-clip">
@@ -73,7 +75,7 @@ export const TextField = (props: {
             <span
               className={clsx(
                 "w-full text-13 leading-[1.3] font-[350]",
-                props.error ? "text-[#ea392a]" : "text-portal-subtle",
+                props.error ? "text-content-validation" : "text-portal-subtle",
                 !isFloating && "hidden",
               )}
             >
@@ -103,7 +105,7 @@ export const TextField = (props: {
                 props.onBlur?.();
               }}
               className={clsx(
-                "w-full min-w-0 bg-transparent p-0 text-15 leading-[1.3] font-[350] text-portal-ink outline-none",
+                "w-full min-w-0 bg-transparent p-0 text-15 leading-[1.3] font-[350] text-content-ink outline-none",
                 !props.hideLabel && !isFloating && "sr-only",
               )}
             />
@@ -118,7 +120,7 @@ export const TextField = (props: {
         {props.trailing}
       </label>
       {props.error && (
-        <p className="text-13 leading-[1.3] font-[350] text-[#ea392a]">
+        <p className="text-13 leading-[1.3] font-[350] text-content-validation">
           {props.error}
         </p>
       )}

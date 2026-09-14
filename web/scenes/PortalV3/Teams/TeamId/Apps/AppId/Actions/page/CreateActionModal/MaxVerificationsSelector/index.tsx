@@ -44,27 +44,27 @@ export const MaxVerificationsSelector = (props: {
   const [input, setInput] = useState("");
 
   const parentClassNames = clsx(
-    "rounded-lg border bg-grey-0 text-sm text-grey-700 hover:text-grey-700",
+    "rounded-lg border bg-surface text-sm text-content-strong hover:text-content-strong",
     {
-      "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
+      "border-edge focus-within:border-focus focus-within:hover:border-focus hover:border-edge-heavy ":
         !errors,
-      "border-system-error-500 text-system-error-500 ": errors,
+      "border-edge-error-500 text-content-error-500 ": errors,
     },
   );
   const selectorClassNames = clsx(
     "peer h-full bg-transparent py-1.5 focus:outline-hidden focus:ring-0",
     {
-      "placeholder:text-grey-400": !errors,
-      "group-hover:placeholder:text-grey-700 focus:group-hover:placeholder:text-blue-400 ":
+      "placeholder:text-content-tertiary": !errors,
+      "group-hover:placeholder:text-content-strong focus:group-hover:placeholder:text-blue-400 ":
         true,
     },
   );
   const labelClassNames = clsx(
-    "ml-4 whitespace-nowrap px-[2px] peer-focus:text-blue-500",
+    "ml-4 whitespace-nowrap px-[2px] peer-focus:text-content-link-legacy",
     {
-      "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
+      "text-content-tertiary peer-focus:text-content-link-legacy group-hover:text-content-strong":
         !errors,
-      "text-system-error-500 peer-focus:text-system-error-500": errors,
+      "text-content-error-500 peer-focus:text-content-error-500": errors,
     },
   );
 
@@ -104,7 +104,7 @@ export const MaxVerificationsSelector = (props: {
             <Typography variant={TYPOGRAPHY.R4}>
               {VerificationOptions[value] ?? value.toString()}
             </Typography>
-            <CaretIcon className="ml-2 text-grey-400 group-hover:text-grey-700" />
+            <CaretIcon className="ml-2 text-content-tertiary group-hover:text-content-strong" />
           </SelectButton>
 
           <SelectOptions
@@ -125,7 +125,7 @@ export const MaxVerificationsSelector = (props: {
               <SelectOption key={"text-input"} value={input}>
                 <input
                   className={clsx(
-                    "h-11 w-full rounded-lg border border-grey-200 px-1 text-sm placeholder:text-grey-400",
+                    "h-11 w-full rounded-lg border border-edge px-1 text-sm placeholder:text-content-tertiary",
                   )}
                   type="number"
                   value={input}
@@ -146,18 +146,21 @@ export const MaxVerificationsSelector = (props: {
           </SelectOptions>
           <legend className={labelClassNames}>
             <Typography variant={TYPOGRAPHY.R4}>{label}</Typography>{" "}
-            {required && <span className="text-system-error-500">*</span>}
+            {required && <span className="text-content-error-500">*</span>}
           </legend>
         </fieldset>
         <div className={clsx("flex w-full flex-col px-2")}>
           {helperText && (
-            <Typography variant={TYPOGRAPHY.R5} className="mt-2 text-grey-500">
+            <Typography
+              variant={TYPOGRAPHY.R5}
+              className="mt-2 text-content-secondary"
+            >
               {helperText}
             </Typography>
           )}
           {errors?.message && (
             <Typography
-              className="mt-2 text-system-error-500"
+              className="mt-2 text-content-error-500"
               variant={TYPOGRAPHY.R5}
             >
               {errors.message}

@@ -32,7 +32,7 @@ import { useAppStoreActionsLabelTransition } from "./useAppStoreActionsLabelTran
 const scrollToFirstError = () => {
   requestAnimationFrame(() => {
     document
-      .querySelector(".bg-system-error-50")
+      .querySelector(".bg-surface-error-50")
       ?.scrollIntoView?.({ behavior: "smooth", block: "center" });
   });
 };

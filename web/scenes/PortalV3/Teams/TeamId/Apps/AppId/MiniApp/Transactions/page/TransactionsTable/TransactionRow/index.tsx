@@ -38,7 +38,7 @@ export const TransactionRow = (props: {
   };
   return (
     <tr>
-      <td key={`transaction_${index}_0`} className="border-b border-grey-200">
+      <td key={`transaction_${index}_0`} className="border-b border-edge">
         <div className="flex items-center gap-x-1">
           <TokenIcon token={transaction.inputToken} />
           <Typography variant={TYPOGRAPHY.R4}>
@@ -51,7 +51,7 @@ export const TransactionRow = (props: {
       </td>
 
       <td
-        className="items-center border-b border-grey-200"
+        className="items-center border-b border-edge"
         key={`transaction_${index}_1`}
       >
         <div className="px-2 py-3">
@@ -63,14 +63,14 @@ export const TransactionRow = (props: {
 
       <td
         key={`transaction_${index}_2`}
-        className="max-w-[150px] items-center border-b border-grey-200 px-2 py-3"
+        className="max-w-[150px] items-center border-b border-edge px-2 py-3"
       >
         <Link
           href={createTransactionHashUrl(
             transaction.transactionHash,
             transaction.network,
           )}
-          className="grid grid-cols-1fr/auto items-center gap-x-1 text-blue-500"
+          className="grid grid-cols-1fr/auto items-center gap-x-1 text-content-link-legacy"
         >
           <Typography variant={TYPOGRAPHY.R4} className="truncate">
             {transaction.transactionHash}
@@ -81,7 +81,7 @@ export const TransactionRow = (props: {
 
       <td
         key={`transaction_${index}_3`}
-        className="items-center border-b border-grey-200 px-2 py-3"
+        className="items-center border-b border-edge px-2 py-3"
       >
         <Typography variant={TYPOGRAPHY.R4}>
           {formatAddress(transaction.fromWalletAddress)}
@@ -90,14 +90,14 @@ export const TransactionRow = (props: {
 
       <td
         key={`transaction_${index}_4`}
-        className="items-center border-b border-grey-200 px-2 py-3"
+        className="items-center border-b border-edge px-2 py-3"
       >
         <AddressArrow status={transaction.transactionStatus} />
       </td>
 
       <td
         key={`transaction_${index}_5`}
-        className="items-center border-b border-grey-200 px-2 py-3"
+        className="items-center border-b border-edge px-2 py-3"
       >
         <Typography variant={TYPOGRAPHY.R4}>
           {formatAddress(transaction.recipientAddress)}
@@ -106,7 +106,7 @@ export const TransactionRow = (props: {
 
       <td
         key={`transaction_${index}_6`}
-        className="border-b border-grey-200 px-2 py-3"
+        className="border-b border-edge px-2 py-3"
       >
         <Typography variant={TYPOGRAPHY.R4} className="whitespace-nowrap">
           {formatDate(transaction.updatedAt)}
@@ -115,7 +115,7 @@ export const TransactionRow = (props: {
 
       <td
         key={`transaction_${index}_7`}
-        className="border-b border-grey-200 px-2 py-3"
+        className="border-b border-edge px-2 py-3"
       >
         <TransactionStatusBadge status={transaction.transactionStatus} />
       </td>

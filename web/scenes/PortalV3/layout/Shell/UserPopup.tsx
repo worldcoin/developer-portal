@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ThemeMenu } from "@/components/ThemeMenu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,10 +27,11 @@ import { ChevronsUpDownIcon } from "lucide-react";
 import Link from "next/link";
 import { CSSProperties } from "react";
 import { HelpCenterMenu } from "./HelpCenterMenu";
+import { portalMenuItemClassName } from "@/lib/portal-menu-styles";
 
 export type PortalUser = { name: string; email?: string };
 
-const itemClass = "h-10 cursor-pointer text-portal-text focus:bg-grey-50";
+const itemClass = portalMenuItemClassName;
 
 const accountLinks = [
   {
@@ -74,7 +76,7 @@ const UserAvatar = (props: { name: string; color: Color | null }) => {
   return (
     <Avatar className="size-6">
       <AvatarFallback
-        className="font-world text-10 font-semibold uppercase"
+        className="font-world text-10 font-semibold uppercase dark:text-grey-900!"
         style={
           color
             ? ({
@@ -136,6 +138,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               </DropdownMenuItem>
             ))}
             <HelpCenterMenu />
+            <ThemeMenu />
             <DropdownMenuSeparator className="my-2 bg-portal-border" />
             <DropdownMenuItem asChild className={itemClass}>
               <a

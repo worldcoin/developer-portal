@@ -49,7 +49,7 @@ export const Waiting = memo(function Waiting(props: {
 
   return (
     <div className="grid gap-y-6 p-4">
-      <div className="flex flex-col items-center gap-y-5 rounded-[10px] bg-white p-10 shadow-qrCode portrait:py-12 landscape:py-6">
+      <div className="flex flex-col items-center gap-y-5 rounded-[10px] bg-surface p-10 shadow-qrCode portrait:py-12 landscape:py-6">
         {qrData && (
           <QRCode
             size={qrCodeSize}
@@ -67,7 +67,10 @@ export const Waiting = memo(function Waiting(props: {
           className="flex flex-row items-center text-14 font-medium"
         >
           <CopyIcon
-            className={clsx("mr-2 font-medium", copied && "text-grey-900")}
+            className={clsx(
+              "mr-2 font-medium",
+              copied && "text-content-primary",
+            )}
           />
           <Typography variant={TYPOGRAPHY.M3}>
             {copied ? "Copied!" : "Copy QR code"}
@@ -98,7 +101,7 @@ export const Waiting = memo(function Waiting(props: {
         {!showSimulator && (
           <Typography
             variant={TYPOGRAPHY.M3}
-            className="text-center text-grey-700"
+            className="text-center text-content-strong"
           >
             Scan using the World App
           </Typography>

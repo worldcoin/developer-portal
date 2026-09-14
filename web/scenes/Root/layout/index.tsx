@@ -1,4 +1,6 @@
 import PostHogPageView from "@/scenes/Root/providers/PostHogPageView";
+import { PortalThemeProvider } from "@/components/PortalThemeProvider";
+import { isDarkModeEnabled, THEME_STORAGE_SANITIZER } from "@/lib/theme";
 import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
 import "@/styles/globals.css";
 import { Auth0Provider } from "@auth0/nextjs-auth0/client";
@@ -8,9 +10,7 @@ import localFont from "next/font/local";
 import { headers } from "next/headers";
 import { Suspense } from "react";
 import "react-image-crop/dist/ReactCrop.css";
-import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import { Slide, ToastContainer } from "react-toastify";
 
 const rubik = Rubik({
   display: "swap",
@@ -86,31 +86,35 @@ export const RootLayout = async ({
   const currentPath = requestHeaders.get("x-current-path");
   const disableUserIdentification =
     currentPath === "/admin" || currentPath?.startsWith("/admin/");
+  const themeEnabled = isDarkModeEnabled(
+    process.env.PORTAL_DARK_MODE_ENABLED,
+    process.env.NODE_ENV,
+  );
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   return (
-    <html lang="en" className={fontVariables}>
-      <body>
-        <ToastContainer
-          autoClose={4000}
-          transition={Slide}
-          hideProgressBar
-          position="bottom-right"
+    <html lang="en" className={fontVariables} suppressHydrationWarning>
+      <head>
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{ __html: THEME_STORAGE_SANITIZER }}
         />
-
-        <Auth0Provider>
-          <WithPostHogIdentifier
-            disableUserIdentification={disableUserIdentification}
-          >
-            <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
+      </head>
+      <body>
+        <PortalThemeProvider enabled={themeEnabled} nonce={nonce}>
+          <Auth0Provider>
+            <WithPostHogIdentifier
+              disableUserIdentification={disableUserIdentification}
+            >
               <Provider>
                 <Suspense fallback={null}>
                   <PostHogPageView />
                 </Suspense>
                 {children}
               </Provider>
-            </SkeletonTheme>
-          </WithPostHogIdentifier>
-        </Auth0Provider>
+            </WithPostHogIdentifier>
+          </Auth0Provider>
+        </PortalThemeProvider>
       </body>
     </html>
   );

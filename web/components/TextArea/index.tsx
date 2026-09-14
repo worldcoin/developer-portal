@@ -38,36 +38,36 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
   } = props;
 
   const parentClassNames = clsx(
-    "rounded-lg border bg-grey-0 px-2 text-base text-grey-700 md:text-sm",
+    "rounded-lg border bg-surface px-2 text-base text-content-strong md:text-sm",
     {
-      "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
+      "border-edge focus-within:border-focus focus-within:hover:border-focus hover:border-edge-heavy ":
         !errors && !disabled,
-      "border-system-error-500 text-system-error-500 focus-within:border-system-error-500":
+      "border-edge-error-500 text-content-error-500 focus-within:border-edge-error-500":
         errors && !disabled,
     },
     {
-      "hover:text-grey-700": !disabled,
-      "bg-grey-50 text-grey-400 border-grey-200": disabled,
+      "hover:text-content-strong": !disabled,
+      "bg-surface-soft text-content-tertiary border-edge": disabled,
     },
   );
   const inputClassNames = clsx(
     "peer h-full bg-transparent p-2 focus:outline-hidden focus:ring-0",
     {
-      "placeholder:text-grey-400": !errors,
-      "group-hover:placeholder:text-grey-700 focus:group-hover:placeholder:text-grey-400 ":
+      "placeholder:text-content-tertiary": !errors,
+      "group-hover:placeholder:text-content-strong focus:group-hover:placeholder:text-content-tertiary ":
         !disabled,
       "resize-none": !enableResize,
     },
   );
 
   const labelClassNames = clsx(
-    "ml-2 whitespace-nowrap px-[2px] text-sm peer-focus:text-blue-500",
+    "ml-2 whitespace-nowrap px-[2px] text-sm peer-focus:text-content-link-legacy",
     {
-      "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
+      "text-content-tertiary peer-focus:text-content-link-legacy group-hover:text-content-strong":
         !errors && !disabled,
-      "text-system-error-500 peer-focus:text-system-error-500":
+      "text-content-error-500 peer-focus:text-content-error-500":
         errors && !disabled,
-      "text-grey-400": disabled,
+      "text-content-tertiary": disabled,
       "px-0": label === "",
     },
   );
@@ -98,16 +98,18 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
         {(Boolean(label) || required) && (
           <legend className={labelClassNames}>
             {label}
-            {required && <span className="text-system-error-500">*</span>}
+            {required && <span className="text-content-error-500">*</span>}
           </legend>
         )}
       </fieldset>
       <div className={clsx("flex w-full flex-col px-2")}>
         {helperText && (
-          <p className="mt-2 text-xs text-grey-500">{helperText}</p>
+          <p className="mt-2 text-xs text-content-secondary">{helperText}</p>
         )}
         {errors?.message && (
-          <p className="mt-2 text-xs text-system-error-500">{errors.message}</p>
+          <p className="mt-2 text-xs text-content-error-500">
+            {errors.message}
+          </p>
         )}
       </div>
     </div>
