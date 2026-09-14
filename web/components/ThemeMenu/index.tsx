@@ -34,14 +34,14 @@ export function ThemeMenu() {
       <DropdownMenuRadioGroup
         aria-label="Appearance"
         value={mounted ? resolvedTheme : ""}
-        onValueChange={(value) => {
-          if (value === "light" || value === "dark") setTheme(value);
-        }}
       >
         <DropdownMenuRadioItem
           className={portalMenuItemClassName}
           value="light"
-          onSelect={(event) => event.preventDefault()}
+          onSelect={(event) => {
+            event.preventDefault();
+            setTheme("light");
+          }}
         >
           <Sun className="size-4" />
           Light
@@ -49,7 +49,10 @@ export function ThemeMenu() {
         <DropdownMenuRadioItem
           className={portalMenuItemClassName}
           value="dark"
-          onSelect={(event) => event.preventDefault()}
+          onSelect={(event) => {
+            event.preventDefault();
+            setTheme("dark");
+          }}
         >
           <Moon className="size-4" />
           Dark
