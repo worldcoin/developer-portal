@@ -161,7 +161,7 @@ export function assertValidRpManagerKeyCleanupInput(
   }
 }
 
-// ANCHOR: Load audit rows whose cleanup status is pending, failed, or due.
+// ANCHOR: Load audit rows whose cleanup status is pending, failed, external, or due.
 export async function loadCleanupCandidates(
   input: RpManagerKeyCleanupInput,
 ): Promise<ManagerKeyCleanupCandidate[]> {
@@ -172,7 +172,11 @@ export async function loadCleanupCandidates(
   const variables = {
     now: new Date().toISOString(),
     limit: input.limit ?? DEFAULT_CANDIDATE_LIMIT,
-    retryable_cleanup_statuses: [CleanupStatus.Pending, CleanupStatus.Failed],
+    retryable_cleanup_statuses: [
+      CleanupStatus.Pending,
+      CleanupStatus.Failed,
+      CleanupStatus.ReadyForExternalCleanup,
+    ],
     deletion_scheduled_status: CleanupStatus.DeletionScheduled,
   };
 
@@ -527,7 +531,8 @@ export async function determineCleanupPlan(
   } catch (error) {
     if (
       isKmsNotFound(error) &&
-      candidate.cleanup_status === CleanupStatus.DeletionScheduled
+      (candidate.cleanup_status === CleanupStatus.DeletionScheduled ||
+        candidate.cleanup_status === CleanupStatus.ReadyForExternalCleanup)
     ) {
       return {
         nextStep: PlanStep.MarkAsDeleted,
@@ -535,6 +540,17 @@ export async function determineCleanupPlan(
     }
 
     throw error;
+  }
+
+  if (oldManagerKey.KeyState === "PendingDeletion") {
+    if (!oldManagerKey.DeletionDate) {
+      throw new Error("PendingDeletion key has no deletion date");
+    }
+
+    return {
+      nextStep: PlanStep.RecordExistingDeletionSchedule,
+      deletionDate: oldManagerKey.DeletionDate.toISOString(),
+    };
   }
 
   const protectedOrInvalid = await findProtectedOrInvalidKeyBlocker(
