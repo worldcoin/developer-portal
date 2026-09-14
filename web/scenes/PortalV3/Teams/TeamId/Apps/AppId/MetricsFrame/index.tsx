@@ -132,9 +132,29 @@ const isFallbackResponse = (payload: unknown): boolean =>
 export const MetricsFrame = (props: {
   appId: string;
   initialIsFallback?: boolean;
+  previewData?: Readonly<{
+    totals: TotalsRow;
+    daily: readonly DailyRow[];
+  }>;
 }) => {
-  const [daily, setDaily] = useState<DailyState>({ kind: "loading" });
-  const [totals, setTotals] = useState<TotalsState>({ kind: "loading" });
+  const [daily, setDaily] = useState<DailyState>(() =>
+    props.previewData
+      ? {
+          kind: "ready",
+          rows: props.previewData.daily,
+          isFallback: false,
+        }
+      : { kind: "loading" },
+  );
+  const [totals, setTotals] = useState<TotalsState>(() =>
+    props.previewData
+      ? {
+          kind: "ready",
+          row: props.previewData.totals,
+          isFallback: false,
+        }
+      : { kind: "loading" },
+  );
   const [timeframe, setTimeframe] = useState<TimeframeValue>("14");
   const [osName, setOsName] = useState(ALL_OPERATING_SYSTEMS);
   const teamId = useParams<{ teamId?: string }>()?.teamId;
@@ -289,6 +309,8 @@ export const MetricsFrame = (props: {
   }, [daily, osName, timeframe]);
 
   useEffect(() => {
+    if (props.previewData) return;
+
     setDaily({ kind: "loading" });
     setTotals({ kind: "loading" });
 

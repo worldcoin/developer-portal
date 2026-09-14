@@ -147,6 +147,18 @@ it("filters every daily chart without changing the lifetime section", async () =
   fireEvent.click(screen.getByRole("tab", { name: "All time" }));
   expect(screen.getByText("20 sessions")).toBeInTheDocument();
 });
+
+it("renders supplied preview data without requesting the analytics API", () => {
+  render(
+    <MetricsFrame appId={appId} previewData={{ totals, daily: dailyRows }} />,
+  );
+
+  expect(
+    screen.getByRole("region", { name: "Analytics overview" }),
+  ).toBeInTheDocument();
+  expect(screen.getByText("20 sessions")).toBeInTheDocument();
+  expect(global.fetch).not.toHaveBeenCalled();
+});
 // #endregion
 
 // #region Stale metadata and failure behavior
