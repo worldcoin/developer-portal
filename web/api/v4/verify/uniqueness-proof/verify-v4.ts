@@ -3,6 +3,7 @@ import { logger } from "@/lib/logger";
 import { hashSignal } from "@worldcoin/idkit/hashing";
 import { UniquenessProofResponseV4 } from "../request-schema";
 import { UniquenessResult } from "./handler";
+import { getSessionCommitment } from "@worldcoin/idkit-server";
 
 /**
  * Processes World ID 4.0 uniqueness proofs by verifying them on-chain via the Verifier contract.
@@ -14,6 +15,7 @@ export async function processUniquenessProofV4(
   action: string,
   responses: UniquenessProofResponseV4[],
   verifierAddress: string,
+  sessionId?: string,
 ): Promise<UniquenessResult[]> {
   const results = await Promise.all(
     responses.map(async (item): Promise<UniquenessResult> => {
@@ -21,6 +23,9 @@ export async function processUniquenessProofV4(
         const verifyResult = await verifyProofOnChain(
           {
             nullifier: BigInt(item.nullifier),
+            ...(sessionId
+              ? { sessionId: getSessionCommitment(sessionId) }
+              : {}),
             // Note: `hashSignal` is same as `hashToField` from previous idkit versions
             action: BigInt(hashSignal(action)),
             rpId,

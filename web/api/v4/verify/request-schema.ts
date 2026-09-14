@@ -235,6 +235,10 @@ export const schema = yup
     // We use this field to detect session proofs in custom validation
     session_id: yup.string().strict().optional(),
 
+    // Explicit discrimination permits a Uniqueness proof to create a session
+    // in the SAME circuit. Without it, preserve the legacy session_id routing.
+    proof_type: yup.string().oneOf(["uniqueness", "session"]).optional(),
+
     // Sandbox is accepted as a distinct request environment and is
     // normalized to staging only where verifier/storage environment is needed.
     environment: yup
@@ -253,9 +257,37 @@ export const schema = yup
       .required("responses array is required"),
   })
   .test("request-validation", "Request validation failed", function (value) {
-    const { action, session_id, protocol_version } = value;
+    const { action, session_id, protocol_version, proof_type } = value;
 
-    if (session_id) {
+    if (proof_type && protocol_version !== "4.0") {
+      return this.createError({
+        path: "proof_type",
+        message: "proof_type requires protocol_version 4.0",
+      });
+    }
+    if (proof_type === "session" && !session_id) {
+      return this.createError({
+        path: "session_id",
+        message: "session_id is required for session proofs",
+      });
+    }
+
+    if (proof_type === "uniqueness" && session_id) {
+      // Recovery needs the OPRF seed as well as the on-chain commitment.
+      // A zero commitment would turn this back into an unbound proof.
+      if (
+        !/^session_[0-9a-fA-F]{64}01[0-9a-fA-F]{62}$/.test(session_id) ||
+        BigInt("0x" + session_id.slice(8, 72)) === 0n
+      ) {
+        return this.createError({
+          path: "session_id",
+          message:
+            "A session-bound uniqueness proof requires a nonzero SDK session ID",
+        });
+      }
+    }
+
+    if (session_id && proof_type !== "uniqueness") {
       // Session proofs are a 4.0-only construct: the session nullifier and the
       // session id are public inputs of the 4.0 circuit and have no 3.0
       // equivalent.
@@ -287,12 +319,16 @@ export const schema = yup
     "responses-schema",
     "Invalid response items for protocol version",
     function (value) {
-      const { protocol_version, session_id, responses } = value;
+      const { protocol_version, session_id, proof_type, responses } = value;
       if (!responses || responses.length === 0) return true;
 
       // Determine which schema to use
       let itemSchema;
-      if (session_id && protocol_version === "4.0") {
+      if (
+        session_id &&
+        proof_type !== "uniqueness" &&
+        protocol_version === "4.0"
+      ) {
         itemSchema = sessionResponseItemSchema;
       } else if (protocol_version === "4.0") {
         itemSchema = v4ResponseItemSchema;
@@ -397,6 +433,8 @@ export interface UniquenessProofResponseV4 {
 
 export interface UniquenessProofRequestV4 {
   protocol_version: "4.0";
+  proof_type?: "uniqueness";
+  session_id?: string;
   min_protocol_version?: "3.0" | "4.0";
   nonce: string;
   action: string;
