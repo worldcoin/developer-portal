@@ -163,7 +163,7 @@ export const EditRoleDialog = (props: {
               <Button
                 type="button"
                 onClick={() => setPermissionsOpened(true)}
-                className="inline text-blue-500"
+                className="inline text-content-link-legacy"
               >
                 permissions list
               </Button>
@@ -194,7 +194,7 @@ export const EditRoleDialog = (props: {
                         <legend className="ml-3.5 px-0.5">
                           <Typography
                             variant={TYPOGRAPHY.R4}
-                            className="text-grey-400"
+                            className="text-content-tertiary"
                           >
                             Role
                           </Typography>
@@ -215,7 +215,7 @@ export const EditRoleDialog = (props: {
                             <SelectOption
                               key={`edit-role-option-${index}`}
                               value={option}
-                              className="size-full transition-colors hover:bg-grey-100"
+                              className="size-full transition-colors hover:bg-surface-muted"
                             >
                               {option.label}
                             </SelectOption>
@@ -234,7 +234,7 @@ export const EditRoleDialog = (props: {
                         >
                           <div
                             className={clsx(
-                              "flex size-6 items-center justify-center rounded-full before:rounded-full before:bg-grey-0",
+                              "flex size-6 items-center justify-center rounded-full before:rounded-full before:bg-surface",
                               {
                                 "bg-gray-900 before:size-2.5":
                                   option.value === field.value?.value,

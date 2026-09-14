@@ -24,9 +24,9 @@ const LawsAndRegulationsBanner = () => (
   // Figma nucleus/status-warning (#ffae00) — no portal token for it yet
   // (closest, system-warning-500, is #ffb200). The #fff6e6 fill maps to the
   // existing system-warning-75 token.
-  <div className="flex w-full items-center gap-3 rounded-[10px] bg-system-warning-75 p-4">
+  <div className="flex w-full items-center gap-3 rounded-[10px] bg-surface-warning-75 p-4">
     <WarningBadgeIcon className="bg-[#ffae00]" />
-    <p className="min-w-0 flex-1 text-13 leading-[1.2] font-medium text-[#ffae00]">
+    <p className="min-w-0 flex-1 text-13 leading-[1.2] font-medium text-content-warning-notice">
       Laws and regulations governing mini apps vary by country and region.
       Before launching, ensure your app complies with all relevant local rules,
       especially regarding chance-based or gambling-like features.

@@ -5,7 +5,7 @@ export const CreateActionTile = (props: { onClick?: () => void }) => (
     type="button"
     onClick={props.onClick}
     disabled={!props.onClick}
-    className="flex min-h-[144px] flex-col items-center justify-center gap-3 rounded-[10px] border border-dashed border-portal-border text-portal-muted transition-colors enabled:hover:border-portal-ink enabled:hover:text-portal-ink"
+    className="flex min-h-[144px] flex-col items-center justify-center gap-3 rounded-[10px] border border-dashed border-portal-border text-portal-muted transition-colors enabled:hover:border-edge-ink enabled:hover:text-content-ink"
     aria-label="Create action"
   >
     <svg

@@ -227,10 +227,10 @@ export const Debugger = (props: DebuggerProps) => {
         <Typography variant={TYPOGRAPHY.H7}>Results</Typography>
         <div
           className={clsx(
-            "flex h-80 w-full flex-col items-center justify-center rounded-lg border border-grey-100 bg-grey-50",
+            "flex h-80 w-full flex-col items-center justify-center rounded-lg border border-edge-subtle bg-surface-soft",
             {
-              "border-0 bg-system-success-50": status === Status.SUCCESS,
-              "border-0 bg-system-error-50": status === Status.ERROR,
+              "border-0 bg-surface-success-50": status === Status.SUCCESS,
+              "border-0 bg-surface-error-50": status === Status.ERROR,
             },
           )}
         >
@@ -250,9 +250,9 @@ export const Debugger = (props: DebuggerProps) => {
           <div className="mt-8 flex flex-col items-center gap-y-5 px-12 text-center">
             <Typography
               variant={TYPOGRAPHY.R4}
-              className={clsx("text-sm text-grey-400", {
-                "text-system-error-600": status === Status.ERROR,
-                "text-system-success-600": status === Status.SUCCESS,
+              className={clsx("text-sm text-content-tertiary", {
+                "text-content-error-600": status === Status.ERROR,
+                "text-content-success-600": status === Status.SUCCESS,
               })}
             >
               {message}
@@ -261,7 +261,7 @@ export const Debugger = (props: DebuggerProps) => {
               <DecoratedButton
                 type="submit"
                 variant="secondary"
-                className="text-grey-700 disabled:text-grey-300 md:w-60"
+                className="text-content-strong disabled:text-content-disabled md:w-60"
                 disabled={!isDirty || !isValid}
               >
                 <Typography variant={TYPOGRAPHY.M3}>Validate Proof</Typography>
@@ -271,10 +271,13 @@ export const Debugger = (props: DebuggerProps) => {
                   href="https://simulator.worldcoin.org/"
                   className="flex w-full items-center justify-center gap-x-1"
                 >
-                  <Typography variant={TYPOGRAPHY.R5} className="text-blue-500">
+                  <Typography
+                    variant={TYPOGRAPHY.R5}
+                    className="text-content-link-legacy"
+                  >
                     Open Simulator
                   </Typography>
-                  <OutgoingLinkIcon className="size-3 text-blue-500" />
+                  <OutgoingLinkIcon className="size-3 text-content-link-legacy" />
                 </Button>
               )}
             </div>

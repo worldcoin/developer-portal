@@ -75,7 +75,7 @@ export const AppIconBox = ({
   }, [clearErrors, logoImgUrl]);
 
   return (
-    <section className="flex items-center justify-center rounded-2xl border border-grey-200 bg-grey-25 p-6 shadow-button">
+    <section className="flex items-center justify-center rounded-2xl border border-edge bg-surface-faint p-6 shadow-button">
       <LogoImageUpload
         appId={appId}
         appMetadataId={appMetadataId}
@@ -116,15 +116,15 @@ export const AppIconBox = ({
             className={clsx(
               "flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed",
               hasLogoError
-                ? "border-system-error-500 bg-system-error-50 px-3"
-                : "border-grey-200 bg-grey-50",
+                ? "border-edge-error-500 bg-surface-error-50 px-3"
+                : "border-edge bg-surface-soft",
             )}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="currentColor"
-              className="size-6 text-grey-900"
+              className="size-6 text-content-primary"
             >
               <path
                 fillRule="evenodd"
@@ -132,13 +132,16 @@ export const AppIconBox = ({
                 clipRule="evenodd"
               />
             </svg>
-            <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
-              App icon <span className="text-system-error-500">*</span>
+            <Typography
+              variant={TYPOGRAPHY.R5}
+              className="text-content-primary"
+            >
+              App icon <span className="text-content-error-500">*</span>
             </Typography>
             {hasLogoError && (
               <Typography
                 variant={TYPOGRAPHY.R5}
-                className="text-center text-system-error-500"
+                className="text-center text-content-error-500"
               >
                 {logoError}
               </Typography>

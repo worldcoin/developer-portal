@@ -43,6 +43,16 @@ export const Placeholder = (props: {
   }, 0);
 
   const solidColor = colors[Math.abs(hash) % colors.length];
+  const needsDarkInitial =
+    solidColor.startsWith("bg-additional-") ||
+    [
+      "bg-blue-400",
+      "bg-system-success-400",
+      "bg-system-success-500",
+      "bg-system-success-700",
+      "bg-system-error-500",
+      "bg-system-error-700",
+    ].includes(solidColor);
 
   return (
     <div
@@ -54,7 +64,14 @@ export const Placeholder = (props: {
         ),
       )}
     >
-      <p className="text-grey-0 capitalize">{props.name[0]}</p>
+      <p
+        className={clsx(
+          "text-grey-0 capitalize",
+          needsDarkInitial && "dark:text-grey-900",
+        )}
+      >
+        {props.name[0]}
+      </p>
     </div>
   );
 };

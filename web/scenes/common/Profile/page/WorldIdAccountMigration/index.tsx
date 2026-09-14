@@ -30,28 +30,28 @@ const statusCopy: Record<
   idle: {
     description:
       "Sign in With World ID method is deprecated. If you had a legacy account, link your account to continue using your teams and apps.",
-    className: "text-grey-400",
+    className: "text-content-tertiary",
   },
   checking: {
     description: "Verifying your World ID proof.",
-    className: "text-grey-400",
+    className: "text-content-tertiary",
   },
   error: {
     description: "Try again in a moment.",
-    className: "text-system-error-600",
+    className: "text-content-error-600",
   },
   already_linked: {
     description: "This profile already has a World ID account.",
-    className: "text-grey-400",
+    className: "text-content-tertiary",
   },
   merged: {
     description:
       "Your Sign in with World ID account was merged into this profile. Its teams and apps are now available here.",
-    className: "text-system-success-700",
+    className: "text-content-success-700",
   },
   not_found: {
     description: "No existing account matched your World ID.",
-    className: "text-grey-400",
+    className: "text-content-tertiary",
   },
 };
 
@@ -191,7 +191,7 @@ export const WorldIdAccountMigration = ({
   }
 
   return (
-    <div className="grid w-full gap-y-5 rounded-12 border border-grey-200 p-6">
+    <div className="grid w-full gap-y-5 rounded-12 border border-edge p-6">
       <div className="grid gap-y-3">
         <Typography as="h2" variant={TYPOGRAPHY.R3}>
           Restore legacy account

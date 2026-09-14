@@ -27,7 +27,7 @@ export const Unauthorized = (props: {
         <Typography variant={TYPOGRAPHY.M2}>{code}</Typography>
         <div className="h-5 w-px bg-grey-400" />
 
-        <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
+        <Typography variant={TYPOGRAPHY.R3} className="text-content-tertiary">
           {code_detail}
         </Typography>
       </div>

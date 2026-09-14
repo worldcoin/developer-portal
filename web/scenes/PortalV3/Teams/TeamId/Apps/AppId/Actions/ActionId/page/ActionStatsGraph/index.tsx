@@ -196,13 +196,13 @@ export const ActionStatsGraph = () => {
       <div className="flex flex-col items-center justify-between gap-y-4 md:flex-row">
         <div className="flex w-full items-center gap-x-6">
           <StatCard
-            mainColorClassName="bg-blue-500"
+            mainColorClassName="bg-content-link-legacy"
             title="Verifications"
             value={totalVerifications}
             changePercentage={verificationPercentageChange}
           />
 
-          <div className="h-6 w-px bg-grey-200" />
+          <div className="h-6 w-px bg-surface-disabled" />
 
           <StatCard
             mainColorClassName="bg-[#00C3B6]"
@@ -226,12 +226,18 @@ export const ActionStatsGraph = () => {
       )}
 
       {!loading && !formattedData && (
-        <div className="pointer-events-none grid aspect-1180/350 w-full content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 select-none">
-          <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
+        <div className="pointer-events-none grid aspect-1180/350 w-full content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-edge select-none">
+          <Typography
+            variant={TYPOGRAPHY.H7}
+            className="text-content-secondary"
+          >
             No data available yet
           </Typography>
 
-          <Typography variant={TYPOGRAPHY.R4} className="text-14 text-grey-400">
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            className="text-14 text-content-tertiary"
+          >
             Your verification numbers will show up here.
           </Typography>
         </div>

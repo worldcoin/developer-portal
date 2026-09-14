@@ -32,13 +32,13 @@ export const Item = (props: ItemsProps) => {
 
   if (!item) {
     return (
-      <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-t border-grey-100 px-5 py-3 md:px-6">
+      <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-t border-edge-subtle px-5 py-3 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <Skeleton width={28} height={28} circle inline />
           <Skeleton width={160} />
         </div>
         <Skeleton width={56} height={24} borderRadius={999} />
-        <div className="flex size-8 items-center justify-center text-grey-400">
+        <div className="flex size-8 items-center justify-center text-content-tertiary">
           <MoreVerticalIcon />
         </div>
       </div>
@@ -46,10 +46,10 @@ export const Item = (props: ItemsProps) => {
   }
 
   return (
-    <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-t border-grey-100 px-5 py-3 transition-colors hover:bg-grey-25 md:px-6">
+    <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-t border-edge-subtle px-5 py-3 transition-colors hover:bg-surface-faint md:px-6">
       <Button
         href={urls.teams({ team_id: item.team.id })}
-        className="flex min-w-0 items-center gap-3 rounded-8 outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2"
+        className="flex min-w-0 items-center gap-3 rounded-8 ring-offset-surface outline-hidden focus-visible:ring-2 focus-visible:ring-edge-medium focus-visible:ring-offset-2"
       >
         <TeamLogo
           src=""
@@ -60,7 +60,7 @@ export const Item = (props: ItemsProps) => {
         </span>
       </Button>
 
-      <span className="rounded-full border border-grey-200 bg-white px-2.5 py-1 font-world text-12 leading-none text-grey-500">
+      <span className="rounded-full border border-edge bg-surface px-2.5 py-1 font-world text-12 leading-none text-content-secondary">
         {roleName[item.role]}
       </span>
 
@@ -68,7 +68,7 @@ export const Item = (props: ItemsProps) => {
         <Dropdown>
           <Dropdown.Button
             aria-label={`Open actions for ${item.team.name ?? "team"}`}
-            className="flex size-8 items-center justify-center rounded-8 text-grey-500 outline-hidden hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-grey-300"
+            className="flex size-8 items-center justify-center rounded-8 text-content-secondary outline-hidden hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-edge-medium"
           >
             <MoreVerticalIcon />
           </Dropdown.Button>
@@ -121,10 +121,10 @@ export const Item = (props: ItemsProps) => {
             )}
 
             {item.role === Role_Enum.Owner && (
-              <Dropdown.ListItem className="text-system-error-600" asChild>
+              <Dropdown.ListItem className="text-content-error-600" asChild>
                 <button type="button" onClick={props.onClickDelete}>
                   <Dropdown.ListItemIcon
-                    className="text-system-error-600"
+                    className="text-content-error-600"
                     asChild
                   >
                     <LogoutIcon />
@@ -137,10 +137,10 @@ export const Item = (props: ItemsProps) => {
 
             {(item.role === Role_Enum.Admin ||
               item.role === Role_Enum.Member) && (
-              <Dropdown.ListItem className="text-system-error-600" asChild>
+              <Dropdown.ListItem className="text-content-error-600" asChild>
                 <button type="button" onClick={props.onClickLeave}>
                   <Dropdown.ListItemIcon
-                    className="text-system-error-600"
+                    className="text-content-error-600"
                     asChild
                   >
                     <LogoutIcon />

@@ -91,7 +91,7 @@ export const RpSummary = (props: {
             <Typography
               as="p"
               variant={TYPOGRAPHY.S4}
-              className="mt-1 text-grey-500"
+              className="mt-1 text-content-secondary"
             >
               Retry the on-chain registration for this RP.
             </Typography>
@@ -136,7 +136,7 @@ export const RpSummary = (props: {
                   id="world-id-configuration-disabled-reason"
                   as="p"
                   variant={TYPOGRAPHY.B4}
-                  className="text-grey-500"
+                  className="text-content-secondary"
                 >
                   {controlsDisabledReason}
                 </Typography>
@@ -147,14 +147,14 @@ export const RpSummary = (props: {
                   Key
                 </Typography>
 
-                <div className="flex items-center justify-between gap-4 rounded-xl border border-grey-100 p-6">
+                <div className="flex items-center justify-between gap-4 rounded-xl border border-edge-subtle p-6">
                   <div className="flex flex-col gap-1">
                     <Typography variant={TYPOGRAPHY.S2}>
                       Rotate signer key
                     </Typography>
                     <Typography
                       variant={TYPOGRAPHY.B3}
-                      className="text-grey-500"
+                      className="text-content-secondary"
                     >
                       This will create a new signer key and disable the existing
                       key
@@ -183,14 +183,14 @@ export const RpSummary = (props: {
                   Danger zone
                 </Typography>
 
-                <div className="flex items-center justify-between gap-4 rounded-2xl border border-system-error-200 bg-grey-0 px-6 py-4">
+                <div className="flex items-center justify-between gap-4 rounded-2xl border border-edge-error-200 bg-surface px-6 py-4">
                   <div className="flex flex-col gap-1">
                     <Typography variant={TYPOGRAPHY.S2}>
                       Switch to self-managed
                     </Typography>
                     <Typography
                       variant={TYPOGRAPHY.B3}
-                      className="text-grey-500"
+                      className="text-content-secondary"
                     >
                       Move this RP to a self-managed configuration
                     </Typography>
@@ -200,7 +200,7 @@ export const RpSummary = (props: {
                         id="rp-switch-self-managed-disabled-reason"
                         as="p"
                         variant={TYPOGRAPHY.B4}
-                        className="text-system-error-700"
+                        className="text-content-error-700"
                       >
                         {switchDisabledReason}
                       </Typography>
@@ -236,7 +236,7 @@ export const RpSummary = (props: {
               <Typography
                 as="p"
                 variant={TYPOGRAPHY.S4}
-                className="mt-1 text-grey-500"
+                className="mt-1 text-content-secondary"
               >
                 Your changes are being processed on-chain. This could take up to
                 a minute.
@@ -252,7 +252,7 @@ export const RpSummary = (props: {
               <Typography
                 as="p"
                 variant={TYPOGRAPHY.S4}
-                className="mt-1 text-grey-500"
+                className="mt-1 text-content-secondary"
               >
                 This RP is no longer active.
               </Typography>

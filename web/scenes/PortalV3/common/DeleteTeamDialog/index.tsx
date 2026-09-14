@@ -238,7 +238,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
             and statistics.
           </p>
 
-          <div className="flex items-center gap-x-2 rounded-8 bg-system-error-50 px-3 py-2 text-system-error-600">
+          <div className="flex items-center gap-x-2 rounded-8 bg-surface-error-50 px-3 py-2 text-content-error-600">
             <AlertIcon className="size-4 shrink-0" />
             <span className="font-world text-13 leading-none font-medium">
               This action cannot be undone.

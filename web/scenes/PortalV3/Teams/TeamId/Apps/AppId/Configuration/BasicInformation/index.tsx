@@ -309,13 +309,13 @@ export const BasicInformation = forwardRef<
 
       {/* Publisher / ID meta line */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+        <Typography variant={TYPOGRAPHY.R4} className="text-content-secondary">
           Publisher: {teamName}
         </Typography>
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-300">
+        <Typography variant={TYPOGRAPHY.R4} className="text-content-disabled">
           ·
         </Typography>
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+        <Typography variant={TYPOGRAPHY.R4} className="text-content-secondary">
           ID: {appId}
         </Typography>
         <CopyButton fieldName="App ID" fieldValue={appId} />

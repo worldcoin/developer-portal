@@ -106,7 +106,7 @@ export const WorldIdActionDetailPage = (props: {
               trailing={
                 <CopyIcon
                   aria-hidden
-                  className="size-5 shrink-0 text-portal-ink"
+                  className="size-5 shrink-0 text-content-ink"
                 />
               }
             />

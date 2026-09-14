@@ -59,7 +59,7 @@ export const LocalisationsSection = ({
         title="Localisations"
         description="Provide localized content for each supported language."
       >
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+        <Typography variant={TYPOGRAPHY.R4} className="text-content-secondary">
           No languages selected. Please add languages in the Supported Languages
           section.
         </Typography>

@@ -16,8 +16,8 @@ describe("v4 verify request schema", () => {
       action: "test-action",
       responses: [
         {
-          identifier: "credential",
-          issuer_schema_id: 128,
+          identifier: "proof_of_human",
+          issuer_schema_id: 1,
           nullifier: "0x02",
           expires_at_min: 1772584197,
           proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
@@ -74,8 +74,8 @@ describe("v4 verify request schema", () => {
         action: "test-action",
         responses: [
           {
-            identifier: "credential",
-            issuer_schema_id: 128,
+            identifier: "proof_of_human",
+            issuer_schema_id: 1,
             nullifier: "0x02",
             expires_at_min: 1772584197,
             proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
@@ -110,8 +110,8 @@ describe("v4 verify request schema", () => {
       session_id: "session_test",
       responses: [
         {
-          identifier: "credential",
-          issuer_schema_id: 128,
+          identifier: "proof_of_human",
+          issuer_schema_id: 1,
           session_nullifier: ["0x01", "0x02"],
           expires_at_min: 1772584197,
           proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
@@ -130,8 +130,8 @@ describe("v4 verify request schema", () => {
       environment: "sandbox",
       responses: [
         {
-          identifier: "credential",
-          issuer_schema_id: 128,
+          identifier: "proof_of_human",
+          issuer_schema_id: 1,
           nullifier: "0x02",
           expires_at_min: 1772584197,
           proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
@@ -150,8 +150,8 @@ describe("v4 verify request schema", () => {
       integrity_bundle: integrityBundle,
       responses: [
         {
-          identifier: "credential",
-          issuer_schema_id: 128,
+          identifier: "proof_of_human",
+          issuer_schema_id: 1,
           nullifier: "0x02",
           expires_at_min: 1772584197,
           proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
@@ -172,8 +172,8 @@ describe("v4 verify request schema", () => {
           "v=1,sf=android_keystore,t=1772638272,s=abcd,jwt=a.b.c",
         responses: [
           {
-            identifier: "credential",
-            issuer_schema_id: 128,
+            identifier: "proof_of_human",
+            issuer_schema_id: 1,
             nullifier: "0x02",
             expires_at_min: 1772584197,
             proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
@@ -195,8 +195,8 @@ describe("v4 verify request schema", () => {
         },
         responses: [
           {
-            identifier: "credential",
-            issuer_schema_id: 128,
+            identifier: "proof_of_human",
+            issuer_schema_id: 1,
             nullifier: "0x02",
             expires_at_min: 1772584197,
             proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
@@ -246,3 +246,111 @@ describe("v4 verify request schema", () => {
     ).rejects.toThrow("sybil_score is required for Self Check 4.0 responses");
   });
 });
+
+// #region Supported v4 credential issuers
+describe.each(["uniqueness", "session"])(
+  "%s credential issuer validation",
+  (flow) => {
+    const makeRequest = (identifier: string, issuerSchemaId: number) => ({
+      protocol_version: "4.0",
+      nonce: "0x01",
+      ...(flow === "session"
+        ? { session_id: "session_test" }
+        : { action: "test-action" }),
+      responses: [
+        {
+          identifier,
+          issuer_schema_id: issuerSchemaId,
+          ...(flow === "session"
+            ? { session_nullifier: ["0x01", "0x02"] }
+            : { nullifier: "0x02" }),
+          expires_at_min: 1772584197,
+          proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+          ...(issuerSchemaId === 11 ? { sybil_score: 10 } : {}),
+        },
+      ],
+    });
+
+    it.each<[string, number]>([
+      ["proof_of_human", 1],
+      ["selfie", 11],
+      ["face", 11],
+      ["passport", 9303],
+      ["mnc", 9310],
+    ])(
+      "accepts %s with issuer %i without rewriting it",
+      async (identifier, issuer) => {
+        const request = makeRequest(identifier, issuer);
+        const parsed = await schema.validate(request);
+
+        expect(parsed.responses[0]).toMatchObject(request.responses[0]);
+      },
+    );
+
+    it.each<[string, number]>([
+      ["proof_of_human", 9303],
+      ["selfie", 1],
+      ["face", 1],
+      ["passport", 9310],
+      ["mnc", 9303],
+      ["proof_of_human", 99999],
+      ["custom", 1],
+    ])("rejects %s with issuer %i", async (identifier, issuer) => {
+      await expect(
+        schema.validate(makeRequest(identifier, issuer)),
+      ).rejects.toThrow(
+        "issuer_schema_id does not match a supported credential identifier",
+      );
+    });
+
+    it.each(["staging", "sandbox"])(
+      "accepts faux proof_of_human only on the %s verifier",
+      async (environment) => {
+        const parsed = await schema.validate({
+          ...makeRequest("proof_of_human", 128),
+          environment,
+        });
+
+        expect(parsed.responses[0]).toMatchObject({
+          identifier: "proof_of_human",
+          issuer_schema_id: 128,
+        });
+      },
+    );
+
+    it.each([undefined, "production"])(
+      "rejects the faux issuer with environment %s",
+      async (environment) => {
+        await expect(
+          schema.validate({
+            ...makeRequest("proof_of_human", 128),
+            environment,
+          }),
+        ).rejects.toThrow(
+          "issuer_schema_id does not match a supported credential identifier",
+        );
+      },
+    );
+
+    it("rejects faux credentials labeled as another credential in staging", async () => {
+      await expect(
+        schema.validate({
+          ...makeRequest("passport", 128),
+          environment: "staging",
+        }),
+      ).rejects.toThrow(
+        "issuer_schema_id does not match a supported credential identifier",
+      );
+    });
+
+    it("checks every response in a batch", async () => {
+      const request = makeRequest("proof_of_human", 1);
+      request.responses.push(makeRequest("proof_of_human", 9303).responses[0]);
+
+      await expect(schema.validate(request)).rejects.toMatchObject({
+        path: "responses[1]",
+      });
+    });
+  },
+);
+// #endregion

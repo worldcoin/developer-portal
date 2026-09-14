@@ -8,7 +8,7 @@ import { useState } from "react";
  * constant white bordered box (empty fields must not read as greyed-out):
  * empty + unfocused shows a single 15px placeholder line; focused or filled
  * shows the 13px label above the value. The error state keeps
- * `bg-system-error-50` so the review flow's scroll-to-first-error (which
+ * `bg-surface-error-50` so the review flow's scroll-to-first-error (which
  * queries that class) can find the field.
  */
 export const TextAreaField = (props: {
@@ -27,29 +27,31 @@ export const TextAreaField = (props: {
   const isFloating = isFocused || props.value.length > 0;
 
   return (
-    <div className={clsx("flex w-full flex-col gap-1.5", props.className)}>
+    <div
+      className={clsx("flex w-full min-w-0 flex-col gap-1.5", props.className)}
+    >
       <label
         className={clsx(
           // relative: see TextField — the sr-only empty-state control keeps
           // w-full and must resolve it against this box, not the page.
-          "relative flex h-30 w-full flex-col rounded-[10px] border p-4",
+          "relative flex h-30 w-full flex-col rounded-[10px] border p-4 transition-colors focus-within:ring-2 focus-within:ring-focus",
           props.disabled ? "cursor-default opacity-60" : "cursor-text",
           props.error
-            ? "border-[#ea392a] bg-system-error-50"
-            : "border-portal-border bg-white",
+            ? "border-content-validation bg-surface-error-50"
+            : "border-portal-border bg-surface dark:border-control-border",
         )}
       >
         <span
           className={clsx(
             "w-full text-13 leading-[1.3] font-[350]",
-            props.error ? "text-[#ea392a]" : "text-portal-subtle",
+            props.error ? "text-content-validation" : "text-portal-subtle",
             !isFloating && "hidden",
           )}
         >
           {props.label}
           {props.required && (
             // Figma nucleus/status-negative (#ea392a) — no portal token yet.
-            <span className="text-[#ea392a]"> *</span>
+            <span className="text-content-validation"> *</span>
           )}
         </span>
         <textarea
@@ -64,7 +66,7 @@ export const TextAreaField = (props: {
             props.onBlur?.();
           }}
           className={clsx(
-            "w-full min-w-0 flex-1 resize-none bg-transparent p-0 text-15 leading-[1.3] font-[350] text-portal-ink outline-none",
+            "w-full min-w-0 flex-1 resize-none bg-transparent p-0 text-15 leading-[1.3] font-[350] text-content-ink outline-none",
             !isFloating && "sr-only",
           )}
         />
@@ -80,7 +82,7 @@ export const TextAreaField = (props: {
         )}
       </label>
       {props.error && (
-        <p className="text-13 leading-[1.3] font-[350] text-[#ea392a]">
+        <p className="text-13 leading-[1.3] font-[350] text-content-validation">
           {props.error}
         </p>
       )}

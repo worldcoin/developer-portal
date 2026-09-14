@@ -329,7 +329,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         viewBox="0 0 24 24"
         strokeWidth={2}
         stroke="currentColor"
-        className="size-6 text-grey-500"
+        className="size-6 text-content-secondary"
       >
         <path
           strokeLinecap="round"
@@ -340,15 +340,18 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       <div className="flex flex-col items-center gap-y-1">
         <Typography
           variant={TYPOGRAPHY.B3}
-          className="text-center text-grey-500"
+          className="text-center text-content-secondary"
         >
           Drop image here to upload
         </Typography>
         <Typography
           variant={TYPOGRAPHY.B3}
-          className="text-center text-grey-500"
+          className="text-center text-content-secondary"
         >
-          or <span className="font-semibold text-grey-700">browse files</span>
+          or{" "}
+          <span className="font-semibold text-content-strong">
+            browse files
+          </span>
         </Typography>
       </div>
     </>
@@ -413,9 +416,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                   type="button"
                   onClick={() => handleDelete(imagePath)}
                   disabled={disabled}
-                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-edge bg-surface shadow-xs transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <TrashIcon className="text-grey-500" />
+                  <TrashIcon className="text-content-secondary" />
                 </Button>
               </div>
             );
@@ -434,7 +437,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       {/* maxImages === 1: skeleton */}
       {value.length > 0 && maxImages === 1 && isImagesLoading && (
         <div
-          className="animate-pulse rounded-xl bg-grey-100"
+          className="animate-pulse rounded-xl bg-surface-muted"
           style={previewStyle}
         />
       )}
@@ -471,9 +474,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                   type="button"
                   onClick={() => handleDelete(imagePath)}
                   disabled={disabled}
-                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-edge bg-surface shadow-xs transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <TrashIcon className="text-grey-500" />
+                  <TrashIcon className="text-content-secondary" />
                 </Button>
               </div>
             );
@@ -518,7 +521,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           {value.map((url, index) => (
             <div
               key={`${url}-${index}`}
-              className="animate-pulse rounded-xl bg-grey-100"
+              className="animate-pulse rounded-xl bg-surface-muted"
               style={previewStyle}
             />
           ))}
@@ -566,7 +569,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
               <button
                 type="button"
                 onClick={() => setLightboxUrl(null)}
-                className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full bg-white/95 text-grey-700 shadow-md transition-colors hover:bg-white"
+                className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full bg-surface/95 text-content-strong shadow-md transition-colors hover:bg-surface"
                 aria-label="Close"
               >
                 <CloseIcon className="size-4" />

@@ -126,7 +126,7 @@ export const AppStoreWizard = ({
       <div className="flex min-w-0 items-center justify-between gap-4">
         <Typography
           variant={TYPOGRAPHY.M5}
-          className="min-w-0 truncate text-grey-700"
+          className="min-w-0 truncate text-content-strong"
         >
           {currentStep?.title}
         </Typography>
@@ -134,7 +134,7 @@ export const AppStoreWizard = ({
           {accessory}
           <Typography
             variant={TYPOGRAPHY.M5}
-            className="shrink-0 text-grey-500 tabular-nums"
+            className="shrink-0 text-content-secondary tabular-nums"
             aria-label={`Step ${currentStepNumber} of ${steps.length}`}
           >
             {currentStepNumber}/{steps.length}

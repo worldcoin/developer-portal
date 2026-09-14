@@ -24,11 +24,11 @@ export const KioskError = memo(function KioskError(props: {
       <div className="grid max-w-[300px] justify-items-center gap-y-4">
         <div className="grid gap-y-2 font-rubik leading-[1.2]">
           <CircleIconContainer variant="error">
-            <CloseIcon className="size-4 text-system-error-500" />
+            <CloseIcon className="size-4 text-content-error-500" />
           </CircleIconContainer>
         </div>
         <Typography variant={TYPOGRAPHY.H6}>{title}</Typography>
-        <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+        <Typography variant={TYPOGRAPHY.R3} className="text-content-strong">
           {details}
         </Typography>
       </div>

@@ -44,6 +44,31 @@ const v3ResponseItemSchema = yup.object({
     .optional(),
 });
 
+// Developer Portal currently supports only these credential issuers. RPs remain
+// responsible for checking issuer_schema_id, environment, and proof claims against
+// their own verification requirements. The faux issuer (128) is limited to staging.
+const supportedCredentialIssuers = new Map<string, number>([
+  ["proof_of_human", 1],
+  ["selfie", 11],
+  ["face", 11],
+  ["passport", 9303],
+  ["mnc", 9310],
+]);
+
+const v4IssuerSchemaIdSchema = yup
+  .number()
+  .integer()
+  .required("issuer_schema_id is required for v4")
+  .test(
+    "credential-issuer",
+    "issuer_schema_id does not match a supported credential identifier",
+    (value, { parent, options }) =>
+      supportedCredentialIssuers.get(parent.identifier) === value ||
+      (value === 128 &&
+        parent.identifier === "proof_of_human" &&
+        ["staging", "sandbox"].includes(options.context?.environment)),
+  );
+
 // V4 uniqueness proof response item schema
 const v4ResponseItemSchema = yup.object({
   identifier: yup.string().required("identifier is required"),
@@ -52,10 +77,7 @@ const v4ResponseItemSchema = yup.object({
     .string()
     .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
     .default("0x0"),
-  issuer_schema_id: yup
-    .number()
-    .integer()
-    .required("issuer_schema_id is required for v4"),
+  issuer_schema_id: v4IssuerSchemaIdSchema,
   nullifier: yup
     .string()
     .strict()
@@ -92,10 +114,7 @@ const sessionResponseItemSchema = yup.object({
     .string()
     .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
     .default("0x0"),
-  issuer_schema_id: yup
-    .number()
-    .integer()
-    .required("issuer_schema_id is required for v4"),
+  issuer_schema_id: v4IssuerSchemaIdSchema,
   session_nullifier: yup
     .array()
     .of(yup.string().required())
@@ -312,6 +331,7 @@ export const schema = yup
           responses[i] = itemSchema.validateSync(responses[i], {
             abortEarly: false,
             stripUnknown: true,
+            context: { environment: value.environment },
           });
         } catch (err) {
           if (err instanceof yup.ValidationError) {

@@ -42,7 +42,7 @@ const searchableSwitcherPreloadIcons = [
 ] as const;
 
 const createActionClassName =
-  "h-10 w-full justify-start gap-2 rounded-8 px-3 font-world text-13 font-medium text-portal-text hover:bg-grey-50 hover:text-portal-text";
+  "h-10 w-full justify-start gap-2 rounded-8 px-3 font-world text-13 font-medium text-portal-text hover:bg-portal-border focus-visible:bg-portal-border hover:text-portal-text";
 
 type CreateAction = {
   label: string;
@@ -144,7 +144,7 @@ export const SearchableSwitcher = <T extends SwitcherItem>(
         align="start"
         sideOffset={8}
         collisionPadding={12}
-        className="w-[360px] max-w-[calc(100vw-24px)] gap-0 overflow-hidden rounded-[10px] border border-portal-border bg-white p-0 font-world shadow-[0_18px_11px_0_rgba(24,24,24,0.02),0_8px_8px_0_rgba(24,24,24,0.03),0_2px_4px_0_rgba(24,24,24,0.03)]"
+        className="w-[360px] max-w-[calc(100vw-24px)] gap-0 overflow-hidden rounded-[10px] border border-portal-border bg-surface p-0 font-world shadow-[0_18px_11px_0_rgba(24,24,24,0.02),0_8px_8px_0_rgba(24,24,24,0.03),0_2px_4px_0_rgba(24,24,24,0.03)]"
       >
         <div className="relative flex h-14 items-center border-b border-portal-border px-4">
           <SearchIcon
@@ -194,8 +194,8 @@ export const SearchableSwitcher = <T extends SwitcherItem>(
                   aria-current={isSelected ? "page" : undefined}
                   onClick={() => setPopoverOpen(false)}
                   className={cn(
-                    "flex h-10 cursor-pointer items-center gap-2 rounded-8 px-3 font-world text-13 font-medium text-portal-text outline-none hover:bg-grey-50 focus-visible:bg-grey-50",
-                    isSelected && "bg-grey-50",
+                    "flex h-10 cursor-pointer items-center gap-2 rounded-8 px-3 font-world text-13 font-medium text-portal-text transition-colors outline-none hover:bg-portal-border focus-visible:bg-portal-border",
+                    isSelected && "bg-surface-muted",
                   )}
                 >
                   {props.renderLeading?.(item)}
@@ -216,7 +216,7 @@ export const SearchableSwitcher = <T extends SwitcherItem>(
           <div
             data-testid={`${props.testIdPrefix}-switcher-footer`}
             className={cn(
-              "relative z-10 border-t border-portal-border bg-white p-1.5",
+              "relative z-10 border-t border-portal-border bg-surface p-1.5",
               showScrollHint &&
                 "shadow-[0_-12px_18px_-10px_rgba(24,24,24,0.16)]",
             )}

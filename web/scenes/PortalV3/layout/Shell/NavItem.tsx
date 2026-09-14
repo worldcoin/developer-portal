@@ -49,9 +49,9 @@ export const NavItem = (props: {
         isActive={active}
         tooltip={label}
         className={cn(
-          "h-9 cursor-pointer gap-3 rounded-8 pr-4 pl-2.5 font-world text-13 leading-[1.2] font-[450] text-portal-ink transition-colors duration-200 ease-out hover:text-portal-ink data-[active=false]:hover:bg-portal-border data-[active=true]:bg-transparent data-[active=true]:text-portal-ink data-[active=true]:hover:bg-transparent",
+          "h-9 cursor-pointer gap-3 rounded-8 pr-4 pl-2.5 font-world text-13 leading-[1.2] font-[450] text-content-ink transition-colors duration-200 ease-out hover:text-content-ink data-[active=false]:hover:bg-portal-border data-[active=true]:bg-transparent data-[active=true]:text-content-ink data-[active=true]:hover:bg-transparent",
           !hydrated &&
-            "data-[active=true]:border data-[active=true]:border-portal-border data-[active=true]:bg-white data-[active=true]:hover:bg-white",
+            "data-[active=true]:border data-[active=true]:border-portal-border data-[active=true]:bg-surface data-[active=true]:hover:bg-surface",
         )}
       >
         <Link
@@ -215,7 +215,7 @@ export const NavActivePill = (props: { animate?: boolean }) => {
       ref={setElementRef}
       aria-hidden="true"
       className={cn(
-        "pointer-events-none absolute top-0 left-0 rounded-8 border border-portal-border bg-white",
+        "pointer-events-none absolute top-0 left-0 rounded-8 border border-portal-border bg-surface",
         !placement && "hidden",
         placement?.animate &&
           "transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none",

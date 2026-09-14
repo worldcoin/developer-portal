@@ -18,7 +18,7 @@ import * as yup from "yup";
 
 const DELETE_WORD = "DELETE";
 const actionClassName =
-  "inline-flex h-11 w-full items-center justify-center rounded-8 px-4 font-world text-13 leading-none font-medium whitespace-nowrap outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed";
+  "inline-flex h-11 w-full items-center justify-center rounded-8 px-4 font-world text-13 leading-none font-medium whitespace-nowrap outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-edge-medium focus-visible:ring-offset-2 ring-offset-surface disabled:cursor-not-allowed";
 
 const schema = yup
   .object({
@@ -86,7 +86,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
             be removed from teams.
           </p>
 
-          <div className="flex items-center gap-x-2 rounded-8 bg-system-error-50 px-3 py-2 text-system-error-600">
+          <div className="flex items-center gap-x-2 rounded-8 bg-surface-error-50 px-3 py-2 text-content-error-600">
             <AlertIcon className="size-4 shrink-0" />
             <span className="font-world text-13 leading-none font-medium">
               This action cannot be undone.
@@ -105,7 +105,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           <input
             id="delete-account-confirmation"
             {...register("confirmation")}
-            className="h-11 w-full rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200"
+            className="h-11 w-full rounded-8 border border-edge bg-surface px-3 font-world text-14 text-portal-text outline-hidden transition focus:border-edge-strong focus:ring-2 focus:ring-edge"
             aria-invalid={Boolean(errors.confirmation)}
             aria-describedby={
               errors.confirmation
@@ -119,7 +119,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           {errors.confirmation?.message ? (
             <p
               id="delete-account-confirmation-error"
-              className="mt-2 font-world text-12 leading-[1.4] text-system-error-600"
+              className="mt-2 font-world text-12 leading-[1.4] text-content-error-600"
             >
               {errors.confirmation.message}
             </p>
@@ -130,7 +130,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           <button
             type="button"
             onClick={onClose}
-            className={`${actionClassName} border border-grey-200 bg-white text-portal-text enabled:hover:bg-grey-50 disabled:text-grey-300`}
+            className={`${actionClassName} border border-edge bg-surface text-portal-text enabled:hover:bg-surface-soft disabled:text-content-disabled`}
             disabled={isSubmitting}
           >
             Keep account
@@ -139,7 +139,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           <button
             disabled={!isValid || isSubmitting}
             type="submit"
-            className={`${actionClassName} bg-system-error-600 text-white enabled:hover:bg-system-error-500 disabled:bg-grey-200 disabled:text-grey-400`}
+            className={`${actionClassName} bg-system-error-600 text-white enabled:hover:bg-system-error-500 disabled:bg-surface-disabled disabled:text-content-tertiary dark:enabled:hover:bg-system-error-800`}
           >
             Delete account
           </button>

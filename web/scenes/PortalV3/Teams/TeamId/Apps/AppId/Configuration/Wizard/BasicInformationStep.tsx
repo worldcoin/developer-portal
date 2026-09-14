@@ -141,7 +141,7 @@ export const BasicInformationStepSkeleton = () => (
     </div>
 
     <div className="flex w-full flex-col gap-5">
-      <h2 className="text-15 leading-[1.2] font-medium text-portal-ink">
+      <h2 className="text-15 leading-[1.2] font-medium text-content-ink">
         Advanced settings
       </h2>
       <AppModeCards loading />
@@ -268,7 +268,7 @@ export const BasicInformationStep = forwardRef<
       </div>
 
       <div className="flex w-full flex-col gap-5">
-        <h2 className="text-15 leading-[1.2] font-medium text-portal-ink">
+        <h2 className="text-15 leading-[1.2] font-medium text-content-ink">
           App type
         </h2>
         <AppModeCards

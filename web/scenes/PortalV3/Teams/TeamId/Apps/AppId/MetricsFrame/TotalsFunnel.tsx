@@ -27,7 +27,12 @@ const FUNNEL_STAGES = [
 }[];
 
 // Sequential single-hue steps (light -> dark portal blue) down the funnel.
-const FUNNEL_COLORS = ["#bedcff", "#8ec2ff", "#3d9aff", "#007cfb"] as const;
+const FUNNEL_COLORS = [
+  "var(--chart-funnel-1)",
+  "var(--chart-funnel-2)",
+  "var(--chart-funnel-3)",
+  "var(--chart-funnel-4)",
+] as const;
 
 const countFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
@@ -121,7 +126,7 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
   return (
     <section
       aria-label="Selfie Check funnel"
-      className="w-full rounded-16 border border-portal-border bg-white p-5 sm:p-6"
+      className="w-full rounded-16 border border-portal-border bg-surface p-5 sm:p-6"
     >
       <div className="grid grid-cols-4">
         {FUNNEL_STAGES.map((stage, index) => (
@@ -166,14 +171,14 @@ export const TotalsFunnel = (props: { row: TotalsRow }) => {
               y={0}
               width={STAGE_WIDTH}
               height={100}
-              fill="rgba(24, 24, 24, 0.05)"
+              fill="var(--chart-track)"
             />
           )}
         </svg>
 
         {hover && (
           <div
-            className="pointer-events-none absolute z-10 rounded-12 border border-portal-border bg-white px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
+            className="pointer-events-none absolute z-10 rounded-12 border border-portal-border bg-surface px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
             style={{
               left: hover.x,
               top: hover.y,

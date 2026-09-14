@@ -48,14 +48,14 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
     return (
       <div className="w-full px-4 pt-[23px] pb-28 sm:px-6">
         <div className="w-full max-w-[800px]">
-          <h1 className="font-world text-19 leading-[1.2] font-[500] tracking-[-0.01em] text-portal-ink">
+          <h1 className="font-world text-19 leading-[1.2] font-[500] tracking-[-0.01em] text-content-ink">
             General
           </h1>
 
           <section aria-labelledby="team-name-heading" className="mt-10">
             <h2
               id="team-name-heading"
-              className="font-world text-15 leading-[1.2] font-[450] text-portal-ink"
+              className="font-world text-15 leading-[1.2] font-[450] text-content-ink"
             >
               Team name
             </h2>
@@ -81,7 +81,7 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
             <section aria-labelledby="danger-zone-heading" className="mt-10">
               <h2
                 id="danger-zone-heading"
-                className="font-world text-17 leading-[1.2] font-[450] tracking-[-0.01em] text-portal-ink"
+                className="font-world text-17 leading-[1.2] font-[450] tracking-[-0.01em] text-content-ink"
               >
                 Danger zone
               </h2>
@@ -90,10 +90,10 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
                 {canWriteTeamSettings ? (
                   <>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-world text-15 leading-[1.2] font-[450] text-portal-ink">
+                      <h3 className="font-world text-15 leading-[1.2] font-[450] text-content-ink">
                         Delete team
                       </h3>
-                      <p className="mt-1 font-world text-13 leading-[1.3] font-[350] text-[#7d7d7d]">
+                      <p className="mt-1 font-world text-13 leading-[1.3] font-[350] text-content-description">
                         Permanently delete this team and all of its apps.
                       </p>
                     </div>
@@ -102,10 +102,10 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
                 ) : (
                   <>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-world text-15 leading-[1.2] font-[450] text-portal-ink">
+                      <h3 className="font-world text-15 leading-[1.2] font-[450] text-content-ink">
                         Leave team
                       </h3>
-                      <p className="mt-1 font-world text-13 leading-[1.3] font-[350] text-[#7d7d7d]">
+                      <p className="mt-1 font-world text-13 leading-[1.3] font-[350] text-content-description">
                         You will need another invitation to rejoin this team.
                       </p>
                     </div>

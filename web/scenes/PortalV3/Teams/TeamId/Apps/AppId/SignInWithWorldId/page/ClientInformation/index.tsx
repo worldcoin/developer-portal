@@ -83,7 +83,10 @@ export const ClientInformationPage = (props: {
           <div className="grid gap-y-3">
             <Typography variant={TYPOGRAPHY.H7}>Client information</Typography>
 
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            <Typography
+              variant={TYPOGRAPHY.R3}
+              className="text-content-secondary"
+            >
               Use these attributes to configure Sign in with World ID in your
               app
             </Typography>
@@ -100,7 +103,10 @@ export const ClientInformationPage = (props: {
       <div className="grid w-full gap-y-10 pt-5 pb-10">
         <div className="grid gap-y-3">
           <Typography variant={TYPOGRAPHY.H7}>Feature Not Available</Typography>
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+          <Typography
+            variant={TYPOGRAPHY.R3}
+            className="text-content-secondary"
+          >
             Your app was created after Sign in with World ID was deprecated and
             is not eligible for this feature. Please read the announcement
             above.
@@ -124,7 +130,10 @@ export const ClientInformationPage = (props: {
         <div className="grid gap-y-3">
           <Typography variant={TYPOGRAPHY.H7}>Client information</Typography>
 
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+          <Typography
+            variant={TYPOGRAPHY.R3}
+            className="text-content-secondary"
+          >
             Use these attributes to configure Sign in with World ID in your app
           </Typography>
         </div>
@@ -150,7 +159,7 @@ export const ClientInformationPage = (props: {
             helperText="Save the generated client secret. You won't be able to see it again."
             addOnLeft={
               clientSecret == "" ? (
-                <LockIcon className="w-8 pl-1 text-grey-400" />
+                <LockIcon className="w-8 pl-1 text-content-tertiary" />
               ) : (
                 <></>
               )
@@ -184,7 +193,11 @@ export const ClientInformationPage = (props: {
             Redirects
           </Typography>
 
-          <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
+          <Typography
+            as="p"
+            variant={TYPOGRAPHY.R3}
+            className="text-content-secondary"
+          >
             You must specify at least one URL for authentication to work
           </Typography>
         </div>

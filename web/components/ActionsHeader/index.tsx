@@ -60,8 +60,8 @@ export const ActionsHeader = memo(function ActionsHeader(
       <div className="grid w-full gap-y-5 md:gap-y-2">
         <div>
           <Link href={backUrl} className="flex flex-row items-center gap-x-2">
-            <CaretIcon className="size-3 rotate-90 text-grey-400" />
-            <Typography variant={TYPOGRAPHY.R5} className="text-grey-700">
+            <CaretIcon className="size-3 rotate-90 text-content-tertiary" />
+            <Typography variant={TYPOGRAPHY.R5} className="text-content-strong">
               {backText}
             </Typography>
           </Link>
@@ -71,7 +71,7 @@ export const ActionsHeader = memo(function ActionsHeader(
           <div className="flex items-center gap-x-2">
             <Typography
               variant={TYPOGRAPHY.H6}
-              className="max-w-[400px] truncate text-grey-900 md:max-w-[750px]"
+              className="max-w-[400px] truncate text-content-primary md:max-w-[750px]"
             >
               {isLoading ? <Skeleton width={200} /> : displayText}
             </Typography>
@@ -79,7 +79,7 @@ export const ActionsHeader = memo(function ActionsHeader(
             {/* Environment Badge */}
             {!isLoading && environment && (
               <div
-                className="inline-flex items-center gap-x-1.5 rounded-full bg-grey-50 px-2.5 py-1"
+                className="inline-flex items-center gap-x-1.5 rounded-full bg-surface-soft px-2.5 py-1"
                 title={environment === "staging" ? "Staging" : "Production"}
               >
                 <div
@@ -92,7 +92,7 @@ export const ActionsHeader = memo(function ActionsHeader(
                 />
                 <Typography
                   variant={TYPOGRAPHY.R5}
-                  className="text-grey-700 capitalize"
+                  className="text-content-strong capitalize"
                 >
                   {environment}
                 </Typography>
@@ -102,10 +102,13 @@ export const ActionsHeader = memo(function ActionsHeader(
             {/* Deprecated Badge */}
             {!isLoading && isDeprecated && (
               <div
-                className="inline-flex items-center gap-x-1.5 rounded-full bg-grey-100 px-2.5 py-1"
+                className="inline-flex items-center gap-x-1.5 rounded-full bg-surface-muted px-2.5 py-1"
                 title="This action is deprecated and read-only"
               >
-                <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+                <Typography
+                  variant={TYPOGRAPHY.R5}
+                  className="text-content-secondary"
+                >
                   Deprecated
                 </Typography>
               </div>
@@ -115,7 +118,7 @@ export const ActionsHeader = memo(function ActionsHeader(
           <DecoratedButton
             variant="secondary"
             href={learnMoreUrl}
-            className="py-3 text-grey-700 md:px-7"
+            className="py-3 text-content-strong md:px-7"
             onClick={trackDocsClicked}
           >
             <DocsIcon />

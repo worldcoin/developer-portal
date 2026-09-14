@@ -62,8 +62,8 @@ it("fully closes the desktop sidebar and exposes only the header reopen control"
   expect(collapseRail).toHaveClass("cursor-pointer!");
   expect(collapseRail.querySelector("span")).toHaveClass(
     "cursor-pointer",
-    "hover:border-grey-300",
-    "hover:bg-grey-100",
+    "hover:border-edge-medium",
+    "hover:bg-surface-muted",
   );
   expect(collapseRail).toContainElement(
     collapseRail.querySelector("svg") as SVGSVGElement,

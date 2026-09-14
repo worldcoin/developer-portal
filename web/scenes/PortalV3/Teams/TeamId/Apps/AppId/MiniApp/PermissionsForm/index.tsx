@@ -68,7 +68,7 @@ const HelpTooltip = ({
     <button
       type="button"
       aria-label={label}
-      className="flex size-4 shrink-0 items-center justify-center rounded-full p-0 leading-none text-grey-300 transition-colors hover:text-grey-500 focus:outline-none focus-visible:text-grey-500"
+      className="flex size-4 shrink-0 items-center justify-center rounded-full p-0 leading-none text-content-disabled transition-colors hover:text-content-secondary focus:outline-none focus-visible:text-content-secondary"
     >
       <HelpIcon className="size-4" />
     </button>
@@ -99,7 +99,7 @@ const SectionHeader = (props: {
       <div className="flex min-w-0 items-start gap-x-1.5">
         <Typography
           as="h2"
-          className="min-w-0 font-world text-[17px] leading-[120%] font-medium text-grey-900"
+          className="min-w-0 font-world text-[17px] leading-[120%] font-medium text-content-primary"
         >
           {props.title}
         </Typography>
@@ -114,7 +114,7 @@ const SectionHeader = (props: {
       {props.description && (
         <Typography
           as="p"
-          className="font-world text-[13px] leading-[130%] font-medium text-grey-500"
+          className="font-world text-[13px] leading-[130%] font-medium text-content-secondary"
         >
           {props.description}
         </Typography>
@@ -132,17 +132,17 @@ const NotificationLimitCard = ({
   control: Control<UpdatePermissionsSchema>;
   disabled: boolean;
 }) => (
-  <section className="grid gap-y-5 rounded-2xl bg-grey-0">
+  <section className="grid gap-y-5 rounded-2xl bg-surface">
     <div className="grid gap-y-1">
       <Typography
         as="h2"
-        className="font-world text-[17px] leading-[120%] font-medium text-grey-900"
+        className="font-world text-[17px] leading-[120%] font-medium text-content-primary"
       >
         Notifications
       </Typography>
       <Typography
         as="p"
-        className="font-world text-[13px] leading-[130%] font-medium text-grey-500"
+        className="font-world text-[13px] leading-[130%] font-medium text-content-secondary"
       >
         Maximum notifications per user each day. See{" "}
         <Link
@@ -170,9 +170,9 @@ const NotificationLimitCard = ({
         return (
           <div className="grid gap-y-1.5 px-1">
             <div className="relative h-7">
-              <div className="absolute top-1/2 right-0 left-0 h-1 -translate-y-1/2 rounded-full bg-grey-100" />
+              <div className="absolute top-1/2 right-0 left-0 h-1 -translate-y-1/2 rounded-full bg-surface-muted" />
               <div
-                className="absolute top-1/2 left-0 h-1 -translate-y-1/2 rounded-full bg-blue-500"
+                className="absolute top-1/2 left-0 h-1 -translate-y-1/2 rounded-full bg-focus"
                 style={{ width: `${(selectedIndex / 3) * 100}%` }}
               />
 
@@ -186,11 +186,11 @@ const NotificationLimitCard = ({
                     className={clsx(
                       "pointer-events-none absolute top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 rounded-full border-2",
                       isSelected
-                        ? "size-4 border-blue-500 bg-grey-0 shadow-sm"
+                        ? "size-4 border-focus bg-surface shadow-sm"
                         : "size-3",
                       isPassed
-                        ? "border-blue-500 bg-blue-500"
-                        : !isSelected && "border-grey-200 bg-grey-0",
+                        ? "border-focus bg-focus"
+                        : !isSelected && "border-edge bg-surface",
                     )}
                     style={{ left: `${(index / 3) * 100}%` }}
                     aria-hidden="true"
@@ -231,7 +231,9 @@ const NotificationLimitCard = ({
                       : index === maxNotificationPerDayOptions.length - 1
                         ? "-translate-x-full"
                         : "-translate-x-1/2",
-                    index === selectedIndex ? "text-grey-900" : "text-grey-400",
+                    index === selectedIndex
+                      ? "text-content-primary"
+                      : "text-content-tertiary",
                   )}
                   style={{ left: `${(index / 3) * 100}%` }}
                 >
@@ -385,20 +387,20 @@ export const SetupForm = ({ teamId, appMetadata }: PermissionsFormProps) => {
         <div className="grid gap-y-2">
           <Typography
             as="h1"
-            className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
+            className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-content-primary"
           >
             Mini App Permissions
           </Typography>
 
           <Typography
             as="p"
-            className="font-world text-[15px] leading-[130%] font-medium text-grey-500"
+            className="font-world text-[15px] leading-[130%] font-medium text-content-secondary"
           >
             Control which resources your Mini App can access.
           </Typography>
         </div>
 
-        <div className="border-t border-grey-100" />
+        <div className="border-t border-edge-subtle" />
 
         <div className="grid">
           <section className="grid gap-y-3 pb-4">
@@ -422,13 +424,13 @@ export const SetupForm = ({ teamId, appMetadata }: PermissionsFormProps) => {
             />
 
             {errors.associated_domains?.message && (
-              <p className="px-1 font-world text-xs text-system-error-500">
+              <p className="px-1 font-world text-xs text-content-error-500">
                 {errors.associated_domains.message}
               </p>
             )}
           </section>
 
-          <section className="grid gap-y-3 border-t border-grey-100 py-4">
+          <section className="grid gap-y-3 border-t border-edge-subtle py-4">
             <SectionHeader title="Whitelisted Payment Addresses" />
 
             <EntryList
@@ -454,13 +456,13 @@ export const SetupForm = ({ teamId, appMetadata }: PermissionsFormProps) => {
             />
 
             {errors.whitelisted_addresses?.message && (
-              <p className="px-1 font-world text-xs text-system-error-500">
+              <p className="px-1 font-world text-xs text-content-error-500">
                 {errors.whitelisted_addresses.message}
               </p>
             )}
           </section>
 
-          <section className="grid gap-y-3 border-t border-grey-100 py-4">
+          <section className="grid gap-y-3 border-t border-edge-subtle py-4">
             <SectionHeader
               title="Permit2 Tokens"
               description="List all the tokens that you intend to use in your Mini App. Any other tokens will be blocked."
@@ -481,13 +483,13 @@ export const SetupForm = ({ teamId, appMetadata }: PermissionsFormProps) => {
             />
 
             {errors.permit2_tokens?.message && (
-              <p className="px-1 font-world text-xs text-system-error-500">
+              <p className="px-1 font-world text-xs text-content-error-500">
                 {errors.permit2_tokens.message}
               </p>
             )}
           </section>
 
-          <section className="grid gap-y-3 border-t border-grey-100 py-4">
+          <section className="grid gap-y-3 border-t border-edge-subtle py-4">
             <SectionHeader
               title="Contract Entrypoints"
               description="List here contracts that you intend to call functions directly on."
@@ -508,7 +510,7 @@ export const SetupForm = ({ teamId, appMetadata }: PermissionsFormProps) => {
             />
 
             {errors.contracts?.message && (
-              <p className="px-1 font-world text-xs text-system-error-500">
+              <p className="px-1 font-world text-xs text-content-error-500">
                 {errors.contracts.message}
               </p>
             )}

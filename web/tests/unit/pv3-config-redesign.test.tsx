@@ -468,7 +468,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
       "w-44",
       "rounded-lg",
       "px-5",
-      "bg-grey-900",
+      "bg-action",
     );
     expect(
       within(submitButton).queryByText("Continue"),

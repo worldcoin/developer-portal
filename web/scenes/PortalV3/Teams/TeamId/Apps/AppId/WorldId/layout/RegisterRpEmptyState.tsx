@@ -35,7 +35,10 @@ export const RegisterRpEmptyState = (props: {
               copy
             />
             <div className="w-full min-w-0">
-              <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+              <Typography
+                variant={TYPOGRAPHY.B4}
+                className="text-content-secondary"
+              >
                 Signer address
               </Typography>
               <div className="mt-1 flex flex-col items-start gap-2">
@@ -59,7 +62,7 @@ export const RegisterRpEmptyState = (props: {
                     id="world-id-registration-unavailable-reason"
                     as="p"
                     variant={TYPOGRAPHY.B4}
-                    className="text-grey-500"
+                    className="text-content-secondary"
                   >
                     {unavailableReason}
                   </Typography>

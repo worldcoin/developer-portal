@@ -31,7 +31,7 @@ export const DialogPanel = (props: DialogPanelProps) => {
       >
         <Dialog.Panel
           className={twMerge(
-            "relative z-50 grid w-full justify-items-center rounded-32 bg-grey-0 p-7 md:w-auto md:min-w-100 md:rounded-20",
+            "relative z-50 grid w-full justify-items-center rounded-32 bg-surface p-7 md:w-auto md:min-w-100 md:rounded-20",
             showCloseIcon && "pt-[78px]",
             className,
           )}
@@ -41,7 +41,7 @@ export const DialogPanel = (props: DialogPanelProps) => {
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-7 right-7 flex size-8 items-center justify-center rounded-full bg-grey-100 transition-colors hover:bg-grey-200 focus:ring-grey-300 focus:outline-hidden"
+              className="absolute top-7 right-7 flex size-8 items-center justify-center rounded-full bg-surface-muted transition-colors hover:bg-surface-disabled focus:ring-edge-medium focus:outline-hidden"
               aria-label="Close dialog"
             >
               <RemoveCustomIcon className="size-4" />

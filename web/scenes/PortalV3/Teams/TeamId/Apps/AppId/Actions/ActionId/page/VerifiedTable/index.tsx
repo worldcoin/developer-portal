@@ -115,7 +115,7 @@ export const VerifiedTable = (props: {
           {showCount ? (
             <Typography
               variant={TYPOGRAPHY.R5}
-              className="w-8 rounded-xl bg-grey-100 py-1 text-center"
+              className="w-8 rounded-xl bg-surface-muted py-1 text-center"
             >
               {nullifiers.length}
             </Typography>
@@ -131,7 +131,7 @@ export const VerifiedTable = (props: {
                 .join(" "),
             }}
           >
-            <div className="text-left text-xs font-normal text-grey-400 max-md:flex max-md:justify-between md:contents md:*:border-b md:*:border-grey-100">
+            <div className="text-left text-xs font-normal text-content-tertiary max-md:flex max-md:justify-between md:contents md:*:border-b md:*:border-edge-subtle">
               {columns.map((column) => (
                 <div
                   key={column}

@@ -31,23 +31,30 @@ export const NumberedSection = ({
     <section
       aria-hidden={!isActive}
       className={clsx(
-        "scroll-mt-2 rounded-2xl border border-grey-200 bg-grey-0 shadow-button",
+        "scroll-mt-2 rounded-2xl border border-edge bg-surface shadow-button",
         !isActive && "hidden",
       )}
     >
-      <div className="flex items-start gap-x-3 border-b border-grey-100 px-6 py-5">
+      <div className="flex items-start gap-x-3 border-b border-edge-subtle px-6 py-5">
         <Typography
           variant={TYPOGRAPHY.M3}
-          className="grid size-8 shrink-0 place-items-center rounded-full bg-blue-100 text-blue-500"
+          className="grid size-8 shrink-0 place-items-center rounded-full bg-surface-info-soft text-content-link-legacy"
         >
           {number}
         </Typography>
         <div className="grid min-w-0 gap-y-1">
-          <Typography as="h2" variant={TYPOGRAPHY.M2} className="text-grey-900">
+          <Typography
+            as="h2"
+            variant={TYPOGRAPHY.M2}
+            className="text-content-primary"
+          >
             {title}
           </Typography>
           {description && (
-            <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="text-content-secondary"
+            >
               {description}
             </Typography>
           )}

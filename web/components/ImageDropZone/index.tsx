@@ -53,10 +53,10 @@ export const ImageDropZone = (props: ImageDropZoneProps) => {
       className={clsx(
         "flex w-full flex-col items-center justify-center gap-y-3 rounded-[10px] border border-dashed p-6",
         {
-          "cursor-pointer border-grey-200 bg-grey-50 hover:bg-grey-100":
+          "cursor-pointer border-edge bg-surface-soft hover:bg-surface-muted":
             !disabled && !error && !isDragActive,
-          "border-blue-500 bg-blue-50": !disabled && isDragActive,
-          "border-system-error-500 bg-system-error-50": error && !disabled,
+          "border-focus bg-surface-info-faint": !disabled && isDragActive,
+          "border-edge-error-500 bg-surface-error-50": error && !disabled,
           "cursor-not-allowed opacity-50": disabled,
         },
         className,
