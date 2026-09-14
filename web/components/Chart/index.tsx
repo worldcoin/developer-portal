@@ -225,7 +225,16 @@ export const Chart = (props: ChartProps) => {
         ...(darkPalette &&
         typeof dataset.borderColor === "string" &&
         ["#4940e0", "#007cfb"].includes(dataset.borderColor.toLowerCase())
-          ? { borderColor: darkPalette["content-link"] }
+          ? {
+              borderColor: darkPalette["content-link"],
+              // Explicit matching fills also color the points. Keep custom
+              // backgrounds and the generated gradient unchanged.
+              ...(typeof dataset.backgroundColor === "string" &&
+              dataset.backgroundColor.toLowerCase() ===
+                dataset.borderColor.toLowerCase()
+                ? { backgroundColor: darkPalette["content-link"] }
+                : {}),
+            }
           : {}),
       })),
     }),
