@@ -37,8 +37,8 @@ const CopyAppIdButton = (props: { appId: string }) => (
 );
 
 /**
- * Resolves the logo shown in the wizard the way AppIconBox does: while the
- * row is unverified, the unverified-image atom wins (it updates live after an
+ * Resolves the logo shown in the wizard: while the row is unverified,
+ * the unverified-image atom wins (it updates live after an
  * upload); otherwise fall back to the CDN URL from metadata.
  */
 export const useResolvedLogoUrl = (appId: string, appMetadata: AppMetadata) => {
@@ -59,7 +59,7 @@ export const useResolvedLogoUrl = (appId: string, appMetadata: AppMetadata) => {
 /**
  * The wizard's circular logo drop target, wired to the shared logo pipeline
  * (presigned upload → unverified-image atom → UpdateLogo mutation, square
- * crop gate). Displays like AppIconBox: the atom wins while unverified so the
+ * crop gate). The atom wins while unverified so the
  * image updates live after upload; verified metadata is read-only.
  */
 export const WizardLogoUpload = (props: {

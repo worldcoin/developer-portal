@@ -1,13 +1,10 @@
 "use client";
 
-import { Radio } from "@/components/Radio";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { useApolloClient } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -24,8 +21,8 @@ type MiniAppConfigurationProps = {
 /**
  * Owns the app-mode toggle: optimistic `isMiniAppAtom` flip, the
  * `updateAppMode` server action with revert-on-failure, and save-status
- * reporting under id "mini-app-toggle". Shared between the card below and the
- * configuration wizard's designed mode selector.
+ * reporting under id "mini-app-toggle" for the configuration wizard's mode
+ * selector.
  */
 export const useAppModeToggle = ({
   teamId,
@@ -142,66 +139,4 @@ export const useAppModeToggle = ({
   const isDisabled = !isEditable || !isEnoughPermissions || isUpdatingMode;
 
   return { isMiniApp, isDisabled, handleAppModeToggle };
-};
-
-export const MiniAppConfiguration = (props: MiniAppConfigurationProps) => {
-  const { isMiniApp, isDisabled, handleAppModeToggle } =
-    useAppModeToggle(props);
-
-  const modeOptions = [
-    {
-      value: "mini-app",
-      isSelected: isMiniApp,
-      label: "Mini App",
-    },
-    {
-      value: "external",
-      isSelected: !isMiniApp,
-      label: "External Integration",
-    },
-  ] as const;
-
-  return (
-    <div className="@container grid min-w-0 content-start gap-y-5 rounded-2xl border border-grey-200 bg-grey-0 p-6 shadow-button">
-      <Typography variant={TYPOGRAPHY.M2} className="text-grey-900">
-        How does this app reach users?
-      </Typography>
-
-      {/* This card sits inside the portal sidebar and configuration rails, so
-          its columns must respond to card width rather than viewport width. */}
-      <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2">
-        {modeOptions.map((option) => (
-          <label
-            key={option.value}
-            className={clsx(
-              "flex min-w-0 cursor-pointer items-center gap-x-3 rounded-xl border p-5 transition-colors",
-              option.isSelected
-                ? "border-blue-500 bg-blue-50"
-                : "border-grey-200 hover:border-grey-300",
-              isDisabled && "cursor-default opacity-60",
-            )}
-          >
-            <Radio
-              value={option.value}
-              name="app_mode"
-              checked={option.isSelected}
-              onChange={() => {
-                if (!option.isSelected) {
-                  void handleAppModeToggle(option.value === "mini-app");
-                }
-              }}
-              disabled={isDisabled}
-              className="shrink-0"
-            />
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              className="min-w-0 break-words text-grey-900"
-            >
-              {option.label}
-            </Typography>
-          </label>
-        ))}
-      </div>
-    </div>
-  );
 };
