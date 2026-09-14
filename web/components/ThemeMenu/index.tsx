@@ -41,11 +41,16 @@ export function ThemeMenu() {
         <DropdownMenuRadioItem
           className={portalMenuItemClassName}
           value="light"
+          onSelect={(event) => event.preventDefault()}
         >
           <Sun className="size-4" />
           Light
         </DropdownMenuRadioItem>
-        <DropdownMenuRadioItem className={portalMenuItemClassName} value="dark">
+        <DropdownMenuRadioItem
+          className={portalMenuItemClassName}
+          value="dark"
+          onSelect={(event) => event.preventDefault()}
+        >
           <Moon className="size-4" />
           Dark
         </DropdownMenuRadioItem>

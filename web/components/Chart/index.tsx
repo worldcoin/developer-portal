@@ -166,23 +166,26 @@ export const Chart = (props: ChartProps) => {
       setDarkPalette(null);
       return;
     }
-    // Canvas cannot resolve CSS var() colors. Resolve after the root theme
-    // changes, then pass new options/data so Chart.js redraws immediately.
-    const styles = getComputedStyle(document.documentElement);
-    setDarkPalette(
-      Object.fromEntries(
-        Object.entries({
-          "surface-raised": "--color-surface-raised",
-          "content-secondary": "--color-content-secondary",
-          "chart-grid": "--chart-grid",
-          "chart-tick": "--chart-tick",
-          "content-link": "--color-content-link",
-        }).map(([name, variable]) => [
-          name,
-          styles.getPropertyValue(variable).trim(),
-        ]),
-      ),
-    );
+    // Start with light options. next-themes applies the root class in an
+    // ancestor effect; read canvas colors on the next frame, after that effect.
+    const frame = requestAnimationFrame(() => {
+      const styles = getComputedStyle(document.documentElement);
+      setDarkPalette(
+        Object.fromEntries(
+          Object.entries({
+            "surface-raised": "--color-surface-raised",
+            "content-secondary": "--color-content-secondary",
+            "chart-grid": "--chart-grid",
+            "chart-tick": "--chart-tick",
+            "content-link": "--color-content-link",
+          }).map(([name, variable]) => [
+            name,
+            styles.getPropertyValue(variable).trim(),
+          ]),
+        ),
+      );
+    });
+    return () => cancelAnimationFrame(frame);
   }, [resolvedTheme, forcedTheme]);
   const [chartFontFamily, setChartFontFamily] = useState(
     LEGACY_CHART_FONT_FAMILY,

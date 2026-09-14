@@ -43,7 +43,6 @@ export const WorldId40OptionCard = (
       className={twMerge(
         clsx(
           "grid gap-y-2.5 rounded-[10px] border border-portal-border bg-surface px-5 py-4 transition-colors",
-          "has-checked:border-portal-ink",
           "ring-offset-surface has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-edge-medium has-[input:focus-visible]:ring-offset-2",
           !disabled && "cursor-pointer",
           disabled && "cursor-not-allowed opacity-60",

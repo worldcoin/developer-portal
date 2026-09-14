@@ -21,6 +21,8 @@
 
 Always run formatting and type checks before committing. Make sure tests pass as well.
 
+- For every UI change, use computer-use tools to verify the affected screens and interactions in both light and dark mode at desktop and mobile widths. Follow existing theme tokens, check contrast, layout, and interactive states, and capture screenshots. Fix regressions before declaring completion; explicitly report any QA you could not perform.
+
 ## Pull request follow-up
 
 After pushing a branch with an open pull request, wait 5 minutes, then check the
@@ -43,9 +45,12 @@ Mock at the **I/O boundary only**: GraphQL SDK calls, external RPC, Redis, third
 ```typescript
 // Good: mock the generated GraphQL SDK
 const GetRpRegistration = jest.fn();
-jest.mock("../../../api/v4/rp-status/[rp_id]/graphql/get-rp-registration.generated", () => ({
-  getSdk: () => ({ GetRpRegistration }),
-}));
+jest.mock(
+  "../../../api/v4/rp-status/[rp_id]/graphql/get-rp-registration.generated",
+  () => ({
+    getSdk: () => ({ GetRpRegistration }),
+  }),
+);
 
 // Good: mock external RPC
 jest.mock("../../../api/helpers/temporal-rpc", () => ({
