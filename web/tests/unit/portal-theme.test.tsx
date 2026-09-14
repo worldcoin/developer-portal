@@ -142,7 +142,7 @@ describe("portal theme preference storage", () => {
       }),
     ).not.toThrow();
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("using light theme"),
+      expect.stringContaining("using default theme"),
     );
   });
 });
@@ -322,7 +322,7 @@ describe("portal appearance storage events", () => {
   });
 
   it.each([null, "light", "dark", "system"])(
-    "defaults to light on a dark OS without overwriting saved preference %s",
+    "defaults to system on a dark OS without overwriting saved preference %s",
     async (preference) => {
       if (preference !== null)
         localStorage.setItem(THEME_STORAGE_KEY, preference);
@@ -331,7 +331,7 @@ describe("portal appearance storage events", () => {
           <Availability />
         </PortalThemeProvider>,
       );
-      const expected = preference === "system" ? "dark" : preference ?? "light";
+      const expected = preference === "light" ? "light" : "dark";
       await waitFor(() =>
         expect(document.documentElement).toHaveClass(expected),
       );
@@ -340,7 +340,7 @@ describe("portal appearance storage events", () => {
     },
   );
 
-  it("renders light when preference storage is blocked", async () => {
+  it("follows the system when preference storage is blocked", async () => {
     const getItem = jest
       .spyOn(Storage.prototype, "getItem")
       .mockImplementation(() => {
@@ -352,9 +352,7 @@ describe("portal appearance storage events", () => {
           <Availability />
         </PortalThemeProvider>,
       );
-      await waitFor(() =>
-        expect(document.documentElement).toHaveClass("light"),
-      );
+      await waitFor(() => expect(document.documentElement).toHaveClass("dark"));
     } finally {
       getItem.mockRestore();
     }
