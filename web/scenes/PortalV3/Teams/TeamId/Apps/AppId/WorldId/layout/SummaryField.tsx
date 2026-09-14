@@ -12,14 +12,14 @@ import Skeleton from "react-loading-skeleton";
  */
 export const SummaryFieldSkeleton = (props: { label: string }) => (
   <div className="w-full min-w-0">
-    <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+    <Typography variant={TYPOGRAPHY.B4} className="text-content-secondary">
       {props.label}
     </Typography>
     <div className="mt-1 flex min-w-0 items-center justify-between gap-2">
       <Typography
         aria-hidden
         variant={TYPOGRAPHY.B3}
-        className="min-w-0 grow text-grey-900"
+        className="min-w-0 grow text-content-primary"
       >
         <Skeleton width="60%" />
       </Typography>
@@ -33,13 +33,13 @@ export const SummaryField = (props: {
   copy?: boolean;
 }) => (
   <div className="w-full min-w-0">
-    <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+    <Typography variant={TYPOGRAPHY.B4} className="text-content-secondary">
       {props.label}
     </Typography>
     <div className="mt-1 flex min-w-0 items-center justify-between gap-2">
       <Typography
         variant={TYPOGRAPHY.B3}
-        className="min-w-0 truncate text-grey-900"
+        className="min-w-0 truncate text-content-primary"
         title={props.value}
       >
         {props.value}
@@ -48,7 +48,7 @@ export const SummaryField = (props: {
         <CopyButton
           fieldName={props.label}
           fieldValue={props.value}
-          className="ml-auto shrink-0 !pr-0 text-grey-500"
+          className="ml-auto shrink-0 !pr-0 text-content-secondary"
           iconClassName={clsx("!size-4", opticalIconClassName)}
         />
       ) : null}

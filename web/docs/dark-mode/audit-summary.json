@@ -1,0 +1,19 @@
+{
+  "source": "https://www.figma.com/design/rQyitWCsRVKHsR26qsZHdX/UI-Kit-4.0?node-id=4-3",
+  "method": "Euclidean OKLab nearest primitive; opposite reflects lightness within the nearest primitive family, preserving a/b. Candidate only; semantic roles and contrast override.",
+  "scope": "Tracked frontend TS/JS/CSS/SVG in app, components, scenes, styles, lib, hooks, public; generated and test files excluded. Includes admin and legacy routes. Static lexical scan, not rendered or reachability audit. Untracked FedScreens excluded.",
+  "limitations": [
+    "Runtime/user-uploaded images, raster pixels, third-party stylesheet/syntax colors, dynamically assembled classes and colors are not exhaustively enumerable.",
+    "Lexical literals can include comments or example code; examples need review. CSS functional expressions that cannot resolve are explicitly marked.",
+    "Counts are occurrences per entry; definitions and their utility uses overlap. Entries are not distinct rendered colors. Utility values resolve in light mode; explicit dark definitions are separate entries.",
+    "Specialty two-stop families lack suitable dark tints; sparseFamily=true requires design review. Tokens/* identity colors are preserved separately in the Figma snapshot, excluded from generic UI nearest matching."
+  ],
+  "fileCount": 949,
+  "summary": {
+    "asset-literal": 29,
+    "definition": 181,
+    "literal": 147,
+    "named-literal": 4,
+    "utility": 230
+  }
+}

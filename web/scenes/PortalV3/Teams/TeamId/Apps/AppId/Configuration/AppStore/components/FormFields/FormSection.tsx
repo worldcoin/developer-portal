@@ -23,15 +23,18 @@ export const FormSection = ({
       <div className="grid gap-y-3">
         <Typography
           variant={titleVariant}
-          className="font-normal text-grey-900"
+          className="font-normal text-content-primary"
         >
           {title}
           {isRequiredAsterisk && (
-            <span className="text-system-error-500"> *</span>
+            <span className="text-content-error-500"> *</span>
           )}
         </Typography>
         {description && (
-          <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
+          <Typography
+            variant={TYPOGRAPHY.B3}
+            className="text-content-secondary"
+          >
             {description}
           </Typography>
         )}

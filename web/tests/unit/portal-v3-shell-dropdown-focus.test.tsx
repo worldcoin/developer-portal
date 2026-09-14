@@ -22,13 +22,45 @@ jest.mock("@/lib/utils", () => ({
   cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
 }));
 
-jest.mock("@/hooks/use-mobile", () => ({
-  useIsMobile: () => false,
-}));
+let mockIsMobile = false;
+jest.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => mockIsMobile }));
 // #endregion
+
+beforeEach(() => {
+  mockIsMobile = false;
+});
 
 // #region Trigger focus treatment
 describe("Portal v3 shell dropdown focus treatment", () => {
+  it("expands Help Center inside the account menu on mobile instead of opening offscreen", async () => {
+    mockIsMobile = true;
+    render(
+      <TooltipProvider>
+        <SidebarProvider>
+          <UserPopup user={{ name: "Ada Lovelace" }} color={null} />
+        </SidebarProvider>
+      </TooltipProvider>,
+    );
+    fireEvent.keyDown(screen.getByRole("button", { name: "Account menu" }), {
+      key: "ArrowDown",
+    });
+    const help = await screen.findByRole("menuitem", { name: "Help center" });
+    fireEvent.click(help);
+    const documentation = await screen.findByRole("menuitem", {
+      name: "Documentation",
+    });
+    expect(help).toHaveAttribute("aria-expanded", "true");
+    expect(documentation.closest('[role="menu"]')).toBe(
+      screen.getByRole("menu", { name: "Account menu" }),
+    );
+    expect(
+      screen.queryByRole("menu", { name: "Help center" }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(help);
+    expect(
+      screen.queryByRole("menuitem", { name: "Documentation" }),
+    ).not.toBeInTheDocument();
+  });
   it("preloads account-menu icons before the lazy menu opens", () => {
     render(
       <TooltipProvider>
@@ -133,9 +165,23 @@ describe("Portal v3 shell dropdown focus treatment", () => {
 
     fireEvent.pointerEnter(helpCenter);
 
-    expect(
-      await screen.findByRole("menuitem", { name: "Documentation" }),
-    ).toBeInTheDocument();
+    const documentation = await screen.findByRole("menuitem", {
+      name: "Documentation",
+    });
+    const profile = screen.getByRole("menuitem", { name: "Profile" });
+    for (const row of [profile, helpCenter, documentation]) {
+      expect(row).toHaveClass(
+        "gap-2",
+        "hover:bg-portal-border",
+        "focus:bg-portal-border",
+        "data-[highlighted]:bg-portal-border",
+      );
+    }
+    expect(helpCenter).toHaveClass("data-open:bg-portal-border");
+    expect(documentation.querySelector("[data-portal-icon]")).toHaveAttribute(
+      "data-portal-icon",
+      "profile-menu-docs",
+    );
   });
 
   it("opens the profile menu directly above the profile row", async () => {

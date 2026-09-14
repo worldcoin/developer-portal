@@ -83,7 +83,10 @@ export const ActionIdDangerPage = (props: ActionIdDangerPageProps) => {
           // Danger-zone copy is static; only the action name and button wait on data.
           <div className="grid w-full max-w-[480px] gap-y-10">
             <div className="grid gap-y-2">
-              <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
+              <Typography
+                variant={TYPOGRAPHY.H7}
+                className="text-content-primary"
+              >
                 Danger zone
               </Typography>
               <Skeleton count={2} height={12} />

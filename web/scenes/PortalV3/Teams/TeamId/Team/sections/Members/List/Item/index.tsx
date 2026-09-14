@@ -37,7 +37,7 @@ export const Item = (props: ItemProps) => {
     "Anonymous User";
 
   return (
-    <div className="grid min-h-16 grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-b border-grey-100 px-5 py-3 last:border-b-0">
+    <div className="grid min-h-16 grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-b border-edge-subtle px-5 py-3 last:border-b-0">
       <div className="flex min-w-0 items-center gap-3">
         {!item ? (
           <Skeleton className="size-8 leading-normal" circle inline />
@@ -48,14 +48,14 @@ export const Item = (props: ItemProps) => {
         <div className="min-w-0">
           <Typography
             variant={TYPOGRAPHY.S3}
-            className="block max-w-full truncate text-13 text-grey-900"
+            className="block max-w-full truncate text-13 text-content-primary"
           >
             {!item ? <Skeleton width={120} inline /> : name}
           </Typography>
 
           <Typography
             variant={TYPOGRAPHY.R5}
-            className="mt-0.5 block max-w-full truncate text-grey-400"
+            className="mt-0.5 block max-w-full truncate text-content-tertiary"
           >
             {!item ? <Skeleton width={100} inline /> : item.user?.email ?? ""}
           </Typography>
@@ -70,9 +70,9 @@ export const Item = (props: ItemProps) => {
             className={clsx(
               "rounded-full border px-2.5 py-1 font-world text-12 leading-4 font-medium",
               {
-                "border-system-warning-200 bg-system-warning-50 text-system-warning-650":
+                "border-edge-warning-200 bg-surface-warning-50 text-content-warning-650":
                   isInviteRow,
-                "border-grey-200 text-grey-500": !isInviteRow,
+                "border-edge text-content-secondary": !isInviteRow,
               },
             )}
           >
@@ -84,18 +84,18 @@ export const Item = (props: ItemProps) => {
       <div className="flex justify-end">
         {!item ? (
           <div className="flex size-8 items-center justify-center">
-            <MoreVerticalIcon className="text-grey-400" />
+            <MoreVerticalIcon className="text-content-tertiary" />
           </div>
         ) : (
           <Dropdown>
             <Dropdown.Button
               disabled={!isEnoughPermissions || isCurrent}
-              className={clsx("rounded-8 hover:bg-grey-100", {
+              className={clsx("rounded-8 hover:bg-surface-muted", {
                 "pointer-events-none invisible":
                   !isEnoughPermissions || isCurrent,
               })}
             >
-              <MoreVerticalIcon className="text-grey-900" />
+              <MoreVerticalIcon className="text-content-primary" />
             </Dropdown.Button>
 
             <Dropdown.List
@@ -129,7 +129,7 @@ export const Item = (props: ItemProps) => {
               )}
 
               {isEnoughPermissions && (
-                <Dropdown.ListItem className="text-system-error-600" asChild>
+                <Dropdown.ListItem className="text-content-error-600" asChild>
                   <button
                     onClick={() =>
                       isInviteRow
@@ -138,7 +138,7 @@ export const Item = (props: ItemProps) => {
                     }
                   >
                     <Dropdown.ListItemIcon
-                      className="text-system-error-600"
+                      className="text-content-error-600"
                       asChild
                     >
                       <TrashIcon />

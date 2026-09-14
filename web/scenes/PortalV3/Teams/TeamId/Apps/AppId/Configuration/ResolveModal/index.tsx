@@ -37,10 +37,16 @@ export const ResolveModal = ({
           </ModalIcon>
 
           <div className="grid gap-y-2">
-            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
+            <Typography
+              variant={TYPOGRAPHY.H6}
+              className="text-content-primary"
+            >
               App was rejected
             </Typography>
-            <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="text-content-secondary"
+            >
               Unfortunately, your app's review was evaluated by our Worldcoin
               team, and it was rejected due to the reason:
             </Typography>
@@ -48,13 +54,16 @@ export const ResolveModal = ({
         </div>
 
         {/* Rejection Reason Box */}
-        <div className="grid w-full gap-y-2 rounded-lg border border-grey-200 bg-grey-50 px-5 py-4 text-left">
+        <div className="grid w-full gap-y-2 rounded-lg border border-edge bg-surface-soft px-5 py-4 text-left">
           {reviewMessage && (
-            <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="text-content-tertiary"
+            >
               {reviewMessage}
             </Typography>
           )}
-          <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
+          <Typography variant={TYPOGRAPHY.R4} className="text-content-tertiary">
             Please, fix the issues stated before and then apply for review
             again.
           </Typography>

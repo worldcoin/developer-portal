@@ -17,7 +17,7 @@ export const DangerZoneCard = ({
   title = "Delete this app",
   variant = "default",
 }: DangerZoneCardProps) => (
-  <div className="overflow-hidden rounded-2xl border border-system-error-200 bg-grey-0">
+  <div className="overflow-hidden rounded-2xl border border-edge-error-200 bg-surface">
     <div
       className={
         variant === "compact" ? "grid gap-y-2 p-5" : "grid gap-y-2 p-6"
@@ -26,19 +26,19 @@ export const DangerZoneCard = ({
       <Typography
         as="h3"
         variant={variant === "compact" ? TYPOGRAPHY.S2 : TYPOGRAPHY.M3}
-        className="text-grey-900"
+        className="text-content-primary"
       >
         {title}
       </Typography>
 
       <Typography
         variant={variant === "compact" ? TYPOGRAPHY.B3 : TYPOGRAPHY.R3}
-        className="max-w-2xl text-grey-500"
+        className="max-w-2xl text-content-secondary"
       >
         Permanently delete{" "}
         <Typography
           variant={variant === "compact" ? TYPOGRAPHY.S2 : TYPOGRAPHY.M3}
-          className="text-grey-900"
+          className="text-content-primary"
         >
           {name}
         </Typography>{" "}
@@ -58,7 +58,7 @@ export const DangerZoneCard = ({
       {footerText && (
         <Typography
           variant={variant === "compact" ? TYPOGRAPHY.B4 : TYPOGRAPHY.R4}
-          className="text-system-error-700"
+          className="text-content-error-700"
         >
           {footerText}
         </Typography>

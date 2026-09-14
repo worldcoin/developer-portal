@@ -279,6 +279,12 @@ const createAdminUnauthorizedResponse = (request: NextRequest) => {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Synthetic component gallery only exists in development. Give it the same
+  // CSP/nonce as the portal so appearance bootstrap is exercised realistically.
+  if (process.env.NODE_ENV === "development" && pathname === "/theme-preview") {
+    return createSecurityHeadersResponse(request, pathname);
+  }
+
   // "/" has no product meaning of its own on the dashboard hostname, so
   // treat it as the dashboard entry point there. Every other host keeps
   // today's behavior of not running middleware on "/" at all (it wasn't in
@@ -434,6 +440,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/theme-preview",
     "/",
     "/api/auth/:path*",
     "/dashboard",

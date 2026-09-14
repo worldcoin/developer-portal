@@ -93,7 +93,7 @@ export const GenerateNewKeyContent = ({
       className={clsx("grid w-full gap-y-6", className)}
     >
       {!hideTitle && (
-        <h2 className="font-world text-15 leading-[1.2] font-medium text-portal-ink">
+        <h2 className="font-world text-15 leading-[1.2] font-medium text-content-ink">
           Generate new key
         </h2>
       )}
@@ -148,16 +148,16 @@ export const GenerateNewKeyContent = ({
         type="button"
         onClick={handleDownload}
         disabled={!privateKey}
-        className="justify-self-start font-world text-13 font-medium text-portal-blue underline underline-offset-2 transition-colors hover:text-portal-ink disabled:cursor-not-allowed disabled:text-portal-faint"
+        className="justify-self-start font-world text-13 font-medium text-content-link underline underline-offset-2 transition-colors hover:text-content-ink disabled:cursor-not-allowed disabled:text-portal-faint"
       >
         Download key file (.json)
       </button>
 
-      <div className="rounded-[10px] bg-system-warning-75 p-4">
-        <p className="font-world text-13 leading-[1.4] font-medium text-system-warning-650">
+      <div className="rounded-[10px] bg-surface-warning-75 p-4">
+        <p className="font-world text-13 leading-[1.4] font-medium text-content-warning-650">
           Important
         </p>
-        <ul className="mt-1 grid gap-y-1 font-world text-13 leading-[1.4] font-[350] text-system-warning-650">
+        <ul className="mt-1 grid gap-y-1 font-world text-13 leading-[1.4] font-[350] text-content-warning-650">
           <li className="pl-4 -indent-4">
             • Save this private key securely. It cannot be recovered if lost
           </li>

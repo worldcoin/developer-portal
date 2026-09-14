@@ -74,7 +74,7 @@ export const UseExistingKeyContent = ({
       className={clsx("grid w-full gap-y-6", className)}
     >
       {!hideTitle && (
-        <h2 className="font-world text-15 leading-[1.2] font-medium text-portal-ink">
+        <h2 className="font-world text-15 leading-[1.2] font-medium text-content-ink">
           Use existing key
         </h2>
       )}

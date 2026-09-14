@@ -62,24 +62,24 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
   });
 
   const parentClassNames = clsx(
-    "rounded-lg border bg-grey-0 px-2 text-sm text-grey-700",
+    "rounded-lg border bg-surface px-2 text-sm text-content-strong",
     {
-      "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
+      "border-edge focus-within:border-focus focus-within:hover:border-focus hover:border-edge-heavy ":
         !errors.url && !disabled,
-      "border-system-error-500 text-system-error-500 focus-within:border-system-error-500":
+      "border-edge-error-500 text-content-error-500 focus-within:border-edge-error-500":
         errors.url && !disabled,
     },
     {
-      "hover:text-grey-700": !disabled,
-      "bg-grey-50 text-grey-300 border-grey-200": disabled,
+      "hover:text-content-strong": !disabled,
+      "bg-surface-soft text-content-disabled border-edge": disabled,
     },
   );
 
   const inputClassNames = clsx(
     "peer size-full bg-transparent p-2 focus:outline-hidden focus:ring-0",
     {
-      "placeholder:text-grey-400": !errors.url,
-      "group-hover:placeholder:text-grey-700 focus:group-hover:placeholder:text-grey-400 ":
+      "placeholder:text-content-tertiary": !errors.url,
+      "group-hover:placeholder:text-content-strong focus:group-hover:placeholder:text-content-tertiary ":
         !disabled,
     },
   );
@@ -108,10 +108,10 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
       </fieldset>
       <div className={clsx("flex w-full flex-col px-2")}>
         {helperText && (
-          <p className="mt-2 text-xs text-grey-500">{helperText}</p>
+          <p className="mt-2 text-xs text-content-secondary">{helperText}</p>
         )}
         {errors?.url?.message && (
-          <p className="mt-2 text-xs text-system-error-500">
+          <p className="mt-2 text-xs text-content-error-500">
             {errors.url.message}
           </p>
         )}

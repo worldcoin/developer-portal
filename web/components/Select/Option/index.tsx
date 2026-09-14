@@ -11,7 +11,7 @@ export const SelectOption = <T,>(props: SelectOptionProps<T>) => {
     <Listbox.Option
       as="li"
       className={twMerge(
-        "cursor-pointer px-4 py-2.5 leading-5 data-[headlessui-state*=selected]:text-grey-400",
+        "cursor-pointer px-4 py-2.5 leading-5 data-[headlessui-state*=selected]:text-content-tertiary",
         className,
       )}
       {...otherProps}

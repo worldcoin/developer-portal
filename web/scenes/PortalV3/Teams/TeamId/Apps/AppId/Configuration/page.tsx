@@ -75,14 +75,14 @@ type ConfigurationContentProps = {
 };
 
 const stepActionClassName =
-  "inline-flex h-10 w-44 shrink-0 items-center justify-center gap-2 rounded-lg px-5 text-center leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
+  "inline-flex h-10 w-44 shrink-0 items-center justify-center gap-2 rounded-lg px-5 text-center leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-edge-medium focus-visible:ring-offset-2 ring-offset-surface";
 const secondaryStepActionClassName = clsx(
   stepActionClassName,
-  "border border-grey-200 bg-grey-0 text-grey-700 hover:bg-grey-50 disabled:cursor-not-allowed disabled:border-grey-100 disabled:text-grey-300",
+  "border border-edge bg-surface text-content-strong hover:bg-surface-soft disabled:cursor-not-allowed disabled:border-edge-subtle disabled:text-content-disabled",
 );
 const primaryStepActionClassName = clsx(
   stepActionClassName,
-  "bg-grey-900 text-white hover:bg-grey-700 disabled:cursor-not-allowed disabled:bg-grey-100 disabled:text-grey-400",
+  "bg-action text-action-foreground hover:bg-action-hover disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-content-tertiary",
 );
 
 /** Static top-right cue for which version the form shows — not a control. */
@@ -105,12 +105,12 @@ const VersionIndicator = ({
       role="img"
       aria-label={label}
       title={label}
-      className="inline-flex size-4 shrink-0 items-center justify-center text-grey-500"
+      className="inline-flex size-4 shrink-0 items-center justify-center text-content-secondary"
     >
       {isVerifiedView ? (
-        <CheckmarkBadge className="size-4 text-system-warning-500" />
+        <CheckmarkBadge className="size-4 text-content-warning-500" />
       ) : (
-        <EditIcon className="size-4 text-grey-700" />
+        <EditIcon className="size-4 text-content-strong" />
       )}
     </div>
   );
@@ -221,7 +221,7 @@ const ActionsFooter = ({
             {isVerifiedView ? (
               <EditIcon className="size-4" />
             ) : (
-              <CheckmarkBadge className="size-4 text-system-warning-500" />
+              <CheckmarkBadge className="size-4 text-content-warning-500" />
             )}
             <Typography variant={TYPOGRAPHY.M4} className="leading-none">
               {isVerifiedView ? "New draft" : "Verified"}
@@ -233,7 +233,7 @@ const ActionsFooter = ({
           {isAwaiting ? (
             <Typography
               variant={TYPOGRAPHY.R5}
-              className="min-w-0 truncate text-grey-500"
+              className="min-w-0 truncate text-content-secondary"
             >
               In review. Editing is locked until review completes.
             </Typography>
@@ -369,12 +369,18 @@ const ConfigurationContent = ({
                 />
               </div>
 
-              <div className="border-t border-grey-100 pt-6">
+              <div className="border-t border-edge-subtle pt-6">
                 <div className="mb-5 grid gap-y-1">
-                  <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
+                  <Typography
+                    variant={TYPOGRAPHY.M3}
+                    className="text-content-primary"
+                  >
                     App details
                   </Typography>
-                  <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+                  <Typography
+                    variant={TYPOGRAPHY.R4}
+                    className="text-content-secondary"
+                  >
                     Add the name and destinations people will use to find your
                     app.
                   </Typography>
@@ -540,7 +546,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
       <>
         <SizingWrapper variant="nav" gridClassName="order-1 pt-8">
           <Skeleton count={2} height={50} />
-          <hr className="my-5 w-full border-dashed text-grey-200" />
+          <hr className="my-5 w-full border-dashed text-content-faint" />
         </SizingWrapper>
 
         <SizingWrapper variant="nav" gridClassName="order-2 pb-8 pt-4">

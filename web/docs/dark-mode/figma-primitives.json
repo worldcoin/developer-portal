@@ -1,0 +1,474 @@
+{
+  "source": "https://www.figma.com/design/rQyitWCsRVKHsR26qsZHdX/UI-Kit-4.0?node-id=4-3",
+  "extractedOn": "2026-09-13",
+  "kind": "Figma paint styles; no local COLOR variables or supplied dark modes",
+  "primitives": [
+    {
+      "name": "Primary/Grey/900",
+      "id": "S:1dd0efa494c591f02d8162554b49441907d068d4,",
+      "hex": "#181818"
+    },
+    {
+      "name": "Primary/Grey/700",
+      "id": "S:c676dd250dbe160f926cf62b6e882193ac3c5169,",
+      "hex": "#3c424b"
+    },
+    {
+      "name": "Primary/Grey/500",
+      "id": "S:00f848b2e12705575ff60aa3f8b2b74d50bc0b3c,",
+      "hex": "#717680"
+    },
+    {
+      "name": "Primary/Grey/450",
+      "id": "S:fcd810b4b3c6cfdd2880daa08627b90d5aed14e6,",
+      "hex": "#838d9b"
+    },
+    {
+      "name": "Primary/Grey/400",
+      "id": "S:21563c78530bc0a901d2bc80df42f01d2381b5ce,",
+      "hex": "#9ba3ae"
+    },
+    {
+      "name": "Primary/Grey/350",
+      "id": "S:d42e9f6dc7d138b423f1110ccee7406768c1bb5a,",
+      "hex": "#b1b8c2"
+    },
+    {
+      "name": "Primary/Grey/300",
+      "id": "S:d3df0dd56770515ec7d3f46d8c8082cdd4be55eb,",
+      "hex": "#d6d9dd"
+    },
+    {
+      "name": "Primary/Grey/200",
+      "id": "S:4ae1f20d22bc5a1d5c7b6d38eb582b772b7d49f0,",
+      "hex": "#ebecef"
+    },
+    {
+      "name": "Primary/Grey/100",
+      "id": "S:f8790e3bbf529cf504017bf992da369b4b45ba07,",
+      "hex": "#f3f4f5"
+    },
+    {
+      "name": "Primary/Grey/50",
+      "id": "S:363dee0404fc8390cf942076270d4b4928d6de5c,",
+      "hex": "#f9fafb"
+    },
+    {
+      "name": "Primary/Grey/0",
+      "id": "S:8b4795c93387e570ac3aa2d81dd8d0af6390800d,",
+      "hex": "#ffffff"
+    },
+    {
+      "name": "Primary/Error/900",
+      "id": "S:20b7b21cd8fbf5e7bc667a4b0f29482b83649995,",
+      "hex": "#611005"
+    },
+    {
+      "name": "Primary/Error/800",
+      "id": "S:7e638365eeb1de4b171e901c2a825264759bc6c2,",
+      "hex": "#911808"
+    },
+    {
+      "name": "Primary/Error/700",
+      "id": "S:653b7683329c6d152e827dc591321bd74b201ef2,",
+      "hex": "#c2200a"
+    },
+    {
+      "name": "Primary/Error/600",
+      "id": "S:ba960af5b6e5cf47c4a28255cb865746a446ddaa,",
+      "hex": "#f2280d"
+    },
+    {
+      "name": "Primary/Error/500",
+      "id": "S:dc85adfa7dde9bb29d481fff46f50e030bc81c58,",
+      "hex": "#f7503f"
+    },
+    {
+      "name": "Primary/Error/400",
+      "id": "S:6cd042bcc080201f102182fbfd9cb43addd0b164,",
+      "hex": "#f97b6f"
+    },
+    {
+      "name": "Primary/Error/300",
+      "id": "S:90a1fe4c65d60a9b32b21bde4988b3da8f0d4bc2,",
+      "hex": "#fba79f"
+    },
+    {
+      "name": "Primary/Error/200",
+      "id": "S:4dbb981321ad004ddb18fcc6761f055100e931cb,",
+      "hex": "#fdd3cf"
+    },
+    {
+      "name": "Primary/Error/100",
+      "id": "S:fb9a5537165c9b6876dfcf932760a5c0979d071c,",
+      "hex": "#fee9e7"
+    },
+    {
+      "name": "Primary/Warning/900",
+      "id": "S:998ce2ffb1235055bcd84b355512ad5d29263015,",
+      "hex": "#664600"
+    },
+    {
+      "name": "Primary/Warning/800",
+      "id": "S:81a9bbcef9170246bf1d676d3b0fd32eace76ea1,",
+      "hex": "#996800"
+    },
+    {
+      "name": "Primary/Warning/700",
+      "id": "S:a69de374c0c0e1b4e9b097b495965c4088bc432b,",
+      "hex": "#cc8b00"
+    },
+    {
+      "name": "Primary/Warning/600",
+      "id": "S:4e58feab62c6720eb14092c07e240a25845ece2a,",
+      "hex": "#ffae00"
+    },
+    {
+      "name": "Primary/Warning/500",
+      "id": "S:2bc9ad10f9f4d0bfa068ab729b6766483d243cc4,",
+      "hex": "#ffb833"
+    },
+    {
+      "name": "Primary/Warning/400",
+      "id": "S:91a3541603743ae387ea53c6486e63cf4bd556d5,",
+      "hex": "#ffc966"
+    },
+    {
+      "name": "Primary/Warning/300",
+      "id": "S:a4ccc33fb3c58b7f0c36ef9e48be2e31685e9057,",
+      "hex": "#ffdb99"
+    },
+    {
+      "name": "Primary/Warning/200",
+      "id": "S:7d768da223ee2bdea602c0bc767afb77cf7cd2d3,",
+      "hex": "#ffedcc"
+    },
+    {
+      "name": "Primary/Warning/100",
+      "id": "S:d8f884f7ee3c712f560f701def13f1ef4928c4f4,",
+      "hex": "#fff6e6"
+    },
+    {
+      "name": "Primary/Success/900",
+      "id": "S:f07a2492ca6356e3918e58df1d5895ce4a46b589,",
+      "hex": "#004d13"
+    },
+    {
+      "name": "Primary/Success/800",
+      "id": "S:d0ea5ae6773bc142233606bbfb50823d4e7da60d,",
+      "hex": "#00741d"
+    },
+    {
+      "name": "Primary/Success/700",
+      "id": "S:1135de0ef479be80fe34a781cc6b2e5693b95d1e,",
+      "hex": "#009b26"
+    },
+    {
+      "name": "Primary/Success/600",
+      "id": "S:4700428e43136dacfd54b78d34221c21961a96f3,",
+      "hex": "#00c230"
+    },
+    {
+      "name": "Primary/Success/500",
+      "id": "S:d831d7b2994e2e7c8d9435a6e0a633bd8740aeaa,",
+      "hex": "#33d167"
+    },
+    {
+      "name": "Primary/Success/400",
+      "id": "S:578190001f75581285189bf54b286a157c61a520,",
+      "hex": "#66dc8d"
+    },
+    {
+      "name": "Primary/Success/300",
+      "id": "S:9d179e2a5e7369ca484205265c78427189ca7bf8,",
+      "hex": "#99e8b3"
+    },
+    {
+      "name": "Primary/Success/200",
+      "id": "S:4f6d6549cb3080ad3e1d6891b9ec747c448a589e,",
+      "hex": "#ccf3d9"
+    },
+    {
+      "name": "Primary/Success/100",
+      "id": "S:be2727c4a1a8e3dc76cdf077e51a823ebf4989b0,",
+      "hex": "#e6f9ec"
+    },
+    {
+      "name": "Primary/Info/900",
+      "id": "S:34311690f61476dcce8f0c0015b6a7e3caa04383,",
+      "hex": "#002466"
+    },
+    {
+      "name": "Primary/Info/800",
+      "id": "S:9c7eff6de7fb43ca7e2fcc8a7f61d69048a310e9,",
+      "hex": "#003799"
+    },
+    {
+      "name": "Primary/Info/700",
+      "id": "S:4ffd50bb09f863b4d68535d919a3be697d60ded8,",
+      "hex": "#004acc"
+    },
+    {
+      "name": "Primary/Info/600",
+      "id": "S:f986bcbff8e8c6a89edaf5da63548dc5969be3ec,",
+      "hex": "#005cff"
+    },
+    {
+      "name": "Primary/Info/500",
+      "id": "S:0dfa6d34fdf4dd4b9ef5f23ed867ef4b39991a94,",
+      "hex": "#3385ff"
+    },
+    {
+      "name": "Primary/Info/400",
+      "id": "S:c0b55589436ff7afb4ba4f8597ca643e06d3c6c5,",
+      "hex": "#66a3ff"
+    },
+    {
+      "name": "Primary/Info/300",
+      "id": "S:299bfde0dceaaaf41e402eae895b602582613e8b,",
+      "hex": "#99c2ff"
+    },
+    {
+      "name": "Primary/Info/200",
+      "id": "S:f4eea43f10b6923e56cbf5ab9343d7b4024eb6b7,",
+      "hex": "#cce0ff"
+    },
+    {
+      "name": "Specialty/World Blue/Primary",
+      "id": "S:d1b5177a55006cb0851b2e9ed37b37d49ba11c65,",
+      "hex": "#3fdbed"
+    },
+    {
+      "name": "Specialty/World Blue/Secondary",
+      "id": "S:0096db42273858736dd5c10657ad3d390993c6f1,",
+      "hex": "#ecfbfd"
+    },
+    {
+      "name": "Specialty/Carrot Orange/Primary",
+      "id": "S:c9411a6c4a1df46d7b5b9da88aa2b61c618b6f3a,",
+      "hex": "#ff5a00"
+    },
+    {
+      "name": "Specialty/Carrot Orange/Secondary",
+      "id": "S:dd261da2b0435b4fad8d2d56dfb7b6a177dcf817,",
+      "hex": "#ffede6"
+    },
+    {
+      "name": "Specialty/Purple/Primary",
+      "id": "S:649da604d87592a5ef547d3225cfe1844d756a96,",
+      "hex": "#8600ff"
+    },
+    {
+      "name": "Specialty/Purple/Secondary",
+      "id": "S:2f1c260385384d80cb917a2ff1211f2965a70db3,",
+      "hex": "#f2e6ff"
+    },
+    {
+      "name": "Specialty/Blue/Primary",
+      "id": "S:2f7b53dd47a996cf9ceaac04c6c1adeba8b36445,",
+      "hex": "#005cff"
+    },
+    {
+      "name": "Specialty/Blue/Secondary",
+      "id": "S:e9acd2f5382229be4a03c9c4c5dc35cdd3afbc1f,",
+      "hex": "#e6f0ff"
+    },
+    {
+      "name": "Specialty/Green/Primary",
+      "id": "S:4365cbd3cbf7c0b10df0507c82ccc98cd81169e7,",
+      "hex": "#00c230"
+    },
+    {
+      "name": "Specialty/Green/Secondary",
+      "id": "S:9bf7ecbaab218d7a982a040311cac05a54e5d0b9,",
+      "hex": "#e6f9ec"
+    },
+    {
+      "name": "Primary/Info/100",
+      "id": "S:d42c8ed616fa6d46486e46ab9ed5673c85e3eb44,",
+      "hex": "#e6f0ff"
+    }
+  ],
+  "identityStyles": [
+    {
+      "name": "Tokens/Ethereum/Primary",
+      "id": "S:31dfd2a665417d1f624ae851da49533a6494cded,",
+      "paints": [
+        {
+          "hex": "#3385ff",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Ethereum/Secondary",
+      "id": "S:58ce101af79e6ed6efe6ff24db29594f47172652,",
+      "paints": [
+        {
+          "hex": "#ebf3ff",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Digital Dollars/Primary",
+      "id": "S:ee02fa1cd4850c14995cd1ccdcc402d331ba77e0,",
+      "paints": [
+        {
+          "hex": "#00c230",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Digital Dollars/Secondary",
+      "id": "S:f761250217be8c74557dfbbf857bd4f65cb09788,",
+      "paints": [
+        {
+          "hex": "#e6f9ec",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Bitcoin/Primary",
+      "id": "S:d4dc5b0d1b56b51f0da864df7f8a487215d1c7a7,",
+      "paints": [
+        {
+          "hex": "#ff5a00",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Bitcoin/Secondary",
+      "id": "S:888032aa3e6e34f951cc447b4f35304390d81b5e,",
+      "paints": [
+        {
+          "hex": "#ffede6",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Worldcoin/Primary",
+      "id": "S:28ba9b7df5e42747056cd7c51e88a301c655baff,",
+      "paints": [
+        {
+          "hex": "#181818",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Worldcoin/Secondary",
+      "id": "S:81f0024ef1f79e89be89b2218a5302770caa6395,",
+      "paints": [
+        {
+          "hex": "#f3f4f5",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Doge/Primary",
+      "id": "S:73931420e59db36786bf2217ed778b044bd2f061,",
+      "paints": [
+        {
+          "hex": "#988430",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Doge/Secondary",
+      "id": "S:b44fc9bdd1201862418562a1ac650613e9381cf5,",
+      "paints": [
+        {
+          "hex": "#f8f5e8",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Chainlink/Primary",
+      "id": "S:4455a71504d3c6869b127630848d510373a9e66d,",
+      "paints": [
+        {
+          "hex": "#2a5ada",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Chainlink/Secondary",
+      "id": "S:8cf143235353946704d27b73b3534811935c2cea,",
+      "paints": [
+        {
+          "hex": "#e5ebfa",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/XRP/Primary",
+      "id": "S:785f3f58f7f707164977ae0a1f8d9b2c868702a1,",
+      "paints": [
+        {
+          "hex": "#23292f",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/XRP/Secondary",
+      "id": "S:fc9c779a6f023ad458da90ee3572a63aebad6fc3,",
+      "paints": [
+        {
+          "hex": "#e9eaea",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/SUI/Primary",
+      "id": "S:4e3048c130e956b1a3863918542a6abbe3a728c2,",
+      "paints": [
+        {
+          "hex": "#61bfff",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/SUI/Secondary",
+      "id": "S:3d27832ec7d88467597af228782252f193c1046b,",
+      "paints": [
+        {
+          "hex": "#e0f3ff",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Solana/Primary",
+      "id": "S:d471f83a84d07ed24b93b597d0f91b5e90265292,",
+      "paints": [
+        {
+          "hex": "#b524d0",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "name": "Tokens/Solana/Secondary",
+      "id": "S:a7185c6a851b9dc1cefc450f9e0e70c0f2759e62,",
+      "paints": [
+        {
+          "hex": "#f8e9fa",
+          "opacity": 1
+        }
+      ]
+    }
+  ]
+}

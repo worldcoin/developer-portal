@@ -72,7 +72,7 @@ export const DailyMetricChart = (props: {
   return (
     <section
       aria-label={props.title}
-      className="w-full min-w-0 rounded-16 border border-portal-border bg-white p-5"
+      className="w-full min-w-0 rounded-16 border border-portal-border bg-surface p-5"
     >
       <h3 className="font-world text-14 font-medium text-portal-heading">
         {props.title}
@@ -131,7 +131,7 @@ export const DailyMetricChart = (props: {
           >
             <CartesianGrid
               vertical={false}
-              stroke="#EDEEF0"
+              stroke="var(--chart-grid)"
               strokeDasharray="3 5"
             />
             <XAxis
@@ -144,7 +144,7 @@ export const DailyMetricChart = (props: {
               tickMargin={8}
               minTickGap={showEveryDate ? 0 : 32}
               interval={showEveryDate ? 0 : "preserveStartEnd"}
-              tick={{ fill: "#757575", fontSize: 12 }}
+              tick={{ fill: "var(--chart-tick)", fontSize: 12 }}
               tickFormatter={formatTickDate}
             />
             <YAxis
@@ -156,7 +156,7 @@ export const DailyMetricChart = (props: {
               domain={isRate ? [0, 1.05] : [0, hasVisibleSeries ? "auto" : 1]}
               tickFormatter={isRate ? formatRateTick : undefined}
               ticks={isRate ? [...RATE_TICKS] : undefined}
-              tick={{ fill: "#757575", fontSize: 11 }}
+              tick={{ fill: "var(--chart-tick)", fontSize: 11 }}
               tickMargin={8}
               tickLine={false}
             />
@@ -164,18 +164,23 @@ export const DailyMetricChart = (props: {
               <Tooltip
                 cursor={
                   props.chartType === "bar"
-                    ? { fill: "rgba(24, 24, 24, 0.025)" }
-                    : { stroke: "#D1D5DB", strokeDasharray: "3 5" }
+                    ? { fill: "var(--chart-cursor)" }
+                    : {
+                        stroke: "var(--chart-cursor-line)",
+                        strokeDasharray: "3 5",
+                      }
                 }
                 contentStyle={{
-                  border: "1px solid #EDEEF0",
+                  border: "1px solid var(--chart-grid)",
+                  backgroundColor: "var(--surface-raised)",
+                  color: "var(--chart-label)",
                   borderRadius: 12,
                   padding: "12px 16px",
                   boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
                   fontSize: 12,
                 }}
                 labelStyle={{
-                  color: "#171717",
+                  color: "var(--chart-label)",
                   fontWeight: 500,
                   marginBottom: 6,
                 }}
@@ -194,8 +199,8 @@ export const DailyMetricChart = (props: {
                 position="center"
                 value="No data available"
                 className="font-world text-13"
-                fill="#757575"
-                stroke="white"
+                fill="var(--chart-tick)"
+                stroke="var(--surface)"
                 strokeWidth={4}
                 paintOrder="stroke"
               />

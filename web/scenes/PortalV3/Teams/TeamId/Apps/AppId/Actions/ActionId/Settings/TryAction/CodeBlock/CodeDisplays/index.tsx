@@ -49,9 +49,9 @@ export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
               <div className="flex w-full items-center justify-between px-8 py-5">
                 <p className="font-[550]">{buttonText}</p>
                 {open ? (
-                  <MinusIcon className="size-5 text-grey-900" />
+                  <MinusIcon className="size-5 text-content-primary" />
                 ) : (
-                  <PlusIcon className="size-5 text-grey-900" />
+                  <PlusIcon className="size-5 text-content-primary" />
                 )}
               </div>
             </DisclosureButton>
@@ -65,13 +65,13 @@ export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
                     code={panelText}
                     language="javascript"
                     theme={"neutral"}
-                    className="w-full text-xs text-grey-700"
+                    className="w-full text-xs text-content-strong"
                   />
                 )}
                 <Button
                   type="button"
                   onClick={copyAction}
-                  className="flex gap-x-2 pt-2 text-grey-400 hover:text-grey-900"
+                  className="flex gap-x-2 pt-2 text-content-tertiary hover:text-content-primary"
                 >
                   <CopyIcon className="size-4" />
                   <Typography variant={TYPOGRAPHY.R5} className="text-xs">

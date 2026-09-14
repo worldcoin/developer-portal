@@ -68,8 +68,8 @@ describe("PortalV3 mini app transactions", () => {
     expect(signedFetch).not.toHaveBeenCalled();
     expect(screen.getByText("Failed to load transactions")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try Again" })).toHaveClass(
-      "bg-portal-ink",
-      "text-white",
+      "bg-action",
+      "text-action-foreground",
     );
   });
 

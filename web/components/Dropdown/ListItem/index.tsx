@@ -9,7 +9,7 @@ export const ListItem = (props: ListItemProps) => {
   return (
     <DropdownPrimitive.Item
       className={twMerge(
-        "grid grid-cols-auto-1fr-auto items-center gap-x-4 px-2 py-2.5 text-start outline-hidden hover:bg-grey-50 md:gap-x-2 md:px-4",
+        "grid cursor-pointer grid-cols-auto-1fr-auto items-center gap-x-4 px-2 py-2.5 text-start outline-hidden transition-colors hover:bg-portal-border focus:bg-portal-border data-[highlighted]:bg-portal-border md:gap-x-2 md:px-4",
         className,
       )}
       {...otherProps}

@@ -115,14 +115,17 @@ export const ImageCropper = ({
 
   return (
     <div className="grid justify-items-center gap-6">
-      <Typography variant={TYPOGRAPHY.R4} className="text-center text-grey-500">
+      <Typography
+        variant={TYPOGRAPHY.R4}
+        className="text-center text-content-secondary"
+      >
         Drag the crop area to move it. Pull any corner to resize it.
       </Typography>
 
       {naturalSize && outputSize ? (
         <Typography
           variant={TYPOGRAPHY.R5}
-          className="text-center text-grey-400"
+          className="text-center text-content-tertiary"
         >
           Final Resolution: {outputSize.width}×{outputSize.height}
         </Typography>
@@ -130,7 +133,7 @@ export const ImageCropper = ({
 
       {/* overflow-hidden + padding: the crop handles overhang the image edge
           by a few px, which under overflow-auto spawned scrollbars mid-drag. */}
-      <div className="flex max-h-[420px] w-full max-w-[520px] justify-center overflow-hidden rounded-2xl bg-grey-100 p-2">
+      <div className="flex max-h-[420px] w-full max-w-[520px] justify-center overflow-hidden rounded-2xl bg-surface-muted p-2">
         <ReactCrop
           crop={crop}
           onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -155,7 +158,7 @@ export const ImageCropper = ({
         <Typography
           role="alert"
           variant={TYPOGRAPHY.R4}
-          className="text-center text-system-error-500"
+          className="text-center text-content-error-500"
         >
           {error}
         </Typography>

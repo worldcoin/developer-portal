@@ -100,7 +100,7 @@ export const RotateSignerKeyDialog = ({
           description="Choose how you want to configure your new signer key."
           notice={
             <Notification variant="warning">
-              <div className="text-system-warning-800">
+              <div className="text-content-warning-800">
                 <Typography as="p" variant={TYPOGRAPHY.S3}>
                   After rotation:
                 </Typography>

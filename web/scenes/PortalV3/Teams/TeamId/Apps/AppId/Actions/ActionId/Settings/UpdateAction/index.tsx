@@ -121,7 +121,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
         onSubmit={handleSubmit(submit)}
         className="grid w-full grid-cols-1 gap-y-5"
       >
-        <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
+        <Typography variant={TYPOGRAPHY.H7} className="text-content-primary">
           Settings
         </Typography>
         <Input
@@ -156,7 +156,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               fieldValue={watch("action")}
             />
           }
-          className="h-16 text-grey-400"
+          className="h-16 text-content-tertiary"
         />
         <Input
           label="App ID"
@@ -169,7 +169,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               fieldValue={action.app_id}
             />
           }
-          className="h-16 text-grey-400"
+          className="h-16 text-content-tertiary"
         />
 
         <Controller
@@ -205,7 +205,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           </div>
 
           {showAdvancedConfig && (
-            <div className="space-y-6 border-l-2 border-grey-100 pl-4">
+            <div className="space-y-6 border-l-2 border-edge-subtle pl-4">
               <Controller
                 name="app_flow_on_complete"
                 control={control}
@@ -223,7 +223,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               />
 
               {watch("app_flow_on_complete") === "VERIFY" && (
-                <div className="space-y-6 border-l-2 border-grey-100 pl-4">
+                <div className="space-y-6 border-l-2 border-edge-subtle pl-4">
                   <Input
                     register={register("webhook_uri")}
                     errors={errors.webhook_uri}

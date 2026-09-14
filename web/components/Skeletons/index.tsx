@@ -48,7 +48,7 @@ export const SkeletonCard = (props: {
   <div
     aria-hidden
     className={clsx(
-      "flex min-h-[144px] flex-col gap-2 rounded-[10px] border border-portal-border bg-white p-5",
+      "flex min-h-[144px] flex-col gap-2 rounded-[10px] border border-portal-border bg-surface p-5",
       props.className,
     )}
   >
@@ -76,8 +76,12 @@ export const SkeletonTable = (props: {
     }}
   >
     {props.columns.map((column) => (
-      <div key={column} className="border-b border-grey-200 py-3">
-        <Typography variant={TYPOGRAPHY.R5} as="div" className="text-grey-400">
+      <div key={column} className="border-b border-edge py-3">
+        <Typography
+          variant={TYPOGRAPHY.R5}
+          as="div"
+          className="text-content-tertiary"
+        >
           {column}
         </Typography>
       </div>

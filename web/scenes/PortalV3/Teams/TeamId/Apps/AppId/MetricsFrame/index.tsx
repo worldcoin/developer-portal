@@ -105,7 +105,7 @@ type TotalsState =
 const PlaceholderCard = (props: { label: string; message: string }) => (
   <section
     aria-label={props.label}
-    className="rounded-16 border border-portal-border bg-white p-5 sm:p-6"
+    className="rounded-16 border border-portal-border bg-surface p-5 sm:p-6"
   >
     <p className="font-world text-13 text-portal-muted">{props.message}</p>
   </section>
@@ -348,7 +348,7 @@ export const MetricsFrame = (props: {
                     Timeframe
                     <select
                       aria-label="Timeframe"
-                      className="h-9 rounded-8 border border-portal-border bg-white px-3 font-world text-13 text-portal-heading"
+                      className="h-9 rounded-8 border border-portal-border bg-surface px-3 font-world text-13 text-portal-heading"
                       value={timeframe}
                       onChange={(event) =>
                         setTimeframe(event.target.value as TimeframeValue)
@@ -365,7 +365,7 @@ export const MetricsFrame = (props: {
                     Operating System
                     <select
                       aria-label="Operating System"
-                      className="h-9 rounded-8 border border-portal-border bg-white px-3 font-world text-13 text-portal-heading"
+                      className="h-9 rounded-8 border border-portal-border bg-surface px-3 font-world text-13 text-portal-heading"
                       value={osName}
                       onChange={(event) => setOsName(event.target.value)}
                     >

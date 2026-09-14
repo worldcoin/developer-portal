@@ -32,10 +32,10 @@ export const Toggle = (props: ToggleProps) => {
     <button
       type="button"
       className={clsx(
-        "relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden",
+        "relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent ring-offset-surface transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 enabled:hover:ring-2 enabled:hover:ring-edge-medium",
         {
-          "bg-grey-900": checked,
-          "bg-grey-200": !checked,
+          "bg-grey-900 dark:bg-action": checked,
+          "bg-surface-disabled": !checked,
           "cursor-not-allowed opacity-50": disabled,
         },
         className,
@@ -48,6 +48,7 @@ export const Toggle = (props: ToggleProps) => {
       <span
         className={clsx(
           "pointer-events-none inline-block size-5 rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
+          checked && "dark:bg-action-foreground",
           {
             "translate-x-5": checked,
             "translate-x-0": !checked,

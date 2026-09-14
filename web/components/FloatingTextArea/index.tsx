@@ -30,7 +30,7 @@ export const FloatingTextArea = ({
       <div
         className={clsx(
           "relative rounded-[10px] px-4 pt-7 pb-3",
-          errors ? "bg-system-error-50" : "bg-grey-50",
+          errors ? "bg-surface-error-50" : "bg-surface-soft",
           className,
         )}
       >
@@ -39,7 +39,7 @@ export const FloatingTextArea = ({
           {...register}
           {...restProps}
           placeholder=" "
-          className="peer w-full resize-none bg-transparent text-sm text-grey-900 focus:outline-hidden disabled:text-grey-700 disabled:opacity-100 disabled:[-webkit-text-fill-color:#3C424B]"
+          className="peer w-full resize-none bg-transparent text-sm text-content-primary focus:outline-hidden disabled:text-content-strong disabled:opacity-100 disabled:[-webkit-text-fill-color:var(--content-strong)]"
         />
         {addOnRight && (
           <div className="absolute right-4 bottom-3 z-10">{addOnRight}</div>
@@ -48,7 +48,7 @@ export const FloatingTextArea = ({
           htmlFor={id}
           className={clsx(
             "pointer-events-none absolute left-4 transition-all duration-150",
-            errors ? "text-system-error-500" : "text-grey-500",
+            errors ? "text-content-error-500" : "text-content-secondary",
             hasStaticValue
               ? "top-4 translate-y-0 text-xs"
               : [
@@ -59,12 +59,12 @@ export const FloatingTextArea = ({
           )}
         >
           {label}
-          {required && <span className="ml-0.5 text-system-error-500">*</span>}
+          {required && <span className="ml-0.5 text-content-error-500">*</span>}
         </label>
       </div>
 
       {errors?.message && (
-        <p className="px-1 text-xs text-system-error-500">{errors.message}</p>
+        <p className="px-1 text-xs text-content-error-500">{errors.message}</p>
       )}
     </div>
   );

@@ -98,7 +98,7 @@ it("shows the vertical RP identity fields and separated management controls", ()
     name: "World ID configuration",
   });
   expect(summary).toHaveClass("flex", "max-w-[580px]", "flex-col");
-  expect(summary).not.toHaveClass("rounded-xl", "border", "bg-white");
+  expect(summary).not.toHaveClass("rounded-xl", "border", "bg-surface");
 
   expect(screen.getByText("app_1")).toBeInTheDocument();
   expect(screen.getByText("rp_1234567890abcdef")).toBeInTheDocument();
@@ -133,15 +133,15 @@ it("shows the vertical RP identity fields and separated management controls", ()
   ).toBeInTheDocument();
   expect(rotateButton.parentElement).not.toBe(switchButton.parentElement);
   expect(rotateButton).toHaveClass(
-    "border-grey-200",
-    "bg-grey-0",
-    "text-grey-700",
+    "border-edge",
+    "bg-surface",
+    "text-content-strong",
   );
-  expect(rotateButton).not.toHaveClass("text-system-error-600");
+  expect(rotateButton).not.toHaveClass("text-content-error-600");
   expect(switchButton).toHaveClass(
-    "border-system-error-300",
-    "bg-white",
-    "text-system-error-600",
+    "border-edge-error-300",
+    "bg-surface",
+    "text-content-error-600",
   );
 });
 

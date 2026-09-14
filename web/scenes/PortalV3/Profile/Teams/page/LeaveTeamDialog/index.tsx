@@ -64,9 +64,11 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
             Are you sure?
           </Typography>
 
-          <p className="text-center text-16 leading-6 font-medium text-grey-500">
+          <p className="text-center text-16 leading-6 font-medium text-content-secondary">
             If you choose to leave the{" "}
-            <span className="font-medium text-grey-900">{team?.name}</span>{" "}
+            <span className="font-medium text-content-primary">
+              {team?.name}
+            </span>{" "}
             team, you will need to be invited again in order to rejoin if you
             change your mind.
           </p>

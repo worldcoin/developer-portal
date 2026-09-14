@@ -1,0 +1,230 @@
+{
+  "method": "WCAG sRGB relative luminance for opaque proposed pairs. Does not validate rendered UI, opacity, gradients, focus geometry, or all states.",
+  "checks": [
+    {
+      "foreground": "text.primary",
+      "background": "surface.canvas",
+      "foregroundHex": "#f9fafb",
+      "backgroundHex": "#181818",
+      "ratio": 16.991,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "text.primary",
+      "background": "surface.raised",
+      "foregroundHex": "#f9fafb",
+      "backgroundHex": "#272727",
+      "ratio": 14.295,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "text.secondary",
+      "background": "surface.canvas",
+      "foregroundHex": "#9ba3ae",
+      "backgroundHex": "#181818",
+      "ratio": 6.97,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "text.secondary",
+      "background": "surface.raised",
+      "foregroundHex": "#9ba3ae",
+      "backgroundHex": "#272727",
+      "ratio": 5.864,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "border.control",
+      "background": "surface.raised",
+      "foregroundHex": "#838d9b",
+      "backgroundHex": "#272727",
+      "ratio": 4.445,
+      "minimum": 3,
+      "passes": true
+    },
+    {
+      "foreground": "focus.ring",
+      "background": "surface.raised",
+      "foregroundHex": "#99c2ff",
+      "backgroundHex": "#272727",
+      "ratio": 8.191,
+      "minimum": 3,
+      "passes": true
+    },
+    {
+      "foreground": "action.foreground",
+      "background": "action.fill",
+      "foregroundHex": "#181818",
+      "backgroundHex": "#ffffff",
+      "ratio": 17.756,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "action.foreground",
+      "background": "action.hover",
+      "foregroundHex": "#181818",
+      "backgroundHex": "#ebecef",
+      "ratio": 15.031,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "link.foreground",
+      "background": "surface.raised",
+      "foregroundHex": "#66a3ff",
+      "backgroundHex": "#272727",
+      "ratio": 5.867,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "info.foreground",
+      "background": "info.background",
+      "foregroundHex": "#99c2ff",
+      "backgroundHex": "#002466",
+      "ratio": 7.973,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "error.foreground",
+      "background": "error.background",
+      "foregroundHex": "#f97b6f",
+      "backgroundHex": "#611005",
+      "ratio": 5.106,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "error.foreground",
+      "background": "surface.raised",
+      "foregroundHex": "#f97b6f",
+      "backgroundHex": "#272727",
+      "ratio": 5.755,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "success.foreground",
+      "background": "success.background",
+      "foregroundHex": "#99e8b3",
+      "backgroundHex": "#004d13",
+      "ratio": 7.025,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "warning.foreground",
+      "background": "warning.background",
+      "foregroundHex": "#ffdb99",
+      "backgroundHex": "#664600",
+      "ratio": 6.491,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "purple.foreground",
+      "background": "surface.raised",
+      "foregroundHex": "#f2e6ff",
+      "backgroundHex": "#272727",
+      "ratio": 12.476,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "text.primary",
+      "background": "surface.card",
+      "foregroundHex": "#f9fafb",
+      "backgroundHex": "#1f1f1f",
+      "ratio": 15.773,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "text.primary",
+      "background": "surface.hover",
+      "foregroundHex": "#f9fafb",
+      "backgroundHex": "#2f2f2f",
+      "ratio": 12.812,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "text.secondary",
+      "background": "surface.card",
+      "foregroundHex": "#9ba3ae",
+      "backgroundHex": "#1f1f1f",
+      "ratio": 6.471,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "text.secondary",
+      "background": "surface.hover",
+      "foregroundHex": "#9ba3ae",
+      "backgroundHex": "#2f2f2f",
+      "ratio": 5.256,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "link.foreground",
+      "background": "surface.card",
+      "foregroundHex": "#66a3ff",
+      "backgroundHex": "#1f1f1f",
+      "ratio": 6.474,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "link.foreground",
+      "background": "surface.hover",
+      "foregroundHex": "#66a3ff",
+      "backgroundHex": "#2f2f2f",
+      "ratio": 5.258,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "error.foreground",
+      "background": "surface.card",
+      "foregroundHex": "#f97b6f",
+      "backgroundHex": "#1f1f1f",
+      "ratio": 6.35,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "error.foreground",
+      "background": "surface.hover",
+      "foregroundHex": "#f97b6f",
+      "backgroundHex": "#2f2f2f",
+      "ratio": 5.158,
+      "minimum": 4.5,
+      "passes": true
+    },
+    {
+      "foreground": "border.control",
+      "background": "surface.hover",
+      "foregroundHex": "#838d9b",
+      "backgroundHex": "#2f2f2f",
+      "ratio": 3.984,
+      "minimum": 3,
+      "passes": true
+    },
+    {
+      "foreground": "focus.ring",
+      "background": "surface.hover",
+      "foregroundHex": "#99c2ff",
+      "backgroundHex": "#2f2f2f",
+      "ratio": 7.341,
+      "minimum": 3,
+      "passes": true
+    }
+  ]
+}

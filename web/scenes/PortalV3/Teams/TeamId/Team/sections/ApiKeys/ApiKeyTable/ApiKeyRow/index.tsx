@@ -44,21 +44,21 @@ export const ApiKeyRow = (props: {
   return (
     <div
       data-row-index={index}
-      className="grid min-h-16 grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-b border-grey-100 px-5 py-3 last:border-b-0"
+      className="grid min-h-16 grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-b border-edge-subtle px-5 py-3 last:border-b-0"
     >
       <div className="min-w-0">
-        <div className="truncate font-world text-13 leading-5 font-medium text-grey-900">
+        <div className="truncate font-world text-13 leading-5 font-medium text-content-primary">
           {apiKey.name}
         </div>
 
-        <div className="flex min-w-0 items-center font-gta text-12 leading-4 text-grey-400">
+        <div className="flex min-w-0 items-center font-gta text-12 leading-4 text-content-tertiary">
           <span className="truncate">Created {timeAgo}</span>
           <span className="shrink-0">&nbsp;·&nbsp;</span>
           {isEnoughPermissions ? (
             <button
               type="button"
               onClick={() => openRotateKeyModal(apiKey)}
-              className="shrink-0 underline underline-offset-2 transition-colors hover:text-grey-700 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
+              className="shrink-0 underline underline-offset-2 transition-colors hover:text-content-strong focus-visible:ring-2 focus-visible:ring-focus-soft focus-visible:outline-hidden"
             >
               Reset to view
             </button>
@@ -107,13 +107,13 @@ export const ApiKeyRow = (props: {
                 <Dropdown.ListItem asChild>
                   <button onClick={() => openDeleteKeyModal(apiKey)}>
                     <Dropdown.ListItemIcon
-                      className="text-system-error-600"
+                      className="text-content-error-600"
                       asChild
                     >
                       <TrashIcon />
                     </Dropdown.ListItemIcon>
 
-                    <Dropdown.ListItemText className="text-system-error-600">
+                    <Dropdown.ListItemText className="text-content-error-600">
                       Remove key
                     </Dropdown.ListItemText>
                   </button>

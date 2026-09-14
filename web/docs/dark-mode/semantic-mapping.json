@@ -1,0 +1,280 @@
+[
+  {
+    "role": "surface.canvas",
+    "currentToken": "portal-canvas",
+    "currentValue": "#f7f7f7",
+    "dark": {
+      "token": "Primary/Grey/900",
+      "hex": "#181818"
+    },
+    "note": "Base canvas",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "surface.card",
+    "currentToken": "bg-white / bg-grey-0",
+    "currentValue": "#ffffff",
+    "dark": {
+      "token": "Derived/Surface/Card",
+      "hex": "#1f1f1f",
+      "derivation": "3% Grey/0 over Grey/900 in sRGB, rounded to 8-bit hex"
+    },
+    "note": "Subtle elevation above canvas; existing portal-ink value reused for this separate role",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "surface.raised",
+    "currentToken": "popover / menus / dialogs",
+    "currentValue": "#ffffff",
+    "dark": {
+      "token": "Derived/Surface/Raised",
+      "hex": "#272727",
+      "derivation": "6.5% Grey/0 over Grey/900 in sRGB, rounded to 8-bit hex"
+    },
+    "note": "Menus, dialogs, and popovers; proposed derived semantic color, not a Figma primitive",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "surface.hover",
+    "currentToken": "grey-50 / portal-border",
+    "currentValue": "#f9fafb",
+    "dark": {
+      "token": "Derived/Surface/Hover",
+      "hex": "#2f2f2f",
+      "derivation": "10% Grey/0 over Grey/900 in sRGB, rounded to 8-bit hex"
+    },
+    "note": "Visible interaction state above base/card/raised layers",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "text.primary",
+    "currentToken": "portal-text / grey-900",
+    "currentValue": "#181818",
+    "dark": {
+      "token": "Primary/Grey/50",
+      "hex": "#f9fafb"
+    },
+    "note": "Headings and body copy",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "text.heading",
+    "currentToken": "portal-heading",
+    "currentValue": "#0b1928",
+    "dark": {
+      "token": "Primary/Grey/50",
+      "hex": "#f9fafb"
+    },
+    "note": "Heading role",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "text.secondary",
+    "currentToken": "portal-muted / grey-500",
+    "currentValue": "#757575",
+    "dark": {
+      "token": "Primary/Grey/400",
+      "hex": "#9ba3ae"
+    },
+    "note": "Readable supporting text across canvas, card, raised and hover surfaces",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "text.subtle",
+    "currentToken": "portal-subtle / grey-400",
+    "currentValue": "#9c9c9c",
+    "dark": {
+      "token": "Primary/Grey/400",
+      "hex": "#9ba3ae"
+    },
+    "note": "Required supporting text retains contrast in interactive states",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "text.disabled",
+    "currentToken": "portal-faint",
+    "currentValue": "#b8b8b8",
+    "dark": {
+      "token": "Primary/Grey/450",
+      "hex": "#838d9b"
+    },
+    "note": "Only inactive controls; do not use for required text",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "border.decorative",
+    "currentToken": "portal-border / grey-200",
+    "currentValue": "#f1f1f1",
+    "dark": {
+      "token": "Primary/Grey/700",
+      "hex": "#3c424b"
+    },
+    "note": "Canvas/card dividers; not sufficient as sole control boundary",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "border.control",
+    "currentToken": "input / required control boundary",
+    "currentValue": "#ebecef",
+    "dark": {
+      "token": "Primary/Grey/450",
+      "hex": "#838d9b"
+    },
+    "note": "At least 3:1 against both proposed surfaces",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "focus.ring",
+    "currentToken": "portal-accent-ring / ring-blue-500",
+    "currentValue": "#b8d4ff",
+    "dark": {
+      "token": "Primary/Info/300",
+      "hex": "#99c2ff"
+    },
+    "note": "Opaque focus ring; ring-offset must follow underlying surface",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "action.fill",
+    "currentToken": "bg-portal-ink",
+    "currentValue": "#1f1f1f",
+    "dark": {
+      "token": "Primary/Grey/0",
+      "hex": "#ffffff"
+    },
+    "note": "Light primary action in dark mode",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "action.foreground",
+    "currentToken": "text-white on ink button",
+    "currentValue": "#ffffff",
+    "dark": {
+      "token": "Primary/Grey/900",
+      "hex": "#181818"
+    },
+    "note": "Inverse label paired with light action fill",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "action.hover",
+    "currentToken": "bg-portal-ink-hover",
+    "currentValue": "#333333",
+    "dark": {
+      "token": "Primary/Grey/200",
+      "hex": "#ebecef"
+    },
+    "note": "Preserves readable inverse label",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "link.foreground",
+    "currentToken": "portal-blue / text-blue-500",
+    "currentValue": "#007cfb",
+    "dark": {
+      "token": "Primary/Info/400",
+      "hex": "#66a3ff"
+    },
+    "note": "Readable link text across neutral layers; preserve non-color link cues",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "info.background",
+    "currentToken": "portal-accent / additional-blue-100",
+    "currentValue": "#e6f0ff",
+    "dark": {
+      "token": "Primary/Info/900",
+      "hex": "#002466"
+    },
+    "note": "Informational surface",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "info.foreground",
+    "currentToken": "portal-blue / additional-blue-600",
+    "currentValue": "#007cfb",
+    "dark": {
+      "token": "Primary/Info/300",
+      "hex": "#99c2ff"
+    },
+    "note": "Pair with info background or neutral surfaces",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "error.background",
+    "currentToken": "system-error-50",
+    "currentValue": "#fff5f3",
+    "dark": {
+      "token": "Primary/Error/900",
+      "hex": "#611005"
+    },
+    "note": "Error surface",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "error.foreground",
+    "currentToken": "system-error-500 / danger",
+    "currentValue": "#ff4732",
+    "dark": {
+      "token": "Primary/Error/400",
+      "hex": "#f97b6f"
+    },
+    "note": "Small error text, paired with neutral layers or error background",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "success.background",
+    "currentToken": "system-success-50",
+    "currentValue": "#e9f8e9",
+    "dark": {
+      "token": "Primary/Success/900",
+      "hex": "#004d13"
+    },
+    "note": "Success surface",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "success.foreground",
+    "currentToken": "system-success-500",
+    "currentValue": "#00b800",
+    "dark": {
+      "token": "Primary/Success/300",
+      "hex": "#99e8b3"
+    },
+    "note": "Pair with success background or neutral surfaces",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "warning.background",
+    "currentToken": "system-warning-75",
+    "currentValue": "#fff6e6",
+    "dark": {
+      "token": "Primary/Warning/900",
+      "hex": "#664600"
+    },
+    "note": "Warning surface",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "warning.foreground",
+    "currentToken": "system-warning-650",
+    "currentValue": "#cc8b00",
+    "dark": {
+      "token": "Primary/Warning/300",
+      "hex": "#ffdb99"
+    },
+    "note": "Pair with warning background or neutral surfaces",
+    "status": "proposed-not-implemented"
+  },
+  {
+    "role": "purple.foreground",
+    "currentToken": "portal-purple text",
+    "currentValue": "#7d00fe",
+    "dark": {
+      "token": "Specialty/Purple/Secondary",
+      "hex": "#f2e6ff"
+    },
+    "note": "Text candidate only; preserve purple identity, dark badge tint requires separate review",
+    "status": "proposed-not-implemented"
+  }
+]
