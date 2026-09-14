@@ -172,7 +172,7 @@ export const DailyMetricChart = (props: {
                 }
                 contentStyle={{
                   border: "1px solid var(--chart-grid)",
-                  backgroundColor: "var(--surface-raised)",
+                  backgroundColor: "var(--color-surface-raised)",
                   color: "var(--chart-label)",
                   borderRadius: 12,
                   padding: "12px 16px",
@@ -200,7 +200,7 @@ export const DailyMetricChart = (props: {
                 value="No data available"
                 className="font-world text-13"
                 fill="var(--chart-tick)"
-                stroke="var(--surface)"
+                stroke="var(--color-surface)"
                 strokeWidth={4}
                 paintOrder="stroke"
               />

@@ -61,41 +61,45 @@ function contrast(a: string, b: string) {
 describe("dark portal token contrast", () => {
   it.each([
     "--color-portal-canvas",
-    "--surface",
-    "--surface-raised",
-    "--surface-muted",
+    "--color-surface",
+    "--color-surface-raised",
+    "--color-surface-muted",
   ])("keeps primary and supporting copy readable on %s", (background) => {
     for (const foreground of [
-      "--content-primary",
-      "--content-secondary",
-      "--content-description",
-      "--content-validation",
-      "--content-link",
+      "--color-content-primary",
+      "--color-content-secondary",
+      "--color-content-description",
+      "--color-content-validation",
+      "--color-content-link",
     ]) {
       expect(contrast(foreground, background)).toBeGreaterThanOrEqual(4.5);
     }
   });
 
   it.each([
-    ["--action-foreground", "--action"],
-    ["--action-foreground", "--action-hover"],
+    ["--color-action-foreground", "--color-action"],
+    ["--color-action-foreground", "--color-action-hover"],
     ["--color-portal-text", "--color-portal-border"],
-    ["--content-error-500", "--surface-error-50"],
-    ["--content-success-500", "--surface-success-50"],
-    ["--content-warning-650", "--surface-warning-75"],
+    ["--color-content-error-500", "--color-surface-error-50"],
+    ["--color-content-success-500", "--color-surface-success-50"],
+    ["--color-content-warning-650", "--color-surface-warning-75"],
     ["#ffffff", "--color-system-error-600"],
     ["#ffffff", "--color-system-error-800"],
   ])("keeps %s readable on %s", (foreground, background) => {
     expect(contrast(foreground, background)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it.each(["--surface", "--surface-raised", "--color-portal-canvas"])(
+  it.each([
+    "--color-surface",
+    "--color-surface-raised",
+    "--color-portal-canvas",
+  ])(
     "keeps control borders and focus indicators distinguishable on %s",
     (background) => {
-      expect(contrast("--control-border", background)).toBeGreaterThanOrEqual(
-        3,
-      );
-      expect(contrast("--focus", background)).toBeGreaterThanOrEqual(3);
+      expect(
+        contrast("--color-control-border", background),
+      ).toBeGreaterThanOrEqual(3);
+      expect(contrast("--color-focus", background)).toBeGreaterThanOrEqual(3);
     },
   );
 });

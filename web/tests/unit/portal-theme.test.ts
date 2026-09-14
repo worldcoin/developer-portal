@@ -1,7 +1,7 @@
 import { runInNewContext } from "node:vm";
 import {
   isDarkModeEnabled,
-  isPortalThemeRoute,
+  isPortalDarkModeAvailable,
   isThemePreference,
   THEME_STORAGE_KEY,
   THEME_STORAGE_SANITIZER,
@@ -18,20 +18,23 @@ describe("portal theme rollout", () => {
     expect(isDarkModeEnabled("TRUE", "development")).toBe(false);
   });
 
-  it("keeps marketing, admin, kiosks, unknown paths and partial route matches light", () => {
-    for (const path of ["/teams/a/settings", "/profile", "/dashboard"])
-      expect(isPortalThemeRoute(path)).toBe(true);
-    for (const path of [
-      null,
-      "/",
-      "/admin",
-      "/onboarding",
-      "/kiosk",
-      "/teams-malicious",
-      "/unknown",
-    ])
-      expect(isPortalThemeRoute(path)).toBe(false);
-  });
+  it.each([true, false])(
+    "gates supported routes and keeps unsupported routes light (flag=%s)",
+    (enabled) => {
+      for (const path of ["/teams/a/settings", "/profile", "/dashboard"])
+        expect(isPortalDarkModeAvailable(enabled, path)).toBe(enabled);
+      for (const path of [
+        null,
+        "/",
+        "/admin",
+        "/onboarding",
+        "/kiosk",
+        "/teams-malicious",
+        "/unknown",
+      ])
+        expect(isPortalDarkModeAvailable(enabled, path)).toBe(false);
+    },
+  );
 });
 // #endregion
 

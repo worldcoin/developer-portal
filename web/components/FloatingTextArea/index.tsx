@@ -39,7 +39,7 @@ export const FloatingTextArea = ({
           {...register}
           {...restProps}
           placeholder=" "
-          className="peer w-full resize-none bg-transparent text-sm text-content-primary focus:outline-hidden disabled:text-content-strong disabled:opacity-100 disabled:[-webkit-text-fill-color:var(--content-strong)]"
+          className="peer w-full resize-none bg-transparent text-sm text-content-primary focus:outline-hidden disabled:text-content-strong disabled:opacity-100 disabled:[-webkit-text-fill-color:var(--color-content-strong)]"
         />
         {addOnRight && (
           <div className="absolute right-4 bottom-3 z-10">{addOnRight}</div>

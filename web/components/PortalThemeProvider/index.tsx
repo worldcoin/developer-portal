@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  isPortalThemeRoute,
+  isPortalDarkModeAvailable,
   isThemePreference,
   THEME_STORAGE_KEY,
 } from "@/lib/theme";
@@ -64,7 +64,7 @@ export function PortalThemeProvider({
   nonce?: string;
 }) {
   const pathname = usePathname();
-  const available = enabled && isPortalThemeRoute(pathname);
+  const available = isPortalDarkModeAvailable(enabled, pathname);
   return (
     <ThemeEnabledContext.Provider value={available}>
       <ThemeProvider

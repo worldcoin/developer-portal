@@ -81,14 +81,14 @@ export const CodeBlock = memo(function CodeBlock(
           boxSizing: "content-box",
           textAlign: "start",
           color: clsx(
-            { "var(--content-link-legacy)": props.theme === "neutral" },
-            { "var(--content-error-700)": props.theme === "error" },
-            { "var(--content-success-700)": props.theme === "success" },
+            { "var(--color-content-link-legacy)": props.theme === "neutral" },
+            { "var(--color-content-error-700)": props.theme === "error" },
+            { "var(--color-content-success-700)": props.theme === "success" },
           ),
           borderRight: `1px solid ${clsx(
-            { "var(--content-link-legacy)": props.theme === "neutral" },
-            { "var(--content-error-700)": props.theme === "error" },
-            { "var(--content-success-700)": props.theme === "success" },
+            { "var(--color-content-link-legacy)": props.theme === "neutral" },
+            { "var(--color-content-error-700)": props.theme === "error" },
+            { "var(--color-content-success-700)": props.theme === "success" },
           )}`,
           marginRight: "16px",
         }}

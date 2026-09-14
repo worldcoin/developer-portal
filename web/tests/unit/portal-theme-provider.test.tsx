@@ -1,11 +1,15 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { act, render, waitFor } from "@testing-library/react";
-import { PortalThemeProvider } from "@/components/PortalThemeProvider";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  PortalThemeProvider,
+  usePortalThemeEnabled,
+} from "@/components/PortalThemeProvider";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
 
 // #region I/O boundaries
-jest.mock("next/navigation", () => ({ usePathname: () => "/profile" }));
+let mockPathname = "/profile";
+jest.mock("next/navigation", () => ({ usePathname: () => mockPathname }));
 jest.mock("react-toastify", () => ({
   ToastContainer: () => null,
   Slide: () => null,
@@ -13,6 +17,7 @@ jest.mock("react-toastify", () => ({
 // #endregion
 
 beforeEach(() => {
+  mockPathname = "/profile";
   localStorage.clear();
   document.documentElement.className = "font-class";
   Object.defineProperty(window, "matchMedia", {
@@ -25,8 +30,57 @@ beforeEach(() => {
   });
 });
 
+function Availability() {
+  return (
+    <span>
+      {usePortalThemeEnabled() ? "Appearance available" : "Appearance hidden"}
+    </span>
+  );
+}
+
 // #region Real next-themes provider behavior
 describe("portal appearance storage events", () => {
+  it.each([true, false])(
+    "preserves preference while navigating supported/unsupported routes (flag=%s)",
+    async (enabled) => {
+      localStorage.setItem(THEME_STORAGE_KEY, "dark");
+      const page = (
+        <PortalThemeProvider enabled={enabled}>
+          <Availability />
+        </PortalThemeProvider>
+      );
+      const { rerender } = render(page);
+      await waitFor(() =>
+        expect(document.documentElement).toHaveClass(
+          enabled ? "dark" : "light",
+        ),
+      );
+      expect(
+        screen.getByText(
+          enabled ? "Appearance available" : "Appearance hidden",
+        ),
+      ).toBeInTheDocument();
+      mockPathname = "/admin";
+      rerender(
+        <PortalThemeProvider enabled={enabled}>
+          <Availability />
+        </PortalThemeProvider>,
+      );
+      await waitFor(() =>
+        expect(document.documentElement).toHaveClass("light"),
+      );
+      expect(screen.getByText("Appearance hidden")).toBeInTheDocument();
+      mockPathname = "/profile";
+      rerender(page);
+      await waitFor(() =>
+        expect(document.documentElement).toHaveClass(
+          enabled ? "dark" : "light",
+        ),
+      );
+      expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
+    },
+  );
+
   it.each(["__proto__", "constructor", "font-class", "dark injected-class"])(
     "safely rejects the cross-tab preference %s and preserves unrelated root classes",
     async (value) => {

@@ -11,8 +11,11 @@ export function isThemePreference(value: unknown): value is ThemePreference {
 }
 
 /** Unmigrated marketing, onboarding, admin and QR kiosk routes stay light. */
-export function isPortalThemeRoute(pathname: string | null): boolean {
-  return /^\/(teams|profile|dashboard)(\/|$)/.test(pathname ?? "");
+export function isPortalDarkModeAvailable(
+  enabled: boolean,
+  pathname: string | null,
+): boolean {
+  return enabled && /^\/(teams|profile|dashboard)(\/|$)/.test(pathname ?? "");
 }
 
 /** Explicit false is the kill switch, including in local development. */

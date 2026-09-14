@@ -2,7 +2,7 @@ import PostHogPageView from "@/scenes/Root/providers/PostHogPageView";
 import { PortalThemeProvider } from "@/components/PortalThemeProvider";
 import {
   isDarkModeEnabled,
-  isPortalThemeRoute,
+  isPortalDarkModeAvailable,
   THEME_STORAGE_SANITIZER,
 } from "@/lib/theme";
 import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
@@ -102,7 +102,9 @@ export const RootLayout = async ({
       className={fontVariables}
       suppressHydrationWarning
       data-portal-theme={
-        themeEnabled && isPortalThemeRoute(currentPath) ? "enabled" : undefined
+        isPortalDarkModeAvailable(themeEnabled, currentPath)
+          ? "enabled"
+          : undefined
       }
     >
       <head>

@@ -171,13 +171,16 @@ export const Chart = (props: ChartProps) => {
     const styles = getComputedStyle(document.documentElement);
     setDarkPalette(
       Object.fromEntries(
-        [
-          "surface-raised",
-          "content-secondary",
-          "chart-grid",
-          "chart-tick",
-          "content-link",
-        ].map((name) => [name, styles.getPropertyValue(`--${name}`).trim()]),
+        Object.entries({
+          "surface-raised": "--color-surface-raised",
+          "content-secondary": "--color-content-secondary",
+          "chart-grid": "--chart-grid",
+          "chart-tick": "--chart-tick",
+          "content-link": "--color-content-link",
+        }).map(([name, variable]) => [
+          name,
+          styles.getPropertyValue(variable).trim(),
+        ]),
       ),
     );
   }, [resolvedTheme, forcedTheme]);

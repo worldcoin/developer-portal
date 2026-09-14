@@ -40,7 +40,7 @@ export const FloatingInput = ({
           {...register}
           placeholder=" "
           {...restProps}
-          className="peer w-full min-w-0 flex-1 bg-transparent text-sm text-content-primary focus:outline-hidden disabled:text-content-strong disabled:opacity-100 disabled:[-webkit-text-fill-color:var(--content-strong)]"
+          className="peer w-full min-w-0 flex-1 bg-transparent text-sm text-content-primary focus:outline-hidden disabled:text-content-strong disabled:opacity-100 disabled:[-webkit-text-fill-color:var(--color-content-strong)]"
         />
         {label && (
           <label

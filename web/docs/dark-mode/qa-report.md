@@ -10,10 +10,12 @@
 
 ## QA baseline — 2026-09-13
 
-- Agent-run: 145 unit/schema/script suites, 900 tests passed; typecheck, lint and formatting passed.
+- Agent-run after reduction: 146 unit/schema/script suites, 904 tests passed; typecheck, lint and formatting passed.
 - Chrome desktop (1440/1728px) and mobile (390 × 844): shell/apps, profile/settings, menus, dialogs, verification steps, controls, and synthetic charts/tooltips. No real saves, destructive confirmations, invitations, registrations or key generation.
 - Menu spacing/highlights, mobile Help expansion and verification field clipping were corrected. Tests cover token contrast, icon exceptions, storage/prototype-key handling, cross-tab events and forced-light rollback.
 - Screenshots below are historical QA evidence: synthetic chart data and a mobile menu-only crop. Full account/profile captures are excluded from the public PR.
+- Reduction removed preview infrastructure, audit artifacts, 43 unused aliases and duplicate variable indirection (theme CSS: 499 → 300 lines). All 631 retained source variable/mode values matched the original implementation; canvas lookups use the canonical variables and have a regression test.
+- Post-reduction Chrome checks covered desktop/mobile menus, icons, dialog cancellation, field focus, Light/Dark/System selection, reload and route navigation. A real flag-off restart forced light and hid appearance controls with a saved dark preference; restoring the flag restored dark. Port 3000 was untouched.
 
 ## Known gaps / draft blockers
 
