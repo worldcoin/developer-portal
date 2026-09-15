@@ -176,7 +176,7 @@ export const ConfigurationWizardPage = ({
       {isVersionSwitching && (
         <div
           data-testid="configuration-version-switch-skeleton"
-          className="absolute inset-0 z-10 bg-white"
+          className="absolute inset-0 z-10 bg-surface"
         >
           <ConfigurationWizardSkeleton />
         </div>

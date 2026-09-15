@@ -4,7 +4,7 @@ export const CreateAppTile = (props: { onClick: () => void }) => (
   <button
     type="button"
     onClick={props.onClick}
-    className="flex min-h-[144px] flex-col items-center justify-center gap-3 rounded-[10px] border border-dashed border-portal-border text-portal-muted transition-colors hover:border-portal-ink hover:text-portal-ink"
+    className="flex min-h-[144px] flex-col items-center justify-center gap-3 rounded-[10px] border border-dashed border-portal-border text-portal-muted transition-colors hover:border-edge-ink hover:text-content-ink"
     aria-label="Create an app"
   >
     <svg

@@ -20,22 +20,25 @@ export const SubmitSuccessToast = ({
 
   return (
     <div className="flex items-center gap-x-3">
-      <CheckmarkBadge className="size-5 shrink-0 text-system-success-500" />
-      <Typography variant={TYPOGRAPHY.R3} className="flex-1 text-grey-900">
+      <CheckmarkBadge className="size-5 shrink-0 text-content-success-500" />
+      <Typography
+        variant={TYPOGRAPHY.R3}
+        className="flex-1 text-content-primary"
+      >
         Your app was submitted for review
       </Typography>
       <div className="flex items-center gap-x-2">
         <Button
           type="button"
           onClick={closeToast}
-          className="text-grey-500 hover:text-grey-700"
+          className="text-content-secondary hover:text-content-strong"
         >
           <Typography variant={TYPOGRAPHY.R4}>Dismiss</Typography>
         </Button>
         <Button
           type="button"
           onClick={handleUndo}
-          className="text-blue-500 hover:text-blue-700"
+          className="text-content-link-legacy hover:underline"
         >
           <Typography variant={TYPOGRAPHY.R4}>Undo</Typography>
         </Button>

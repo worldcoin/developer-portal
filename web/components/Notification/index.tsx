@@ -20,9 +20,9 @@ export const Notification = (props: {
         clsx(
           "grid grid-cols-auto/1fr items-center gap-x-3 rounded-xl border p-5",
           {
-            "border-system-warning-200 bg-system-warning-50":
+            "border-edge-warning-200 bg-surface-warning-50":
               props.variant === "warning",
-            "border-blue-150 bg-blue-50": props.variant === "info",
+            "border-focus-soft bg-surface-info-faint": props.variant === "info",
           },
           props.className,
         ),

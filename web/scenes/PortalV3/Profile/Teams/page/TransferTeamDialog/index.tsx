@@ -164,8 +164,8 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                       )}
                     </Typography>
 
-                    <fieldset className="pointer-events-none absolute inset-x-0 top-[-12px] bottom-0 rounded-lg border border-grey-200">
-                      <legend className="ml-4 px-0.5 text-grey-400">
+                    <fieldset className="pointer-events-none absolute inset-x-0 top-[-12px] bottom-0 rounded-lg border border-edge">
+                      <legend className="ml-4 px-0.5 text-content-tertiary">
                         <Typography variant={TYPOGRAPHY.R4}>User</Typography>
                       </legend>
                     </fieldset>
@@ -177,7 +177,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                     {data?.members.map((member) => (
                       <SelectOption
                         key={member.id}
-                        className="transition hover:bg-grey-100"
+                        className="transition hover:bg-surface-muted"
                         value={member}
                       >
                         {getName(member)}{" "}

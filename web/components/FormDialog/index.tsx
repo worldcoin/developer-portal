@@ -44,17 +44,17 @@ type FormDialogProps = {
 const ignoreDismiss = () => {};
 
 const actionClassName =
-  "inline-flex h-11 w-full items-center justify-center rounded-8 px-4 font-world text-13 leading-none font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed";
+  "inline-flex h-11 w-full items-center justify-center rounded-8 px-4 font-world text-13 leading-none font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-edge-medium focus-visible:ring-offset-2 ring-offset-surface focus-visible:outline-hidden disabled:cursor-not-allowed";
 
-export const formDialogPrimaryActionClassName = `${actionClassName} bg-portal-ink text-white enabled:hover:bg-portal-ink-hover disabled:bg-grey-200 disabled:text-grey-400`;
-export const formDialogSecondaryActionClassName = `${actionClassName} border border-grey-200 bg-white text-portal-text enabled:hover:bg-grey-50 disabled:text-grey-300`;
-export const formDialogDangerActionClassName = `${actionClassName} bg-system-error-600 text-white enabled:hover:bg-system-error-500 disabled:bg-grey-200 disabled:text-grey-400`;
+export const formDialogPrimaryActionClassName = `${actionClassName} bg-action text-action-foreground enabled:hover:bg-action-hover disabled:bg-surface-disabled disabled:text-content-tertiary`;
+export const formDialogSecondaryActionClassName = `${actionClassName} border border-edge bg-surface text-portal-text enabled:hover:bg-surface-soft disabled:text-content-disabled`;
+export const formDialogDangerActionClassName = `${actionClassName} bg-system-error-600 text-white enabled:hover:bg-system-error-500 disabled:bg-surface-disabled disabled:text-content-tertiary`;
 export const formDialogLabelClassName =
   "mb-2 block font-world text-13 leading-none font-medium text-portal-text";
 export const formDialogInputClassName =
-  "h-11 w-full rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200 disabled:bg-grey-50 disabled:text-grey-400";
+  "h-11 w-full rounded-8 border border-edge bg-surface px-3 font-world text-14 text-portal-text outline-hidden transition focus:border-edge-strong focus:ring-2 focus:ring-edge disabled:bg-surface-soft disabled:text-content-tertiary";
 export const formDialogErrorClassName =
-  "mt-2 font-world text-12 leading-[1.4] text-system-error-600";
+  "mt-2 font-world text-12 leading-[1.4] text-content-error-600";
 
 export const FormDialog = ({
   children,
@@ -81,7 +81,7 @@ export const FormDialog = ({
 
       <DialogPanel
         className={twMerge(
-          "justify-items-stretch overflow-hidden rounded-[14px] border border-black/5 bg-white p-0 shadow-[0_24px_80px_rgba(0,0,0,0.18)] md:w-[440px] md:min-w-0 md:rounded-[14px]",
+          "justify-items-stretch overflow-hidden rounded-[14px] border border-black/5 bg-surface p-0 shadow-[0_24px_80px_rgba(0,0,0,0.18)] md:w-[440px] md:min-w-0 md:rounded-[14px]",
           panelClassName,
         )}
       >
@@ -96,7 +96,7 @@ export const FormDialog = ({
               onClick={onClose}
               disabled={!dismissable}
               aria-label={closeLabel}
-              className="flex size-8 shrink-0 items-center justify-center rounded-8 text-portal-muted transition-colors hover:bg-portal-border hover:text-portal-text focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-portal-muted"
+              className="flex size-8 shrink-0 items-center justify-center rounded-8 text-portal-muted transition-colors hover:bg-portal-border hover:text-portal-text focus-visible:ring-2 focus-visible:ring-edge-medium focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-portal-muted"
             >
               <RemoveCustomIcon className="size-4" />
             </button>

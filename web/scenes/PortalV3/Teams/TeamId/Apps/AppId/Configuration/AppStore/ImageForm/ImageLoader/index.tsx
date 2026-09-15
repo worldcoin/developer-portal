@@ -27,13 +27,13 @@ const ImageLoader = (props: { name: string; className?: string }) => {
     <div
       className={twMerge(
         clsx(
-          "flex w-44 flex-col items-center justify-center gap-y-2 rounded-lg border border-dashed border-grey-200 px-6",
+          "flex w-44 flex-col items-center justify-center gap-y-2 rounded-lg border border-dashed border-edge px-6",
           props.className,
         ),
       )}
     >
       <div className="w-full">
-        <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
+        <Typography variant={TYPOGRAPHY.R5} className="text-content-tertiary">
           {progress}%
         </Typography>
       </div>
@@ -44,7 +44,7 @@ const ImageLoader = (props: { name: string; className?: string }) => {
         />
       </div>
       <div className="w-full">
-        <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+        <Typography variant={TYPOGRAPHY.R5} className="text-content-secondary">
           {name}
         </Typography>
       </div>

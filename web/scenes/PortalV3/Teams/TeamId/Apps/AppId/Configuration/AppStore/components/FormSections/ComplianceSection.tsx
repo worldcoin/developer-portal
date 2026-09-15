@@ -19,13 +19,19 @@ export const ComplianceSection = ({
       control={control}
       disabled={!isEditable || !isEnoughPermissions}
       render={({ field }) => (
-        <div className="rounded-[10px] border border-grey-100 px-6 py-4">
+        <div className="rounded-[10px] border border-edge-subtle px-6 py-4">
           <div className="flex items-center gap-x-4">
             <div className="grid flex-1 gap-y-1">
-              <Typography variant={TYPOGRAPHY.S2} className="text-grey-900">
+              <Typography
+                variant={TYPOGRAPHY.S2}
+                className="text-content-primary"
+              >
                 Compliance
               </Typography>
-              <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
+              <Typography
+                variant={TYPOGRAPHY.B3}
+                className="text-content-secondary"
+              >
                 Includes functionality that may be considered gambling or the
                 purchase of digital in-game items, as defined by Apple.
               </Typography>

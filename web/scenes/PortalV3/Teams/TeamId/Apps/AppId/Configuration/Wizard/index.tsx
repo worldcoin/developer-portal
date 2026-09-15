@@ -40,9 +40,9 @@ import {
 } from "./wizard-steps";
 
 export const secondaryButtonClassName =
-  "flex h-10 items-center justify-center rounded-[10px] bg-portal-canvas px-6 text-15 leading-[1.2] font-semibold text-portal-ink transition-colors hover:bg-portal-border disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-portal-canvas";
+  "flex h-10 items-center justify-center rounded-[10px] bg-portal-canvas px-6 text-15 leading-[1.2] font-semibold text-content-ink transition-colors hover:bg-portal-border disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-portal-canvas";
 export const primaryButtonClassName =
-  "flex h-10 items-center justify-center rounded-[10px] bg-portal-ink px-6 text-15 leading-[1.2] font-semibold text-white transition-colors hover:bg-portal-ink-hover disabled:cursor-not-allowed disabled:opacity-60";
+  "flex h-10 items-center justify-center rounded-[10px] bg-action px-6 text-15 leading-[1.2] font-semibold text-action-foreground transition-colors hover:bg-action-hover disabled:cursor-not-allowed disabled:opacity-60";
 
 // Frame chrome shared with Skeleton.tsx so the loading state can never drift
 // from the loaded layout.
@@ -55,7 +55,7 @@ export const wizardScrollRegionClassName =
 export const wizardLogoRowClassName = "mt-[76px] flex justify-center";
 export const wizardBasicBodyClassName = "mx-auto mt-10 w-full max-w-[626px]";
 export const wizardActionBarClassName =
-  "-mx-6 shrink-0 border-t border-portal-border bg-white px-6 py-3";
+  "-mx-6 shrink-0 border-t border-portal-border bg-surface px-6 py-3";
 export const wizardActionBarInnerClassName =
   "mx-auto flex w-full max-w-[626px] items-center gap-3";
 
@@ -316,9 +316,9 @@ export const ConfigurationWizard = (props: {
             className="absolute top-1/2 right-0 -translate-y-1/2"
           >
             {isVerifiedView ? (
-              <CheckmarkBadge className="size-4 text-system-warning-500" />
+              <CheckmarkBadge className="size-4 text-content-warning-500" />
             ) : (
-              <EditIcon className="size-4 text-grey-700" />
+              <EditIcon className="size-4 text-content-strong" />
             )}
           </div>
         )}
@@ -458,7 +458,7 @@ export const ConfigurationWizard = (props: {
                 ) : (
                   <CheckmarkBadge
                     className={clsx(
-                      "size-4 text-system-warning-500",
+                      "size-4 text-content-warning-500",
                       opticalIconClassName,
                     )}
                   />

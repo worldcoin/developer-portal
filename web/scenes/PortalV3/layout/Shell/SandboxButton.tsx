@@ -237,7 +237,7 @@ export const SandboxButton = (props: {
         onClick={openDialog}
         aria-haspopup="dialog"
         className={clsx(
-          "group/sandbox flex shrink-0 items-center gap-x-2 rounded-[10px] px-2 py-2 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
+          "group/sandbox flex shrink-0 items-center gap-x-2 rounded-[10px] px-2 py-2 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-edge-medium focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
           props.className,
         )}
       >
@@ -278,11 +278,14 @@ export const SandboxButton = (props: {
                 <Typography
                   as="h2"
                   variant={TYPOGRAPHY.H6}
-                  className="text-grey-900"
+                  className="text-content-primary"
                 >
                   Install World ID Sandbox
                 </Typography>
-                <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+                <Typography
+                  variant={TYPOGRAPHY.R3}
+                  className="text-content-secondary"
+                >
                   Test World ID in World App without using production data.
                 </Typography>
               </div>
@@ -291,7 +294,7 @@ export const SandboxButton = (props: {
             <div
               role="group"
               aria-label="Platform"
-              className="grid w-fit grid-cols-2 gap-1 rounded-[10px] bg-grey-100 p-1"
+              className="grid w-fit grid-cols-2 gap-1 rounded-[10px] bg-surface-muted p-1"
             >
               {platformOrder.map((p) => (
                 <button
@@ -300,10 +303,10 @@ export const SandboxButton = (props: {
                   aria-pressed={platform === p}
                   onClick={() => switchPlatform(p)}
                   className={clsx(
-                    "flex h-8 items-center justify-center rounded-8 px-5 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-grey-300",
+                    "flex h-8 items-center justify-center rounded-8 px-5 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-edge-medium",
                     platform === p
-                      ? "bg-white text-grey-900 shadow-portal-card"
-                      : "text-grey-500 hover:text-grey-700",
+                      ? "bg-surface text-content-primary shadow-portal-card"
+                      : "text-content-secondary hover:text-content-strong",
                   )}
                 >
                   <Typography variant={TYPOGRAPHY.M4}>
@@ -314,7 +317,7 @@ export const SandboxButton = (props: {
             </div>
 
             {platform === "ios" ? (
-              <div className="rounded-12 bg-grey-50 px-4 py-3">
+              <div className="rounded-12 bg-surface-soft px-4 py-3">
                 <form
                   className="flex flex-wrap items-center gap-2"
                   onSubmit={submitIosAccessRequest}
@@ -327,7 +330,7 @@ export const SandboxButton = (props: {
                     onChange={(event) => setIosRequestEmail(event.target.value)}
                     aria-label="Apple Account email"
                     placeholder="apple-account@example.com"
-                    className="h-9 min-w-0 flex-1 rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300 disabled:bg-grey-100 disabled:text-grey-500"
+                    className="h-9 min-w-0 flex-1 rounded-8 border border-edge bg-surface px-3 font-world text-14 text-content-primary outline-hidden focus:ring-2 focus:ring-edge-medium disabled:bg-surface-muted disabled:text-content-secondary"
                   />
                   <InkButton
                     type="submit"
@@ -355,7 +358,7 @@ export const SandboxButton = (props: {
                 {existingIosRequest ? (
                   <Typography
                     variant={TYPOGRAPHY.M4}
-                    className="mt-2 block text-grey-900"
+                    className="mt-2 block text-content-primary"
                   >
                     {existingIosRequest.status === "approved" ? (
                       <>
@@ -382,7 +385,7 @@ export const SandboxButton = (props: {
                 ) : !requestRefreshing && !user?.email ? (
                   <Typography
                     variant={TYPOGRAPHY.M4}
-                    className="mt-2 block text-system-error-700"
+                    className="mt-2 block text-content-error-700"
                   >
                     An email-based portal account is required to request iOS
                     enrollment.
@@ -390,8 +393,11 @@ export const SandboxButton = (props: {
                 ) : null}
               </div>
             ) : (
-              <div className="rounded-12 bg-grey-50 px-4 py-3">
-                <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
+              <div className="rounded-12 bg-surface-soft px-4 py-3">
+                <Typography
+                  variant={TYPOGRAPHY.R4}
+                  className="text-content-strong"
+                >
                   The Android build is distributed as a Google Play internal
                   test. Your Google account email must be approved before the
                   link works. Make sure the email you provide is tied to a valid
@@ -410,7 +416,7 @@ export const SandboxButton = (props: {
                     onChange={(e) => setRequestEmail(e.target.value)}
                     aria-label="Google account email"
                     placeholder="google-account@gmail.com"
-                    className="h-9 min-w-0 flex-1 rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300 disabled:bg-grey-100 disabled:text-grey-500"
+                    className="h-9 min-w-0 flex-1 rounded-8 border border-edge bg-surface px-3 font-world text-14 text-content-primary outline-hidden focus:ring-2 focus:ring-edge-medium disabled:bg-surface-muted disabled:text-content-secondary"
                   />
                   <InkButton
                     type="submit"
@@ -432,7 +438,7 @@ export const SandboxButton = (props: {
                 {existingRequest ? (
                   <Typography
                     variant={TYPOGRAPHY.M4}
-                    className="mt-2 block text-grey-900"
+                    className="mt-2 block text-content-primary"
                   >
                     {existingRequest.accepted ? (
                       <>
@@ -460,13 +466,13 @@ export const SandboxButton = (props: {
                     <Typography
                       aria-hidden
                       variant={TYPOGRAPHY.M5}
-                      className="flex size-6 items-center justify-center rounded-[10px] border border-grey-200 text-grey-700"
+                      className="flex size-6 items-center justify-center rounded-[10px] border border-edge text-content-strong"
                     >
                       {index + 1}
                     </Typography>
                     <Typography
                       variant={TYPOGRAPHY.R4}
-                      className="pt-0.5 text-grey-700"
+                      className="pt-0.5 text-content-strong"
                     >
                       {index === 0 ? (
                         <>
@@ -475,7 +481,7 @@ export const SandboxButton = (props: {
                             href={TESTFLIGHT_APP_STORE_URL}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                            className="text-content-primary underline underline-offset-2 transition-colors hover:text-content-strong"
                           >
                             TestFlight
                           </a>{" "}
@@ -499,23 +505,23 @@ export const SandboxButton = (props: {
                       <Typography
                         aria-hidden
                         variant={TYPOGRAPHY.M5}
-                        className="flex size-6 items-center justify-center rounded-[10px] border border-grey-200 text-grey-700"
+                        className="flex size-6 items-center justify-center rounded-[10px] border border-edge text-content-strong"
                       >
                         {index + 1}
                       </Typography>
                       <Typography
                         variant={TYPOGRAPHY.R4}
-                        className="pt-0.5 text-grey-700"
+                        className="pt-0.5 text-content-strong"
                       >
                         {step}
                         {index === 0 ? (
-                          <span className="mt-3 block rounded-8 border border-system-warning-200 bg-system-warning-50 px-3 py-2 text-system-warning-700">
+                          <span className="mt-3 block rounded-8 border border-edge-warning-200 bg-surface-warning-50 px-3 py-2 text-content-warning-700">
                             <strong>Important:</strong>{" "}
                             {ANDROID_FIRST_SIGN_IN_NOTE}
                           </span>
                         ) : null}
                         {index === 3 ? (
-                          <span className="mt-1 block w-fit font-medium whitespace-nowrap text-grey-900">
+                          <span className="mt-1 block w-fit font-medium whitespace-nowrap text-content-primary">
                             {SANDBOX_SUPPORT_EMAIL}
                           </span>
                         ) : null}
@@ -528,7 +534,7 @@ export const SandboxButton = (props: {
                   {ANDROID_URL ? (
                     <Typography
                       variant={TYPOGRAPHY.R5}
-                      className="text-grey-500"
+                      className="text-content-secondary"
                     >
                       On the web?{" "}
                       <a
@@ -540,13 +546,13 @@ export const SandboxButton = (props: {
                             platform: "android",
                           })
                         }
-                        className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                        className="text-content-primary underline underline-offset-2 transition-colors hover:text-content-strong"
                       >
                         Click here
                       </a>
                     </Typography>
                   ) : null}
-                  <div className="w-full max-w-[236px] rounded-12 bg-grey-50 p-5">
+                  <div className="w-full max-w-[236px] rounded-12 bg-surface-soft p-5">
                     {ANDROID_URL ? (
                       <QRCode
                         value={ANDROID_URL}
@@ -555,10 +561,10 @@ export const SandboxButton = (props: {
                         aria-label="QR code to install the Android sandbox build"
                       />
                     ) : (
-                      <div className="flex aspect-square w-full items-center justify-center rounded-8 border border-dashed border-grey-300">
+                      <div className="flex aspect-square w-full items-center justify-center rounded-8 border border-dashed border-edge-medium">
                         <Typography
                           variant={TYPOGRAPHY.R4}
-                          className="text-center text-grey-400"
+                          className="text-center text-content-tertiary"
                         >
                           Android build
                           <br />

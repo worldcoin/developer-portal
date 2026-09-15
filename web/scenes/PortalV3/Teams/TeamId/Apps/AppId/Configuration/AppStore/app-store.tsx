@@ -28,11 +28,11 @@ import { useAppStoreForm } from "./hooks/useAppStoreForm";
 import { AppStoreFormProps } from "./types/AppStoreFormTypes";
 
 export const LawsAndRegulationsBanner = () => (
-  <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
+  <div className="flex items-center gap-3 rounded-[10px] bg-surface-warning-100 p-5">
     <WarningBadgeIcon />
     <Typography
       variant={TYPOGRAPHY.B3}
-      className="flex-1 text-system-warning-600"
+      className="flex-1 text-content-warning-600"
     >
       Laws and regulations governing mini apps vary by country and region.
       Before launching, ensure your app complies with all relevant local rules,
@@ -138,7 +138,7 @@ export const AppStoreForm = ({
       }}
     >
       <form
-        className="grid gap-y-6"
+        className="grid min-w-0 grid-cols-1 gap-y-6"
         onSubmit={(event) => {
           event.preventDefault();
         }}

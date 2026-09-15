@@ -97,7 +97,7 @@ export const ChipSelect = (props: {
           className={clsx(
             "flex h-14 w-full items-center gap-2 rounded-[10px] p-4",
             props.error
-              ? "border border-[#ea392a] bg-system-error-50"
+              ? "border border-content-validation bg-surface-error-50"
               : "bg-portal-canvas",
             props.disabled && "opacity-60",
           )}
@@ -117,7 +117,7 @@ export const ChipSelect = (props: {
             onKeyDown={(event) => {
               if (event.key === "Escape") setIsOpen(false);
             }}
-            className="w-full min-w-0 bg-transparent text-15 leading-[1.3] font-[350] text-portal-ink outline-none placeholder:text-portal-subtle"
+            className="w-full min-w-0 bg-transparent text-15 leading-[1.3] font-[350] text-content-ink outline-none placeholder:text-portal-subtle"
           />
         </div>
 
@@ -125,7 +125,7 @@ export const ChipSelect = (props: {
           <ul
             role="listbox"
             className={clsx(
-              "absolute z-10 max-h-64 w-full overflow-y-auto rounded-[10px] border border-portal-border bg-white p-1 shadow-portal-card",
+              "absolute z-10 max-h-64 w-full overflow-y-auto rounded-[10px] border border-portal-border bg-surface p-1 shadow-portal-card",
               opensUpward ? "bottom-full mb-2" : "top-full mt-2",
             )}
           >
@@ -138,7 +138,7 @@ export const ChipSelect = (props: {
                     role="option"
                     aria-selected={isSelected}
                     onClick={() => toggle(item.value)}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-15 leading-[1.3] font-[350] text-portal-ink hover:bg-portal-canvas"
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-15 leading-[1.3] font-[350] text-content-ink hover:bg-portal-canvas"
                   >
                     {item.flagCode && (
                       <img
@@ -164,7 +164,7 @@ export const ChipSelect = (props: {
       </div>
 
       {props.error && (
-        <p className="text-13 leading-[1.3] font-[350] text-[#ea392a]">
+        <p className="text-13 leading-[1.3] font-[350] text-content-validation">
           {props.error}
         </p>
       )}
@@ -175,7 +175,7 @@ export const ChipSelect = (props: {
             <button
               type="button"
               onClick={props.onSelectAll}
-              className="text-13 leading-[1.2] font-semibold text-portal-ink underline-offset-2 hover:underline"
+              className="text-13 leading-[1.2] font-semibold text-content-ink underline-offset-2 hover:underline"
             >
               {props.selectAllLabel ?? "Add all"}
             </button>
@@ -185,7 +185,7 @@ export const ChipSelect = (props: {
               type="button"
               onClick={props.onClearAll}
               // Figma nucleus/foreground-secondary (#7d7d7d) — no portal token.
-              className="text-13 leading-[1.2] font-semibold text-[#7d7d7d] underline-offset-2 hover:underline"
+              className="text-13 leading-[1.2] font-semibold text-content-description underline-offset-2 hover:underline"
             >
               Clear all
             </button>
@@ -211,7 +211,7 @@ export const ChipSelect = (props: {
                     className="size-5 shrink-0"
                   />
                 )}
-                <span className="text-13 leading-[1.2] font-semibold whitespace-nowrap text-portal-ink">
+                <span className="text-13 leading-[1.2] font-semibold whitespace-nowrap text-content-ink">
                   {item.label}
                 </span>
                 {!isLocked && !props.disabled && (

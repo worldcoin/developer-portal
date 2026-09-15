@@ -156,11 +156,11 @@ export const CircleIconContainer = (props: CircleIconContainerProps) => {
         className={clsx(
           "absolute inset-0 flex max-h-[88px] max-w-[88px] items-center justify-center",
           {
-            "text-system-error-500": props.variant === "error",
-            "text-blue-500": props.variant === "info",
-            "text-system-success-500": props.variant === "success",
-            "text-grey-400": props.variant === "muted",
-            "text-system-warning-600": props.variant === "warning",
+            "text-content-error-500": props.variant === "error",
+            "text-content-link-legacy": props.variant === "info",
+            "text-content-success-500": props.variant === "success",
+            "text-content-tertiary": props.variant === "muted",
+            "text-content-warning-600": props.variant === "warning",
           },
         )}
       >

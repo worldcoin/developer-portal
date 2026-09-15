@@ -109,13 +109,22 @@ export const ActionDangerZone = (props: ActionDangerZoneProps) => {
       <div className={compact ? "flex" : "grid w-full max-w-[480px] gap-y-10"}>
         {!compact ? (
           <div className="grid gap-y-2">
-            <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
+            <Typography
+              variant={TYPOGRAPHY.H7}
+              className="text-content-primary"
+            >
               Danger zone
             </Typography>
 
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            <Typography
+              variant={TYPOGRAPHY.R3}
+              className="text-content-secondary"
+            >
               This will immediately and permanently delete the{" "}
-              <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
+              <Typography
+                variant={TYPOGRAPHY.M3}
+                className="text-content-primary"
+              >
                 {truncateString(actionIdentifier, 30)}
               </Typography>{" "}
               action and its data for everyone. This cannot be undone.

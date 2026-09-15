@@ -58,7 +58,7 @@ export const Apps = () => {
             type="search"
             label=""
             aria-label="Search apps"
-            addOnLeft={<SearchIcon className="mx-2 text-grey-400" />}
+            addOnLeft={<SearchIcon className="mx-2 text-content-tertiary" />}
             placeholder="Search apps"
             className="h-10 w-full py-0 text-sm"
           />

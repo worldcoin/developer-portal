@@ -1,10 +1,24 @@
 import { AlertIcon } from "@/components/Icons/AlertIcon";
+import type { CSSProperties } from "react";
 import { preload } from "react-dom";
 import { twMerge } from "tailwind-merge";
 
 const ICON_PATH = "/images/portal-v3/icons";
 
-export const getIconPath = (name: string) => `${ICON_PATH}/${name}.svg`;
+export const getIconPath = (name: string) =>
+  `${ICON_PATH}/${encodeURIComponent(name)}.svg`;
+
+// Artwork and fixed-color status marks must not be recolored with navigation.
+const fixedColorIcons = new Set([
+  "world-id-sandbox-app-icon",
+  "credential-banner",
+  "card-toolkit",
+  "card-wand",
+  "radio-check",
+  "warning-triangle",
+  "star",
+  "stat-triangle",
+]);
 
 /**
  * Starts loading static icon assets before a lazily mounted menu needs them.
@@ -65,15 +79,37 @@ export const bubbleDigitClassName = "inline-block translate-y-[0.12em]";
  * labels (e.g. the sidebar rows). Block removes that so `items-center` lines it
  * up exactly. Callers can still override the display via `className`.
  */
-export const Icon = (props: { name: string; className?: string }) => (
-  <img
-    src={getIconPath(props.name)}
-    alt=""
-    aria-hidden="true"
-    draggable={false}
-    className={twMerge("block", props.className)}
-  />
-);
+export const Icon = (props: { name: string; className?: string }) => {
+  const src = getIconPath(props.name);
+  if (fixedColorIcons.has(props.name)) {
+    return (
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className={twMerge("block", props.className)}
+      />
+    );
+  }
+  // External SVGs cannot inherit currentColor. Keep the original light asset;
+  // in dark mode use its alpha mask so icons follow text, hover and focus.
+  return (
+    <span
+      aria-hidden="true"
+      data-portal-icon={props.name}
+      className={twMerge(
+        "portal-monochrome-icon block shrink-0",
+        props.className,
+      )}
+      style={
+        { "--portal-icon-mask": `url(${JSON.stringify(src)})` } as CSSProperties
+      }
+    >
+      <img src={src} alt="" draggable={false} className="block size-full" />
+    </span>
+  );
+};
 
 /**
  * Canonical warning glyph for the 32px circular badges used throughout app

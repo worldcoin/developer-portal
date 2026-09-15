@@ -21,10 +21,10 @@ describe("DestructiveTriggerButton", () => {
       "h-8",
       "shrink-0",
       "rounded-full",
-      "border-system-error-300",
-      "bg-white",
+      "border-edge-error-300",
+      "bg-surface",
       "text-13",
-      "text-system-error-600",
+      "text-content-error-600",
     );
     expect(button).not.toHaveClass("h-7");
 
@@ -46,8 +46,8 @@ describe("DestructiveTriggerButton", () => {
     expect(button).toBeDisabled();
     expect(button).toHaveClass(
       "disabled:cursor-not-allowed",
-      "disabled:border-system-error-100",
-      "disabled:text-system-error-300",
+      "disabled:border-edge-error-100",
+      "disabled:text-content-error-300",
     );
 
     fireEvent.click(button);

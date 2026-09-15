@@ -20,7 +20,7 @@ export const RejectionBanner = ({
   return (
     <div
       className={clsx(
-        "flex items-center gap-3 rounded-20 bg-system-warning-100 p-5",
+        "flex items-center gap-3 rounded-20 bg-surface-warning-100 p-5",
         className,
       )}
     >
@@ -30,7 +30,7 @@ export const RejectionBanner = ({
       {/* Label */}
       <Typography
         variant={TYPOGRAPHY.R4}
-        className="flex-1 text-system-warning-600"
+        className="flex-1 text-content-warning-600"
       >
         {displayMessage}
       </Typography>

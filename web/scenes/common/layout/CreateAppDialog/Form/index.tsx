@@ -113,15 +113,15 @@ export const CreateAppForm = ({ teamId }: CreateAppFormProps) => {
           autoComplete="off"
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? errorId : undefined}
-          className={`h-11 w-full rounded-8 border bg-white px-3 text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200 ${
-            errors.name ? "border-system-error-400" : "border-grey-200"
+          className={`h-11 w-full rounded-8 border bg-surface px-3 text-14 text-portal-text outline-hidden transition focus:border-edge-strong focus:ring-2 focus:ring-edge ${
+            errors.name ? "border-edge-error-400" : "border-edge"
           }`}
           data-testid="input-app-name"
         />
         {errors.name ? (
           <p
             id={errorId}
-            className="mt-2 text-12 leading-[1.4] text-system-error-600"
+            className="mt-2 text-12 leading-[1.4] text-content-error-600"
           >
             {errors.name.message}
           </p>

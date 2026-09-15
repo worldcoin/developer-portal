@@ -25,20 +25,23 @@ export const BanMessageDialog = () => {
 
       <DialogPanel className="grid gap-y-8 md:max-w-lg">
         <CircleIconContainer variant={"error"}>
-          <CloseIcon className="size-5 text-system-error-600" strokeWidth={3} />
+          <CloseIcon
+            className="size-5 text-content-error-600"
+            strokeWidth={3}
+          />
         </CircleIconContainer>
 
         <div className="grid w-full items-center justify-center gap-y-4">
           <Typography
             variant={TYPOGRAPHY.H6}
-            className="text-center text-grey-900"
+            className="text-center text-content-primary"
           >
             App was banned
           </Typography>
 
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="text-center text-grey-500"
+            className="text-center text-content-secondary"
           >
             {`Due to user reports, or our own investigation your app was banned.
             This means it cannot be accessed by users anymore and it's not

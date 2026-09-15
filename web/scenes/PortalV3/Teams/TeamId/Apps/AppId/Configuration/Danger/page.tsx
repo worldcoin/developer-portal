@@ -33,17 +33,21 @@ const DangerPageFrame = ({
     <main className="grid max-w-3xl gap-y-8 py-10">
       <Link
         href={urls.configuration({ team_id: teamId, app_id: appId })}
-        className="flex w-fit items-center gap-x-1 text-grey-500 transition-colors hover:text-grey-900"
+        className="flex w-fit items-center gap-x-1 text-content-secondary transition-colors hover:text-content-primary"
       >
         <ChevronLeftIcon className="size-5" />
         <Typography variant={TYPOGRAPHY.R4}>Back to configuration</Typography>
       </Link>
 
       <div className="grid gap-y-2">
-        <Typography as="h1" variant={TYPOGRAPHY.H5} className="text-grey-900">
+        <Typography
+          as="h1"
+          variant={TYPOGRAPHY.H5}
+          className="text-content-primary"
+        >
           Danger zone
         </Typography>
-        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+        <Typography variant={TYPOGRAPHY.R3} className="text-content-secondary">
           Destructive app settings are kept separate from everyday
           configuration.
         </Typography>

@@ -20,7 +20,7 @@ export const ActionsSearch = (props: {
       className="h-10 w-full py-0 text-sm"
       addOnLeft={
         <SearchIcon
-          className={clsx("mx-2 text-grey-400", opticalIconClassName)}
+          className={clsx("mx-2 text-content-tertiary", opticalIconClassName)}
           aria-hidden="true"
         />
       }

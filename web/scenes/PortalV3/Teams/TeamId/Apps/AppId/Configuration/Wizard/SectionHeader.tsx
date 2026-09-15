@@ -10,13 +10,13 @@ export const SectionHeader = (props: {
   description?: ReactNode;
 }) => (
   <header className="flex w-full flex-col gap-3">
-    <h2 className="text-15 leading-[1.2] font-medium text-portal-ink">
+    <h2 className="text-15 leading-[1.2] font-medium text-content-ink">
       {props.title}
-      {props.required && <span className="text-danger"> *</span>}
+      {props.required && <span className="text-content-danger"> *</span>}
     </h2>
     {props.description && (
       // Figma nucleus/foreground-secondary (#7d7d7d) — no portal token yet.
-      <p className="w-full text-13 leading-[1.3] font-[350] text-[#7d7d7d]">
+      <p className="w-full text-13 leading-[1.3] font-[350] text-content-description">
         {props.description}
       </p>
     )}

@@ -70,7 +70,11 @@ export const LinksForm = memo(function LinksForm(props: {
         <Typography as="h6" variant={TYPOGRAPHY.H7}>
           Legal links
         </Typography>
-        <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
+        <Typography
+          as="p"
+          variant={TYPOGRAPHY.R3}
+          className="text-content-secondary"
+        >
           Links to where your Privacy Policy and Terms of Use are posted
         </Typography>
       </div>

@@ -125,7 +125,7 @@ export const PermissionsDialog = () => {
           <Button
             type="button"
             onClick={() => setIsOpened(false)}
-            className="flex size-8 items-center justify-center rounded-full bg-grey-100"
+            className="flex size-8 items-center justify-center rounded-full bg-surface-muted"
           >
             <ArrowRightIcon className="rotate-180" />
           </Button>
@@ -153,13 +153,13 @@ export const PermissionsDialog = () => {
             <div
               className={clsx(
                 "grid grid-cols-4 items-center justify-items-center rounded-lg",
-                { "bg-grey-100": index % 2 === 0 },
+                { "bg-surface-muted": index % 2 === 0 },
               )}
               key={permission}
             >
               <Typography
                 variant={TYPOGRAPHY.R4}
-                className="w-full py-3 pl-5 text-start text-grey-500"
+                className="w-full py-3 pl-5 text-start text-content-secondary"
               >
                 {permission}
               </Typography>
@@ -167,7 +167,7 @@ export const PermissionsDialog = () => {
               {Object.entries(roles).map(([role, isAllowed]) => (
                 <Typography key={role} variant={TYPOGRAPHY.R4} className="">
                   {isAllowed ? (
-                    <CheckmarkCircleIcon className="text-system-success-500" />
+                    <CheckmarkCircleIcon className="text-content-success-500" />
                   ) : (
                     ""
                   )}
@@ -181,7 +181,7 @@ export const PermissionsDialog = () => {
           {["Owner", "Admin", "Member"].map((role, index) => (
             <Disclosure key={index}>
               {({ open }) => (
-                <div className="rounded-16 border border-grey-200">
+                <div className="rounded-16 border border-edge">
                   <Disclosure.Button className="flex w-full justify-between px-5 py-4 text-18 leading-6 font-medium">
                     {role}
 
@@ -199,7 +199,7 @@ export const PermissionsDialog = () => {
                           className="flex gap-x-2 text-14 leading-5"
                         >
                           <CheckIcon
-                            className="text-system-success-500"
+                            className="text-content-success-500"
                             size="16"
                           />
 

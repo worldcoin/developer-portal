@@ -38,12 +38,12 @@ export const CopyButton = (props: {
     >
       {isCopied ? (
         <CopyCheckIcon
-          className={clsx("size-5 text-grey-900", iconClassName)}
+          className={clsx("size-5 text-content-primary", iconClassName)}
           aria-hidden="true"
         />
       ) : (
         <CopyIcon
-          className={clsx("size-5 text-grey-900", iconClassName)}
+          className={clsx("size-5 text-content-primary", iconClassName)}
           aria-hidden="true"
         />
       )}

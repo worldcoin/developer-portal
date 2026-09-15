@@ -24,7 +24,7 @@ export const VerificationLevelPicker = memo(function VerificationLevelPicker(
         className,
       )}
     >
-      <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
+      <Typography variant={TYPOGRAPHY.R4} className="text-content-strong">
         Verification level:
       </Typography>
       <div className="flex flex-row items-center justify-center gap-x-3">

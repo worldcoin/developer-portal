@@ -169,7 +169,7 @@ it("hands the static SSR active card off to the measured pill at hydration", asy
   // Server HTML: static active card; the pill span is mounted (its effect
   // locates the nav through it on the first commit) but hidden.
   expect(activeLink(container).className).toContain(
-    "data-[active=true]:bg-white",
+    "data-[active=true]:bg-surface",
   );
   expect(pill(container).classList.contains("hidden")).toBe(true);
 
@@ -182,7 +182,7 @@ it("hands the static SSR active card off to the measured pill at hydration", asy
   expect(observerInstances.length).toBeGreaterThan(0);
   // The static card is gone because the measured pill has taken over.
   expect(activeLink(container).className).not.toContain(
-    "data-[active=true]:bg-white",
+    "data-[active=true]:bg-surface",
   );
   expect(pill(container).classList.contains("hidden")).toBe(false);
   expect(pill(container)).toHaveStyle({ width: "204px", height: "36px" });

@@ -30,7 +30,7 @@ export const SignInWithWorldIdPage = async (
           <Typography
             as="p"
             variant={TYPOGRAPHY.R3}
-            className="text-center text-grey-500 md:text-start"
+            className="text-center text-content-secondary md:text-start"
           >
             Let users sign in to your app with their World ID using OpenID
             Connect (OIDC)
@@ -46,7 +46,7 @@ export const SignInWithWorldIdPage = async (
             <Typography
               as="p"
               variant={TYPOGRAPHY.M3}
-              className="hidden text-center text-grey-700 md:block"
+              className="hidden text-center text-content-strong md:block"
             >
               See an example
             </Typography>
@@ -60,7 +60,7 @@ export const SignInWithWorldIdPage = async (
             <Typography
               as="p"
               variant={TYPOGRAPHY.M3}
-              className="text-center text-grey-700"
+              className="text-center text-content-strong"
             >
               Learn more
             </Typography>
@@ -68,7 +68,7 @@ export const SignInWithWorldIdPage = async (
         </div>
       </div>
 
-      <hr className="my-4 w-full border-dashed text-grey-200" />
+      <hr className="my-4 w-full border-dashed text-content-faint" />
       <div className="grid max-w-[580px] grid-cols-1">
         <ClientInformationPage appID={appId} teamID={teamId} />
       </div>

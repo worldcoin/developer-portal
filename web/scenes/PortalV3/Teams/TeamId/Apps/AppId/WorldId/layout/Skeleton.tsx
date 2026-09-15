@@ -39,7 +39,11 @@ export const WorldIdLayoutSkeleton = (props: {
   if (tab === WORLD_ID_TABS.Configuration) {
     return (
       <div className="flex flex-col gap-4">
-        <Typography as="h2" variant={TYPOGRAPHY.H7} className="text-portal-ink">
+        <Typography
+          as="h2"
+          variant={TYPOGRAPHY.H7}
+          className="text-content-ink"
+        >
           World ID Configuration
         </Typography>
 

@@ -55,7 +55,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
         name={selectedKey?.name}
       />
 
-      <div className="grid grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-y border-grey-100 bg-grey-25 px-5 py-2.5 font-gta text-12 leading-4 text-grey-400">
+      <div className="grid grid-cols-[minmax(0,1fr)_80px_32px] items-center gap-3 border-y border-edge-subtle bg-surface-faint px-5 py-2.5 font-gta text-12 leading-4 text-content-tertiary">
         <span>Name</span>
         <span>Status</span>
         <span aria-hidden="true" />

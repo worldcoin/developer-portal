@@ -43,12 +43,15 @@ export const ClearConfirmationModal = ({
         </ModalIcon>
         <div className="grid gap-y-10">
           <div className="grid grid-cols-1 justify-items-center gap-y-4">
-            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
+            <Typography
+              variant={TYPOGRAPHY.H6}
+              className="text-content-primary"
+            >
               {title}
             </Typography>
             <Typography
               variant={TYPOGRAPHY.R3}
-              className="text-center text-grey-500"
+              className="text-center text-content-secondary"
             >
               {description}
             </Typography>

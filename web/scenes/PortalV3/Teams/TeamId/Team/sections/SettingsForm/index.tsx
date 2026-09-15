@@ -123,12 +123,12 @@ export const TeamSettingsForm = (props: {
                 disabled={!canWrite}
                 maxLength={128}
                 required
-                className="h-10 w-full rounded-[10px] bg-portal-canvas px-4 font-world text-15 leading-[1.3] font-[350] text-portal-ink outline-hidden transition-shadow focus-visible:ring-2 focus-visible:ring-grey-300 disabled:cursor-not-allowed disabled:text-portal-muted"
+                className="h-10 w-full rounded-[10px] bg-portal-canvas px-4 font-world text-15 leading-[1.3] font-[350] text-content-ink outline-hidden transition-shadow focus-visible:ring-2 focus-visible:ring-edge-medium disabled:cursor-not-allowed disabled:text-portal-muted"
               />
               {errors.name?.message ? (
                 <p
                   id={errorId}
-                  className="font-world text-13 leading-[1.3] font-[350] text-[#ea392a]"
+                  className="font-world text-13 leading-[1.3] font-[350] text-content-validation"
                 >
                   {errors.name.message}
                 </p>

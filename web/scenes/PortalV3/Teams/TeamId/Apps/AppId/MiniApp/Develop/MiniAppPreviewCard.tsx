@@ -56,13 +56,13 @@ export const MiniAppPreviewCard = ({
 
   if (isExternalApp) {
     return (
-      <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
+      <div className="flex items-center gap-3 rounded-[10px] bg-surface-warning-100 p-5">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
           <AlertIcon className="size-4 text-white" />
         </div>
         <Typography
           variant={TYPOGRAPHY.B3}
-          className="flex-1 text-system-warning-600"
+          className="flex-1 text-content-warning-600"
         >
           Mini App preview becomes available when this app is set to a{" "}
           <Link
@@ -79,13 +79,13 @@ export const MiniAppPreviewCard = ({
 
   if (!hasPreview) {
     return (
-      <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
+      <div className="flex items-center gap-3 rounded-[10px] bg-surface-warning-100 p-5">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
           <AlertIcon className="size-4 text-white" />
         </div>
         <Typography
           variant={TYPOGRAPHY.B3}
-          className="flex-1 text-system-warning-600"
+          className="flex-1 text-content-warning-600"
         >
           Add a valid App URL to enable the QR code preview.
         </Typography>
@@ -94,24 +94,24 @@ export const MiniAppPreviewCard = ({
   }
 
   return (
-    <div className="w-full max-w-[300px] overflow-hidden rounded-2xl border border-grey-200 bg-grey-0 shadow-button">
+    <div className="w-full max-w-[300px] overflow-hidden rounded-2xl border border-edge bg-surface shadow-button">
       <div className="flex items-start justify-between gap-x-3 p-5">
         <div className="flex items-center gap-x-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-info-faint text-content-link-legacy">
             <FlaskIcon className="size-5" />
           </div>
 
           <div className="grid gap-y-0.5">
             <Typography
               as="p"
-              className="font-world text-[15px] leading-[120%] font-semibold text-grey-900"
+              className="font-world text-[15px] leading-[120%] font-semibold text-content-primary"
             >
               Mini App preview
             </Typography>
 
             <Typography
               as="p"
-              className="font-world text-[13px] leading-[130%] font-medium text-grey-500"
+              className="font-world text-[13px] leading-[130%] font-medium text-content-secondary"
             >
               Scan or copy the preview link
             </Typography>
@@ -121,8 +121,8 @@ export const MiniAppPreviewCard = ({
         <CopyButton
           fieldName="Mini App preview link"
           fieldValue={miniAppUrl}
-          className="rounded-lg border border-grey-200 p-2 pr-2! hover:bg-grey-50"
-          iconClassName="size-4 text-grey-700"
+          className="rounded-lg border border-edge p-2 pr-2! hover:bg-surface-soft"
+          iconClassName="size-4 text-content-strong"
         />
       </div>
 

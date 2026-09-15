@@ -236,10 +236,10 @@ describe("logo upload crop flow", () => {
     expect(screen.queryByRole("slider", { name: "Crop zoom" })).toBeNull();
     const cropButton = screen.getByRole("button", { name: "Crop & upload" });
     expect(cropButton).toBeEnabled();
-    expect(cropButton).toHaveClass("rounded-8", "bg-portal-ink");
+    expect(cropButton).toHaveClass("rounded-8", "bg-action");
     expect(screen.getByRole("button", { name: "Cancel" })).toHaveClass(
       "rounded-8",
-      "border-grey-200",
+      "border-edge",
     );
 
     fireEvent.click(

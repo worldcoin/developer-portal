@@ -14,7 +14,7 @@ const MetaCard = (props: { label: string; children: ReactNode }) => (
   <div className="flex w-60 flex-col items-start">
     <div className="flex w-full flex-col items-start gap-1">
       {/* Figma nucleus/foreground-secondary (#7d7d7d) — no portal token yet. */}
-      <p className="text-17 leading-[1.3] font-[350] whitespace-nowrap text-[#7d7d7d]">
+      <p className="text-17 leading-[1.3] font-[350] whitespace-nowrap text-content-description">
         {props.label}
       </p>
       {props.children}
@@ -98,26 +98,26 @@ export const ReviewStep = (props: {
                   <Icon key={index} name="star" className="size-5" />
                 ))}
               </div>
-              <p className="text-15 leading-[1.3] font-[350] whitespace-nowrap text-portal-ink">
+              <p className="text-15 leading-[1.3] font-[350] whitespace-nowrap text-content-ink">
                 0
               </p>
             </div>
           </MetaCard>
 
           <MetaCard label="Built by">
-            <p className="text-15 leading-[1.3] font-[350] whitespace-nowrap text-portal-ink">
+            <p className="text-15 leading-[1.3] font-[350] whitespace-nowrap text-content-ink">
               {props.teamName}
             </p>
           </MetaCard>
 
           <MetaCard label="Platform">
-            <p className="text-15 leading-[1.3] font-[350] whitespace-nowrap text-portal-ink">
+            <p className="text-15 leading-[1.3] font-[350] whitespace-nowrap text-content-ink">
               {props.isMiniApp ? "Mini App" : "External App"}
             </p>
           </MetaCard>
 
           <MetaCard label="Humans">
-            <p className="text-15 leading-[1.3] font-[350] whitespace-nowrap text-portal-ink">
+            <p className="text-15 leading-[1.3] font-[350] whitespace-nowrap text-content-ink">
               Available at launch
             </p>
           </MetaCard>
@@ -142,10 +142,10 @@ export const ReviewStep = (props: {
             ) : (
               <div
                 key={index}
-                className="flex h-[203px] min-w-px flex-1 items-center justify-center overflow-clip rounded-[10px] border border-dashed border-grey-200 bg-portal-canvas p-6"
+                className="flex h-[203px] min-w-px flex-1 items-center justify-center overflow-clip rounded-[10px] border border-dashed border-edge bg-portal-canvas p-6"
               >
                 {/* Figma Primary/Grey/500 (#717680) — no matching token. */}
-                <p className="text-center text-13 leading-[1.3] font-[350] whitespace-nowrap text-[#717680]">
+                <p className="text-center text-13 leading-[1.3] font-[350] whitespace-nowrap text-content-description-alt">
                   Showcase image
                 </p>
               </div>

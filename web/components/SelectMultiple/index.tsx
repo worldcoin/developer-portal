@@ -121,31 +121,31 @@ export const SelectMultiple = <T extends FieldValues>(
   );
 
   const labelClassNames = clsx(
-    "ml-2 whitespace-nowrap text-sm peer-focus:text-blue-500",
+    "ml-2 whitespace-nowrap text-sm peer-focus:text-content-link-legacy",
     {
-      "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
+      "text-content-tertiary peer-focus:text-content-link-legacy group-hover:text-content-strong":
         !errors && !disabled,
-      "text-system-error-500 peer-focus:text-system-error-500":
+      "text-content-error-500 peer-focus:text-content-error-500":
         errors && !disabled,
-      "text-grey-400": disabled,
+      "text-content-tertiary": disabled,
       "px-0": label == "",
       "px-0.5": label != "",
     },
   );
 
   const fieldsetClassName = clsx(
-    "overflow-hidden rounded-[10px] border bg-grey-50 text-base text-grey-700 md:text-sm",
+    "overflow-hidden rounded-[10px] border bg-surface-soft text-base text-content-strong md:text-sm",
 
     {
-      "border-transparent focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-300":
+      "border-transparent focus-within:border-focus focus-within:hover:border-focus hover:border-edge-medium":
         !errors && !disabled,
-      "border-system-error-500 text-system-error-500 focus-within:border-system-error-500":
+      "border-edge-error-500 text-content-error-500 focus-within:border-edge-error-500":
         errors && !disabled,
     },
 
     {
-      "hover:text-grey-700": !disabled,
-      "text-grey-400 border-transparent": disabled,
+      "hover:text-content-strong": !disabled,
+      "text-content-tertiary border-transparent": disabled,
     },
   );
 
@@ -195,7 +195,7 @@ export const SelectMultiple = <T extends FieldValues>(
         {label && (
           <legend className={twMerge(clsx("select-none", labelClassNames))}>
             {label}{" "}
-            {required && <span className="text-system-error-500">*</span>}
+            {required && <span className="text-content-error-500">*</span>}
           </legend>
         )}
 
@@ -207,7 +207,7 @@ export const SelectMultiple = <T extends FieldValues>(
             onChange={(e) => setSearch(e.target.value)}
             className={twMerge(
               clsx(
-                "w-full bg-transparent py-0 pl-0 text-grey-900 outline-hidden placeholder:text-grey-500",
+                "w-full bg-transparent py-0 pl-0 text-content-primary outline-hidden placeholder:text-content-secondary",
               ),
             )}
             disabled={disabled}
@@ -221,14 +221,17 @@ export const SelectMultiple = <T extends FieldValues>(
                 clearAll?.();
               }}
               className={clsx(
-                "h-8 rounded-full bg-grey-900 px-3 text-white hover:bg-grey-700",
+                "h-8 rounded-full bg-action px-3 text-action-foreground hover:bg-action-hover",
                 {
                   "cursor-not-allowed opacity-50": !props.canClearAll,
                 },
               )}
               disabled={disabled || !props.canClearAll}
             >
-              <Typography variant={TYPOGRAPHY.M4} className="text-white">
+              <Typography
+                variant={TYPOGRAPHY.M4}
+                className="text-action-foreground"
+              >
                 Clear all
               </Typography>
             </DecoratedButton>
@@ -240,14 +243,14 @@ export const SelectMultiple = <T extends FieldValues>(
         ref={refs.setFloating}
         style={floatingStyles}
         className={clsx(
-          "z-50 grid min-h-0 w-full grid-rows-auto/1fr gap-y-1 rounded-xl border border-grey-200 bg-white py-2 shadow-lg",
+          "z-50 grid min-h-0 w-full grid-rows-auto/1fr gap-y-1 rounded-xl border border-edge bg-surface py-2 shadow-lg",
           { hidden: !open },
         )}
         {...getFloatingProps()}
       >
         {(!search || search.length === 0) && (
           <div
-            className={clsx("grid gap-y-2 p-2 hover:bg-grey-50", {
+            className={clsx("grid gap-y-2 p-2 hover:bg-surface-soft", {
               "order-1": placement === "top",
               "order-0": placement !== "top",
             })}
@@ -276,14 +279,17 @@ export const SelectMultiple = <T extends FieldValues>(
 
       <div className={clsx("flex w-full flex-col px-2")}>
         {helperText && (
-          <Typography variant={TYPOGRAPHY.R5} className="mt-2 text-grey-500">
+          <Typography
+            variant={TYPOGRAPHY.R5}
+            className="mt-2 text-content-secondary"
+          >
             {helperText}
           </Typography>
         )}
 
         {errors?.message && (
           <Typography
-            className="mt-2 text-system-error-500"
+            className="mt-2 text-content-error-500"
             variant={TYPOGRAPHY.R5}
           >
             {errors.message}
@@ -299,10 +305,10 @@ export const SelectMultiple = <T extends FieldValues>(
                 {inputVisibleItems.map((item, index) => (
                   <div
                     key={`select-multiple-option-${item?.label}-${index}`}
-                    className="flex h-8 items-center gap-2 rounded-full border border-grey-100 bg-grey-100 pr-3 pl-1.5"
+                    className="flex h-8 items-center gap-2 rounded-full border border-edge-subtle bg-surface-muted pr-3 pl-1.5"
                   >
                     {props.renderBadgeIcon?.(item)}
-                    <span className="text-[13px] font-semibold text-grey-900 select-none">
+                    <span className="text-[13px] font-semibold text-content-primary select-none">
                       {item?.label}
                     </span>
 
@@ -318,7 +324,7 @@ export const SelectMultiple = <T extends FieldValues>(
                       >
                         <CloseIcon
                           strokeWidth={2}
-                          className="size-4 text-grey-500"
+                          className="size-4 text-content-secondary"
                         />
                       </button>
                     )}
@@ -329,7 +335,7 @@ export const SelectMultiple = <T extends FieldValues>(
               {restSelectedCount > 0 && (
                 <Typography
                   variant={TYPOGRAPHY.R5}
-                  className="text-grey-400 select-none"
+                  className="text-content-tertiary select-none"
                 >
                   +{restSelectedCount} more
                 </Typography>
@@ -357,7 +363,7 @@ const Item = (props: {
     <label
       key={`select-multiple-${item.value}-${index}`}
       className={clsx(
-        "grid cursor-pointer items-center gap-x-2 py-2 pr-5 pl-2 hover:bg-grey-50",
+        "grid cursor-pointer items-center gap-x-2 py-2 pr-5 pl-2 hover:bg-surface-soft",
         {
           "grid-cols-1fr/auto": !icon,
           "grid-cols-auto-1fr-auto": icon,
@@ -373,7 +379,7 @@ const Item = (props: {
       <div
         className={twMerge(
           clsx(
-            "relative size-[22px] rounded-full",
+            "relative size-[22px] rounded-full ring-offset-surface focus-within:ring-2 focus-within:ring-focus focus-within:ring-offset-2",
             { "opacity-50": disabled },
             className,
           ),
@@ -381,16 +387,19 @@ const Item = (props: {
       >
         <input
           type="checkbox"
-          className="peer hidden"
+          className="peer sr-only"
           value={item.value}
           checked={checked}
           onChange={() => onChange(item.value)}
           disabled={disabled}
         />
 
-        <div className="invisible absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-grey-900 opacity-0 transition-[visibility,opacity] peer-checked:visible peer-checked:opacity-100">
+        <div className="invisible absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-grey-900 opacity-0 transition-[visibility,opacity] peer-checked:visible peer-checked:opacity-100 dark:bg-action">
           <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-grey-0/10 to-transparent" />
-          <CheckIcon size="16" className="text-grey-0" />
+          <CheckIcon
+            size="16"
+            className="text-grey-0 dark:text-action-foreground"
+          />
         </div>
       </div>
     </label>
