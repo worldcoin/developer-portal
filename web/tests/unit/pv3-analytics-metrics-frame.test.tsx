@@ -64,9 +64,13 @@ const expectLegends = (names: string[]) => {
     expect(
       within(chart)
         .getAllByRole("listitem")
-        .map((item) => item.textContent),
+        .map((item) => item.textContent?.split(" ·")[0]),
     ).toEqual(names);
   }
+};
+const chooseFilterOption = (filterName: string, optionName: string) => {
+  fireEvent.click(screen.getByRole("combobox", { name: filterName }));
+  fireEvent.click(screen.getByRole("option", { name: optionName }));
 };
 // #endregion
 
@@ -98,53 +102,75 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-// #region Lifetime and daily analytics
-it("renders lifetime metrics by default and all daily charts in the daily tab", async () => {
+// #region Proofs and Selfie Check analytics
+it("renders mock Proofs metrics by default and API-backed Selfie Check analytics in its tab", async () => {
   render(<MetricsFrame appId={appId} />);
-  await screen.findByRole("region", { name: "Analytics overview" });
-  expect(screen.getByText("10")).toBeInTheDocument();
-  expect(screen.getByText("6")).toBeInTheDocument();
-  expect(screen.getByText("20 sessions")).toBeInTheDocument();
-  expect(screen.getByRole("tab", { name: "All time" })).toHaveAttribute(
+  await screen.findByRole("region", { name: "Proofs overview" });
+  expect(screen.getByText("384")).toBeInTheDocument();
+  expect(screen.getByText("592")).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "Proofs" })).toHaveAttribute(
     "aria-selected",
     "true",
   );
+  expect(screen.getAllByRole("region", { name: /by day/ })).toHaveLength(6);
+  expect(screen.getByRole("heading", { name: "Users" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Proofs" })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("combobox", { name: "Proof type" }));
   expect(
-    screen.queryByRole("region", { name: /by day and OS/ }),
-  ).not.toBeInTheDocument();
+    screen.getAllByRole("option").map((option) => option.textContent),
+  ).toEqual(["All", "Orb", "Document", "Selfie Check"]);
+  fireEvent.click(screen.getByRole("option", { name: "All" }));
+  expect(
+    screen.getByRole("combobox", { name: "Time interval" }),
+  ).toHaveAttribute("data-value", "daily");
+  chooseFilterOption("Proof type", "Orb");
+  chooseFilterOption("Time interval", "Weekly");
+  expect(screen.getByRole("combobox", { name: "Proof type" })).toHaveAttribute(
+    "data-value",
+    "Orb",
+  );
+  expect(
+    screen.getByRole("combobox", { name: "Time interval" }),
+  ).toHaveAttribute("data-value", "weekly");
 
-  fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
+  fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
+  const overview = await screen.findByRole("region", {
+    name: "Analytics overview",
+  });
+  expect(within(overview).getByText("10")).toBeInTheDocument();
+  expect(within(overview).getByText("6")).toBeInTheDocument();
+  expect(screen.getByText("20 sessions")).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "Selfie Check" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   expectLegends(["Android", "iOS"]);
+  fireEvent.click(screen.getByRole("combobox", { name: "Operating System" }));
   expect(
-    within(screen.getByRole("combobox", { name: "Operating System" }))
-      .getAllByRole("option")
-      .map((option) => option.textContent),
-  ).toEqual(["All", "Android", "iOS", "Unknown"]);
+    screen.getAllByRole("option").map((option) => option.textContent),
+  ).toEqual(["All", "Android", "iOS"]);
+  fireEvent.click(screen.getByRole("option", { name: "All" }));
   expect(global.fetch).toHaveBeenCalledTimes(2);
 });
 
 it("filters every daily chart without changing the lifetime section", async () => {
   render(<MetricsFrame appId={appId} />);
+  fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
   await screen.findByRole("region", { name: "Analytics overview" });
-  fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
   expectLegends(["Android", "iOS"]);
 
-  fireEvent.change(screen.getByRole("combobox", { name: "Timeframe" }), {
-    target: { value: "all" },
-  });
-  expectLegends(["Android", "iOS", "Unknown"]);
-  fireEvent.change(screen.getByRole("combobox", { name: "Operating System" }), {
-    target: { value: "iOS" },
-  });
+  chooseFilterOption("Timeframe", "All time");
+  expectLegends(["Android", "iOS"]);
+  chooseFilterOption("Operating System", "iOS");
   expectLegends(["iOS"]);
-  expect(screen.getByRole("combobox", { name: "Timeframe" })).toHaveValue(
+  expect(screen.getByRole("combobox", { name: "Timeframe" })).toHaveAttribute(
+    "data-value",
     "all",
   );
   expect(
     screen.getByRole("combobox", { name: "Operating System" }),
-  ).toHaveValue("iOS");
+  ).toHaveAttribute("data-value", "iOS");
 
-  fireEvent.click(screen.getByRole("tab", { name: "All time" }));
   expect(screen.getByText("20 sessions")).toBeInTheDocument();
 });
 
@@ -153,6 +179,7 @@ it("renders supplied preview data without requesting the analytics API", () => {
     <MetricsFrame appId={appId} previewData={{ totals, daily: dailyRows }} />,
   );
 
+  fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
   expect(
     screen.getByRole("region", { name: "Analytics overview" }),
   ).toBeInTheDocument();
@@ -170,7 +197,7 @@ it.each(["total", "daily"])(
     expect(await screen.findByRole("status")).toHaveTextContent(
       "showing the last verified data",
     );
-    fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
     expect(screen.getByRole("status")).toHaveTextContent(
       "showing the last verified data",
     );
@@ -180,6 +207,7 @@ it.each(["total", "daily"])(
 it("shows server fallback immediately, then clears it after a fresh response", async () => {
   render(<MetricsFrame appId={appId} initialIsFallback />);
   expect(screen.getByRole("status")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
   await screen.findByRole("region", { name: "Analytics overview" });
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
 });
@@ -191,6 +219,7 @@ it("keeps development fixture responses without metadata renderable", async () =
     ),
   );
   render(<MetricsFrame appId={appId} />);
+  fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
   expect(
     await screen.findByRole("region", { name: "Analytics overview" }),
   ).toBeInTheDocument();
@@ -208,6 +237,7 @@ it.each([404, 503])(
       ),
     );
     render(<MetricsFrame appId={appId} />);
+    fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
     expect(
       await screen.findByText(
         status === 404
@@ -215,7 +245,7 @@ it.each([404, 503])(
           : "Analytics are temporarily unavailable. Try again shortly.",
       ),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
     expectLegends(["Android", "iOS"]);
   },
 );
@@ -235,12 +265,12 @@ it("bounds stalled fetches and reports timeouts in each tab", async () => {
     await act(async () => {
       jest.advanceTimersByTime(8_000);
     });
+    fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
     expect(
       within(
         screen.getByRole("region", { name: "Selfie Check funnel" }),
       ).getByText("Analytics request timed out."),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
     expect(
       within(
         screen.getByRole("region", { name: "Daily Selfie Check charts" }),

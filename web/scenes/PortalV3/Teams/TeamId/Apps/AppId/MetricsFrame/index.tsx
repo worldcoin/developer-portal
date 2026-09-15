@@ -1,9 +1,17 @@
 "use client";
 
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { CaretIcon } from "@/components/Icons/CaretIcon";
+import {
+  Select,
+  SelectButton,
+  SelectOption,
+  SelectOptions,
+} from "@/components/Select";
 import {
   DAILY_OS_SERIES,
   filterDailyRows,
+  groupDailyRowsByInterval,
   pickDailyRow,
   pickTotalsRow,
   TABLE_COLUMNS_DAILY,
@@ -13,16 +21,37 @@ import {
   type MetricKind,
   type TotalsRow,
 } from "@/lib/selfie-check-analytics";
+import {
+  filterProofsDailyRows,
+  groupProofsDailyRowsByInterval,
+  PROOF_TYPE_ORDER,
+  proofsAnalyticsPreview,
+  type ProofsDailyMetric,
+  type ProofsDimension,
+} from "@/lib/proofs-analytics";
+import {
+  TREND_INTERVAL_OPTIONS,
+  type TrendInterval,
+} from "@/lib/analytics-time-interval";
 import { AnalyticsAppEligibility } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   DailyMetricChart,
   type DailyMetricChartType,
 } from "./DailyMetricChart";
+import { ProofsMetricChart } from "./ProofsMetricChart";
+import { ProofsTotalsOverview } from "./ProofsTotalsOverview";
 import { TotalsFunnel } from "./TotalsFunnel";
 import { TotalsOverview } from "./TotalsOverview";
 
@@ -42,7 +71,7 @@ const TIMEFRAME_OPTIONS = [
 }[];
 
 type TimeframeValue = (typeof TIMEFRAME_OPTIONS)[number]["value"];
-type AnalyticsView = "totals" | "daily";
+type AnalyticsView = "proofs" | "selfie_check";
 type AnalyticsViewEvent = {
   appId: string;
   teamId: string;
@@ -84,6 +113,49 @@ const CHART_METRICS = [
   yAxisLabel: string;
 }[];
 
+const PROOFS_USER_CHARTS = [
+  {
+    metric: "nUsersSharedProof",
+    dimension: "proofType",
+    title: "Number of users who shared 1+ proof, by day and proof type",
+  },
+  {
+    metric: "cumulativeUniqueUsersSharedProof",
+    dimension: "proofType",
+    title:
+      "Cumulative number of unique users who shared 1+ proof, by day and proof type",
+  },
+  {
+    metric: "nUsersSharedProof",
+    dimension: "osName",
+    title: "Number of users who shared 1+ proof, by day and OS",
+  },
+  {
+    metric: "cumulativeUniqueUsersSharedProof",
+    dimension: "osName",
+    title:
+      "Cumulative number of unique users who shared 1+ proof, by day and OS",
+  },
+] as const satisfies readonly {
+  metric: ProofsDailyMetric;
+  dimension: ProofsDimension;
+  title: string;
+}[];
+
+const PROOFS_SHARED_CHARTS = [
+  {
+    dimension: "proofType",
+    title: "Number of proofs shared, by day and proof type",
+  },
+  {
+    dimension: "osName",
+    title: "Number of proofs shared, by day and OS",
+  },
+] as const satisfies readonly {
+  dimension: ProofsDimension;
+  title: string;
+}[];
+
 // Eligibility controls access to the page; these only describe the view's data.
 const requestFailureMessage = (scope: string, status: number) => {
   if (status === 403)
@@ -116,10 +188,116 @@ type TotalsState =
 const PlaceholderCard = (props: { label: string; message: string }) => (
   <section
     aria-label={props.label}
-    className="rounded-16 border border-portal-border bg-surface p-5 sm:p-6"
+    className="rounded-16 border border-portal-border bg-white p-5 sm:p-6"
   >
     <p className="font-world text-13 text-portal-muted">{props.message}</p>
   </section>
+);
+
+type FilterOption = Readonly<{ label: string; value: string }>;
+
+const AnalyticsFilterSelect = (props: {
+  ariaLabel: string;
+  label: string;
+  onChange: (value: string) => void;
+  options: readonly FilterOption[];
+  value: string;
+}) => {
+  const selectedLabel =
+    props.options.find((option) => option.value === props.value)?.label ??
+    props.value;
+
+  return (
+    <div className="grid gap-1 font-world text-13 text-portal-heading sm:flex sm:items-center sm:gap-2">
+      <span>{props.label}</span>
+      <Select value={props.value} onChange={props.onChange}>
+        <SelectButton
+          aria-label={props.ariaLabel}
+          data-value={props.value}
+          role="combobox"
+          className="group flex h-9 min-w-[132px] items-center justify-between gap-3 rounded-8 border border-portal-border bg-white px-3 text-left font-world text-[12px] leading-4 text-portal-heading transition-colors hover:border-portal-muted focus-visible:border-portal-heading focus-visible:ring-2 focus-visible:ring-portal-border/70 focus-visible:outline-none"
+        >
+          <span className="truncate">{selectedLabel}</span>
+          <CaretIcon className="size-3.5 shrink-0 text-portal-muted transition-transform group-aria-expanded:rotate-180" />
+        </SelectButton>
+        <SelectOptions className="mt-2 max-h-64 rounded-12 border-portal-border bg-white p-1 shadow-portal-card">
+          {props.options.map((option) => (
+            <SelectOption
+              key={option.value}
+              value={option.value}
+              className="rounded-8 px-3 py-2 font-world text-[12px] leading-4 text-portal-heading data-[focus]:bg-portal-canvas data-[headlessui-state*=selected]:bg-portal-canvas data-[headlessui-state*=selected]:text-portal-heading"
+            >
+              {option.label}
+            </SelectOption>
+          ))}
+        </SelectOptions>
+      </Select>
+    </div>
+  );
+};
+
+const DailyAnalyticsFilters = (props: {
+  ariaLabel: string;
+  operatingSystems: readonly string[];
+  osName: string;
+  proofType?: string;
+  proofTypes?: readonly string[];
+  setOsName: (value: string) => void;
+  setProofType?: (value: string) => void;
+  setTimeframe: (value: TimeframeValue) => void;
+  setTrendInterval: (value: TrendInterval) => void;
+  timeframe: TimeframeValue;
+  trendInterval: TrendInterval;
+}) => (
+  <div
+    aria-label={props.ariaLabel}
+    className="flex flex-wrap justify-start gap-x-5 gap-y-3"
+  >
+    <AnalyticsFilterSelect
+      ariaLabel="Timeframe"
+      label="Date range"
+      onChange={(value) => props.setTimeframe(value as TimeframeValue)}
+      options={TIMEFRAME_OPTIONS}
+      value={props.timeframe}
+    />
+    <AnalyticsFilterSelect
+      ariaLabel="Time interval"
+      label="Time interval"
+      onChange={(value) => props.setTrendInterval(value as TrendInterval)}
+      options={TREND_INTERVAL_OPTIONS}
+      value={props.trendInterval}
+    />
+    <AnalyticsFilterSelect
+      ariaLabel="Operating System"
+      label="Operating system"
+      onChange={props.setOsName}
+      options={[
+        { label: "All", value: ALL_OPERATING_SYSTEMS },
+        ...props.operatingSystems.map((operatingSystem) => ({
+          label: operatingSystem,
+          value: operatingSystem,
+        })),
+      ]}
+      value={props.osName}
+    />
+    {props.proofTypes &&
+      props.proofType !== undefined &&
+      props.setProofType && (
+        <AnalyticsFilterSelect
+          ariaLabel="Proof type"
+          label="Proof type"
+          onChange={props.setProofType}
+          options={[
+            { label: "All", value: "all" },
+            ...props.proofTypes.map((proofType) => ({
+              label: proofType,
+              value: proofType,
+            })),
+          ]}
+          value={props.proofType}
+        />
+      )}
+  </div>
 );
 
 const isFallbackResponse = (payload: unknown): boolean =>
@@ -157,11 +335,17 @@ export const MetricsFrame = (props: {
   );
   const [timeframe, setTimeframe] = useState<TimeframeValue>("14");
   const [osName, setOsName] = useState(ALL_OPERATING_SYSTEMS);
+  const [proofType, setProofType] = useState("all");
+  const [trendInterval, setTrendInterval] = useState<TrendInterval>("daily");
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const [tabIndicator, setTabIndicator] = useState({ left: 0, width: 0 });
+  const tabListRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Array<HTMLElement | null>>([]);
   const teamId = useParams<{ teamId?: string }>()?.teamId;
   // useUser already shares the session/preference through Auth0's SWR cache.
   const { user, isLoading, error: authError } = useUser();
   const allowTracking = user?.hasura?.is_allow_tracking === true;
-  const selectedView = useRef<AnalyticsView>("totals");
+  const selectedView = useRef<AnalyticsView>("proofs");
   const lastPageEntry = useRef<string | null>(null);
   const pendingViews = useRef<AnalyticsViewEvent[]>([]);
   const overflowReported = useRef(false);
@@ -288,13 +472,39 @@ export const MetricsFrame = (props: {
     };
   }, [captureView, flushViews, isLoading, user]);
 
+  useLayoutEffect(() => {
+    const updateIndicator = () => {
+      const tabList = tabListRef.current;
+      const selectedTab = tabRefs.current[selectedTabIndex];
+      if (!tabList || !selectedTab) return;
+
+      const listRect = tabList.getBoundingClientRect();
+      const tabRect = selectedTab.getBoundingClientRect();
+      setTabIndicator({
+        left: tabRect.left - listRect.left,
+        width: tabRect.width,
+      });
+    };
+
+    updateIndicator();
+    const observer = new ResizeObserver(updateIndicator);
+    if (tabListRef.current) observer.observe(tabListRef.current);
+    window.addEventListener("resize", updateIndicator);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateIndicator);
+    };
+  }, [selectedTabIndex]);
+
   const operatingSystems = useMemo(
     () =>
-      daily.kind === "ready"
-        ? DAILY_OS_SERIES.filter(({ osName }) =>
-            daily.rows.some((row) => row.os_name === osName),
-          ).map(({ osName }) => osName)
-        : [],
+      DAILY_OS_SERIES.filter(
+        ({ osName }) =>
+          (osName !== "Unknown" &&
+            daily.kind === "ready" &&
+            daily.rows.some((row) => row.os_name === osName)) ||
+          proofsAnalyticsPreview.daily.some((row) => row.osName === osName),
+      ).map(({ osName }) => osName),
     [daily],
   );
   const filteredDailyRows = useMemo(() => {
@@ -302,11 +512,30 @@ export const MetricsFrame = (props: {
     const timeframeOption = TIMEFRAME_OPTIONS.find(
       (option) => option.value === timeframe,
     );
-    return filterDailyRows(daily.rows, {
-      days: timeframeOption ? timeframeOption.days : 14,
-      osName: osName === ALL_OPERATING_SYSTEMS ? null : osName,
-    });
-  }, [daily, osName, timeframe]);
+    return groupDailyRowsByInterval(
+      filterDailyRows(
+        daily.rows.filter((row) => row.os_name !== "Unknown"),
+        {
+          days: timeframeOption ? timeframeOption.days : 14,
+          osName: osName === ALL_OPERATING_SYSTEMS ? null : osName,
+        },
+      ),
+      trendInterval,
+    );
+  }, [daily, osName, timeframe, trendInterval]);
+  const filteredProofsDailyRows = useMemo(() => {
+    const timeframeOption = TIMEFRAME_OPTIONS.find(
+      (option) => option.value === timeframe,
+    );
+    return groupProofsDailyRowsByInterval(
+      filterProofsDailyRows(proofsAnalyticsPreview.daily, {
+        days: timeframeOption ? timeframeOption.days : 14,
+        osName: osName === ALL_OPERATING_SYSTEMS ? null : osName,
+        proofType: proofType === "all" ? null : proofType,
+      }),
+      trendInterval,
+    );
+  }, [osName, proofType, timeframe, trendInterval]);
 
   useEffect(() => {
     if (props.previewData) return;
@@ -449,7 +678,7 @@ export const MetricsFrame = (props: {
       <div className="mx-auto w-full max-w-[1120px] space-y-6">
         <div className="space-y-2">
           <h1 className="font-world text-24 font-semibold text-portal-heading">
-            Selfie Check analytics
+            Analytics
           </h1>
           <div className="font-world text-12 text-portal-muted">
             * Data updates every hour
@@ -465,8 +694,10 @@ export const MetricsFrame = (props: {
           )}
         </div>
         <TabGroup
+          selectedIndex={selectedTabIndex}
           onChange={(index) => {
-            const view = index === 0 ? "totals" : "daily";
+            setSelectedTabIndex(index);
+            const view = index === 0 ? "proofs" : "selfie_check";
             if (selectedView.current === view) return;
             captureView(view, "tab_switch");
             selectedView.current = view;
@@ -474,105 +705,192 @@ export const MetricsFrame = (props: {
         >
           <TabList
             aria-label="Analytics views"
-            className="flex gap-6 border-b border-portal-border"
+            ref={tabListRef}
+            className="relative flex gap-6 border-b border-portal-border"
           >
-            {["All time", "Daily trends"].map((label) => (
+            {["Proofs", "Selfie Check"].map((label, index) => (
               <Tab
                 key={label}
-                className="-mb-px border-b-2 border-transparent py-3 font-world text-14 font-medium text-portal-muted transition-colors outline-none hover:text-portal-heading aria-selected:border-portal-heading aria-selected:text-portal-heading data-focus:rounded-sm data-focus:outline-2 data-focus:outline-offset-4 data-focus:outline-portal-heading data-focus:outline-solid"
+                ref={(element) => {
+                  tabRefs.current[index] = element;
+                }}
+                className="py-3 font-world text-14 font-medium text-portal-muted transition-colors outline-none hover:text-portal-heading aria-selected:text-portal-heading data-focus:rounded-sm data-focus:outline-2 data-focus:outline-offset-4 data-focus:outline-portal-heading data-focus:outline-solid"
               >
                 {label}
               </Tab>
             ))}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute bottom-[-1px] h-0.5 bg-portal-heading transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              style={{
+                transform: `translateX(${tabIndicator.left}px)`,
+                width: tabIndicator.width,
+              }}
+            />
           </TabList>
           <TabPanels className="mt-4">
-            <TabPanel className="space-y-4 outline-none">
-              {totals.kind === "ready" ? (
+            <TabPanel className="space-y-8 outline-none">
+              <section className="space-y-4" aria-labelledby="proofs-all-time">
+                <h2
+                  id="proofs-all-time"
+                  className="font-world text-18 font-semibold text-portal-heading"
+                >
+                  All time
+                </h2>
+                <ProofsTotalsOverview totals={proofsAnalyticsPreview.totals} />
+              </section>
+              <section className="space-y-5" aria-labelledby="proofs-trends">
                 <div className="space-y-4">
-                  <TotalsOverview row={totals.row} />
-                  <div className="space-y-3">
-                    <h3 className="font-world text-14 font-medium text-portal-heading">
-                      Session conversion funnel
-                    </h3>
-                    <TotalsFunnel row={totals.row} />
+                  <h2
+                    id="proofs-trends"
+                    className="font-world text-18 font-semibold text-portal-heading"
+                  >
+                    Trends
+                  </h2>
+                  <DailyAnalyticsFilters
+                    ariaLabel="Proofs daily analytics filters"
+                    operatingSystems={operatingSystems}
+                    osName={osName}
+                    proofType={proofType}
+                    proofTypes={PROOF_TYPE_ORDER}
+                    setOsName={setOsName}
+                    setProofType={setProofType}
+                    setTimeframe={setTimeframe}
+                    setTrendInterval={setTrendInterval}
+                    timeframe={timeframe}
+                    trendInterval={trendInterval}
+                  />
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-world text-13 font-medium text-portal-muted">
+                    Users
+                  </h3>
+                  <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+                    {PROOFS_USER_CHARTS.map((chart) => (
+                      <ProofsMetricChart
+                        key={`${chart.metric}-${chart.dimension}`}
+                        title={chart.title}
+                        rows={filteredProofsDailyRows}
+                        metric={chart.metric}
+                        dimension={chart.dimension}
+                        chartType={
+                          chart.metric === "cumulativeUniqueUsersSharedProof"
+                            ? "area"
+                            : "bar"
+                        }
+                        timeInterval={trendInterval}
+                        yAxisLabel={
+                          chart.metric === "cumulativeUniqueUsersSharedProof"
+                            ? "Cumulative number of users"
+                            : "Number of users"
+                        }
+                      />
+                    ))}
                   </div>
                 </div>
-              ) : (
-                <PlaceholderCard
-                  label="Selfie Check funnel"
-                  message={
-                    totals.kind === "loading"
-                      ? "Loading total analytics…"
-                      : totals.message
-                  }
-                />
-              )}
+                <div className="space-y-4">
+                  <h3 className="font-world text-13 font-medium text-portal-muted">
+                    Proofs
+                  </h3>
+                  <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+                    {PROOFS_SHARED_CHARTS.map((chart) => (
+                      <ProofsMetricChart
+                        key={chart.dimension}
+                        title={chart.title}
+                        rows={filteredProofsDailyRows}
+                        metric="nProofsShared"
+                        dimension={chart.dimension}
+                        chartType="bar"
+                        timeInterval={trendInterval}
+                        yAxisLabel="Number of proofs"
+                      />
+                    ))}
+                  </div>
+                </div>
+              </section>
             </TabPanel>
-            <TabPanel className="space-y-4 outline-none">
-              {daily.kind === "ready" && (
-                <div
-                  aria-label="Daily analytics filters"
-                  className="flex flex-wrap justify-start gap-2"
+            <TabPanel className="space-y-8 outline-none">
+              <section
+                className="space-y-4"
+                aria-labelledby="selfie-check-all-time"
+              >
+                <h2
+                  id="selfie-check-all-time"
+                  className="font-world text-18 font-semibold text-portal-heading"
                 >
-                  <label className="grid gap-1 font-world text-13 text-portal-heading sm:flex sm:items-center sm:gap-2">
-                    Timeframe
-                    <select
-                      aria-label="Timeframe"
-                      className="h-9 rounded-8 border border-portal-border bg-surface px-3 font-world text-13 text-portal-heading"
-                      value={timeframe}
-                      onChange={(event) =>
-                        setTimeframe(event.target.value as TimeframeValue)
-                      }
-                    >
-                      {TIMEFRAME_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="grid gap-1 font-world text-13 text-portal-heading sm:flex sm:items-center sm:gap-2">
-                    Operating System
-                    <select
-                      aria-label="Operating System"
-                      className="h-9 rounded-8 border border-portal-border bg-surface px-3 font-world text-13 text-portal-heading"
-                      value={osName}
-                      onChange={(event) => setOsName(event.target.value)}
-                    >
-                      <option value={ALL_OPERATING_SYSTEMS}>All</option>
-                      {operatingSystems.map((operatingSystem) => (
-                        <option key={operatingSystem} value={operatingSystem}>
-                          {operatingSystem}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              )}
-              {daily.kind === "ready" ? (
-                <div className="grid min-w-0 gap-6 lg:grid-cols-2">
-                  {CHART_METRICS.map((chart) => (
-                    <DailyMetricChart
-                      key={chart.metric}
-                      title={chart.title}
-                      rows={filteredDailyRows}
-                      metric={chart.metric}
-                      kind={metricKind(chart.metric)}
-                      chartType={chart.chartType}
-                      yAxisLabel={chart.yAxisLabel}
+                  All time
+                </h2>
+                {totals.kind === "ready" ? (
+                  <div className="space-y-4">
+                    <TotalsOverview row={totals.row} />
+                    <div className="space-y-3">
+                      <h3 className="font-world text-14 font-medium text-portal-heading">
+                        Session conversion funnel
+                      </h3>
+                      <TotalsFunnel row={totals.row} />
+                    </div>
+                  </div>
+                ) : (
+                  <PlaceholderCard
+                    label="Selfie Check funnel"
+                    message={
+                      totals.kind === "loading"
+                        ? "Loading total analytics…"
+                        : totals.message
+                    }
+                  />
+                )}
+              </section>
+              <section
+                className="space-y-4"
+                aria-labelledby="selfie-check-trends"
+              >
+                <div className="space-y-4">
+                  <h2
+                    id="selfie-check-trends"
+                    className="font-world text-18 font-semibold text-portal-heading"
+                  >
+                    Trends
+                  </h2>
+                  {daily.kind === "ready" && (
+                    <DailyAnalyticsFilters
+                      ariaLabel="Selfie Check daily analytics filters"
+                      operatingSystems={operatingSystems}
+                      osName={osName}
+                      setOsName={setOsName}
+                      setTimeframe={setTimeframe}
+                      setTrendInterval={setTrendInterval}
+                      timeframe={timeframe}
+                      trendInterval={trendInterval}
                     />
-                  ))}
+                  )}
                 </div>
-              ) : (
-                <PlaceholderCard
-                  label="Daily Selfie Check charts"
-                  message={
-                    daily.kind === "loading"
-                      ? "Loading daily analytics…"
-                      : daily.message
-                  }
-                />
-              )}
+                {daily.kind === "ready" ? (
+                  <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+                    {CHART_METRICS.map((chart) => (
+                      <DailyMetricChart
+                        key={chart.metric}
+                        title={chart.title}
+                        rows={filteredDailyRows}
+                        metric={chart.metric}
+                        kind={metricKind(chart.metric)}
+                        chartType={chart.chartType}
+                        timeInterval={trendInterval}
+                        yAxisLabel={chart.yAxisLabel}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <PlaceholderCard
+                    label="Daily Selfie Check charts"
+                    message={
+                      daily.kind === "loading"
+                        ? "Loading daily analytics…"
+                        : daily.message
+                    }
+                  />
+                )}
+              </section>
             </TabPanel>
           </TabPanels>
         </TabGroup>

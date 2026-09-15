@@ -1,3 +1,8 @@
+import {
+  getTrendIntervalStart,
+  type TrendInterval,
+} from "./analytics-time-interval";
+
 export type TotalsRow = Readonly<{
   appId: string;
   n_users_started_at_least_one_selfie_check_flow: number | null;
@@ -305,6 +310,90 @@ export const filterDailyRows = (
       (cutoffDay === null || row.day >= cutoffDay) &&
       (filters.osName === null || row.os_name === filters.osName),
   );
+};
+
+type IntervalDailyRow = {
+  appId: string;
+  day: string;
+  osName: string;
+  startedTotal: number;
+  startedValues: number;
+  sharedTotal: number;
+  sharedValues: number;
+  cumulativeMax: number;
+  cumulativeValues: number;
+  completionTotal: number;
+  completionValues: number;
+};
+
+/** Rolls daily records into chartable calendar periods without changing daily data. */
+export const groupDailyRowsByInterval = (
+  rows: readonly DailyRow[],
+  interval: TrendInterval,
+): readonly DailyRow[] => {
+  if (interval === "daily") return rows;
+
+  const grouped = new Map<string, IntervalDailyRow>();
+  for (const row of rows) {
+    const day = getTrendIntervalStart(row.day, interval);
+    const key = `${row.appId}:${day}:${row.os_name}`;
+    const current = grouped.get(key) ?? {
+      appId: row.appId,
+      day,
+      osName: row.os_name,
+      startedTotal: 0,
+      startedValues: 0,
+      sharedTotal: 0,
+      sharedValues: 0,
+      cumulativeMax: 0,
+      cumulativeValues: 0,
+      completionTotal: 0,
+      completionValues: 0,
+    };
+
+    if (row.n_users_started_selfie_check_flow !== null) {
+      current.startedTotal += row.n_users_started_selfie_check_flow;
+      current.startedValues += 1;
+    }
+    if (row.n_users_shared_a_proof !== null) {
+      current.sharedTotal += row.n_users_shared_a_proof;
+      current.sharedValues += 1;
+    }
+    if (row.cumulative_n_users_shared_a_proof !== null) {
+      current.cumulativeMax = Math.max(
+        current.cumulativeMax,
+        row.cumulative_n_users_shared_a_proof,
+      );
+      current.cumulativeValues += 1;
+    }
+    if (row.p_face_capture_completion !== null) {
+      current.completionTotal += row.p_face_capture_completion;
+      current.completionValues += 1;
+    }
+    grouped.set(key, current);
+  }
+
+  return [...grouped.values()]
+    .map(
+      (row): DailyRow => ({
+        appId: row.appId,
+        day: row.day,
+        os_name: row.osName,
+        n_users_started_selfie_check_flow:
+          row.startedValues > 0 ? row.startedTotal : null,
+        n_users_shared_a_proof: row.sharedValues > 0 ? row.sharedTotal : null,
+        cumulative_n_users_shared_a_proof:
+          row.cumulativeValues > 0 ? row.cumulativeMax : null,
+        p_face_capture_completion:
+          row.completionValues > 0
+            ? row.completionTotal / row.completionValues
+            : null,
+      }),
+    )
+    .sort(
+      (a, b) =>
+        a.day.localeCompare(b.day) || a.os_name.localeCompare(b.os_name),
+    );
 };
 
 /**

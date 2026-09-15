@@ -1,12 +1,14 @@
 "use client";
 
 import {
-  buildDailyChartData,
-  type DailyChartMetric,
-  type DailyRow,
-  type MetricKind,
-} from "@/lib/selfie-check-analytics";
+  buildProofsChartData,
+  getProofsSeriesColor,
+  type ProofsDailyMetric,
+  type ProofsDailyRow,
+  type ProofsDimension,
+} from "@/lib/proofs-analytics";
 import { type TrendInterval } from "@/lib/analytics-time-interval";
+import { type DailyMetricChartType } from "./DailyMetricChart";
 import { StackedMetricTooltip } from "./StackedMetricTooltip";
 import { useMemo, useState } from "react";
 import {
@@ -24,22 +26,10 @@ import {
   YAxis,
 } from "recharts";
 
-const RATE_TICKS = [0, 0.25, 0.5, 0.75, 1] as const;
 const Y_AXIS_WIDTH = 52;
 const DATE_LABEL_WIDTH = 44;
-// The final date is centered on the last point, so reserve its right half.
 const CHART_RIGHT_MARGIN = DATE_LABEL_WIDTH / 2 + 4;
 const BAR_LABEL_TOP_MARGIN = 28;
-
-const formatTickDate = (value: string) =>
-  new Date(`${value}T00:00:00.000Z`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  });
-
-const formatRate = (value: number) => `${(value * 100).toFixed(1)}%`;
-const formatRateTick = (value: number) => `${Math.round(value * 100)}%`;
 
 const intervalLabel: Record<TrendInterval, string> = {
   daily: "Daily",
@@ -55,28 +45,21 @@ const getSampleIndexes = (pointCount: number, labelCount: number) => [
   ),
 ];
 
-/** Renders a few evenly spaced labels, optionally alternating between series. */
+/** Renders a few evenly spaced cumulative totals rather than every point. */
 const SampledValueLabel = (props: {
   color: string;
-  formatValue: (value: number) => string;
   index?: number;
   labelOffset: number;
   sampleIndexes: readonly number[];
-  seriesCount?: number;
-  seriesIndex?: number;
   value?: unknown;
   width?: number;
   x?: number;
   y?: number;
 }) => {
-  const samplePosition = props.sampleIndexes.indexOf(props.index ?? -1);
   if (
-    samplePosition === -1 ||
+    !props.sampleIndexes.includes(props.index ?? -1) ||
     typeof props.value !== "number" ||
-    props.value <= 0 ||
-    (props.seriesIndex !== undefined &&
-      props.seriesCount !== undefined &&
-      samplePosition % props.seriesCount !== props.seriesIndex)
+    props.value <= 0
   ) {
     return null;
   }
@@ -90,55 +73,72 @@ const SampledValueLabel = (props: {
       x={Number(props.x ?? 0) + Number(props.width ?? 0) / 2}
       y={Number(props.y ?? 0) + props.labelOffset}
     >
-      {props.formatValue(props.value)}
+      {props.value.toLocaleString("en-US")}
     </text>
   );
 };
 
-/** Keep sparse weekly bars readable while keeping longer ranges compact. */
+const formatTickDate = (value: string) =>
+  new Date(`${value}T00:00:00.000Z`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+
 const barMaxSize = (pointCount: number) => {
   if (pointCount <= 7) return 80;
   if (pointCount <= 14) return 50;
   return 20;
 };
 
-export const DailyMetricChart = (props: {
+export const ProofsMetricChart = (props: {
   title: string;
-  rows: readonly DailyRow[];
-  metric: DailyChartMetric;
-  kind: MetricKind;
+  rows: readonly ProofsDailyRow[];
+  metric: ProofsDailyMetric;
+  dimension: ProofsDimension;
   chartType: DailyMetricChartType;
-  timeInterval?: TrendInterval;
+  timeInterval: TrendInterval;
   yAxisLabel: string;
 }) => {
   const [chartWidth, setChartWidth] = useState(0);
-  const { points, operatingSystems } = useMemo(
-    () => buildDailyChartData(props.rows, props.metric),
-    [props.rows, props.metric],
+  const { points, series } = useMemo(
+    () =>
+      buildProofsChartData(
+        props.rows,
+        props.metric,
+        props.dimension,
+        props.timeInterval,
+        props.chartType === "bar" || props.chartType === "area",
+      ),
+    [
+      props.rows,
+      props.metric,
+      props.dimension,
+      props.timeInterval,
+      props.chartType,
+    ],
   );
-  const hasVisibleSeries = operatingSystems.length > 0;
-  const isRate = props.kind === "rate";
-  const formatValue = (value: number) =>
-    isRate ? formatRate(value) : value.toLocaleString("en-US");
+  const hasVisibleSeries = series.length > 0;
   const showEveryDate = points.length <= 14;
   const chartPoints = useMemo(
     () =>
       points.map((point) => ({
         ...point,
-        stackTotal: operatingSystems.reduce((total, operatingSystem) => {
-          const value = point[operatingSystem.dataKey];
-          return total + (typeof value === "number" ? value : 0);
-        }, 0),
+        stackTotal: series.reduce(
+          (total, name) =>
+            total + (typeof point[name] === "number" ? point[name] : 0),
+          0,
+        ),
       })),
-    [operatingSystems, points],
+    [points, series],
   );
   const tooltipSeries = useMemo(
     () =>
-      operatingSystems.map(({ color, osName }) => ({
-        color,
-        name: osName,
+      series.map((name) => ({
+        color: getProofsSeriesColor(props.dimension, name),
+        name,
       })),
-    [operatingSystems],
+    [props.dimension, series],
   );
   const showAllBarLabels =
     props.chartType === "bar" && hasVisibleSeries && points.length <= 14;
@@ -152,7 +152,6 @@ export const DailyMetricChart = (props: {
     [points.length],
   );
   const hasTopDataLabels = showBarLabels || showCumulativeLabels;
-  // Keep every short-range date, turning labels only when they cannot fit.
   const rotateDates =
     showEveryDate &&
     points.length > 1 &&
@@ -162,38 +161,41 @@ export const DailyMetricChart = (props: {
   return (
     <section
       aria-label={props.title}
-      className="w-full min-w-0 rounded-16 border border-portal-border bg-surface p-5"
+      className="w-full min-w-0 rounded-16 border border-portal-border bg-white p-5"
     >
-      <h3 className="font-world text-14 font-medium text-portal-heading">
+      <h4 className="font-world text-14 font-medium text-portal-heading">
         {props.title}
-      </h3>
-
+      </h4>
       <div className="mt-3 min-h-[18px]">
         {hasVisibleSeries && (
           <ul className="flex flex-wrap gap-x-4 gap-y-2">
-            {operatingSystems.map((os) => (
+            {series.map((name) => (
               <li
-                key={os.dataKey}
+                key={name}
                 className="flex items-center gap-1.5 font-world text-12 text-portal-muted"
               >
                 <span
                   aria-hidden
                   className="size-2 rounded-full"
-                  style={{ backgroundColor: os.color }}
+                  style={{
+                    backgroundColor: getProofsSeriesColor(
+                      props.dimension,
+                      name,
+                    ),
+                  }}
                 />
-                {os.osName}
+                {name}
               </li>
             ))}
           </ul>
         )}
       </div>
-
       <div className="relative mt-4 aspect-[13/5] max-h-[360px] min-h-[280px] w-full pb-8 pl-12 font-world tabular-nums [&_.recharts-surface]:rounded-sm [&_.recharts-surface]:focus-visible:outline-2 [&_.recharts-surface]:focus-visible:outline-offset-4 [&_.recharts-surface]:focus-visible:outline-portal-border">
         <span
           aria-hidden
           className="absolute right-0 bottom-0 left-12 text-center font-world text-12 text-portal-muted"
         >
-          {intervalLabel[props.timeInterval ?? "daily"]}
+          {intervalLabel[props.timeInterval]}
         </span>
         <span
           aria-hidden
@@ -207,9 +209,7 @@ export const DailyMetricChart = (props: {
           onResize={setChartWidth}
         >
           <ComposedChart
-            // Recharts stacks series in registration order. Reset that order
-            // when filters add or remove an OS so it always matches the legend.
-            key={operatingSystems.map((os) => os.dataKey).join(",")}
+            key={series.join(",")}
             data={chartPoints}
             margin={{
               top: hasTopDataLabels ? BAR_LABEL_TOP_MARGIN : 8,
@@ -221,7 +221,7 @@ export const DailyMetricChart = (props: {
           >
             <CartesianGrid
               vertical={false}
-              stroke="var(--chart-grid)"
+              stroke="#EDEEF0"
               strokeDasharray="3 5"
             />
             <XAxis
@@ -234,19 +234,16 @@ export const DailyMetricChart = (props: {
               tickMargin={8}
               minTickGap={showEveryDate ? 0 : 32}
               interval={showEveryDate ? 0 : "preserveStartEnd"}
-              tick={{ fill: "var(--chart-tick)", fontSize: 12 }}
+              tick={{ fill: "#757575", fontSize: 12 }}
               tickFormatter={formatTickDate}
             />
             <YAxis
               width={Y_AXIS_WIDTH}
-              allowDecimals={isRate}
-              // Honor the explicit scale even when there are no plotted series.
+              allowDecimals={false}
               allowDataOverflow={!hasVisibleSeries}
               axisLine={false}
-              domain={isRate ? [0, 1.05] : [0, hasVisibleSeries ? "auto" : 1]}
-              tickFormatter={isRate ? formatRateTick : undefined}
-              ticks={isRate ? [...RATE_TICKS] : undefined}
-              tick={{ fill: "var(--chart-tick)", fontSize: 11 }}
+              domain={[0, hasVisibleSeries ? "auto" : 1]}
+              tick={{ fill: "#757575", fontSize: 11 }}
               tickMargin={8}
               tickLine={false}
             />
@@ -256,41 +253,36 @@ export const DailyMetricChart = (props: {
                   props.chartType === "bar" || props.chartType === "area" ? (
                     <StackedMetricTooltip
                       formatLabel={(value) => formatTickDate(value)}
-                      formatValue={formatValue}
+                      formatValue={(value) => value.toLocaleString("en-US")}
                       series={tooltipSeries}
                     />
                   ) : undefined
                 }
                 cursor={
                   props.chartType === "bar"
-                    ? { fill: "var(--chart-cursor)" }
-                    : {
-                        stroke: "var(--chart-cursor-line)",
-                        strokeDasharray: "3 5",
-                      }
+                    ? { fill: "rgba(24, 24, 24, 0.025)" }
+                    : { stroke: "#D1D5DB", strokeDasharray: "3 5" }
                 }
                 contentStyle={{
-                  border: "1px solid var(--chart-grid)",
-                  backgroundColor: "var(--color-surface-raised)",
-                  color: "var(--chart-label)",
+                  border: "1px solid #EDEEF0",
                   borderRadius: 12,
                   padding: "12px 16px",
                   boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
                   fontSize: 12,
                 }}
                 labelStyle={{
-                  color: "var(--chart-label)",
+                  color: "#171717",
                   fontWeight: 500,
                   marginBottom: 6,
                 }}
                 itemStyle={{ padding: "3px 0" }}
                 separator=": "
-                itemSorter={({ name }) =>
-                  operatingSystems.findIndex((os) => os.osName === name)
-                }
+                itemSorter={({ name }) => series.indexOf(String(name))}
                 labelFormatter={(value) => formatTickDate(String(value))}
                 formatter={(value) =>
-                  typeof value === "number" ? formatValue(value) : "—"
+                  typeof value === "number"
+                    ? value.toLocaleString("en-US")
+                    : "—"
                 }
               />
             ) : (
@@ -298,57 +290,55 @@ export const DailyMetricChart = (props: {
                 position="center"
                 value="No data available"
                 className="font-world text-13"
-                fill="var(--chart-tick)"
-                stroke="var(--color-surface)"
+                fill="#757575"
+                stroke="white"
                 strokeWidth={4}
                 paintOrder="stroke"
               />
             )}
-            {/* Round the whole stack, including days where its last OS is zero or absent. */}
             {props.chartType === "bar" && (
               <BarStack radius={[2, 2, 0, 0]}>
-                {operatingSystems.map((os, index) => (
+                {series.map((name, index) => (
                   <Bar
-                    key={os.dataKey}
-                    dataKey={os.dataKey}
-                    name={os.osName}
-                    fill={os.color}
+                    key={name}
+                    dataKey={name}
+                    name={name}
+                    fill={getProofsSeriesColor(props.dimension, name)}
                     isAnimationActive={false}
                     maxBarSize={barMaxSize(points.length)}
                   >
-                    {showAllBarLabels &&
-                      index === operatingSystems.length - 1 && (
-                        <LabelList
-                          dataKey="stackTotal"
-                          fill="#525252"
-                          fontSize={11}
-                          formatter={(value) =>
-                            typeof value === "number" && value > 0
-                              ? value.toLocaleString("en-US")
-                              : ""
-                          }
-                          offset={8}
-                          position="top"
-                        />
-                      )}
+                    {showAllBarLabels && index === series.length - 1 && (
+                      <LabelList
+                        dataKey="stackTotal"
+                        fill="#525252"
+                        fontSize={11}
+                        formatter={(value) =>
+                          typeof value === "number" && value > 0
+                            ? value.toLocaleString("en-US")
+                            : ""
+                        }
+                        offset={8}
+                        position="top"
+                      />
+                    )}
                   </Bar>
                 ))}
               </BarStack>
             )}
             {props.chartType !== "bar" &&
-              operatingSystems.map((os, index) =>
+              series.map((name, index) =>
                 props.chartType === "line" ? (
                   <Line
-                    key={os.dataKey}
+                    key={name}
                     activeDot={{ r: 4, stroke: "white", strokeWidth: 2 }}
                     connectNulls={false}
-                    dataKey={os.dataKey}
+                    dataKey={name}
                     dot={
                       points.length <= 14 ? { r: 2.5, strokeWidth: 1.5 } : false
                     }
                     isAnimationActive={false}
-                    name={os.osName}
-                    stroke={os.color}
+                    name={name}
+                    stroke={getProofsSeriesColor(props.dimension, name)}
                     strokeWidth={2}
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -356,35 +346,33 @@ export const DailyMetricChart = (props: {
                   />
                 ) : (
                   <Area
-                    key={os.dataKey}
+                    key={name}
                     connectNulls={false}
-                    dataKey={os.dataKey}
-                    fill={os.color}
+                    dataKey={name}
+                    fill={getProofsSeriesColor(props.dimension, name)}
                     fillOpacity={0.1}
                     isAnimationActive={false}
-                    name={os.osName}
-                    stackId="os"
-                    stroke={os.color}
+                    name={name}
+                    stackId="dimension"
+                    stroke={getProofsSeriesColor(props.dimension, name)}
                     strokeWidth={2}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     activeDot={{ r: 4, stroke: "white", strokeWidth: 2 }}
                     type="linear"
                   >
-                    {showCumulativeLabels &&
-                      index === operatingSystems.length - 1 && (
-                        <LabelList
-                          content={
-                            <SampledValueLabel
-                              color="#525252"
-                              formatValue={formatValue}
-                              labelOffset={-8}
-                              sampleIndexes={cumulativeLabelIndexes}
-                            />
-                          }
-                          dataKey="stackTotal"
-                        />
-                      )}
+                    {showCumulativeLabels && index === series.length - 1 && (
+                      <LabelList
+                        content={
+                          <SampledValueLabel
+                            color="#525252"
+                            labelOffset={-8}
+                            sampleIndexes={cumulativeLabelIndexes}
+                          />
+                        }
+                        dataKey="stackTotal"
+                      />
+                    )}
                   </Area>
                 ),
               )}
@@ -394,5 +382,3 @@ export const DailyMetricChart = (props: {
     </section>
   );
 };
-
-export type DailyMetricChartType = "area" | "bar" | "line";
