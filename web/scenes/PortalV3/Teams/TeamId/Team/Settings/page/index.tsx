@@ -47,7 +47,7 @@ export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
   if (activeTab === TEAM_SETTINGS_TABS.General) {
     return (
       <div className="w-full px-4 pt-[23px] pb-28 sm:px-6">
-        <div className="w-full max-w-[800px]">
+        <div className="mx-auto w-full max-w-[800px]">
           <h1 className="font-world text-19 leading-[1.2] font-[500] tracking-[-0.01em] text-content-ink">
             General
           </h1>
