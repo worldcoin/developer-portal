@@ -7,6 +7,7 @@ import {
 } from "@/api/helpers/rp-registration-flows";
 import {
   generateRpIdString,
+  isZeroAddress,
   normalizeAddress,
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
@@ -41,6 +42,11 @@ const schema = yup
               "is-address",
               "Invalid signer key. Must be 40 hex characters (0x followed by 40 characters)",
               (value) => (value ? isAddress(value) : false),
+            )
+            .test(
+              "not-zero",
+              "Cannot use zero address as the signer",
+              (value) => !value || !isZeroAddress(value),
             ),
       }),
   })
@@ -53,6 +59,7 @@ const REGISTRATION_ERROR_HTTP_CODE: Record<
   staging_not_supported: "staging_not_supported",
   config_error: "config_error",
   already_registered: "already_registered",
+  rp_id_taken: "rp_id_taken",
   kms_error: "kms_error",
   submission_error: "submission_error",
   db_error: "db_error",

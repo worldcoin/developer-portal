@@ -135,13 +135,13 @@ export const DevelopContent = ({
       <div className="grid gap-y-2">
         <Typography
           as="h1"
-          className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
+          className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-content-primary"
         >
           Develop
         </Typography>
         <Typography
           as="p"
-          className="font-world text-[15px] leading-[130%] font-medium text-grey-500"
+          className="font-world text-[15px] leading-[130%] font-medium text-content-secondary"
         >
           Set the URL World App opens and preview your Mini App.
         </Typography>
@@ -154,7 +154,7 @@ export const DevelopContent = ({
               <div className="flex items-center gap-1.5">
                 <Typography
                   as="h2"
-                  className="font-world text-[17px] leading-[120%] font-medium text-grey-900"
+                  className="font-world text-[17px] leading-[120%] font-medium text-content-primary"
                 >
                   App URL
                 </Typography>
@@ -164,7 +164,7 @@ export const DevelopContent = ({
                     <button
                       type="button"
                       aria-label="About the App URL"
-                      className={`mb-1 rounded-full text-grey-300 outline-hidden transition-colors hover:text-grey-500 focus-visible:text-grey-500 focus-visible:ring-2 focus-visible:ring-grey-300 ${opticalIconClassName}`}
+                      className={`mb-1 rounded-full text-content-disabled outline-hidden transition-colors hover:text-content-secondary focus-visible:text-content-secondary focus-visible:ring-2 focus-visible:ring-edge-medium ${opticalIconClassName}`}
                     >
                       <InformationCircleIcon className="size-4" />
                     </button>
@@ -214,8 +214,8 @@ export const DevelopContent = ({
             />
 
             {isVerifiedOnly && (
-              <div className="flex flex-wrap items-center justify-between gap-4 rounded-[10px] bg-grey-50 p-4">
-                <Typography className="font-world text-[13px] leading-[130%] font-medium text-grey-700">
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-[10px] bg-surface-soft p-4">
+                <Typography className="font-world text-[13px] leading-[130%] font-medium text-content-strong">
                   This is the verified App URL. Create a draft before making
                   changes.
                 </Typography>
@@ -234,13 +234,13 @@ export const DevelopContent = ({
             )}
 
             {isInReview && (
-              <Typography className="rounded-[10px] bg-grey-50 p-4 font-world text-[13px] leading-[130%] font-medium text-grey-700">
+              <Typography className="rounded-[10px] bg-surface-soft p-4 font-world text-[13px] leading-[130%] font-medium text-content-strong">
                 This draft is in review, so its App URL is temporarily locked.
               </Typography>
             )}
 
             {needsResolution && (
-              <Typography className="rounded-[10px] bg-system-warning-100 p-4 font-world text-[13px] leading-[130%] font-medium text-system-warning-600">
+              <Typography className="rounded-[10px] bg-surface-warning-100 p-4 font-world text-[13px] leading-[130%] font-medium text-content-warning-600">
                 Resolve the requested changes in Get Verified before editing
                 this App URL.
               </Typography>

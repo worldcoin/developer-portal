@@ -57,6 +57,8 @@ export interface IVerifyParams {
   is_staging: boolean;
   verification_level: LegacyVerificationLevel;
   max_age?: number;
+  // Opt in to detecting proofs from the opposite environment.
+  detect_environment_mismatch?: boolean;
 }
 
 /**
@@ -361,6 +363,27 @@ export const encodeNullifierForStorage = (nullifierHash: string): string => {
 export const canonicalizeNullifierHash = (nullifierHash: string): string =>
   toBeHex(BigInt(normalizeNullifierHash(nullifierHash)), 32);
 
+/**
+ * Canonicalizes a proof into a single deterministic string that depends only on
+ * the eight field elements it carries, not on the wire encoding it arrived in.
+ *
+ * `decodeProof` intentionally accepts many byte-distinct encodings of the same
+ * proof — ABI blob in either hex case or with trailing padding, nested JSON,
+ * escaped JSON, decimal or zero-padded leaves, embedded whitespace — so
+ * anything that identifies a proof (an anti-replay lock, a dedup key) must key
+ * off this value. Keying off the raw request string instead gives one distinct
+ * key per encoding, which defeats the check entirely.
+ *
+ * Throws when the proof cannot be decoded, or when a leaf is not a number or
+ * does not fit in 32 bytes — all cases the sequencer would reject anyway, so
+ * callers should surface them as an invalid-proof 400.
+ */
+export const canonicalizeProof = (proof: string): string =>
+  decodeProof(proof)
+    .flat(2)
+    .map((leaf) => toBeHex(BigInt(leaf), 32))
+    .join(",");
+
 export const verifyProof = async (
   proofParams: IInputParams,
   verifyParams: IVerifyParams,
@@ -405,6 +428,57 @@ export const verifyProof = async (
     try {
       // V2 API returns JSON error responses
       const errorResponse = await response.json();
+
+      // Check whether the root belongs to the opposite environment.
+      if (
+        verifyParams.detect_environment_mismatch &&
+        errorResponse.errorId === "invalid_root"
+      ) {
+        const proofEnvironment = verifyParams.is_staging
+          ? "production"
+          : "staging";
+        const oppositeSequencerUrl =
+          sequencerMapping[verifyParams.verification_level]?.[
+            (!verifyParams.is_staging).toString()
+          ];
+
+        try {
+          const oppositeResponse = await fetch(
+            `${oppositeSequencerUrl}/v2/semaphore-proof/verify`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body,
+            },
+          );
+
+          if (
+            oppositeResponse.ok &&
+            (await oppositeResponse.json()).valid === true
+          ) {
+            return {
+              error: {
+                message: `This proof was generated for the ${proofEnvironment} environment, but this request uses ${verifyParams.is_staging ? "staging" : "production"}. Set environment to \"${proofEnvironment}\" or generate a new ${verifyParams.is_staging ? "staging" : "production"} proof.`,
+                code: "environment_mismatch",
+                statusCode: 400,
+                attribute: "environment",
+              },
+            };
+          }
+        } catch (error) {
+          // A diagnostic lookup must not replace the original verifier error.
+          logger.warn(
+            "Unable to check proof against the opposite environment",
+            {
+              error,
+              verificationLevel: verifyParams.verification_level,
+            },
+          );
+        }
+      }
+
       const knownError = KNOWN_ERROR_CODES_V2.find(
         ({ errorId }) => errorId === errorResponse.errorId,
       );

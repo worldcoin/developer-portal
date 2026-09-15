@@ -33,8 +33,8 @@ export const PortalShell = (props: {
         className="min-h-[100dvh] bg-portal-canvas font-world"
         style={
           {
-            "--sidebar-width": "280px",
-            "--portal-header-height": "67px",
+            "--sidebar-width": "220px",
+            "--portal-header-height": "57px",
             "--sidebar": "var(--color-portal-canvas)",
             "--sidebar-foreground": "var(--color-portal-muted)",
             "--sidebar-accent": "var(--color-portal-border)",
@@ -51,7 +51,7 @@ export const PortalShell = (props: {
             sandboxRequest={sandboxRequest}
           />
 
-          <SidebarInset className="min-h-[100dvh] min-w-0 bg-white">
+          <SidebarInset className="min-h-[100dvh] min-w-0 bg-surface">
             <header className="flex h-(--portal-header-height) shrink-0 items-center gap-3 border-b border-portal-border bg-portal-canvas px-4 md:px-5">
               <SidebarTrigger
                 aria-label="Open sidebar"
@@ -61,7 +61,7 @@ export const PortalShell = (props: {
               <AppsDropdown />
             </header>
 
-            <div className="min-w-0 flex-1 overflow-auto bg-white">
+            <div className="min-w-0 flex-1 overflow-auto bg-surface">
               {children}
             </div>
           </SidebarInset>

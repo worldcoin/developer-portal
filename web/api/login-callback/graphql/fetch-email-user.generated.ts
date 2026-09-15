@@ -59,7 +59,7 @@ export const FetchEmailUserDocument = gql`
         role
       }
     }
-    userByEmail: user(where: { email: { _eq: $email } }) {
+    userByEmail: user(where: { email: { _ilike: $email } }) {
       id
       email
       name

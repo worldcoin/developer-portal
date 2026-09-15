@@ -4,13 +4,18 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { Notification } from "@/components/Notification";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Role_Enum } from "@/graphql/graphql";
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
 import { RotateSignerKeyDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId40/page/RotateSignerKeyDialog";
 import { SwitchToSelfManagedDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId40/page/SwitchToSelfManagedDialog";
 import {
   type RpEnvironment,
   useRpRegistrationController,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/use-rp-registration-controller";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { SummaryField } from "./SummaryField";
@@ -27,6 +32,12 @@ export const RpSummary = (props: {
 }) => {
   const [isRotateOpen, setIsRotateOpen] = useState(false);
   const [isSwitchOpen, setIsSwitchOpen] = useState(false);
+  const { user } = useUser() as Auth0SessionUser;
+  const { teamId } = useParams() as { teamId: string };
+  // Display gate only — the switch_to_self_managed handler enforces OWNER.
+  const canSwitchToSelfManaged = checkUserPermissions(user, teamId ?? "", [
+    Role_Enum.Owner,
+  ]);
   const {
     productionStatus,
     stagingStatus,
@@ -54,6 +65,10 @@ export const RpSummary = (props: {
         ? "Signer keys are managed outside the Portal."
         : null
     : null;
+  const switchDisabledReason =
+    isActive && !isSelfManaged && !canSwitchToSelfManaged
+      ? "Only the team owner can switch this RP to self-managed."
+      : null;
   const handleConfigurationChanged = () => {
     markProductionPending();
     props.onRpChanged?.(RpRegistrationStatus.Pending);
@@ -76,7 +91,7 @@ export const RpSummary = (props: {
             <Typography
               as="p"
               variant={TYPOGRAPHY.S4}
-              className="mt-1 text-grey-500"
+              className="mt-1 text-content-secondary"
             >
               Retry the on-chain registration for this RP.
             </Typography>
@@ -121,7 +136,7 @@ export const RpSummary = (props: {
                   id="world-id-configuration-disabled-reason"
                   as="p"
                   variant={TYPOGRAPHY.B4}
-                  className="text-grey-500"
+                  className="text-content-secondary"
                 >
                   {controlsDisabledReason}
                 </Typography>
@@ -132,14 +147,14 @@ export const RpSummary = (props: {
                   Key
                 </Typography>
 
-                <div className="flex items-center justify-between gap-4 rounded-xl border border-grey-100 p-6">
+                <div className="flex items-center justify-between gap-4 rounded-xl border border-edge-subtle p-6">
                   <div className="flex flex-col gap-1">
                     <Typography variant={TYPOGRAPHY.S2}>
                       Rotate signer key
                     </Typography>
                     <Typography
                       variant={TYPOGRAPHY.B3}
-                      className="text-grey-500"
+                      className="text-content-secondary"
                     >
                       This will create a new signer key and disable the existing
                       key
@@ -168,26 +183,39 @@ export const RpSummary = (props: {
                   Danger zone
                 </Typography>
 
-                <div className="flex items-center justify-between gap-4 rounded-[10px] border border-grey-100 px-6 py-4">
+                <div className="flex items-center justify-between gap-4 rounded-2xl border border-edge-error-200 bg-surface px-6 py-4">
                   <div className="flex flex-col gap-1">
                     <Typography variant={TYPOGRAPHY.S2}>
                       Switch to self-managed
                     </Typography>
                     <Typography
                       variant={TYPOGRAPHY.B3}
-                      className="text-grey-500"
+                      className="text-content-secondary"
                     >
                       Move this RP to a self-managed configuration
                     </Typography>
+
+                    {switchDisabledReason ? (
+                      <Typography
+                        id="rp-switch-self-managed-disabled-reason"
+                        as="p"
+                        variant={TYPOGRAPHY.B4}
+                        className="text-content-error-700"
+                      >
+                        {switchDisabledReason}
+                      </Typography>
+                    ) : null}
                   </div>
 
                   <DestructiveTriggerButton
-                    disabled={!props.canManageWorldId || isSelfManaged}
+                    disabled={!canSwitchToSelfManaged || isSelfManaged}
                     className="shrink-0"
                     aria-describedby={
-                      controlsDisabledReason
-                        ? "world-id-configuration-disabled-reason"
-                        : undefined
+                      switchDisabledReason
+                        ? "rp-switch-self-managed-disabled-reason"
+                        : controlsDisabledReason
+                          ? "world-id-configuration-disabled-reason"
+                          : undefined
                     }
                     onClick={() => setIsSwitchOpen(true)}
                   >
@@ -208,7 +236,7 @@ export const RpSummary = (props: {
               <Typography
                 as="p"
                 variant={TYPOGRAPHY.S4}
-                className="mt-1 text-grey-500"
+                className="mt-1 text-content-secondary"
               >
                 Your changes are being processed on-chain. This could take up to
                 a minute.
@@ -224,7 +252,7 @@ export const RpSummary = (props: {
               <Typography
                 as="p"
                 variant={TYPOGRAPHY.S4}
-                className="mt-1 text-grey-500"
+                className="mt-1 text-content-secondary"
               >
                 This RP is no longer active.
               </Typography>

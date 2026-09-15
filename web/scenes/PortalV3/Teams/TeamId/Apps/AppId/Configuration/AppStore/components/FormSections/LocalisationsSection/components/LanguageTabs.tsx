@@ -18,7 +18,7 @@ export const LanguageTabs = ({
   errors,
 }: LanguageTabsProps) => {
   return (
-    <div className="mb-2 flex max-w-full flex-wrap gap-2 border-grey-200">
+    <div className="mb-2 flex max-w-full flex-wrap gap-2 border-edge">
       {localisations.map((field, index) => {
         const language =
           languageMap[field.language as keyof typeof languageMap];
@@ -35,7 +35,7 @@ export const LanguageTabs = ({
             focused={isSelected}
             isError={hasError}
             className={clsx({
-              "bg-system-error-50 hover:bg-system-error-100": hasError,
+              "bg-surface-error-50 hover:bg-surface-error-100": hasError,
             })}
           >
             <img
@@ -45,7 +45,7 @@ export const LanguageTabs = ({
               src={`${process.env.NEXT_PUBLIC_APP_URL}/icons/flags/${countryCode}.svg`}
               alt={`lang flag`}
             />
-            <span className="text-[13px] font-semibold text-grey-900">
+            <span className="text-[13px] font-semibold text-content-primary">
               {languageLabel}
             </span>
           </CountryBadge>

@@ -3,6 +3,7 @@ import { GET, OPTIONS, POST } from "@/api/mcp";
 import { logger } from "@/lib/logger";
 import { generateRpIdString } from "@/lib/rp";
 import { NextRequest } from "next/server";
+import { resolveManagerAddress } from "../../api/helpers/rp-manager";
 import { getRpFromContract } from "../../api/helpers/temporal-rpc";
 
 const requestMock = jest.fn();
@@ -23,6 +24,10 @@ jest.mock("../../lib/logger", () => ({
 
 jest.mock("../../api/helpers/temporal-rpc", () => ({
   getRpFromContract: jest.fn(),
+}));
+
+jest.mock("../../api/helpers/rp-manager", () => ({
+  resolveManagerAddress: jest.fn(),
 }));
 
 jest.mock("@aws-sdk/client-s3", () => ({
@@ -110,6 +115,7 @@ const mockHttpsResponse = (response: HttpsResponseShape) => {
 
 const mockLoggerInfo = logger.info as jest.Mock;
 const mockGetRpFromContract = getRpFromContract as jest.Mock;
+const mockResolveManagerAddress = resolveManagerAddress as jest.Mock;
 
 const teamId = "team_dd2ecd36c6c45f645e8e5d9a31abdee1";
 const apiKeyId = "key_667f5fbd4ad943622b4b2d3eb258f89c";
@@ -147,6 +153,10 @@ const appContextResponse = {
           mode: "self_managed",
           status: "registered",
           signer_address: "0x0000000000000000000000000000000000000001",
+          manager_kms_key_id: "kms-key-123",
+          // Fresh by default, so the untrusted-initialized timeout stays out of
+          // scope unless a test opts in with an older timestamp.
+          updated_at: new Date().toISOString(),
           staging_status: null,
           actions_v4: [],
         },
@@ -285,6 +295,9 @@ beforeEach(async () => {
     }),
   );
   currentAppContextResponse = appContextResponse;
+  mockResolveManagerAddress.mockResolvedValue(
+    "0x0000000000000000000000000000000000000002",
+  );
   mockGetRpFromContract.mockResolvedValue({
     initialized: true,
     active: true,
@@ -751,6 +764,111 @@ describe("/api/mcp", () => {
     );
     expect(updateCall?.[1]).toEqual(
       expect.objectContaining({ rp_id: rpId, status: "registered" }),
+    );
+  });
+
+  it.each([
+    [
+      "manager and signer are both foreign",
+      "0x00000000000000000000000000000000000000ff",
+      "0x00000000000000000000000000000000000000ee",
+    ],
+    [
+      // The signer alone is not proof of ownership: it is published in the
+      // register calldata, so an attacker can reuse it with their own manager.
+      "the signer matches but the manager is foreign",
+      "0x00000000000000000000000000000000000000ff",
+      "0x0000000000000000000000000000000000000001",
+    ],
+  ])(
+    "does not sync production status when %s",
+    async (_label, onChainManager, onChainSigner) => {
+      currentAppContextResponse = {
+        app: [
+          {
+            ...appContextResponse.app[0],
+            rp_registration: [
+              {
+                ...appContextResponse.app[0].rp_registration[0],
+                // Managed: a stored signer is what makes ownership checkable.
+                mode: "managed",
+                status: "pending",
+              },
+            ],
+          },
+        ],
+      };
+      // Someone else won the permissionless on-chain register() for this rp_id.
+      mockGetRpFromContract.mockResolvedValue({
+        initialized: true,
+        active: true,
+        manager: onChainManager,
+        signer: onChainSigner,
+        oprfKeyId: 0n,
+        unverifiedWellKnownDomain: "Attacker App",
+      });
+
+      const res = await POST(
+        callTool("get_world_id_registration_status", { app_id: appId }),
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      const payload = JSON.parse(body.result.content[0].text);
+      expect(payload.production_status).toBe("pending");
+      expect(payload.synced.production).toBe(false);
+
+      expect(
+        requestMock.mock.calls.some(
+          ([query]) => getOperationName(query) === "UpdateRpStatus",
+        ),
+      ).toBe(false);
+    },
+  );
+
+  it("fails a managed RP wedged pending by a foreign owner once the UserOp window elapses", async () => {
+    // Without this an MCP-only client polls `pending` forever after its
+    // registration is front-run, and the surviving row blocks follow-up MCP
+    // registration and rotation calls. /api/v4/rp-status already did this; the
+    // decision is shared so the two readers cannot drift.
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          rp_registration: [
+            {
+              ...appContextResponse.app[0].rp_registration[0],
+              mode: "managed",
+              status: "pending",
+              updated_at: fortyMinutesAgo,
+            },
+          ],
+        },
+      ],
+    };
+    mockGetRpFromContract.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0x00000000000000000000000000000000000000ff",
+      signer: "0x00000000000000000000000000000000000000ee",
+      oprfKeyId: 0n,
+      unverifiedWellKnownDomain: "Attacker App",
+    });
+
+    const res = await POST(
+      callTool("get_world_id_registration_status", { app_id: appId }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    expect(payload.production_status).toBe("failed");
+
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "UpdateRpStatus",
+    );
+    expect(updateCall?.[1]).toEqual(
+      expect.objectContaining({ rp_id: rpId, status: "failed" }),
     );
   });
 

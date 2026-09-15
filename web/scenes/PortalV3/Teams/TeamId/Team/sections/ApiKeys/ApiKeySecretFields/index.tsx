@@ -6,8 +6,8 @@ import { ExternalLinkIcon } from "@/components/Icons/ExternalLinkIcon";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import {
-  getMcpEndpoint,
   getProviderSnippets,
+  MCP_ENDPOINT,
   PROVIDERS,
   type ProviderId,
 } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/mcp-snippets";
@@ -47,9 +47,9 @@ const CopyControl = (props: {
     <button
       type="button"
       className={clsx(
-        "flex shrink-0 items-center justify-center text-blue-500 transition-colors hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden",
+        "flex shrink-0 items-center justify-center text-content-link-legacy transition-colors hover:text-content-primary focus-visible:ring-2 focus-visible:ring-focus-soft focus-visible:outline-hidden",
         {
-          "h-9 gap-1.5 rounded-12 border border-grey-200 bg-grey-0 px-3 text-sm font-medium shadow-button":
+          "h-9 gap-1.5 rounded-12 border border-edge bg-surface px-3 text-sm font-medium shadow-button":
             variant === "pill",
           "size-8 rounded-12": variant === "icon",
         },
@@ -68,7 +68,7 @@ const SnippetText = (props: { value: string; isRawConfig: boolean }) => {
 
   if (isRawConfig) {
     return (
-      <pre className="min-w-0 overflow-x-auto font-ibm text-xs leading-5 whitespace-pre text-grey-900">
+      <pre className="min-w-0 overflow-x-auto font-ibm text-xs leading-5 whitespace-pre text-content-primary">
         <code>{value}</code>
       </pre>
     );
@@ -79,9 +79,9 @@ const SnippetText = (props: { value: string; isRawConfig: boolean }) => {
   const rest = firstSpace === -1 ? "" : value.slice(firstSpace);
 
   return (
-    <pre className="min-w-0 overflow-x-auto font-ibm text-xs leading-5 whitespace-pre text-grey-900 md:text-sm">
+    <pre className="min-w-0 overflow-x-auto font-ibm text-xs leading-5 whitespace-pre text-content-primary md:text-sm">
       <code>
-        <span className="text-blue-500">{firstToken}</span>
+        <span className="text-content-link-legacy">{firstToken}</span>
         {rest}
       </code>
     </pre>
@@ -93,9 +93,8 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
   const apiKeyPreview = getApiKeyPreview(apiKey);
   const [selectedProvider, setSelectedProvider] = useState<ProviderId>("codex");
   const [showRawConfig, setShowRawConfig] = useState(false);
-  // Only ever rendered post-mutation inside CreateKeyModal, so `window` exists.
   const snippets = useMemo(
-    () => getProviderSnippets(apiKey, getMcpEndpoint(window.location.origin)),
+    () => getProviderSnippets(apiKey, MCP_ENDPOINT()),
     [apiKey],
   );
   const provider = PROVIDERS.find((item) => item.id === selectedProvider)!;
@@ -108,22 +107,22 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
         <div className="flex items-center justify-between gap-4 px-1">
           <Typography
             variant={TYPOGRAPHY.M4}
-            className="text-grey-400 uppercase"
+            className="text-content-tertiary uppercase"
           >
             API key
           </Typography>
 
           <Typography
             variant={TYPOGRAPHY.M4}
-            className="flex items-center gap-1 text-grey-400"
+            className="flex items-center gap-1 text-content-tertiary"
           >
             <LockIcon className="size-4" />
             Shown once
           </Typography>
         </div>
 
-        <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-12 border border-blue-150 bg-blue-50 p-1.5 pl-3">
-          <code className="min-w-0 font-ibm text-sm break-all text-grey-900">
+        <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-12 border border-focus-soft bg-surface-info-faint p-1.5 pl-3">
+          <code className="min-w-0 font-ibm text-sm break-all text-content-primary">
             {apiKeyPreview}
           </code>
 
@@ -135,14 +134,14 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
         <div className="flex items-center justify-between gap-4 px-1">
           <Typography
             variant={TYPOGRAPHY.M4}
-            className="text-grey-400 uppercase"
+            className="text-content-tertiary uppercase"
           >
             Connect to
           </Typography>
 
           <button
             type="button"
-            className="flex items-center gap-1 text-sm font-medium text-blue-500 transition-colors hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
+            className="flex items-center gap-1 text-sm font-medium text-content-link-legacy transition-colors hover:text-content-primary focus-visible:ring-2 focus-visible:ring-focus-soft focus-visible:outline-hidden"
             onClick={() => setShowRawConfig((value) => !value)}
           >
             {showRawConfig ? "Command" : "Raw config"}
@@ -159,10 +158,11 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
                 key={item.id}
                 type="button"
                 className={clsx(
-                  "flex h-9 items-center rounded-full border px-3 text-grey-500 transition-colors hover:border-blue-150 hover:bg-blue-50 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden",
+                  "flex h-9 items-center rounded-full border px-3 text-content-secondary transition-colors hover:border-focus-soft hover:bg-surface-info-faint hover:text-content-primary focus-visible:ring-2 focus-visible:ring-focus-soft focus-visible:outline-hidden",
                   {
-                    "border-blue-150 bg-blue-50 text-grey-900": isSelected,
-                    "border-transparent bg-grey-0": !isSelected,
+                    "border-focus-soft bg-surface-info-faint text-content-primary":
+                      isSelected,
+                    "border-transparent bg-surface": !isSelected,
                   },
                 )}
                 aria-pressed={isSelected}
@@ -177,16 +177,16 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
           })}
         </div>
 
-        <div className="grid gap-y-2 rounded-12 border border-grey-200 bg-grey-50 p-3">
+        <div className="grid gap-y-2 rounded-12 border border-edge bg-surface-soft p-3">
           <Typography
             variant={TYPOGRAPHY.M4}
-            className="flex items-center gap-2 text-grey-400"
+            className="flex items-center gap-2 text-content-tertiary"
           >
             <span className="font-ibm">&gt;_</span>
             {showRawConfig ? "Raw config" : provider.setupLabel}
           </Typography>
 
-          <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-12 bg-grey-0 px-3 py-2 shadow-button">
+          <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-12 bg-surface px-3 py-2 shadow-button">
             <SnippetText value={snippetValue} isRawConfig={showRawConfig} />
             <CopyControl
               fieldName={`${provider.name} ${showRawConfig ? "config" : "setup"}`}

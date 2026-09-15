@@ -116,6 +116,24 @@ it("explains an empty grid that offers no way to create", () => {
   ).toBeInTheDocument();
 });
 
+it("renders a registration action inside the non-search empty state", () => {
+  const registrationAction = (
+    <button type="button">Register relying party</button>
+  );
+  const view = render(emptyGrid({ emptyAction: registrationAction }));
+
+  expect(
+    screen.getByRole("button", { name: "Register relying party" }),
+  ).toBeInTheDocument();
+
+  view.rerender(
+    emptyGrid({ emptyAction: registrationAction, search: "missing" }),
+  );
+  expect(
+    screen.queryByRole("button", { name: "Register relying party" }),
+  ).not.toBeInTheDocument();
+});
+
 it("explains a search that filters every action out", () => {
   render(
     emptyGrid({

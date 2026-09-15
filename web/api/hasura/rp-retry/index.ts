@@ -186,7 +186,11 @@ export const POST = async (req: NextRequest) => {
 
   let managerAddress: string;
   try {
-    managerAddress = await getEthAddressFromKMS(kmsClient, managerKmsKeyId);
+    managerAddress = await getEthAddressFromKMS(
+      kmsClient,
+      managerKmsKeyId,
+      config.kmsRegion,
+    );
   } catch (error) {
     logger.error("Failed to derive manager address from KMS key", {
       rpId,
@@ -218,6 +222,36 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "Failed to fetch on-chain RP status.",
       code: "rpc_error",
+      app_id: appId,
+      team_id: teamId,
+    });
+  }
+
+  // An initialized RP whose on-chain manager is not our KMS manager belongs to
+  // someone else: rp_id is uint64(keccak256(app_id)) and on-chain `register()`
+  // is permissionless, so a third party can claim it before we do. Retrying
+  // would submit an `updateRp` signed by a key the contract does not recognise
+  // as the manager — it reverts, yet the handler below still writes
+  // `status: pending`, wedging the row and burning gas on every click. Bail
+  // with a distinct code so the UI stops offering an action that cannot work.
+  if (
+    onChainRp.initialized &&
+    normalizeAddress(onChainRp.manager).toLowerCase() !==
+      normalizeAddress(managerAddress).toLowerCase()
+  ) {
+    logger.warn("Retry: rp_id is managed on-chain by a foreign manager", {
+      rpId,
+      appId,
+      teamId,
+      environment,
+      expectedManager: managerAddress,
+      onChainManager: onChainRp.manager,
+    });
+    return errorHasuraQuery({
+      req,
+      detail:
+        "This app's RP is controlled on-chain by a different manager, so Portal cannot update it. Contact support.",
+      code: "rp_id_taken",
       app_id: appId,
       team_id: teamId,
     });

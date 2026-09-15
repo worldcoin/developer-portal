@@ -92,7 +92,7 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
             fieldName="Action identifier"
             fieldValue={action.action}
             className="!pr-0"
-            iconClassName="size-5 text-portal-ink"
+            iconClassName="size-5 text-content-ink"
           />
         }
       />

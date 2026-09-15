@@ -13,10 +13,10 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
     <section
       className={twMerge(
         clsx(
-          "flex h-full min-w-0 flex-col overflow-hidden rounded-16 border bg-white shadow-portal-card",
+          "flex h-full min-w-0 flex-col overflow-hidden rounded-16 border bg-surface shadow-portal-card",
           {
             "border-portal-border": tone === "default",
-            "border-system-error-200": tone === "danger",
+            "border-edge-error-200": tone === "danger",
           },
           className,
         ),
@@ -38,7 +38,7 @@ const Title = (props: ComponentProps<"h2">) => {
   return (
     <h2
       className={twMerge(
-        "font-twk text-17 leading-6 font-[550] text-grey-900",
+        "font-twk text-17 leading-6 font-[550] text-content-primary",
         className,
       )}
       {...otherProps}
@@ -58,7 +58,7 @@ const Footer = (props: ComponentProps<"footer">) => {
   return (
     <footer
       className={twMerge(
-        "mt-auto flex min-h-14 items-center justify-between gap-3 border-t border-grey-100 bg-grey-25 px-5 py-3",
+        "mt-auto flex min-h-14 items-center justify-between gap-3 border-t border-edge-subtle bg-surface-faint px-5 py-3",
         className,
       )}
       {...otherProps}

@@ -47,9 +47,9 @@ const BanBanner = () => {
 
   return (
     <>
-      <div className="flex items-center gap-3 rounded-[10px] border border-system-error-200 bg-system-error-50 px-5 py-3 text-system-error-600">
+      <div className="flex items-center gap-3 rounded-[10px] border border-edge-error-200 bg-surface-error-50 px-5 py-3 text-content-error-600">
         <AlertIcon
-          className={`${opticalIconClassName} text-system-error-600`}
+          className={`${opticalIconClassName} text-content-error-600`}
         />
         <span className="min-w-0 flex-1 font-world text-13 leading-[1.3]">
           Your app was banned, users cannot access it anymore
@@ -58,7 +58,7 @@ const BanBanner = () => {
         <Button
           type="button"
           onClick={() => setIsOpened(true)}
-          className="shrink-0 font-world text-13 font-medium text-system-error-600 transition-colors hover:text-system-error-700"
+          className="shrink-0 font-world text-13 font-medium text-content-error-600 transition-colors hover:text-content-error-700"
         >
           More Information
         </Button>
@@ -334,10 +334,13 @@ export const WorldIdLayout = (props: {
       appEngine: app?.engine as EngineType | undefined,
       actions,
       actionsSearch,
+      hasRpRegistration,
       hasActiveRp,
+      isStaging: Boolean(app?.is_staging),
       shouldOpenCreateAction: openAction || (hasCreateIntent && hasActiveRp),
       consumeCreateAction,
       refreshOverview: refetchOverview,
+      waitForOverviewRefresh,
     }),
     [
       activeTab,
@@ -347,11 +350,14 @@ export const WorldIdLayout = (props: {
       consumeCreateAction,
       hasActiveRp,
       hasCreateIntent,
+      hasRpRegistration,
       openAction,
+      app?.is_staging,
       props.appId,
       props.canManageWorldId,
       props.teamId,
       refetchOverview,
+      waitForOverviewRefresh,
     ],
   );
 
@@ -405,7 +411,7 @@ export const WorldIdLayout = (props: {
                 <Typography
                   as="h2"
                   variant={TYPOGRAPHY.H7}
-                  className="text-portal-ink"
+                  className="text-content-ink"
                 >
                   World ID Configuration
                 </Typography>

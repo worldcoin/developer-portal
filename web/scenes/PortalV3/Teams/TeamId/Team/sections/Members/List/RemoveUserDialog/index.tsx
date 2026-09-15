@@ -68,10 +68,13 @@ export const RemoveUserDialog = (props: {
         <div className="grid justify-items-center gap-y-4">
           <Typography variant={TYPOGRAPHY.H6}>Are you sure?</Typography>
 
-          <p className="text-center text-grey-500">
+          <p className="text-center text-content-secondary">
             Are you sure you want to remove{" "}
-            <span className="font-medium text-grey-900">{props.name}</span> as a
-            member of your team? Please be aware that this action is permanent.
+            <span className="font-medium text-content-primary">
+              {props.name}
+            </span>{" "}
+            as a member of your team? Please be aware that this action is
+            permanent.
           </p>
         </div>
 

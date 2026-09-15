@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { ActionCard, ActionCardItem } from "../ActionCard";
 import { CreateActionTile } from "./CreateActionTile";
 
@@ -21,6 +21,8 @@ export const ActionsGrid = (props: {
   canCreate: boolean;
   /** Why creation is unavailable, shown when the grid has nothing to render. */
   emptyReason: string;
+  /** Optional recovery action rendered alongside the non-search empty state. */
+  emptyAction?: ReactNode;
   initialDialogOpen?: boolean;
   onCreateActionConsumed: () => void;
   onActionsChanged: () => void;
@@ -94,7 +96,12 @@ export const ActionsGrid = (props: {
 
         {emptyMessage ? (
           <div className="col-span-full rounded-[10px] border border-dashed border-portal-border px-5 py-12 text-center font-world text-13 text-portal-muted">
-            {emptyMessage}
+            <p>{emptyMessage}</p>
+            {!props.search && props.emptyAction ? (
+              <div className="mt-4 flex justify-center">
+                {props.emptyAction}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>

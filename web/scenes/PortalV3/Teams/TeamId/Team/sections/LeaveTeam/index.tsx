@@ -38,7 +38,10 @@ export const LeaveTeam = (props: {
 
   return (
     <>
-      <DestructiveTriggerButton onClick={() => setIsOpen(true)}>
+      <DestructiveTriggerButton
+        appearance="solid"
+        onClick={() => setIsOpen(true)}
+      >
         Leave team
       </DestructiveTriggerButton>
 

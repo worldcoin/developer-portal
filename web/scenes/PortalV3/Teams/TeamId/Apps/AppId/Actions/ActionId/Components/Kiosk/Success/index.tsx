@@ -12,7 +12,7 @@ export const Success = memo(function Success(props: { reset: () => void }) {
       <div className="grid max-w-[300px] justify-items-center gap-y-4 px-2">
         <div className="grid gap-y-2 font-rubik leading-[1.2]">
           <CircleIconContainer variant="success">
-            <SuccessIcon className="size-4 text-system-success-500" />
+            <SuccessIcon className="size-4 text-content-success-500" />
           </CircleIconContainer>
         </div>
         <Typography variant={TYPOGRAPHY.H6}>Verified successfully!</Typography>

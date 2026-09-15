@@ -40,8 +40,8 @@ export const List = (props: {
           ))}
       </div>
 
-      <footer className="flex min-h-14 flex-col gap-3 border-t border-grey-100 bg-grey-25 px-5 py-3 sm:flex-row sm:items-center sm:justify-between md:px-6">
-        <p className="font-gta text-13 leading-5 text-grey-400">
+      <footer className="flex min-h-14 flex-col gap-3 border-t border-edge-subtle bg-surface-faint px-5 py-3 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <p className="font-gta text-13 leading-5 text-content-tertiary">
           You belong to {props.memberships?.length ?? 0} teams.
         </p>
 

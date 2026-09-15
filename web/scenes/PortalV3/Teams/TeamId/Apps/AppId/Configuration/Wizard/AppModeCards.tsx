@@ -59,13 +59,13 @@ export const AppModeCards = (props: AppModeCardsProps) => (
             {
               "opacity-60": props.disabled,
               "cursor-default": !isInteractive,
-              "cursor-pointer focus-within:ring-2 focus-within:ring-portal-ink focus-within:ring-offset-2":
+              "cursor-pointer ring-offset-surface focus-within:ring-2 focus-within:ring-edge-ink focus-within:ring-offset-2":
                 isInteractive,
             },
           )}
         >
           <span className="flex w-full items-center justify-between">
-            <span className="text-15 leading-[1.2] font-medium whitespace-nowrap text-portal-ink">
+            <span className="text-15 leading-[1.2] font-medium whitespace-nowrap text-content-ink">
               {mode.title}
             </span>
 
@@ -99,19 +99,22 @@ export const AppModeCards = (props: AppModeCardsProps) => (
                     "flex size-5 shrink-0 items-center justify-center rounded-full",
                     opticalIconClassName,
                     isSelected
-                      ? "bg-portal-ink"
-                      : "border-[1.25px] border-portal-border",
+                      ? "bg-action"
+                      : "border-[1.25px] border-portal-border dark:border-control-border",
                   )}
                 >
                   {isSelected && (
-                    <Icon name="radio-check" className="size-[13.333px]" />
+                    <Icon
+                      name="radio-check"
+                      className="size-[13.333px] dark:invert"
+                    />
                   )}
                 </span>
               </>
             )}
           </span>
 
-          <span className="text-13 leading-[1.3] font-[350] text-[#7d7d7d]">
+          <span className="text-13 leading-[1.3] font-[350] text-content-description">
             {mode.description}
           </span>
         </label>

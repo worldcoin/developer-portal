@@ -26,5 +26,6 @@
 - "!include public_rp_manager_key_migration_audit.yaml"
 - "!include public_rp_registration.yaml"
 - "!include public_sandbox_access_request.yaml"
+- "!include public_sandbox_access_request_ios.yaml"
 - "!include public_team.yaml"
 - "!include public_user.yaml"

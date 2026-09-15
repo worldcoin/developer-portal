@@ -88,7 +88,7 @@ const EmptyState = () => {
         </div>
         <Typography
           variant={TYPOGRAPHY.R3}
-          className="text-center text-grey-500"
+          className="text-center text-content-secondary"
         >
           Once you receive your first payment, you
           <br />

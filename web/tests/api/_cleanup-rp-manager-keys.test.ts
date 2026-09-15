@@ -70,6 +70,22 @@ const successResult = {
   expectedDeletionAt: "2026-09-11T12:00:00.000Z",
 };
 
+const secondSuccessResult = {
+  rpId: "rp_abcdef1234567890",
+  appId: "app_abcdef1234567890abcdef1234567890",
+  oldManagerKeyArn: "arn:aws:kms:eu-west-1:111111111111:key/old-key-2",
+  status: "deletion_scheduled",
+  expectedDeletionAt: "2026-09-11T12:00:00.000Z",
+};
+
+const blockedResult = {
+  rpId: "rp_fedcba0987654321",
+  appId: "app_fedcba0987654321fedcba0987654321",
+  oldManagerKeyArn: "arn:aws:kms:eu-west-1:111111111111:key/old-key-3",
+  status: "blocked",
+  detail: "RP still uses the old manager in registry primary",
+};
+
 const request = () =>
   new NextRequest("http://localhost/api/_cleanup-rp-manager-keys", {
     method: "POST",
@@ -88,8 +104,8 @@ beforeEach(async () => {
   getStagingRpRegistryConfigMock.mockReturnValue(null);
   getKMSClientMock.mockResolvedValue({});
   cleanupRpManagerKeysMock.mockResolvedValue({
-    candidateCount: 1,
-    results: [successResult],
+    candidateCount: 3,
+    results: [successResult, secondSuccessResult, blockedResult],
   });
 });
 
@@ -166,26 +182,34 @@ describe("/_cleanup-rp-manager-keys [guards]", () => {
 // #region Cleanup attempt
 
 describe("/_cleanup-rp-manager-keys [attempt]", () => {
-  it("cleans up one candidate with deployment-local configuration", async () => {
+  it("cleans up a batch with deployment-local configuration", async () => {
     const response = await POST(request());
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body).toEqual({
-      rp_id: RP_ID,
-      outcome: "deletion_scheduled",
+      candidate_count: 3,
+      result_count: 3,
+      counts_by_status: {
+        deletion_scheduled: 2,
+        blocked: 1,
+      },
     });
     expect(cleanupRpManagerKeysMock).toHaveBeenCalledWith(
       expect.objectContaining({
         primaryRegistry: { name: "primary", config: PRIMARY_CONFIG },
-        limit: 1,
+        limit: 15,
       }),
     );
     expect(mockLogger.info).toHaveBeenCalledWith(
       "RP manager key cleanup attempt finished",
       expect.objectContaining({
-        rp_id: RP_ID,
-        cleanup_status: "deletion_scheduled",
+        candidate_count: 3,
+        result_count: 3,
+        counts_by_status: {
+          deletion_scheduled: 2,
+          blocked: 1,
+        },
       }),
     );
     await expect(global.RedisClient?.get(GLOBAL_LOCK_KEY)).resolves.toBeNull();
@@ -204,6 +228,7 @@ describe("/_cleanup-rp-manager-keys [attempt]", () => {
           name: "staging",
           config: STAGING_CONFIG,
         },
+        limit: 15,
       }),
     );
   });

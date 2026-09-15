@@ -1,4 +1,5 @@
 import { OIDCErrorCodes, OIDCScopes } from "@/api/helpers/oidc";
+import { decodeProof } from "@/api/helpers/verify";
 import { POST } from "@/api/v1/oidc/authorize";
 import { OIDCResponseType } from "@/lib/types";
 import { createPublicKey } from "crypto";
@@ -51,9 +52,12 @@ jest.mock("@/api/helpers/oidc/graphql/insert-auth-code.generated", () => ({
   }),
 }));
 
-// Mock the verifyProof function
+// Mock the verifyProof function. Everything else in the module stays real —
+// the replay key is derived from canonicalizeProof, so mocking it out would
+// make the replay tests below assert nothing.
 const mockVerifyProof = jest.fn().mockResolvedValue({ error: null });
 jest.mock("@/api/helpers/verify", () => ({
+  ...jest.requireActual("@/api/helpers/verify"),
   verifyProof: (...args: unknown[]) => mockVerifyProof(...args),
   encodeNullifierForStorage: jest.fn().mockReturnValue("0x123"),
 }));
@@ -374,6 +378,93 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
       attribute: "proof",
       detail: "This proof has already been used. Please try again",
     });
+  });
+
+  // The replay lock used to be keyed on the raw `proof` string, so any of the
+  // encodings decodeProof accepts produced a fresh key for an already-used
+  // proof and sailed past the check.
+  test.each([
+    [
+      "an uppercase ABI blob",
+      `0x${semaphoreProofParamsMock.proof.slice(2).toUpperCase()}`,
+    ],
+    [
+      "nested JSON with decimal leaves",
+      JSON.stringify(
+        (([a, b, c, d, e, f, g, h]) => [
+          [a, b],
+          [
+            [c, d],
+            [e, f],
+          ],
+          [g, h],
+        ])(
+          decodeProof(semaphoreProofParamsMock.proof)
+            .flat(2)
+            .map((leaf) => BigInt(leaf).toString()),
+        ),
+      ),
+    ],
+  ])("rejects a used proof re-encoded as %s", async (_label, reencoded) => {
+    const first = await POST(
+      new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST }),
+      }),
+    );
+    expect(first.status).toBe(200);
+
+    const response = await POST(
+      new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST, proof: reencoded }),
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toMatchObject({
+      code: "invalid_proof",
+      attribute: "proof",
+      detail: "This proof has already been used. Please try again",
+    });
+  });
+
+  test("rejects a proof that cannot be decoded without calling the sequencer", async () => {
+    mockVerifyProof.mockClear();
+
+    const response = await POST(
+      new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST, proof: "0x123" }),
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toMatchObject({
+      code: "invalid_proof",
+      attribute: "proof",
+      detail: "Provided proof is invalid.",
+    });
+    expect(mockVerifyProof).not.toHaveBeenCalled();
+  });
+
+  test("only one of two concurrent submissions of the same proof succeeds", async () => {
+    const submit = () =>
+      POST(
+        new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+          method: "POST",
+          body: JSON.stringify({ ...VALID_REQUEST }),
+        }),
+      );
+
+    const statuses = (await Promise.all([submit(), submit()])).map(
+      (response) => response.status,
+    );
+
+    expect(statuses.filter((status) => status === 200)).toHaveLength(1);
+    expect(statuses.filter((status) => status === 400)).toHaveLength(1);
   });
 });
 

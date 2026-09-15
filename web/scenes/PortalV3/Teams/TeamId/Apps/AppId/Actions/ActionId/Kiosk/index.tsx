@@ -56,11 +56,17 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
         <div className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 md:grid-cols-1fr/auto">
           <div className={clsx("grid max-w-[480px] gap-y-10")}>
             <div className="grid gap-y-5">
-              <Typography variant={TYPOGRAPHY.H6} className="text-grey-700">
+              <Typography
+                variant={TYPOGRAPHY.H6}
+                className="text-content-strong"
+              >
                 What is Kiosk?
               </Typography>
 
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+              <Typography
+                variant={TYPOGRAPHY.R3}
+                className="text-content-strong"
+              >
                 Kiosk allows you to verify users with World ID in person.
                 Activating it will create a screen that displays a large QR code
                 to verify with World ID. Use it to run promotions, giveaways, or
@@ -77,11 +83,14 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
 
             {kioskApp?.engine === EngineType.Cloud && (
               <div className="grid gap-y-5">
-                <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+                <Typography
+                  variant={TYPOGRAPHY.R3}
+                  className="text-content-strong"
+                >
                   This action&apos;s kiosk is currently:{" "}
                   <span
-                    className={clsx("text-system-error-500", {
-                      "text-system-success-500": kioskAction?.kiosk_enabled,
+                    className={clsx("text-content-error-500", {
+                      "text-content-success-500": kioskAction?.kiosk_enabled,
                     })}
                   >
                     {kioskAction?.kiosk_enabled ? "Enabled" : "Disabled"}

@@ -1,33 +1,26 @@
 "use client";
-import { CopyIcon } from "@/components/Icons/CopyIcon";
 import {
-  getMcpEndpoint,
   getProviderSnippets,
+  MCP_ENDPOINT,
   PROVIDERS,
   type ProviderId,
 } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/mcp-snippets";
-import { SettingsPanel } from "@/scenes/PortalV3/Teams/TeamId/Team/common/SettingsPanel";
 import clsx from "clsx";
+import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 const KEY_PLACEHOLDER = "YOUR_API_KEY";
 
 export const McpSetup = () => {
-  // Origin is unknown during SSR; correct on mount rather than hydrate a wrong one.
-  const [endpoint, setEndpoint] = useState(() => getMcpEndpoint(undefined));
-  useEffect(() => setEndpoint(getMcpEndpoint(window.location.origin)), []);
-
-  const [providerId, setProviderId] = useState<ProviderId>("claude");
+  const [providerId, setProviderId] = useState<ProviderId>("codex");
 
   // The real key is shown once at creation; this section never handles one.
   const snippets = useMemo(
-    () => getProviderSnippets(KEY_PLACEHOLDER, endpoint),
-    [endpoint],
+    () => getProviderSnippets(KEY_PLACEHOLDER, MCP_ENDPOINT()),
+    [],
   );
   const command = snippets[providerId].command;
-  const setupLabel =
-    PROVIDERS.find((provider) => provider.id === providerId)?.setupLabel ?? "";
   const [copied, setCopied] = useState(false);
   const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -39,35 +32,42 @@ export const McpSetup = () => {
     };
   }, []);
 
-  const copyCommand = () => {
-    navigator.clipboard
-      .writeText(command)
-      .then(() => {
-        toast.success("Setup command copied to clipboard");
-        setCopied(true);
+  const copyCommand = async () => {
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard API unavailable");
+      }
 
-        if (copiedTimeoutRef.current) {
-          clearTimeout(copiedTimeoutRef.current);
-        }
-        copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2_000);
-      })
-      .catch(() =>
-        toast.error("Couldn't copy. Select the command and copy it manually"),
-      );
+      await navigator.clipboard.writeText(command);
+      toast.success("Setup command copied to clipboard");
+      setCopied(true);
+
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
+      copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2_000);
+    } catch {
+      toast.error("Couldn't copy. Select the command and copy it manually");
+    }
   };
 
   return (
-    <SettingsPanel>
-      <SettingsPanel.Header className="flex flex-col gap-3 border-b border-grey-100 sm:flex-row sm:items-center sm:justify-between">
-        <SettingsPanel.Title>MCP endpoint</SettingsPanel.Title>
+    <section aria-labelledby="mcp-endpoint-heading">
+      <h2
+        id="mcp-endpoint-heading"
+        className="font-world text-17 leading-[1.2] font-[450] tracking-[-0.01em] text-content-ink"
+      >
+        MCP endpoint
+      </h2>
 
-        <code className="max-w-full [scrollbar-width:thin] self-start overflow-x-auto rounded-8 border border-grey-100 bg-grey-50 px-2.5 py-1 font-ibm text-12 leading-5 whitespace-nowrap text-grey-700 sm:self-auto">
-          {endpoint}
+      <div className="mt-4 flex h-10 w-full items-center overflow-hidden rounded-[10px] border border-portal-border bg-surface px-[15px]">
+        <code className="block min-w-0 truncate font-world text-15 leading-[1.3] font-[350] text-content-ink">
+          {MCP_ENDPOINT()}
         </code>
-      </SettingsPanel.Header>
+      </div>
 
-      <SettingsPanel.Body className="grid gap-4 px-5 py-5">
-        <div className="flex flex-wrap gap-1.5">
+      <div className="mt-4 rounded-[10px] border border-portal-border bg-surface p-[19px]">
+        <div className="flex flex-wrap gap-2">
           {PROVIDERS.map((item) => {
             const isSelected = item.id === providerId;
 
@@ -78,10 +78,19 @@ export const McpSetup = () => {
                 aria-pressed={isSelected}
                 onClick={() => setProviderId(item.id)}
                 className={clsx(
-                  "flex h-8 items-center rounded-full border px-3 font-world text-12 font-medium text-grey-500 transition-colors hover:border-blue-150 hover:bg-blue-50 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden",
+                  "flex h-8 items-center rounded-full px-[14px] font-world text-13 leading-[1.2] font-[550] tracking-[-0.01em] ring-offset-surface outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-edge-medium focus-visible:ring-offset-2",
                   {
-                    "border-blue-150 bg-blue-50 text-grey-900": isSelected,
-                    "border-grey-100 bg-grey-0": !isSelected,
+                    "w-[68px]": item.id === "codex",
+                    "w-[71px]": item.id === "claude",
+                    "w-[69px]": item.id === "cursor",
+                    "w-[85px]": item.id === "chatgpt",
+                    "w-[52px]": item.id === "zed",
+                  },
+                  {
+                    "bg-action text-action-foreground hover:bg-action-hover":
+                      isSelected,
+                    "bg-portal-canvas text-content-ink hover:bg-portal-border":
+                      !isSelected,
                   },
                 )}
               >
@@ -91,34 +100,31 @@ export const McpSetup = () => {
           })}
         </div>
 
-        <p className="font-gta text-12 leading-4 text-grey-400">{setupLabel}</p>
-
-        <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-12 border border-grey-200 bg-grey-50 px-3 pt-2 pb-1.5">
-          <pre className="min-h-8 min-w-0 [scrollbar-width:thin] overflow-x-auto pb-2 font-ibm text-12 leading-5 whitespace-pre text-grey-900">
-            <code>{command}</code>
-          </pre>
-
-          <div className="flex shrink-0 items-center gap-2 pb-0.5">
-            {copied ? (
-              <span
-                className="font-gta text-12 whitespace-nowrap text-grey-400"
-                role="status"
-              >
-                Copied to clipboard
-              </span>
-            ) : null}
-
-            <button
-              type="button"
-              aria-label="Copy MCP setup command"
-              className="flex size-8 shrink-0 items-center justify-center rounded-8 text-blue-500 transition-colors hover:bg-grey-100 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
-              onClick={copyCommand}
-            >
-              <CopyIcon className="size-4" />
-            </button>
+        <div className="mt-4 flex h-10 min-w-0 items-center gap-4 overflow-hidden rounded-[10px] border border-portal-border bg-surface px-[15px]">
+          <div
+            aria-label="MCP setup command"
+            tabIndex={0}
+            className="flex h-full min-w-0 flex-1 [scrollbar-width:thin] items-center overflow-x-auto overscroll-x-contain outline-hidden focus-visible:ring-2 focus-visible:ring-edge-medium focus-visible:ring-inset"
+          >
+            <code className="block w-max shrink-0 font-world text-15 leading-[1.3] font-[350] whitespace-nowrap text-content-ink">
+              {command}
+            </code>
           </div>
+
+          <button
+            type="button"
+            aria-label="Copy MCP setup command"
+            className="relative flex size-5 shrink-0 items-center justify-center rounded ring-offset-surface outline-hidden before:absolute before:-inset-1.5 hover:opacity-70 focus-visible:ring-2 focus-visible:ring-edge-medium focus-visible:ring-offset-2"
+            onClick={copyCommand}
+          >
+            <CopyIcon className="size-5 text-content-secondary" aria-hidden />
+          </button>
+
+          <span className="sr-only" role="status" aria-live="polite">
+            {copied ? "Copied to clipboard" : ""}
+          </span>
         </div>
-      </SettingsPanel.Body>
-    </SettingsPanel>
+      </div>
+    </section>
   );
 };

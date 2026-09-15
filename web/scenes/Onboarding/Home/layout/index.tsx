@@ -43,14 +43,14 @@ export const HomeLayout = (props: { children: ReactNode }) => {
   return (
     <div className="grid min-h-dvh w-full grid-rows-auto/1fr bg-[#f9f9f8] font-world font-[325] text-portal-text">
       <header className="sticky top-0 z-20 bg-[#f9f9f8]/80 backdrop-blur-md">
-        <div className="relative mx-auto flex h-[58px] w-full max-w-[1728px] items-center justify-between gap-4 px-4 md:px-10 xl:px-24">
+        <div className="relative mx-auto flex h-[58px] w-full max-w-[1728px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4 md:px-10 xl:px-24">
           {/* World Developers wordmark lockup. Sizing (icon, gap, clearspace
               padding, font size) is all derived from the --lockup-h variable;
               source art is 24px tall with a 14px "o" clearspace unit. */}
           <Link
             href="/"
             aria-label="World Developers"
-            className="inline-flex min-w-0 items-center gap-[0.42em] py-[calc(var(--lockup-h)*14/24)] font-world text-[calc(var(--lockup-h)*0.72)] leading-none whitespace-nowrap text-portal-text [--lockup-h:1.5rem]"
+            className="inline-flex min-w-0 items-center gap-[0.42em] py-[calc(var(--lockup-h)*14/24)] font-world text-[calc(var(--lockup-h)*0.72)] leading-none whitespace-nowrap text-portal-text [--lockup-h:1.125rem] sm:[--lockup-h:1.5rem]"
           >
             <WorldIcon
               aria-hidden
@@ -73,10 +73,10 @@ export const HomeLayout = (props: { children: ReactNode }) => {
             ))}
           </nav>
 
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-0 sm:gap-1">
             <a
               aria-label={HOME_GITHUB_LINK.label}
-              className="inline-flex h-7 items-center justify-center rounded-full border border-[#e1dfda] px-2.5 text-portal-text transition-colors hover:bg-white md:h-10 md:px-4"
+              className="inline-flex h-7 items-center justify-center rounded-full border border-[#e1dfda] px-2 text-portal-text transition-colors hover:bg-white md:h-10 md:px-4"
               href={HOME_GITHUB_LINK.href}
               rel="noopener noreferrer"
               target="_blank"
@@ -85,7 +85,7 @@ export const HomeLayout = (props: { children: ReactNode }) => {
             </a>
 
             <a
-              className="inline-flex h-7 items-center justify-center rounded-full bg-portal-text px-3 text-[12px] leading-[1.4] text-[#f9f9f8] transition-colors hover:bg-black md:h-10 md:px-4 md:text-[16px]"
+              className="inline-flex h-7 shrink-0 items-center justify-center rounded-full bg-portal-text px-2 text-[12px] leading-[1.4] whitespace-nowrap text-[#f9f9f8] transition-colors hover:bg-black md:h-10 md:px-4 md:text-[16px]"
               data-testid="log-in"
               href={HOME_SIGN_IN_LINK.href}
             >

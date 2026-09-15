@@ -34,13 +34,13 @@ export const Pagination: React.FC<FooterProps> = ({
     <div
       className={twMerge(
         clsx(
-          "sticky bottom-0 grid w-full items-center justify-between gap-x-4 bg-white py-4 text-xs",
+          "sticky bottom-0 grid w-full items-center justify-between gap-x-4 bg-surface py-4 text-xs",
           Boolean(rowsPerPageOptions) ? "grid-cols-3" : "grid-cols-2",
           className,
         ),
       )}
     >
-      <div className="text-grey-400">{totalResults} results</div>
+      <div className="text-content-tertiary">{totalResults} results</div>
       <div
         className={clsx(
           "flex items-center gap-x-4",
@@ -53,22 +53,22 @@ export const Pagination: React.FC<FooterProps> = ({
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className={clsx(
-            "group flex size-8 items-center justify-center rounded-lg border border-grey-200",
+            "group flex size-8 items-center justify-center rounded-lg border border-edge",
             {
               "disabled:cursor-not-allowed disabled:opacity-50":
                 currentPage === 1,
-              "hover:text-border-grey-700 hover:border-grey-700":
+              "hover:text-border-grey-700 hover:border-edge-heavy":
                 currentPage !== 1,
             },
           )}
         >
           <CaretIcon
-            className={clsx("size-4 rotate-90 text-grey-400", {
-              "group-hover:text-grey-700": currentPage !== 1,
+            className={clsx("size-4 rotate-90 text-content-tertiary", {
+              "group-hover:text-content-strong": currentPage !== 1,
             })}
           />
         </Button>
-        <div className="flex size-8 items-center justify-center rounded-lg border border-grey-200 text-center text-grey-900">
+        <div className="flex size-8 items-center justify-center rounded-lg border border-edge text-center text-content-primary">
           {currentPage}
         </div>
         <Button
@@ -77,18 +77,18 @@ export const Pagination: React.FC<FooterProps> = ({
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === pageCount}
           className={clsx(
-            "group flex size-8 items-center justify-center rounded-lg border border-grey-200",
+            "group flex size-8 items-center justify-center rounded-lg border border-edge",
             {
               "disabled:cursor-not-allowed disabled:opacity-50":
                 currentPage === pageCount,
-              "hover:text-border-grey-700 hover:border-grey-700":
+              "hover:text-border-grey-700 hover:border-edge-heavy":
                 currentPage < pageCount,
             },
           )}
         >
           <CaretIcon
-            className={clsx("size-4 -rotate-90 text-grey-400", {
-              "group-hover:text-grey-700 group-hover:group-disabled:text-grey-400":
+            className={clsx("size-4 -rotate-90 text-content-tertiary", {
+              "group-hover:text-content-strong group-hover:group-disabled:text-content-tertiary":
                 currentPage >= 1,
             })}
           />
@@ -124,12 +124,12 @@ const PaginationSelect = (props: {
       <SelectButton
         className={clsx(
           "items-center text-left text-xs",
-          "grid h-8 w-20 grid-cols-1fr/auto rounded-lg border border-grey-200 px-2 text-grey-700",
+          "grid h-8 w-20 grid-cols-1fr/auto rounded-lg border border-edge px-2 text-content-strong",
           className,
         )}
       >
         {rowsPerPageOptions[value] ?? value.toString()}
-        <CaretIcon className="ml-2 size-4 text-grey-400 group-hover:text-grey-700" />
+        <CaretIcon className="ml-2 size-4 text-content-tertiary group-hover:text-content-strong" />
       </SelectButton>
 
       <SelectOptions
@@ -138,7 +138,11 @@ const PaginationSelect = (props: {
         )}
       >
         {rowsPerPageOptions.map((option, index) => (
-          <SelectOption key={index} value={option} className="hover:bg-grey-50">
+          <SelectOption
+            key={index}
+            value={option}
+            className="hover:bg-surface-soft"
+          >
             <div className="grid grid-cols-1fr/auto">
               {rowsPerPageOptions[index]}
             </div>

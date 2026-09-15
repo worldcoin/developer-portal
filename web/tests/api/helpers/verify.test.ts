@@ -1,9 +1,13 @@
 import {
+  canonicalizeProof,
   decodeProof,
   decodeToHexString,
   encodeNullifierForStorage,
   parseProofInputs,
+  verifyProof,
 } from "@/api/helpers/verify";
+import { ORB_SEQUENCER, ORB_SEQUENCER_STAGING } from "@/lib/constants";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { toBeHex } from "ethers";
 
 jest.mock(
@@ -51,6 +55,18 @@ describe("verify helpers", () => {
   ];
   // Convert to JSON string for the new implementation
   const preDecodedProof = JSON.stringify(preDecodedProofArray);
+
+  const validVerifyParams = {
+    merkle_root:
+      "0x0936d98c83151035b528d1631df5c3607a740bd296b4c79c627130a96645dcc7",
+    signal_hash:
+      "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4",
+    nullifier_hash:
+      "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
+    external_nullifier:
+      "0x1c75ff6366690115808bd58e4c6e3342068088703dffa0a0ee07f55892bb10bd",
+    proof: encodedProof,
+  };
 
   // Sample pre-decoded proof with numeric values
   const preDecodedProofWithNumbersArray: [
@@ -220,21 +236,64 @@ describe("verify helpers", () => {
     });
   });
 
-  describe("parseProofInputs", () => {
-    const validInputParams = {
-      merkle_root:
-        "0x0936d98c83151035b528d1631df5c3607a740bd296b4c79c627130a96645dcc7",
-      signal_hash:
-        "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4",
-      nullifier_hash:
-        "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
-      external_nullifier:
-        "0x1c75ff6366690115808bd58e4c6e3342068088703dffa0a0ee07f55892bb10bd",
-      proof: encodedProof,
-    };
+  describe("canonicalizeProof", () => {
+    const leaves = decodeProof(encodedProof).flat(2);
+    const asNestedJson = (l: string[]) =>
+      JSON.stringify([
+        [l[0], l[1]],
+        [
+          [l[2], l[3]],
+          [l[4], l[5]],
+        ],
+        [l[6], l[7]],
+      ]);
+    const canonical = canonicalizeProof(encodedProof);
 
+    // Every encoding decodeProof accepts has to collapse to one value, else a
+    // used proof can be re-encoded past a lock keyed on the request string.
+    it.each([
+      ["an uppercase ABI blob", `0x${encodedProof.slice(2).toUpperCase()}`],
+      [
+        "an ABI blob with trailing padding",
+        `${encodedProof}${"00".repeat(32)}`,
+      ],
+      ["nested JSON", asNestedJson(leaves)],
+      ["nested JSON with whitespace", asNestedJson(leaves).replace(/,/g, ", ")],
+      [
+        "nested JSON with decimal leaves",
+        asNestedJson(leaves.map((leaf) => BigInt(leaf).toString())),
+      ],
+      [
+        "nested JSON with zero-padded leaves",
+        asNestedJson(leaves.map((leaf) => `0x0000${leaf.slice(2)}`)),
+      ],
+      ["escaped JSON", JSON.stringify(asNestedJson(leaves)).slice(1, -1)],
+    ])("collapses %s to the same canonical proof", (_label, reencoded) => {
+      expect(canonicalizeProof(reencoded)).toBe(canonical);
+    });
+
+    it("returns a different canonical proof when a leaf differs", () => {
+      const tampered = [...leaves];
+      tampered[3] = toBeHex(BigInt(tampered[3]) + 1n);
+
+      expect(canonicalizeProof(asNestedJson(tampered))).not.toBe(canonical);
+    });
+
+    it("throws for a proof that cannot be decoded", () => {
+      expect(() => canonicalizeProof("0x123")).toThrow();
+    });
+
+    it("throws for a decodable proof carrying an over-wide leaf", () => {
+      const overWide = [...leaves];
+      overWide[0] = `0x${"f".repeat(66)}`;
+
+      expect(() => canonicalizeProof(asNestedJson(overWide))).toThrow();
+    });
+  });
+
+  describe("parseProofInputs", () => {
     it("should parse valid input params with an encoded proof", () => {
-      const result = parseProofInputs(validInputParams);
+      const result = parseProofInputs(validVerifyParams);
 
       expect(result.error).toBeUndefined();
       expect(result.params).toBeDefined();
@@ -247,7 +306,7 @@ describe("verify helpers", () => {
 
     it("should parse valid input params with a JSON-encoded pre-decoded proof", () => {
       const result = parseProofInputs({
-        ...validInputParams,
+        ...validVerifyParams,
         proof: preDecodedProof,
       });
 
@@ -258,7 +317,7 @@ describe("verify helpers", () => {
 
     it("should parse valid input params with an escaped JSON string proof", () => {
       const result = parseProofInputs({
-        ...validInputParams,
+        ...validVerifyParams,
         proof: escapedJsonProof,
       });
 
@@ -269,7 +328,7 @@ describe("verify helpers", () => {
 
     it("should return an error for invalid proof", () => {
       const result = parseProofInputs({
-        ...validInputParams,
+        ...validVerifyParams,
         proof: "invalid-proof",
       });
 
@@ -280,7 +339,7 @@ describe("verify helpers", () => {
 
     it("should return an error for invalid merkle_root", () => {
       const result = parseProofInputs({
-        ...validInputParams,
+        ...validVerifyParams,
         merkle_root: "invalid-merkle-root",
       });
 
@@ -291,7 +350,7 @@ describe("verify helpers", () => {
 
     it("should return an error for invalid nullifier_hash", () => {
       const result = parseProofInputs({
-        ...validInputParams,
+        ...validVerifyParams,
         nullifier_hash: "invalid-nullifier-hash",
       });
 
@@ -302,7 +361,7 @@ describe("verify helpers", () => {
 
     it("should return an error for invalid external_nullifier", () => {
       const result = parseProofInputs({
-        ...validInputParams,
+        ...validVerifyParams,
         external_nullifier: "invalid-external-nullifier",
       });
 
@@ -313,13 +372,121 @@ describe("verify helpers", () => {
 
     it("should return an error for invalid signal_hash", () => {
       const result = parseProofInputs({
-        ...validInputParams,
+        ...validVerifyParams,
         signal_hash: "invalid-signal-hash",
       });
 
       expect(result.error).toBeDefined();
       expect(result.error?.attribute).toBe("signal");
       expect(result.params).toBeUndefined();
+    });
+  });
+
+  describe("verifyProof [environment mismatch]", () => {
+    const verificationOptions = {
+      verification_level: LegacyVerificationLevel.Orb,
+      detect_environment_mismatch: true,
+    };
+
+    const mockResponse = (ok: boolean, body: Record<string, unknown>) => ({
+      ok,
+      json: jest.fn().mockResolvedValue(body),
+    });
+
+    it("identifies a production proof submitted to staging", async () => {
+      const fetchMock = jest
+        .fn()
+        .mockResolvedValueOnce(mockResponse(false, { errorId: "invalid_root" }))
+        .mockResolvedValueOnce(mockResponse(true, { valid: true }));
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const result = await verifyProof(validVerifyParams, {
+        ...verificationOptions,
+        is_staging: true,
+      });
+
+      expect(result.error).toEqual({
+        message:
+          'This proof was generated for the production environment, but this request uses staging. Set environment to "production" or generate a new staging proof.',
+        code: "environment_mismatch",
+        statusCode: 400,
+        attribute: "environment",
+      });
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        1,
+        `${ORB_SEQUENCER_STAGING}/v2/semaphore-proof/verify`,
+        expect.any(Object),
+      );
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        `${ORB_SEQUENCER}/v2/semaphore-proof/verify`,
+        expect.any(Object),
+      );
+    });
+
+    it("identifies a staging proof submitted to production", async () => {
+      const fetchMock = jest
+        .fn()
+        .mockResolvedValueOnce(mockResponse(false, { errorId: "invalid_root" }))
+        .mockResolvedValueOnce(mockResponse(true, { valid: true }));
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const result = await verifyProof(validVerifyParams, {
+        ...verificationOptions,
+        is_staging: false,
+      });
+
+      expect(result.error).toEqual({
+        message:
+          'This proof was generated for the staging environment, but this request uses production. Set environment to "staging" or generate a new production proof.',
+        code: "environment_mismatch",
+        statusCode: 400,
+        attribute: "environment",
+      });
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        1,
+        `${ORB_SEQUENCER}/v2/semaphore-proof/verify`,
+        expect.any(Object),
+      );
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        `${ORB_SEQUENCER_STAGING}/v2/semaphore-proof/verify`,
+        expect.any(Object),
+      );
+    });
+
+    it("retains invalid_merkle_root when the proof also fails in the opposite environment", async () => {
+      const fetchMock = jest
+        .fn()
+        .mockResolvedValueOnce(mockResponse(false, { errorId: "invalid_root" }))
+        .mockResolvedValueOnce(
+          mockResponse(false, { errorId: "invalid_root" }),
+        );
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const result = await verifyProof(validVerifyParams, {
+        ...verificationOptions,
+        is_staging: true,
+      });
+
+      expect(result.error?.code).toBe("invalid_merkle_root");
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("requires an explicit valid result from the opposite environment", async () => {
+      const fetchMock = jest
+        .fn()
+        .mockResolvedValueOnce(mockResponse(false, { errorId: "invalid_root" }))
+        .mockResolvedValueOnce(mockResponse(true, { valid: "true" }));
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const result = await verifyProof(validVerifyParams, {
+        ...verificationOptions,
+        is_staging: true,
+      });
+
+      expect(result.error?.code).toBe("invalid_merkle_root");
+      expect(fetchMock).toHaveBeenCalledTimes(2);
     });
   });
 

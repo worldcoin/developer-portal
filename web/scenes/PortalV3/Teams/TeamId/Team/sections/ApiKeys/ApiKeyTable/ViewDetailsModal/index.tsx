@@ -22,7 +22,7 @@ import { UpdateKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/pag
 const schema = yup
   .object()
   .shape({
-    name: yup.string().required("A key name is required"),
+    name: yup.string().trim().required("A key name is required"),
     isActive: yup.boolean().default(true),
   })
   .noUnknown();
@@ -59,13 +59,15 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
     },
   });
 
-  // Add use effect here so default values update when the props change
+  // Start each edit session with saved values, discarding any canceled edits.
   useEffect(() => {
+    if (!isOpen) return;
+
     reset({
       name: name,
       isActive: isActive,
     });
-  }, [name, isActive, reset]);
+  }, [isOpen, keyId, name, isActive, reset]);
 
   const submit = async (values: ViewDetailsFormValues) => {
     if (updatingKey || !keyId) return;
@@ -109,7 +111,7 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
       <div className="grid w-full gap-y-6">
         <div className="grid justify-items-center">
           <CircleIconContainer variant={"info"}>
-            <KeyIcon className="text-blue-500" />
+            <KeyIcon className="text-content-link-legacy" />
           </CircleIconContainer>
         </div>
 
@@ -146,7 +148,7 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
             control={control}
             name="isActive"
             render={({ field }) => (
-              <div className="grid grid-cols-auto/1fr items-start justify-items-start gap-x-4 rounded-xl border border-grey-200 p-4">
+              <div className="grid grid-cols-auto/1fr items-start justify-items-start gap-x-4 rounded-xl border border-edge p-4">
                 <Switcher
                   setEnabled={field.onChange}
                   enabled={field.value}
@@ -158,7 +160,10 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
                     Activate the API key
                   </Typography>
 
-                  <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
+                  <Typography
+                    variant={TYPOGRAPHY.R4}
+                    className="text-content-tertiary"
+                  >
                     Toggle to enable or disable this API key.
                   </Typography>
                 </div>

@@ -27,7 +27,7 @@ export const ProgressBar = ({
       aria-valuenow={safeValue}
       className={twMerge(
         clsx(
-          "h-1.5 w-full overflow-hidden rounded-full bg-grey-100",
+          "h-1.5 w-full overflow-hidden rounded-full bg-surface-muted",
           className,
         ),
       )}

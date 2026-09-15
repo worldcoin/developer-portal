@@ -7,6 +7,9 @@ type GroupDataResponse = {
   group: number;
 };
 
+const isIroncladSkipped = () =>
+  process.env.SKIP_IRONCLAD === "true" && process.env.NODE_ENV !== "production";
+
 export class IroncladActivityApi {
   private _psAccessId: string;
   private _psGroupKey: string;
@@ -33,6 +36,10 @@ export class IroncladActivityApi {
   }
 
   public async getIsLastSigned(signerId: string) {
+    if (isIroncladSkipped()) {
+      return true;
+    }
+
     if (!this._isLatestSigned) {
       this._validateVariables();
 
@@ -70,6 +77,16 @@ export class IroncladActivityApi {
       os: string;
     },
   ) {
+    if (isIroncladSkipped()) {
+      logger.warn(
+        "Skipping Ironclad acceptance (SKIP_IRONCLAD in development)",
+        {
+          signerId,
+        },
+      );
+      return;
+    }
+
     this._validateVariables();
 
     if (!this._groupData) {

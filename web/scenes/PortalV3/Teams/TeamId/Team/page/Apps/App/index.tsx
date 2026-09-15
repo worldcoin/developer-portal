@@ -24,7 +24,7 @@ export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
   return (
     <Button
       href={urls.app({ team_id: teamId, app_id: app.id })}
-      className={`${appCardFrameClassName} transition-colors hover:border-blue-500`}
+      className={`${appCardFrameClassName} transition-colors hover:border-focus`}
     >
       <AppStatus
         status={metadata.verification_status as StatusVariant}

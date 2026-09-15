@@ -20,7 +20,7 @@ const EMPTY_ACTIONS: GetActionsQuery["actions"] = [];
 /** Shared with the World ID layout skeleton so both assert the same banner. */
 export const LegacyActionsDeprecationBanner = () => (
   <Notification variant="warning">
-    <div className="text-system-warning-800">
+    <div className="text-content-warning-800">
       <Typography as="p" variant={TYPOGRAPHY.S3}>
         This functionality is deprecated in 4.0. It&apos;s still viewable for
         your convenience. Please make all new actions in the 4.0 view.

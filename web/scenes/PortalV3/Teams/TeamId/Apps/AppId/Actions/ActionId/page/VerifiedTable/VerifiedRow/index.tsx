@@ -32,12 +32,12 @@ export const VerifiedRow = (props: {
 
             <div className="flex flex-col text-ellipsis">
               <Typography
-                className="text-grey-700"
+                className="text-content-strong"
                 variant={TYPOGRAPHY.R3}
               >{`${nullifier.nullifier_hash.slice(0, 10)}...${nullifier.nullifier_hash.slice(-8)}`}</Typography>
 
               <Typography
-                className="block text-grey-500 md:hidden"
+                className="block text-content-secondary md:hidden"
                 variant={TYPOGRAPHY.R4}
               >
                 {timeAgo}
@@ -48,14 +48,14 @@ export const VerifiedRow = (props: {
 
       case "uses":
         return (
-          <div className="grid items-center text-grey-500 max-md:text-end md:px-2">
+          <div className="grid items-center text-content-secondary max-md:text-end md:px-2">
             <Typography variant={TYPOGRAPHY.R4}>{nullifier.uses}</Typography>
           </div>
         );
 
       case "time":
         return (
-          <div className="grid items-center whitespace-nowrap text-grey-500 max-md:hidden md:pl-2">
+          <div className="grid items-center whitespace-nowrap text-content-secondary max-md:hidden md:pl-2">
             <Typography variant={TYPOGRAPHY.R4}>{timeAgo}</Typography>
           </div>
         );
@@ -63,7 +63,7 @@ export const VerifiedRow = (props: {
   };
 
   return (
-    <div className="max-md:grid max-md:grid-cols-[1fr_auto] max-md:rounded-20 max-md:border max-md:border-grey-100 max-md:px-5 max-md:py-4 md:contents md:*:border-b md:*:border-grey-100 md:*:py-3">
+    <div className="max-md:grid max-md:grid-cols-[1fr_auto] max-md:rounded-20 max-md:border max-md:border-edge-subtle max-md:px-5 max-md:py-4 md:contents md:*:border-b md:*:border-edge-subtle md:*:py-3">
       {columns.map((column) => (
         <React.Fragment key={column}>{renderColumn(column)}</React.Fragment>
       ))}

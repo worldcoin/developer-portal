@@ -1,8 +1,26 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { Role_Enum } from "@/graphql/graphql";
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { RpSummary } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/RpSummary";
+
+jest.mock("@auth0/nextjs-auth0/client", () => ({
+  useUser: () => ({ user: { hasura: { memberships: [] } } }),
+}));
+
+jest.mock("next/navigation", () => ({
+  ...jest.requireActual("next/navigation"),
+  useParams: () => ({ teamId: "team_1", appId: "app_1" }),
+}));
+
+// Loading real utils.ts pulls in idkit/ox, which needs TextEncoder (absent in
+// jsdom) — mock just what this component uses.
+const checkUserPermissionsMock = jest.fn();
+jest.mock("@/lib/utils", () => ({
+  checkUserPermissions: (...args: unknown[]) =>
+    checkUserPermissionsMock(...args),
+}));
 
 let mockProductionStatus = RpRegistrationStatus.Registered;
 let mockStagingStatus: RpRegistrationStatus | null = null;
@@ -70,6 +88,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockProductionStatus = RpRegistrationStatus.Registered;
   mockStagingStatus = null;
+  checkUserPermissionsMock.mockReturnValue(true);
 });
 
 it("shows the vertical RP identity fields and separated management controls", () => {
@@ -79,7 +98,7 @@ it("shows the vertical RP identity fields and separated management controls", ()
     name: "World ID configuration",
   });
   expect(summary).toHaveClass("flex", "max-w-[580px]", "flex-col");
-  expect(summary).not.toHaveClass("rounded-xl", "border", "bg-white");
+  expect(summary).not.toHaveClass("rounded-xl", "border", "bg-surface");
 
   expect(screen.getByText("app_1")).toBeInTheDocument();
   expect(screen.getByText("rp_1234567890abcdef")).toBeInTheDocument();
@@ -114,15 +133,15 @@ it("shows the vertical RP identity fields and separated management controls", ()
   ).toBeInTheDocument();
   expect(rotateButton.parentElement).not.toBe(switchButton.parentElement);
   expect(rotateButton).toHaveClass(
-    "border-grey-200",
-    "bg-grey-0",
-    "text-grey-700",
+    "border-edge",
+    "bg-surface",
+    "text-content-strong",
   );
-  expect(rotateButton).not.toHaveClass("text-system-error-600");
+  expect(rotateButton).not.toHaveClass("text-content-error-600");
   expect(switchButton).toHaveClass(
-    "border-system-error-300",
-    "bg-white",
-    "text-system-error-600",
+    "border-edge-error-300",
+    "bg-surface",
+    "text-content-error-600",
   );
 });
 
@@ -160,6 +179,32 @@ it("explains self-managed signer ownership and disables Portal controls", () => 
   expect(
     screen.getByRole("button", { name: "Switch to self-managed" }),
   ).toBeDisabled();
+});
+
+it("keeps the mode switch owner-only while other controls stay admin-usable", () => {
+  checkUserPermissionsMock.mockReturnValue(false);
+  renderSummary();
+
+  expect(checkUserPermissionsMock).toHaveBeenCalledWith(
+    expect.anything(),
+    "team_1",
+    [Role_Enum.Owner],
+  );
+  expect(
+    screen.getByRole("button", { name: "Rotate signer key" }),
+  ).toBeEnabled();
+
+  const switchButton = screen.getByRole("button", {
+    name: "Switch to self-managed",
+  });
+  expect(switchButton).toBeDisabled();
+  expect(switchButton).toHaveAttribute(
+    "aria-describedby",
+    "rp-switch-self-managed-disabled-reason",
+  );
+  expect(
+    screen.getByText("Only the team owner can switch this RP to self-managed."),
+  ).toBeInTheDocument();
 });
 
 it("refetches the visible RP data after signer rotation", () => {

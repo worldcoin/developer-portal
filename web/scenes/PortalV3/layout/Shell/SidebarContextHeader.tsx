@@ -20,6 +20,10 @@ export const SidebarContextHeader = (props: { teams: DropdownTeam[] }) => {
     return <TeamsDropdown teams={props.teams} />;
   }
 
+  if (props.teams.length === 0) {
+    return null;
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>

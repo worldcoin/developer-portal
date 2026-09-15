@@ -18,6 +18,7 @@ import {
 
 import { useEffect, useMemo, useState } from "react";
 import { Line } from "react-chartjs-2";
+import { useTheme } from "next-themes";
 
 export type ChartProps = {
   data: { y: Array<ChartDataset<"line">>; x: string[] };
@@ -156,6 +157,36 @@ const defaultOptions: ChartOptions<"line"> = {
 };
 
 export const Chart = (props: ChartProps) => {
+  const { resolvedTheme, forcedTheme } = useTheme();
+  const [darkPalette, setDarkPalette] = useState<Record<string, string> | null>(
+    null,
+  );
+  useEffect(() => {
+    if ((forcedTheme ?? resolvedTheme) !== "dark") {
+      setDarkPalette(null);
+      return;
+    }
+    // Start with light options. next-themes applies the root class in an
+    // ancestor effect; read canvas colors on the next frame, after that effect.
+    const frame = requestAnimationFrame(() => {
+      const styles = getComputedStyle(document.documentElement);
+      setDarkPalette(
+        Object.fromEntries(
+          Object.entries({
+            "surface-raised": "--color-surface-raised",
+            "content-secondary": "--color-content-secondary",
+            "chart-grid": "--chart-grid",
+            "chart-tick": "--chart-tick",
+            "content-link": "--color-content-link",
+          }).map(([name, variable]) => [
+            name,
+            styles.getPropertyValue(variable).trim(),
+          ]),
+        ),
+      );
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [resolvedTheme, forcedTheme]);
   const [chartFontFamily, setChartFontFamily] = useState(
     LEGACY_CHART_FONT_FAMILY,
   );
@@ -191,9 +222,23 @@ export const Chart = (props: ChartProps) => {
           return gradient;
         },
         ...dataset,
+        ...(darkPalette &&
+        typeof dataset.borderColor === "string" &&
+        ["#4940e0", "#007cfb"].includes(dataset.borderColor.toLowerCase())
+          ? {
+              borderColor: darkPalette["content-link"],
+              // Explicit matching fills also color the points. Keep custom
+              // backgrounds and the generated gradient unchanged.
+              ...(typeof dataset.backgroundColor === "string" &&
+              dataset.backgroundColor.toLowerCase() ===
+                dataset.borderColor.toLowerCase()
+                ? { backgroundColor: darkPalette["content-link"] }
+                : {}),
+            }
+          : {}),
       })),
     }),
-    [props.data.x, props.data.y],
+    [props.data.x, props.data.y, darkPalette],
   );
 
   const options = useMemo(() => {
@@ -204,8 +249,30 @@ export const Chart = (props: ChartProps) => {
         ) as ChartOptions<"line">)
       : defaultOptions;
 
-    return applyChartFontFamily(mergedOptions, chartFontFamily);
-  }, [chartFontFamily, props.options]);
+    const themedOptions = darkPalette
+      ? (deepMerge(mergedOptions as UnknownRecord, {
+          plugins: {
+            tooltip: {
+              backgroundColor: darkPalette["surface-raised"],
+              bodyColor: darkPalette["content-secondary"],
+              titleColor: darkPalette["content-secondary"],
+              borderColor: darkPalette["chart-grid"],
+            },
+          },
+          scales: {
+            x: {
+              ticks: { color: darkPalette["chart-tick"] },
+              grid: { color: darkPalette["chart-grid"] },
+            },
+            y: {
+              ticks: { color: darkPalette["chart-tick"] },
+              grid: { color: darkPalette["chart-grid"] },
+            },
+          },
+        }) as ChartOptions<"line">)
+      : mergedOptions;
+    return applyChartFontFamily(themedOptions, chartFontFamily);
+  }, [chartFontFamily, props.options, darkPalette]);
 
   return <Line options={options} data={data} />;
 };

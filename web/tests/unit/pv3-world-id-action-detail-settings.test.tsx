@@ -110,11 +110,11 @@ describe("World ID action details [description autosave]", () => {
       "border",
       "rounded-[10px]",
       "border-portal-border",
-      "bg-white",
+      "bg-surface",
     );
     const fields = identifier.closest("label")?.parentElement?.parentElement;
     expect(fields).toHaveClass("flex", "flex-col", "gap-4");
-    expect(fields).not.toHaveClass("rounded-16", "border", "bg-white", "p-5");
+    expect(fields).not.toHaveClass("rounded-16", "border", "bg-surface", "p-5");
 
     expect(
       screen.queryByRole("button", { name: "Edit short description" }),
@@ -212,7 +212,9 @@ describe("World ID action details [deletion]", () => {
     expect(
       screen.getByRole("heading", { name: "Delete this action" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("community-vote")).toHaveClass("text-grey-900");
+    expect(screen.getByText("community-vote")).toHaveClass(
+      "text-content-primary",
+    );
     expect(screen.getByRole("button", { name: "Delete action" })).toBeEnabled();
   });
 });

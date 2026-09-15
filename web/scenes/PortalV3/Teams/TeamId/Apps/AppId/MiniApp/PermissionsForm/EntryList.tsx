@@ -43,11 +43,11 @@ const EntryRow = (props: EntryRowProps) => {
 
   return (
     <div
-      className="flex h-11 items-center gap-x-3 rounded-xl border border-grey-100 bg-grey-0 pr-2 pl-4"
+      className="flex h-11 items-center gap-x-3 rounded-xl border border-edge-subtle bg-surface pr-2 pl-4"
       data-testid={testId}
     >
       <span
-        className="min-w-0 flex-1 truncate font-world text-[15px] text-grey-900"
+        className="min-w-0 flex-1 truncate font-world text-[15px] text-content-primary"
         title={value}
       >
         {formatDisplay(value)}
@@ -56,8 +56,8 @@ const EntryRow = (props: EntryRowProps) => {
       <CopyButton
         fieldName={copyFieldName}
         fieldValue={value}
-        className="rounded-lg p-2 pr-2! hover:bg-grey-100"
-        iconClassName="size-4 text-grey-500"
+        className="rounded-lg p-2 pr-2! hover:bg-surface-muted"
+        iconClassName="size-4 text-content-secondary"
       />
 
       {!disabled && (
@@ -65,7 +65,7 @@ const EntryRow = (props: EntryRowProps) => {
           type="button"
           onClick={onRemove}
           aria-label={`Remove ${value}`}
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-grey-500 hover:bg-grey-100 hover:text-grey-900"
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-content-secondary hover:bg-surface-muted hover:text-content-primary"
         >
           <CloseIcon className="size-3.5" strokeWidth={1.5} />
         </button>
@@ -144,10 +144,10 @@ export const EntryList = (props: EntryListProps) => {
         <div className="grid gap-y-1.5">
           <div
             className={clsx(
-              "flex h-11 items-center gap-x-3 rounded-xl border bg-grey-0 px-4 transition-colors",
+              "flex h-11 items-center gap-x-3 rounded-xl border bg-surface px-4 transition-colors",
               error
-                ? "border-system-error-500"
-                : "border-grey-200 focus-within:border-blue-500",
+                ? "border-edge-error-500"
+                : "border-edge focus-within:border-focus",
             )}
           >
             <input
@@ -164,21 +164,21 @@ export const EntryList = (props: EntryListProps) => {
                   add();
                 }
               }}
-              className="h-full min-w-0 flex-1 bg-transparent font-world text-[15px] text-grey-900 placeholder:text-grey-400 focus:ring-0 focus:outline-none"
+              className="h-full min-w-0 flex-1 bg-transparent font-world text-[15px] text-content-primary placeholder:text-content-tertiary focus:ring-0 focus:outline-none"
             />
 
             <button
               type="button"
               onClick={add}
               disabled={!draft.trim()}
-              className="font-world text-[13px] font-semibold text-blue-500 disabled:text-grey-300"
+              className="font-world text-[13px] font-semibold text-content-link-legacy disabled:text-content-disabled"
             >
               Add
             </button>
           </div>
 
           {error && (
-            <p className="px-2 font-world text-xs text-system-error-500">
+            <p className="px-2 font-world text-xs text-content-error-500">
               {error}
             </p>
           )}
@@ -200,7 +200,7 @@ export const EntryList = (props: EntryListProps) => {
           ))}
 
           {(remainingCount > 0 || isExpanded) && (
-            <div className="flex h-11 overflow-hidden rounded-xl border border-grey-100 bg-grey-0 text-grey-700">
+            <div className="flex h-11 overflow-hidden rounded-xl border border-edge-subtle bg-surface text-content-strong">
               {remainingCount > 0 && (
                 <button
                   type="button"
@@ -209,7 +209,7 @@ export const EntryList = (props: EntryListProps) => {
                   }
                   aria-expanded={isExpanded}
                   aria-label={`Show ${nextRevealCount} more ${copyFieldName.toLowerCase()} entries`}
-                  className="flex min-w-0 flex-1 items-center justify-between gap-x-3 px-4 text-left transition-colors hover:bg-grey-50"
+                  className="flex min-w-0 flex-1 items-center justify-between gap-x-3 px-4 text-left transition-colors hover:bg-surface-soft"
                 >
                   <span className="font-world text-[14px] font-medium">
                     Show {nextRevealCount} more
@@ -225,9 +225,9 @@ export const EntryList = (props: EntryListProps) => {
                   aria-expanded="true"
                   aria-label={`Show fewer ${copyFieldName.toLowerCase()} entries`}
                   className={clsx(
-                    "flex min-w-0 items-center justify-between gap-x-3 px-4 text-left transition-colors hover:bg-grey-50",
+                    "flex min-w-0 items-center justify-between gap-x-3 px-4 text-left transition-colors hover:bg-surface-soft",
                     remainingCount > 0
-                      ? "flex-1 border-l border-grey-100"
+                      ? "flex-1 border-l border-edge-subtle"
                       : "w-full",
                   )}
                 >
@@ -241,7 +241,10 @@ export const EntryList = (props: EntryListProps) => {
           )}
         </div>
       ) : emptyText ? (
-        <Typography variant={TYPOGRAPHY.R4} className="px-1 text-grey-400">
+        <Typography
+          variant={TYPOGRAPHY.R4}
+          className="px-1 text-content-tertiary"
+        >
           {emptyText}
         </Typography>
       ) : null}
