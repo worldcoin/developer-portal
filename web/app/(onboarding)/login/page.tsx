@@ -1,5 +1,5 @@
 import { auth0 } from "@/lib/auth0";
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 import { urls } from "@/lib/urls";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";

@@ -1,4 +1,4 @@
-import { generateMetaTitle } from "@/lib/genarate-title";
+import { generateMetaTitle } from "@/lib/generate-title";
 import { CreateTeamPage } from "@/scenes/Onboarding/CreateTeam/page";
 import { Metadata } from "next";
 
