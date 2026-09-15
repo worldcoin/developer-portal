@@ -1,4 +1,4 @@
-import { generateHashedSecret } from "@/api/helpers/utils";
+import { generateHashedSecret, verifyHashedSecret } from "@/api/helpers/utils";
 import { GET, OPTIONS, POST } from "@/api/mcp";
 import { logger } from "@/lib/logger";
 import { generateRpIdString } from "@/lib/rp";
@@ -190,6 +190,8 @@ const reviewMetadata = {
 };
 const reviewLocalisations: Array<Record<string, unknown>> = [];
 let currentAppContextResponse = appContextResponse;
+/** When true, the staging-window mutation matches no row (RP already gone). */
+let stagingVerificationWindowUpdateMissesRow = false;
 
 const verifiedMetadataForDraft = (overrides: Record<string, unknown> = {}) => ({
   ...reviewMetadata,
@@ -295,6 +297,7 @@ beforeEach(async () => {
     }),
   );
   currentAppContextResponse = appContextResponse;
+  stagingVerificationWindowUpdateMissesRow = false;
   mockResolveManagerAddress.mockResolvedValue(
     "0x0000000000000000000000000000000000000002",
   );
@@ -363,6 +366,18 @@ beforeEach(async () => {
           action: variables.action,
           description: variables.description,
           environment: variables.environment,
+        },
+      };
+    }
+    if (operationName.includes("McpSetStagingVerificationWindow")) {
+      // Hasura returns null from `update_..._by_pk` when it matched no row.
+      if (stagingVerificationWindowUpdateMissesRow) {
+        return { update_rp_registration_by_pk: null };
+      }
+      return {
+        update_rp_registration_by_pk: {
+          rp_id: variables.rp_id,
+          staging_verification_expires_at: variables.expires_at,
         },
       };
     }
@@ -491,6 +506,26 @@ describe("/api/mcp", () => {
     );
   });
 
+  it("dispatches every advertised tool through tools/call", async () => {
+    const listed = await POST(
+      createRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+    );
+    const names: string[] = (await listed.json()).result.tools.map(
+      (tool: any) => tool.name,
+    );
+    expect(names.length).toBeGreaterThan(0);
+
+    for (const name of names) {
+      const res = await POST(callTool(name, {}));
+      const body = await res.json();
+      // The arguments are deliberately empty, so most tools answer with a
+      // validation error. What must never happen is the dispatch switch not
+      // knowing a name it advertises.
+      expect(body.error?.code).not.toBe(-32601);
+      expect(body.error?.message ?? "").not.toContain("Unknown tool");
+    }
+  });
+
   it("creates an app and logs MCP app creation", async () => {
     const res = await POST(
       callTool("create_app", {
@@ -608,6 +643,136 @@ describe("/api/mcp", () => {
         action: "verify-account",
       }),
     );
+  });
+
+  it("opens a 24h staging verification window", async () => {
+    const before = Date.now();
+
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: true,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    const expiresAt = Date.parse(payload.staging_verification_expires_at);
+    expect(expiresAt).toBeGreaterThanOrEqual(before + 24 * 60 * 60 * 1000);
+    expect(expiresAt).toBeLessThanOrEqual(
+      Date.now() + 24 * 60 * 60 * 1000 + 5000,
+    );
+
+    const mutation = requestMock.mock.calls.find(([query]) =>
+      getOperationName(query).includes("McpSetStagingVerificationWindow"),
+    );
+    expect(mutation?.[1]).toEqual({
+      rp_id: rpId,
+      expires_at: payload.staging_verification_expires_at,
+      token_hash: expect.any(String),
+    });
+    // The token is returned once and only its HMAC is stored.
+    expect(payload.staging_verification_token).toMatch(/^sk_/);
+    expect(mutation?.[1].token_hash).not.toBe(
+      payload.staging_verification_token,
+    );
+    expect(
+      verifyHashedSecret(
+        rpId,
+        payload.staging_verification_token,
+        mutation?.[1].token_hash,
+      ),
+    ).toBe(true);
+    expect(mockLoggerInfo).toHaveBeenCalledWith(
+      "portal_staging_verification_window",
+      expect.objectContaining({ actor: "mcp", app_id: appId, enabled: true }),
+    );
+  });
+
+  it("closes the staging verification window immediately", async () => {
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: false,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    expect(payload.staging_verification_expires_at).toBeNull();
+
+    expect(payload.staging_verification_token).toBeNull();
+
+    const mutation = requestMock.mock.calls.find(([query]) =>
+      getOperationName(query).includes("McpSetStagingVerificationWindow"),
+    );
+    expect(mutation?.[1]).toEqual({
+      rp_id: rpId,
+      expires_at: null,
+      token_hash: null,
+    });
+  });
+
+  it("fails loudly when opening the window matched no RP row", async () => {
+    stagingVerificationWindowUpdateMissesRow = true;
+
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: true,
+      }),
+    );
+
+    const body = await res.json();
+    expect(body.error.message).toContain("Nothing was changed");
+    // No token may be handed out for a window that was never persisted, and
+    // the audit trail must not claim a state change that did not happen.
+    expect(JSON.stringify(body)).not.toContain("sk_");
+    expect(mockLoggerInfo).not.toHaveBeenCalledWith(
+      "portal_staging_verification_window",
+      expect.anything(),
+    );
+  });
+
+  it("fails loudly when closing the window matched no RP row", async () => {
+    stagingVerificationWindowUpdateMissesRow = true;
+
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: false,
+      }),
+    );
+
+    const body = await res.json();
+    // Reporting a successful close while the window may still be open is the
+    // dangerous direction of this failure.
+    expect(body.error.message).toContain("Nothing was changed");
+    expect(mockLoggerInfo).not.toHaveBeenCalledWith(
+      "portal_staging_verification_window",
+      expect.anything(),
+    );
+  });
+
+  it("refuses to open a staging window for an app without World ID", async () => {
+    currentAppContextResponse = {
+      app: [{ ...appContextResponse.app[0], rp_registration: [] }],
+    };
+
+    const res = await POST(
+      callTool("set_world_id_staging_verification", {
+        app_id: appId,
+        enabled: true,
+      }),
+    );
+
+    const body = await res.json();
+    expect(body.error.message).toBe("World ID is not configured for this app.");
+    expect(
+      requestMock.mock.calls.some(([query]) =>
+        getOperationName(query).includes("McpSetStagingVerificationWindow"),
+      ),
+    ).toBe(false);
   });
 
   it("configures World ID via the managed flow and returns a one-time signing key", async () => {
