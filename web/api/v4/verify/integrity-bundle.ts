@@ -269,6 +269,19 @@ export function computeProofIntegrityDigest(params: {
         | UniquenessProofResponseV4
         | SessionResponseItem
       )[]) {
+        // Match Oxide's ProofIntegrityStatement encoding for every item,
+        // including those without claims: tag || nullifier || [action].
+        // Tags: uniqueness = 0, session = 1 (both session fields are signed).
+        if ("nullifier" in response) {
+          hasher.update(Buffer.from([0]));
+          hasher.update(parseNonceToFieldBytes(response.nullifier));
+        } else {
+          hasher.update(Buffer.from([1]));
+          for (const field of response.session_nullifier) {
+            hasher.update(parseNonceToFieldBytes(field));
+          }
+        }
+
         const claims = claimsForResponse(response);
         hasher.update(u32be(claims.length));
         for (const claim of claims) {
