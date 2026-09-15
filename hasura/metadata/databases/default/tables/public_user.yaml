@@ -107,13 +107,11 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - auth0Id
         - created_at
         - email
         - id
         - is_subscribed
         - name
-        - posthog_id
         - world_id_nullifier
         - is_allow_tracking
       filter:

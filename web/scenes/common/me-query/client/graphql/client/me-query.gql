@@ -4,7 +4,6 @@ query FetchMe($userId: String!) {
     name
     email
     world_id_nullifier
-    posthog_id
     is_allow_tracking
 
     memberships {
