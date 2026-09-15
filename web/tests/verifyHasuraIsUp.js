@@ -1,12 +1,13 @@
 // Readiness gate for the integration test stack. A /healthz 200 is not enough:
 // the cli-migrations Hasura image applies migrations/metadata and then swaps
 // engines, so the port can answer healthz and drop connections moments later.
-// Ready = a real GraphQL query (final engine + applied migrations) succeeding
-// twice in a row across the swap window.
+// Ready = a real GraphQL query (final engine + applied migrations) continuing
+// to succeed throughout the swap window.
 const GRAPHQL_URL = "http://localhost:8081/v1/graphql";
 const ADMIN_SECRET = "secret!"; // test-only, matches docker-compose-test.yaml
 const POLL_INTERVAL_MS = 2000;
-const CONFIRM_DELAY_MS = 1500;
+const STABILITY_WINDOW_MS = 5000;
+const STABILITY_CHECK_INTERVAL_MS = 1000;
 const MAX_WAIT_MS = 120000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -52,16 +53,36 @@ async function queryOnce(deadline) {
   }
 }
 
+async function confirmStability(deadline) {
+  const stabilityDeadline =
+    Date.now() + Math.min(STABILITY_WINDOW_MS, remainingMs(deadline));
+
+  for (;;) {
+    await queryOnce(deadline);
+
+    const remainingStabilityMs = stabilityDeadline - Date.now();
+    if (remainingStabilityMs <= 0) {
+      return;
+    }
+
+    await sleep(
+      Math.min(
+        STABILITY_CHECK_INTERVAL_MS,
+        remainingStabilityMs,
+        remainingMs(deadline),
+      ),
+    );
+  }
+}
+
 async function main() {
   const deadline = Date.now() + MAX_WAIT_MS;
   let attempt = 0;
   for (;;) {
     attempt += 1;
     try {
-      await queryOnce(deadline);
-      await sleep(Math.min(CONFIRM_DELAY_MS, remainingMs(deadline)));
-      await queryOnce(deadline);
-      console.log(`✅ Hasura is query-ready (attempt ${attempt})`);
+      await confirmStability(deadline);
+      console.log(`✅ Hasura is query-ready and stable (attempt ${attempt})`);
       return;
     } catch (error) {
       console.log(
