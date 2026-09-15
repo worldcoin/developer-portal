@@ -14,7 +14,6 @@ export type FetchMeQuery = {
     name: string;
     email?: string | null;
     world_id_nullifier?: string | null;
-    posthog_id?: string | null;
     is_allow_tracking?: boolean | null;
     memberships: Array<{
       __typename?: "membership";
@@ -73,7 +72,6 @@ export const FetchMeDocument = {
                   kind: "Field",
                   name: { kind: "Name", value: "world_id_nullifier" },
                 },
-                { kind: "Field", name: { kind: "Name", value: "posthog_id" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "is_allow_tracking" },

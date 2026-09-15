@@ -105,7 +105,6 @@ describe("user role", () => {
           id
           email
           name
-          auth0Id
           memberships {
             id
             team {
@@ -139,4 +138,20 @@ describe("user role", () => {
 
     expect(response.data.user).toEqual([]);
   });
+
+  test.each(["auth0Id", "posthog_id"])(
+    "can't select user field %s",
+    async (field) => {
+      const client = await getAPIUserClient();
+      const query = gql(`
+        query FetchUserField {
+          user(limit: 1) {
+            ${field}
+          }
+        }
+      `);
+
+      await expect(client.query({ query })).rejects.toThrow();
+    },
+  );
 });
