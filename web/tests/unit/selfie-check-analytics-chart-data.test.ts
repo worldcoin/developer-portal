@@ -1,6 +1,7 @@
 import {
   buildDailyChartData,
   filterDailyRows,
+  groupDailyRowsByInterval,
   type DailyRow,
 } from "@/lib/selfie-check-analytics";
 
@@ -35,6 +36,42 @@ describe("filterDailyRows", () => {
     expect(filterDailyRows(rows, { days: null, osName: "iOS" })).toEqual([
       rows[0],
       rows[2],
+    ]);
+  });
+});
+
+describe("groupDailyRowsByInterval", () => {
+  it("sums counts, keeps the latest cumulative total, and averages rates per week", () => {
+    const grouped = groupDailyRowsByInterval(
+      [
+        row({
+          day: "2026-09-01",
+          os_name: "Android",
+          n_users_started_selfie_check_flow: 10,
+          n_users_shared_a_proof: 6,
+          cumulative_n_users_shared_a_proof: 20,
+          p_face_capture_completion: 0.5,
+        }),
+        row({
+          day: "2026-09-03",
+          os_name: "Android",
+          n_users_started_selfie_check_flow: 7,
+          n_users_shared_a_proof: 4,
+          cumulative_n_users_shared_a_proof: 24,
+          p_face_capture_completion: 1,
+        }),
+      ],
+      "weekly",
+    );
+
+    expect(grouped).toEqual([
+      expect.objectContaining({
+        day: "2026-08-31",
+        n_users_started_selfie_check_flow: 17,
+        n_users_shared_a_proof: 10,
+        cumulative_n_users_shared_a_proof: 24,
+        p_face_capture_completion: 0.75,
+      }),
     ]);
   });
 });
