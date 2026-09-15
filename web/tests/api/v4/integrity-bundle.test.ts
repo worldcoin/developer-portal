@@ -59,6 +59,12 @@ const selfieResponse = {
   sybil_score: 10,
 };
 
+const { nullifier: _nullifier, ...sessionResponseFields } = selfieResponse;
+const selfieSessionResponse = {
+  ...sessionResponseFields,
+  session_nullifier: ["0x3", `0x02${"0".repeat(61)}4`] as [string, string],
+};
+
 function createAgKey(): AgKey {
   const { privateKey, publicKey } = generateKeyPairSync("ec", {
     namedCurve: "P-256",
@@ -122,7 +128,11 @@ async function createBundle(params?: {
   signatureFormat?: "android_keystore" | "apple_app_attest";
   timestamp?: number;
   version?: 1 | 2;
-  signedResponses?: (typeof response)[] | (typeof selfieResponse)[];
+  signedResponses?:
+    | (typeof response)[]
+    | (typeof selfieResponse)[]
+    | (typeof selfieSessionResponse)[];
+  signedDigest?: Buffer;
 }) {
   const agKey = params?.agKey ?? createAgKey();
   const deviceKey = createDeviceKey();
@@ -142,12 +152,14 @@ async function createBundle(params?: {
     platform,
   });
 
-  const digest = computeProofIntegrityDigest({
-    integrityBundleVersion: params?.version,
-    nonce,
-    protocolVersion: "4.0",
-    responses: params?.signedResponses ?? [response],
-  });
+  const digest =
+    params?.signedDigest ??
+    computeProofIntegrityDigest({
+      integrityBundleVersion: params?.version,
+      nonce,
+      protocolVersion: "4.0",
+      responses: params?.signedResponses ?? [response],
+    });
   const timestamp = params?.timestamp ?? Math.floor(Date.now() / 1000);
   const signatureDigest = computeIntegritySignatureDigest({
     payloadDigest: digest,
@@ -267,6 +279,185 @@ describe("integrity bundle verification", () => {
       reason: "invalid_device_signature",
     });
   });
+
+  // #region Oxide v2 proof bindings
+  // Golden vector from worldcoin/oxide#1217, commit 81f00010:
+  // test_v4_claims_digest_binds_both_session_fields.
+  const oxideNonce =
+    "0x0173a589d3c9521737a63bb59a9839d9ff0aaf129b91ce4d6e28077bba919e91";
+  const oxideSessionDigest =
+    "7eb811a459b760caa1896abff47795f995ec0cfb6f8499d2bc91b3e09cbf8698";
+
+  it("matches Oxide's session golden vector", () => {
+    expect(
+      computeProofIntegrityDigest({
+        integrityBundleVersion: 2,
+        nonce: oxideNonce,
+        protocolVersion: "4.0",
+        responses: [selfieSessionResponse],
+      }).toString("hex"),
+    ).toBe(oxideSessionDigest);
+  });
+
+  it.each(["android", "ios"] as const)(
+    "verifies the Oxide session digest on %s and rejects changed bindings",
+    async (platform) => {
+      const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+        version: 2,
+        jwtPlatform: platform,
+        signedNonce: oxideNonce,
+        signedDigest: Buffer.from(oxideSessionDigest, "hex"),
+      });
+      jest
+        .spyOn(global, "fetch")
+        .mockImplementation(
+          async () => new Response(JSON.stringify({ keys: [agPublicJwk] })),
+        );
+      const params = {
+        integrityBundle,
+        nonce,
+        protocolVersion: "4.0" as const,
+        rpId: RP_ID,
+      };
+
+      await expect(
+        verifyIntegrityBundle({
+          ...params,
+          responses: [selfieSessionResponse],
+        }),
+      ).resolves.toEqual({ success: true });
+
+      for (const session_nullifier of [
+        ["0x4", selfieSessionResponse.session_nullifier[1]],
+        ["0x3", `0x02${"0".repeat(61)}5`],
+      ] as [string, string][]) {
+        await expect(
+          verifyIntegrityBundle({
+            ...params,
+            responses: [{ ...selfieSessionResponse, session_nullifier }],
+          }),
+        ).resolves.toEqual({
+          success: false,
+          reason: "invalid_device_signature",
+        });
+      }
+
+      await expect(
+        verifyIntegrityBundle({
+          ...params,
+          responses: [{ ...selfieResponse, nullifier: "0x3" }],
+        }),
+      ).resolves.toEqual({
+        success: false,
+        reason: "invalid_device_signature",
+      });
+    },
+  );
+
+  it.each([selfieResponse, response])(
+    "binds the $identifier uniqueness nullifier, including items without claims",
+    async (item) => {
+      const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+        version: 2,
+        signedResponses: [item],
+      });
+      jest
+        .spyOn(global, "fetch")
+        .mockImplementation(
+          async () => new Response(JSON.stringify({ keys: [agPublicJwk] })),
+        );
+      const params = {
+        integrityBundle,
+        nonce,
+        protocolVersion: "4.0" as const,
+        rpId: RP_ID,
+      };
+      await expect(
+        verifyIntegrityBundle({ ...params, responses: [item] }),
+      ).resolves.toEqual({ success: true });
+      await expect(
+        verifyIntegrityBundle({
+          ...params,
+          responses: [{ ...item, nullifier: "0x3" }],
+        }),
+      ).resolves.toEqual({
+        success: false,
+        reason: "invalid_device_signature",
+      });
+    },
+  );
+
+  it("binds every item in response order", async () => {
+    const items = [selfieResponse, response];
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      version: 2,
+      signedResponses: items,
+    });
+    jest
+      .spyOn(global, "fetch")
+      .mockImplementation(
+        async () => new Response(JSON.stringify({ keys: [agPublicJwk] })),
+      );
+    const params = {
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0" as const,
+      rpId: RP_ID,
+    };
+    await expect(
+      verifyIntegrityBundle({ ...params, responses: items }),
+    ).resolves.toEqual({ success: true });
+    for (const responses of [
+      [response, selfieResponse],
+      [selfieResponse],
+      [selfieResponse, { ...response, nullifier: "0x3" }],
+    ]) {
+      await expect(
+        verifyIntegrityBundle({ ...params, responses }),
+      ).resolves.toEqual({
+        success: false,
+        reason: "invalid_device_signature",
+      });
+    }
+  });
+
+  it.each([false, true])(
+    "rejects the previous v2 encoding (nullifier included as a claim: %s)",
+    async (includeNullifier) => {
+      const field = (value: number) =>
+        Buffer.from(value.toString(16).padStart(64, "0"), "hex");
+      const signedDigest = createHash("sha256")
+        .update("worldcoin/proof-integrity/v4")
+        .update(field(1))
+        .update(Buffer.from("00000001", "hex"))
+        .update(Buffer.from(includeNullifier ? "00000002" : "00000001", "hex"))
+        .update(includeNullifier ? field(2) : Buffer.alloc(0))
+        .update(field(10))
+        .digest();
+      const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+        version: 2,
+        signedDigest,
+      });
+      jest
+        .spyOn(global, "fetch")
+        .mockResolvedValue(
+          new Response(JSON.stringify({ keys: [agPublicJwk] })),
+        );
+      await expect(
+        verifyIntegrityBundle({
+          integrityBundle,
+          nonce,
+          protocolVersion: "4.0",
+          responses: [selfieResponse],
+          rpId: RP_ID,
+        }),
+      ).resolves.toEqual({
+        success: false,
+        reason: "invalid_device_signature",
+      });
+    },
+  );
+  // #endregion
 
   it("verifies an android integrity bundle and caches the AG JWK", async () => {
     const { agPublicJwk, integrityBundle, nonce } = await createBundle();
