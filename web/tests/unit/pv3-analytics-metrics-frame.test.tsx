@@ -7,7 +7,9 @@ import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
 import { appId } from "../fixtures/selfie-check-analytics";
 
 // #region I/O mocks
-jest.mock("@auth0/nextjs-auth0", () => ({ useUser: jest.fn() }));
+jest.mock("@auth0/nextjs-auth0/client", () => ({
+  useUser: () => ({ user: null, isLoading: false }),
+}));
 const fetchMock = jest.fn();
 const originalFetch = global.fetch;
 const originalResizeObserver = global.ResizeObserver;
