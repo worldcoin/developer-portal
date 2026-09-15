@@ -4,8 +4,7 @@ import { useEffect } from "react";
 import { FieldArrayWithId } from "react-hook-form";
 import { AppStoreFormValues } from "../../../../FormSchema/types";
 
-// Owned here (the language tabs drive it) but shared: the rail's LivePreview
-// follows whichever locale is being edited.
+// Keeps the edited locale selected when the language tabs remount.
 export const selectedLanguageAtom = atom<FormLanguage>("en");
 
 const getDefaultLanguage = (
