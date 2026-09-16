@@ -1,7 +1,20 @@
+import { generateRpIdString } from "@/lib/rp";
 import { POST } from "@/api/hasura/register-rp";
 import { NextRequest } from "next/server";
 
 // #region Mocks
+const GetRpBackfill = jest.fn();
+const PrepareReservedRpRegistration = jest.fn();
+const FinalizeProductionBackfill = jest.fn();
+const FinalizeStagingBackfill = jest.fn();
+jest.mock("@/api/helpers/graphql/rp-id-backfill.generated", () => ({
+  getSdk: () => ({
+    GetRpBackfill,
+    PrepareReservedRpRegistration,
+    FinalizeProductionBackfill,
+    FinalizeStagingBackfill,
+  }),
+}));
 const requestMock = jest.fn();
 const submitManagedRpRegistrationMock = jest.fn();
 
@@ -64,6 +77,17 @@ const createMockRequest = (input: Record<string, unknown>) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  delete process.env.RP_ID_BACKFILL_SETUP_PAUSED;
+  GetRpBackfill.mockResolvedValue({ rp_id_backfill_by_pk: null });
+  PrepareReservedRpRegistration.mockResolvedValue({
+    update_rp_registration_by_pk: { rp_id: "rp_prepared" },
+  });
+  FinalizeProductionBackfill.mockResolvedValue({
+    update_rp_id_backfill: { affected_rows: 1 },
+  });
+  FinalizeStagingBackfill.mockResolvedValue({
+    update_rp_id_backfill: { affected_rows: 1 },
+  });
   process.env.INTERNAL_ENDPOINTS_SECRET = "internal-secret";
   appIsStaging = false;
   authorizedTeam = [{ id: teamId }];
@@ -250,6 +274,77 @@ describe("/api/hasura/register-rp [authorization]", () => {
     const body = await res.json();
     expect(body.extensions.code).toBe("unauthorized");
     expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Backfill setup guards
+describe("register_rp backfill guards", () => {
+  it.each(["managed", "self_managed"])(
+    "pauses %s setup before row creation",
+    async (mode) => {
+      process.env.RP_ID_BACKFILL_SETUP_PAUSED = "true";
+      const response = await POST(
+        createMockRequest({
+          app_id: appId,
+          mode,
+          signer_address: signerAddress,
+        }),
+      );
+      expect((await response!.json()).extensions.code).toBe("setup_paused");
+      expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+      expect(
+        requestMock.mock.calls.some(([query]) =>
+          getOperationName(query).includes("ClaimRpRegistration"),
+        ),
+      ).toBe(false);
+    },
+  );
+  it.each(["reserved", "in_progress"])(
+    "rejects direct self-managed setup for a %s staging ID",
+    async (status) => {
+      GetRpBackfill.mockResolvedValue({
+        rp_id_backfill_by_pk: {
+          app_id: appId,
+          rp_id: generateRpIdString(appId),
+          production_status: "unused",
+          production_request_id: null,
+          staging_status: status,
+          staging_request_id:
+            status === "in_progress" ? `0x${"ab".repeat(32)}` : null,
+        },
+      });
+      const response = await POST(
+        createMockRequest({
+          app_id: appId,
+          mode: "self_managed",
+          signer_address: null,
+        }),
+      );
+      expect((await response!.json()).extensions.code).toBe(
+        status === "reserved"
+          ? "managed_setup_required"
+          : "reservation_in_progress",
+      );
+      expect(
+        requestMock.mock.calls.some(([query]) =>
+          getOperationName(query).includes("ClaimRpRegistration"),
+        ),
+      ).toBe(false);
+    },
+  );
+  it("checks permission before revealing pause state", async () => {
+    process.env.RP_ID_BACKFILL_SETUP_PAUSED = "true";
+    authorizedTeam = [];
+    const response = await POST(
+      createMockRequest({
+        app_id: appId,
+        mode: "managed",
+        signer_address: signerAddress,
+      }),
+    );
+    expect((await response!.json()).extensions.code).toBe("unauthorized");
+    expect(GetRpBackfill).not.toHaveBeenCalled();
   });
 });
 // #endregion

@@ -24,6 +24,7 @@
 - "!include public_redirect.yaml"
 - "!include public_role.yaml"
 - "!include public_rp_manager_key_migration_audit.yaml"
+- "!include public_rp_id_backfill.yaml"
 - "!include public_rp_registration.yaml"
 - "!include public_sandbox_access_request.yaml"
 - "!include public_sandbox_access_request_ios.yaml"

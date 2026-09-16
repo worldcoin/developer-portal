@@ -229,6 +229,7 @@ export async function resolveManagerKeyForRegistration({
   kmsRegion,
   rpIdString,
   appId,
+  forceSharedManager = false,
 }: {
   kmsClient: KMSClient;
   /**
@@ -241,8 +242,10 @@ export async function resolveManagerKeyForRegistration({
   kmsRegion?: string;
   rpIdString: string;
   appId: string;
+  forceSharedManager?: boolean;
 }): Promise<ResolvedManagerKey> {
   const useSharedManagerKey =
+    forceSharedManager ||
     process.env.ENABLE_SHARED_KEY_RP_REGISTRATION === "true";
 
   if (useSharedManagerKey) {

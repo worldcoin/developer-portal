@@ -6867,6 +6867,10 @@ export type Mutation_Root = {
   delete_role?: Maybe<Role_Mutation_Response>;
   /** delete single row from the table: "role" */
   delete_role_by_pk?: Maybe<Role>;
+  /** delete data from the table: "rp_id_backfill" */
+  delete_rp_id_backfill?: Maybe<Rp_Id_Backfill_Mutation_Response>;
+  /** delete single row from the table: "rp_id_backfill" */
+  delete_rp_id_backfill_by_pk?: Maybe<Rp_Id_Backfill>;
   /** delete data from the table: "rp_manager_key_migration_audit" */
   delete_rp_manager_key_migration_audit?: Maybe<Rp_Manager_Key_Migration_Audit_Mutation_Response>;
   /** delete single row from the table: "rp_manager_key_migration_audit" */
@@ -6992,6 +6996,10 @@ export type Mutation_Root = {
   insert_role?: Maybe<Role_Mutation_Response>;
   /** insert a single row into the table: "role" */
   insert_role_one?: Maybe<Role>;
+  /** insert data into the table: "rp_id_backfill" */
+  insert_rp_id_backfill?: Maybe<Rp_Id_Backfill_Mutation_Response>;
+  /** insert a single row into the table: "rp_id_backfill" */
+  insert_rp_id_backfill_one?: Maybe<Rp_Id_Backfill>;
   /** insert data into the table: "rp_manager_key_migration_audit" */
   insert_rp_manager_key_migration_audit?: Maybe<Rp_Manager_Key_Migration_Audit_Mutation_Response>;
   /** insert a single row into the table: "rp_manager_key_migration_audit" */
@@ -7209,6 +7217,14 @@ export type Mutation_Root = {
   update_role_by_pk?: Maybe<Role>;
   /** update multiples rows of table: "role" */
   update_role_many?: Maybe<Array<Maybe<Role_Mutation_Response>>>;
+  /** update data of the table: "rp_id_backfill" */
+  update_rp_id_backfill?: Maybe<Rp_Id_Backfill_Mutation_Response>;
+  /** update single row of the table: "rp_id_backfill" */
+  update_rp_id_backfill_by_pk?: Maybe<Rp_Id_Backfill>;
+  /** update multiples rows of table: "rp_id_backfill" */
+  update_rp_id_backfill_many?: Maybe<
+    Array<Maybe<Rp_Id_Backfill_Mutation_Response>>
+  >;
   /** update data of the table: "rp_manager_key_migration_audit" */
   update_rp_manager_key_migration_audit?: Maybe<Rp_Manager_Key_Migration_Audit_Mutation_Response>;
   /** update single row of the table: "rp_manager_key_migration_audit" */
@@ -7540,6 +7556,16 @@ export type Mutation_RootDelete_RoleArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Role_By_PkArgs = {
   value: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Rp_Id_BackfillArgs = {
+  where: Rp_Id_Backfill_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Rp_Id_Backfill_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -7905,6 +7931,18 @@ export type Mutation_RootInsert_RoleArgs = {
 export type Mutation_RootInsert_Role_OneArgs = {
   object: Role_Insert_Input;
   on_conflict?: InputMaybe<Role_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Rp_Id_BackfillArgs = {
+  objects: Array<Rp_Id_Backfill_Insert_Input>;
+  on_conflict?: InputMaybe<Rp_Id_Backfill_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Rp_Id_Backfill_OneArgs = {
+  object: Rp_Id_Backfill_Insert_Input;
+  on_conflict?: InputMaybe<Rp_Id_Backfill_On_Conflict>;
 };
 
 /** mutation root */
@@ -8513,6 +8551,23 @@ export type Mutation_RootUpdate_Role_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Role_ManyArgs = {
   updates: Array<Role_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Rp_Id_BackfillArgs = {
+  _set?: InputMaybe<Rp_Id_Backfill_Set_Input>;
+  where: Rp_Id_Backfill_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Rp_Id_Backfill_By_PkArgs = {
+  _set?: InputMaybe<Rp_Id_Backfill_Set_Input>;
+  pk_columns: Rp_Id_Backfill_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Rp_Id_Backfill_ManyArgs = {
+  updates: Array<Rp_Id_Backfill_Updates>;
 };
 
 /** mutation root */
@@ -10084,6 +10139,12 @@ export type Query_Root = {
   role_aggregate: Role_Aggregate;
   /** fetch data from the table: "role" using primary key columns */
   role_by_pk?: Maybe<Role>;
+  /** fetch data from the table: "rp_id_backfill" */
+  rp_id_backfill: Array<Rp_Id_Backfill>;
+  /** fetch aggregated fields from the table: "rp_id_backfill" */
+  rp_id_backfill_aggregate: Rp_Id_Backfill_Aggregate;
+  /** fetch data from the table: "rp_id_backfill" using primary key columns */
+  rp_id_backfill_by_pk?: Maybe<Rp_Id_Backfill>;
   /** fetch data from the table: "rp_manager_key_migration_audit" */
   rp_manager_key_migration_audit: Array<Rp_Manager_Key_Migration_Audit>;
   /** fetch aggregated fields from the table: "rp_manager_key_migration_audit" */
@@ -10711,6 +10772,26 @@ export type Query_RootRole_By_PkArgs = {
   value: Scalars["String"]["input"];
 };
 
+export type Query_RootRp_Id_BackfillArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Id_Backfill_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Id_Backfill_Order_By>>;
+  where?: InputMaybe<Rp_Id_Backfill_Bool_Exp>;
+};
+
+export type Query_RootRp_Id_Backfill_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Id_Backfill_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Id_Backfill_Order_By>>;
+  where?: InputMaybe<Rp_Id_Backfill_Bool_Exp>;
+};
+
+export type Query_RootRp_Id_Backfill_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
+};
+
 export type Query_RootRp_Manager_Key_Migration_AuditArgs = {
   distinct_on?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -11223,6 +11304,189 @@ export type Role_Updates = {
 export type Rollup_App_Stats_Args = {
   _since?: InputMaybe<Scalars["timestamptz"]["input"]>;
   _until?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** Fixed, service-only work list for the one-time RP ID backfill */
+export type Rp_Id_Backfill = {
+  __typename?: "rp_id_backfill";
+  app_id: Scalars["String"]["output"];
+  production_request_id?: Maybe<Scalars["String"]["output"]>;
+  production_status: Scalars["String"]["output"];
+  rp_id: Scalars["String"]["output"];
+  staging_request_id?: Maybe<Scalars["String"]["output"]>;
+  staging_status: Scalars["String"]["output"];
+};
+
+/** aggregated selection of "rp_id_backfill" */
+export type Rp_Id_Backfill_Aggregate = {
+  __typename?: "rp_id_backfill_aggregate";
+  aggregate?: Maybe<Rp_Id_Backfill_Aggregate_Fields>;
+  nodes: Array<Rp_Id_Backfill>;
+};
+
+/** aggregate fields of "rp_id_backfill" */
+export type Rp_Id_Backfill_Aggregate_Fields = {
+  __typename?: "rp_id_backfill_aggregate_fields";
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Rp_Id_Backfill_Max_Fields>;
+  min?: Maybe<Rp_Id_Backfill_Min_Fields>;
+};
+
+/** aggregate fields of "rp_id_backfill" */
+export type Rp_Id_Backfill_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Rp_Id_Backfill_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** Boolean expression to filter rows from the table "rp_id_backfill". All fields are combined with a logical 'AND'. */
+export type Rp_Id_Backfill_Bool_Exp = {
+  _and?: InputMaybe<Array<Rp_Id_Backfill_Bool_Exp>>;
+  _not?: InputMaybe<Rp_Id_Backfill_Bool_Exp>;
+  _or?: InputMaybe<Array<Rp_Id_Backfill_Bool_Exp>>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  production_request_id?: InputMaybe<String_Comparison_Exp>;
+  production_status?: InputMaybe<String_Comparison_Exp>;
+  rp_id?: InputMaybe<String_Comparison_Exp>;
+  staging_request_id?: InputMaybe<String_Comparison_Exp>;
+  staging_status?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "rp_id_backfill" */
+export enum Rp_Id_Backfill_Constraint {
+  /** unique or primary key constraint on columns "app_id" */
+  RpIdBackfillPkey = "rp_id_backfill_pkey",
+  /** unique or primary key constraint on columns "rp_id" */
+  RpIdBackfillRpIdKey = "rp_id_backfill_rp_id_key",
+}
+
+/** input type for inserting data into table "rp_id_backfill" */
+export type Rp_Id_Backfill_Insert_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  production_request_id?: InputMaybe<Scalars["String"]["input"]>;
+  production_status?: InputMaybe<Scalars["String"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  staging_request_id?: InputMaybe<Scalars["String"]["input"]>;
+  staging_status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Rp_Id_Backfill_Max_Fields = {
+  __typename?: "rp_id_backfill_max_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  production_request_id?: Maybe<Scalars["String"]["output"]>;
+  production_status?: Maybe<Scalars["String"]["output"]>;
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  staging_request_id?: Maybe<Scalars["String"]["output"]>;
+  staging_status?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Rp_Id_Backfill_Min_Fields = {
+  __typename?: "rp_id_backfill_min_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  production_request_id?: Maybe<Scalars["String"]["output"]>;
+  production_status?: Maybe<Scalars["String"]["output"]>;
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  staging_request_id?: Maybe<Scalars["String"]["output"]>;
+  staging_status?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** response of any mutation on the table "rp_id_backfill" */
+export type Rp_Id_Backfill_Mutation_Response = {
+  __typename?: "rp_id_backfill_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Rp_Id_Backfill>;
+};
+
+/** on_conflict condition type for table "rp_id_backfill" */
+export type Rp_Id_Backfill_On_Conflict = {
+  constraint: Rp_Id_Backfill_Constraint;
+  update_columns?: Array<Rp_Id_Backfill_Update_Column>;
+  where?: InputMaybe<Rp_Id_Backfill_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "rp_id_backfill". */
+export type Rp_Id_Backfill_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  production_request_id?: InputMaybe<Order_By>;
+  production_status?: InputMaybe<Order_By>;
+  rp_id?: InputMaybe<Order_By>;
+  staging_request_id?: InputMaybe<Order_By>;
+  staging_status?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: rp_id_backfill */
+export type Rp_Id_Backfill_Pk_Columns_Input = {
+  app_id: Scalars["String"]["input"];
+};
+
+/** select columns of table "rp_id_backfill" */
+export enum Rp_Id_Backfill_Select_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  ProductionRequestId = "production_request_id",
+  /** column name */
+  ProductionStatus = "production_status",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  StagingRequestId = "staging_request_id",
+  /** column name */
+  StagingStatus = "staging_status",
+}
+
+/** input type for updating data in table "rp_id_backfill" */
+export type Rp_Id_Backfill_Set_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  production_request_id?: InputMaybe<Scalars["String"]["input"]>;
+  production_status?: InputMaybe<Scalars["String"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  staging_request_id?: InputMaybe<Scalars["String"]["input"]>;
+  staging_status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** Streaming cursor of the table "rp_id_backfill" */
+export type Rp_Id_Backfill_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Rp_Id_Backfill_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Rp_Id_Backfill_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  production_request_id?: InputMaybe<Scalars["String"]["input"]>;
+  production_status?: InputMaybe<Scalars["String"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  staging_request_id?: InputMaybe<Scalars["String"]["input"]>;
+  staging_status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** update columns of table "rp_id_backfill" */
+export enum Rp_Id_Backfill_Update_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  ProductionRequestId = "production_request_id",
+  /** column name */
+  ProductionStatus = "production_status",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  StagingRequestId = "staging_request_id",
+  /** column name */
+  StagingStatus = "staging_status",
+}
+
+export type Rp_Id_Backfill_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Rp_Id_Backfill_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Rp_Id_Backfill_Bool_Exp;
 };
 
 /** columns and relationships of "rp_manager_key_migration_audit" */
@@ -12889,6 +13153,14 @@ export type Subscription_Root = {
   role_by_pk?: Maybe<Role>;
   /** fetch data from the table in a streaming manner: "role" */
   role_stream: Array<Role>;
+  /** fetch data from the table: "rp_id_backfill" */
+  rp_id_backfill: Array<Rp_Id_Backfill>;
+  /** fetch aggregated fields from the table: "rp_id_backfill" */
+  rp_id_backfill_aggregate: Rp_Id_Backfill_Aggregate;
+  /** fetch data from the table: "rp_id_backfill" using primary key columns */
+  rp_id_backfill_by_pk?: Maybe<Rp_Id_Backfill>;
+  /** fetch data from the table in a streaming manner: "rp_id_backfill" */
+  rp_id_backfill_stream: Array<Rp_Id_Backfill>;
   /** fetch data from the table: "rp_manager_key_migration_audit" */
   rp_manager_key_migration_audit: Array<Rp_Manager_Key_Migration_Audit>;
   /** fetch aggregated fields from the table: "rp_manager_key_migration_audit" */
@@ -13656,6 +13928,32 @@ export type Subscription_RootRole_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Role_Stream_Cursor_Input>>;
   where?: InputMaybe<Role_Bool_Exp>;
+};
+
+export type Subscription_RootRp_Id_BackfillArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Id_Backfill_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Id_Backfill_Order_By>>;
+  where?: InputMaybe<Rp_Id_Backfill_Bool_Exp>;
+};
+
+export type Subscription_RootRp_Id_Backfill_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Id_Backfill_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Id_Backfill_Order_By>>;
+  where?: InputMaybe<Rp_Id_Backfill_Bool_Exp>;
+};
+
+export type Subscription_RootRp_Id_Backfill_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootRp_Id_Backfill_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Rp_Id_Backfill_Stream_Cursor_Input>>;
+  where?: InputMaybe<Rp_Id_Backfill_Bool_Exp>;
 };
 
 export type Subscription_RootRp_Manager_Key_Migration_AuditArgs = {

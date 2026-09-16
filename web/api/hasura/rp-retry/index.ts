@@ -19,6 +19,17 @@ import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
+import {
+  getRpBackfill,
+  isRpSetupPaused,
+  finalizeRpBackfill,
+} from "@/api/helpers/rp-id-backfill";
+import {
+  backfillColumns,
+  RP_BACKFILL_SETTLE_MARGIN_MS,
+} from "@/lib/rp-id-backfill";
+import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
+import { getSdk as getBackfillSdk } from "@/api/helpers/graphql/rp-id-backfill.generated";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -167,6 +178,19 @@ export const POST = async (req: NextRequest) => {
   }
 
   const managerKmsKeyId = dbRecord.manager_kms_key_id;
+  const backfill = await getRpBackfill(client, appId);
+  const backfillStatus = backfill?.[backfillColumns(environment).status];
+  if (
+    backfill?.production_status === "in_progress" ||
+    backfill?.staging_status === "in_progress"
+  ) {
+    return errorHasuraQuery({
+      req,
+      app_id: appId,
+      code: "reservation_in_progress",
+      detail: "This app has an unresolved RP reservation.",
+    });
+  }
   const signerAddress = dbRecord.signer_address;
 
   if (!signerAddress) {
@@ -257,7 +281,59 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  if (
+    isRpSetupPaused() &&
+    (!onChainRp.initialized || backfillStatus === "reserved")
+  ) {
+    return errorHasuraQuery({
+      req,
+      app_id: appId,
+      code: "setup_paused",
+      detail: "New World ID 4.0 setup is temporarily paused.",
+    });
+  }
+  // An activation whose response was lost may still execute. Retain the pending
+  // row/key and do not submit another update during the operation's validity.
+  const needsUpdate =
+    !onChainRp.initialized ||
+    onChainRp.signer.toLowerCase() !== signerAddress.toLowerCase();
+  const pendingAge = Date.now() - Date.parse(dbRecord.updated_at);
+  if (
+    backfillStatus === "reserved" &&
+    needsUpdate &&
+    (!Number.isFinite(pendingAge) ||
+      pendingAge <= USER_OP_MAX_VALIDITY_MS + RP_BACKFILL_SETTLE_MARGIN_MS)
+  ) {
+    return errorHasuraQuery({
+      req,
+      app_id: appId,
+      code: "operation_in_progress",
+      detail:
+        "The reservation activation may still be in flight. Retry after its validity window.",
+    });
+  }
+
   let operationHash: string | undefined;
+
+  if (backfillStatus === "reserved" && needsUpdate) {
+    // Persist a new attempt BEFORE submitting. A lost response must not leave
+    // the old expired timestamp in place and allow an immediate duplicate retry.
+    const sdk = getBackfillSdk(client);
+    const claimArgs = { rp_id: rpId, updated_at: dbRecord.updated_at };
+    const claimed =
+      environment === "production"
+        ? await sdk.ClaimProductionBackfillRetry(claimArgs)
+        : await sdk.ClaimStagingBackfillRetry(claimArgs);
+    if (claimed.update_rp_registration?.affected_rows !== 1) {
+      return errorHasuraQuery({
+        req,
+        app_id: appId,
+        code: "operation_in_progress",
+        detail:
+          "Another operation changed this registration. Refresh its status before retrying.",
+      });
+    }
+  }
 
   if (!onChainRp.initialized) {
     try {
@@ -328,6 +404,7 @@ export const POST = async (req: NextRequest) => {
       });
     }
   } else {
+    await finalizeRpBackfill(client, appId, rpId, environment);
     logger.info("Retry: RP already in sync on-chain", {
       rpId,
       appId,

@@ -13,6 +13,7 @@ import {
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
 import { logger } from "@/lib/logger";
+import { finalizeRpBackfill } from "@/api/helpers/rp-id-backfill";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getGetRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
 import { getSdk as getUpdateRpStatusSdk } from "./graphql/update-rp-status.generated";
@@ -499,6 +500,18 @@ export async function GET(
         });
       }
     }
+  }
+
+  if (!isAppDeleted && productionInitialized && productionTrust === "trusted") {
+    await finalizeRpBackfill(client, dbRecord.app_id, rpId, "production");
+  }
+  if (
+    !isAppDeleted &&
+    stagingRpcSucceeded &&
+    stagingInitialized &&
+    stagingTrust === "trusted"
+  ) {
+    await finalizeRpBackfill(client, dbRecord.app_id, rpId, "staging");
   }
 
   const result: DualStatus = {

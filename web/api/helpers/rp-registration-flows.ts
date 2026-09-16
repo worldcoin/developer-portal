@@ -45,6 +45,9 @@ import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
 import { logger } from "@/lib/logger";
+import { RP_BACKFILL_PLACEHOLDER_SIGNER } from "@/lib/rp-id-backfill";
+import { getRpBackfill, rpBackfillSetupError } from "./rp-id-backfill";
+import { getSdk as getBackfillSdk } from "./graphql/rp-id-backfill.generated";
 import { GraphQLClient } from "graphql-request";
 
 export type ManagedRegistrationResult =
@@ -61,6 +64,9 @@ export type ManagedRegistrationResult =
   | {
       ok: false;
       code:
+        | "setup_paused"
+        | "reservation_in_progress"
+        | "managed_setup_required"
         | "staging_not_supported"
         | "config_error"
         | "already_registered"
@@ -110,6 +116,13 @@ export async function submitManagedRpRegistration({
 
   const rpIdString = generateRpIdString(appId);
   const rpId = parseRpId(rpIdString);
+
+  const backfill = await getRpBackfill(client, appId);
+  const setupError = rpBackfillSetupError(backfill, "managed");
+  if (setupError) return { ok: false, ...setupError };
+  const primaryReserved = backfill?.production_status === "reserved";
+  const stagingReserved = backfill?.staging_status === "reserved";
+  const hasReservation = primaryReserved || stagingReserved;
 
   // Claim the registration slot FIRST. on_conflict with empty update_columns
   // means: if a row already exists, return null and we bail.
@@ -173,7 +186,7 @@ export async function submitManagedRpRegistration({
     });
   }
 
-  if (existingOnChainRp?.initialized) {
+  if (existingOnChainRp?.initialized && !primaryReserved) {
     logger.warn("rp_id already registered on-chain by a foreign manager", {
       app_id: appId,
       rpIdString,
@@ -242,6 +255,7 @@ export async function submitManagedRpRegistration({
     kmsRegion: primaryConfig.kmsRegion,
     rpIdString,
     appId,
+    forceSharedManager: hasReservation,
   });
   if (!managerKey.ok) {
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
@@ -249,15 +263,95 @@ export async function submitManagedRpRegistration({
   }
   const { managerKmsKeyId, managerAddress, isUniqueManagerKey } = managerKey;
 
+  if (hasReservation) {
+    // Reservation ownership is scoped to this exact app/RP row. Never bypass the
+    // existing initialized-ID guard for an untracked or changed registration.
+    try {
+      const reservedStates = [];
+      if (primaryReserved) {
+        if (!existingOnChainRp)
+          throw new Error("Reserved primary registry could not be read");
+        reservedStates.push(existingOnChainRp);
+      }
+      if (stagingReserved) {
+        const staging = getStagingRpRegistryConfig();
+        if (!staging)
+          throw new Error("Reserved staging registry is not configured");
+        reservedStates.push(
+          await getRpFromContract(rpId, staging.contractAddress),
+        );
+      }
+      if (
+        reservedStates.some(
+          (state) =>
+            !state?.initialized ||
+            state.manager.toLowerCase() !== managerAddress.toLowerCase() ||
+            ![
+              RP_BACKFILL_PLACEHOLDER_SIGNER.toLowerCase(),
+              signerAddress.toLowerCase(),
+            ].includes(state.signer.toLowerCase()),
+        )
+      ) {
+        await getDeleteRpSdk(client).DeleteRpRegistration({
+          rp_id: rpIdString,
+        });
+        return {
+          ok: false,
+          code: "rp_id_taken",
+          detail:
+            "The recorded reservation no longer matches the Portal manager and signer.",
+        };
+      }
+    } catch (error) {
+      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+      logger.warn("Could not validate RP reservation", { appId, error });
+      return {
+        ok: false,
+        code: "submission_error",
+        detail: "Could not validate the recorded reservation. Please retry.",
+      };
+    }
+    try {
+      const saved = await getBackfillSdk(client).PrepareReservedRpRegistration({
+        rp_id: rpIdString,
+        manager_key: managerKmsKeyId,
+        staging_status:
+          process.env.NEXT_PUBLIC_APP_ENV === "production" &&
+          getStagingRpRegistryConfig()
+            ? RpRegistrationStatus.Pending
+            : null,
+      });
+      if (!saved.update_rp_registration_by_pk)
+        throw new Error("Registration disappeared before activation");
+    } catch (error) {
+      logger.error("Could not persist reserved RP manager before activation", {
+        appId,
+        error,
+      });
+      return {
+        ok: false,
+        code: "db_error",
+        detail: "Could not prepare the reserved registration.",
+      };
+    }
+  }
+
   let operationHash: string;
   try {
-    operationHash = await submitRegisterRpTransaction(primaryConfig, {
-      rpId,
-      managerAddress,
-      signerAddress,
-      appName,
-      kmsClient,
-    });
+    operationHash = primaryReserved
+      ? await submitRotateSignerTransaction(primaryConfig, {
+          rpId,
+          newSignerAddress: signerAddress,
+          managerKmsKeyId,
+          kmsClient,
+        })
+      : await submitRegisterRpTransaction(primaryConfig, {
+          rpId,
+          managerAddress,
+          signerAddress,
+          appName,
+          kmsClient,
+        });
   } catch (error) {
     logger.error("Failed to submit registration transaction", {
       error,
@@ -266,7 +360,8 @@ export async function submitManagedRpRegistration({
     if (isUniqueManagerKey) {
       await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
     }
-    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    if (!hasReservation)
+      await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
     return {
       ok: false,
       code: "submission_error",
@@ -283,16 +378,20 @@ export async function submitManagedRpRegistration({
     const stagingConfig = getStagingRpRegistryConfig();
     if (stagingConfig) {
       try {
-        stagingOperationHash = await submitRegisterRpTransaction(
-          stagingConfig,
-          {
-            rpId,
-            managerAddress,
-            signerAddress,
-            appName,
-            kmsClient,
-          },
-        );
+        stagingOperationHash = stagingReserved
+          ? await submitRotateSignerTransaction(stagingConfig, {
+              rpId,
+              newSignerAddress: signerAddress,
+              managerKmsKeyId,
+              kmsClient,
+            })
+          : await submitRegisterRpTransaction(stagingConfig, {
+              rpId,
+              managerAddress,
+              signerAddress,
+              appName,
+              kmsClient,
+            });
         stagingStatus = RpRegistrationStatus.Pending;
         logger.info("Staging registration submitted", {
           rpIdString,

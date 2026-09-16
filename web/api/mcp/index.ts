@@ -2,6 +2,10 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
 import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import {
+  finalizeRpBackfill,
+  isRpSetupPaused,
+} from "@/api/helpers/rp-id-backfill";
+import {
   evaluateOnChainTrust,
   mapOnChainToDbStatus,
   type OnChainTrust,
@@ -825,6 +829,10 @@ const syncWorldIdRegistrationStatus = async (
     productionTrust === "trusted" &&
     productionStatus !== currentProductionStatus;
 
+  if (productionInitialized && productionTrust === "trusted") {
+    await finalizeRpBackfill(ctx.client, app_id, rpId, "production");
+  }
+
   if (productionSynced) {
     await getUpdateRpStatusSdk(ctx.client).UpdateRpStatus({
       rp_id: rpId,
@@ -909,6 +917,9 @@ const syncWorldIdRegistrationStatus = async (
           ? mappedStagingStatus
           : currentStagingStatus;
 
+        if (stagingTrusted)
+          await finalizeRpBackfill(ctx.client, app_id, rpId, "staging");
+
         if (stagingTrusted && stagingStatus !== currentStagingStatus) {
           await getUpdateStagingStatusSdk(ctx.client).UpdateStagingStatus({
             rp_id: rpId,
@@ -973,6 +984,9 @@ const REGISTRATION_FLOW_RPC_CODE: Record<
   Exclude<ManagedRegistrationResult, { ok: true }>["code"],
   number
 > = {
+  setup_paused: -32004,
+  reservation_in_progress: -32004,
+  managed_setup_required: -32004,
   staging_not_supported: -32004,
   already_registered: -32004,
   rp_id_taken: -32004,
@@ -1119,6 +1133,13 @@ const tools = {
         { reason: "staging_not_supported" },
       );
     }
+
+    if (isRpSetupPaused())
+      throw new McpError(
+        "New World ID 4.0 setup is temporarily paused.",
+        -32004,
+        { reason: "setup_paused" },
+      );
 
     // Always generate a wallet — managed mode requires a real signer
     // address up front. If the caller passed a private key we honor it,

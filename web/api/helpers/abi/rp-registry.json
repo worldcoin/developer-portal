@@ -73,5 +73,33 @@
     "inputs": [],
     "outputs": [{ "name": "", "type": "string" }],
     "stateMutability": "view"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64[]",
+        "name": "rpIds",
+        "type": "uint64[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "managers",
+        "type": "address[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "signers",
+        "type": "address[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "unverifiedWellKnownDomains",
+        "type": "string[]"
+      }
+    ],
+    "name": "registerMany",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   }
 ]

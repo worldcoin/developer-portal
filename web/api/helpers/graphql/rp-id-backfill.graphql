@@ -1,0 +1,85 @@
+query GetRpBackfill($app_id: String!) {
+  rp_id_backfill_by_pk(app_id: $app_id) {
+    app_id
+    rp_id
+    production_status
+    production_request_id
+    staging_status
+    staging_request_id
+  }
+}
+
+mutation ClaimProductionBackfillRetry(
+  $rp_id: String!
+  $updated_at: timestamptz!
+) {
+  update_rp_registration(
+    where: {
+      rp_id: { _eq: $rp_id }
+      updated_at: { _eq: $updated_at }
+      mode: { _eq: managed }
+    }
+    _set: { status: pending }
+  ) {
+    affected_rows
+  }
+}
+
+mutation ClaimStagingBackfillRetry($rp_id: String!, $updated_at: timestamptz!) {
+  update_rp_registration(
+    where: {
+      rp_id: { _eq: $rp_id }
+      updated_at: { _eq: $updated_at }
+      mode: { _eq: managed }
+    }
+    _set: { staging_status: pending }
+  ) {
+    affected_rows
+  }
+}
+
+mutation PrepareReservedRpRegistration(
+  $rp_id: String!
+  $manager_key: String!
+  $staging_status: rp_registration_status
+) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: {
+      manager_kms_key_id: $manager_key
+      is_unique_manager_key: false
+      staging_status: $staging_status
+    }
+  ) {
+    rp_id
+  }
+}
+
+mutation FinalizeProductionBackfill($app_id: String!, $rp_id: String!) {
+  update_rp_id_backfill(
+    where: {
+      app_id: { _eq: $app_id }
+      rp_id: { _eq: $rp_id }
+      production_status: { _in: ["unused", "reserved"] }
+    }
+    _set: {
+      production_status: "already_registered"
+      production_request_id: null
+    }
+  ) {
+    affected_rows
+  }
+}
+
+mutation FinalizeStagingBackfill($app_id: String!, $rp_id: String!) {
+  update_rp_id_backfill(
+    where: {
+      app_id: { _eq: $app_id }
+      rp_id: { _eq: $rp_id }
+      staging_status: { _in: ["unused", "reserved"] }
+    }
+    _set: { staging_status: "already_registered", staging_request_id: null }
+  ) {
+    affected_rows
+  }
+}

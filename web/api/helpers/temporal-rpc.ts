@@ -266,6 +266,20 @@ export async function getUserOperationReceipt(
   return await provider.send("eth_getUserOperationReceipt", [userOpHash]);
 }
 
+export async function estimateUserOperationGas(
+  userOp: UserOperation,
+  entryPoint: string,
+): Promise<{
+  callGasLimit: string;
+  verificationGasLimit: string;
+  preVerificationGas: string;
+}> {
+  return await createProvider().send("eth_estimateUserOperationGas", [
+    userOp,
+    entryPoint,
+  ]);
+}
+
 // =============================================================================
 // RP Registry Queries
 // =============================================================================

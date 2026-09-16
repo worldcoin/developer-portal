@@ -16,6 +16,7 @@ export type GetRpRegistrationForRetryQuery = {
     app_id: string;
     status: unknown;
     staging_status?: unknown | null;
+    updated_at: string;
     mode: unknown;
     signer_address?: string | null;
     manager_kms_key_id?: string | null;
@@ -35,6 +36,7 @@ export const GetRpRegistrationForRetryDocument = gql`
       app_id
       status
       staging_status
+      updated_at
       mode
       signer_address
       manager_kms_key_id

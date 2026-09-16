@@ -1,0 +1,35 @@
+table:
+  name: rp_id_backfill
+  schema: public
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - app_id
+        - rp_id
+        - production_status
+        - production_request_id
+        - staging_status
+        - staging_request_id
+      filter: {}
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - app_id
+        - rp_id
+        - production_status
+        - production_request_id
+        - staging_status
+        - staging_request_id
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - production_status
+        - production_request_id
+        - staging_status
+        - staging_request_id
+      filter: {}
+      check: {}

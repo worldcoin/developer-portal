@@ -3,6 +3,18 @@ import { RpRegistrationStatus } from "@/api/helpers/rp-utils";
 import { NextRequest } from "next/server";
 
 // #region Mocks
+const GetRpBackfill = jest.fn();
+const PrepareReservedRpRegistration = jest.fn();
+const FinalizeProductionBackfill = jest.fn();
+const FinalizeStagingBackfill = jest.fn();
+jest.mock("@/api/helpers/graphql/rp-id-backfill.generated", () => ({
+  getSdk: () => ({
+    GetRpBackfill,
+    PrepareReservedRpRegistration,
+    FinalizeProductionBackfill,
+    FinalizeStagingBackfill,
+  }),
+}));
 const GetRpRegistration = jest.fn();
 const UpdateRpStatus = jest.fn();
 const UpdateStagingStatus = jest.fn();
@@ -107,6 +119,17 @@ const stagingContract = "0xStagingContract";
 
 beforeEach(() => {
   jest.clearAllMocks();
+  delete process.env.RP_ID_BACKFILL_SETUP_PAUSED;
+  GetRpBackfill.mockResolvedValue({ rp_id_backfill_by_pk: null });
+  PrepareReservedRpRegistration.mockResolvedValue({
+    update_rp_registration_by_pk: { rp_id: "rp_prepared" },
+  });
+  FinalizeProductionBackfill.mockResolvedValue({
+    update_rp_id_backfill: { affected_rows: 1 },
+  });
+  FinalizeStagingBackfill.mockResolvedValue({
+    update_rp_id_backfill: { affected_rows: 1 },
+  });
   process.env.RP_REGISTRY_CONTRACT_ADDRESS = productionContract;
   process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS = stagingContract;
   global.RedisClient?.flushall();
@@ -1111,6 +1134,49 @@ describe("/api/v4/rp-status [deleted app]", () => {
 
     expect(UpdateRpStatus).not.toHaveBeenCalled();
     expect(UpdateStagingStatus).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Backfill registry finalization
+describe("RP status backfill finalization", () => {
+  it("finalizes a trusted primary independently from an untrusted staging signer", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        staging_status: "pending",
+        updated_at: new Date().toISOString(),
+      }),
+    });
+    getRpFromContractMock.mockImplementation(async (_id, address) => ({
+      initialized: true,
+      active: true,
+      manager: portalManager,
+      signer: address === productionContract ? portalSigner : "0xplaceholder",
+    }));
+    await GET(createRequest(), ctx);
+    expect(FinalizeProductionBackfill).toHaveBeenCalledWith({
+      app_id: "app_test123",
+      rp_id: rpId,
+    });
+    expect(FinalizeStagingBackfill).not.toHaveBeenCalled();
+  });
+  it("can repair the backfill marker even when the ordinary status already matches", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        staging_status: "registered",
+      }),
+    });
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: portalManager,
+      signer: portalSigner,
+    });
+    await GET(createRequest(), ctx);
+    expect(FinalizeProductionBackfill).toHaveBeenCalledTimes(1);
+    expect(FinalizeStagingBackfill).toHaveBeenCalledTimes(1);
   });
 });
 // #endregion

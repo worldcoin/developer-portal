@@ -5,8 +5,22 @@ import {
 } from "@/api/helpers/rp-registration-flows";
 import { scheduleKeyDeletion } from "@/api/helpers/kms";
 import { createManagerKey, getEthAddressFromKMS } from "@/api/helpers/kms-eth";
+import { generateRpIdString } from "@/lib/rp";
+import { RP_BACKFILL_PLACEHOLDER_SIGNER } from "@/lib/rp-id-backfill";
 
 // #region Mocks
+const GetRpBackfill = jest.fn();
+const PrepareReservedRpRegistration = jest.fn();
+const FinalizeProductionBackfill = jest.fn();
+const FinalizeStagingBackfill = jest.fn();
+jest.mock("@/api/helpers/graphql/rp-id-backfill.generated", () => ({
+  getSdk: () => ({
+    GetRpBackfill,
+    PrepareReservedRpRegistration,
+    FinalizeProductionBackfill,
+    FinalizeStagingBackfill,
+  }),
+}));
 const GetRpRegistration = jest.fn();
 jest.mock(
   "@/api/hasura/rotate-signer-key/graphql/get-rp-registration.generated",
@@ -170,6 +184,17 @@ const dedicatedManagerKeyId = "dedicated-kms-key";
 
 beforeEach(async () => {
   jest.clearAllMocks();
+  delete process.env.RP_ID_BACKFILL_SETUP_PAUSED;
+  GetRpBackfill.mockResolvedValue({ rp_id_backfill_by_pk: null });
+  PrepareReservedRpRegistration.mockResolvedValue({
+    update_rp_registration_by_pk: { rp_id: "rp_prepared" },
+  });
+  FinalizeProductionBackfill.mockResolvedValue({
+    update_rp_id_backfill: { affected_rows: 1 },
+  });
+  FinalizeStagingBackfill.mockResolvedValue({
+    update_rp_id_backfill: { affected_rows: 1 },
+  });
   await global.RedisClient?.flushall();
   clientRequestMock.mockResolvedValue({
     update_rp_registration: { affected_rows: 1 },
@@ -1442,6 +1467,175 @@ describe("submitManagedSignerRotation [manager key migration lock]", () => {
     } finally {
       global.RedisClient = redis;
     }
+  });
+});
+// #endregion
+
+// #region Reserved RP managed enablement
+describe("reserved RP managed enablement", () => {
+  const args = {
+    client,
+    appId,
+    signerAddress,
+    appName: "Reserved app",
+    isStaging: false,
+  };
+  const backfill = (overrides: Record<string, unknown> = {}) => ({
+    app_id: appId,
+    rp_id: generateRpIdString(appId),
+    production_status: "reserved",
+    production_request_id: null,
+    staging_status: "reserved",
+    staging_request_id: null,
+    ...overrides,
+  });
+  const { submitRotateSignerTransaction: rotateReserved } = jest.requireMock(
+    "@/api/helpers/rp-transactions",
+  ) as { submitRotateSignerTransaction: jest.Mock };
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
+    mockGetStagingRpRegistryConfig.mockReturnValue({
+      contractAddress: "0xstaging",
+      kmsRegion: "us-east-1",
+    });
+    GetRpBackfill.mockResolvedValue({ rp_id_backfill_by_pk: backfill() });
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: managerAddress,
+      signer: RP_BACKFILL_PLACEHOLDER_SIGNER,
+    });
+    rotateReserved.mockReset().mockResolvedValue("0xactivation");
+  });
+
+  it("replaces both placeholder signers with the retained shared manager, even with shared registration rollout off", async () => {
+    const result = await submitManagedRpRegistration(args);
+    expect(result).toMatchObject({
+      ok: true,
+      operationHash: "0xactivation",
+      stagingOperationHash: "0xactivation",
+    });
+    expect(createManagerKey).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    expect(rotateReserved).toHaveBeenCalledTimes(2);
+    expect(PrepareReservedRpRegistration).toHaveBeenCalledWith({
+      rp_id: generateRpIdString(appId),
+      manager_key: sharedManagerKeyArn,
+      staging_status: "pending",
+    });
+    expect(
+      PrepareReservedRpRegistration.mock.invocationCallOrder[0],
+    ).toBeLessThan(rotateReserved.mock.invocationCallOrder[0]);
+    expect(UpdateRpRegistration).toHaveBeenCalledWith(
+      expect.objectContaining({
+        manager_kms_key_id: sharedManagerKeyArn,
+        is_unique_manager_key: false,
+      }),
+    );
+  });
+
+  it("registers an unused primary while updating its reserved staging mirror", async () => {
+    GetRpBackfill.mockResolvedValue({
+      rp_id_backfill_by_pk: backfill({ production_status: "unused" }),
+    });
+    getRpFromContractMock.mockImplementation(async (_id, address) => ({
+      initialized: address === "0xstaging",
+      active: true,
+      manager: managerAddress,
+      signer: RP_BACKFILL_PLACEHOLDER_SIGNER,
+    }));
+    expect((await submitManagedRpRegistration(args)).ok).toBe(true);
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+    expect(rotateReserved).toHaveBeenCalledTimes(1);
+    expect(rotateReserved.mock.calls[0][0].contractAddress).toBe("0xstaging");
+  });
+
+  it("updates a reserved primary while registering an unused staging mirror", async () => {
+    GetRpBackfill.mockResolvedValue({
+      rp_id_backfill_by_pk: backfill({ staging_status: "unused" }),
+    });
+    expect((await submitManagedRpRegistration(args)).ok).toBe(true);
+    expect(
+      submitRegisterRpTransactionMock.mock.calls[0][0].contractAddress,
+    ).toBe("0xstaging");
+    expect(rotateReserved).toHaveBeenCalledTimes(1);
+  });
+
+  it("blocks an unresolved reservation before claiming the ordinary row", async () => {
+    GetRpBackfill.mockResolvedValue({
+      rp_id_backfill_by_pk: backfill({
+        staging_status: "in_progress",
+        staging_request_id: `0x${"ab".repeat(32)}`,
+      }),
+    });
+    expect(await submitManagedRpRegistration(args)).toMatchObject({
+      ok: false,
+      code: "reservation_in_progress",
+    });
+    expect(ClaimRpRegistration).not.toHaveBeenCalled();
+    expect(rotateReserved).not.toHaveBeenCalled();
+  });
+
+  it("blocks new managed setup during the pause", async () => {
+    process.env.RP_ID_BACKFILL_SETUP_PAUSED = "true";
+    expect(await submitManagedRpRegistration(args)).toMatchObject({
+      ok: false,
+      code: "setup_paused",
+    });
+    expect(ClaimRpRegistration).not.toHaveBeenCalled();
+  });
+
+  it("does not activate a tracked reservation whose manager changed", async () => {
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      manager: `0x${"99".repeat(20)}`,
+      signer: RP_BACKFILL_PLACEHOLDER_SIGNER,
+    });
+    expect(await submitManagedRpRegistration(args)).toMatchObject({
+      ok: false,
+      code: "rp_id_taken",
+    });
+    expect(rotateReserved).not.toHaveBeenCalled();
+    expect(DeleteRpRegistration).toHaveBeenCalledTimes(1);
+  });
+
+  it("retains the ordinary row and shared key after an ambiguous activation submission", async () => {
+    rotateReserved.mockRejectedValueOnce(new Error("response lost"));
+    expect(await submitManagedRpRegistration(args)).toMatchObject({
+      ok: false,
+      code: "submission_error",
+    });
+    expect(DeleteRpRegistration).not.toHaveBeenCalled();
+    expect(scheduleKeyDeletion).not.toHaveBeenCalled();
+    expect(PrepareReservedRpRegistration).toHaveBeenCalledTimes(1);
+    expect(rotateReserved).toHaveBeenCalledTimes(1);
+  });
+
+  it("records staging failure without undoing the submitted primary activation", async () => {
+    rotateReserved
+      .mockResolvedValueOnce("0xprimary")
+      .mockRejectedValueOnce(new Error("staging timeout"));
+    expect(await submitManagedRpRegistration(args)).toMatchObject({
+      ok: true,
+      operationHash: "0xprimary",
+      stagingStatus: "failed",
+    });
+    expect(DeleteRpRegistration).not.toHaveBeenCalled();
+    expect(UpdateRpRegistration).toHaveBeenCalledWith(
+      expect.objectContaining({ staging_status: "failed" }),
+    );
+  });
+
+  it("does not broadcast if the manager reference cannot be persisted", async () => {
+    PrepareReservedRpRegistration.mockRejectedValueOnce(
+      new Error("database unavailable"),
+    );
+    expect(await submitManagedRpRegistration(args)).toMatchObject({
+      ok: false,
+      code: "db_error",
+    });
+    expect(rotateReserved).not.toHaveBeenCalled();
   });
 });
 // #endregion

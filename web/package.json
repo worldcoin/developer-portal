@@ -175,7 +175,8 @@
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration --runInBand",
     "test:integration:server": "docker compose -f ../docker-compose-test.yaml up --abort-on-container-exit",
     "test:unit": "jest tests/unit tests/scripts lib/schema --maxWorkers=2",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "rp:backfill": "node --conditions=react-server --import tsx scripts/rp-id-backfill.ts"
   },
   "version": "0.1.0"
 }

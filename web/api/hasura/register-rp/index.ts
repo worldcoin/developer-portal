@@ -14,6 +14,10 @@ import {
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
+import {
+  getRpBackfill,
+  rpBackfillSetupError,
+} from "@/api/helpers/rp-id-backfill";
 import { isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -56,6 +60,9 @@ const REGISTRATION_ERROR_HTTP_CODE: Record<
   Exclude<ManagedRegistrationResult, { ok: true }>["code"],
   string
 > = {
+  setup_paused: "setup_paused",
+  reservation_in_progress: "reservation_in_progress",
+  managed_setup_required: "managed_setup_required",
   staging_not_supported: "staging_not_supported",
   config_error: "config_error",
   already_registered: "already_registered",
@@ -150,8 +157,14 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  const pauseError = rpBackfillSetupError(null, mode);
+  if (pauseError) return errorHasuraQuery({ req, ...pauseError, app_id });
+
   // Self-managed: just create the DB record. No KMS / on-chain work.
   if (mode === "self_managed") {
+    const backfill = await getRpBackfill(client, app_id);
+    const setupError = rpBackfillSetupError(backfill, "self_managed");
+    if (setupError) return errorHasuraQuery({ req, ...setupError, app_id });
     const rpIdString = generateRpIdString(app_id);
     const { insert_rp_registration_one: claimedSlot } = await getClaimRpSdk(
       client,

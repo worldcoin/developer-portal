@@ -1,3 +1,15 @@
+const GetRpBackfill = jest.fn();
+const PrepareReservedRpRegistration = jest.fn();
+const FinalizeProductionBackfill = jest.fn();
+const FinalizeStagingBackfill = jest.fn();
+jest.mock("@/api/helpers/graphql/rp-id-backfill.generated", () => ({
+  getSdk: () => ({
+    GetRpBackfill,
+    PrepareReservedRpRegistration,
+    FinalizeProductionBackfill,
+    FinalizeStagingBackfill,
+  }),
+}));
 import { generateHashedSecret } from "@/api/helpers/utils";
 import { GET, OPTIONS, POST } from "@/api/mcp";
 import { logger } from "@/lib/logger";
@@ -253,6 +265,17 @@ const callTool = (name: string, args: Record<string, unknown>) =>
 
 beforeEach(async () => {
   jest.clearAllMocks();
+  delete process.env.RP_ID_BACKFILL_SETUP_PAUSED;
+  GetRpBackfill.mockResolvedValue({ rp_id_backfill_by_pk: null });
+  PrepareReservedRpRegistration.mockResolvedValue({
+    update_rp_registration_by_pk: { rp_id: "rp_prepared" },
+  });
+  FinalizeProductionBackfill.mockResolvedValue({
+    update_rp_id_backfill: { affected_rows: 1 },
+  });
+  FinalizeStagingBackfill.mockResolvedValue({
+    update_rp_id_backfill: { affected_rows: 1 },
+  });
   // Reset the in-memory rate-limit counters between tests so one suite's
   // upload bursts don't bleed into the next one.
   await (global.RedisClient as { flushall: () => Promise<unknown> }).flushall();
@@ -2312,6 +2335,31 @@ describe("/api/mcp [transport]", () => {
     const body = await res.json();
     expect(body.id).toBe("abc-1");
     expect(body.result).toEqual({});
+  });
+});
+// #endregion
+
+// #region Backfill pause and reconciliation
+describe("MCP RP backfill", () => {
+  it("pauses new setup before invoking the managed pipeline", async () => {
+    process.env.RP_ID_BACKFILL_SETUP_PAUSED = "true";
+    currentAppContextResponse = {
+      app: [{ ...appContextResponse.app[0], rp_registration: [] }],
+    };
+    const response = await POST(
+      callTool("configure_world_id", { app_id: appId }),
+    );
+    const body = await response.json();
+    expect(body.error.data.reason).toBe("setup_paused");
+    expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+  });
+  it("still returns existing configuration during the pause", async () => {
+    process.env.RP_ID_BACKFILL_SETUP_PAUSED = "true";
+    const response = await POST(
+      callTool("configure_world_id", { app_id: appId }),
+    );
+    expect((await response.json()).result).toBeDefined();
+    expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
   });
 });
 // #endregion
