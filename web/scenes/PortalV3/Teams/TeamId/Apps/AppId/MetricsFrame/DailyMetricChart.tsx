@@ -42,9 +42,9 @@ const formatRate = (value: number) => `${(value * 100).toFixed(1)}%`;
 const formatRateTick = (value: number) => `${Math.round(value * 100)}%`;
 
 const intervalLabel: Record<TrendInterval, string> = {
-  daily: "Daily",
-  weekly: "Weekly",
-  monthly: "Monthly",
+  daily: "Day",
+  weekly: "Week",
+  monthly: "Month",
 };
 
 const getSampleIndexes = (pointCount: number, labelCount: number) => [
@@ -110,6 +110,10 @@ export const DailyMetricChart = (props: {
   chartType: DailyMetricChartType;
   timeInterval?: TrendInterval;
   yAxisLabel: string;
+  /** Renders in place of the chart, keeping the card's footprint stable
+   * across loading/error states so switching intervals doesn't collapse
+   * the page layout and jump the scroll position. */
+  emptyMessage?: string;
 }) => {
   const [chartWidth, setChartWidth] = useState(0);
   const { points, operatingSystems } = useMemo(
@@ -169,7 +173,7 @@ export const DailyMetricChart = (props: {
       </h3>
 
       <div className="mt-3 min-h-[18px]">
-        {hasVisibleSeries && (
+        {!props.emptyMessage && hasVisibleSeries && (
           <ul className="flex flex-wrap gap-x-4 gap-y-2">
             {operatingSystems.map((os) => (
               <li
@@ -189,207 +193,222 @@ export const DailyMetricChart = (props: {
       </div>
 
       <div className="relative mt-4 aspect-[13/5] max-h-[360px] min-h-[280px] w-full pb-8 pl-12 font-world tabular-nums [&_.recharts-surface]:rounded-sm [&_.recharts-surface]:focus-visible:outline-2 [&_.recharts-surface]:focus-visible:outline-offset-4 [&_.recharts-surface]:focus-visible:outline-portal-border">
-        <span
-          aria-hidden
-          className="absolute right-0 bottom-0 left-12 text-center font-world text-12 text-portal-muted"
-        >
-          {intervalLabel[props.timeInterval ?? "daily"]}
-        </span>
-        <span
-          aria-hidden
-          className="absolute top-0 bottom-8 left-0 flex w-8 rotate-180 items-center justify-center font-world text-12 text-portal-muted [writing-mode:vertical-rl]"
-        >
-          {props.yAxisLabel}
-        </span>
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
-          onResize={setChartWidth}
-        >
-          <ComposedChart
-            // Recharts stacks series in registration order. Reset that order
-            // when filters add or remove an OS so it always matches the legend.
-            key={operatingSystems.map((os) => os.dataKey).join(",")}
-            data={chartPoints}
-            margin={{
-              top: hasTopDataLabels ? BAR_LABEL_TOP_MARGIN : 8,
-              left: 0,
-              right: CHART_RIGHT_MARGIN,
-              bottom: 0,
-            }}
-            barCategoryGap="2%"
-          >
-            <CartesianGrid
-              vertical={false}
-              stroke="var(--chart-grid)"
-              strokeDasharray="3 5"
-            />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              height={rotateDates ? 56 : 32}
-              angle={rotateDates ? -90 : 0}
-              textAnchor={rotateDates ? "end" : "middle"}
-              tickMargin={8}
-              minTickGap={showEveryDate ? 0 : 32}
-              interval={showEveryDate ? 0 : "preserveStartEnd"}
-              tick={{ fill: "var(--chart-tick)", fontSize: 12 }}
-              tickFormatter={formatTickDate}
-            />
-            <YAxis
-              width={Y_AXIS_WIDTH}
-              allowDecimals={isRate}
-              // Honor the explicit scale even when there are no plotted series.
-              allowDataOverflow={!hasVisibleSeries}
-              axisLine={false}
-              domain={isRate ? [0, 1.05] : [0, hasVisibleSeries ? "auto" : 1]}
-              tickFormatter={isRate ? formatRateTick : undefined}
-              ticks={isRate ? [...RATE_TICKS] : undefined}
-              tick={{ fill: "var(--chart-tick)", fontSize: 11 }}
-              tickMargin={8}
-              tickLine={false}
-            />
-            {hasVisibleSeries ? (
-              <Tooltip
-                content={
-                  props.chartType === "bar" || props.chartType === "area" ? (
-                    <StackedMetricTooltip
-                      formatLabel={(value) => formatTickDate(value)}
-                      formatValue={formatValue}
-                      series={tooltipSeries}
-                    />
-                  ) : undefined
-                }
-                cursor={
-                  props.chartType === "bar"
-                    ? { fill: "var(--chart-cursor)" }
-                    : {
-                        stroke: "var(--chart-cursor-line)",
-                        strokeDasharray: "3 5",
-                      }
-                }
-                contentStyle={{
-                  border: "1px solid var(--chart-grid)",
-                  backgroundColor: "var(--color-surface-raised)",
-                  color: "var(--chart-label)",
-                  borderRadius: 12,
-                  padding: "12px 16px",
-                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
-                  fontSize: 12,
+        {props.emptyMessage ? (
+          <div className="flex h-full w-full items-center justify-center pb-8 text-center">
+            <p className="font-world text-13 text-portal-muted">
+              {props.emptyMessage}
+            </p>
+          </div>
+        ) : (
+          <>
+            <span
+              aria-hidden
+              className="absolute right-0 bottom-0 left-12 text-center font-world text-12 text-portal-muted"
+            >
+              {intervalLabel[props.timeInterval ?? "daily"]}
+            </span>
+            <span
+              aria-hidden
+              className="absolute top-0 bottom-8 left-0 flex w-8 rotate-180 items-center justify-center font-world text-12 text-portal-muted [writing-mode:vertical-rl]"
+            >
+              {props.yAxisLabel}
+            </span>
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              onResize={setChartWidth}
+            >
+              <ComposedChart
+                // Recharts stacks series in registration order. Reset that order
+                // when filters add or remove an OS so it always matches the legend.
+                key={operatingSystems.map((os) => os.dataKey).join(",")}
+                data={chartPoints}
+                margin={{
+                  top: hasTopDataLabels ? BAR_LABEL_TOP_MARGIN : 8,
+                  left: 0,
+                  right: CHART_RIGHT_MARGIN,
+                  bottom: 0,
                 }}
-                labelStyle={{
-                  color: "var(--chart-label)",
-                  fontWeight: 500,
-                  marginBottom: 6,
-                }}
-                itemStyle={{ padding: "3px 0" }}
-                separator=": "
-                itemSorter={({ name }) =>
-                  operatingSystems.findIndex((os) => os.osName === name)
-                }
-                labelFormatter={(value) => formatTickDate(String(value))}
-                formatter={(value) =>
-                  typeof value === "number" ? formatValue(value) : "—"
-                }
-              />
-            ) : (
-              <Label
-                position="center"
-                value="No data available"
-                className="font-world text-13"
-                fill="var(--chart-tick)"
-                stroke="var(--color-surface)"
-                strokeWidth={4}
-                paintOrder="stroke"
-              />
-            )}
-            {/* Round the whole stack, including days where its last OS is zero or absent. */}
-            {props.chartType === "bar" && (
-              <BarStack radius={[2, 2, 0, 0]}>
-                {operatingSystems.map((os, index) => (
-                  <Bar
-                    key={os.dataKey}
-                    dataKey={os.dataKey}
-                    name={os.osName}
-                    fill={os.color}
-                    isAnimationActive={false}
-                    maxBarSize={barMaxSize(points.length)}
-                  >
-                    {showAllBarLabels &&
-                      index === operatingSystems.length - 1 && (
-                        <LabelList
-                          dataKey="stackTotal"
-                          fill="#525252"
-                          fontSize={11}
-                          formatter={(value) =>
-                            typeof value === "number" && value > 0
-                              ? value.toLocaleString("en-US")
-                              : ""
-                          }
-                          offset={8}
-                          position="top"
+                barCategoryGap="2%"
+              >
+                <CartesianGrid
+                  vertical={false}
+                  stroke="var(--chart-grid)"
+                  strokeDasharray="3 5"
+                />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  height={rotateDates ? 56 : 32}
+                  angle={rotateDates ? -90 : 0}
+                  textAnchor={rotateDates ? "end" : "middle"}
+                  tickMargin={8}
+                  minTickGap={showEveryDate ? 0 : 32}
+                  interval={showEveryDate ? 0 : "preserveStartEnd"}
+                  tick={{ fill: "var(--chart-tick)", fontSize: 12 }}
+                  tickFormatter={formatTickDate}
+                />
+                <YAxis
+                  width={Y_AXIS_WIDTH}
+                  allowDecimals={isRate}
+                  // Honor the explicit scale even when there are no plotted series.
+                  allowDataOverflow={!hasVisibleSeries}
+                  axisLine={false}
+                  domain={
+                    isRate ? [0, 1.05] : [0, hasVisibleSeries ? "auto" : 1]
+                  }
+                  tickFormatter={isRate ? formatRateTick : undefined}
+                  ticks={isRate ? [...RATE_TICKS] : undefined}
+                  tick={{ fill: "var(--chart-tick)", fontSize: 11 }}
+                  tickMargin={8}
+                  tickLine={false}
+                />
+                {hasVisibleSeries ? (
+                  <Tooltip
+                    content={
+                      props.chartType === "bar" ||
+                      props.chartType === "area" ? (
+                        <StackedMetricTooltip
+                          formatLabel={(value) => formatTickDate(value)}
+                          formatValue={formatValue}
+                          series={tooltipSeries}
                         />
-                      )}
-                  </Bar>
-                ))}
-              </BarStack>
-            )}
-            {props.chartType !== "bar" &&
-              operatingSystems.map((os, index) =>
-                props.chartType === "line" ? (
-                  <Line
-                    key={os.dataKey}
-                    activeDot={{ r: 4, stroke: "white", strokeWidth: 2 }}
-                    connectNulls={false}
-                    dataKey={os.dataKey}
-                    dot={
-                      points.length <= 14 ? { r: 2.5, strokeWidth: 1.5 } : false
+                      ) : undefined
                     }
-                    isAnimationActive={false}
-                    name={os.osName}
-                    stroke={os.color}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    type="linear"
+                    cursor={
+                      props.chartType === "bar"
+                        ? { fill: "var(--chart-cursor)" }
+                        : {
+                            stroke: "var(--chart-cursor-line)",
+                            strokeDasharray: "3 5",
+                          }
+                    }
+                    contentStyle={{
+                      border: "1px solid var(--chart-grid)",
+                      backgroundColor: "var(--color-surface-raised)",
+                      color: "var(--chart-label)",
+                      borderRadius: 12,
+                      padding: "12px 16px",
+                      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
+                      fontSize: 12,
+                    }}
+                    labelStyle={{
+                      color: "var(--chart-label)",
+                      fontWeight: 500,
+                      marginBottom: 6,
+                    }}
+                    itemStyle={{ padding: "3px 0" }}
+                    separator=": "
+                    itemSorter={({ name }) =>
+                      operatingSystems.findIndex((os) => os.osName === name)
+                    }
+                    labelFormatter={(value) => formatTickDate(String(value))}
+                    formatter={(value) =>
+                      typeof value === "number" ? formatValue(value) : "—"
+                    }
                   />
                 ) : (
-                  <Area
-                    key={os.dataKey}
-                    connectNulls={false}
-                    dataKey={os.dataKey}
-                    fill={os.color}
-                    fillOpacity={0.1}
-                    isAnimationActive={false}
-                    name={os.osName}
-                    stackId="os"
-                    stroke={os.color}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    activeDot={{ r: 4, stroke: "white", strokeWidth: 2 }}
-                    type="linear"
-                  >
-                    {showCumulativeLabels &&
-                      index === operatingSystems.length - 1 && (
-                        <LabelList
-                          content={
-                            <SampledValueLabel
-                              color="#525252"
-                              formatValue={formatValue}
-                              labelOffset={-8}
-                              sampleIndexes={cumulativeLabelIndexes}
+                  <Label
+                    position="center"
+                    value="No data available"
+                    className="font-world text-13"
+                    fill="var(--chart-tick)"
+                    stroke="var(--color-surface)"
+                    strokeWidth={4}
+                    paintOrder="stroke"
+                  />
+                )}
+                {/* Round the whole stack, including days where its last OS is zero or absent. */}
+                {props.chartType === "bar" && (
+                  <BarStack radius={[2, 2, 0, 0]}>
+                    {operatingSystems.map((os, index) => (
+                      <Bar
+                        key={os.dataKey}
+                        dataKey={os.dataKey}
+                        name={os.osName}
+                        fill={os.color}
+                        isAnimationActive={false}
+                        maxBarSize={barMaxSize(points.length)}
+                      >
+                        {showAllBarLabels &&
+                          index === operatingSystems.length - 1 && (
+                            <LabelList
+                              dataKey="stackTotal"
+                              fill="#525252"
+                              fontSize={11}
+                              formatter={(value) =>
+                                typeof value === "number" && value > 0
+                                  ? value.toLocaleString("en-US")
+                                  : ""
+                              }
+                              offset={8}
+                              position="top"
                             />
-                          }
-                          dataKey="stackTotal"
-                        />
-                      )}
-                  </Area>
-                ),
-              )}
-          </ComposedChart>
-        </ResponsiveContainer>
+                          )}
+                      </Bar>
+                    ))}
+                  </BarStack>
+                )}
+                {props.chartType !== "bar" &&
+                  operatingSystems.map((os, index) =>
+                    props.chartType === "line" ? (
+                      <Line
+                        key={os.dataKey}
+                        activeDot={{ r: 4, stroke: "white", strokeWidth: 2 }}
+                        connectNulls={false}
+                        dataKey={os.dataKey}
+                        dot={
+                          points.length <= 14
+                            ? { r: 2.5, strokeWidth: 1.5 }
+                            : false
+                        }
+                        isAnimationActive={false}
+                        name={os.osName}
+                        stroke={os.color}
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        type="linear"
+                      />
+                    ) : (
+                      <Area
+                        key={os.dataKey}
+                        connectNulls={false}
+                        dataKey={os.dataKey}
+                        fill={os.color}
+                        fillOpacity={0.1}
+                        isAnimationActive={false}
+                        name={os.osName}
+                        stackId="os"
+                        stroke={os.color}
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        activeDot={{ r: 4, stroke: "white", strokeWidth: 2 }}
+                        type="linear"
+                      >
+                        {showCumulativeLabels &&
+                          index === operatingSystems.length - 1 && (
+                            <LabelList
+                              content={
+                                <SampledValueLabel
+                                  color="#525252"
+                                  formatValue={formatValue}
+                                  labelOffset={-8}
+                                  sampleIndexes={cumulativeLabelIndexes}
+                                />
+                              }
+                              dataKey="stackTotal"
+                            />
+                          )}
+                      </Area>
+                    ),
+                  )}
+              </ComposedChart>
+            </ResponsiveContainer>
+          </>
+        )}
       </div>
     </section>
   );

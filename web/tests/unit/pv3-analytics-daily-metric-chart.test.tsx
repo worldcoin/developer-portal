@@ -300,7 +300,7 @@ describe("DailyMetricChart", () => {
       "data-key",
       "stackTotal",
     );
-    expect(screen.getByText("Daily")).toBeInTheDocument();
+    expect(screen.getByText("Day")).toBeInTheDocument();
     expect(screen.getByText("Number of users")).toBeInTheDocument();
     expect(screen.getByTestId("y-axis")).toHaveAttribute(
       "data-allow-decimals",
@@ -489,7 +489,7 @@ describe("DailyMetricChart", () => {
     ]);
     expect(lines.every((line) => line.dataset.type === "linear")).toBe(true);
     expect(screen.queryByTestId("bar")).not.toBeInTheDocument();
-    expect(screen.getByText("Daily")).toBeInTheDocument();
+    expect(screen.getByText("Day")).toBeInTheDocument();
     expect(screen.getByTestId("y-axis")).toHaveAttribute(
       "data-domain",
       "0,1.05",

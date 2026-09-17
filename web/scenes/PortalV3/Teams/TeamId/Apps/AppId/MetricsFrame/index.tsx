@@ -39,7 +39,7 @@ import {
 import { TotalsFunnel } from "./TotalsFunnel";
 import { TotalsOverview } from "./TotalsOverview";
 
-const REQUEST_TIMEOUT_MS = 8_000;
+const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_PENDING_VIEW_EVENTS = 100;
 const ALL_OPERATING_SYSTEMS = "all";
 
@@ -676,31 +676,36 @@ export const MetricsFrame = (props: {
               />
             )}
           </div>
-          {daily.kind === "ready" ? (
-            <div className="grid min-w-0 gap-6 lg:grid-cols-2">
-              {CHART_METRICS.map((chart) => (
-                <DailyMetricChart
-                  key={chart.metric}
-                  title={chartTitle(chart.title, trendInterval)}
-                  rows={filteredDailyRows}
-                  metric={chart.metric}
-                  kind={metricKind(chart.metric)}
-                  chartType={chart.chartType}
-                  timeInterval={trendInterval}
-                  yAxisLabel={chart.yAxisLabel}
-                />
-              ))}
-            </div>
-          ) : (
-            <PlaceholderCard
-              label="Daily Selfie Check charts"
-              message={
-                daily.kind === "loading"
-                  ? `Loading ${intervalLabel(trendInterval).toLowerCase()} analytics…`
-                  : daily.message
-              }
-            />
-          )}
+          {/* Keep the same chart shells mounted across loading/error states
+              (message swaps in for the plotted data) instead of unmounting
+              to a shorter placeholder — that collapse used to yank the page
+              back to the top whenever the interval filter changed. */}
+          <section
+            aria-label="Daily Selfie Check charts"
+            className="grid min-w-0 gap-6 lg:grid-cols-2"
+          >
+            {CHART_METRICS.map((chart, index) => (
+              <DailyMetricChart
+                key={chart.metric}
+                title={chartTitle(chart.title, trendInterval)}
+                rows={daily.kind === "ready" ? filteredDailyRows : []}
+                metric={chart.metric}
+                kind={metricKind(chart.metric)}
+                chartType={chart.chartType}
+                timeInterval={trendInterval}
+                yAxisLabel={chart.yAxisLabel}
+                emptyMessage={
+                  daily.kind === "ready"
+                    ? undefined
+                    : index === 0
+                      ? daily.kind === "loading"
+                        ? `Loading ${intervalLabel(trendInterval).toLowerCase()} analytics…`
+                        : daily.message
+                      : " "
+                }
+              />
+            ))}
+          </section>
         </section>
       </div>
     </SizingWrapper>
