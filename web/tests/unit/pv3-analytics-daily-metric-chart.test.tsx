@@ -24,6 +24,7 @@ jest.mock("recharts", () => ({
     />
   ),
   Bar: (props: {
+    children?: ReactNode;
     fill: string;
     maxBarSize?: number;
     name: string;
@@ -35,13 +36,30 @@ jest.mock("recharts", () => ({
       data-max-bar-size={props.maxBarSize}
       data-name={props.name}
       data-stack-id={props.stackId}
-    />
+    >
+      {props.children}
+    </div>
   ),
-  BarStack: (props: { children: ReactNode }) => (
-    <div data-testid="bar-stack">{props.children}</div>
+  BarStack: (props: { children: ReactNode; radius?: number[] }) => (
+    <div data-radius={props.radius?.join(",")} data-testid="bar-stack">
+      {props.children}
+    </div>
   ),
   CartesianGrid: () => null,
   Label: ({ value }: { value: string }) => <span>{value}</span>,
+  LabelList: ({
+    content,
+    dataKey,
+  }: {
+    content?: ReactNode;
+    dataKey: string;
+  }) => (
+    <div
+      data-testid="label-list"
+      data-has-custom-content={Boolean(content)}
+      data-key={dataKey}
+    />
+  ),
   ComposedChart: (props: {
     barCategoryGap?: string;
     children: ReactNode;
@@ -274,7 +292,15 @@ describe("DailyMetricChart", () => {
     expect(
       within(screen.getByTestId("bar-stack")).getAllByTestId("bar"),
     ).toHaveLength(3);
-    expect(screen.getByText("Day")).toBeInTheDocument();
+    expect(screen.getByTestId("bar-stack")).toHaveAttribute(
+      "data-radius",
+      "2,2,0,0",
+    );
+    expect(screen.getByTestId("label-list")).toHaveAttribute(
+      "data-key",
+      "stackTotal",
+    );
+    expect(screen.getByText("Daily")).toBeInTheDocument();
     expect(screen.getByText("Number of users")).toBeInTheDocument();
     expect(screen.getByTestId("y-axis")).toHaveAttribute(
       "data-allow-decimals",
@@ -304,6 +330,31 @@ describe("DailyMetricChart", () => {
       "50",
     );
     expect(screen.getByTestId("x-axis")).toHaveAttribute("data-interval", "0");
+  });
+
+  it("omits bar labels for a 30-day range to avoid visual clutter", () => {
+    const thirtyDays = Array.from({ length: 30 }, (_, index) =>
+      row(
+        "Android",
+        4,
+        index < 15
+          ? `2026-08-${String(index + 17).padStart(2, "0")}`
+          : `2026-09-${String(index - 14).padStart(2, "0")}`,
+      ),
+    );
+
+    render(
+      <DailyMetricChart
+        title="Daily users"
+        rows={thirtyDays}
+        metric="n_users_shared_a_proof"
+        kind="count"
+        chartType="bar"
+        yAxisLabel="Number of users"
+      />,
+    );
+
+    expect(screen.queryByTestId("label-list")).not.toBeInTheDocument();
   });
 
   it("keeps every short-range date and rotates crowded labels as the chart resizes", () => {
@@ -438,7 +489,7 @@ describe("DailyMetricChart", () => {
     ]);
     expect(lines.every((line) => line.dataset.type === "linear")).toBe(true);
     expect(screen.queryByTestId("bar")).not.toBeInTheDocument();
-    expect(screen.getByText("Day")).toBeInTheDocument();
+    expect(screen.getByText("Daily")).toBeInTheDocument();
     expect(screen.getByTestId("y-axis")).toHaveAttribute(
       "data-domain",
       "0,1.05",

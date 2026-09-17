@@ -1,6 +1,13 @@
 "use client";
 
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { CaretIcon } from "@/components/Icons/CaretIcon";
+import {
+  Select,
+  SelectButton,
+  SelectOption,
+  SelectOptions,
+} from "@/components/Select";
 import {
   DAILY_OS_SERIES,
   filterDailyRows,
@@ -9,20 +16,45 @@ import {
   TABLE_COLUMNS_DAILY,
   type DailyChartMetric,
   type DailyRow,
-  type DailyTimeframeDays,
   type MetricKind,
   type TotalsRow,
 } from "@/lib/selfie-check-analytics";
+import {
+  filterProofsDailyRows,
+  groupProofsDailyRowsByInterval,
+  PROOF_TYPE_ORDER,
+  proofsAnalyticsPreview,
+  type ProofsDailyMetric,
+  type ProofsDimension,
+} from "@/lib/proofs-analytics";
+import {
+  DEFAULT_RANGE,
+  filterRowsToLatestPeriods,
+  PERIOD_NOUN,
+  RANGE_OPTIONS,
+  rangePeriods,
+  TREND_INTERVAL_OPTIONS,
+  type TrendInterval,
+} from "@/lib/analytics-time-interval";
 import { AnalyticsAppEligibility } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   DailyMetricChart,
   type DailyMetricChartType,
 } from "./DailyMetricChart";
+import { ProofsMetricChart } from "./ProofsMetricChart";
+import { ProofsTotalsOverview } from "./ProofsTotalsOverview";
 import { TotalsFunnel } from "./TotalsFunnel";
 import { TotalsOverview } from "./TotalsOverview";
 
@@ -30,19 +62,7 @@ const REQUEST_TIMEOUT_MS = 8_000;
 const MAX_PENDING_VIEW_EVENTS = 100;
 const ALL_OPERATING_SYSTEMS = "all";
 
-const TIMEFRAME_OPTIONS = [
-  { label: "Past 7 days", value: "7", days: 7 },
-  { label: "Past 14 days", value: "14", days: 14 },
-  { label: "Past 30 days", value: "30", days: 30 },
-  { label: "All time", value: "all", days: null },
-] as const satisfies readonly {
-  label: string;
-  value: string;
-  days: DailyTimeframeDays;
-}[];
-
-type TimeframeValue = (typeof TIMEFRAME_OPTIONS)[number]["value"];
-type AnalyticsView = "totals" | "daily";
+type AnalyticsView = "proofs" | "selfie_check";
 type AnalyticsViewEvent = {
   appId: string;
   teamId: string;
@@ -50,30 +70,29 @@ type AnalyticsViewEvent = {
   source: "page_entry" | "tab_switch";
 };
 
-/** Daily metrics displayed in the same order as the analytics contract. */
+/** Trend metrics in contract order; titles end with ", by <period> and OS". */
 const CHART_METRICS = [
   {
     metric: "n_users_started_selfie_check_flow",
-    title: "Number of users who started 1+ Selfie Check flow, by day and OS",
+    title: "Number of users who started 1+ Selfie Check flow",
     chartType: "bar",
     yAxisLabel: "Number of users",
   },
   {
     metric: "p_face_capture_completion",
-    title: "Average Face capture completion rate, by day and OS",
+    title: "Average Face capture completion rate",
     chartType: "line",
     yAxisLabel: "Average completion rate",
   },
   {
     metric: "n_users_shared_a_proof",
-    title: "Number of users who shared 1+ Selfie Check proof, by day and OS",
+    title: "Number of users who shared 1+ Selfie Check proof",
     chartType: "bar",
     yAxisLabel: "Number of users",
   },
   {
     metric: "cumulative_n_users_shared_a_proof",
-    title:
-      "Cumulative unique users who shared 1+ Selfie Check proof, by day and OS",
+    title: "Cumulative unique users who shared 1+ Selfie Check proof",
     chartType: "area",
     yAxisLabel: "Cumulative number of users",
   },
@@ -83,6 +102,62 @@ const CHART_METRICS = [
   chartType: DailyMetricChartType;
   yAxisLabel: string;
 }[];
+
+const PROOFS_USER_CHARTS = [
+  {
+    metric: "nUsersSharedProof",
+    dimension: "proofType",
+    title: "Number of users who shared 1+ proof, by day and proof type",
+  },
+  {
+    metric: "cumulativeUniqueUsersSharedProof",
+    dimension: "proofType",
+    title:
+      "Cumulative number of unique users who shared 1+ proof, by day and proof type",
+  },
+  {
+    metric: "nUsersSharedProof",
+    dimension: "osName",
+    title: "Number of users who shared 1+ proof, by day and OS",
+  },
+  {
+    metric: "cumulativeUniqueUsersSharedProof",
+    dimension: "osName",
+    title:
+      "Cumulative number of unique users who shared 1+ proof, by day and OS",
+  },
+] as const satisfies readonly {
+  metric: ProofsDailyMetric;
+  dimension: ProofsDimension;
+  title: string;
+}[];
+
+const PROOFS_SHARED_CHARTS = [
+  {
+    dimension: "proofType",
+    title: "Number of proofs shared, by day and proof type",
+  },
+  {
+    dimension: "osName",
+    title: "Number of proofs shared, by day and OS",
+  },
+] as const satisfies readonly {
+  dimension: ProofsDimension;
+  title: string;
+}[];
+
+const analyticsEndpoint = (appId: string) =>
+  `/api/v2/apps/${encodeURIComponent(appId)}/selfie-check-analytics`;
+const requestInit = (signal: AbortSignal) => ({
+  headers: { Accept: "application/json" },
+  credentials: "same-origin" as const,
+  signal,
+});
+const intervalLabel = (interval: TrendInterval) =>
+  TREND_INTERVAL_OPTIONS.find((option) => option.value === interval)?.label ??
+  "Daily";
+const chartTitle = (title: string, interval: TrendInterval) =>
+  `${title}, by ${PERIOD_NOUN[interval]} and OS`;
 
 // Eligibility controls access to the page; these only describe the view's data.
 const requestFailureMessage = (scope: string, status: number) => {
@@ -107,6 +182,20 @@ type DailyState =
   | { kind: "ready"; rows: readonly DailyRow[]; isFallback: boolean }
   | { kind: "absent" | "error"; message: string };
 
+type ReadyDailyState = Extract<DailyState, { kind: "ready" }>;
+
+/** One period table per interval, scoped to the app they were fetched for. */
+type PeriodTablesState = {
+  appId: string;
+  tables: Record<TrendInterval, DailyState>;
+};
+
+const LOADING_PERIOD_TABLES: PeriodTablesState["tables"] = {
+  daily: { kind: "loading" },
+  weekly: { kind: "loading" },
+  monthly: { kind: "loading" },
+};
+
 type TotalsState =
   | { kind: "loading" }
   | { kind: "ready"; row: TotalsRow; isFallback: boolean }
@@ -122,6 +211,113 @@ const PlaceholderCard = (props: { label: string; message: string }) => (
   </section>
 );
 
+type FilterOption = Readonly<{ label: string; value: string }>;
+
+const AnalyticsFilterSelect = (props: {
+  ariaLabel: string;
+  label: string;
+  onChange: (value: string) => void;
+  options: readonly FilterOption[];
+  value: string;
+}) => {
+  const selectedLabel =
+    props.options.find((option) => option.value === props.value)?.label ??
+    props.value;
+
+  return (
+    <div className="grid gap-1 font-world text-13 text-portal-heading sm:flex sm:items-center sm:gap-2">
+      <span>{props.label}</span>
+      <Select value={props.value} onChange={props.onChange}>
+        <SelectButton
+          aria-label={props.ariaLabel}
+          data-value={props.value}
+          role="combobox"
+          className="group flex h-9 min-w-[132px] items-center justify-between gap-3 rounded-8 border border-portal-border bg-surface px-3 text-left font-world text-[12px] leading-4 text-portal-heading transition-colors hover:border-portal-muted focus-visible:border-portal-heading focus-visible:ring-2 focus-visible:ring-portal-border/70 focus-visible:outline-none"
+        >
+          <span className="truncate">{selectedLabel}</span>
+          <CaretIcon className="size-3.5 shrink-0 text-portal-muted transition-transform group-aria-expanded:rotate-180" />
+        </SelectButton>
+        <SelectOptions className="mt-2 max-h-64 rounded-12 border-portal-border bg-surface p-1 shadow-portal-card">
+          {props.options.map((option) => (
+            <SelectOption
+              key={option.value}
+              value={option.value}
+              className="rounded-8 px-3 py-2 font-world text-[12px] leading-4 text-portal-heading data-[focus]:bg-portal-canvas data-[headlessui-state*=selected]:bg-portal-canvas data-[headlessui-state*=selected]:text-portal-heading"
+            >
+              {option.label}
+            </SelectOption>
+          ))}
+        </SelectOptions>
+      </Select>
+    </div>
+  );
+};
+
+const DailyAnalyticsFilters = (props: {
+  ariaLabel: string;
+  operatingSystems: readonly string[];
+  osName: string;
+  proofType?: string;
+  proofTypes?: readonly string[];
+  range: string;
+  setOsName: (value: string) => void;
+  setProofType?: (value: string) => void;
+  setRange: (value: string) => void;
+  setTrendInterval: (value: TrendInterval) => void;
+  trendInterval: TrendInterval;
+}) => (
+  <div
+    aria-label={props.ariaLabel}
+    className="flex flex-wrap justify-start gap-x-5 gap-y-3"
+  >
+    {/* Interval first: the date-range presets are expressed in its unit. */}
+    <AnalyticsFilterSelect
+      ariaLabel="Time interval"
+      label="Time interval"
+      onChange={(value) => props.setTrendInterval(value as TrendInterval)}
+      options={TREND_INTERVAL_OPTIONS}
+      value={props.trendInterval}
+    />
+    <AnalyticsFilterSelect
+      ariaLabel="Timeframe"
+      label="Date range"
+      onChange={props.setRange}
+      options={RANGE_OPTIONS[props.trendInterval]}
+      value={props.range}
+    />
+    <AnalyticsFilterSelect
+      ariaLabel="Operating System"
+      label="Operating system"
+      onChange={props.setOsName}
+      options={[
+        { label: "All", value: ALL_OPERATING_SYSTEMS },
+        ...props.operatingSystems.map((operatingSystem) => ({
+          label: operatingSystem,
+          value: operatingSystem,
+        })),
+      ]}
+      value={props.osName}
+    />
+    {props.proofTypes &&
+      props.proofType !== undefined &&
+      props.setProofType && (
+        <AnalyticsFilterSelect
+          ariaLabel="Proof type"
+          label="Proof type"
+          onChange={props.setProofType}
+          options={[
+            { label: "All", value: "all" },
+            ...props.proofTypes.map((proofType) => ({
+              label: proofType,
+              value: proofType,
+            })),
+          ]}
+          value={props.proofType}
+        />
+      )}
+  </div>
+);
+
 const isFallbackResponse = (payload: unknown): boolean =>
   typeof payload === "object" &&
   payload !== null &&
@@ -133,15 +329,47 @@ export const MetricsFrame = (props: {
   appId: string;
   initialIsFallback?: boolean;
 }) => {
-  const [daily, setDaily] = useState<DailyState>({ kind: "loading" });
+  // Each interval reads its own warehouse table; tables stay cached per app so
+  // switching back is instant. The ref lets the fetch effect skip cached tables
+  // without depending on the state itself.
+  const [periodTables, setPeriodTables] = useState<PeriodTablesState>({
+    appId: props.appId,
+    tables: LOADING_PERIOD_TABLES,
+  });
+  const periodTablesRef = useRef(periodTables);
+  periodTablesRef.current = periodTables;
   const [totals, setTotals] = useState<TotalsState>({ kind: "loading" });
-  const [timeframe, setTimeframe] = useState<TimeframeValue>("14");
   const [osName, setOsName] = useState(ALL_OPERATING_SYSTEMS);
+  const [proofType, setProofType] = useState("all");
+  const [trendInterval, setTrendInterval] = useState<TrendInterval>("daily");
+  const [range, setRange] = useState(DEFAULT_RANGE.daily);
+  const daily: DailyState =
+    periodTables.appId === props.appId
+      ? periodTables.tables[trendInterval]
+      : { kind: "loading" };
+  const readyPeriodTables = useMemo(
+    () =>
+      periodTables.appId === props.appId
+        ? Object.values(periodTables.tables).filter(
+            (table): table is ReadyDailyState => table.kind === "ready",
+          )
+        : [],
+    [periodTables, props.appId],
+  );
+  // A range only makes sense in its interval's unit, so switching resets it.
+  const changeTrendInterval = useCallback((interval: TrendInterval) => {
+    setTrendInterval(interval);
+    setRange(DEFAULT_RANGE[interval]);
+  }, []);
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const [tabIndicator, setTabIndicator] = useState({ left: 0, width: 0 });
+  const tabListRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Array<HTMLElement | null>>([]);
   const teamId = useParams<{ teamId?: string }>()?.teamId;
   // useUser already shares the session/preference through Auth0's SWR cache.
   const { user, isLoading, error: authError } = useUser();
   const allowTracking = user?.hasura?.is_allow_tracking === true;
-  const selectedView = useRef<AnalyticsView>("totals");
+  const selectedView = useRef<AnalyticsView>("proofs");
   const lastPageEntry = useRef<string | null>(null);
   const pendingViews = useRef<AnalyticsViewEvent[]>([]);
   const overflowReported = useRef(false);
@@ -268,29 +496,80 @@ export const MetricsFrame = (props: {
     };
   }, [captureView, flushViews, isLoading, user]);
 
+  useLayoutEffect(() => {
+    const updateIndicator = () => {
+      const tabList = tabListRef.current;
+      const selectedTab = tabRefs.current[selectedTabIndex];
+      if (!tabList || !selectedTab) return;
+
+      const listRect = tabList.getBoundingClientRect();
+      const tabRect = selectedTab.getBoundingClientRect();
+      setTabIndicator({
+        left: tabRect.left - listRect.left,
+        width: tabRect.width,
+      });
+    };
+
+    updateIndicator();
+    const observer = new ResizeObserver(updateIndicator);
+    if (tabListRef.current) observer.observe(tabListRef.current);
+    window.addEventListener("resize", updateIndicator);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateIndicator);
+    };
+  }, [selectedTabIndex]);
+
+  // Any loaded table decides which OS options exist, so the filter bar stays
+  // put while another interval is still loading.
   const operatingSystems = useMemo(
     () =>
-      daily.kind === "ready"
-        ? DAILY_OS_SERIES.filter(({ osName }) =>
-            daily.rows.some((row) => row.os_name === osName),
-          ).map(({ osName }) => osName)
-        : [],
-    [daily],
+      DAILY_OS_SERIES.filter(
+        ({ osName }) =>
+          (osName !== "Unknown" &&
+            readyPeriodTables.some((table) =>
+              table.rows.some((row) => row.os_name === osName),
+            )) ||
+          proofsAnalyticsPreview.daily.some((row) => row.osName === osName),
+      ).map(({ osName }) => osName),
+    [readyPeriodTables],
   );
+  const periods = rangePeriods(trendInterval, range);
   const filteredDailyRows = useMemo(() => {
     if (daily.kind !== "ready") return [];
-    const timeframeOption = TIMEFRAME_OPTIONS.find(
-      (option) => option.value === timeframe,
+    return filterDailyRows(
+      daily.rows.filter((row) => row.os_name !== "Unknown"),
+      {
+        interval: trendInterval,
+        periods,
+        osName: osName === ALL_OPERATING_SYSTEMS ? null : osName,
+      },
     );
-    return filterDailyRows(daily.rows, {
-      days: timeframeOption ? timeframeOption.days : 14,
-      osName: osName === ALL_OPERATING_SYSTEMS ? null : osName,
-    });
-  }, [daily, osName, timeframe]);
+  }, [daily, osName, periods, trendInterval]);
+  const filteredProofsDailyRows = useMemo(
+    () =>
+      // The Proofs preview still buckets its mock rows client-side; the range
+      // applies after bucketing so it means the same as for Selfie Check.
+      filterRowsToLatestPeriods(
+        groupProofsDailyRowsByInterval(
+          filterProofsDailyRows(proofsAnalyticsPreview.daily, {
+            days: null,
+            osName: osName === ALL_OPERATING_SYSTEMS ? null : osName,
+            proofType: proofType === "all" ? null : proofType,
+          }),
+          trendInterval,
+        ),
+        trendInterval,
+        periods,
+      ),
+    [osName, periods, proofType, trendInterval],
+  );
 
+  // Totals load once per app; the same effect resets the period-table cache.
   useEffect(() => {
-    setDaily({ kind: "loading" });
+    const appId = props.appId;
     setTotals({ kind: "loading" });
+    setPeriodTables({ appId, tables: LOADING_PERIOD_TABLES });
 
     let active = true;
     const controller = new AbortController();
@@ -298,67 +577,13 @@ export const MetricsFrame = (props: {
       () => controller.abort("timeout"),
       REQUEST_TIMEOUT_MS,
     );
-    const endpoint = `/api/v2/apps/${encodeURIComponent(props.appId)}/selfie-check-analytics`;
-    const requestInit = {
-      headers: { Accept: "application/json" },
-      credentials: "same-origin" as const,
-      signal: controller.signal,
-    };
-
-    const abortMessage = (fallback: string) =>
-      controller.signal.aborted ? "Analytics request timed out." : fallback;
-
-    const loadDaily = async () => {
-      try {
-        const response = await fetch(`${endpoint}?table=daily`, requestInit);
-        if (!response.ok) {
-          if (!active) return;
-          setDaily({
-            kind: response.status === 403 ? "absent" : "error",
-            message: requestFailureMessage("Daily analytics", response.status),
-          });
-          return;
-        }
-
-        const payload: unknown = await response.json();
-        if (!active) return;
-
-        const rawRows =
-          typeof payload === "object" &&
-          payload !== null &&
-          Array.isArray((payload as { rows?: unknown }).rows)
-            ? ((payload as { rows: unknown[] }).rows as unknown[])
-            : null;
-        const rows = rawRows?.map(pickDailyRow) ?? null;
-
-        if (
-          !rows ||
-          rows.some((row) => row === null || row.appId !== props.appId)
-        ) {
-          setDaily({
-            kind: "error",
-            message: "Daily analytics response was malformed.",
-          });
-          return;
-        }
-
-        setDaily({
-          kind: "ready",
-          rows: rows as DailyRow[],
-          isFallback: isFallbackResponse(payload),
-        });
-      } catch {
-        if (!active) return;
-        setDaily({
-          kind: "error",
-          message: abortMessage("Daily analytics request failed."),
-        });
-      }
-    };
 
     const loadTotals = async () => {
       try {
-        const response = await fetch(endpoint, requestInit);
+        const response = await fetch(
+          analyticsEndpoint(appId),
+          requestInit(controller.signal),
+        );
         if (!response.ok) {
           if (!active) return;
           setTotals({
@@ -383,7 +608,7 @@ export const MetricsFrame = (props: {
             : null,
         );
 
-        if (!row || row.appId !== props.appId) {
+        if (!row || row.appId !== appId) {
           setTotals({
             kind: "error",
             message: "Totals response was malformed.",
@@ -400,14 +625,14 @@ export const MetricsFrame = (props: {
         if (!active) return;
         setTotals({
           kind: "error",
-          message: abortMessage("Totals request failed."),
+          message: controller.signal.aborted
+            ? "Analytics request timed out."
+            : "Totals request failed.",
         });
       }
     };
 
-    void Promise.allSettled([loadDaily(), loadTotals()]).finally(() => {
-      window.clearTimeout(timeout);
-    });
+    void loadTotals().finally(() => window.clearTimeout(timeout));
 
     return () => {
       active = false;
@@ -415,6 +640,92 @@ export const MetricsFrame = (props: {
       controller.abort();
     };
   }, [props.appId]);
+
+  // The selected interval's table loads on demand and is cached for the app.
+  // An interval switch mid-flight leaves that table "loading", so reselecting
+  // it fetches again; a 403 or error is likewise retried on reselect.
+  useEffect(() => {
+    const appId = props.appId;
+    const table = trendInterval;
+    const cached = periodTablesRef.current;
+    if (cached.appId === appId && cached.tables[table].kind === "ready") return;
+
+    const setTable = (state: DailyState) =>
+      setPeriodTables((current) => ({
+        appId,
+        tables: {
+          ...(current.appId === appId ? current.tables : LOADING_PERIOD_TABLES),
+          [table]: state,
+        },
+      }));
+    const scope = `${intervalLabel(table)} analytics`;
+
+    setTable({ kind: "loading" });
+    let active = true;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(
+      () => controller.abort("timeout"),
+      REQUEST_TIMEOUT_MS,
+    );
+
+    const loadTable = async () => {
+      try {
+        const response = await fetch(
+          `${analyticsEndpoint(appId)}?table=${table}`,
+          requestInit(controller.signal),
+        );
+        if (!response.ok) {
+          if (!active) return;
+          setTable({
+            kind: response.status === 403 ? "absent" : "error",
+            message: requestFailureMessage(scope, response.status),
+          });
+          return;
+        }
+
+        const payload: unknown = await response.json();
+        if (!active) return;
+
+        const rawRows =
+          typeof payload === "object" &&
+          payload !== null &&
+          Array.isArray((payload as { rows?: unknown }).rows)
+            ? ((payload as { rows: unknown[] }).rows as unknown[])
+            : null;
+        const rows = rawRows?.map(pickDailyRow) ?? null;
+
+        if (!rows || rows.some((row) => row === null || row.appId !== appId)) {
+          setTable({
+            kind: "error",
+            message: `${scope} response was malformed.`,
+          });
+          return;
+        }
+
+        setTable({
+          kind: "ready",
+          rows: rows as DailyRow[],
+          isFallback: isFallbackResponse(payload),
+        });
+      } catch {
+        if (!active) return;
+        setTable({
+          kind: "error",
+          message: controller.signal.aborted
+            ? "Analytics request timed out."
+            : `${scope} request failed.`,
+        });
+      }
+    };
+
+    void loadTable().finally(() => window.clearTimeout(timeout));
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [props.appId, trendInterval]);
 
   return (
     <SizingWrapper
@@ -427,7 +738,7 @@ export const MetricsFrame = (props: {
       <div className="mx-auto w-full max-w-[1120px] space-y-6">
         <div className="space-y-2">
           <h1 className="font-world text-24 font-semibold text-portal-heading">
-            Selfie Check analytics
+            Analytics
           </h1>
           <div className="font-world text-12 text-portal-muted">
             * Data updates every hour
@@ -443,8 +754,10 @@ export const MetricsFrame = (props: {
           )}
         </div>
         <TabGroup
+          selectedIndex={selectedTabIndex}
           onChange={(index) => {
-            const view = index === 0 ? "totals" : "daily";
+            setSelectedTabIndex(index);
+            const view = index === 0 ? "proofs" : "selfie_check";
             if (selectedView.current === view) return;
             captureView(view, "tab_switch");
             selectedView.current = view;
@@ -452,105 +765,192 @@ export const MetricsFrame = (props: {
         >
           <TabList
             aria-label="Analytics views"
-            className="flex gap-6 border-b border-portal-border"
+            ref={tabListRef}
+            className="relative flex gap-6 border-b border-portal-border"
           >
-            {["All time", "Daily trends"].map((label) => (
+            {["Proofs", "Selfie Check"].map((label, index) => (
               <Tab
                 key={label}
-                className="-mb-px border-b-2 border-transparent py-3 font-world text-14 font-medium text-portal-muted transition-colors outline-none hover:text-portal-heading aria-selected:border-portal-heading aria-selected:text-portal-heading data-focus:rounded-sm data-focus:outline-2 data-focus:outline-offset-4 data-focus:outline-portal-heading data-focus:outline-solid"
+                ref={(element) => {
+                  tabRefs.current[index] = element;
+                }}
+                className="py-3 font-world text-14 font-medium text-portal-muted transition-colors outline-none hover:text-portal-heading aria-selected:text-portal-heading data-focus:rounded-sm data-focus:outline-2 data-focus:outline-offset-4 data-focus:outline-portal-heading data-focus:outline-solid"
               >
                 {label}
               </Tab>
             ))}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute bottom-[-1px] h-0.5 bg-portal-heading transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              style={{
+                transform: `translateX(${tabIndicator.left}px)`,
+                width: tabIndicator.width,
+              }}
+            />
           </TabList>
           <TabPanels className="mt-4">
-            <TabPanel className="space-y-4 outline-none">
-              {totals.kind === "ready" ? (
+            <TabPanel className="space-y-8 outline-none">
+              <section className="space-y-4" aria-labelledby="proofs-all-time">
+                <h2
+                  id="proofs-all-time"
+                  className="font-world text-18 font-semibold text-portal-heading"
+                >
+                  All time
+                </h2>
+                <ProofsTotalsOverview totals={proofsAnalyticsPreview.totals} />
+              </section>
+              <section className="space-y-5" aria-labelledby="proofs-trends">
                 <div className="space-y-4">
-                  <TotalsOverview row={totals.row} />
-                  <div className="space-y-3">
-                    <h3 className="font-world text-14 font-medium text-portal-heading">
-                      Session conversion funnel
-                    </h3>
-                    <TotalsFunnel row={totals.row} />
+                  <h2
+                    id="proofs-trends"
+                    className="font-world text-18 font-semibold text-portal-heading"
+                  >
+                    Trends
+                  </h2>
+                  <DailyAnalyticsFilters
+                    ariaLabel="Proofs daily analytics filters"
+                    operatingSystems={operatingSystems}
+                    osName={osName}
+                    proofType={proofType}
+                    proofTypes={PROOF_TYPE_ORDER}
+                    range={range}
+                    setOsName={setOsName}
+                    setProofType={setProofType}
+                    setRange={setRange}
+                    setTrendInterval={changeTrendInterval}
+                    trendInterval={trendInterval}
+                  />
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-world text-13 font-medium text-portal-muted">
+                    Users
+                  </h3>
+                  <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+                    {PROOFS_USER_CHARTS.map((chart) => (
+                      <ProofsMetricChart
+                        key={`${chart.metric}-${chart.dimension}`}
+                        title={chart.title}
+                        rows={filteredProofsDailyRows}
+                        metric={chart.metric}
+                        dimension={chart.dimension}
+                        chartType={
+                          chart.metric === "cumulativeUniqueUsersSharedProof"
+                            ? "area"
+                            : "bar"
+                        }
+                        timeInterval={trendInterval}
+                        yAxisLabel={
+                          chart.metric === "cumulativeUniqueUsersSharedProof"
+                            ? "Cumulative number of users"
+                            : "Number of users"
+                        }
+                      />
+                    ))}
                   </div>
                 </div>
-              ) : (
-                <PlaceholderCard
-                  label="Selfie Check funnel"
-                  message={
-                    totals.kind === "loading"
-                      ? "Loading total analytics…"
-                      : totals.message
-                  }
-                />
-              )}
+                <div className="space-y-4">
+                  <h3 className="font-world text-13 font-medium text-portal-muted">
+                    Proofs
+                  </h3>
+                  <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+                    {PROOFS_SHARED_CHARTS.map((chart) => (
+                      <ProofsMetricChart
+                        key={chart.dimension}
+                        title={chart.title}
+                        rows={filteredProofsDailyRows}
+                        metric="nProofsShared"
+                        dimension={chart.dimension}
+                        chartType="bar"
+                        timeInterval={trendInterval}
+                        yAxisLabel="Number of proofs"
+                      />
+                    ))}
+                  </div>
+                </div>
+              </section>
             </TabPanel>
-            <TabPanel className="space-y-4 outline-none">
-              {daily.kind === "ready" && (
-                <div
-                  aria-label="Daily analytics filters"
-                  className="flex flex-wrap justify-start gap-2"
+            <TabPanel className="space-y-8 outline-none">
+              <section
+                className="space-y-4"
+                aria-labelledby="selfie-check-all-time"
+              >
+                <h2
+                  id="selfie-check-all-time"
+                  className="font-world text-18 font-semibold text-portal-heading"
                 >
-                  <label className="grid gap-1 font-world text-13 text-portal-heading sm:flex sm:items-center sm:gap-2">
-                    Timeframe
-                    <select
-                      aria-label="Timeframe"
-                      className="h-9 rounded-8 border border-portal-border bg-surface px-3 font-world text-13 text-portal-heading"
-                      value={timeframe}
-                      onChange={(event) =>
-                        setTimeframe(event.target.value as TimeframeValue)
-                      }
-                    >
-                      {TIMEFRAME_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="grid gap-1 font-world text-13 text-portal-heading sm:flex sm:items-center sm:gap-2">
-                    Operating System
-                    <select
-                      aria-label="Operating System"
-                      className="h-9 rounded-8 border border-portal-border bg-surface px-3 font-world text-13 text-portal-heading"
-                      value={osName}
-                      onChange={(event) => setOsName(event.target.value)}
-                    >
-                      <option value={ALL_OPERATING_SYSTEMS}>All</option>
-                      {operatingSystems.map((operatingSystem) => (
-                        <option key={operatingSystem} value={operatingSystem}>
-                          {operatingSystem}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              )}
-              {daily.kind === "ready" ? (
-                <div className="grid min-w-0 gap-6 lg:grid-cols-2">
-                  {CHART_METRICS.map((chart) => (
-                    <DailyMetricChart
-                      key={chart.metric}
-                      title={chart.title}
-                      rows={filteredDailyRows}
-                      metric={chart.metric}
-                      kind={metricKind(chart.metric)}
-                      chartType={chart.chartType}
-                      yAxisLabel={chart.yAxisLabel}
+                  All time
+                </h2>
+                {totals.kind === "ready" ? (
+                  <div className="space-y-4">
+                    <TotalsOverview row={totals.row} />
+                    <div className="space-y-3">
+                      <h3 className="font-world text-14 font-medium text-portal-heading">
+                        Session conversion funnel
+                      </h3>
+                      <TotalsFunnel row={totals.row} />
+                    </div>
+                  </div>
+                ) : (
+                  <PlaceholderCard
+                    label="Selfie Check funnel"
+                    message={
+                      totals.kind === "loading"
+                        ? "Loading total analytics…"
+                        : totals.message
+                    }
+                  />
+                )}
+              </section>
+              <section
+                className="space-y-4"
+                aria-labelledby="selfie-check-trends"
+              >
+                <div className="space-y-4">
+                  <h2
+                    id="selfie-check-trends"
+                    className="font-world text-18 font-semibold text-portal-heading"
+                  >
+                    Trends
+                  </h2>
+                  {readyPeriodTables.length > 0 && (
+                    <DailyAnalyticsFilters
+                      ariaLabel="Selfie Check daily analytics filters"
+                      operatingSystems={operatingSystems}
+                      osName={osName}
+                      range={range}
+                      setOsName={setOsName}
+                      setRange={setRange}
+                      setTrendInterval={changeTrendInterval}
+                      trendInterval={trendInterval}
                     />
-                  ))}
+                  )}
                 </div>
-              ) : (
-                <PlaceholderCard
-                  label="Daily Selfie Check charts"
-                  message={
-                    daily.kind === "loading"
-                      ? "Loading daily analytics…"
-                      : daily.message
-                  }
-                />
-              )}
+                {daily.kind === "ready" ? (
+                  <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+                    {CHART_METRICS.map((chart) => (
+                      <DailyMetricChart
+                        key={chart.metric}
+                        title={chartTitle(chart.title, trendInterval)}
+                        rows={filteredDailyRows}
+                        metric={chart.metric}
+                        kind={metricKind(chart.metric)}
+                        chartType={chart.chartType}
+                        timeInterval={trendInterval}
+                        yAxisLabel={chart.yAxisLabel}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <PlaceholderCard
+                    label="Daily Selfie Check charts"
+                    message={
+                      daily.kind === "loading"
+                        ? `Loading ${intervalLabel(trendInterval).toLowerCase()} analytics…`
+                        : daily.message
+                    }
+                  />
+                )}
+              </section>
             </TabPanel>
           </TabPanels>
         </TabGroup>

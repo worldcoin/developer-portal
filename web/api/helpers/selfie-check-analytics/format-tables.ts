@@ -2,7 +2,8 @@ import "server-only";
 
 /**
  * Parses selfie-check analytics CSVs into app-indexed, typed tables.
- * Totals contain one row per app; daily tables contain ordered row arrays per app.
+ * Totals contain one row per app; the daily, weekly, and monthly period tables
+ * contain ordered row arrays per app with the period start in `day`.
  */
 
 import {
@@ -14,7 +15,6 @@ import {
 import { parse, type Info } from "csv-parse/sync";
 
 const APP_ID_COLUMNS = ["PARTNER_APP_ID", "APP_ID"] as const;
-const DAY_COLUMN = "DAY";
 const OS_NAME_COLUMN = "OS_NAME";
 const HEADER_PATTERN = /^[A-Z][A-Z0-9_]*$/;
 const NON_NEGATIVE_NUMBER_PATTERN =
@@ -324,18 +324,13 @@ export function parseTotalsTable(csv: string): ParsedTotalsTable {
 }
 
 // ============================================================================
-// Daily Table
+// Period Tables (daily, weekly, monthly)
 // ============================================================================
 
-const DAILY_NON_METRIC_COLUMNS = new Set<string>([
-  ...APP_ID_COLUMNS,
-  DAY_COLUMN,
-  OS_NAME_COLUMN,
-]);
-const DAILY_COLUMNS = [
-  "PARTNER_APP_ID",
-  "DAY",
-  "OS_NAME",
+/** The only column that differs between the three period exports. */
+type PeriodColumn = "DAY" | "WEEK_START" | "MONTH_START";
+
+const PERIOD_METRIC_COLUMNS = [
   "N_USERS_STARTED_SELFIE_CHECK_FLOW",
   "N_USERS_SHARED_A_PROOF",
   "CUMULATIVE_N_USERS_SHARED_A_PROOF",
@@ -343,64 +338,108 @@ const DAILY_COLUMNS = [
 ] as const;
 
 /**
- * Parses a daily CSV into ordered row arrays per app ID.
- * Every source row is preserved, and `(appId, day, os_name)` must be unique.
+ * Builds the parser for one period table. Every source row is preserved under
+ * its app ID, `(appId, period start, os_name)` must be unique, and the period
+ * start lands in the shared `day` field so all three tables use one row type.
  */
-export function parseDailyTable(csv: string): ParsedDailyTable {
-  const parsedCsv = parseCsv(csv);
-  validateExactSchema({
-    expected: DAILY_COLUMNS,
-    headers: parsedCsv.headers,
-    label: "Daily",
-  });
-  const mutableRecords = new Map<string, DailyRow[]>();
-  const rowKeysByApp = new Map<string, Set<string>>();
+function createPeriodTableParser({
+  label,
+  periodColumn,
+  periodNoun,
+}: {
+  label: string;
+  periodColumn: PeriodColumn;
+  periodNoun: string;
+}): (csv: string) => ParsedDailyTable {
+  const nonMetricColumns = new Set<string>([
+    ...APP_ID_COLUMNS,
+    periodColumn,
+    OS_NAME_COLUMN,
+  ]);
+  const expectedColumns = [
+    "PARTNER_APP_ID",
+    periodColumn,
+    OS_NAME_COLUMN,
+    ...PERIOD_METRIC_COLUMNS,
+  ];
 
-  for (const { info, record } of parsedCsv.records) {
-    validateFieldLengths(parsedCsv.headers, record, info.lines);
-    const appId = record[parsedCsv.appIdColumn] ?? "";
-    const fields = parseMetricFields({
-      excludedColumns: DAILY_NON_METRIC_COLUMNS,
+  return function parsePeriodTable(csv: string): ParsedDailyTable {
+    const parsedCsv = parseCsv(csv);
+    validateExactSchema({
+      expected: expectedColumns,
       headers: parsedCsv.headers,
-      record,
-      rowNumber: info.lines,
+      label,
     });
-    const row = pickDailyRow({
-      appId,
-      day: record[DAY_COLUMN] ?? "",
-      os_name: record[OS_NAME_COLUMN] ?? "",
-      ...fields,
-    });
+    const mutableRecords = new Map<string, DailyRow[]>();
+    const rowKeysByApp = new Map<string, Set<string>>();
 
-    if (!row) {
-      throw new TableValidationError(
-        `Table row ${info.lines} is missing or has an invalid required daily column.`,
-      );
+    for (const { info, record } of parsedCsv.records) {
+      validateFieldLengths(parsedCsv.headers, record, info.lines);
+      const appId = record[parsedCsv.appIdColumn] ?? "";
+      const fields = parseMetricFields({
+        excludedColumns: nonMetricColumns,
+        headers: parsedCsv.headers,
+        record,
+        rowNumber: info.lines,
+      });
+      const row = pickDailyRow({
+        appId,
+        day: record[periodColumn] ?? "",
+        os_name: record[OS_NAME_COLUMN] ?? "",
+        ...fields,
+      });
+
+      if (!row) {
+        throw new TableValidationError(
+          `Table row ${info.lines} is missing or has an invalid required ${label.toLowerCase()} column.`,
+        );
+      }
+
+      const rowKey = JSON.stringify([row.day, row.os_name]);
+      const appRowKeys = rowKeysByApp.get(appId) ?? new Set<string>();
+      if (appRowKeys.has(rowKey)) {
+        throw new TableValidationError(
+          `${label} table contains a duplicate app/${periodNoun}/OS row: ` +
+            `${appId}, ${row.day}, ${row.os_name}.`,
+        );
+      }
+      appRowKeys.add(rowKey);
+      rowKeysByApp.set(appId, appRowKeys);
+
+      const appRows = mutableRecords.get(appId);
+      if (appRows) {
+        appRows.push(Object.freeze(row));
+      } else {
+        mutableRecords.set(appId, [Object.freeze(row)]);
+      }
     }
 
-    const rowKey = JSON.stringify([row.day, row.os_name]);
-    const appRowKeys = rowKeysByApp.get(appId) ?? new Set<string>();
-    if (appRowKeys.has(rowKey)) {
-      throw new TableValidationError(
-        `Daily table contains a duplicate app/day/OS row: ` +
-          `${appId}, ${row.day}, ${row.os_name}.`,
-      );
+    const records = new Map<string, readonly DailyRow[]>();
+    for (const [appId, rows] of mutableRecords) {
+      records.set(appId, Object.freeze(rows));
     }
-    appRowKeys.add(rowKey);
-    rowKeysByApp.set(appId, appRowKeys);
 
-    const appRows = mutableRecords.get(appId);
-    if (appRows) {
-      appRows.push(Object.freeze(row));
-    } else {
-      mutableRecords.set(appId, [Object.freeze(row)]);
-    }
-  }
-
-  const records = new Map<string, readonly DailyRow[]>();
-  for (const [appId, rows] of mutableRecords) {
-    records.set(appId, Object.freeze(rows));
-  }
-
-  return { headers: parsedCsv.headers, records };
+    return { headers: parsedCsv.headers, records };
+  };
 }
+
+/** Parses a daily CSV into ordered row arrays per app ID. */
+export const parseDailyTable = createPeriodTableParser({
+  label: "Daily",
+  periodColumn: "DAY",
+  periodNoun: "day",
+});
+
+/** Parses a weekly CSV; `day` holds the Monday that starts each week. */
+export const parseWeeklyTable = createPeriodTableParser({
+  label: "Weekly",
+  periodColumn: "WEEK_START",
+  periodNoun: "week",
+});
+
+/** Parses a monthly CSV; `day` holds the first day of each month. */
+export const parseMonthlyTable = createPeriodTableParser({
+  label: "Monthly",
+  periodColumn: "MONTH_START",
+  periodNoun: "month",
+});
