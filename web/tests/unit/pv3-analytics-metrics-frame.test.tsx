@@ -293,7 +293,7 @@ it("bounds stalled fetches and reports timeouts in both sections", async () => {
     );
     render(<MetricsFrame appId={appId} />);
     await act(async () => {
-      jest.advanceTimersByTime(8_000);
+      jest.advanceTimersByTime(15_000);
     });
     expect(
       within(

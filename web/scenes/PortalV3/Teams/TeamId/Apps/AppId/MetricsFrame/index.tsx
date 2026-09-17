@@ -39,7 +39,7 @@ import {
 import { TotalsFunnel } from "./TotalsFunnel";
 import { TotalsOverview } from "./TotalsOverview";
 
-const REQUEST_TIMEOUT_MS = 8_000;
+const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_PENDING_VIEW_EVENTS = 100;
 const ALL_OPERATING_SYSTEMS = "all";
 
