@@ -1,5 +1,6 @@
 import { resolveSelfieCheckAnalyticsEligibility } from "@/api/helpers/selfie-check-analytics/eligibility";
-import { loadLatestDailyTableSnapshot } from "@/api/helpers/selfie-check-analytics/snapshots";
+import { loadLatestPeriodTableSnapshot } from "@/api/helpers/selfie-check-analytics/snapshots";
+import { isPeriodTable, type PeriodTable } from "@/lib/analytics-time-interval";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
@@ -26,7 +27,7 @@ type AnalyticsResponse =
     }
   | {
       appId: string;
-      tablePrefix: "daily/";
+      tablePrefix: `${PeriodTable}/`;
       rows: readonly DailyRow[];
       snapshotMetadata: SnapshotMetadata;
     };
@@ -86,7 +87,9 @@ export async function GET(
   }
 
   const tableParam = req.nextUrl.searchParams.get("table") ?? "total";
-  if (tableParam !== "total" && tableParam !== "daily") {
+  const table: "total" | PeriodTable | null =
+    tableParam === "total" || isPeriodTable(tableParam) ? tableParam : null;
+  if (table === null) {
     return errorResponse({
       status: 400,
       code: "invalid_table",
@@ -164,17 +167,11 @@ export async function GET(
       });
     }
     dataset =
-      tableParam === "daily" ? "selfie_check_daily" : "selfie_check_totals";
+      table === "total" ? "selfie_check_totals" : `selfie_check_${table}`;
     loaded =
-      tableParam === "daily"
-        ? {
-            table: "daily" as const,
-            snapshot: await loadLatestDailyTableSnapshot(),
-          }
-        : {
-            table: "total" as const,
-            snapshot: eligibility.snapshot,
-          };
+      table === "total"
+        ? { table: "total" as const, snapshot: eligibility.snapshot }
+        : { table, snapshot: await loadLatestPeriodTableSnapshot(table) };
   } catch (error) {
     logger.error("Failed to load selfie-check analytics table", {
       dependency: "s3",
@@ -206,10 +203,16 @@ export async function GET(
   };
 
   let response: AnalyticsResponse | null = null;
-  if (loaded.table === "daily") {
+  if (loaded.table !== "total") {
     const rows = loaded.snapshot.records.get(appId);
-    if (rows)
-      response = { appId, tablePrefix: "daily/", rows, snapshotMetadata };
+    if (rows) {
+      response = {
+        appId,
+        tablePrefix: `${loaded.table}/`,
+        rows,
+        snapshotMetadata,
+      };
+    }
   } else {
     const row = eligibility.entry;
     if (row) response = { appId, tablePrefix: "total/", row, snapshotMetadata };

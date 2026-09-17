@@ -1,3 +1,8 @@
+import {
+  filterRowsToLatestPeriods,
+  type TrendInterval,
+} from "./analytics-time-interval";
+
 export type TotalsRow = Readonly<{
   appId: string;
   n_users_started_at_least_one_selfie_check_flow: number | null;
@@ -278,34 +283,22 @@ export type DailyChartData = Readonly<{
   operatingSystems: readonly DailyChartOs[];
 }>;
 
-export type DailyTimeframeDays = 7 | 14 | 30 | null;
-
-/** Applies the daily chart controls relative to the newest available data day. */
+/**
+ * Applies the trend controls: the newest reporting periods and one OS.
+ * Rows from the daily, weekly, and monthly tables all carry their period start
+ * in `day`, so one filter serves every interval.
+ */
 export const filterDailyRows = (
   rows: readonly DailyRow[],
   filters: Readonly<{
-    days: DailyTimeframeDays;
+    interval: TrendInterval;
+    periods: number | null;
     osName: string | null;
   }>,
-): readonly DailyRow[] => {
-  const latestDay = rows.reduce<string | null>(
-    (latest, row) => (latest === null || row.day > latest ? row.day : latest),
-    null,
+): readonly DailyRow[] =>
+  filterRowsToLatestPeriods(rows, filters.interval, filters.periods).filter(
+    (row) => filters.osName === null || row.os_name === filters.osName,
   );
-
-  let cutoffDay: string | null = null;
-  if (filters.days !== null && latestDay !== null) {
-    const cutoff = new Date(`${latestDay}T00:00:00.000Z`);
-    cutoff.setUTCDate(cutoff.getUTCDate() - (filters.days - 1));
-    cutoffDay = cutoff.toISOString().slice(0, 10);
-  }
-
-  return rows.filter(
-    (row) =>
-      (cutoffDay === null || row.day >= cutoffDay) &&
-      (filters.osName === null || row.os_name === filters.osName),
-  );
-};
 
 /**
  * Pivots per-app daily rows (one per day+OS) into the flat one-object-per-day

@@ -9,6 +9,7 @@ import {
   teamId,
   source,
   totalsCsv,
+  totalsPrefix,
 } from "../fixtures/selfie-check-analytics";
 import { logger } from "@/lib/logger";
 import React from "react";
@@ -27,7 +28,7 @@ it.each([true, false])(
       csv: totalsCsv(present ? [appId] : [otherAppId]),
     });
     expect((await resolve())?.props).toMatchObject({ appId, enabled: present });
-    expect(listCsv.mock.calls).toEqual([["total/"]]);
+    expect(listCsv.mock.calls).toEqual([[totalsPrefix]]);
   },
 );
 

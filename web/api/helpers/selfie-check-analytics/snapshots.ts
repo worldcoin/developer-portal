@@ -5,11 +5,14 @@ import "server-only";
  * Each table loader owns independent cache, refresh, backoff, and single-flight state.
  */
 
+import type { PeriodTable } from "@/lib/analytics-time-interval";
 import { logger } from "@/lib/logger";
 import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
 import {
   parseDailyTable,
+  parseMonthlyTable,
   parseTotalsTable,
+  parseWeeklyTable,
   type ParsedTable,
 } from "./format-tables";
 import { downloadCsv, listCsv, type TableObjectDescriptor } from "./s3";
@@ -199,17 +202,48 @@ const totalsSnapshotLoader = createSnapshotLoader({
   dataset: "selfie_check_totals",
   label: "totals",
   parseCsv: parseTotalsTable,
-  // Staging's warehouse export writes totals under a different key prefix;
-  // the deploy stack provides it. Read at boot like every other task env var.
-  prefix: process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX ?? "total/",
+  // Every export nests under its table name in both environments. The deploy
+  // stack may still override a prefix; read at boot like other task env vars.
+  prefix:
+    process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX ??
+    "total/selfie_check_metrics_total/",
 });
 
 const dailySnapshotLoader = createSnapshotLoader({
   dataset: "selfie_check_daily",
   label: "daily table",
   parseCsv: parseDailyTable,
-  prefix: process.env.SELFIE_CHECK_ANALYTICS_DAILY_PREFIX ?? "daily/",
+  prefix:
+    process.env.SELFIE_CHECK_ANALYTICS_DAILY_PREFIX ??
+    "daily/selfie_check_metrics_daily/",
 });
+
+const weeklySnapshotLoader = createSnapshotLoader({
+  dataset: "selfie_check_weekly",
+  label: "weekly table",
+  parseCsv: parseWeeklyTable,
+  prefix:
+    process.env.SELFIE_CHECK_ANALYTICS_WEEKLY_PREFIX ??
+    "weekly/selfie_check_metrics_weekly/",
+});
+
+const monthlySnapshotLoader = createSnapshotLoader({
+  dataset: "selfie_check_monthly",
+  label: "monthly table",
+  parseCsv: parseMonthlyTable,
+  prefix:
+    process.env.SELFIE_CHECK_ANALYTICS_MONTHLY_PREFIX ??
+    "monthly/selfie_check_metrics_monthly/",
+});
+
+const periodSnapshotLoaders: Record<
+  PeriodTable,
+  SnapshotLoader<readonly DailyRow[]>
+> = {
+  daily: dailySnapshotLoader,
+  weekly: weeklySnapshotLoader,
+  monthly: monthlySnapshotLoader,
+};
 
 // ============================================================================
 // Public API
@@ -226,11 +260,22 @@ export function loadLatestTotalsTableSnapshot(
 export function loadLatestDailyTableSnapshot(
   options?: SnapshotLoadOptions,
 ): Promise<DailyTableSnapshot> {
-  return dailySnapshotLoader.load(options);
+  return loadLatestPeriodTableSnapshot("daily", options);
 }
 
-/** Clears both process-local caches, primarily for tests. */
+/**
+ * Returns the latest verified daily, weekly, or monthly table. All three share
+ * the daily row shape with the period start in `day`.
+ */
+export function loadLatestPeriodTableSnapshot(
+  table: PeriodTable,
+  options?: SnapshotLoadOptions,
+): Promise<DailyTableSnapshot> {
+  return periodSnapshotLoaders[table].load(options);
+}
+
+/** Clears every process-local cache, primarily for tests. */
 export function clearTableCaches(): void {
   totalsSnapshotLoader.clear();
-  dailySnapshotLoader.clear();
+  for (const loader of Object.values(periodSnapshotLoaders)) loader.clear();
 }

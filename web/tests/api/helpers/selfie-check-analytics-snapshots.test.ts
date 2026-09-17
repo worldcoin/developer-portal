@@ -20,6 +20,7 @@ jest.mock("@/lib/logger", () => ({
 import {
   clearTableCaches,
   loadLatestDailyTableSnapshot,
+  loadLatestPeriodTableSnapshot,
   loadLatestTotalsTableSnapshot,
 } from "@/api/helpers/selfie-check-analytics/snapshots";
 import { logger } from "@/lib/logger";
@@ -28,6 +29,7 @@ import type { TableObjectDescriptor } from "@/api/helpers/selfie-check-analytics
 // #region Test Data
 const appIdA = "app_0123456789abcdef0123456789abcdef";
 const appIdB = "app_fedcba9876543210fedcba9876543210";
+const TOTALS_PREFIX = "total/selfie_check_metrics_total/";
 
 const source = (
   key: string,
@@ -57,6 +59,12 @@ const dailyCsv = () =>
     `${appIdA},2026-08-25,iOS,10,8,20,0.8`,
     `${appIdA},2026-08-26,Android,10,8,20,0.8`,
   ].join("\n");
+
+const periodCsv = (periodColumn: string, periodStart: string) =>
+  [
+    `PARTNER_APP_ID,${periodColumn},OS_NAME,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_USERS_SHARED_A_PROOF,CUMULATIVE_N_USERS_SHARED_A_PROOF,P_FACE_CAPTURE_COMPLETION`,
+    `${appIdA},${periodStart},iOS,10,8,20,0.8`,
+  ].join("\n");
 // #endregion
 
 beforeEach(() => {
@@ -82,7 +90,7 @@ describe("selfie-check analytics table snapshots", () => {
     expect(snapshot.isFallback).toBe(false);
     expect(snapshot.loadedAt).toBe("2026-08-26T22:00:00.000Z");
     expect(snapshot.records.get(appIdA)?.n_proof_shared_sessions).toBe(3);
-    expect(listCsvMock).toHaveBeenCalledWith("total/");
+    expect(listCsvMock).toHaveBeenCalledWith(TOTALS_PREFIX);
     expect(downloadCsvMock).toHaveBeenCalledWith(object);
   });
 
@@ -91,7 +99,7 @@ describe("selfie-check analytics table snapshots", () => {
     const dailyObject = source("daily/run-1.csv", '"etag-daily"');
 
     listCsvMock.mockImplementation((prefix: string) =>
-      Promise.resolve(prefix === "total/" ? totalObject : dailyObject),
+      Promise.resolve(prefix === TOTALS_PREFIX ? totalObject : dailyObject),
     );
     downloadCsvMock.mockImplementation((object: TableObjectDescriptor) =>
       Promise.resolve({
@@ -113,6 +121,51 @@ describe("selfie-check analytics table snapshots", () => {
     expect(daily.records.get(appIdA)).toHaveLength(2);
     expect(listCsvMock).toHaveBeenCalledTimes(2);
     expect(downloadCsvMock).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    [
+      "weekly",
+      "weekly/selfie_check_metrics_weekly/",
+      "WEEK_START",
+      "2026-08-24",
+    ],
+    [
+      "monthly",
+      "monthly/selfie_check_metrics_monthly/",
+      "MONTH_START",
+      "2026-08-01",
+    ],
+  ] as const)(
+    "loads the %s table from its own prefix with its period column in day",
+    async (table, prefix, periodColumn, periodStart) => {
+      const object = source(`${prefix}run-1.csv`, '"etag-period"');
+      listCsvMock.mockResolvedValue(object);
+      downloadCsvMock.mockResolvedValue({
+        csv: periodCsv(periodColumn, periodStart),
+        object,
+      });
+
+      const snapshot = await loadLatestPeriodTableSnapshot(table);
+
+      expect(listCsvMock).toHaveBeenCalledWith(prefix);
+      expect(snapshot.records.get(appIdA)).toEqual([
+        expect.objectContaining({ day: periodStart, os_name: "iOS" }),
+      ]);
+    },
+  );
+
+  it("rejects a daily export served under the weekly prefix", async () => {
+    const object = source(
+      "weekly/selfie_check_metrics_weekly/run-1.csv",
+      '"x"',
+    );
+    listCsvMock.mockResolvedValue(object);
+    downloadCsvMock.mockResolvedValue({ csv: dailyCsv(), object });
+
+    await expect(loadLatestPeriodTableSnapshot("weekly")).rejects.toThrow(
+      "Weekly table schema does not match",
+    );
   });
 });
 // #endregion

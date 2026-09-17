@@ -6,6 +6,8 @@ import {
   type DailyRow,
   type MetricKind,
 } from "@/lib/selfie-check-analytics";
+import { type TrendInterval } from "@/lib/analytics-time-interval";
+import { StackedMetricTooltip } from "./StackedMetricTooltip";
 import { useMemo, useState } from "react";
 import {
   Area,
@@ -14,6 +16,7 @@ import {
   CartesianGrid,
   ComposedChart,
   Label,
+  LabelList,
   Line,
   ResponsiveContainer,
   Tooltip,
@@ -26,6 +29,7 @@ const Y_AXIS_WIDTH = 52;
 const DATE_LABEL_WIDTH = 44;
 // The final date is centered on the last point, so reserve its right half.
 const CHART_RIGHT_MARGIN = DATE_LABEL_WIDTH / 2 + 4;
+const BAR_LABEL_TOP_MARGIN = 28;
 
 const formatTickDate = (value: string) =>
   new Date(`${value}T00:00:00.000Z`).toLocaleDateString("en-US", {
@@ -36,6 +40,60 @@ const formatTickDate = (value: string) =>
 
 const formatRate = (value: number) => `${(value * 100).toFixed(1)}%`;
 const formatRateTick = (value: number) => `${Math.round(value * 100)}%`;
+
+const intervalLabel: Record<TrendInterval, string> = {
+  daily: "Daily",
+  weekly: "Weekly",
+  monthly: "Monthly",
+};
+
+const getSampleIndexes = (pointCount: number, labelCount: number) => [
+  ...new Set(
+    Array.from({ length: Math.min(pointCount, labelCount) }, (_, index) =>
+      Math.round((index * (pointCount - 1)) / (labelCount - 1)),
+    ),
+  ),
+];
+
+/** Renders a few evenly spaced labels, optionally alternating between series. */
+const SampledValueLabel = (props: {
+  color: string;
+  formatValue: (value: number) => string;
+  index?: number;
+  labelOffset: number;
+  sampleIndexes: readonly number[];
+  seriesCount?: number;
+  seriesIndex?: number;
+  value?: unknown;
+  width?: number;
+  x?: number;
+  y?: number;
+}) => {
+  const samplePosition = props.sampleIndexes.indexOf(props.index ?? -1);
+  if (
+    samplePosition === -1 ||
+    typeof props.value !== "number" ||
+    props.value <= 0 ||
+    (props.seriesIndex !== undefined &&
+      props.seriesCount !== undefined &&
+      samplePosition % props.seriesCount !== props.seriesIndex)
+  ) {
+    return null;
+  }
+
+  return (
+    <text
+      fill={props.color}
+      fontSize={11}
+      fontWeight={500}
+      textAnchor="middle"
+      x={Number(props.x ?? 0) + Number(props.width ?? 0) / 2}
+      y={Number(props.y ?? 0) + props.labelOffset}
+    >
+      {props.formatValue(props.value)}
+    </text>
+  );
+};
 
 /** Keep sparse weekly bars readable while keeping longer ranges compact. */
 const barMaxSize = (pointCount: number) => {
@@ -50,6 +108,7 @@ export const DailyMetricChart = (props: {
   metric: DailyChartMetric;
   kind: MetricKind;
   chartType: DailyMetricChartType;
+  timeInterval?: TrendInterval;
   yAxisLabel: string;
 }) => {
   const [chartWidth, setChartWidth] = useState(0);
@@ -62,6 +121,37 @@ export const DailyMetricChart = (props: {
   const formatValue = (value: number) =>
     isRate ? formatRate(value) : value.toLocaleString("en-US");
   const showEveryDate = points.length <= 14;
+  const chartPoints = useMemo(
+    () =>
+      points.map((point) => ({
+        ...point,
+        stackTotal: operatingSystems.reduce((total, operatingSystem) => {
+          const value = point[operatingSystem.dataKey];
+          return total + (typeof value === "number" ? value : 0);
+        }, 0),
+      })),
+    [operatingSystems, points],
+  );
+  const tooltipSeries = useMemo(
+    () =>
+      operatingSystems.map(({ color, osName }) => ({
+        color,
+        name: osName,
+      })),
+    [operatingSystems],
+  );
+  const showAllBarLabels =
+    props.chartType === "bar" && hasVisibleSeries && points.length <= 14;
+  const showBarLabels = showAllBarLabels;
+  const showCumulativeLabels =
+    hasVisibleSeries &&
+    props.chartType === "area" &&
+    (chartWidth > 0 || points.length <= 7);
+  const cumulativeLabelIndexes = useMemo(
+    () => getSampleIndexes(points.length, 3),
+    [points.length],
+  );
+  const hasTopDataLabels = showBarLabels || showCumulativeLabels;
   // Keep every short-range date, turning labels only when they cannot fit.
   const rotateDates =
     showEveryDate &&
@@ -103,7 +193,7 @@ export const DailyMetricChart = (props: {
           aria-hidden
           className="absolute right-0 bottom-0 left-12 text-center font-world text-12 text-portal-muted"
         >
-          Day
+          {intervalLabel[props.timeInterval ?? "daily"]}
         </span>
         <span
           aria-hidden
@@ -120,9 +210,9 @@ export const DailyMetricChart = (props: {
             // Recharts stacks series in registration order. Reset that order
             // when filters add or remove an OS so it always matches the legend.
             key={operatingSystems.map((os) => os.dataKey).join(",")}
-            data={points}
+            data={chartPoints}
             margin={{
-              top: 8,
+              top: hasTopDataLabels ? BAR_LABEL_TOP_MARGIN : 8,
               left: 0,
               right: CHART_RIGHT_MARGIN,
               bottom: 0,
@@ -162,6 +252,15 @@ export const DailyMetricChart = (props: {
             />
             {hasVisibleSeries ? (
               <Tooltip
+                content={
+                  props.chartType === "bar" || props.chartType === "area" ? (
+                    <StackedMetricTooltip
+                      formatLabel={(value) => formatTickDate(value)}
+                      formatValue={formatValue}
+                      series={tooltipSeries}
+                    />
+                  ) : undefined
+                }
                 cursor={
                   props.chartType === "bar"
                     ? { fill: "var(--chart-cursor)" }
@@ -207,8 +306,8 @@ export const DailyMetricChart = (props: {
             )}
             {/* Round the whole stack, including days where its last OS is zero or absent. */}
             {props.chartType === "bar" && (
-              <BarStack radius={[5, 5, 0, 0]}>
-                {operatingSystems.map((os) => (
+              <BarStack radius={[2, 2, 0, 0]}>
+                {operatingSystems.map((os, index) => (
                   <Bar
                     key={os.dataKey}
                     dataKey={os.dataKey}
@@ -216,12 +315,28 @@ export const DailyMetricChart = (props: {
                     fill={os.color}
                     isAnimationActive={false}
                     maxBarSize={barMaxSize(points.length)}
-                  />
+                  >
+                    {showAllBarLabels &&
+                      index === operatingSystems.length - 1 && (
+                        <LabelList
+                          dataKey="stackTotal"
+                          fill="#525252"
+                          fontSize={11}
+                          formatter={(value) =>
+                            typeof value === "number" && value > 0
+                              ? value.toLocaleString("en-US")
+                              : ""
+                          }
+                          offset={8}
+                          position="top"
+                        />
+                      )}
+                  </Bar>
                 ))}
               </BarStack>
             )}
             {props.chartType !== "bar" &&
-              operatingSystems.map((os) =>
+              operatingSystems.map((os, index) =>
                 props.chartType === "line" ? (
                   <Line
                     key={os.dataKey}
@@ -255,7 +370,22 @@ export const DailyMetricChart = (props: {
                     strokeLinejoin="round"
                     activeDot={{ r: 4, stroke: "white", strokeWidth: 2 }}
                     type="linear"
-                  />
+                  >
+                    {showCumulativeLabels &&
+                      index === operatingSystems.length - 1 && (
+                        <LabelList
+                          content={
+                            <SampledValueLabel
+                              color="#525252"
+                              formatValue={formatValue}
+                              labelOffset={-8}
+                              sampleIndexes={cumulativeLabelIndexes}
+                            />
+                          }
+                          dataKey="stackTotal"
+                        />
+                      )}
+                  </Area>
                 ),
               )}
           </ComposedChart>

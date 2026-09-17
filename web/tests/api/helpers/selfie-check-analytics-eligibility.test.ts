@@ -6,6 +6,7 @@ import {
   otherAppId,
   source,
   totalsCsv,
+  totalsPrefix,
 } from "../../fixtures/selfie-check-analytics";
 
 // #region Mocks
@@ -38,7 +39,7 @@ describe("analytics eligibility", () => {
     expect(result.entry).toBe(result.snapshot.records.get(appId));
     expect(result.snapshot.isFallback).toBe(false);
     expect(listCsv).toHaveBeenCalledTimes(1);
-    expect(listCsv).toHaveBeenCalledWith("total/");
+    expect(listCsv).toHaveBeenCalledWith(totalsPrefix);
   });
 
   it("treats missing membership as normal absence", async () => {
@@ -52,9 +53,9 @@ describe("analytics eligibility", () => {
     expect(
       (await resolveSelfieCheckAnalyticsEligibility(appId)).entry,
     ).toBeDefined();
-    listCsv.mockResolvedValue(source("total/", 2));
+    listCsv.mockResolvedValue(source(totalsPrefix, 2));
     downloadCsv.mockResolvedValue({
-      object: source("total/", 2),
+      object: source(totalsPrefix, 2),
       csv: totalsCsv([otherAppId], 5),
     });
     expect(
@@ -117,12 +118,12 @@ describe("eligibility dependency failures", () => {
     "preserves verified membership through an %s new export and recovers",
     async (failure) => {
       const original = await resolveSelfieCheckAnalyticsEligibility(appId);
-      listCsv.mockResolvedValue(source("total/", 2));
+      listCsv.mockResolvedValue(source(totalsPrefix, 2));
       if (failure === "unreadable")
         downloadCsv.mockRejectedValue(new Error("S3 503"));
       else
         downloadCsv.mockResolvedValue({
-          object: source("total/", 2),
+          object: source(totalsPrefix, 2),
           csv: "invalid,csv",
         });
       jest.advanceTimersByTime(60_000);
@@ -134,7 +135,7 @@ describe("eligibility dependency failures", () => {
       ).toBeUndefined();
       expect(downloadCsv).toHaveBeenCalledTimes(2);
       downloadCsv.mockResolvedValue({
-        object: source("total/", 2),
+        object: source(totalsPrefix, 2),
         csv: totalsCsv([otherAppId]),
       });
       jest.advanceTimersByTime(60_000);

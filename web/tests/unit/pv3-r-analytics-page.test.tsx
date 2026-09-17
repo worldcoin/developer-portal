@@ -9,6 +9,7 @@ import {
   teamId,
   source,
   totalsCsv,
+  totalsPrefix,
 } from "../fixtures/selfie-check-analytics";
 import { logger } from "@/lib/logger";
 import React from "react";
@@ -51,7 +52,7 @@ describe("analytics page, sidebar, and API", () => {
       { params: Promise.resolve({ app_id: appId }) },
     );
     expect(response.status).toBe(present ? 200 : 403);
-    expect(listCsv.mock.calls).toEqual([["total/"]]);
+    expect(listCsv.mock.calls).toEqual([[totalsPrefix]]);
     expect(logger.warn).not.toHaveBeenCalled();
   });
 
@@ -98,9 +99,9 @@ describe("analytics page, sidebar, and API", () => {
       pageChildren(await RoutePage(props))[1].props.initialIsFallback,
     ).toBe(true);
     expect(await getAnalyticsSidebarEligibility(appId)).toBe(true);
-    listCsv.mockResolvedValue(source("total/", 2));
+    listCsv.mockResolvedValue(source(totalsPrefix, 2));
     downloadCsv.mockResolvedValue({
-      object: source("total/", 2),
+      object: source(totalsPrefix, 2),
       csv: totalsCsv([otherAppId]),
     });
     jest.advanceTimersByTime(60_000);
