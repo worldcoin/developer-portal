@@ -42,9 +42,9 @@ const formatRate = (value: number) => `${(value * 100).toFixed(1)}%`;
 const formatRateTick = (value: number) => `${Math.round(value * 100)}%`;
 
 const intervalLabel: Record<TrendInterval, string> = {
-  daily: "Daily",
-  weekly: "Weekly",
-  monthly: "Monthly",
+  daily: "Day",
+  weekly: "Week",
+  monthly: "Month",
 };
 
 const getSampleIndexes = (pointCount: number, labelCount: number) => [
