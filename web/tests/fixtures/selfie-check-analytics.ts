@@ -14,14 +14,37 @@ export const totalsCsv = (ids = [appId], value = 0) =>
     ),
   ].join("\n");
 
+const periodHeader = (periodColumn: "DAY" | "WEEK_START" | "MONTH_START") =>
+  `PARTNER_APP_ID,${periodColumn},OS_NAME,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_USERS_SHARED_A_PROOF,CUMULATIVE_N_USERS_SHARED_A_PROOF,P_FACE_CAPTURE_COMPLETION`;
+
 export const dailyCsv = (ids = [appId]) =>
   [
-    "PARTNER_APP_ID,DAY,OS_NAME,N_USERS_STARTED_SELFIE_CHECK_FLOW,N_USERS_SHARED_A_PROOF,CUMULATIVE_N_USERS_SHARED_A_PROOF,P_FACE_CAPTURE_COMPLETION",
+    periodHeader("DAY"),
     ...ids.map((id) => `${id},2026-08-26,iOS,10,8,20,0.8`),
   ].join("\n");
 
+export const weeklyCsv = (ids = [appId]) =>
+  [
+    periodHeader("WEEK_START"),
+    ...ids.map((id) => `${id},2026-08-24,iOS,10,8,20,0.8`),
+  ].join("\n");
+
+export const monthlyCsv = (ids = [appId]) =>
+  [
+    periodHeader("MONTH_START"),
+    ...ids.map((id) => `${id},2026-08-01,iOS,10,8,20,0.8`),
+  ].join("\n");
+
+/** Prefixes each table is listed under when no env override is set. */
+export const totalsPrefix = "total/selfie_check_metrics_total/";
+export const periodPrefix = {
+  daily: "daily/selfie_check_metrics_daily/",
+  weekly: "weekly/selfie_check_metrics_weekly/",
+  monthly: "monthly/selfie_check_metrics_monthly/",
+} as const;
+
 export const source = (
-  prefix = "total/",
+  prefix: string = totalsPrefix,
   revision = 1,
 ): TableObjectDescriptor => ({
   bucket: "analytics-bucket",

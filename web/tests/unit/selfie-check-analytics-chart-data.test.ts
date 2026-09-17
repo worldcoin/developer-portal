@@ -25,17 +25,43 @@ describe("filterDailyRows", () => {
   ];
 
   it("uses the newest data day as the inclusive timeframe boundary", () => {
-    expect(filterDailyRows(rows, { days: 14, osName: null })).toEqual([
-      rows[1],
-      rows[2],
-    ]);
+    expect(
+      filterDailyRows(rows, { interval: "daily", periods: 14, osName: null }),
+    ).toEqual([rows[1], rows[2]]);
   });
 
   it("filters by OS independently of the timeframe", () => {
-    expect(filterDailyRows(rows, { days: null, osName: "iOS" })).toEqual([
-      rows[0],
-      rows[2],
-    ]);
+    expect(
+      filterDailyRows(rows, {
+        interval: "daily",
+        periods: null,
+        osName: "iOS",
+      }),
+    ).toEqual([rows[0], rows[2]]);
+  });
+
+  it("measures the window in the interval's own unit for period tables", () => {
+    const weekly = [
+      row({ day: "2026-07-27" }),
+      row({ day: "2026-08-24" }),
+      row({ day: "2026-08-31" }),
+    ];
+    expect(
+      filterDailyRows(weekly, { interval: "weekly", periods: 2, osName: null }),
+    ).toEqual([weekly[1], weekly[2]]);
+
+    const monthly = [
+      row({ day: "2026-05-01" }),
+      row({ day: "2026-07-01" }),
+      row({ day: "2026-08-01" }),
+    ];
+    expect(
+      filterDailyRows(monthly, {
+        interval: "monthly",
+        periods: 2,
+        osName: null,
+      }),
+    ).toEqual([monthly[1], monthly[2]]);
   });
 });
 
@@ -146,7 +172,11 @@ describe("buildDailyChartData", () => {
           ),
         ).flat(),
       ];
-      const filteredRows = filterDailyRows(rows, { days: 7, osName: null });
+      const filteredRows = filterDailyRows(rows, {
+        interval: "daily",
+        periods: 7,
+        osName: null,
+      });
       const result = buildDailyChartData(filteredRows, metric);
 
       expect(result.operatingSystems.map(({ osName }) => osName)).toEqual([
@@ -165,7 +195,11 @@ describe("buildDailyChartData", () => {
       ).toEqual(["Android", "Unknown"]);
       expect(
         buildDailyChartData(
-          filterDailyRows(rows, { days: 7, osName: "Unknown" }),
+          filterDailyRows(rows, {
+            interval: "daily",
+            periods: 7,
+            osName: "Unknown",
+          }),
           metric,
         ).operatingSystems,
       ).toEqual([]);

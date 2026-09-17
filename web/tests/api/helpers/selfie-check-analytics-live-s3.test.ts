@@ -1,21 +1,22 @@
 /**
- * Live S3 smoke test: lists, downloads, and parses the newest totals CSV from
- * the real bucket — the exact pipeline production runs, allowlist not
- * involved. Runs only when the bucket env vars (and AWS credentials) are
- * present; skipped everywhere else, including CI.
+ * Live S3 smoke test: lists, downloads, and parses the newest CSV of every
+ * analytics table through the real snapshot loaders. Opt-in only, so a local
+ * .env with bucket settings never turns a unit run into a network run:
  *
- * Run against staging:
- *   AWS_PROFILE=devportalstaging \
- *   SELFIE_CHECK_ANALYTICS_S3_BUCKET_NAME=544885083450-eu-west-1-devportal-selfie-check-analytics-staging \
- *   SELFIE_CHECK_ANALYTICS_S3_REGION=eu-west-1 \
- *   SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX=staging/ \
- *   npx jest tests/api/helpers/selfie-check-analytics-live-s3.test.ts
+ *   SELFIE_CHECK_ANALYTICS_LIVE_TEST=true \
+ *   SELFIE_CHECK_ANALYTICS_S3_BUCKET_NAME=… SELFIE_CHECK_ANALYTICS_S3_REGION=… \
+ *   npx jest --runTestsByPath tests/api/helpers/selfie-check-analytics-live-s3.test.ts
  */
-import { parseTotalsTable } from "@/api/helpers/selfie-check-analytics/format-tables";
-import { downloadCsv, listCsv } from "@/api/helpers/selfie-check-analytics/s3";
+
+import {
+  loadLatestPeriodTableSnapshot,
+  loadLatestTotalsTableSnapshot,
+} from "@/api/helpers/selfie-check-analytics/snapshots";
+import { PERIOD_TABLES } from "@/lib/analytics-time-interval";
 
 const hasLiveBucketConfig = Boolean(
-  process.env.SELFIE_CHECK_ANALYTICS_S3_BUCKET_NAME &&
+  process.env.SELFIE_CHECK_ANALYTICS_LIVE_TEST === "true" &&
+    process.env.SELFIE_CHECK_ANALYTICS_S3_BUCKET_NAME &&
     process.env.SELFIE_CHECK_ANALYTICS_S3_REGION,
 );
 
@@ -25,20 +26,22 @@ describeLive("selfie-check analytics live S3 pipeline", () => {
   jest.setTimeout(30_000);
 
   it("downloads and parses the newest totals CSV end to end", async () => {
-    const prefix = process.env.SELFIE_CHECK_ANALYTICS_TOTALS_PREFIX ?? "total/";
+    const snapshot = await loadLatestTotalsTableSnapshot();
 
-    const newest = await listCsv(prefix);
-    const { csv, object } = await downloadCsv(newest);
-    const table = parseTotalsTable(csv);
-
-    expect(table.records.size).toBeGreaterThan(0);
-
-    const [firstAppId, firstRow] = [...table.records.entries()][0]!;
-    console.info(
-      `newest object: ${object.key} (${object.sizeBytes} bytes, ` +
-        `data as of ${object.dataAsOf.toISOString()})`,
-    );
-    console.info(`apps in table: ${table.records.size}`);
-    console.info(`first row (${firstAppId}):`, firstRow);
+    expect(snapshot.isFallback).toBe(false);
+    expect(snapshot.records.size).toBeGreaterThan(0);
   });
+
+  it.each(PERIOD_TABLES)(
+    "downloads and parses the newest %s CSV end to end",
+    async (table) => {
+      const snapshot = await loadLatestPeriodTableSnapshot(table);
+
+      expect(snapshot.isFallback).toBe(false);
+      expect(snapshot.records.size).toBeGreaterThan(0);
+      for (const rows of snapshot.records.values()) {
+        expect(rows.length).toBeGreaterThan(0);
+      }
+    },
+  );
 });

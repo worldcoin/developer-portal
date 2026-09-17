@@ -49,7 +49,7 @@ const serve = (totalFallback = false, dailyFallback = false) => {
   fetchMock.mockImplementation((url: string) =>
     Promise.resolve(
       response(
-        url.includes("daily")
+        url.includes("table=")
           ? { rows: dailyRows, snapshotMetadata: { isFallback: dailyFallback } }
           : { row: totals, snapshotMetadata: { isFallback: totalFallback } },
       ),
@@ -57,16 +57,20 @@ const serve = (totalFallback = false, dailyFallback = false) => {
   );
 };
 const dailyCharts = () =>
-  screen.getAllByRole("region", { name: /by day and OS/ });
+  screen.getAllByRole("region", { name: /by (?:day|week|month) and OS/ });
 const expectLegends = (names: string[]) => {
   expect(dailyCharts()).toHaveLength(4);
   for (const chart of dailyCharts()) {
     expect(
       within(chart)
         .getAllByRole("listitem")
-        .map((item) => item.textContent),
+        .map((item) => item.textContent?.split(" ·")[0]),
     ).toEqual(names);
   }
+};
+const chooseFilterOption = (filterName: string, optionName: string) => {
+  fireEvent.click(screen.getByRole("combobox", { name: filterName }));
+  fireEvent.click(screen.getByRole("option", { name: optionName }));
 };
 // #endregion
 
@@ -98,68 +102,98 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-// #region Lifetime and daily analytics
-it("renders lifetime metrics by default and all daily charts in the daily tab", async () => {
+// #region Selfie Check analytics
+it("renders API-backed lifetime and trend sections without view tabs", async () => {
   render(<MetricsFrame appId={appId} />);
-  await screen.findByRole("region", { name: "Analytics overview" });
-  expect(screen.getByText("10")).toBeInTheDocument();
-  expect(screen.getByText("6")).toBeInTheDocument();
+  const overview = await screen.findByRole("region", {
+    name: "Analytics overview",
+  });
+  expect(within(overview).getByText("10")).toBeInTheDocument();
+  expect(within(overview).getByText("6")).toBeInTheDocument();
   expect(screen.getByText("20 sessions")).toBeInTheDocument();
-  expect(screen.getByRole("tab", { name: "All time" })).toHaveAttribute(
-    "aria-selected",
-    "true",
-  );
-  expect(
-    screen.queryByRole("region", { name: /by day and OS/ }),
-  ).not.toBeInTheDocument();
-
-  fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
+  expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "All time" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Trends" })).toBeInTheDocument();
   expectLegends(["Android", "iOS"]);
   expect(
-    within(screen.getByRole("combobox", { name: "Operating System" }))
-      .getAllByRole("option")
-      .map((option) => option.textContent),
-  ).toEqual(["All", "Android", "iOS", "Unknown"]);
+    screen.getByRole("combobox", { name: "Time interval" }),
+  ).toHaveAttribute("data-value", "daily");
+  fireEvent.click(screen.getByRole("combobox", { name: "Operating System" }));
+  expect(
+    screen.getAllByRole("option").map((option) => option.textContent),
+  ).toEqual(["All", "Android", "iOS"]);
+  fireEvent.click(screen.getByRole("option", { name: "All" }));
   expect(global.fetch).toHaveBeenCalledTimes(2);
+});
+
+it("fetches each interval's table once and resets the range to its unit", async () => {
+  render(<MetricsFrame appId={appId} />);
+  await screen.findByRole("region", { name: "Analytics overview" });
+  const requestedTables = () =>
+    fetchMock.mock.calls
+      .map(([url]) => String(url).split("?")[1] ?? "totals")
+      .sort();
+  expect(requestedTables()).toEqual(["table=daily", "totals"]);
+  expect(screen.getByRole("combobox", { name: "Timeframe" })).toHaveAttribute(
+    "data-value",
+    "14",
+  );
+
+  chooseFilterOption("Time interval", "Weekly");
+  await screen.findAllByRole("region", { name: /by week and OS/ });
+  expect(requestedTables()).toEqual(["table=daily", "table=weekly", "totals"]);
+  expect(screen.getByRole("combobox", { name: "Timeframe" })).toHaveAttribute(
+    "data-value",
+    "8",
+  );
+  fireEvent.click(screen.getByRole("combobox", { name: "Timeframe" }));
+  const rangeOptions = within(
+    screen.getByRole("listbox", { name: "Timeframe" }),
+  );
+  expect(
+    rangeOptions.getAllByRole("option").map((option) => option.textContent),
+  ).toEqual(["Past 4 weeks", "Past 8 weeks", "Past 12 weeks", "All time"]);
+  fireEvent.click(rangeOptions.getByRole("option", { name: "All time" }));
+
+  chooseFilterOption("Time interval", "Daily");
+  await screen.findAllByRole("region", { name: /by day and OS/ });
+  expect(screen.getByRole("combobox", { name: "Timeframe" })).toHaveAttribute(
+    "data-value",
+    "14",
+  );
+  // Daily came back from the per-interval cache.
+  expect(requestedTables()).toEqual(["table=daily", "table=weekly", "totals"]);
 });
 
 it("filters every daily chart without changing the lifetime section", async () => {
   render(<MetricsFrame appId={appId} />);
   await screen.findByRole("region", { name: "Analytics overview" });
-  fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
   expectLegends(["Android", "iOS"]);
 
-  fireEvent.change(screen.getByRole("combobox", { name: "Timeframe" }), {
-    target: { value: "all" },
-  });
-  expectLegends(["Android", "iOS", "Unknown"]);
-  fireEvent.change(screen.getByRole("combobox", { name: "Operating System" }), {
-    target: { value: "iOS" },
-  });
+  chooseFilterOption("Timeframe", "All time");
+  expectLegends(["Android", "iOS"]);
+  chooseFilterOption("Operating System", "iOS");
   expectLegends(["iOS"]);
-  expect(screen.getByRole("combobox", { name: "Timeframe" })).toHaveValue(
+  expect(screen.getByRole("combobox", { name: "Timeframe" })).toHaveAttribute(
+    "data-value",
     "all",
   );
   expect(
     screen.getByRole("combobox", { name: "Operating System" }),
-  ).toHaveValue("iOS");
+  ).toHaveAttribute("data-value", "iOS");
 
-  fireEvent.click(screen.getByRole("tab", { name: "All time" }));
   expect(screen.getByText("20 sessions")).toBeInTheDocument();
 });
+
 // #endregion
 
 // #region Stale metadata and failure behavior
 it.each(["total", "daily"])(
-  "shows a stale-data notice for a %s fallback in both tabs",
+  "shows a stale-data notice for a %s fallback",
   async (table) => {
     serve(table === "total", table === "daily");
     render(<MetricsFrame appId={appId} />);
     expect(await screen.findByRole("status")).toHaveTextContent(
-      "showing the last verified data",
-    );
-    fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
-    expect(screen.getByRole("status")).toHaveTextContent(
       "showing the last verified data",
     );
   },
@@ -175,7 +209,7 @@ it("shows server fallback immediately, then clears it after a fresh response", a
 it("keeps development fixture responses without metadata renderable", async () => {
   fetchMock.mockImplementation((url: string) =>
     Promise.resolve(
-      response(url.includes("daily") ? { rows: [] } : { row: totals }),
+      response(url.includes("table=") ? { rows: [] } : { row: totals }),
     ),
   );
   render(<MetricsFrame appId={appId} />);
@@ -190,7 +224,7 @@ it.each([404, 503])(
   async (status) => {
     fetchMock.mockImplementation((url: string) =>
       Promise.resolve(
-        url.includes("daily")
+        url.includes("table=")
           ? response({ rows: dailyRows })
           : response({}, status),
       ),
@@ -203,12 +237,11 @@ it.each([404, 503])(
           : "Analytics are temporarily unavailable. Try again shortly.",
       ),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
     expectLegends(["Android", "iOS"]);
   },
 );
 
-it("bounds stalled fetches and reports timeouts in each tab", async () => {
+it("bounds stalled fetches and reports timeouts in both sections", async () => {
   jest.useFakeTimers();
   try {
     fetchMock.mockImplementation(
@@ -228,7 +261,6 @@ it("bounds stalled fetches and reports timeouts in each tab", async () => {
         screen.getByRole("region", { name: "Selfie Check funnel" }),
       ).getByText("Analytics request timed out."),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "Daily trends" }));
     expect(
       within(
         screen.getByRole("region", { name: "Daily Selfie Check charts" }),

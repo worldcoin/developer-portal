@@ -25,16 +25,12 @@ const formatCount = (value: number | null) =>
 export const TotalsOverview = (props: { row: TotalsRow }) => (
   <section
     aria-label="Analytics overview"
-    className="grid overflow-hidden rounded-16 border border-portal-border bg-surface sm:grid-cols-2"
+    className="grid gap-4 sm:grid-cols-2"
   >
-    {OVERVIEW_METRICS.map((metric, index) => (
+    {OVERVIEW_METRICS.map((metric) => (
       <article
         key={metric.key}
-        className={
-          index > 0
-            ? "border-t border-portal-border p-5 sm:border-t-0 sm:border-l sm:p-6"
-            : "p-5 sm:p-6"
-        }
+        className="rounded-16 border border-portal-border bg-surface p-5 sm:p-6"
       >
         <p className="font-world text-13 text-portal-muted">{metric.label}</p>
         <p className="mt-3 font-world text-24 leading-none font-medium tracking-[-0.01em] text-portal-heading tabular-nums">

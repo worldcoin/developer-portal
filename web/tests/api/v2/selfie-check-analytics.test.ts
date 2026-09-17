@@ -9,6 +9,10 @@ import {
   source,
   totalsCsv,
   dailyCsv,
+  weeklyCsv,
+  monthlyCsv,
+  periodPrefix,
+  totalsPrefix,
 } from "../../fixtures/selfie-check-analytics";
 
 // #region Mocks
@@ -65,7 +69,11 @@ beforeEach(() => {
       object,
       csv: object.key.startsWith("total/")
         ? totalsCsv([appId, otherAppId])
-        : dailyCsv(),
+        : object.key.startsWith("weekly/")
+          ? weeklyCsv()
+          : object.key.startsWith("monthly/")
+            ? monthlyCsv()
+            : dailyCsv(),
     }),
   );
 });
@@ -73,7 +81,7 @@ afterEach(() => jest.useRealTimers());
 
 // #region Success and conditional requests
 describe("analytics API [success]", () => {
-  it.each(["total", "daily"])(
+  it.each(["total", "daily", "weekly", "monthly"] as const)(
     "returns authorized %s data and revalidates with 304",
     async (table) => {
       const first = await GET(request(table), context());
@@ -90,7 +98,11 @@ describe("analytics API [success]", () => {
         expect(listCsv).toHaveBeenCalledTimes(1);
       } else {
         expect(body.rows).toHaveLength(1);
-        expect(listCsv.mock.calls).toEqual([["total/"], ["daily/"]]);
+        expect(body.tablePrefix).toBe(`${table}/`);
+        expect(listCsv.mock.calls).toEqual([
+          [totalsPrefix],
+          [periodPrefix[table]],
+        ]);
       }
       expect(GetIsUserPermittedToReadApp).toHaveBeenCalledWith({
         appId,
@@ -140,7 +152,7 @@ describe("analytics API [success]", () => {
           "Selfie Check analytics aren't available for this app yet. Contact us to learn more.",
         attribute: null,
       });
-      expect(listCsv.mock.calls).toEqual([["total/"]]);
+      expect(listCsv.mock.calls).toEqual([[totalsPrefix]]);
       expect(logger.warn).not.toHaveBeenCalled();
     },
   );
@@ -174,7 +186,7 @@ describe("analytics API [success]", () => {
 describe("analytics API [guards]", () => {
   it("rejects invalid input before I/O", async () => {
     expect((await GET(request(), context("invalid"))).status).toBe(400);
-    expect((await GET(request("weekly"), context())).status).toBe(400);
+    expect((await GET(request("yearly"), context())).status).toBe(400);
     expect(getSession).not.toHaveBeenCalled();
     expect(listCsv).not.toHaveBeenCalled();
   });
@@ -269,7 +281,7 @@ describe("analytics API [failures]", () => {
 
   it("reports a daily outage without losing available totals", async () => {
     listCsv.mockImplementation((prefix: string) =>
-      prefix === "daily/"
+      prefix === periodPrefix.daily
         ? Promise.reject(new Error("S3 503"))
         : Promise.resolve(source(prefix)),
     );
@@ -313,7 +325,7 @@ describe("analytics API [failures]", () => {
   it("marks daily data stale when only its totals membership check falls back", async () => {
     await GET(request("daily"), context());
     listCsv.mockImplementation((prefix: string) =>
-      prefix === "total/"
+      prefix === totalsPrefix
         ? Promise.reject(new Error("S3 503"))
         : Promise.resolve(source(prefix)),
     );
