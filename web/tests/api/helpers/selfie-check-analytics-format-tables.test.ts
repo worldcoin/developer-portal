@@ -1,6 +1,8 @@
 import {
   parseDailyTable,
+  parseMonthlyTable,
   parseTotalsTable,
+  parseWeeklyTable,
   TableValidationError,
 } from "@/api/helpers/selfie-check-analytics/format-tables";
 
@@ -186,6 +188,47 @@ describe("parseDailyTable", () => {
     expect(() =>
       parseDailyTable(`${dailyHeader},N_PROOF_USERS\n${dailyRow()},8`),
     ).toThrow("unexpected: N_PROOF_USERS");
+  });
+});
+// #endregion
+
+// #region Weekly and monthly tables
+describe("weekly and monthly tables", () => {
+  it.each([
+    ["weekly", "WEEK_START", parseWeeklyTable, "2026-08-24"],
+    ["monthly", "MONTH_START", parseMonthlyTable, "2026-08-01"],
+  ] as const)(
+    "parses the %s export with its period start in the day field",
+    (_table, periodColumn, parseTable, periodStart) => {
+      const csv = [
+        dailyHeader.replace("DAY", periodColumn),
+        `${appIdA},${periodStart},iOS,10,3,20,0.75`,
+      ].join("\n");
+
+      expect(parseTable(csv).records.get(appIdA)).toEqual([
+        expect.objectContaining({
+          day: periodStart,
+          os_name: "iOS",
+          n_users_shared_a_proof: 3,
+        }),
+      ]);
+    },
+  );
+
+  it("rejects a daily export offered as the weekly table", () => {
+    expect(() => parseWeeklyTable(dailyCsv(dailyRow()))).toThrow(
+      "Weekly table schema does not match the expected columns (missing: WEEK_START; unexpected: DAY)",
+    );
+  });
+
+  it("reports duplicates in the table's own period noun", () => {
+    const csv = [
+      dailyHeader.replace("DAY", "MONTH_START"),
+      `${appIdA},2026-08-01,iOS,10,3,20,0.75`,
+      `${appIdA},2026-08-01,iOS,11,4,21,0.5`,
+    ].join("\n");
+
+    expect(() => parseMonthlyTable(csv)).toThrow("duplicate app/month/OS row");
   });
 });
 // #endregion
