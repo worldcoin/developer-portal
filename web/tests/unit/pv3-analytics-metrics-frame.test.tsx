@@ -102,32 +102,61 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-// #region Selfie Check analytics
-it("renders API-backed lifetime and trend sections without view tabs", async () => {
+// #region Proofs and Selfie Check analytics
+it("renders mock Proofs metrics by default and API-backed Selfie Check analytics in its tab", async () => {
   render(<MetricsFrame appId={appId} />);
+  await screen.findByRole("region", { name: "Proofs overview" });
+  expect(screen.getByText("384")).toBeInTheDocument();
+  expect(screen.getByText("592")).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "Proofs" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  expect(screen.getAllByRole("region", { name: /by day/ })).toHaveLength(6);
+  expect(screen.getByRole("heading", { name: "Users" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Proofs" })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("combobox", { name: "Proof type" }));
+  expect(
+    screen.getAllByRole("option").map((option) => option.textContent),
+  ).toEqual(["All", "Orb", "Document", "Selfie Check"]);
+  fireEvent.click(screen.getByRole("option", { name: "All" }));
+  expect(
+    screen.getByRole("combobox", { name: "Time interval" }),
+  ).toHaveAttribute("data-value", "daily");
+  chooseFilterOption("Proof type", "Orb");
+  chooseFilterOption("Time interval", "Weekly");
+  expect(screen.getByRole("combobox", { name: "Proof type" })).toHaveAttribute(
+    "data-value",
+    "Orb",
+  );
+  expect(
+    screen.getByRole("combobox", { name: "Time interval" }),
+  ).toHaveAttribute("data-value", "weekly");
+
+  fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
   const overview = await screen.findByRole("region", {
     name: "Analytics overview",
   });
   expect(within(overview).getByText("10")).toBeInTheDocument();
   expect(within(overview).getByText("6")).toBeInTheDocument();
   expect(screen.getByText("20 sessions")).toBeInTheDocument();
-  expect(screen.queryByRole("tab")).not.toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "All time" })).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "Trends" })).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "Selfie Check" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   expectLegends(["Android", "iOS"]);
-  expect(
-    screen.getByRole("combobox", { name: "Time interval" }),
-  ).toHaveAttribute("data-value", "daily");
   fireEvent.click(screen.getByRole("combobox", { name: "Operating System" }));
   expect(
     screen.getAllByRole("option").map((option) => option.textContent),
   ).toEqual(["All", "Android", "iOS"]);
   fireEvent.click(screen.getByRole("option", { name: "All" }));
-  expect(global.fetch).toHaveBeenCalledTimes(2);
+  // totals, daily, and the weekly table requested by the interval switch above
+  expect(global.fetch).toHaveBeenCalledTimes(3);
 });
 
 it("fetches each interval's table once and resets the range to its unit", async () => {
   render(<MetricsFrame appId={appId} />);
+  fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
   await screen.findByRole("region", { name: "Analytics overview" });
   const requestedTables = () =>
     fetchMock.mock.calls
@@ -167,6 +196,7 @@ it("fetches each interval's table once and resets the range to its unit", async 
 
 it("filters every daily chart without changing the lifetime section", async () => {
   render(<MetricsFrame appId={appId} />);
+  fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
   await screen.findByRole("region", { name: "Analytics overview" });
   expectLegends(["Android", "iOS"]);
 
@@ -189,11 +219,15 @@ it("filters every daily chart without changing the lifetime section", async () =
 
 // #region Stale metadata and failure behavior
 it.each(["total", "daily"])(
-  "shows a stale-data notice for a %s fallback",
+  "shows a stale-data notice for a %s fallback in both tabs",
   async (table) => {
     serve(table === "total", table === "daily");
     render(<MetricsFrame appId={appId} />);
     expect(await screen.findByRole("status")).toHaveTextContent(
+      "showing the last verified data",
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
+    expect(screen.getByRole("status")).toHaveTextContent(
       "showing the last verified data",
     );
   },
@@ -202,6 +236,7 @@ it.each(["total", "daily"])(
 it("shows server fallback immediately, then clears it after a fresh response", async () => {
   render(<MetricsFrame appId={appId} initialIsFallback />);
   expect(screen.getByRole("status")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
   await screen.findByRole("region", { name: "Analytics overview" });
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
 });
@@ -213,6 +248,7 @@ it("keeps development fixture responses without metadata renderable", async () =
     ),
   );
   render(<MetricsFrame appId={appId} />);
+  fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
   expect(
     await screen.findByRole("region", { name: "Analytics overview" }),
   ).toBeInTheDocument();
@@ -230,6 +266,7 @@ it.each([404, 503])(
       ),
     );
     render(<MetricsFrame appId={appId} />);
+    fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
     expect(
       await screen.findByText(
         status === 404
@@ -237,11 +274,12 @@ it.each([404, 503])(
           : "Analytics are temporarily unavailable. Try again shortly.",
       ),
     ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
     expectLegends(["Android", "iOS"]);
   },
 );
 
-it("bounds stalled fetches and reports timeouts in both sections", async () => {
+it("bounds stalled fetches and reports timeouts in each tab", async () => {
   jest.useFakeTimers();
   try {
     fetchMock.mockImplementation(
@@ -256,6 +294,7 @@ it("bounds stalled fetches and reports timeouts in both sections", async () => {
     await act(async () => {
       jest.advanceTimersByTime(8_000);
     });
+    fireEvent.click(screen.getByRole("tab", { name: "Selfie Check" }));
     expect(
       within(
         screen.getByRole("region", { name: "Selfie Check funnel" }),
