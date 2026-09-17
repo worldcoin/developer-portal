@@ -1,7 +1,14 @@
 /** @jest-environment jsdom */
 import "../fixtures/browser-text-encoding";
 import "@testing-library/jest-dom";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { MetricsFrame } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MetricsFrame";
 import type { DailyRow, TotalsRow } from "@/lib/selfie-check-analytics";
 import { appId } from "../fixtures/selfie-check-analytics";
@@ -240,8 +247,10 @@ it("keeps the interval picker when the daily table fails so another interval can
   ).toBeInTheDocument();
 
   chooseFilterOption("Time interval", "Weekly");
-  await screen.findAllByRole("region", { name: /by week and OS/ });
-  expectLegends(["Android", "iOS"]);
+  // The chart shells now stay mounted (title included) while a newly
+  // selected interval's table is still loading, so wait for its data
+  // (not just the region) before asserting on the legend.
+  await waitFor(() => expectLegends(["Android", "iOS"]));
   expect(
     screen.queryByText(
       "Analytics are temporarily unavailable. Try again shortly.",
