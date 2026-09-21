@@ -335,7 +335,7 @@ export const DailyMetricChart = (props: {
                           index === operatingSystems.length - 1 && (
                             <LabelList
                               dataKey="stackTotal"
-                              fill="#525252"
+                              fill="var(--chart-label)"
                               fontSize={11}
                               formatter={(value) =>
                                 typeof value === "number" && value > 0
@@ -393,7 +393,7 @@ export const DailyMetricChart = (props: {
                             <LabelList
                               content={
                                 <SampledValueLabel
-                                  color="#525252"
+                                  color="var(--chart-label)"
                                   formatValue={formatValue}
                                   labelOffset={-8}
                                   sampleIndexes={cumulativeLabelIndexes}

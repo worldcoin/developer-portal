@@ -234,11 +234,11 @@ export const EditRoleDialog = (props: {
                         >
                           <div
                             className={clsx(
-                              "flex size-6 items-center justify-center rounded-full before:rounded-full before:bg-surface",
+                              "flex size-6 items-center justify-center rounded-full before:rounded-full",
                               {
-                                "bg-gray-900 before:size-2.5":
+                                "bg-action before:size-2.5 before:bg-action-foreground":
                                   option.value === field.value?.value,
-                                "bg-gray-300 before:size-5":
+                                "bg-edge-medium before:size-5 before:bg-surface":
                                   option.value !== field.value?.value,
                               },
                             )}

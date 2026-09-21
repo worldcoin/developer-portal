@@ -1,6 +1,11 @@
 "use client";
 
 import type { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
+import {
+  formDialogErrorClassName,
+  formDialogInputClassName,
+  formDialogLabelClassName,
+} from "@/components/FormDialog";
 import { teamNameSchema } from "@/lib/schema";
 import { TEAM_CREATED_TOAST_STORAGE_KEY } from "@/lib/team-created-toast";
 import { InkButton } from "@/scenes/PortalV3/common/InkButton";
@@ -87,10 +92,7 @@ export const CreateTeamForm = () => {
       className="grid gap-5 font-world"
     >
       <div>
-        <label
-          htmlFor="team-name-dialog"
-          className="mb-2 block text-13 leading-none font-medium text-portal-text"
-        >
+        <label htmlFor="team-name-dialog" className={formDialogLabelClassName}>
           Team name
         </label>
         <input
@@ -102,15 +104,10 @@ export const CreateTeamForm = () => {
           aria-describedby={
             errors.teamName ? "team-name-dialog-error" : undefined
           }
-          className={`h-11 w-full rounded-8 border bg-white px-3 text-14 text-portal-text outline-hidden transition focus:border-grey-400 focus:ring-2 focus:ring-grey-200 ${
-            errors.teamName ? "border-system-error-400" : "border-grey-200"
-          }`}
+          className={`${formDialogInputClassName} aria-invalid:border-edge-error-400`}
         />
         {errors.teamName ? (
-          <p
-            id="team-name-dialog-error"
-            className="mt-2 text-12 leading-[1.4] text-system-error-600"
-          >
+          <p id="team-name-dialog-error" className={formDialogErrorClassName}>
             {errors.teamName.message}
           </p>
         ) : null}
