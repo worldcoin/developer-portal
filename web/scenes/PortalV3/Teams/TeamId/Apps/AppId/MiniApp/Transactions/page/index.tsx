@@ -22,7 +22,7 @@ const TransactionsPageLayout = ({
   return (
     <div className="my-8 min-h-dvh">
       {showHeading && (
-        <div className="flex items-center justify-start text-gray-900">
+        <div className="flex items-center justify-start text-content-primary">
           <Typography variant={TYPOGRAPHY.H6}>Transactions</Typography>
         </div>
       )}

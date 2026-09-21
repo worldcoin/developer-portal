@@ -153,7 +153,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                   <SelectButton className="relative grid w-full grid-cols-1fr/auto items-center py-3 text-start">
                     <Typography variant={TYPOGRAPHY.R3}>
                       {!field.value ? (
-                        <span className="text-gray-400">
+                        <span className="text-content-tertiary">
                           Select team member
                         </span>
                       ) : (
