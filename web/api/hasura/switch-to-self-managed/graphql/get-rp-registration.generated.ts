@@ -16,7 +16,6 @@ export type GetRpRegistrationQuery = {
     app_id: string;
     mode: unknown;
     status: unknown;
-    staging_status?: unknown | null;
     signer_address?: string | null;
     manager_kms_key_id?: string | null;
     is_unique_manager_key: boolean;
@@ -38,7 +37,6 @@ export const GetRpRegistrationDocument = gql`
       app_id
       mode
       status
-      staging_status
       signer_address
       manager_kms_key_id
       is_unique_manager_key

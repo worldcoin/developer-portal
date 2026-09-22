@@ -6,7 +6,6 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type ClaimRotationSlotMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
-  staging_filter?: Types.Rp_Registration_Bool_Exp;
 }>;
 
 export type ClaimRotationSlotMutation = {
@@ -26,13 +25,9 @@ export type ClaimRotationSlotMutation = {
 };
 
 export const ClaimRotationSlotDocument = gql`
-  mutation ClaimRotationSlot(
-    $rp_id: String!
-    $staging_filter: rp_registration_bool_exp! = {}
-  ) {
+  mutation ClaimRotationSlot($rp_id: String!) {
     update_rp_registration(
       where: {
-        _and: [$staging_filter]
         rp_id: { _eq: $rp_id }
         status: { _eq: registered }
         app: {

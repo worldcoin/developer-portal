@@ -6,7 +6,6 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type ClaimModeSwitchSlotMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
-  staging_filter?: Types.Rp_Registration_Bool_Exp;
 }>;
 
 export type ClaimModeSwitchSlotMutation = {
@@ -25,16 +24,9 @@ export type ClaimModeSwitchSlotMutation = {
 };
 
 export const ClaimModeSwitchSlotDocument = gql`
-  mutation ClaimModeSwitchSlot(
-    $rp_id: String!
-    $staging_filter: rp_registration_bool_exp! = {}
-  ) {
+  mutation ClaimModeSwitchSlot($rp_id: String!) {
     update_rp_registration(
-      where: {
-        _and: [$staging_filter]
-        rp_id: { _eq: $rp_id }
-        status: { _eq: registered }
-      }
+      where: { rp_id: { _eq: $rp_id }, status: { _eq: registered } }
       _set: { status: pending }
     ) {
       affected_rows

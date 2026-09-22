@@ -308,8 +308,6 @@ beforeEach(async () => {
   });
   requestMock.mockImplementation(async (query: unknown, variables: any) => {
     const operationName = getOperationName(query);
-    if (operationName.includes("RpBackfill"))
-      return { rp_id_backfill_by_pk: null };
 
     if (operationName.includes("McpAuthenticateTeam")) {
       if (variables.id !== apiKeyId) {
@@ -934,8 +932,6 @@ describe("/api/mcp", () => {
     const baseImpl = requestMock.getMockImplementation()!;
     requestMock.mockImplementation(async (query: unknown, variables: any) => {
       const operationName = getOperationName(query);
-      if (operationName.includes("RpBackfill"))
-        return { rp_id_backfill_by_pk: null };
 
       if (operationName.includes("FetchLocalisations")) {
         return {
@@ -1912,8 +1908,6 @@ describe("/api/mcp", () => {
     const baseImpl = requestMock.getMockImplementation()!;
     requestMock.mockImplementation(async (query: unknown, variables: any) => {
       const operationName = getOperationName(query);
-      if (operationName.includes("RpBackfill"))
-        return { rp_id_backfill_by_pk: null };
 
       if (operationName.includes("McpAppContext")) {
         return currentAppContextResponse;
@@ -2080,8 +2074,6 @@ describe("/api/mcp", () => {
     const incompleteMetadata = { ...reviewMetadata, logo_img_url: "" };
     requestMock.mockImplementation(async (query: unknown, variables: any) => {
       const operationName = getOperationName(query);
-      if (operationName.includes("RpBackfill"))
-        return { rp_id_backfill_by_pk: null };
       if (operationName.includes("McpAuthenticateTeam")) {
         return {
           api_key_by_pk: {

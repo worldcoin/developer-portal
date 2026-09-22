@@ -22,7 +22,6 @@ export type GetRpRegistrationForRetryQuery = {
     app: {
       __typename?: "app";
       id: string;
-      deleted_at?: string | null;
       team_id: string;
       app_metadata: Array<{ __typename?: "app_metadata"; name: string }>;
     };
@@ -41,7 +40,6 @@ export const GetRpRegistrationForRetryDocument = gql`
       manager_kms_key_id
       app {
         id
-        deleted_at
         team_id
         app_metadata(limit: 1) {
           name

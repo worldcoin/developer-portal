@@ -33,9 +33,7 @@ jest.mock("@/api/hasura/graphql/checkUserIsOwnerInApp.generated", () => ({
 }));
 
 jest.mock("@/api/helpers/graphql", () => ({
-  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({
-    request: jest.fn().mockResolvedValue({ rp_id_backfill_by_pk: null }),
-  }),
+  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
 }));
 
 jest.mock("@/api/helpers/kms", () => ({
