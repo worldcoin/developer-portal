@@ -20,6 +20,8 @@ import {
   zeroPadValue,
 } from "ethers";
 
+import * as EntryPointUserOperation from "ox/erc4337/UserOperation";
+
 import ERC20_ABI from "./abi/erc20.json";
 import RP_REGISTRY_ABI from "./abi/rp-registry.json";
 import SAFE_4337_ABI from "./abi/safe-4337.json";
@@ -545,5 +547,23 @@ export function getUpdateRpNonce(rpId: bigint): Uint8Array {
   return buildDevPortalNonce(
     DevPortalAction.UpdateRp,
     rpIdToNonceMetadata(rpId),
+  );
+}
+
+/** Receipt-queryable EntryPoint v0.7 hash, distinct from the Safe signing digest. */
+export function hashUserOperation(
+  userOp: UserOperation,
+  entryPoint: string,
+  chainId: number,
+): string {
+  return EntryPointUserOperation.hash(
+    EntryPointUserOperation.fromRpc(
+      userOp as EntryPointUserOperation.Rpc<"0.7">,
+    ),
+    {
+      chainId,
+      entryPointAddress: entryPoint as `0x${string}`,
+      entryPointVersion: "0.7",
+    },
   );
 }

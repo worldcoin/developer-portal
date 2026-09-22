@@ -139,7 +139,10 @@ interface EthersCallException {
 }
 
 /** Creates a configured JsonRpcProvider for the temporal RPC endpoint. */
-function createProvider(): JsonRpcProvider {
+function createProvider(
+  retry = true,
+  timeoutMs = RPC_TIMEOUT_MS,
+): JsonRpcProvider {
   const baseUrl = process.env.TEMPORAL_RPC_URL;
   if (!baseUrl) {
     throw new Error("TEMPORAL_RPC_URL environment variable is not set");
@@ -147,9 +150,9 @@ function createProvider(): JsonRpcProvider {
 
   const rpcUrl = `${baseUrl}/v2/rpc/${WORLD_CHAIN_NETWORK}`;
   const fetchRequest = new FetchRequest(rpcUrl);
-  fetchRequest.timeout = RPC_TIMEOUT_MS;
+  fetchRequest.timeout = timeoutMs;
   fetchRequest.retryFunc = (_req, _resp, attempt) => {
-    return Promise.resolve(attempt < RPC_MAX_RETRIES);
+    return Promise.resolve(retry && attempt < RPC_MAX_RETRIES);
   };
 
   return new JsonRpcProvider(fetchRequest, Network.from(WORLD_CHAIN_ID), {
@@ -159,8 +162,11 @@ function createProvider(): JsonRpcProvider {
 }
 
 /** Creates a contract instance for the RP Registry. */
-function createRpRegistryContract(contractAddress: string): Contract {
-  return new Contract(contractAddress, RP_REGISTRY_ABI, createProvider());
+function createRpRegistryContract(
+  contractAddress: string,
+  retry = true,
+): Contract {
+  return new Contract(contractAddress, RP_REGISTRY_ABI, createProvider(retry));
 }
 
 /** Parses Verifier contract revert reasons into user-friendly errors. */
@@ -241,7 +247,8 @@ export async function sendUserOperation(
     nonce: userOp.nonce,
   });
 
-  const provider = createProvider();
+  // A transport error may follow acceptance: never resend a UserOperation.
+  const provider = createProvider(false);
   const operationHash = await provider.send("eth_sendUserOperation", [
     userOp,
     entryPoint,
@@ -261,8 +268,9 @@ export async function sendUserOperation(
  */
 export async function getUserOperationReceipt(
   userOpHash: string,
+  timeoutMs = RPC_TIMEOUT_MS,
 ): Promise<UserOperationReceipt | null> {
-  const provider = createProvider();
+  const provider = createProvider(false, timeoutMs);
   return await provider.send("eth_getUserOperationReceipt", [userOpHash]);
 }
 
@@ -281,8 +289,9 @@ const RP_ID_DOES_NOT_EXIST_SELECTOR = "0x3200e7c0";
 export async function getRpFromContract(
   rpId: bigint,
   contractAddress: string,
+  retry = true,
 ): Promise<OnChainRelyingParty> {
-  const contract = createRpRegistryContract(contractAddress);
+  const contract = createRpRegistryContract(contractAddress, retry);
 
   try {
     const result = await contract.getRpUnchecked(rpId);
@@ -465,4 +474,13 @@ export async function verifySessionProofOnChain(
       error: parseVerifierRevertReason(error),
     };
   }
+}
+
+/** Estimate the native batch call without submitting it; no transport retries. */
+export async function estimateRpCallGas(
+  from: string,
+  to: string,
+  data: string,
+): Promise<bigint> {
+  return createProvider(false).estimateGas({ from, to, data });
 }

@@ -973,6 +973,7 @@ const REGISTRATION_FLOW_RPC_CODE: Record<
   Exclude<ManagedRegistrationResult, { ok: true }>["code"],
   number
 > = {
+  setup_paused: -32004,
   staging_not_supported: -32004,
   already_registered: -32004,
   rp_id_taken: -32004,
