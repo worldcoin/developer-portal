@@ -260,7 +260,11 @@ export const POST = async (req: NextRequest) => {
       managerAddress,
       appName,
     );
-    await global.RedisClient?.del(`${CACHE_KEY_PREFIX}${rpId}`);
+    try {
+      await global.RedisClient?.del(`${CACHE_KEY_PREFIX}${rpId}`);
+    } catch (error) {
+      logger.warn("Failed to clear cache", { rpId, appId, teamId, error });
+    }
     if (result.status === "failed") {
       return errorHasuraQuery({
         req,

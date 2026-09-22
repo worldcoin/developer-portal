@@ -10,7 +10,10 @@ import {
   rpSetupPaused,
 } from "@/api/helpers/rp-id-backfill";
 import { resolveManagerAddress } from "@/api/helpers/rp-manager";
-import type { ManagedRegistrationResult } from "@/api/helpers/rp-registration-flows";
+import type {
+  ManagedRegistrationResult,
+  ManagedRegistrationState,
+} from "@/api/helpers/rp-registration-flows";
 import {
   submitRegisterRpTransaction,
   submitRotateSignerTransaction,
@@ -206,30 +209,39 @@ export async function activateReservedRp(
       code: "kms_error",
       detail: "Could not resolve the shared manager.",
     };
-  const { insert_rp_registration_one: slot } = await getClaimRpSdk(
-    client,
-  ).ClaimRpRegistration({
-    rp_id: backfill.rp_id,
-    app_id: backfill.app_id,
-    mode: "managed",
-    signer_address: signerAddress,
-    manager_kms_key_id: managerKeyId,
-    is_unique_manager_key: false,
-    staging_status: "pending",
-  });
-  if (!slot)
-    return {
-      ok: false,
-      code: "already_registered",
-      detail: "Registration already in progress or completed for this app.",
-    };
   const registration = {
     rp_id: backfill.rp_id,
     app_id: backfill.app_id,
     signer_address: signerAddress,
     manager_kms_key_id: managerKeyId,
   };
+  const state: ManagedRegistrationState = {
+    rpIdString: backfill.rp_id,
+    managerAddress: manager,
+    signerAddress,
+    operationHash: null,
+    status: RpRegistrationStatus.Pending,
+    stagingOperationHash: null,
+    stagingStatus: RpRegistrationStatus.Pending,
+  };
   try {
+    const { insert_rp_registration_one: slot } = await getClaimRpSdk(
+      client,
+    ).ClaimRpRegistration({
+      rp_id: backfill.rp_id,
+      app_id: backfill.app_id,
+      mode: "managed",
+      signer_address: signerAddress,
+      manager_kms_key_id: managerKeyId,
+      is_unique_manager_key: false,
+      staging_status: "pending",
+    });
+    if (!slot)
+      return {
+        ok: false,
+        code: "already_registered",
+        detail: "Registration already in progress or completed for this app.",
+      };
     const primary = await submitRpActivation(
       client,
       registration,
@@ -239,6 +251,8 @@ export async function activateReservedRp(
       manager,
       appName,
     );
+    state.operationHash = primary.hash;
+    state.status = primary.status;
     const secondary = await submitRpActivation(
       client,
       registration,
@@ -248,18 +262,11 @@ export async function activateReservedRp(
       manager,
       appName,
     );
-    return {
-      ok: true,
-      rpIdString: backfill.rp_id,
-      managerAddress: manager,
-      signerAddress,
-      operationHash: primary.hash,
-      status: primary.status,
-      stagingOperationHash: secondary.hash,
-      stagingStatus: secondary.status,
-    };
+    state.stagingOperationHash = secondary.hash;
+    state.stagingStatus = secondary.status;
+    return { ok: true, ...state };
   } catch (error) {
-    logger.error("Activation tracking failed; pending registration preserved", {
+    logger.error("Activation tracking failed; registration may be pending", {
       rpId: backfill.rp_id,
       error,
     });
@@ -267,7 +274,8 @@ export async function activateReservedRp(
       ok: false,
       code: "db_error",
       detail:
-        "Activation tracking failed. Pending registration preserved; contact support.",
+        "Activation tracking failed. Check status or contact support before retrying.",
+      partialRegistration: state,
     };
   }
 }

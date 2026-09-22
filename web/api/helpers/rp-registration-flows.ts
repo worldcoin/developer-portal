@@ -55,17 +55,18 @@ import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/
 import { logger } from "@/lib/logger";
 import { GraphQLClient } from "graphql-request";
 
+export type ManagedRegistrationState = {
+  rpIdString: string;
+  managerAddress: string;
+  signerAddress: string;
+  operationHash: string | null;
+  status: RpRegistrationStatus;
+  stagingOperationHash: string | null;
+  stagingStatus: string | null;
+};
+
 export type ManagedRegistrationResult =
-  | {
-      ok: true;
-      rpIdString: string;
-      managerAddress: string;
-      signerAddress: string;
-      operationHash: string | null;
-      status: RpRegistrationStatus;
-      stagingOperationHash: string | null;
-      stagingStatus: string | null;
-    }
+  | (ManagedRegistrationState & { ok: true })
   | {
       ok: false;
       code:
@@ -79,6 +80,8 @@ export type ManagedRegistrationResult =
         | "submission_error"
         | "db_error";
       detail: string;
+      // A failed tracking response can follow a committed registration or submission.
+      partialRegistration?: ManagedRegistrationState;
     };
 
 /**
