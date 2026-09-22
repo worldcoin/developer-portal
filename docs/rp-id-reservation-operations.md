@@ -55,26 +55,3 @@ Record an established outcome in one SQL transaction after taking `SELECT pg_adv
 After the operator reopens setup, the existing authorized dashboard/MCP managed setup flow activates reservations. Production and staging progress independently. Pending registrations contain the real signer and shared manager before submission; hashes are recorded before sending. Status reads confirm trusted manager/signer state or a failed receipt. No row-age timeout makes an uncertain activation retryable. A pending record with no hash after interruption requires manual investigation; it is not silently discarded.
 
 Only a known failed activation can use the existing manual retry action. Deleted apps cannot activate or retry, while their reserved IDs remain protected. Restored apps can use their reservation. Direct self-managed enrollment is blocked while either registry is reserved or unresolved; the existing team-OWNER switch is available after managed activation. Rotate, toggle, and mode-switch operations cannot overwrite an unresolved activation; database claims also exclude concurrent staging retries.
-
-## Local validation
-
-Use an isolated Postgres/Hasura stack with this migration and metadata applied and an empty backfill table. The integration suite refuses non-loopback URLs and an existing worklist. It creates and removes only its own test fixtures; KMS and chain I/O are mocked.
-
-```sh
-RUN_RP_BACKFILL_INTEGRATION=1 \
-RP_TEST_DATABASE_URL=postgres://postgres:password@127.0.0.1:15433/postgres \
-RP_TEST_HASURA_URL=http://127.0.0.1:18081/v1/graphql \
-pnpm exec jest tests/integration/rp-id-backfill.test.ts --runInBand
-```
-
-Set the local `HASURA_GRAPHQL_ADMIN_SECRET` through the test environment. Other focused tests are `tests/api/helpers/rp-reservation-activation.test.ts`, `tests/api/helpers/rp-registration-flows.test.ts`, `tests/api/hasura/register-rp.test.ts`, `tests/api/v4/rp-status.test.ts`, and `tests/api/mcp.test.ts`.
-
-The standalone CLI suite additionally uses real child processes, the real AWS SDK and DER signature handling, and loopback-only KMS/RPC servers with public test keys. It covers a killed process, a lost submission response, and the real 120-second receipt timeout. It blocks non-loopback HTTP requests and takes about 130 seconds:
-
-```sh
-RUN_RP_BACKFILL_CLI_TESTS=1 \
-RP_TEST_DATABASE_URL=postgres://postgres:password@127.0.0.1:15433/postgres \
-pnpm exec jest tests/integration/rp-id-backfill-cli.test.ts --runInBand
-```
-
-Run the database and CLI suites sequentially against an empty disposable worklist. After a production build, add `--modulePathIgnorePatterns='/.next/'` to Jest commands to exclude the generated standalone package from its module map.
