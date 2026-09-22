@@ -1,3 +1,8 @@
+import {
+  getRpBackfill,
+  needsRpActivationStatus,
+} from "@/api/helpers/rp-id-backfill";
+import { readRpActivationStatus } from "@/api/helpers/rp-reservation-activation";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
 import { resolveManagerAddress } from "@/api/helpers/rp-manager";
@@ -742,6 +747,23 @@ const syncWorldIdRegistrationStatus = async (
     throw new McpError("World ID is not configured for this app.", -32004);
   }
 
+  const backfill = await getRpBackfill(ctx.client, app_id);
+  if (
+    registration.mode === "managed" &&
+    needsRpActivationStatus(backfill, registration.staging_status)
+  ) {
+    return content({
+      rp_id: registration.rp_id,
+      app_id,
+      mode: registration.mode,
+      ...(await readRpActivationStatus(ctx.client, {
+        ...registration,
+        app_id,
+      })),
+      status_endpoint: rpStatusEndpoint(registration.rp_id),
+    });
+  }
+
   const productionContractAddress = process.env.RP_REGISTRY_CONTRACT_ADDRESS;
   if (!productionContractAddress) {
     throw new McpError("RP Registry is not configured.", -32603);
@@ -974,6 +996,7 @@ const REGISTRATION_FLOW_RPC_CODE: Record<
   number
 > = {
   setup_paused: -32004,
+  reservation_pending: -32004,
   staging_not_supported: -32004,
   already_registered: -32004,
   rp_id_taken: -32004,
@@ -1135,7 +1158,7 @@ const tools = {
       isStaging: app.is_staging,
     });
 
-    if (!result.ok) {
+    if (!result.ok && !result.partialRegistration) {
       throw new McpError(
         result.detail,
         REGISTRATION_FLOW_RPC_CODE[result.code],
@@ -1143,21 +1166,33 @@ const tools = {
       );
     }
 
-    return content({
-      rp_id: result.rpIdString,
-      manager_address: result.managerAddress,
-      signer_address: result.signerAddress,
-      operation_hash: result.operationHash,
-      status: result.status,
-      staging_operation_hash: result.stagingOperationHash,
-      staging_status: result.stagingStatus,
-      signing_key: signingKey,
-      verify_endpoint: `/api/v4/verify/${result.rpIdString}`,
-      proof_context_endpoint: `/api/v4/proof-context/${result.rpIdString}`,
-      status_endpoint: rpStatusEndpoint(result.rpIdString),
-      warning:
-        "Private keys are returned only at generation/rotation time. Store the private_key securely in the app environment. The on-chain registration is pending — poll status_endpoint until it returns 'registered' before relying on the RP for verifications.",
-    });
+    // Keep the generated key deliverable even when a tracking write is uncertain.
+    const registration = result.ok ? result : result.partialRegistration!;
+    return {
+      ...(!result.ok ? { isError: true } : {}),
+      ...content({
+        ...(!result.ok
+          ? {
+              requires_support: true,
+              error: { code: result.code, detail: result.detail },
+            }
+          : {}),
+        rp_id: registration.rpIdString,
+        manager_address: registration.managerAddress,
+        signer_address: registration.signerAddress,
+        operation_hash: registration.operationHash,
+        status: registration.status,
+        staging_operation_hash: registration.stagingOperationHash,
+        staging_status: registration.stagingStatus,
+        signing_key: signingKey,
+        verify_endpoint: `/api/v4/verify/${registration.rpIdString}`,
+        proof_context_endpoint: `/api/v4/proof-context/${registration.rpIdString}`,
+        status_endpoint: rpStatusEndpoint(registration.rpIdString),
+        warning: !result.ok
+          ? `${result.detail} Save the returned private_key now; it cannot be recovered later.`
+          : "Private keys are returned only at generation/rotation time. Store the private_key securely in the app environment. The on-chain registration is pending — poll status_endpoint until it returns 'registered' before relying on the RP for verifications.",
+      }),
+    };
   },
 
   get_world_id_signing_key: async (input, ctx) => {

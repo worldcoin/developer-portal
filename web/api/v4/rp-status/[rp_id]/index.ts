@@ -1,3 +1,8 @@
+import {
+  getRpBackfill,
+  needsRpActivationStatus,
+} from "@/api/helpers/rp-id-backfill";
+import { readRpActivationStatus } from "@/api/helpers/rp-reservation-activation";
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { resolveManagerAddress } from "@/api/helpers/rp-manager";
@@ -108,6 +113,15 @@ export async function GET(
       attribute: "rp_id",
       req,
     });
+  }
+
+  const backfill = await getRpBackfill(client, dbRecord.app_id);
+  if (
+    !dbRecord.app?.deleted_at &&
+    dbRecord.mode === "managed" &&
+    needsRpActivationStatus(backfill, dbRecord.staging_status)
+  ) {
+    return NextResponse.json(await readRpActivationStatus(client, dbRecord));
   }
 
   const currentDbStatus = dbRecord.status as RpRegistrationStatus;

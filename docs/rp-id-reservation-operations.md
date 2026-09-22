@@ -51,3 +51,9 @@ Rows with an ordinary `rp_registration` are excluded from eligible work, regardl
 Use the saved hash to inspect the receipt and both relevant chain and Portal records. A missing receipt or an uninitialized registry reading alone is not proof of failure. If the operation may still execute, leave its status/hash intact, do not resubmit it, and keep setup paused.
 
 Record an established outcome in one SQL transaction after taking `SELECT pg_advisory_xact_lock(824701)`. Scan and reserve hold the same session lock, and the table's write trigger takes that lock too. Update only the affected registry, clearing its request ID only when moving out of `in_progress`. Unknown outcomes remain unchanged. Never delete the worklist.
+
+## Later activation
+
+After the operator reopens setup, the existing authorized dashboard/MCP managed setup flow activates reservations. Save the generated signing key even when MCP returns a partial result requiring support after a tracking failure. Production and staging progress independently. Pending registrations contain the real signer and shared manager before submission; hashes are recorded before sending. Status reads confirm trusted manager/signer state or a failed receipt. No row-age timeout makes an uncertain activation retryable. A pending record with no hash after interruption requires manual investigation; it is not silently discarded.
+
+Only a known failed activation can use the existing manual retry action. Deleted apps cannot activate or retry, while their reserved IDs remain protected. Restored apps can use their reservation. Direct self-managed enrollment is blocked while either registry is reserved or unresolved; the existing team-OWNER switch is available after managed activation. Rotate, toggle, and mode-switch operations cannot overwrite an unresolved activation; database claims also exclude concurrent staging retries.
