@@ -1,3 +1,8 @@
+import {
+  getRpBackfill,
+  reservationBlocksMaintenance,
+  SETTLED_STAGING_FILTER,
+} from "@/api/helpers/rp-id-backfill";
 import { getSdk as getCheckOwnerSdk } from "@/api/hasura/graphql/checkUserIsOwnerInApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
@@ -164,12 +169,26 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  const backfill = await getRpBackfill(client, app_id);
+  if (reservationBlocksMaintenance(backfill, registration)) {
+    return errorHasuraQuery({
+      req,
+      code: "operation_in_progress",
+      detail:
+        "Complete RP activation before changing its signer, manager, or active state.",
+      app_id,
+    });
+  }
+
   const managerKmsKeyId = registration.manager_kms_key_id;
 
   // STEP 4: Claim mode-switch slot (status: registered → pending)
   const { update_rp_registration: claimResult } = await getClaimSlotSdk(
     client,
-  ).ClaimModeSwitchSlot({ rp_id: rpIdString });
+  ).ClaimModeSwitchSlot({
+    rp_id: rpIdString,
+    ...(backfill ? { staging_filter: SETTLED_STAGING_FILTER } : {}),
+  });
 
   if (!claimResult || claimResult.affected_rows === 0) {
     return errorHasuraQuery({

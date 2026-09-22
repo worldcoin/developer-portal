@@ -9,6 +9,7 @@ query GetRpRegistrationForRetry($rp_id: String!) {
     manager_kms_key_id
     app {
       id
+      deleted_at
       team_id
       app_metadata(limit: 1) {
         name

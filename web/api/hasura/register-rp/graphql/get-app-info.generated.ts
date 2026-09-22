@@ -21,7 +21,7 @@ export type GetAppInfoQuery = {
 
 export const GetAppInfoDocument = gql`
   query GetAppInfo($app_id: String!) {
-    app(where: { id: { _eq: $app_id } }) {
+    app(where: { id: { _eq: $app_id }, deleted_at: { _is_null: true } }) {
       id
       team_id
       is_staging

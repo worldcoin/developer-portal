@@ -172,6 +172,7 @@ beforeEach(async () => {
   jest.clearAllMocks();
   await global.RedisClient?.flushall();
   clientRequestMock.mockResolvedValue({
+    rp_id_backfill_by_pk: null,
     update_rp_registration: { affected_rows: 1 },
   });
   // Non-production by default so the staging mirror is out of scope; the

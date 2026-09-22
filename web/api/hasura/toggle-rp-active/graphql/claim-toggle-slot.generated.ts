@@ -6,6 +6,7 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type ClaimToggleSlotMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
+  staging_filter?: Types.Rp_Registration_Bool_Exp;
   current_status: Types.Scalars["rp_registration_status"]["input"];
 }>;
 
@@ -26,10 +27,15 @@ export type ClaimToggleSlotMutation = {
 export const ClaimToggleSlotDocument = gql`
   mutation ClaimToggleSlot(
     $rp_id: String!
+    $staging_filter: rp_registration_bool_exp! = {}
     $current_status: rp_registration_status!
   ) {
     update_rp_registration(
-      where: { rp_id: { _eq: $rp_id }, status: { _eq: $current_status } }
+      where: {
+        _and: [$staging_filter]
+        rp_id: { _eq: $rp_id }
+        status: { _eq: $current_status }
+      }
       _set: { status: pending }
     ) {
       affected_rows

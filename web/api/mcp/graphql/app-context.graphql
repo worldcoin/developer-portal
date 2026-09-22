@@ -85,6 +85,8 @@ query McpAppContext($team_id: String!, $app_id: String!) {
       manager_kms_key_id
       updated_at
       staging_status
+      operation_hash
+      staging_operation_hash
       actions_v4(order_by: { created_at: desc }) {
         id
         action

@@ -1,6 +1,10 @@
-mutation ClaimRotationSlot($rp_id: String!) {
+mutation ClaimRotationSlot(
+  $rp_id: String!
+  $staging_filter: rp_registration_bool_exp! = {}
+) {
   update_rp_registration(
     where: {
+      _and: [$staging_filter]
       rp_id: { _eq: $rp_id }
       status: { _eq: registered }
       app: {
