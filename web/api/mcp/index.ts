@@ -1,3 +1,8 @@
+import {
+  getRpBackfill,
+  needsRpActivationStatus,
+} from "@/api/helpers/rp-id-backfill";
+import { readRpActivationStatus } from "@/api/helpers/rp-reservation-activation";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
 import { resolveManagerAddress } from "@/api/helpers/rp-manager";
@@ -742,6 +747,23 @@ const syncWorldIdRegistrationStatus = async (
     throw new McpError("World ID is not configured for this app.", -32004);
   }
 
+  const backfill = await getRpBackfill(ctx.client, app_id);
+  if (
+    registration.mode === "managed" &&
+    needsRpActivationStatus(backfill, registration.staging_status)
+  ) {
+    return content({
+      rp_id: registration.rp_id,
+      app_id,
+      mode: registration.mode,
+      ...(await readRpActivationStatus(ctx.client, {
+        ...registration,
+        app_id,
+      })),
+      status_endpoint: rpStatusEndpoint(registration.rp_id),
+    });
+  }
+
   const productionContractAddress = process.env.RP_REGISTRY_CONTRACT_ADDRESS;
   if (!productionContractAddress) {
     throw new McpError("RP Registry is not configured.", -32603);
@@ -973,6 +995,8 @@ const REGISTRATION_FLOW_RPC_CODE: Record<
   Exclude<ManagedRegistrationResult, { ok: true }>["code"],
   number
 > = {
+  setup_paused: -32004,
+  reservation_pending: -32004,
   staging_not_supported: -32004,
   already_registered: -32004,
   rp_id_taken: -32004,

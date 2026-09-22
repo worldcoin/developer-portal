@@ -1,3 +1,12 @@
+import {
+  getRpBackfill,
+  reservationBlocksSetup,
+  rpSetupPaused,
+} from "@/api/helpers/rp-id-backfill";
+import {
+  claimRpActivationRetry,
+  submitRpActivation,
+} from "@/api/helpers/rp-reservation-activation";
 import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
@@ -120,7 +129,7 @@ export const POST = async (req: NextRequest) => {
     client,
   ).GetRpRegistrationForRetry({ rp_id: rpId });
 
-  if (!dbRecord) {
+  if (!dbRecord || dbRecord.app?.deleted_at) {
     return errorHasuraQuery({
       req,
       detail: "RP registration not found.",
@@ -166,6 +175,20 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  if (rpSetupPaused())
+    return errorHasuraQuery({
+      req,
+      code: "setup_paused",
+      detail: "World ID 4.0 setup is temporarily paused.",
+    });
+  const backfill = await getRpBackfill(client, appId);
+  if (reservationBlocksSetup(backfill))
+    return errorHasuraQuery({
+      req,
+      code: "reservation_pending",
+      detail: "RP reservation is unresolved; contact support.",
+    });
+
   const managerKmsKeyId = dbRecord.manager_kms_key_id;
   const signerAddress = dbRecord.signer_address;
 
@@ -204,6 +227,44 @@ export const POST = async (req: NextRequest) => {
       code: "kms_error",
       app_id: appId,
       team_id: teamId,
+    });
+  }
+
+  if (backfill && backfill[`${environment}_status`] !== "already_registered") {
+    if (
+      !(await claimRpActivationRetry(
+        client,
+        rpId,
+        environment,
+        backfill.production_status === "already_registered",
+      ))
+    ) {
+      return errorHasuraQuery({
+        req,
+        code: "activation_pending",
+        detail:
+          "Only a known failed activation may be retried. Inspect pending requests through status or contact support.",
+      });
+    }
+    const result = await submitRpActivation(
+      client,
+      {
+        rp_id: rpId,
+        app_id: appId,
+        signer_address: signerAddress,
+        manager_kms_key_id: managerKmsKeyId,
+      },
+      backfill,
+      environment,
+      config,
+      managerAddress,
+      appName,
+    );
+    await global.RedisClient?.del(`${CACHE_KEY_PREFIX}${rpId}`);
+    return NextResponse.json({
+      success: true,
+      environment,
+      operation_hash: result.hash,
     });
   }
 

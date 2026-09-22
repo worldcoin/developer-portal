@@ -30,6 +30,7 @@ import {
   getTxExpiration,
   getUpdateRpNonce,
   hashSafeUserOp,
+  hashUserOperation,
   hashUpdateRpTypedData,
   replacePlaceholderWithSignature,
   RP_NO_UPDATE_DOMAIN,
@@ -107,6 +108,7 @@ export async function submitRegisterRpTransaction(
     signerAddress: string;
     appName: string;
     kmsClient: KMSClient;
+    beforeSend?: (requestId: string) => Promise<void>;
   },
 ): Promise<string> {
   // Ensure the Safe has granted MaxUint256 WLD allowance to the
@@ -178,7 +180,21 @@ export async function submitRegisterRpTransaction(
     signature: signature.serialized,
   });
 
+  const requestId = hashUserOperation(
+    userOp,
+    config.entryPointAddress,
+    WORLD_CHAIN_ID,
+  );
+  await params.beforeSend?.(requestId);
   const result = await sendUserOperation(userOp, config.entryPointAddress);
+  if (
+    params.beforeSend &&
+    result.operationHash.toLowerCase() !== requestId.toLowerCase()
+  ) {
+    throw new Error(
+      "Bundler returned a different request hash; investigate the saved request",
+    );
+  }
   return result.operationHash;
 }
 
@@ -193,6 +209,7 @@ export async function submitRotateSignerTransaction(
     newSignerAddress: string;
     managerKmsKeyId: string;
     kmsClient: KMSClient;
+    beforeSend?: (requestId: string) => Promise<void>;
   },
 ): Promise<string> {
   // Fetch contract nonce (different per contract)
@@ -279,7 +296,21 @@ export async function submitRotateSignerTransaction(
   });
 
   // Submit to temporal bundler
+  const requestId = hashUserOperation(
+    userOp,
+    config.entryPointAddress,
+    WORLD_CHAIN_ID,
+  );
+  await params.beforeSend?.(requestId);
   const result = await sendUserOperation(userOp, config.entryPointAddress);
+  if (
+    params.beforeSend &&
+    result.operationHash.toLowerCase() !== requestId.toLowerCase()
+  ) {
+    throw new Error(
+      "Bundler returned a different request hash; investigate the saved request",
+    );
+  }
   return result.operationHash;
 }
 

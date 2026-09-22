@@ -1,6 +1,13 @@
-mutation ClaimModeSwitchSlot($rp_id: String!) {
+mutation ClaimModeSwitchSlot(
+  $rp_id: String!
+  $staging_filter: rp_registration_bool_exp! = {}
+) {
   update_rp_registration(
-    where: { rp_id: { _eq: $rp_id }, status: { _eq: registered } }
+    where: {
+      _and: [$staging_filter]
+      rp_id: { _eq: $rp_id }
+      status: { _eq: registered }
+    }
     _set: { status: pending }
   ) {
     affected_rows

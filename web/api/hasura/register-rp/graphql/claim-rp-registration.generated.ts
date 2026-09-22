@@ -9,6 +9,11 @@ export type ClaimRpRegistrationMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
   mode: Types.Scalars["rp_registration_mode"]["input"];
   signer_address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  manager_kms_key_id?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  is_unique_manager_key?: Types.Scalars["Boolean"]["input"];
+  staging_status?: Types.InputMaybe<
+    Types.Scalars["rp_registration_status"]["input"]
+  >;
 }>;
 
 export type ClaimRpRegistrationMutation = {
@@ -27,6 +32,9 @@ export const ClaimRpRegistrationDocument = gql`
     $app_id: String!
     $mode: rp_registration_mode!
     $signer_address: String
+    $manager_kms_key_id: String
+    $is_unique_manager_key: Boolean! = false
+    $staging_status: rp_registration_status
   ) {
     insert_rp_registration_one(
       object: {
@@ -34,6 +42,9 @@ export const ClaimRpRegistrationDocument = gql`
         app_id: $app_id
         mode: $mode
         signer_address: $signer_address
+        manager_kms_key_id: $manager_kms_key_id
+        is_unique_manager_key: $is_unique_manager_key
+        staging_status: $staging_status
         status: pending
       }
       on_conflict: {

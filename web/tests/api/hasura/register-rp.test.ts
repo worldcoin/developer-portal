@@ -81,6 +81,8 @@ beforeEach(() => {
 
   requestMock.mockImplementation(async (query: unknown) => {
     const operationName = getOperationName(query);
+    if (operationName.includes("RpBackfill"))
+      return { rp_id_backfill_by_pk: null };
 
     if (operationName.includes("GetAppInfo")) {
       return {

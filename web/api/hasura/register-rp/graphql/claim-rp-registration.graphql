@@ -3,6 +3,9 @@ mutation ClaimRpRegistration(
   $app_id: String!
   $mode: rp_registration_mode!
   $signer_address: String
+  $manager_kms_key_id: String
+  $is_unique_manager_key: Boolean! = false
+  $staging_status: rp_registration_status
 ) {
   insert_rp_registration_one(
     object: {
@@ -10,6 +13,9 @@ mutation ClaimRpRegistration(
       app_id: $app_id
       mode: $mode
       signer_address: $signer_address
+      manager_kms_key_id: $manager_kms_key_id
+      is_unique_manager_key: $is_unique_manager_key
+      staging_status: $staging_status
       status: pending
     }
     on_conflict: { constraint: rp_registration_app_id_key, update_columns: [] }

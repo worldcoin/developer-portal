@@ -4,6 +4,7 @@ query GetRpRegistration($app_id: String!) {
     app_id
     mode
     status
+    staging_status
     manager_kms_key_id
     app {
       team_id

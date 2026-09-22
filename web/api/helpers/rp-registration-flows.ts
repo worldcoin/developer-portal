@@ -9,6 +9,14 @@
 // result so each caller (Hasura action vs JSON-RPC) can format its own
 // error envelope without parsing exception messages.
 
+import {
+  getRpBackfill,
+  reservationBlocksMaintenance,
+  SETTLED_STAGING_FILTER,
+  reservationBlocksSetup,
+  rpSetupPaused,
+} from "@/api/helpers/rp-id-backfill";
+import { activateReservedRp } from "@/api/helpers/rp-reservation-activation";
 import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
 import { getSdk as getDeleteRpSdk } from "@/api/hasura/register-rp/graphql/delete-rp-registration.generated";
 import { getSdk as getUpdateRpSdk } from "@/api/hasura/register-rp/graphql/update-rp-registration.generated";
@@ -53,7 +61,7 @@ export type ManagedRegistrationResult =
       rpIdString: string;
       managerAddress: string;
       signerAddress: string;
-      operationHash: string;
+      operationHash: string | null;
       status: RpRegistrationStatus;
       stagingOperationHash: string | null;
       stagingStatus: string | null;
@@ -61,6 +69,8 @@ export type ManagedRegistrationResult =
   | {
       ok: false;
       code:
+        | "setup_paused"
+        | "reservation_pending"
         | "staging_not_supported"
         | "config_error"
         | "already_registered"
@@ -97,6 +107,26 @@ export async function submitManagedRpRegistration({
       code: "staging_not_supported",
       detail: "Staging apps cannot be migrated to World ID 4.0.",
     };
+  }
+
+  if (rpSetupPaused())
+    return {
+      ok: false,
+      code: "setup_paused",
+      detail: "World ID 4.0 setup is temporarily paused.",
+    };
+  const backfill = await getRpBackfill(client, appId);
+  if (reservationBlocksSetup(backfill))
+    return {
+      ok: false,
+      code: "reservation_pending",
+      detail: "RP reservation is unresolved; contact support.",
+    };
+  if (
+    backfill &&
+    [backfill.production_status, backfill.staging_status].includes("reserved")
+  ) {
+    return activateReservedRp(client, backfill, signerAddress, appName);
   }
 
   const primaryConfig = getRpRegistryConfig();
@@ -453,11 +483,23 @@ export async function submitManagedSignerRotation({
     };
   }
 
+  const backfill = await getRpBackfill(client, appId);
+  if (reservationBlocksMaintenance(backfill, registration)) {
+    return {
+      ok: false,
+      code: "rotation_in_progress",
+      detail: "Complete RP activation before rotating its signer.",
+    };
+  }
+
   const managerKmsKeyId = registration.manager_kms_key_id;
 
   const { update_rp_registration: claimResult } = await getClaimRotationSdk(
     client,
-  ).ClaimRotationSlot({ rp_id: rpIdString });
+  ).ClaimRotationSlot({
+    rp_id: rpIdString,
+    ...(backfill ? { staging_filter: SETTLED_STAGING_FILTER } : {}),
+  });
   if (!claimResult || claimResult.affected_rows === 0) {
     return {
       ok: false,
