@@ -162,6 +162,51 @@ describe("handleUniquenessProofVerification [environment mismatch]", () => {
 
 // #region Accepted protocol version disclosure
 describe("handleUniquenessProofVerification [protocol_version disclosure]", () => {
+  it("uses one storage key and response nullifier for v3 re-encodings", async () => {
+    const canonicalNullifier = `0x${"0".repeat(63)}a`;
+    CheckNullifierV4.mockResolvedValueOnce({
+      nullifier_v4: [],
+    }).mockResolvedValueOnce({
+      nullifier_v4: [{ created_at: "2026-01-01T00:00:00.000Z" }],
+    });
+
+    for (const input of ["A", "0x000a"]) {
+      const response = await handleUniquenessProofVerification(
+        {} as never,
+        rpId,
+        appId,
+        {
+          action: "test-action",
+          protocol_version: "3.0",
+          responses: [
+            {
+              identifier: LegacyVerificationLevel.Orb,
+              signal_hash: semaphoreProofParamsMock.signal_hash,
+              merkle_root: semaphoreProofParamsMock.merkle_root,
+              nullifier: input,
+              proof: semaphoreProofParamsMock.proof,
+            },
+          ],
+        },
+        request,
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        nullifier: canonicalNullifier,
+        results: [{ success: true, nullifier: canonicalNullifier }],
+      });
+    }
+
+    expect(CheckNullifierV4).toHaveBeenNthCalledWith(1, { nullifier: "10" });
+    expect(CheckNullifierV4).toHaveBeenNthCalledWith(2, { nullifier: "10" });
+    expect(InsertNullifierV4).toHaveBeenCalledTimes(1);
+    expect(InsertNullifierV4).toHaveBeenCalledWith({
+      action_v4_id: "action_v4_test",
+      nullifier: "10",
+    });
+  });
+
   it("reports 3.0 on a success reached through the legacy sequencer path", async () => {
     const response = await handleUniquenessProofVerification(
       {} as never,
@@ -224,6 +269,13 @@ describe("handleUniquenessProofVerification [protocol_version disclosure]", () =
     await expect(response.json()).resolves.toMatchObject({
       success: true,
       protocol_version: "4.0",
+      nullifier: `0x${"0".repeat(63)}2`,
+      results: [{ success: true, nullifier: `0x${"0".repeat(63)}2` }],
+    });
+    expect(CheckNullifierV4).toHaveBeenCalledWith({ nullifier: "2" });
+    expect(InsertNullifierV4).toHaveBeenCalledWith({
+      action_v4_id: "action_v4_test",
+      nullifier: "2",
     });
     // 4.0 binds the nonce as a circuit public input.
     expect(verifyProofOnChain).toHaveBeenCalledWith(
