@@ -1,4 +1,5 @@
 import { handleUniquenessProofVerification } from "@/api/v4/verify/uniqueness-proof/handler";
+import type { UniquenessProofResponseV4 } from "@/api/v4/verify/request-schema";
 import {
   FACE_SEQUENCER_STAGING,
   ORB_SEQUENCER,
@@ -282,6 +283,77 @@ describe("handleUniquenessProofVerification [protocol_version disclosure]", () =
       expect.objectContaining({ nonce: 1n }),
       "0xverifier",
     );
+  });
+
+  it("uses the same v4 nullifier for verification and storage with or without 0x", async () => {
+    process.env.VERIFIER_CONTRACT_ADDRESS = "0xverifier";
+    verifyProofOnChain.mockImplementation(
+      async ({ nullifier }: { nullifier: bigint }) => ({
+        success: nullifier === 16n,
+      }),
+    );
+    CheckNullifierV4.mockResolvedValueOnce({
+      nullifier_v4: [],
+    }).mockResolvedValueOnce({
+      nullifier_v4: [{ created_at: "2026-01-01T00:00:00.000Z" }],
+    });
+    const canonicalNullifier = `0x${"0".repeat(62)}10`;
+    const proof: Omit<UniquenessProofResponseV4, "nullifier"> = {
+      identifier: "credential",
+      signal_hash: "0x0",
+      issuer_schema_id: "128",
+      expires_at_min: "1772584197",
+      proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+    };
+
+    for (const input of ["10", "0x10"]) {
+      const response = await handleUniquenessProofVerification(
+        {} as never,
+        rpId,
+        appId,
+        {
+          action: "test-action",
+          nonce: "1",
+          protocol_version: "4.0",
+          responses: [{ ...proof, nullifier: input }],
+        },
+        request,
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        nullifier: canonicalNullifier,
+        results: [{ success: true, nullifier: canonicalNullifier }],
+      });
+    }
+
+    const replay = await handleUniquenessProofVerification(
+      {} as never,
+      rpId,
+      appId,
+      {
+        action: "test-action",
+        nonce: "1",
+        protocol_version: "4.0",
+        responses: [{ ...proof, nullifier: "0xa" }],
+      },
+      request,
+    );
+
+    expect(replay.status).toBe(400);
+    expect(verifyProofOnChain).toHaveBeenCalledTimes(3);
+    for (const [proofParams] of verifyProofOnChain.mock.calls.slice(0, 2)) {
+      expect(proofParams.nullifier).toBe(16n);
+    }
+    expect(verifyProofOnChain.mock.calls[2][0].nullifier).toBe(10n);
+    expect(CheckNullifierV4).toHaveBeenNthCalledWith(1, { nullifier: "16" });
+    expect(CheckNullifierV4).toHaveBeenNthCalledWith(2, { nullifier: "16" });
+    expect(CheckNullifierV4).toHaveBeenCalledTimes(2);
+    expect(InsertNullifierV4).toHaveBeenCalledTimes(1);
+    expect(InsertNullifierV4).toHaveBeenCalledWith({
+      action_v4_id: "action_v4_test",
+      nullifier: "16",
+    });
   });
 
   it("reports 3.0 when an existing nullifier short-circuits the insert", async () => {
