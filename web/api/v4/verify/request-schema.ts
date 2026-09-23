@@ -27,8 +27,8 @@ const v3ResponseItemSchema = yup.object({
     .string()
     .strict()
     .matches(
-      /^(0x)?[\da-fA-F]+$/,
-      "Invalid nullifier. Must be a hex string with optional 0x prefix.",
+      /^(0x)?[\da-fA-F]{1,64}$/,
+      "Invalid nullifier. Must be a hex string of at most 64 characters with optional 0x prefix.",
     )
     .required("nullifier is required for v3"),
   proof: yup.string().strict().required("proof is required for v3"),
@@ -82,8 +82,8 @@ const v4ResponseItemSchema = yup.object({
     .string()
     .strict()
     .matches(
-      /^(0x)?[\da-fA-F]+$/,
-      "Invalid nullifier. Must be a hex string with optional 0x prefix.",
+      /^(0x)?[\da-fA-F]{1,64}$/,
+      "Invalid nullifier. Must be a hex string of at most 64 characters with optional 0x prefix.",
     )
     .required("nullifier is required for v4 uniqueness proofs"),
   expires_at_min: yup

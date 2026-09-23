@@ -2,8 +2,8 @@ import { errorResponse, ErrorResponseBody } from "@/api/helpers/errors";
 import { logPortalEvent } from "@/api/helpers/portal-events";
 import { parseRpId } from "@/api/helpers/rp-utils";
 import {
+  canonicalizeNullifierHash,
   encodeNullifierForStorage,
-  normalizeNullifierHash,
 } from "@/api/helpers/verify";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
@@ -178,13 +178,18 @@ export async function handleUniquenessProofVerification(
     );
   }
 
-  // Use nullifier from first successful verification (firstSuccess is guaranteed to exist here)
-  const nullifierForStorage = encodeNullifierForStorage(
-    firstSuccess!.nullifier!,
+  // Use the same verified value for storage and every nullifier in the response.
+  verificationResults = verificationResults.map((result) =>
+    result.success && result.nullifier
+      ? { ...result, nullifier: canonicalizeNullifierHash(result.nullifier) }
+      : result,
   );
 
-  // We normalize the nullifier to hex for the response, to match the request format which expects a hex string.
-  const normalizedNullifier = normalizeNullifierHash(firstSuccess!.nullifier!);
+  // Use nullifier from first successful verification (firstSuccess is guaranteed to exist here)
+  const normalizedNullifier = canonicalizeNullifierHash(
+    firstSuccess!.nullifier!,
+  );
+  const nullifierForStorage = encodeNullifierForStorage(normalizedNullifier);
 
   // At least one proof is valid - now handle action creation and nullifier
 

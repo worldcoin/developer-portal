@@ -102,6 +102,45 @@ beforeEach(() => {
   );
 });
 
+// #region Uniqueness nullifier width
+describe("/api/v4/verify [uniqueness nullifier width]", () => {
+  it.each(["3.0", "4.0"] as const)(
+    "accepts a 32-byte %s nullifier and rejects an appended byte before verification",
+    async (protocolVersion) => {
+      const validNullifier = `0x08${"00".repeat(31)}`;
+      const response = protocolVersion === "3.0" ? v3Response : v4Response;
+      const body = {
+        protocol_version: protocolVersion,
+        nonce: "1",
+        action: "verify",
+        responses: [{ ...response, nullifier: validNullifier }],
+      };
+
+      const valid = await POST(createRequest(body), {
+        params: Promise.resolve({ app_id: appId }),
+      });
+
+      expect(valid.status).toBe(200);
+      expect(mockHandleUniquenessProofVerification).toHaveBeenCalledTimes(1);
+
+      const overWidth = await POST(
+        createRequest({
+          ...body,
+          responses: [{ ...response, nullifier: `${validNullifier}00` }],
+        }),
+        { params: Promise.resolve({ app_id: appId }) },
+      );
+
+      expect(overWidth.status).toBe(400);
+      await expect(overWidth.json()).resolves.toMatchObject({
+        code: "validation_error",
+      });
+      expect(mockHandleUniquenessProofVerification).toHaveBeenCalledTimes(1);
+    },
+  );
+});
+// #endregion
+
 // #region Integrity bundle environment
 describe("/api/v4/verify [integrity bundle]", () => {
   it('normalizes "sandbox" only for integrity verification', async () => {
