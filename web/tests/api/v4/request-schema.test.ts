@@ -1,6 +1,47 @@
 import { schema } from "@/api/v4/verify/request-schema";
 
 describe("v4 verify request schema", () => {
+  const sessionId = "session_" + "0".repeat(63) + "1" + "01" + "0".repeat(62);
+  const boundProof = {
+    protocol_version: "4.0",
+    proof_type: "uniqueness",
+    session_id: sessionId,
+    nonce: "0x1",
+    action: "world_usernames:v2:owner",
+    responses: [
+      {
+        identifier: "orb",
+        issuer_schema_id: 1,
+        nullifier: "0x2",
+        expires_at_min: 1772584197,
+        proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+      },
+    ],
+  };
+
+  it("accepts an explicitly session-bound uniqueness proof without treating it as a session proof", async () => {
+    const parsed = await schema.validate(boundProof);
+    expect(parsed.session_id).toBe(sessionId);
+    expect(parsed.responses[0].nullifier).toBe("0x2");
+  });
+
+  it.each([
+    { proof_type: undefined },
+    { protocol_version: "3.0" },
+    { session_id: "session_" + "0".repeat(64) + "01" + "0".repeat(62) },
+    { session_id: "session_" + "0".repeat(63) + "1" + "00" + "0".repeat(62) },
+    { session_id: "1" },
+    { action: undefined },
+    { proof_type: "session" },
+  ])(
+    "rejects an ambiguous or unbound ownership proof: %j",
+    async (overrides) => {
+      await expect(
+        schema.validate({ ...boundProof, ...overrides }),
+      ).rejects.toThrow();
+    },
+  );
+
   const integrityBundle = {
     version: 1,
     signature_format: "android_keystore",
