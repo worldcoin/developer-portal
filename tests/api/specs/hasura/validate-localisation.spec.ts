@@ -22,6 +22,9 @@ describe("Hasura API - Validate Localisation", () => {
     let testUserId: string;
     let testMembershipId: string;
     let testMetadataId: string;
+    let otherTeamId: string;
+    let otherUserId: string;
+    let otherMembershipId: string;
     let testLocalisationIds: string[] = [];
     let testTeamName: string = "Test Team for Localisation";
 
@@ -41,6 +44,16 @@ describe("Hasura API - Validate Localisation", () => {
       testMembershipId = await createTestMembership(
         testUserId,
         testTeamId,
+        "OWNER",
+      );
+      otherTeamId = await createTestTeam("Other Team for Localisation");
+      otherUserId = await createTestUser(
+        "other-validator@example.com",
+        otherTeamId,
+      );
+      otherMembershipId = await createTestMembership(
+        otherUserId,
+        otherTeamId,
         "OWNER",
       );
 
@@ -100,6 +113,50 @@ describe("Hasura API - Validate Localisation", () => {
         `Validate localisation request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data.success).toBe(true);
+    });
+
+    it("Rejects a user from another team before checking localisations", async () => {
+      await expect(
+        axios.post(
+          `${internalApiUrl}/api/hasura/validate-localisation?app_metadata_id=${testMetadataId}&team_id=${testTeamId}`,
+          {
+            action: { name: "validate_localisation" },
+            input: {},
+            session_variables: {
+              "x-hasura-role": "user",
+              "x-hasura-user-id": otherUserId,
+            },
+          },
+          { headers },
+        ),
+      ).rejects.toMatchObject({
+        response: {
+          status: 400,
+          data: { extensions: { code: "not_found" } },
+        },
+      });
+    });
+
+    it("Rejects a team ID that does not own the metadata", async () => {
+      await expect(
+        axios.post(
+          `${internalApiUrl}/api/hasura/validate-localisation?app_metadata_id=${testMetadataId}&team_id=${otherTeamId}`,
+          {
+            action: { name: "validate_localisation" },
+            input: {},
+            session_variables: {
+              "x-hasura-role": "user",
+              "x-hasura-user-id": testUserId,
+            },
+          },
+          { headers },
+        ),
+      ).rejects.toMatchObject({
+        response: {
+          status: 400,
+          data: { extensions: { code: "not_found" } },
+        },
+      });
     });
 
     it("Return Error When App Metadata ID Is Missing", async () => {
@@ -166,8 +223,11 @@ describe("Hasura API - Validate Localisation", () => {
       await deleteTestAppMetadata(testMetadataId);
       await deleteTestApp(testAppId);
       await deleteTestMembership(testMembershipId);
+      await deleteTestMembership(otherMembershipId);
       await deleteTestUser(testUserId);
+      await deleteTestUser(otherUserId);
       await deleteTestTeam(testTeamId);
+      await deleteTestTeam(otherTeamId);
     });
   });
 });

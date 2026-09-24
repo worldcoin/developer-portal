@@ -80,17 +80,28 @@ export const POST = async (req: NextRequest) => {
 
   const client = await getAPIServiceGraphqlClient();
 
+  const { app_metadata } = await getLocalesSdk(client).GetLocales({
+    id: app_metadata_id,
+    team_id,
+    user_id: userId,
+  });
+  const app_locales = app_metadata[0];
+
+  if (!app_locales) {
+    return errorHasuraQuery({
+      req,
+      detail: "App not found.",
+      code: "not_found",
+      team_id,
+      logLevel: "warn",
+    });
+  }
+
   const { localisations } = await getLocalisationsSdk(client).GetLocalisations({
     app_metadata_id,
   });
 
-  const { app_metadata_by_pk: app_locales } = await getLocalesSdk(
-    client,
-  ).GetLocales({
-    id: app_metadata_id,
-  });
-
-  if (app_locales?.supported_languages) {
+  if (app_locales.supported_languages) {
     const isMiniApp = app_locales.app_mode === "mini-app";
     const supportedLanguagesWithoutEn = app_locales.supported_languages.filter(
       (lang) => lang !== "en",
