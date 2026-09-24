@@ -76,7 +76,7 @@
     "request-ip": "^3.3.0",
     "rxjs": "^7.8.0",
     "server-only": "^0.0.1",
-    "sharp": "0.33.1",
+    "sharp": "0.35.4",
     "slugify": "^1.6.6",
     "tailwind-merge": "^3.6.0",
     "tailwind-variants": "^3.2.2",
