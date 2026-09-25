@@ -346,13 +346,6 @@ export interface ResolvedRpRegistration {
   rp_id: string;
   app_id: string;
   status: string;
-  /**
-   * While this timestamp is in the future, the app's team has opted this RP
-   * into staging verification. Null/expired means production proofs only.
-   */
-  staging_verification_expires_at?: string | null;
-  /** HMAC of the one-time token issued when that window was opened. */
-  staging_verification_token_hash?: string | null;
   app: {
     id: string;
     status: string;
@@ -391,8 +384,6 @@ export async function resolveRpRegistration(
         rp_id: reg.rp_id,
         app_id: reg.app_id,
         status: reg.status as string,
-        staging_verification_expires_at: reg.staging_verification_expires_at,
-        staging_verification_token_hash: reg.staging_verification_token_hash,
         app: {
           ...reg.app,
           app_mode: reg.app.app_metadata?.[0]?.app_mode ?? null,
@@ -411,8 +402,6 @@ export async function resolveRpRegistration(
         rp_id: reg.rp_id,
         app_id: reg.app_id,
         status: reg.status as string,
-        staging_verification_expires_at: reg.staging_verification_expires_at,
-        staging_verification_token_hash: reg.staging_verification_token_hash,
         app: {
           ...reg.app,
           app_mode: reg.app.app_metadata?.[0]?.app_mode ?? null,
