@@ -2,3 +2,5 @@
 - "!include public_action_stats.yaml"
 - "!include public_merge_world_id_accounts.yaml"
 - "!include public_rollup_app_stats.yaml"
+- "!include public_rollup_world_id_analytics.yaml"
+- "!include public_world_id_analytics_app_daily.yaml"

@@ -1,0 +1,8 @@
+query GetEarliestNullifiers {
+  nullifier(order_by: { created_at: asc }, limit: 1) {
+    created_at
+  }
+  nullifier_v4(order_by: { created_at: asc }, limit: 1) {
+    created_at
+  }
+}

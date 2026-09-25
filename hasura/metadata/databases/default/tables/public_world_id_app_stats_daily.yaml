@@ -1,0 +1,8 @@
+table:
+  name: world_id_app_stats_daily
+  schema: public
+select_permissions:
+  - role: service
+    permission:
+      columns: [date_utc, unique_count]
+      filter: {}
