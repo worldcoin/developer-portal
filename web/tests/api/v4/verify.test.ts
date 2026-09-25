@@ -235,7 +235,7 @@ describe("/api/v4/verify [integrity bundle]", () => {
 // #region Staging environment access
 describe("/api/v4/verify [staging environment]", () => {
   const sessionResponse = {
-    identifier: "face",
+    identifier: "proof_of_human",
     signal_hash: "0x0",
     issuer_schema_id: 1,
     session_nullifier: ["0x1", "0x2"],
@@ -243,25 +243,73 @@ describe("/api/v4/verify [staging environment]", () => {
     proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
   };
 
-  it("refuses staging when the app has never opened a staging window", async () => {
-    const req = createRequest({
-      protocol_version: "4.0",
-      nonce: "1",
-      action: "verify",
-      environment: "staging",
-      integrity_bundle: integrityBundle,
-      responses: [v4Response],
-    });
+  it("accepts staging proofs on the staging deployment without a window", async () => {
+    const originalAppEnv = process.env.NEXT_PUBLIC_APP_ENV;
+    process.env.NEXT_PUBLIC_APP_ENV = "staging";
 
-    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+    try {
+      const req = createRequest({
+        protocol_version: "3.0",
+        nonce: "1",
+        action: "verify",
+        environment: "staging",
+        responses: [v3Response],
+      });
 
-    expect(res.status).toBe(403);
-    await expect(res.json()).resolves.toMatchObject({
-      code: "environment_not_allowed",
-      attribute: "environment",
-    });
-    expect(mockVerifyIntegrityBundle).not.toHaveBeenCalled();
-    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+      const res = await POST(req, {
+        params: Promise.resolve({ app_id: appId }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(mockVerifyHashedSecret).not.toHaveBeenCalled();
+      expect(mockHandleUniquenessProofVerification).toHaveBeenCalledWith(
+        expect.anything(),
+        rpId,
+        appId,
+        expect.objectContaining({ environment: "staging" }),
+        req,
+      );
+    } finally {
+      if (originalAppEnv === undefined) {
+        delete process.env.NEXT_PUBLIC_APP_ENV;
+      } else {
+        process.env.NEXT_PUBLIC_APP_ENV = originalAppEnv;
+      }
+    }
+  });
+
+  it("refuses staging on production when the app has never opened a staging window", async () => {
+    const originalAppEnv = process.env.NEXT_PUBLIC_APP_ENV;
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+
+    try {
+      const req = createRequest({
+        protocol_version: "4.0",
+        nonce: "1",
+        action: "verify",
+        environment: "staging",
+        integrity_bundle: integrityBundle,
+        responses: [v4Response],
+      });
+
+      const res = await POST(req, {
+        params: Promise.resolve({ app_id: appId }),
+      });
+
+      expect(res.status).toBe(403);
+      await expect(res.json()).resolves.toMatchObject({
+        code: "environment_not_allowed",
+        attribute: "environment",
+      });
+      expect(mockVerifyIntegrityBundle).not.toHaveBeenCalled();
+      expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+    } finally {
+      if (originalAppEnv === undefined) {
+        delete process.env.NEXT_PUBLIC_APP_ENV;
+      } else {
+        process.env.NEXT_PUBLIC_APP_ENV = originalAppEnv;
+      }
+    }
   });
 
   it("refuses sandbox once the staging window has expired, token or not", async () => {

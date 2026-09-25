@@ -181,7 +181,14 @@ export async function POST(
     // Gate staging before anything trusts it: it selects both the identity tree
     // / verifier contract the proof is checked against and the attestation
     // service the integrity bundle is anchored to.
-    if (verifierEnvironment === "staging") {
+    // The staging deployment is an isolated test endpoint: it must accept
+    // simulator proofs used by first-party integrations such as Deep Face.
+    // Keep the gate on every other deployment, including production, where a
+    // caller-supplied staging environment would weaken RP uniqueness checks.
+    if (
+      verifierEnvironment === "staging" &&
+      process.env.NEXT_PUBLIC_APP_ENV !== "staging"
+    ) {
       const stagingAccess = authorizeStagingVerification({
         req,
         appId,
