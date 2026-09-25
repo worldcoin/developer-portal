@@ -178,9 +178,8 @@ export async function POST(
         ? "staging"
         : parsedParams.environment;
 
-    // Gate staging before anything trusts it: it selects both the identity tree
-    // / verifier contract the proof is checked against and the attestation
-    // service the integrity bundle is anchored to.
+    // Gate test proofs before using the staging verifier contract or trusting
+    // a non-production attestation service.
     // The staging deployment is an isolated test endpoint: it must accept
     // simulator proofs used by first-party integrations such as Deep Face.
     // Keep the gate on every other deployment, including production, where a
@@ -227,8 +226,9 @@ export async function POST(
     }
 
     if (parsedParams.integrity_bundle) {
+      // Sandbox shares the staging verifier, but has its own attestation issuer.
       const integrityResult = await verifyIntegrityBundle({
-        environment: verifierEnvironment,
+        environment: parsedParams.environment,
         integrityBundle: parsedParams.integrity_bundle,
         nonce: parsedParams.nonce!,
         protocolVersion: parsedParams.protocol_version as "3.0" | "4.0",

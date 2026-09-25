@@ -136,7 +136,7 @@ beforeEach(() => {
 
 // #region Integrity bundle environment
 describe("/api/v4/verify [integrity bundle]", () => {
-  it('normalizes "sandbox" only for integrity verification', async () => {
+  it('uses the sandbox attestation issuer for "sandbox"', async () => {
     mockResolveRpRegistration.mockResolvedValue(
       registration(openStagingWindow()),
     );
@@ -158,7 +158,7 @@ describe("/api/v4/verify [integrity bundle]", () => {
     expect(res.status).toBe(200);
     expect(mockVerifyIntegrityBundle).toHaveBeenCalledWith(
       expect.objectContaining({
-        environment: "staging",
+        environment: "sandbox",
         integrityBundle,
         nonce: "1",
         protocolVersion: "4.0",
