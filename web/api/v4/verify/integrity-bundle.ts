@@ -26,7 +26,7 @@ const JWKS_CACHE_TTL_SECONDS = 24 * 60 * 60;
 const SIGNATURE_TIMESTAMP_THRESHOLD_SECONDS = 5 * 60;
 const JWKS_FETCH_TIMEOUT_MS = 4_000;
 
-type IntegrityEnvironment = "production" | "staging";
+type IntegrityEnvironment = "production" | "staging" | "sandbox";
 
 const DEFAULT_INTEGRITY_ENVIRONMENT: IntegrityEnvironment = "production";
 const INTEGRITY_ATTESTATION_CONFIG_BY_ENVIRONMENT: Record<
@@ -40,6 +40,10 @@ const INTEGRITY_ATTESTATION_CONFIG_BY_ENVIRONMENT: Record<
   staging: {
     issuer: "attestation.worldcoin.dev",
     jwksUrl: "https://attestation.worldcoin.dev/.well-known/jwks.json",
+  },
+  sandbox: {
+    issuer: "attestation.sandbox.worldcoin.org",
+    jwksUrl: "https://attestation.sandbox.worldcoin.org/.well-known/jwks.json",
   },
 };
 

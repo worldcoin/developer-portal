@@ -26,6 +26,9 @@ const PRODUCTION_JWKS_URL =
 const STAGING_ISSUER = "attestation.worldcoin.dev";
 const STAGING_JWKS_URL =
   "https://attestation.worldcoin.dev/.well-known/jwks.json";
+const SANDBOX_ISSUER = "attestation.sandbox.worldcoin.org";
+const SANDBOX_JWKS_URL =
+  "https://attestation.sandbox.worldcoin.org/.well-known/jwks.json";
 
 type DeviceKey = {
   privateKey: Uint8Array;
@@ -566,6 +569,56 @@ describe("integrity bundle verification", () => {
 
     expect(result).toEqual({ success: true });
     expect(fetchSpy.mock.calls[0]?.[0]).toBe(STAGING_JWKS_URL);
+  });
+
+  it("uses the sandbox issuer and JWKS URL for sandbox requests", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      issuer: SANDBOX_ISSUER,
+      version: 2,
+      signedResponses: [selfieResponse],
+    });
+    const fetchSpy = jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const result = await verifyIntegrityBundle({
+      environment: "sandbox",
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [selfieResponse],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(fetchSpy.mock.calls[0]?.[0]).toBe(SANDBOX_JWKS_URL);
+  });
+
+  it("does not accept a sandbox attestation token as staging", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      issuer: SANDBOX_ISSUER,
+    });
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const result = await verifyIntegrityBundle({
+      environment: "staging",
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({
+      success: false,
+      reason: "invalid_integrity_token",
+    });
   });
 
   it("defaults to the production issuer when environment is omitted", async () => {
