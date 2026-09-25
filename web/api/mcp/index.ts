@@ -16,10 +16,15 @@ import {
   type ManagedRotationResult,
 } from "@/api/helpers/rp-registration-flows";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
-import { verifyHashedSecret } from "@/api/helpers/utils";
+import { generateHashedSecret, verifyHashedSecret } from "@/api/helpers/utils";
 import { getSdk as getMcpAppContextSdk } from "@/api/mcp/graphql/app-context.generated";
 import { getSdk as getMcpAuthenticateTeamSdk } from "@/api/mcp/graphql/authenticate-team.generated";
 import { getSdk as getMcpCreateAppSdk } from "@/api/mcp/graphql/create-app.generated";
+import { getSdk as getMcpSetStagingVerificationWindowSdk } from "@/api/mcp/graphql/set-staging-verification-window.generated";
+import {
+  STAGING_VERIFICATION_TOKEN_HEADER,
+  STAGING_VERIFICATION_WINDOW_MS,
+} from "@/api/v4/verify/staging-access";
 import { getSdk as getMcpSubmitAppForReviewSdk } from "@/api/mcp/graphql/submit-app-for-review.generated";
 import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.generated";
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
@@ -205,6 +210,20 @@ const toolDefinitions = [
     },
   },
   {
+    name: "set_world_id_staging_verification",
+    description:
+      "Open or close a temporary staging verification window for an app, and issue the token that staging verifications must present. The token is shown once here and then works for every staging verification until the window closes automatically after 24 hours.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        app_id: { type: "string" },
+        enabled: { type: "boolean" },
+      },
+      required: ["app_id", "enabled"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "configure_mini_app",
     description:
       "Update Mini App portal settings, app store metadata, and Advanced/Permissions configuration (contracts, permit2 tokens, notification limits, etc.).",
@@ -356,6 +375,13 @@ const createActionSchema = yup
       .string()
       .oneOf(["production", "staging"])
       .default("production"),
+  })
+  .noUnknown();
+
+const setStagingVerificationSchema = yup
+  .object({
+    app_id: yup.string().required(),
+    enabled: yup.boolean().required(),
   })
   .noUnknown();
 
@@ -1220,6 +1246,78 @@ const tools = {
     });
   },
 
+  set_world_id_staging_verification: async (input, ctx) => {
+    const args = await parseInput(setStagingVerificationSchema, input);
+    const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
+    const registration = app.rp_registration[0];
+    if (!registration?.rp_id) {
+      throw new McpError("World ID is not configured for this app.", -32004);
+    }
+
+    // The token is displayed here and never again; only its HMAC is stored, so
+    // the value cannot be recovered by reading the database. It stays valid for
+    // the whole window — see authorizeStagingVerification for why that bound is
+    // the accepted one.
+    const { secret: stagingToken, hashed_secret: stagingTokenHash } =
+      generateHashedSecret(registration.rp_id);
+
+    const expiresAt = args.enabled
+      ? new Date(Date.now() + STAGING_VERIFICATION_WINDOW_MS).toISOString()
+      : null;
+
+    const data = await getMcpSetStagingVerificationWindowSdk(
+      ctx.client,
+    ).McpSetStagingVerificationWindow({
+      rp_id: registration.rp_id,
+      expires_at: expiresAt,
+      token_hash: args.enabled ? stagingTokenHash : null,
+    });
+
+    const updated = data.update_rp_registration_by_pk;
+
+    // `update_..._by_pk` returns null when it matched no row — the RP can be
+    // deleted between the team check above and this write. Falling through
+    // would hand the developer a token that authorizes nothing, and would
+    // record an audit event asserting a window state the database never took.
+    // On close it would be worse: reporting "staging is closed" while the
+    // window is still open.
+    if (updated?.rp_id !== registration.rp_id) {
+      logger.error("Staging verification window update matched no RP", {
+        app_id: args.app_id,
+        team_id: ctx.teamId,
+        rp_id: registration.rp_id,
+        enabled: args.enabled,
+      });
+
+      throw new McpError(
+        "Could not update the staging verification window for this app. Nothing was changed; please retry.",
+        -32603,
+      );
+    }
+
+    logPortalEvent({
+      event: "staging_verification_window",
+      actor: "mcp",
+      team_id: ctx.teamId,
+      app_id: args.app_id,
+      metadata: {
+        rp_id: registration.rp_id,
+        enabled: args.enabled,
+        expires_at: expiresAt,
+      },
+    });
+
+    return content({
+      rp_id: registration.rp_id,
+      staging_verification_expires_at:
+        updated.staging_verification_expires_at ?? null,
+      staging_verification_token: args.enabled ? stagingToken : null,
+      message: args.enabled
+        ? `Send this token as the ${STAGING_VERIFICATION_TOKEN_HEADER} header on /api/v4/verify calls that carry staging or sandbox proofs. It is shown once, works until the timestamp above, and is not needed for production verification. Opening another window replaces it.`
+        : "Staging verification is closed. /api/v4/verify now accepts production proofs only, and the previous token no longer works.",
+    });
+  },
+
   configure_mini_app: async (input, ctx) => {
     rejectConfigureMiniAppImageFields(input);
     const args = await parseInput(configureMiniAppSchema, input);
@@ -1661,6 +1759,7 @@ const parseToolName = (value: unknown): ToolName => {
     case "get_world_id_registration_status":
     case "rotate_world_id_signing_key":
     case "create_world_id_action":
+    case "set_world_id_staging_verification":
     case "configure_mini_app":
     case "upload_app_image":
     case "submit_app_for_review":
@@ -1692,6 +1791,8 @@ const executeTool = async (
       return tools.rotate_world_id_signing_key(input, ctx);
     case "create_world_id_action":
       return tools.create_world_id_action(input, ctx);
+    case "set_world_id_staging_verification":
+      return tools.set_world_id_staging_verification(input, ctx);
     case "configure_mini_app":
       return tools.configure_mini_app(input, ctx);
     case "upload_app_image":
