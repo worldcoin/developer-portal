@@ -6,20 +6,35 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type GetLocalesQueryVariables = Types.Exact<{
   id: Types.Scalars["String"]["input"];
+  team_id: Types.Scalars["String"]["input"];
+  user_id: Types.Scalars["String"]["input"];
 }>;
 
 export type GetLocalesQuery = {
   __typename?: "query_root";
-  app_metadata_by_pk?: {
+  app_metadata: Array<{
     __typename?: "app_metadata";
     supported_languages?: Array<string> | null;
     app_mode: string;
-  } | null;
+  }>;
 };
 
 export const GetLocalesDocument = gql`
-  query GetLocales($id: String!) {
-    app_metadata_by_pk(id: $id) {
+  query GetLocales($id: String!, $team_id: String!, $user_id: String!) {
+    app_metadata(
+      where: {
+        id: { _eq: $id }
+        app: {
+          team_id: { _eq: $team_id }
+          team: {
+            memberships: {
+              user_id: { _eq: $user_id }
+              role: { _in: [ADMIN, OWNER] }
+            }
+          }
+        }
+      }
+    ) {
       supported_languages
       app_mode
     }
