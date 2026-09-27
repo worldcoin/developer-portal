@@ -103,6 +103,92 @@ beforeEach(() => {
   }) as unknown as typeof fetch;
 });
 
+// #region Session-bound ownership
+describe("session-bound uniqueness ownership", () => {
+  const sessionId = "session_" + "0".repeat(63) + "1" + "01" + "0".repeat(62);
+  const params = {
+    action: "world_usernames:v2:owner",
+    protocol_version: "4.0" as const,
+    session_id: sessionId,
+    nonce: "0x3",
+    responses: [
+      {
+        identifier: "orb",
+        issuer_schema_id: "1",
+        nullifier: "0x2",
+        expires_at_min: "1772584197",
+        signal_hash: "0x4",
+        proof: ["0x1", "0x2", "0x3", "0x4", "0x5"] as [
+          string,
+          string,
+          string,
+          string,
+          string,
+        ],
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    process.env.VERIFIER_CONTRACT_ADDRESS = "0x" + "11".repeat(20);
+  });
+
+  it.each(["new", "existing", "concurrent"])(
+    "returns the session only after jointly verifying it (%s nullifier)",
+    async (kind) => {
+      verifyProofOnChain.mockResolvedValue({ success: true });
+      if (kind === "existing") {
+        CheckNullifierV4.mockResolvedValue({
+          nullifier_v4: [{ created_at: "2026-01-01" }],
+        });
+      }
+      if (kind === "concurrent") {
+        InsertNullifierV4.mockRejectedValueOnce(new Error("duplicate key"));
+      }
+      const response = await handleUniquenessProofVerification(
+        {} as never,
+        rpId,
+        appId,
+        params,
+        request,
+      );
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({
+        session_id: sessionId,
+        protocol_version: "4.0",
+      });
+      expect(verifyProofOnChain).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nullifier: 2n,
+          sessionId: 1n,
+          nonce: 3n,
+          signalHash: 4n,
+          issuerSchemaId: 1n,
+        }),
+        process.env.VERIFIER_CONTRACT_ADDRESS,
+      );
+    },
+  );
+
+  it("does not consume or return ownership when the joint proof fails", async () => {
+    verifyProofOnChain.mockResolvedValue({
+      success: false,
+      error: { code: "invalid_proof" },
+    });
+    const response = await handleUniquenessProofVerification(
+      {} as never,
+      rpId,
+      appId,
+      params,
+      request,
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).not.toHaveProperty("session_id");
+    expect(InsertNullifierV4).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
 // #region Environment mismatch response
 describe("handleUniquenessProofVerification [environment mismatch]", () => {
   it("returns environment_mismatch at the top level when any v3 proof has the wrong environment", async () => {
