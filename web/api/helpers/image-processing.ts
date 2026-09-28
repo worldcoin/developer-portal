@@ -1,3 +1,4 @@
+import { detectImageContentType } from "@/api/helpers/app-image-storage";
 import { logger } from "@/lib/logger";
 import {
   CopyObjectCommand,
@@ -49,6 +50,7 @@ export const processLogoImage = async (
     }
 
     const imageBuffer = await streamToBuffer(getObjectResponse.Body);
+    assertImageType(imageBuffer, fileType);
 
     // Get original image dimensions
     const metadata = await sharp(imageBuffer).metadata();
@@ -167,6 +169,19 @@ const streamToBuffer = async (stream: any): Promise<Buffer> => {
   return Buffer.concat(chunks);
 };
 
+const assertImageType = (imageBuffer: Buffer, fileType: string): void => {
+  const expectedType =
+    fileType === "png"
+      ? "image/png"
+      : fileType === "jpg" || fileType === "jpeg"
+        ? "image/jpeg"
+        : null;
+
+  if (!expectedType || detectImageContentType(imageBuffer) !== expectedType) {
+    throw new Error("Image bytes do not match a supported PNG or JPEG file.");
+  }
+};
+
 /**
  * Downloads an image from S3, adds a footer, and uploads the resized version back to S3
  * @param s3Client - The S3 client instance
@@ -196,6 +211,7 @@ export const processContentCardImage = async (
 
     const contentType = `image/${fileType === "png" ? "png" : "jpeg"}`;
     const imageBuffer = await streamToBuffer(getObjectResponse.Body);
+    assertImageType(imageBuffer, fileType);
 
     const imageWithFooter = await addFooter(imageBuffer, 0.33, 0.5, fileType);
 
