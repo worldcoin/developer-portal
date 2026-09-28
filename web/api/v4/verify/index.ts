@@ -19,7 +19,6 @@ import {
   verifyIntegrityBundle,
 } from "./integrity-bundle";
 import { handleSessionProofVerification } from "./session-proof/handler";
-import { authorizeStagingVerification } from "./staging-access";
 import { handleUniquenessProofVerification } from "./uniqueness-proof/handler";
 
 /**
@@ -177,31 +176,6 @@ export async function POST(
       parsedParams.environment === "sandbox"
         ? "staging"
         : parsedParams.environment;
-
-    // Gate test proofs before using the staging verifier contract or trusting
-    // a non-production attestation service.
-    // The staging deployment is an isolated test endpoint: it must accept
-    // simulator proofs used by first-party integrations such as Deep Face.
-    // Keep the gate on every other deployment, including production, where a
-    // caller-supplied staging environment would weaken RP uniqueness checks.
-    if (
-      verifierEnvironment === "staging" &&
-      process.env.NEXT_PUBLIC_APP_ENV !== "staging"
-    ) {
-      const stagingAccess = authorizeStagingVerification({
-        req,
-        appId,
-        rpId,
-        stagingVerificationExpiresAt:
-          rpRegistration.staging_verification_expires_at,
-        stagingVerificationTokenHash:
-          rpRegistration.staging_verification_token_hash,
-      });
-
-      if (!stagingAccess.authorized) {
-        return stagingAccess.response;
-      }
-    }
 
     const requiresSelfieCheckIntegrity =
       parsedParams.protocol_version === "4.0" &&
