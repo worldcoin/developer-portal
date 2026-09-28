@@ -17,8 +17,6 @@ export type FetchRpRegistrationQuery = {
     mode: unknown;
     signer_address?: string | null;
     status: unknown;
-    staging_verification_expires_at?: string | null;
-    staging_verification_token_hash?: string | null;
     app: {
       __typename?: "app";
       id: string;
@@ -43,8 +41,6 @@ export type FetchRpRegistrationByRpIdQuery = {
     mode: unknown;
     signer_address?: string | null;
     status: unknown;
-    staging_verification_expires_at?: string | null;
-    staging_verification_token_hash?: string | null;
     app: {
       __typename?: "app";
       id: string;
@@ -64,8 +60,6 @@ export const FetchRpRegistrationDocument = gql`
       mode
       signer_address
       status
-      staging_verification_expires_at
-      staging_verification_token_hash
       app {
         id
         status
@@ -86,8 +80,6 @@ export const FetchRpRegistrationByRpIdDocument = gql`
       mode
       signer_address
       status
-      staging_verification_expires_at
-      staging_verification_token_hash
       app {
         id
         status
