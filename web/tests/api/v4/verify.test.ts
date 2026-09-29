@@ -1,4 +1,5 @@
 import { POST } from "@/api/v4/verify";
+import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 
 // #region Mocks
@@ -101,6 +102,221 @@ beforeEach(() => {
     NextResponse.json({ success: true }),
   );
 });
+
+// #region Sandbox verification diagnostics
+describe("/api/v4/verify [Sandbox diagnostics]", () => {
+  const originalEnabled = process.env.SANDBOX_VERIFY_DIAGNOSTICS_ENABLED;
+
+  beforeEach(() => {
+    process.env.SANDBOX_VERIFY_DIAGNOSTICS_ENABLED = "true";
+  });
+
+  afterEach(() => {
+    if (originalEnabled === undefined)
+      delete process.env.SANDBOX_VERIFY_DIAGNOSTICS_ENABLED;
+    else process.env.SANDBOX_VERIFY_DIAGNOSTICS_ENABLED = originalEnabled;
+  });
+
+  const sandboxRequest = () =>
+    createRequest({
+      protocol_version: "4.0",
+      nonce: "private-nonce",
+      action: "verify",
+      environment: "sandbox",
+      responses: [
+        { ...v4Response, proof: ["secret-proof", "a", "b", "c", "d"] },
+      ],
+    });
+
+  it("records a successful attempt without proof or nonce values", async () => {
+    const response = await POST(sandboxRequest(), {
+      params: Promise.resolve({ app_id: appId }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(logger.info).toHaveBeenCalledWith(
+      "Sandbox verification diagnostic",
+      expect.objectContaining({
+        app_or_rp_id: appId,
+        request: expect.objectContaining({
+          action: "verify",
+          proof_count: 1,
+          credential_types: ["proof_of_human"],
+        }),
+        response: expect.objectContaining({ status: 200 }),
+      }),
+    );
+    const diagnostic = JSON.stringify((logger.info as jest.Mock).mock.calls);
+    expect(diagnostic).not.toContain("private-nonce");
+    expect(diagnostic).not.toContain("secret-proof");
+  });
+
+  it("records the failure stage and public error code", async () => {
+    mockHandleUniquenessProofVerification.mockResolvedValue(
+      NextResponse.json(
+        { success: false, code: "all_verifications_failed" },
+        { status: 400 },
+      ),
+    );
+
+    await POST(sandboxRequest(), {
+      params: Promise.resolve({ app_id: appId }),
+    });
+
+    expect(logger.info).toHaveBeenCalledWith(
+      "Sandbox verification diagnostic",
+      expect.objectContaining({
+        response: expect.objectContaining({
+          status: 400,
+          code: "all_verifications_failed",
+          failure_stage: "uniqueness_verification",
+        }),
+      }),
+    );
+  });
+
+  it("attributes a missing Self Check integrity bundle to its guard", async () => {
+    const response = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "private-nonce",
+        action: "verify",
+        environment: "sandbox",
+        responses: [selfieCheckV4Response],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(403);
+    expect(logger.info).toHaveBeenCalledWith(
+      "Sandbox verification diagnostic",
+      expect.objectContaining({
+        response: expect.objectContaining({
+          failure_stage: "selfie_integrity_requirement",
+        }),
+      }),
+    );
+  });
+
+  it("records bounded per-proof outcomes without private result fields", async () => {
+    mockHandleUniquenessProofVerification.mockResolvedValue(
+      NextResponse.json({
+        success: true,
+        results: [
+          {
+            identifier: "proof_of_human",
+            success: false,
+            code: "verification_error",
+            detail: "private-detail",
+            nullifier: "private-nullifier",
+          },
+          ...Array.from({ length: 9 }, () => ({
+            identifier: "selfie",
+            success: true,
+            nullifier: "private-nullifier",
+          })),
+          {
+            identifier: "selfie",
+            success: false,
+            code: "environment_mismatch",
+            detail: "private-detail",
+          },
+        ],
+      }),
+    );
+
+    await POST(sandboxRequest(), {
+      params: Promise.resolve({ app_id: appId }),
+    });
+
+    const summary = (logger.info as jest.Mock).mock.calls[0][1].response;
+    expect(summary.success).toBe(true);
+    expect(summary.result_count).toBe(11);
+    expect(summary.failed_result_count).toBe(2);
+    expect(summary.results).toHaveLength(10);
+    expect(summary.results[0]).toEqual({
+      identifier: "proof_of_human",
+      success: false,
+      code: "verification_error",
+    });
+    expect(JSON.stringify(summary)).not.toContain("private-detail");
+    expect(JSON.stringify(summary)).not.toContain("private-nullifier");
+  });
+
+  it("does not enable diagnostics from the request environment alone", async () => {
+    delete process.env.SANDBOX_VERIFY_DIAGNOSTICS_ENABLED;
+    await POST(sandboxRequest(), {
+      params: Promise.resolve({ app_id: appId }),
+    });
+    expect(logger.info).not.toHaveBeenCalled();
+  });
+
+  it("leaves malformed Sandbox requests to standard error telemetry", async () => {
+    const response = await POST(
+      createRequest({ environment: "sandbox", responses: [] }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+    expect(response.status).toBe(400);
+    expect(logger.info).not.toHaveBeenCalled();
+  });
+
+  it("logs Sandbox requests for other integrations", async () => {
+    await POST(sandboxRequest(), {
+      params: Promise.resolve({ app_id: rpId }),
+    });
+    expect(logger.info).toHaveBeenCalledWith(
+      "Sandbox verification diagnostic",
+      expect.objectContaining({ app_or_rp_id: rpId }),
+    );
+  });
+
+  it("does not log an untrusted route ID", async () => {
+    const untrustedId = "sensitive-id-" + "x".repeat(100);
+    await POST(sandboxRequest(), {
+      params: Promise.resolve({ app_id: untrustedId }),
+    });
+    const diagnostic = JSON.stringify((logger.info as jest.Mock).mock.calls);
+    expect(diagnostic).not.toContain(untrustedId);
+    expect(logger.info).toHaveBeenCalledWith(
+      "Sandbox verification diagnostic",
+      expect.objectContaining({ app_or_rp_id: undefined }),
+    );
+  });
+
+  it.each(["staging", "production"])(
+    "does not log a %s request",
+    async (environment) => {
+      await POST(
+        createRequest({
+          protocol_version: "4.0",
+          nonce: "private-nonce",
+          action: "verify",
+          environment,
+          responses: [v4Response],
+        }),
+        { params: Promise.resolve({ app_id: appId }) },
+      );
+      expect(logger.info).not.toHaveBeenCalled();
+    },
+  );
+
+  it("preserves the verifier result when diagnostic logging fails", async () => {
+    (logger.info as jest.Mock).mockRejectedValueOnce(new Error("log outage"));
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+    try {
+      const response = await POST(sandboxRequest(), {
+        params: Promise.resolve({ app_id: appId }),
+      });
+      expect(response.status).toBe(200);
+      expect(consoleError).toHaveBeenCalledWith(
+        "Failed to emit Sandbox verification diagnostic",
+      );
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+});
+// #endregion
 
 // #region Uniqueness nullifier width
 describe("/api/v4/verify [uniqueness nullifier width]", () => {

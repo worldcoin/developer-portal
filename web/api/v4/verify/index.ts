@@ -6,7 +6,7 @@ import {
 } from "@/api/helpers/rp-utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import {
   isProtocolVersionBelowMinimum,
   schema,
@@ -20,6 +20,7 @@ import {
 } from "./integrity-bundle";
 import { handleSessionProofVerification } from "./session-proof/handler";
 import { handleUniquenessProofVerification } from "./uniqueness-proof/handler";
+import { SandboxVerifyDiagnostics } from "./sandbox-diagnostics";
 
 /**
  * POST /api/v4/verify/:id
@@ -31,6 +32,17 @@ export async function POST(
   req: NextRequest,
   props: { params: Promise<{ app_id: string }> },
 ) {
+  const diagnostics = new SandboxVerifyDiagnostics();
+  const response = await verify(req, props, diagnostics);
+  await diagnostics.finish(response);
+  return response;
+}
+
+async function verify(
+  req: NextRequest,
+  props: { params: Promise<{ app_id: string }> },
+  diagnostics: SandboxVerifyDiagnostics,
+): Promise<NextResponse> {
   const params = await props.params;
   const routeId = params.app_id;
 
@@ -66,6 +78,9 @@ export async function POST(
     return handleError(req);
   }
 
+  // Only validated requests can safely be classified as Sandbox diagnostics.
+  diagnostics.start(routeId, parsedParams);
+
   // `protocol_version` describes the proof that was supplied, not the
   // integration that asked for it, so a relying party forwarding an IDKit
   // result verbatim forwards whichever version the credential holder chose to
@@ -79,6 +94,7 @@ export async function POST(
       parsedParams.min_protocol_version,
     )
   ) {
+    diagnostics.failGuard("protocol_version_guard");
     logger.warn("Rejected proof below the relying party's minimum protocol", {
       app_id: routeId,
       protocol_version: parsedParams.protocol_version,
@@ -97,6 +113,7 @@ export async function POST(
 
   let client;
   try {
+    diagnostics.mark("graphql_client");
     client = await getAPIServiceGraphqlClient();
   } catch (error) {
     logger.error("Failed to initialize GraphQL client", {
@@ -116,6 +133,7 @@ export async function POST(
 
   try {
     // Resolve app_id/rp_id to rp_registration
+    diagnostics.mark("rp_registration");
     const resolveResult = await resolveRpRegistration(client, routeId);
 
     if (!resolveResult.success) {
@@ -146,6 +164,7 @@ export async function POST(
 
     // Check if RP registration is active
     if (rpRegistration.status !== RpRegistrationStatus.Registered) {
+      diagnostics.failGuard("rp_status_guard");
       return errorResponse({
         statusCode: 400,
         code: "rp_not_active",
@@ -159,6 +178,7 @@ export async function POST(
     // Validate app status
     const app = rpRegistration.app;
     if (app.status !== "active" || app.is_archived || app.deleted_at) {
+      diagnostics.failGuard("app_status_guard");
       return errorResponse({
         statusCode: 404,
         code: "not_found",
@@ -188,6 +208,7 @@ export async function POST(
       (!parsedParams.integrity_bundle ||
         parsedParams.integrity_bundle.version !== 2)
     ) {
+      diagnostics.failGuard("selfie_integrity_requirement");
       return errorResponse({
         statusCode: 403,
         code: INTEGRITY_VERIFICATION_ERROR_CODE,
@@ -200,6 +221,7 @@ export async function POST(
     }
 
     if (parsedParams.integrity_bundle) {
+      diagnostics.mark("integrity_verification");
       // Sandbox shares the staging verifier, but has its own attestation issuer.
       const integrityResult = await verifyIntegrityBundle({
         environment: parsedParams.environment,
@@ -227,6 +249,7 @@ export async function POST(
 
     // Early return for session proofs - handle separately
     if (parsedParams.session_id) {
+      diagnostics.mark("session_verification");
       return await handleSessionProofVerification(rpId, appId, {
         session_id: parsedParams.session_id,
         nonce: parsedParams.nonce!,
@@ -237,6 +260,7 @@ export async function POST(
     }
 
     // Handle uniqueness proofs
+    diagnostics.mark("uniqueness_verification");
     return await handleUniquenessProofVerification(
       client,
       rpId,
