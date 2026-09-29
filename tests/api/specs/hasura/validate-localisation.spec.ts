@@ -21,6 +21,8 @@ describe("Hasura API - Validate Localisation", () => {
     let testTeamId: string;
     let testUserId: string;
     let testMembershipId: string;
+    let memberUserId: string;
+    let memberMembershipId: string;
     let testMetadataId: string;
     let otherTeamId: string;
     let otherUserId: string;
@@ -45,6 +47,15 @@ describe("Hasura API - Validate Localisation", () => {
         testUserId,
         testTeamId,
         "OWNER",
+      );
+      memberUserId = await createTestUser(
+        "member-validator@example.com",
+        testTeamId,
+      );
+      memberMembershipId = await createTestMembership(
+        memberUserId,
+        testTeamId,
+        "MEMBER",
       );
       otherTeamId = await createTestTeam("Other Team for Localisation");
       otherUserId = await createTestUser(
@@ -112,6 +123,24 @@ describe("Hasura API - Validate Localisation", () => {
         response.status,
         `Validate localisation request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
+      expect(response.data.success).toBe(true);
+    });
+
+    it("Allows a member of the app's team to validate localisations", async () => {
+      const response = await axios.post(
+        `${internalApiUrl}/api/hasura/validate-localisation?app_metadata_id=${testMetadataId}&team_id=${testTeamId}`,
+        {
+          action: { name: "validate_localisation" },
+          input: {},
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": memberUserId,
+          },
+        },
+        { headers },
+      );
+
+      expect(response.status).toBe(200);
       expect(response.data.success).toBe(true);
     });
 
@@ -223,8 +252,10 @@ describe("Hasura API - Validate Localisation", () => {
       await deleteTestAppMetadata(testMetadataId);
       await deleteTestApp(testAppId);
       await deleteTestMembership(testMembershipId);
+      await deleteTestMembership(memberMembershipId);
       await deleteTestMembership(otherMembershipId);
       await deleteTestUser(testUserId);
+      await deleteTestUser(memberUserId);
       await deleteTestUser(otherUserId);
       await deleteTestTeam(testTeamId);
       await deleteTestTeam(otherTeamId);
