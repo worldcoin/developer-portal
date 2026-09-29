@@ -94,6 +94,7 @@ async function verify(
       parsedParams.min_protocol_version,
     )
   ) {
+    diagnostics.failGuard("protocol_version_guard");
     logger.warn("Rejected proof below the relying party's minimum protocol", {
       app_id: routeId,
       protocol_version: parsedParams.protocol_version,
@@ -163,6 +164,7 @@ async function verify(
 
     // Check if RP registration is active
     if (rpRegistration.status !== RpRegistrationStatus.Registered) {
+      diagnostics.failGuard("rp_status_guard");
       return errorResponse({
         statusCode: 400,
         code: "rp_not_active",
@@ -176,6 +178,7 @@ async function verify(
     // Validate app status
     const app = rpRegistration.app;
     if (app.status !== "active" || app.is_archived || app.deleted_at) {
+      diagnostics.failGuard("app_status_guard");
       return errorResponse({
         statusCode: 404,
         code: "not_found",
@@ -205,6 +208,7 @@ async function verify(
       (!parsedParams.integrity_bundle ||
         parsedParams.integrity_bundle.version !== 2)
     ) {
+      diagnostics.failGuard("selfie_integrity_requirement");
       return errorResponse({
         statusCode: 403,
         code: INTEGRITY_VERIFICATION_ERROR_CODE,

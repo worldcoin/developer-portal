@@ -175,6 +175,29 @@ describe("/api/v4/verify [Sandbox diagnostics]", () => {
     );
   });
 
+  it("attributes a missing Self Check integrity bundle to its guard", async () => {
+    const response = await POST(
+      createRequest({
+        protocol_version: "4.0",
+        nonce: "private-nonce",
+        action: "verify",
+        environment: "sandbox",
+        responses: [selfieCheckV4Response],
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(403);
+    expect(logger.info).toHaveBeenCalledWith(
+      "Sandbox verification diagnostic",
+      expect.objectContaining({
+        response: expect.objectContaining({
+          failure_stage: "selfie_integrity_requirement",
+        }),
+      }),
+    );
+  });
+
   it("records bounded per-proof outcomes without private result fields", async () => {
     mockHandleUniquenessProofVerification.mockResolvedValue(
       NextResponse.json({

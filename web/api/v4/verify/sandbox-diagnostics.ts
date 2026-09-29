@@ -10,6 +10,12 @@ type Stage =
   | "session_verification"
   | "uniqueness_verification";
 
+type GuardFailureStage =
+  | "protocol_version_guard"
+  | "rp_status_guard"
+  | "app_status_guard"
+  | "selfie_integrity_requirement";
+
 type RequestSummary = {
   protocol_version: string;
   action?: string;
@@ -60,6 +66,7 @@ export class SandboxVerifyDiagnostics {
   private attemptId?: string;
   private routeId?: string;
   private summary?: RequestSummary;
+  private failureStage?: GuardFailureStage;
   private stages: Array<{
     stage: Stage;
     elapsed_ms: number;
@@ -95,6 +102,10 @@ export class SandboxVerifyDiagnostics {
     const previous = this.stages.at(-1);
     if (previous) previous.duration_ms = elapsed - previous.elapsed_ms;
     this.stages.push({ stage, elapsed_ms: elapsed });
+  }
+
+  failGuard(stage: GuardFailureStage): void {
+    if (this.routeId) this.failureStage = stage;
   }
 
   async finish(response: NextResponse): Promise<void> {
@@ -165,7 +176,9 @@ export class SandboxVerifyDiagnostics {
           failed_result_count: failedResultCount,
           results,
           failure_stage:
-            response.status >= 400 ? this.stages.at(-1)?.stage : undefined,
+            response.status >= 400
+              ? this.failureStage ?? this.stages.at(-1)?.stage
+              : undefined,
           duration_ms: duration,
         },
       });
