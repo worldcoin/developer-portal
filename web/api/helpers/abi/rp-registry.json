@@ -1,6 +1,18 @@
 [
   {
     "type": "function",
+    "name": "registerMany",
+    "inputs": [
+      { "name": "rpIds", "type": "uint64[]" },
+      { "name": "managers", "type": "address[]" },
+      { "name": "signers", "type": "address[]" },
+      { "name": "unverifiedWellKnownDomains", "type": "string[]" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "register",
     "inputs": [
       { "name": "rpId", "type": "uint64" },
