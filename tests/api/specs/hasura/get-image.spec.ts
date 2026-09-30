@@ -3,13 +3,13 @@ import axios from "axios";
 import {
   createTestApp,
   createTestAppMetadata,
-  createTestLocalisation,
+  createTestLocalization,
   createTestMembership,
   createTestTeam,
   createTestUser,
   deleteTestApp,
   deleteTestAppMetadata,
-  deleteTestLocalisation,
+  deleteTestLocalization,
   deleteTestMembership,
   deleteTestTeam,
   deleteTestUser,
@@ -23,7 +23,7 @@ describe("Hasura API - Get Image", () => {
     let testUserId: string | undefined;
     let testMembershipId: string | undefined;
     let testMetadataId: string | undefined;
-    let testLocalisationId: string | undefined;
+    let testLocalizationId: string | undefined;
     let testTeamName: string = "Test Team for Get Image";
     let testFiles: string[] = ["logo.png", "hero.jpg", "showcase_img_1.jpg"];
 
@@ -67,8 +67,8 @@ describe("Hasura API - Get Image", () => {
       );
       testMetadataId = metadata.id;
 
-      // Create localisation for Spanish
-      testLocalisationId = await createTestLocalisation(
+      // Create localization for Spanish
+      testLocalizationId = await createTestLocalization(
         testMetadataId!,
         "es",
         "Aplicación de Prueba para Obtener Imagen",
@@ -176,7 +176,7 @@ describe("Hasura API - Get Image", () => {
     afterAll(async () => {
       // Clean up test data
       void (
-        testLocalisationId && (await deleteTestLocalisation(testLocalisationId))
+        testLocalizationId && (await deleteTestLocalization(testLocalizationId))
       );
       void (testMetadataId && (await deleteTestAppMetadata(testMetadataId)));
       void (testAppId && (await deleteTestApp(testAppId)));

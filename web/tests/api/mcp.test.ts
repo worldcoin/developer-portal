@@ -188,7 +188,7 @@ const reviewMetadata = {
   content_card_image_url: "card.png",
   app: { is_staging: false },
 };
-const reviewLocalisations: Array<Record<string, unknown>> = [];
+const reviewLocalizations: Array<Record<string, unknown>> = [];
 let currentAppContextResponse = appContextResponse;
 
 const verifiedMetadataForDraft = (overrides: Record<string, unknown> = {}) => ({
@@ -352,7 +352,7 @@ beforeEach(async () => {
         },
       };
     }
-    if (operationName.includes("FetchLocalisations")) {
+    if (operationName.includes("FetchLocalizations")) {
       return { localisations: [] };
     }
     if (operationName.includes("McpUpsertActionV4")) {
@@ -418,7 +418,7 @@ beforeEach(async () => {
     if (operationName.includes("FetchAppMetadataById")) {
       return {
         app_metadata: [reviewMetadata],
-        localisations: reviewLocalisations,
+        localisations: reviewLocalizations,
       };
     }
     throw new Error(`Unexpected query: ${operationName}`);
@@ -933,7 +933,7 @@ describe("/api/mcp", () => {
     requestMock.mockImplementation(async (query: unknown, variables: any) => {
       const operationName = getOperationName(query);
 
-      if (operationName.includes("FetchLocalisations")) {
+      if (operationName.includes("FetchLocalizations")) {
         return {
           localisations: [
             {
@@ -980,7 +980,7 @@ describe("/api/mcp", () => {
         meta_tag_image_url: "meta_tag_image.png",
         content_card_image_url: "content_card_image.png",
         showcase_img_urls: ["showcase_img_1.png"],
-        localisations: {
+        localizations: {
           data: [
             expect.objectContaining({
               locale: "es",
@@ -991,10 +991,10 @@ describe("/api/mcp", () => {
       }),
     );
 
-    const fetchLocalisationsCall = requestMock.mock.calls.find(
-      ([query]) => getOperationName(query) === "FetchLocalisations",
+    const fetchLocalizationsCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "FetchLocalizations",
     );
-    expect(fetchLocalisationsCall?.[1]).toEqual({ id: "meta_verified" });
+    expect(fetchLocalizationsCall?.[1]).toEqual({ id: "meta_verified" });
 
     const updateCall = requestMock.mock.calls.find(
       ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
@@ -1004,7 +1004,7 @@ describe("/api/mcp", () => {
     expect(updateCall?.[1].set).not.toHaveProperty("app_mode");
     expect(
       requestMock.mock.calls.some(
-        ([query]) => getOperationName(query) === "CreateLocalisation",
+        ([query]) => getOperationName(query) === "CreateLocalization",
       ),
     ).toBe(false);
   });
@@ -1925,7 +1925,7 @@ describe("/api/mcp", () => {
       if (operationName.includes("FetchAppMetadataById")) {
         return {
           app_metadata: [metadataState],
-          localisations: reviewLocalisations,
+          localisations: reviewLocalizations,
         };
       }
       if (operationName.includes("McpSubmitAppForReview")) {
@@ -2089,7 +2089,7 @@ describe("/api/mcp", () => {
       if (operationName.includes("FetchAppMetadataById")) {
         return {
           app_metadata: [incompleteMetadata],
-          localisations: reviewLocalisations,
+          localisations: reviewLocalizations,
         };
       }
       throw new Error(`Unexpected query: ${operationName}`);

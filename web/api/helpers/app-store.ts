@@ -1,4 +1,4 @@
-import { type Category, getLocalisedCategory } from "@/lib/categories";
+import { type Category, getLocalizedCategory } from "@/lib/categories";
 import { NATIVE_MAPPED_APP_ID, NativeAppToAppIdMapping } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import {
@@ -66,11 +66,11 @@ export const formatAppMetadata = (
         )
       : 0;
 
-  const localisedContent = appMetadata.localisations?.[0];
+  const localizedContent = appMetadata.localisations?.[0];
 
-  // We pick default description if localised content is not available
+  // We pick default description if localized content is not available
   const description: AppStoreMetadataDescription = tryParseJSON(
-    localisedContent?.description ?? appMetadata.description,
+    localizedContent?.description ?? appMetadata.description,
   ) ?? {
     description_overview: "",
     description_how_it_works: "",
@@ -80,10 +80,10 @@ export const formatAppMetadata = (
   const {
     localisations,
     is_reviewer_world_app_approved,
-    ...appMetadataWithoutLocalisations
+    ...appMetadataWithoutLocalizations
   } = appMetadata;
 
-  const name = localisedContent?.name ?? appMetadata.name;
+  const name = localizedContent?.name ?? appMetadata.name;
 
   const {
     whitelistedAppsPermit2,
@@ -105,30 +105,30 @@ export const formatAppMetadata = (
     ? ["all"]
     : appMetadata.contracts;
 
-  const isLocalisationComplete =
-    localisedContent?.description &&
-    localisedContent?.world_app_description &&
-    localisedContent?.short_name &&
-    localisedContent?.name;
+  const isLocalizationComplete =
+    localizedContent?.description &&
+    localizedContent?.world_app_description &&
+    localizedContent?.short_name &&
+    localizedContent?.name;
 
   // fallback to logo
   const metaTagImageUrl =
-    isLocalisationComplete && localisedContent?.meta_tag_image_url
-      ? localisedContent.meta_tag_image_url
+    isLocalizationComplete && localizedContent?.meta_tag_image_url
+      ? localizedContent.meta_tag_image_url
       : appMetadata.meta_tag_image_url || appMetadata.logo_img_url;
 
   const showcaseImgUrls =
-    isLocalisationComplete && localisedContent?.showcase_img_urls
-      ? localisedContent.showcase_img_urls
+    isLocalizationComplete && localizedContent?.showcase_img_urls
+      ? localizedContent.showcase_img_urls
       : appMetadata.showcase_img_urls;
 
   const metaTagImageLocale =
-    isLocalisationComplete && localisedContent?.meta_tag_image_url
+    isLocalizationComplete && localizedContent?.meta_tag_image_url
       ? locale
       : "en";
 
   const showcaseImgUrlsLocale =
-    isLocalisationComplete && localisedContent?.showcase_img_urls
+    isLocalizationComplete && localizedContent?.showcase_img_urls
       ? locale
       : "en";
 
@@ -136,7 +136,7 @@ export const formatAppMetadata = (
     ? [country.toUpperCase()]
     : appMetadata.supported_countries;
   let buttonTextOverride =
-    localisedContent?.world_app_button_text ??
+    localizedContent?.world_app_button_text ??
     appMetadata.world_app_button_text;
   if (
     buttonTextOverride === "Use Integration" &&
@@ -159,16 +159,16 @@ export const formatAppMetadata = (
       : appMetadata.associated_domains;
 
   return {
-    ...appMetadataWithoutLocalisations,
+    ...appMetadataWithoutLocalizations,
     associated_domains: associatedDomains,
     name: name,
     app_rating: appRating ?? 0,
     world_app_button_text: buttonTextOverride,
     world_app_description:
-      localisedContent?.world_app_description ??
+      localizedContent?.world_app_description ??
       appMetadata.world_app_description,
     short_name:
-      localisedContent?.short_name || appMetadata.short_name || "test",
+      localizedContent?.short_name || appMetadata.short_name || "test",
     logo_img_url: getLogoImgCDNUrl(
       appMetadata.app_id,
       appMetadata.logo_img_url,
@@ -207,7 +207,7 @@ export const formatAppMetadata = (
     ).digest,
     unique_users: singleAppStats?.unique_users ?? 0,
     impressions: singleAppStats?.total_impressions ?? 0,
-    category: getLocalisedCategory(
+    category: getLocalizedCategory(
       appMetadata.category as Category["name"],
       locale,
     ) ?? {

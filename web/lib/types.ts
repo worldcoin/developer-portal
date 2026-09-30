@@ -34,7 +34,7 @@ export enum AppStatusType {
   Inactive = "inactive",
 }
 
-export enum AppLocaliseKeys {
+export enum AppLocalizeKeys {
   description_overview = "overview",
   description_how_it_works = "how_it_works",
   description_connect = "connect",
@@ -208,7 +208,7 @@ export type AppStoreMetadataFields = {
   support_link: string;
   supported_countries?: any | null;
   supported_languages?: any | null;
-  localisations: LocalisedMetadata[];
+  localisations: LocalizedMetadata[];
   is_reviewer_world_app_approved: boolean;
   associated_domains?: string[] | null;
   contracts?: string[] | null;
@@ -226,7 +226,7 @@ export type AppStoreMetadataFields = {
   };
 };
 
-export type LocalisedMetadata = {
+export type LocalizedMetadata = {
   name: string;
   world_app_button_text: string;
   world_app_description: string;

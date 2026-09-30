@@ -37,10 +37,10 @@ const scrollToFirstError = () => {
   });
 };
 
-// app_metadata's top-level localized columns mirror the EN localisation. The
+// app_metadata's top-level localized columns mirror the EN localization. The
 // review schema validates that row shape, so these fields are copied out of
-// the EN localisation before .validate() and their error paths are mapped
-// back to the registered localisations.{en}.* inputs after. Single list so
+// the EN localization before .validate() and their error paths are mapped
+// back to the registered localizations.{en}.* inputs after. Single list so
 // the copy and the un-copy can't drift.
 const EN_TOP_LEVEL_FIELDS = [
   "name",
@@ -164,7 +164,7 @@ export const AppStoreActionsButton = ({
 
       const formValues = form.getValues();
       const enLocalization = formValues.localisations.find(
-        (localisation) => localisation.language === "en",
+        (localization) => localization.language === "en",
       );
       const freshData = client.readQuery<FetchAppMetadataQuery>({
         query: FetchAppMetadataDocument,
@@ -211,11 +211,11 @@ export const AppStoreActionsButton = ({
     } catch (error) {
       if (error instanceof yup.ValidationError) {
         // Un-alias: map row-shaped paths back to the registered
-        // localisations.{en}.* inputs so setError paints the real field,
+        // localizations.{en}.* inputs so setError paints the real field,
         // setFocus works, and the wizard opens the step that contains it.
         const enIndex = form
           .getValues("localisations")
-          .findIndex((localisation) => localisation.language === "en");
+          .findIndex((localization) => localization.language === "en");
         const toRegisteredPath = (path?: string) =>
           path &&
           (EN_TOP_LEVEL_FIELDS as readonly string[]).includes(path) &&

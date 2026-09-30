@@ -15,7 +15,7 @@ const notificationBody = {
     "0x000000000000000000000000000000000002dead",
   ],
 };
-const allSupportedLocalisations = formLanguagesList.map(({ value }) => ({
+const allSupportedLocalizations = formLanguagesList.map(({ value }) => ({
   language: value,
   title: "This is a title",
   message: "This is a message",
@@ -89,7 +89,7 @@ describe("notifications", () => {
       "all supported languages",
       {
         ...notificationBody,
-        localisations: allSupportedLocalisations,
+        localisations: allSupportedLocalizations,
       },
     ],
     [
@@ -229,13 +229,13 @@ describe("notifications", () => {
 
   const invalidTestCases = [
     [
-      "empty localisations",
+      "empty localizations",
       { ...notificationBody, localisations: {} } as yup.InferType<
         typeof sendNotificationBodySchemaV2
       >,
     ],
     [
-      "missing en localisation",
+      "missing en localization",
       {
         ...notificationBody,
         localisations: [
@@ -287,7 +287,7 @@ describe("notifications", () => {
       },
     ],
     [
-      "unsupported localisation",
+      "unsupported localization",
       {
         ...notificationBody,
         localisations: [
