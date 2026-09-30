@@ -52,6 +52,24 @@ jest.mock("../../api/helpers/rp-registration-flows", () => ({
     submitManagedSignerRotationMock(...args),
 }));
 
+const getKMSClientMock = jest.fn();
+const getEthAddressFromKMSMock = jest.fn();
+const submitRegisterRpTransactionMock = jest.fn();
+const submitRotateSignerTransactionMock = jest.fn();
+jest.mock("../../api/helpers/kms", () => ({
+  getKMSClient: (...args: unknown[]) => getKMSClientMock(...args),
+}));
+jest.mock("../../api/helpers/kms-eth", () => ({
+  getEthAddressFromKMS: (...args: unknown[]) =>
+    getEthAddressFromKMSMock(...args),
+}));
+jest.mock("../../api/helpers/rp-transactions", () => ({
+  submitRegisterRpTransaction: (...args: unknown[]) =>
+    submitRegisterRpTransactionMock(...args),
+  submitRotateSignerTransaction: (...args: unknown[]) =>
+    submitRotateSignerTransactionMock(...args),
+}));
+
 const httpsRequestMock = jest.fn();
 jest.mock("node:https", () => ({
   request: (...args: unknown[]) => httpsRequestMock(...args),
@@ -259,6 +277,31 @@ beforeEach(async () => {
   process.env.RP_REGISTRY_CONTRACT_ADDRESS =
     "0x0000000000000000000000000000000000000048";
   delete process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
+  Object.assign(process.env, {
+    RP_REGISTRY_SAFE_OWNER_KMS_KEY_ID: "safe-owner-key",
+    RP_REGISTRY_SAFE_ADDRESS: "0x0000000000000000000000000000000000000003",
+    RP_REGISTRY_ENTRYPOINT_ADDRESS:
+      "0x0000000000000000000000000000000000000004",
+    RP_REGISTRY_SAFE_4337_MODULE_ADDRESS:
+      "0x0000000000000000000000000000000000000005",
+    RP_REGISTRY_KMS_REGION: "us-east-1",
+    RP_REGISTRY_DOMAIN_SEPARATOR: "0xprimary-domain",
+    RP_REGISTRY_UPDATE_RP_TYPEHASH: "0xprimary-typehash",
+    CREDENTIAL_SCHEMA_ISSUER_REGISTRY_ADDRESS:
+      "0x0000000000000000000000000000000000000006",
+    RP_REGISTRY_STAGING_DOMAIN_SEPARATOR: "0xstaging-domain",
+    RP_REGISTRY_STAGING_UPDATE_RP_TYPEHASH: "0xstaging-typehash",
+  });
+  getKMSClientMock.mockReset().mockResolvedValue({});
+  getEthAddressFromKMSMock
+    .mockReset()
+    .mockResolvedValue("0x0000000000000000000000000000000000000002");
+  submitRegisterRpTransactionMock
+    .mockReset()
+    .mockResolvedValue("0xretry-register");
+  submitRotateSignerTransactionMock
+    .mockReset()
+    .mockResolvedValue("0xretry-rotate");
   process.env.ASSETS_S3_REGION = "us-east-1";
   process.env.ASSETS_S3_BUCKET_NAME = "test-bucket";
   s3SendMock.mockResolvedValue({});
@@ -345,6 +388,26 @@ beforeEach(async () => {
     }
     if (operationName.includes("McpAppContext"))
       return currentAppContextResponse;
+    if (operationName.includes("GetRpRegistrationForRetry")) {
+      const app = currentAppContextResponse.app[0];
+      return {
+        rp_registration_by_pk: {
+          ...app.rp_registration[0],
+          app_id: app.id,
+          app: {
+            id: app.id,
+            team_id: teamId,
+            app_metadata: [{ name: "Test App" }],
+          },
+        },
+      };
+    }
+    if (
+      operationName.includes("UpdateProductionRetry") ||
+      operationName.includes("UpdateStagingRetry")
+    ) {
+      return { update_rp_registration_by_pk: { ...variables } };
+    }
     if (operationName.includes("CreateDraft")) {
       return {
         insert_app_metadata_one: {
@@ -476,6 +539,9 @@ describe("/api/mcp", () => {
     expect(body.result.tools.map((tool: any) => tool.name)).toContain(
       "get_world_id_registration_status",
     );
+    expect(body.result.tools.map((tool: any) => tool.name)).toContain(
+      "retry_world_id_registration",
+    );
     const createApp = body.result.tools.find(
       (tool: any) => tool.name === "create_app",
     );
@@ -490,6 +556,232 @@ describe("/api/mcp", () => {
       "showcase_img_urls",
     );
   });
+
+  // #region Managed registration retries
+  const setManagedRegistration = (status = "failed") => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          rp_registration: [
+            {
+              ...appContextResponse.app[0].rp_registration[0],
+              mode: "managed",
+              status,
+            },
+          ],
+        },
+      ],
+    };
+  };
+
+  it.each(["production", "staging"])(
+    "retries %s with the saved RP ID, manager key and signer",
+    async (environment) => {
+      setManagedRegistration();
+      process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS =
+        "0x0000000000000000000000000000000000000049";
+      mockGetRpFromContract.mockResolvedValue({ initialized: false });
+      const res = await POST(
+        callTool("retry_world_id_registration", { app_id: appId, environment }),
+      );
+      const body = await res.json();
+      expect(body.error).toBeUndefined();
+      expect(JSON.parse(body.result.content[0].text)).toMatchObject({
+        rp_id: rpId,
+        environment,
+        operation_hash: "0xretry-register",
+      });
+      const contractAddress =
+        environment === "production"
+          ? process.env.RP_REGISTRY_CONTRACT_ADDRESS
+          : process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
+      expect(mockGetRpFromContract).toHaveBeenCalledWith(
+        BigInt(`0x${rpId.slice(3)}`),
+        contractAddress,
+      );
+      expect(getEthAddressFromKMSMock).toHaveBeenCalledWith(
+        {},
+        "kms-key-123",
+        "us-east-1",
+      );
+      expect(submitRegisterRpTransactionMock).toHaveBeenCalledWith(
+        expect.objectContaining({ contractAddress }),
+        expect.objectContaining({
+          rpId: BigInt(`0x${rpId.slice(3)}`),
+          signerAddress:
+            appContextResponse.app[0].rp_registration[0].signer_address,
+        }),
+      );
+      const mutation =
+        environment === "production"
+          ? "UpdateProductionRetry"
+          : "UpdateStagingRetry";
+      expect(
+        requestMock.mock.calls.filter(
+          ([query]) => getOperationName(query) === mutation,
+        )[0][1],
+      ).toEqual(
+        environment === "production"
+          ? {
+              rp_id: rpId,
+              operation_hash: "0xretry-register",
+              status: "pending",
+            }
+          : {
+              rp_id: rpId,
+              staging_operation_hash: "0xretry-register",
+              staging_status: "pending",
+            },
+      );
+      expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+      expect(submitManagedSignerRotationMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it("does not submit again if the saved registration is already on-chain", async () => {
+    setManagedRegistration();
+    const res = await POST(
+      callTool("retry_world_id_registration", {
+        app_id: appId,
+        environment: "production",
+      }),
+    );
+    const body = await res.json();
+    expect(JSON.parse(body.result.content[0].text).operation_hash).toBeNull();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    expect(submitRotateSignerTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("retries a signer update using the saved manager key", async () => {
+    setManagedRegistration();
+    mockGetRpFromContract.mockResolvedValue({
+      initialized: true,
+      manager: "0x0000000000000000000000000000000000000002",
+      signer: "0x0000000000000000000000000000000000000009",
+    });
+    const res = await POST(
+      callTool("retry_world_id_registration", {
+        app_id: appId,
+        environment: "production",
+      }),
+    );
+    expect((await res.json()).error).toBeUndefined();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    expect(submitRotateSignerTransactionMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        managerKmsKeyId: "kms-key-123",
+        newSignerAddress:
+          appContextResponse.app[0].rp_registration[0].signer_address,
+      }),
+    );
+  });
+
+  it("rejects retries for a self-managed RP", async () => {
+    const res = await POST(
+      callTool("retry_world_id_registration", {
+        app_id: appId,
+        environment: "production",
+      }),
+    );
+    expect((await res.json()).error).toMatchObject({
+      code: -32004,
+      data: { reason: "not_managed" },
+    });
+    expect(mockGetRpFromContract).not.toHaveBeenCalled();
+  });
+
+  it("checks app ownership before retrying", async () => {
+    currentAppContextResponse = { app: [] };
+    const res = await POST(
+      callTool("retry_world_id_registration", {
+        app_id: appId,
+        environment: "production",
+      }),
+    );
+    expect((await res.json()).error).toBeDefined();
+    expect(getKMSClientMock).not.toHaveBeenCalled();
+    expect(mockGetRpFromContract).not.toHaveBeenCalled();
+  });
+
+  it("rejects a retry record whose team changed after app authorization", async () => {
+    setManagedRegistration();
+    const defaultRequest = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const response = await defaultRequest(query, variables);
+      if (getOperationName(query) === "GetRpRegistrationForRetry") {
+        response.rp_registration_by_pk.app.team_id = "another-team";
+      }
+      return response;
+    });
+    const res = await POST(
+      callTool("retry_world_id_registration", {
+        app_id: appId,
+        environment: "production",
+      }),
+    );
+    expect((await res.json()).error.code).toBe(-32004);
+    expect(getKMSClientMock).not.toHaveBeenCalled();
+  });
+
+  it.each(["rpc_error", "rp_id_taken"])(
+    "reports %s without resubmitting registration",
+    async (reason) => {
+      setManagedRegistration();
+      if (reason === "rpc_error") {
+        mockGetRpFromContract.mockRejectedValueOnce(
+          new Error("RPC unavailable"),
+        );
+      } else {
+        mockGetRpFromContract.mockResolvedValueOnce({
+          initialized: true,
+          manager: "0x0000000000000000000000000000000000000009",
+        });
+      }
+      const res = await POST(
+        callTool("retry_world_id_registration", {
+          app_id: appId,
+          environment: "production",
+        }),
+      );
+      expect((await res.json()).error).toMatchObject({
+        code: reason === "rpc_error" ? -32603 : -32004,
+        data: { reason },
+      });
+      expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+      expect(submitRotateSignerTransactionMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it("requires an explicit retry environment", async () => {
+    const res = await POST(
+      callTool("retry_world_id_registration", { app_id: appId }),
+    );
+    expect((await res.json()).error.code).toBe(-32602);
+    expect(mockGetRpFromContract).not.toHaveBeenCalled();
+  });
+
+  it.each(["pending", "failed"])(
+    "configure reports %s without submitting or creating keys",
+    async (status) => {
+      setManagedRegistration(status);
+      const res = await POST(callTool("configure_world_id", { app_id: appId }));
+      const body = await res.json();
+      const payload = JSON.parse(body.result.content[0].text);
+      expect(payload.rp_registration.status).toBe(status);
+      expect(payload.signing_key).toBeNull();
+      expect(payload.message).toContain(
+        status === "pending"
+          ? "Poll status_endpoint"
+          : "retry_world_id_registration",
+      );
+      expect(payload.message).not.toContain("already configured");
+      expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+      expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+    },
+  );
+  // #endregion
 
   it("creates an app and logs MCP app creation", async () => {
     const res = await POST(
@@ -673,6 +965,41 @@ describe("/api/mcp", () => {
     const body = await res.json();
     expect(body.error.code).toBe(-32004);
     expect(body.error.data.reason).toBe("already_registered");
+  });
+
+  it("returns the one-time signing key when registration state was retained", async () => {
+    currentAppContextResponse = {
+      app: [{ ...appContextResponse.app[0], rp_registration: [] }],
+    };
+    submitManagedRpRegistrationMock.mockImplementationOnce(
+      async ({ signerAddress }) => ({
+        ok: false,
+        code: "submission_error",
+        detail: "Failed to submit registration transaction.",
+        retainedRegistration: { rpIdString: rpId },
+        signerAddress,
+      }),
+    );
+
+    const res = await POST(callTool("configure_world_id", { app_id: appId }));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32603);
+    expect(body.error.data).toEqual(
+      expect.objectContaining({
+        reason: "submission_error",
+        rp_id: rpId,
+        signer_address: expect.stringMatching(/^0x/),
+        signing_key: expect.objectContaining({
+          private_key: expect.stringMatching(/^0x/),
+        }),
+        status: "pending",
+      }),
+    );
+    expect(body.error.data.signing_key.signer_address).toBe(
+      body.error.data.signer_address,
+    );
   });
 
   it("rotates the signing key via the managed flow when one is missing and rotate_if_unavailable is set", async () => {
