@@ -26,12 +26,7 @@ export const GetLocalesDocument = gql`
         id: { _eq: $id }
         app: {
           team_id: { _eq: $team_id }
-          team: {
-            memberships: {
-              user_id: { _eq: $user_id }
-              role: { _in: [ADMIN, OWNER] }
-            }
-          }
+          team: { memberships: { user_id: { _eq: $user_id } } }
         }
       }
     ) {
