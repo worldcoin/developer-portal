@@ -96,18 +96,6 @@ async function releaseUnexposedRegistration(
   }
 }
 
-async function findRpContract(
-  rpIdString: string,
-  contracts: string[],
-): Promise<string | null> {
-  const rpId = parseRpId(rpIdString);
-  for (const contractAddress of contracts) {
-    const rp = await getRpFromContract(rpId, contractAddress);
-    if (rp.initialized) return contractAddress;
-  }
-  return null;
-}
-
 /** Claims one random RP ID for a new managed or self-managed registration. */
 export async function allocateRpRegistration({
   client,
@@ -130,10 +118,6 @@ export async function allocateRpRegistration({
   }
 
   const stagingConfig = getStagingRpRegistryConfig();
-  const contracts = [
-    primaryConfig.contractAddress,
-    ...(stagingConfig ? [stagingConfig.contractAddress] : []),
-  ];
 
   for (let attempt = 1; attempt <= MAX_RP_ID_ALLOCATION_ATTEMPTS; attempt++) {
     const rpIdString = generateRandomRpIdString();
@@ -178,7 +162,35 @@ export async function allocateRpRegistration({
     }
 
     try {
-      const registeredAt = await findRpContract(rpIdString, contracts);
+      const rpId = parseRpId(rpIdString);
+      const primaryRp = await getRpFromContract(
+        rpId,
+        primaryConfig.contractAddress,
+      );
+      let registeredAt = primaryRp.initialized
+        ? primaryConfig.contractAddress
+        : null;
+
+      if (!registeredAt && stagingConfig) {
+        try {
+          const stagingRp = await getRpFromContract(
+            rpId,
+            stagingConfig.contractAddress,
+          );
+          if (stagingRp.initialized) {
+            registeredAt = stagingConfig.contractAddress;
+          }
+        } catch (error) {
+          // Staging is best-effort; an unavailable mirror must not block the
+          // primary registration. Its submission result determines its status.
+          logger.warn("Failed to check RP ID availability in staging", {
+            error,
+            app_id: appId,
+            rpIdString,
+            contractAddress: stagingConfig.contractAddress,
+          });
+        }
+      }
       if (!registeredAt) {
         return { ok: true, rpIdString };
       }

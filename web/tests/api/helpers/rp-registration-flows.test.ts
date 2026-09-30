@@ -502,6 +502,57 @@ describe("submitManagedRpRegistration", () => {
       "0xstaging",
     );
   });
+
+  it.each([false, true])(
+    "keeps production after a staging read failure when staging submission succeeds: %s",
+    async (stagingSubmitSucceeds) => {
+      process.env.NEXT_PUBLIC_APP_ENV = "production";
+      mockGetStagingRpRegistryConfig.mockReturnValue({
+        contractAddress: "0xstaging",
+        kmsRegion: "us-east-1",
+      });
+      getRpFromContractMock
+        .mockResolvedValueOnce({ initialized: false })
+        .mockRejectedValueOnce(new Error("staging read unavailable"));
+      submitRegisterRpTransactionMock.mockResolvedValueOnce("0xproduction");
+      if (stagingSubmitSucceeds) {
+        submitRegisterRpTransactionMock.mockResolvedValueOnce("0xstaging");
+      } else {
+        submitRegisterRpTransactionMock.mockRejectedValueOnce(
+          new Error("staging submit unavailable"),
+        );
+      }
+
+      const res = await submitManagedRpRegistration(registrationArgs);
+
+      expect(res).toMatchObject({
+        ok: true,
+        rpIdString: rpId,
+        operationHash: "0xproduction",
+        stagingOperationHash: stagingSubmitSucceeds ? "0xstaging" : null,
+        stagingStatus: stagingSubmitSucceeds ? "pending" : "failed",
+      });
+      expect(UpdateRpRegistration).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rp_id: rpId,
+          operation_hash: "0xproduction",
+          staging_status: stagingSubmitSucceeds ? "pending" : "failed",
+        }),
+      );
+      expect(DeleteRpRegistration).not.toHaveBeenCalled();
+      expect(mockGenerateRandomRpIdString).toHaveBeenCalledTimes(1);
+      expect(submitRegisterRpTransactionMock).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ contractAddress: "0xcontract" }),
+        expect.objectContaining({ rpId: numericRpId }),
+      );
+      expect(submitRegisterRpTransactionMock).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ contractAddress: "0xstaging" }),
+        expect.objectContaining({ rpId: numericRpId }),
+      );
+    },
+  );
 });
 // #endregion
 
@@ -1446,7 +1497,7 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
-  it("returns a retryable error and releases the ID when a registry read fails", async () => {
+  it("returns a retryable error and releases the ID when the primary registry read fails", async () => {
     getRpFromContractMock.mockRejectedValue(new Error("rpc timeout"));
 
     const res = await register();
@@ -1454,6 +1505,78 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     expect(res).toMatchObject({ ok: false, code: "rpc_error" });
     expect(DeleteRpRegistration).toHaveBeenCalledWith({ rp_id: rpId });
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it.each(["managed", "self_managed"] as const)(
+    "keeps the allocated ID for %s when staging cannot be read",
+    async (mode) => {
+      mockGetStagingRpRegistryConfig.mockReturnValue({
+        contractAddress: "0xstaging",
+        kmsRegion: "us-east-1",
+      });
+      getRpFromContractMock
+        .mockResolvedValueOnce({ initialized: false })
+        .mockRejectedValueOnce(new Error("staging read unavailable"));
+
+      const res = await allocateRpRegistration({
+        client,
+        appId,
+        mode,
+        signerAddress: mode === "managed" ? signerAddress : null,
+      });
+
+      expect(res).toEqual({ ok: true, rpIdString: rpId });
+      expect(DeleteRpRegistration).not.toHaveBeenCalled();
+      expect(mockGenerateRandomRpIdString).toHaveBeenCalledTimes(1);
+      expect(ClaimRpRegistration).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("returns db_error when a primary read failure cannot release the ID", async () => {
+    getRpFromContractMock.mockRejectedValue(new Error("primary RPC timeout"));
+    DeleteRpRegistration.mockRejectedValue(new Error("db unavailable"));
+
+    const res = await register();
+
+    expect(res).toMatchObject({ ok: false, code: "db_error" });
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("retries an ID occupied only in staging", async () => {
+    const secondId = "rp_0000000000000002";
+    mockGetStagingRpRegistryConfig.mockReturnValue({
+      contractAddress: "0xstaging",
+      kmsRegion: "us-east-1",
+    });
+    mockGenerateRandomRpIdString
+      .mockReturnValueOnce(rpId)
+      .mockReturnValueOnce(secondId);
+    getRpFromContractMock
+      .mockResolvedValueOnce({ initialized: false })
+      .mockResolvedValueOnce({ initialized: true })
+      .mockResolvedValueOnce({ initialized: false })
+      .mockResolvedValueOnce({ initialized: false });
+
+    const res = await allocateRpRegistration({
+      client,
+      appId,
+      mode: "self_managed",
+      signerAddress: null,
+    });
+
+    expect(res).toEqual({ ok: true, rpIdString: secondId });
+    expect(DeleteRpRegistration).toHaveBeenCalledTimes(1);
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({ rp_id: rpId });
+    expect(ClaimRpRegistration).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ rp_id: secondId }),
+    );
+    expect(getRpFromContractMock.mock.calls).toEqual([
+      [numericRpId, "0xcontract"],
+      [numericRpId, "0xstaging"],
+      [2n, "0xcontract"],
+      [2n, "0xstaging"],
+    ]);
   });
 
   it("retries a database primary-key collision with a new random ID", async () => {
