@@ -310,8 +310,6 @@ export async function GET(
     }
   }
 
-  const ageMs = Date.now() - new Date(dbRecord.created_at).getTime();
-  const isPastGracePeriod = ageMs > PENDING_TIMEOUT_MS;
   // updated_at-based grace windows. updated_at is bumped by a fresh retry or an
   // in-flight signer rotation, so both restart these clocks.
   const updatedAgeMs = Date.now() - new Date(dbRecord.updated_at).getTime();
@@ -386,13 +384,13 @@ export async function GET(
     !isAppDeleted &&
     !productionInitialized &&
     currentDbStatus === RpRegistrationStatus.Pending &&
-    isPastGracePeriod &&
+    isPastGracePeriodSinceUpdate &&
     dbRecord.mode === "managed"
   ) {
     logger.warn("RP registration pending timeout — transitioning to failed", {
       rpId,
-      createdAt: dbRecord.created_at,
-      ageMs,
+      updatedAt: dbRecord.updated_at,
+      ageMs: updatedAgeMs,
       operation_hash: dbRecord.operation_hash ?? "null",
     });
 

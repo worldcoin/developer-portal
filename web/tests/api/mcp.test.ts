@@ -179,7 +179,7 @@ const appContextResponse = {
           // Fresh by default, so the untrusted-initialized timeout stays out of
           // scope unless a test opts in with an older timestamp.
           updated_at: new Date().toISOString(),
-          staging_status: null,
+          staging_status: null as string | null,
           actions_v4: [],
         },
       ],
@@ -406,11 +406,19 @@ beforeEach(async () => {
         },
       };
     }
+    if (/Claim(Production|Staging)RpRetry/.test(operationName)) {
+      return {
+        update_rp_registration: {
+          affected_rows: 1,
+          returning: [{ updated_at: "2026-09-30T12:00:00Z" }],
+        },
+      };
+    }
     if (
       operationName.includes("UpdateProductionRetry") ||
       operationName.includes("UpdateStagingRetry")
     ) {
-      return { update_rp_registration_by_pk: { ...variables } };
+      return { update_rp_registration: { affected_rows: 1 } };
     }
     if (operationName.includes("CreateDraft")) {
       return {
@@ -571,6 +579,7 @@ describe("/api/mcp", () => {
             {
               ...appContextResponse.app[0].rp_registration[0],
               mode: "managed",
+              staging_status: status,
               status,
             },
           ],
@@ -578,6 +587,44 @@ describe("/api/mcp", () => {
       ],
     };
   };
+
+  it("rejects MCP retry while production is pending", async () => {
+    setManagedRegistration("pending");
+    const response = await POST(
+      callTool("retry_world_id_registration", {
+        app_id: appId,
+        environment: "production",
+      }),
+    );
+    const body = await response.json();
+    expect(body.error.data.reason).toBe("retry_not_available");
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("returns the sent operation hash to MCP after a persistence failure", async () => {
+    setManagedRegistration();
+    mockGetRpFromContract.mockResolvedValue({ initialized: false });
+    const original = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query, variables) => {
+      if (getOperationName(query) === "UpdateProductionRetry")
+        throw new Error("DB unavailable");
+      return original(query, variables);
+    });
+    const response = await POST(
+      callTool("retry_world_id_registration", {
+        app_id: appId,
+        environment: "production",
+      }),
+    );
+    const body = await response.json();
+    expect(body.error.data).toMatchObject({
+      reason: "db_error",
+      operation_hash: "0xretry-register",
+      environment: "production",
+      status_endpoint: expect.any(String),
+    });
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+  });
 
   it.each(["production", "staging"])(
     "retries %s with the saved RP ID, manager key and signer",
@@ -629,11 +676,13 @@ describe("/api/mcp", () => {
         environment === "production"
           ? {
               rp_id: rpId,
+              claimed_at: "2026-09-30T12:00:00Z",
               operation_hash: "0xretry-register",
               status: "pending",
             }
           : {
               rp_id: rpId,
+              claimed_at: "2026-09-30T12:00:00Z",
               staging_operation_hash: "0xretry-register",
               staging_status: "pending",
             },

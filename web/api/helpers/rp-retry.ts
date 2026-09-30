@@ -1,3 +1,4 @@
+import { getSdk as getClaimRetrySdk } from "@/api/hasura/rp-retry/graphql/claim-rp-retry.generated";
 import { prepareRpManagerKey } from "@/api/helpers/rp-registration-preparation";
 import { getSdk as getRegistrationSdk } from "@/api/hasura/rp-retry/graphql/get-rp-registration.generated";
 import { getKMSClient } from "@/api/helpers/kms";
@@ -35,8 +36,11 @@ export type RpRetryResult =
         | "rp_id_taken"
         | "submission_error"
         | "db_error"
-        | "recovery_not_available";
+        | "recovery_not_available"
+        | "retry_not_available";
       detail: string;
+      operationHash?: string;
+      environment?: RpRetryEnvironment;
     };
 
 /** Caller must authorize access to this registration before retrying it. */
@@ -100,6 +104,19 @@ export async function retryRpRegistration({
       ok: false,
       detail: "Retry is only available for managed mode RPs.",
       code: "not_managed",
+    };
+  }
+
+  const environmentStatus =
+    environment === "production"
+      ? registration.status
+      : registration.staging_status;
+  if (environmentStatus !== "failed") {
+    return {
+      ok: false,
+      code: "retry_not_available",
+      detail:
+        "Retry is only available after this environment fails. Check registration status.",
     };
   }
 
@@ -257,6 +274,60 @@ export async function retryRpRegistration({
     };
   }
 
+  let claimedAt: string | undefined;
+  if (
+    !onChainRp.initialized ||
+    normalizeAddress(onChainRp.signer).toLowerCase() !==
+      normalizeAddress(signerAddress).toLowerCase()
+  ) {
+    try {
+      const args = {
+        rp_id: rpId,
+        manager_key: managerKmsKeyId,
+        signer: signerAddress,
+      };
+      const { update_rp_registration: claim } =
+        environment === "production"
+          ? await getClaimRetrySdk(client).ClaimProductionRpRetry(args)
+          : await getClaimRetrySdk(client).ClaimStagingRpRetry(args);
+      if (claim?.affected_rows !== 1) {
+        return {
+          ok: false,
+          code: "retry_not_available",
+          detail:
+            "Registration changed or another retry is pending. Check registration status.",
+        };
+      }
+      claimedAt = claim.returning[0]?.updated_at;
+      if (!claimedAt)
+        throw new Error("Retry claim did not return its timestamp");
+    } catch (error) {
+      logger.error("Failed to claim RP retry; no operation submitted", {
+        rpId,
+        appId,
+        environment,
+        error,
+      });
+      return {
+        ok: false,
+        code: "db_error",
+        detail:
+          "Could not confirm retry claim. Check registration status before retrying.",
+      };
+    }
+    // The claim invalidates cached failed status before submission, including timeouts.
+    try {
+      await global.RedisClient?.del(`rp_status:v2:${rpId}`);
+    } catch (error) {
+      logger.warn("Failed to clear retry claim cache", {
+        rpId,
+        appId,
+        environment,
+        error,
+      });
+    }
+  }
+
   let operationHash: string | undefined;
 
   if (!onChainRp.initialized) {
@@ -286,7 +357,8 @@ export async function retryRpRegistration({
       });
       return {
         ok: false,
-        detail: "Failed to submit registration transaction.",
+        detail:
+          "Submission could not be confirmed. Check registration status before retrying.",
         code: "submission_error",
       };
     }
@@ -319,7 +391,8 @@ export async function retryRpRegistration({
       });
       return {
         ok: false,
-        detail: "Failed to submit signer update transaction.",
+        detail:
+          "Signer update submission could not be confirmed. Check registration status before retrying.",
         code: "submission_error",
       };
     }
@@ -336,17 +409,27 @@ export async function retryRpRegistration({
   if (operationHash) {
     try {
       if (environment === "production") {
-        await getUpdateProductionRetrySdk(client).UpdateProductionRetry({
+        const result = await getUpdateProductionRetrySdk(
+          client,
+        ).UpdateProductionRetry({
           rp_id: rpId,
+          claimed_at: claimedAt!,
           operation_hash: operationHash,
           status: "pending",
         });
+        if (result.update_rp_registration?.affected_rows !== 1)
+          throw new Error("Retry state update did not affect the claimed row");
       } else {
-        await getUpdateStagingRetrySdk(client).UpdateStagingRetry({
+        const result = await getUpdateStagingRetrySdk(
+          client,
+        ).UpdateStagingRetry({
           rp_id: rpId,
+          claimed_at: claimedAt!,
           staging_operation_hash: operationHash,
           staging_status: "pending",
         });
+        if (result.update_rp_registration?.affected_rows !== 1)
+          throw new Error("Retry state update did not affect the claimed row");
       }
     } catch (error) {
       logger.error("Failed to update retry state in DB", {
@@ -354,8 +437,17 @@ export async function retryRpRegistration({
         appId,
         teamId,
         environment,
+        operationHash,
         error,
       });
+      return {
+        ok: false,
+        code: "db_error",
+        detail:
+          "Retry transaction was submitted, but its state could not be saved. Check registration status before retrying.",
+        operationHash,
+        environment,
+      };
     }
   }
 

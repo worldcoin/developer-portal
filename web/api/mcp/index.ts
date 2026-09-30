@@ -1275,9 +1275,17 @@ const tools = {
         "missing_signer",
         "rp_id_taken",
         "recovery_not_available",
+        "retry_not_available",
       ].includes(result.code);
       throw new McpError(result.detail, callerError ? -32004 : -32603, {
         reason: result.code,
+        ...(result.operationHash
+          ? {
+              operation_hash: result.operationHash,
+              environment: result.environment,
+              status_endpoint: rpStatusEndpoint(registration.rp_id),
+            }
+          : {}),
       });
     }
     return content({

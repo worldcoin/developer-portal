@@ -126,8 +126,22 @@ beforeEach(async () => {
     }
     if (operation.includes("CheckUserInApp"))
       return { team: authorized ? [{ id: teamId }] : [] };
+    if (/Claim(Production|Staging)RpRetry/.test(operation)) {
+      const field = operation.includes("Production")
+        ? "status"
+        : "staging_status";
+      if (record?.[field] !== "failed")
+        return { update_rp_registration: { affected_rows: 0, returning: [] } };
+      record = { ...record!, [field]: "pending" };
+      return {
+        update_rp_registration: {
+          affected_rows: 1,
+          returning: [{ updated_at: "2026-09-30T12:00:00Z" }],
+        },
+      };
+    }
     if (/Update(Production|Staging)Retry/.test(operation))
-      return { update_rp_registration_by_pk: { rp_id: rpId } };
+      return { update_rp_registration: { affected_rows: 1 } };
     throw new Error(`Unexpected query: ${operation}`);
   });
 });
@@ -166,9 +180,15 @@ describe("/api/hasura/rp-retry", () => {
       expect(retryMutations()).toHaveLength(1);
       expect(retryMutations()[0][1]).toEqual(
         environment === "production"
-          ? { rp_id: rpId, operation_hash: "0xregister", status: "pending" }
+          ? {
+              rp_id: rpId,
+              claimed_at: "2026-09-30T12:00:00Z",
+              operation_hash: "0xregister",
+              status: "pending",
+            }
           : {
               rp_id: rpId,
+              claimed_at: "2026-09-30T12:00:00Z",
               staging_operation_hash: "0xregister",
               staging_status: "pending",
             },
@@ -252,6 +272,74 @@ describe("/api/hasura/rp-retry", () => {
     expect(getKMSClientMock).not.toHaveBeenCalled();
   });
 
+  it.each(["production", "staging"])(
+    "rejects pending %s retries without submitting",
+    async (environment) => {
+      record = makeDbRecord({
+        [environment === "production" ? "status" : "staging_status"]: "pending",
+      });
+      const response = await POST(createMockRequest(environment));
+      expect((await response!.json()).extensions.code).toBe(
+        "retry_not_available",
+      );
+      expect(getKMSClientMock).not.toHaveBeenCalled();
+      expect(submitRegisterMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it("allows only one concurrent retry to submit", async () => {
+    const responses = await Promise.all([
+      POST(createMockRequest()),
+      POST(createMockRequest()),
+    ]);
+    expect(responses.map((response) => response!.status).sort()).toEqual([
+      200, 400,
+    ]);
+    expect(submitRegisterMock).toHaveBeenCalledTimes(1);
+    expect(record!.status).toBe("pending");
+  });
+
+  it.each(["production", "staging"])(
+    "returns the submitted hash when %s state persistence fails",
+    async (environment) => {
+      const original = requestMock.getMockImplementation()!;
+      requestMock.mockImplementation((query, variables) => {
+        if (/Update(Production|Staging)Retry/.test(getOperationName(query)))
+          throw new Error("database unavailable");
+        return original(query, variables);
+      });
+      const response = await POST(createMockRequest(environment));
+      expect(response!.status).toBe(400);
+      expect((await response!.json()).extensions).toEqual({
+        code: "db_error",
+        operation_hash: "0xregister",
+        environment,
+      });
+      expect(
+        record![environment === "production" ? "status" : "staging_status"],
+      ).toBe("pending");
+      const second = await POST(createMockRequest(environment));
+      expect((await second!.json()).extensions.code).toBe(
+        "retry_not_available",
+      );
+      expect(submitRegisterMock).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("does not submit when the claim result is uncertain", async () => {
+    const original = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation((query, variables) => {
+      const result = original(query, variables);
+      if (getOperationName(query).includes("ClaimProductionRpRetry"))
+        throw new Error("response timeout");
+      return result;
+    });
+    const response = await POST(createMockRequest());
+    expect((await response!.json()).extensions.code).toBe("db_error");
+    expect(record!.status).toBe("pending");
+    expect(submitRegisterMock).not.toHaveBeenCalled();
+  });
+
   it.each(["kms_error", "rpc_error", "submission_error"])(
     "preserves saved state after %s",
     async (code) => {
@@ -265,7 +353,11 @@ describe("/api/hasura/rp-retry", () => {
       expect(retryMutations()).toHaveLength(0);
       expect(
         requestMock.mock.calls.map(([query]) => getOperationName(query)),
-      ).toEqual(["GetRpRegistrationForRetry", "CheckUserInApp"]);
+      ).toEqual([
+        "GetRpRegistrationForRetry",
+        "CheckUserInApp",
+        ...(code === "submission_error" ? ["ClaimProductionRpRetry"] : []),
+      ]);
     },
   );
 });
@@ -314,7 +406,9 @@ describe("/api/hasura/rp-retry [manager key recovery]", () => {
       record = makeDbRecord({ manager_kms_key_id: null, ...overrides });
       const response = await POST(createMockRequest(environment));
       expect((await response!.json()).extensions.code).toBe(
-        "recovery_not_available",
+        ["pending", "registered"].includes(_label)
+          ? "retry_not_available"
+          : "recovery_not_available",
       );
       expect(createManagerKeyMock).not.toHaveBeenCalled();
       expect(submitRegisterMock).not.toHaveBeenCalled();
@@ -393,6 +487,8 @@ describe("/api/hasura/rp-retry [manager key recovery]", () => {
     const first = await POST(createMockRequest());
     expect((await first!.json()).extensions.code).toBe("submission_error");
     expect(record!.manager_kms_key_id).toBe("recovered-key");
+    expect(record!.status).toBe("pending");
+    record = { ...record!, status: "failed" }; // Status reconciliation expires the uncertain submission.
     const second = await POST(createMockRequest());
     expect(second!.status).toBe(200);
     expect(createManagerKeyMock).toHaveBeenCalledTimes(1);

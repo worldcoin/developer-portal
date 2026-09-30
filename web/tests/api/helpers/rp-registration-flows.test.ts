@@ -190,7 +190,10 @@ beforeEach(async () => {
   GetRpRegistrationForRetry.mockReset();
   await global.RedisClient?.flushall();
   clientRequestMock.mockResolvedValue({
-    update_rp_registration: { affected_rows: 1 },
+    update_rp_registration: {
+      affected_rows: 1,
+      returning: [{ updated_at: "2026-09-30T12:00:00Z" }],
+    },
   });
   // Non-production by default so the staging mirror is out of scope; the
   // staging suite opts in explicitly.

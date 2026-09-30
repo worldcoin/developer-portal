@@ -118,6 +118,10 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: result.detail,
       code: result.code,
+      errorExtensions: {
+        operation_hash: result.operationHash,
+        environment: result.environment,
+      },
       app_id: appId,
       team_id: teamId,
     });

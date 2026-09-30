@@ -156,6 +156,23 @@ describe("/api/v4/rp-status [pending timeout]", () => {
     });
   });
 
+  it("keeps a recent retry pending even when the RP was created long ago", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      }),
+    });
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+    });
+    const response = await GET(createRequest(), ctx);
+    expect((await response.json()).production_status).toBe("pending");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
   it("stays pending within the 5 minute grace period", async () => {
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
     GetRpRegistration.mockResolvedValue({
