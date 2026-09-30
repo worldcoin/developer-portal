@@ -3,13 +3,13 @@ import axios from "axios";
 import {
   createTestApp,
   createTestAppMetadata,
-  createTestLocalisation,
+  createTestLocalization,
   createTestMembership,
   createTestTeam,
   createTestUser,
   deleteTestApp,
   deleteTestAppMetadata,
-  deleteTestLocalisation,
+  deleteTestLocalization,
   deleteTestMembership,
   deleteTestTeam,
   deleteTestUser,
@@ -22,7 +22,7 @@ describe("Hasura API - Get App Review Images", () => {
     let testUserId: string;
     let testMembershipId: string;
     let testMetadataId: string;
-    let testLocalisationId: string;
+    let testLocalizationId: string;
     let testTeamName: string = "Test Team for Review Images";
 
     // Environment variables
@@ -57,8 +57,8 @@ describe("Hasura API - Get App Review Images", () => {
       );
       testMetadataId = metadata.id;
 
-      // Create localisation for Spanish
-      testLocalisationId = await createTestLocalisation(
+      // Create localization for Spanish
+      testLocalizationId = await createTestLocalization(
         testMetadataId,
         "es",
         "Aplicación de Prueba para Imágenes de Revisión",
@@ -117,7 +117,7 @@ describe("Hasura API - Get App Review Images", () => {
 
     afterAll(async () => {
       // Clean up test data
-      await deleteTestLocalisation(testLocalisationId);
+      await deleteTestLocalization(testLocalizationId);
       await deleteTestAppMetadata(testMetadataId);
       await deleteTestApp(testAppId);
       await deleteTestMembership(testMembershipId);

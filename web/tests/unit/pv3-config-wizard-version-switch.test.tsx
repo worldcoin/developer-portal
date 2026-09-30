@@ -74,8 +74,8 @@ jest.mock(
   () => ({ AvailabilityStep: () => null }),
 );
 jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/LocalisedContentStep",
-  () => ({ LocalisedContentStep: () => null }),
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/LocalizedContentStep",
+  () => ({ LocalizedContentStep: () => null }),
 );
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Wizard/ReviewStep",

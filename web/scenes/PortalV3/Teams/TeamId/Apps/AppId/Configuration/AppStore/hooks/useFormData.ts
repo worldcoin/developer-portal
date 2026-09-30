@@ -1,14 +1,14 @@
 import { useMemo } from "react";
 import { AppStoreFormValues } from "../FormSchema/types";
-import { AppMetadata, LocalisationData } from "../types/AppStoreFormTypes";
+import { AppMetadata, LocalizationData } from "../types/AppStoreFormTypes";
 import {
-  getLocalisationFormValues,
+  getLocalizationFormValues,
   transformMailtoToRawEmail,
 } from "../utils/dataTransforms";
 
 export const useFormData = (
   appMetadata: AppMetadata,
-  localisationsData: LocalisationData,
+  localizationsData: LocalizationData,
 ) => {
   const defaultValues = useMemo((): Partial<AppStoreFormValues> => {
     const isSupportEmailDefault =
@@ -25,9 +25,9 @@ export const useFormData = (
         ? undefined
         : appMetadata.support_link,
       support_type: isSupportEmailDefault ? "email" : "link",
-      localisations: getLocalisationFormValues(appMetadata, localisationsData),
+      localisations: getLocalizationFormValues(appMetadata, localizationsData),
     };
-  }, [appMetadata, localisationsData]);
+  }, [appMetadata, localizationsData]);
 
   return {
     defaultValues,

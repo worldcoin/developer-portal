@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import { FetchImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
-import { UpsertLocalisedMetaTagImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/upsert-localised-meta-tag-image.generated";
+import { UpsertLocalizedMetaTagImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/upsert-localized-meta-tag-image.generated";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageUploadField } from "./ImageUploadField";
 import { useMutation, useQuery } from "@apollo/client/react";
-import { appendLocalisationToCache } from "../utils/update-localisations-cache";
+import { appendLocalizationToCache } from "../utils/update-localizations-cache";
 import { useImageSaveStatus } from "./use-image-save-status";
 
 interface MetaTagImageFieldProps {
@@ -61,8 +61,8 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
   const { reportSaving, reportSaved, reportError, reportIdle } =
     useImageSaveStatus(`image:meta-tag:${locale ?? "en"}`);
 
-  const [upsertLocalisedMetaTagImage] = useMutation(
-    UpsertLocalisedMetaTagImageDocument,
+  const [upsertLocalizedMetaTagImage] = useMutation(
+    UpsertLocalizedMetaTagImageDocument,
     {
       // Field values merge themselves through normalization; only list
       // membership for a row that did not exist yet needs handling.
@@ -70,7 +70,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
         const inserted = result.data?.insert_localisations?.returning?.[0];
         if (!variables?.is_localized || !inserted) return;
 
-        appendLocalisationToCache(cache, variables.app_metadata_id, inserted);
+        appendLocalizationToCache(cache, variables.app_metadata_id, inserted);
       },
     },
   );
@@ -91,7 +91,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
 
       reportSaving();
       try {
-        await upsertLocalisedMetaTagImage({
+        await upsertLocalizedMetaTagImage({
           variables: {
             app_metadata_id: appMetadataId,
             meta_tag_image_url: extractedUrl,
@@ -122,7 +122,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     },
     [
       appMetadataId,
-      upsertLocalisedMetaTagImage,
+      upsertLocalizedMetaTagImage,
       supportedLanguages,
       isLocalized,
       locale,
