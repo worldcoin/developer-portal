@@ -40,11 +40,13 @@ type RegisterRpDialogProps = {
   onClose: (value: boolean) => void;
   appId: string;
   onComplete?: () => Promise<void> | void;
+  onRegistrationAttempt?: () => Promise<void> | void;
 };
 
 export const RegisterRpDialog = ({
   appId,
   onComplete,
+  onRegistrationAttempt,
   open,
   onClose: onCloseDialog,
 }: RegisterRpDialogProps) => {
@@ -125,16 +127,21 @@ export const RegisterRpDialog = ({
         });
 
         if (!data?.register_rp) {
-          toast.error("Failed to register Relying Party");
-          return;
+          throw new Error("Registration returned no RP");
         }
 
         await completeRpSetup();
       } catch {
+        try {
+          await onRegistrationAttempt?.();
+        } catch {
+          // The registration may already be pending. The error toast still
+          // leaves the dialog open so the developer can retry the refresh.
+        }
         toast.error("Failed to register Relying Party");
       }
     },
-    [teamId, registerRp, appId, completeRpSetup],
+    [teamId, registerRp, appId, completeRpSetup, onRegistrationAttempt],
   );
 
   return (
@@ -155,6 +162,13 @@ export const RegisterRpDialog = ({
           onBack={onConfigureBack}
           onContinue={onConfigureContinue}
           initialSetup={signerKeySetup}
+          notice={
+            <p className="font-world text-14 leading-[1.5] text-portal-muted">
+              This creates a new RP with a new ID. Existing on-chain RPs are not
+              imported. Switching an existing integration to this ID changes
+              users’ nullifiers.
+            </p>
+          }
         />
       )}
       {step === "use-existing-key" && (

@@ -202,3 +202,23 @@ it("PortalV3 registers the relying party in managed mode", async () => {
 
   await waitFor(() => expect(onClose).toHaveBeenCalledWith(false));
 });
+
+it("refreshes RP state when registration returns an error", async () => {
+  mockKeyStepReady = true;
+  registerRp.mockRejectedValue(new Error("submission timeout"));
+  const onRegistrationAttempt = jest.fn();
+
+  render(
+    <PortalV3Dialog
+      appId="app_00000000000000000000000000000000"
+      onRegistrationAttempt={onRegistrationAttempt}
+      onClose={jest.fn()}
+      open
+    />,
+  );
+
+  fireEvent.click(screen.getByTestId("button-configure-signer-key-continue"));
+  fireEvent.click(await screen.findByTestId("generate-key-step"));
+
+  await waitFor(() => expect(onRegistrationAttempt).toHaveBeenCalledTimes(1));
+});
