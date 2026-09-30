@@ -975,7 +975,7 @@ const REGISTRATION_FLOW_RPC_CODE: Record<
 > = {
   staging_not_supported: -32004,
   already_registered: -32004,
-  rp_id_taken: -32004,
+  rpc_error: -32603,
   config_error: -32603,
   kms_error: -32603,
   submission_error: -32603,

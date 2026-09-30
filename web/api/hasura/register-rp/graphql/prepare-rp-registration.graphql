@@ -1,0 +1,17 @@
+mutation PrepareRpRegistration(
+  $rp_id: String!
+  $manager_kms_key_id: String!
+  $is_unique_manager_key: Boolean!
+) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: {
+      manager_kms_key_id: $manager_kms_key_id
+      is_unique_manager_key: $is_unique_manager_key
+    }
+  ) {
+    rp_id
+    manager_kms_key_id
+    is_unique_manager_key
+  }
+}

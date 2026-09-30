@@ -1,10 +1,12 @@
 import {
+  allocateRpRegistration,
   submitManagedRpDeactivation,
   submitManagedRpRegistration,
   submitManagedSignerRotation,
 } from "@/api/helpers/rp-registration-flows";
 import { scheduleKeyDeletion } from "@/api/helpers/kms";
 import { createManagerKey, getEthAddressFromKMS } from "@/api/helpers/kms-eth";
+import { generateRpId } from "@/lib/rp";
 
 // #region Mocks
 const GetRpRegistration = jest.fn();
@@ -23,6 +25,12 @@ const DeleteRpRegistration = jest.fn();
 jest.mock(
   "@/api/hasura/register-rp/graphql/delete-rp-registration.generated",
   () => ({ getSdk: () => ({ DeleteRpRegistration }) }),
+);
+
+const PrepareRpRegistration = jest.fn();
+jest.mock(
+  "@/api/hasura/register-rp/graphql/prepare-rp-registration.generated",
+  () => ({ getSdk: () => ({ PrepareRpRegistration }) }),
 );
 
 const UpdateRpRegistration = jest.fn();
@@ -118,13 +126,14 @@ jest.mock("@/api/helpers/kms-eth", () => ({
 
 const mockGetRpRegistryConfig = jest.fn();
 const mockGetStagingRpRegistryConfig = jest.fn();
+const mockGenerateRandomRpIdString = jest.fn();
 jest.mock("@/api/helpers/rp-utils", () => {
   const actual = jest.requireActual("@/api/helpers/rp-utils");
   return {
     ...actual,
     getRpRegistryConfig: () => mockGetRpRegistryConfig(),
     getStagingRpRegistryConfig: () => mockGetStagingRpRegistryConfig(),
-    parseRpId: () => 123n,
+    generateRandomRpIdString: () => mockGenerateRandomRpIdString(),
   };
 });
 
@@ -138,6 +147,7 @@ const clientRequestMock = jest.fn();
 const client = { request: clientRequestMock } as never;
 const appId = "app_00000000000000000000000000000001";
 const rpId = "rp_0123456789abcdef";
+const numericRpId = 0x0123456789abcdefn;
 
 const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
   rp_id: rpId,
@@ -212,8 +222,12 @@ beforeEach(async () => {
   ClaimRpRegistration.mockResolvedValue({
     insert_rp_registration_one: { rp_id: rpId },
   });
+  mockGenerateRandomRpIdString.mockReturnValue(rpId);
   DeleteRpRegistration.mockResolvedValue({
     delete_rp_registration_by_pk: { rp_id: rpId },
+  });
+  PrepareRpRegistration.mockResolvedValue({
+    update_rp_registration_by_pk: { rp_id: rpId },
   });
   UpdateRpRegistration.mockResolvedValue({
     update_rp_registration_by_pk: { rp_id: rpId },
@@ -242,7 +256,7 @@ describe("submitManagedRpRegistration", () => {
 
   // A first-time registration means the rp_id is still free on-chain. The
   // top-level default models an already-registered RP for the rotation and
-  // deactivation suites, which the collision guard would reject as foreign.
+  // deactivation suites, which the allocation collision check would reject.
   beforeEach(() => {
     getRpFromContractMock.mockResolvedValue({
       initialized: false,
@@ -281,6 +295,14 @@ describe("submitManagedRpRegistration", () => {
       staging_operation_hash: null,
       staging_status: null,
     });
+    expect(PrepareRpRegistration).toHaveBeenCalledWith({
+      rp_id: rpId,
+      manager_kms_key_id: sharedManagerKeyArn,
+      is_unique_manager_key: false,
+    });
+    expect(PrepareRpRegistration.mock.invocationCallOrder[0]).toBeLessThan(
+      submitRegisterRpTransactionMock.mock.invocationCallOrder[0],
+    );
     expect(scheduleKeyDeletion).not.toHaveBeenCalled();
   });
 
@@ -295,11 +317,13 @@ describe("submitManagedRpRegistration", () => {
       ok: false,
       code: "submission_error",
       detail: "Failed to submit registration transaction.",
+      retainedRegistration: { rpIdString: rpId },
     });
     expect(scheduleKeyDeletion).not.toHaveBeenCalled();
-    expect(DeleteRpRegistration).toHaveBeenCalledWith({
-      rp_id: expect.stringMatching(/^rp_/),
-    });
+    expect(DeleteRpRegistration).not.toHaveBeenCalled();
+    expect(PrepareRpRegistration).toHaveBeenCalledWith(
+      expect.objectContaining({ manager_kms_key_id: sharedManagerKeyArn }),
+    );
   });
 
   it("aborts before any KMS or on-chain work when is_unique_manager_key is missing", async () => {
@@ -357,7 +381,7 @@ describe("submitManagedRpRegistration", () => {
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
-  it("creates a dedicated key and deletes it when registration submission fails", async () => {
+  it("preserves a dedicated key and RP ID when submission is uncertain", async () => {
     submitRegisterRpTransactionMock.mockRejectedValue(new Error("boom"));
 
     const res = await submitManagedRpRegistration(registrationArgs);
@@ -366,14 +390,17 @@ describe("submitManagedRpRegistration", () => {
       ok: false,
       code: "submission_error",
       detail: "Failed to submit registration transaction.",
+      retainedRegistration: { rpIdString: rpId },
     });
-    expect(scheduleKeyDeletion).toHaveBeenCalledWith(
-      expect.anything(),
-      dedicatedManagerKeyId,
+    expect(PrepareRpRegistration).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rp_id: rpId,
+        manager_kms_key_id: dedicatedManagerKeyId,
+        is_unique_manager_key: true,
+      }),
     );
-    expect(DeleteRpRegistration).toHaveBeenCalledWith({
-      rp_id: expect.stringMatching(/^rp_/),
-    });
+    expect(scheduleKeyDeletion).not.toHaveBeenCalled();
+    expect(DeleteRpRegistration).not.toHaveBeenCalled();
   });
 
   it("persists is_unique_manager_key true for a dedicated key", async () => {
@@ -389,6 +416,39 @@ describe("submitManagedRpRegistration", () => {
     );
   });
 
+  it("returns recovery state when the post-submission DB write fails", async () => {
+    UpdateRpRegistration.mockRejectedValue(new Error("db unavailable"));
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toEqual({
+      ok: false,
+      code: "db_error",
+      detail: "Failed to update registration record.",
+      retainedRegistration: {
+        rpIdString: rpId,
+        operationHash: "0xregophash",
+      },
+    });
+    expect(DeleteRpRegistration).not.toHaveBeenCalled();
+  });
+
+  it("releases the RP ID and dedicated key when manager-key persistence fails", async () => {
+    PrepareRpRegistration.mockResolvedValue({
+      update_rp_registration_by_pk: null,
+    });
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toMatchObject({ ok: false, code: "db_error" });
+    expect(scheduleKeyDeletion).toHaveBeenCalledWith(
+      expect.anything(),
+      dedicatedManagerKeyId,
+    );
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({ rp_id: rpId });
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
   it("keeps creating dedicated keys when ENABLE is unset even if ARN is present", async () => {
     process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID = sharedManagerKeyArn;
 
@@ -402,6 +462,44 @@ describe("submitManagedRpRegistration", () => {
         manager_kms_key_id: dedicatedManagerKeyId,
         is_unique_manager_key: true,
       }),
+    );
+  });
+
+  it("uses one ID across registries and keeps production when staging submit fails", async () => {
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    mockGetStagingRpRegistryConfig.mockReturnValue({
+      contractAddress: "0xstaging",
+      kmsRegion: "us-east-1",
+    });
+    submitRegisterRpTransactionMock
+      .mockResolvedValueOnce("0xproduction")
+      .mockRejectedValueOnce(new Error("staging unavailable"));
+
+    const res = await submitManagedRpRegistration(registrationArgs);
+
+    expect(res).toMatchObject({
+      ok: true,
+      operationHash: "0xproduction",
+      stagingOperationHash: null,
+      stagingStatus: "failed",
+    });
+    expect(submitRegisterRpTransactionMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ contractAddress: "0xcontract" }),
+      expect.objectContaining({ rpId: numericRpId }),
+    );
+    expect(submitRegisterRpTransactionMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ contractAddress: "0xstaging" }),
+      expect.objectContaining({ rpId: numericRpId }),
+    );
+    expect(getRpFromContractMock).toHaveBeenCalledWith(
+      numericRpId,
+      "0xcontract",
+    );
+    expect(getRpFromContractMock).toHaveBeenCalledWith(
+      numericRpId,
+      "0xstaging",
     );
   });
 });
@@ -1273,32 +1371,47 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
   });
 
-  it("refuses to register an rp_id already claimed on-chain by a foreign party", async () => {
-    getRpFromContractMock.mockResolvedValue({
-      initialized: true,
-      active: true,
-      manager: "0x00000000000000000000000000000000000000ff",
-      signer: "0x00000000000000000000000000000000000000ee",
-    });
+  it.each(["managed", "self_managed"] as const)(
+    "allocates a new %s RP when the legacy ID is occupied",
+    async (mode) => {
+      const legacyRpId = generateRpId(appId);
+      mockGetStagingRpRegistryConfig.mockReturnValue({
+        contractAddress: "0xstaging",
+        kmsRegion: "us-east-1",
+      });
+      getRpFromContractMock.mockImplementation(async (id: bigint) => ({
+        initialized: id === legacyRpId,
+      }));
 
-    const res = await register();
+      const res =
+        mode === "managed"
+          ? await register()
+          : await allocateRpRegistration({
+              client,
+              appId,
+              mode,
+              signerAddress: null,
+            });
 
-    expect(res).toMatchObject({ ok: false, code: "rp_id_taken" });
-    // The guard runs before we spend a KMS manager key or submit a UserOp the
-    // contract would reject with IdAlreadyInUse...
-    expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
-    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
-    // ...and releases the slot it claimed, so a later attempt is not answered
-    // with `already_registered` for a row that never registered anything.
-    expect(DeleteRpRegistration).toHaveBeenCalledWith({
-      rp_id: expect.stringMatching(/^rp_/),
-    });
-  });
+      expect(res).toMatchObject({ ok: true, rpIdString: rpId });
+      expect(numericRpId).not.toBe(legacyRpId);
+      expect(getRpFromContractMock.mock.calls).toEqual([
+        [numericRpId, "0xcontract"],
+        [numericRpId, "0xstaging"],
+      ]);
+      expect(DeleteRpRegistration).not.toHaveBeenCalled();
+      if (mode === "managed") {
+        expect(submitRegisterRpTransactionMock).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({ rpId: numericRpId }),
+        );
+      } else {
+        expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+      }
+    },
+  );
 
-  it("reports already_registered, not rp_id_taken, for an app the Portal already registered", async () => {
-    // A live managed RP reads as initialized on-chain exactly like a squatter's,
-    // so checking the chain before the DB claim would answer a repeat
-    // registration of a healthy app with a contact-support message.
+  it("preserves an existing Portal registration without checking the registry", async () => {
     ClaimRpRegistration.mockResolvedValue({
       insert_rp_registration_one: null,
     });
@@ -1316,10 +1429,7 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     expect(getRpFromContractMock).not.toHaveBeenCalled();
   });
 
-  it("still reports rp_id_taken when releasing the slot fails", async () => {
-    // The read's non-fatal catch must not extend over the slot release: swallowing
-    // that failure would fall through to KMS and a UserOp for an rp_id already
-    // proven taken, which is the wedged row this check exists to prevent.
+  it("reports db_error when an on-chain collision cannot release the new ID", async () => {
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
@@ -1330,20 +1440,109 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
 
     const res = await register();
 
-    expect(res).toMatchObject({ ok: false, code: "rp_id_taken" });
+    expect(res).toMatchObject({ ok: false, code: "db_error" });
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({ rp_id: rpId });
     expect(createManagerKey as jest.Mock).not.toHaveBeenCalled();
     expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
   });
 
-  it("registers anyway when the on-chain pre-check read fails", async () => {
-    // The pre-check is a UX guard, not the security boundary (status
-    // reconciliation is), so a transient RPC failure must not block onboarding.
+  it("returns a retryable error and releases the ID when a registry read fails", async () => {
     getRpFromContractMock.mockRejectedValue(new Error("rpc timeout"));
 
     const res = await register();
 
-    expect(res).toMatchObject({ ok: true });
-    expect(submitRegisterRpTransactionMock).toHaveBeenCalledTimes(1);
+    expect(res).toMatchObject({ ok: false, code: "rpc_error" });
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({ rp_id: rpId });
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("retries a database primary-key collision with a new random ID", async () => {
+    const firstId = "rp_0000000000000001";
+    const secondId = "rp_0000000000000002";
+    mockGenerateRandomRpIdString
+      .mockReturnValueOnce(firstId)
+      .mockReturnValueOnce(secondId);
+    ClaimRpRegistration.mockRejectedValueOnce({
+      response: {
+        errors: [
+          {
+            message:
+              'duplicate key value violates unique constraint "rp_registration_pkey"',
+            extensions: { code: "constraint-violation" },
+          },
+        ],
+      },
+    }).mockResolvedValueOnce({
+      insert_rp_registration_one: { rp_id: secondId },
+    });
+    getRpFromContractMock.mockResolvedValue({ initialized: false });
+
+    const res = await allocateRpRegistration({
+      client,
+      appId,
+      mode: "self_managed",
+      signerAddress: null,
+    });
+
+    expect(res).toEqual({ ok: true, rpIdString: secondId });
+    expect(ClaimRpRegistration).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ rp_id: firstId }),
+    );
+    expect(ClaimRpRegistration).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ rp_id: secondId }),
+    );
+  });
+
+  it("retries a random ID already present on-chain", async () => {
+    const firstId = "rp_0000000000000001";
+    const secondId = "rp_0000000000000002";
+    mockGenerateRandomRpIdString
+      .mockReturnValueOnce(firstId)
+      .mockReturnValueOnce(secondId);
+    getRpFromContractMock
+      .mockResolvedValueOnce({ initialized: true })
+      .mockResolvedValueOnce({ initialized: false });
+
+    const res = await allocateRpRegistration({
+      client,
+      appId,
+      mode: "self_managed",
+      signerAddress: null,
+    });
+
+    expect(res).toEqual({ ok: true, rpIdString: secondId });
+    expect(DeleteRpRegistration).toHaveBeenCalledWith({ rp_id: firstId });
+    expect(ClaimRpRegistration).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ rp_id: secondId }),
+    );
+  });
+
+  it("stops after five database ID collisions", async () => {
+    ClaimRpRegistration.mockRejectedValue({
+      response: {
+        errors: [
+          {
+            message:
+              'duplicate key value violates unique constraint "rp_registration_pkey"',
+            extensions: { code: "constraint-violation" },
+          },
+        ],
+      },
+    });
+
+    const res = await allocateRpRegistration({
+      client,
+      appId,
+      mode: "self_managed",
+      signerAddress: null,
+    });
+
+    expect(res).toMatchObject({ ok: false, code: "db_error" });
+    expect(ClaimRpRegistration).toHaveBeenCalledTimes(5);
+    expect(getRpFromContractMock).not.toHaveBeenCalled();
   });
 });
 // #endregion
