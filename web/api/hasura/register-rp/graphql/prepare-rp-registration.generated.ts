@@ -6,36 +6,39 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type PrepareRpRegistrationMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
+  app_id: Types.Scalars["String"]["input"];
   manager_kms_key_id: Types.Scalars["String"]["input"];
   is_unique_manager_key: Types.Scalars["Boolean"]["input"];
 }>;
 
 export type PrepareRpRegistrationMutation = {
   __typename?: "mutation_root";
-  update_rp_registration_by_pk?: {
-    __typename?: "rp_registration";
-    rp_id: string;
-    manager_kms_key_id?: string | null;
-    is_unique_manager_key: boolean;
+  update_rp_registration?: {
+    __typename?: "rp_registration_mutation_response";
+    affected_rows: number;
   } | null;
 };
 
 export const PrepareRpRegistrationDocument = gql`
   mutation PrepareRpRegistration(
     $rp_id: String!
+    $app_id: String!
     $manager_kms_key_id: String!
     $is_unique_manager_key: Boolean!
   ) {
-    update_rp_registration_by_pk(
-      pk_columns: { rp_id: $rp_id }
+    update_rp_registration(
+      where: {
+        rp_id: { _eq: $rp_id }
+        app_id: { _eq: $app_id }
+        mode: { _eq: managed }
+        manager_kms_key_id: { _is_null: true }
+      }
       _set: {
         manager_kms_key_id: $manager_kms_key_id
         is_unique_manager_key: $is_unique_manager_key
       }
     ) {
-      rp_id
-      manager_kms_key_id
-      is_unique_manager_key
+      affected_rows
     }
   }
 `;

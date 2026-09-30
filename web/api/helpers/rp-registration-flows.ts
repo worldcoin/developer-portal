@@ -11,7 +11,7 @@
 
 import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
 import { getSdk as getDeleteRpSdk } from "@/api/hasura/register-rp/graphql/delete-rp-registration.generated";
-import { getSdk as getPrepareRpSdk } from "@/api/hasura/register-rp/graphql/prepare-rp-registration.generated";
+import { prepareRpManagerKey } from "@/api/helpers/rp-registration-preparation";
 import { getSdk as getUpdateRpSdk } from "@/api/hasura/register-rp/graphql/update-rp-registration.generated";
 import { getSdk as getClaimRotationSdk } from "@/api/hasura/rotate-signer-key/graphql/claim-rotation-slot.generated";
 import { getSdk as getRpRegistrationSdk } from "@/api/hasura/rotate-signer-key/graphql/get-rp-registration.generated";
@@ -27,7 +27,6 @@ import {
   abortIfManagerKeyMigrationInFlight,
   assertManagerKeySchemaReady,
   resolveManagerKeyForDeactivation,
-  resolveManagerKeyForRegistration,
 } from "@/api/helpers/rp-manager-key-migration";
 import {
   submitRegisterRpTransaction,
@@ -56,6 +55,7 @@ export type RpRegistrationAllocationResult =
       ok: false;
       code: "config_error" | "already_registered" | "rpc_error" | "db_error";
       detail: string;
+      retainedRegistration?: { rpIdString: string };
     };
 
 function isRpIdPrimaryKeyCollision(error: unknown): boolean {
@@ -84,8 +84,9 @@ async function releaseUnexposedRegistration(
   try {
     const result = await getDeleteRpSdk(client).DeleteRpRegistration({
       rp_id: rpIdString,
+      app_id: appId,
     });
-    return Boolean(result.delete_rp_registration_by_pk);
+    return result.delete_rp_registration?.affected_rows === 1;
   } catch (error) {
     logger.error("Failed to release unexposed RP registration", {
       error,
@@ -218,6 +219,7 @@ export async function allocateRpRegistration({
         detail: released
           ? "Failed to check RP ID availability on-chain."
           : "Failed to release an RP ID after an on-chain check failed.",
+        ...(!released ? { retainedRegistration: { rpIdString } } : {}),
       };
     }
 
@@ -226,6 +228,7 @@ export async function allocateRpRegistration({
         ok: false,
         code: "db_error",
         detail: "Failed to release a colliding RP ID.",
+        retainedRegistration: { rpIdString },
       };
     }
   }
@@ -318,11 +321,16 @@ export async function submitManagedRpRegistration({
   // here rather than after the on-chain transaction has been submitted.
   // TODO: remove after the RP manager key migration completes
   if (!(await assertManagerKeySchemaReady(client, rpIdString, appId))) {
-    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    const released = await releaseUnexposedRegistration(
+      client,
+      rpIdString,
+      appId,
+    );
     return {
       ok: false,
       code: "db_error",
       detail: "Registration schema is not ready.",
+      ...(!released ? { retainedRegistration: { rpIdString } } : {}),
     };
   }
 
@@ -334,11 +342,16 @@ export async function submitManagedRpRegistration({
       error,
       app_id: appId,
     });
-    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    const released = await releaseUnexposedRegistration(
+      client,
+      rpIdString,
+      appId,
+    );
     return {
       ok: false,
-      code: "kms_error",
+      code: released ? "kms_error" : "db_error",
       detail: "Failed to initialize KMS client.",
+      ...(!released ? { retainedRegistration: { rpIdString } } : {}),
     };
   }
 
@@ -348,47 +361,37 @@ export async function submitManagedRpRegistration({
   // derived here and again later by resolveManagerAddress for the ownership
   // check. If only one of them expands a bare key ID against the registry
   // region, the two addresses disagree and every managed RP reads as `unknown`.
-  const managerKey = await resolveManagerKeyForRegistration({
+  const managerKey = await prepareRpManagerKey({
+    client,
     kmsClient,
     kmsRegion: primaryConfig.kmsRegion,
     rpIdString,
     appId,
   });
   if (!managerKey.ok) {
-    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    if (
+      managerKey.code === "db_error" ||
+      ("retained" in managerKey && managerKey.retained)
+    ) {
+      return { ...managerKey, retainedRegistration: { rpIdString } };
+    }
+    const released = await releaseUnexposedRegistration(
+      client,
+      rpIdString,
+      appId,
+    );
+    if (!released) {
+      return {
+        ok: false,
+        code: "db_error",
+        detail:
+          "Failed to release unprepared registration. Retry registration.",
+        retainedRegistration: { rpIdString },
+      };
+    }
     return managerKey;
   }
   const { managerKmsKeyId, managerAddress, isUniqueManagerKey } = managerKey;
-
-  let preparedRegistration;
-  try {
-    const { update_rp_registration_by_pk } = await getPrepareRpSdk(
-      client,
-    ).PrepareRpRegistration({
-      rp_id: rpIdString,
-      manager_kms_key_id: managerKmsKeyId,
-      is_unique_manager_key: isUniqueManagerKey,
-    });
-    preparedRegistration = update_rp_registration_by_pk;
-  } catch (error) {
-    logger.error("Failed to persist manager key before registration", {
-      error,
-      app_id: appId,
-      rpIdString,
-    });
-  }
-
-  if (!preparedRegistration) {
-    if (isUniqueManagerKey) {
-      await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
-    }
-    await releaseUnexposedRegistration(client, rpIdString, appId);
-    return {
-      ok: false,
-      code: "db_error",
-      detail: "Failed to prepare registration record.",
-    };
-  }
 
   let operationHash: string;
   try {

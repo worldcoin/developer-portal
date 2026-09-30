@@ -53,13 +53,17 @@ jest.mock("../../api/helpers/rp-registration-flows", () => ({
 }));
 
 const getKMSClientMock = jest.fn();
+const createManagerKeyMock = jest.fn();
+const scheduleKeyDeletionMock = jest.fn();
 const getEthAddressFromKMSMock = jest.fn();
 const submitRegisterRpTransactionMock = jest.fn();
 const submitRotateSignerTransactionMock = jest.fn();
 jest.mock("../../api/helpers/kms", () => ({
   getKMSClient: (...args: unknown[]) => getKMSClientMock(...args),
+  scheduleKeyDeletion: (...args: unknown[]) => scheduleKeyDeletionMock(...args),
 }));
 jest.mock("../../api/helpers/kms-eth", () => ({
+  createManagerKey: (...args: unknown[]) => createManagerKeyMock(...args),
   getEthAddressFromKMS: (...args: unknown[]) =>
     getEthAddressFromKMSMock(...args),
 }));
@@ -676,6 +680,49 @@ describe("/api/mcp", () => {
           appContextResponse.app[0].rp_registration[0].signer_address,
       }),
     );
+  });
+
+  it("recovers a missing manager key through the MCP retry command", async () => {
+    setManagedRegistration();
+    delete process.env.ENABLE_SHARED_KEY_RP_REGISTRATION;
+    const saved = currentAppContextResponse.app[0].rp_registration[0];
+    Object.assign(saved, {
+      manager_kms_key_id: null,
+      operation_hash: null,
+      staging_operation_hash: null,
+    });
+    createManagerKeyMock.mockResolvedValueOnce({
+      keyId: "recovered-key",
+      address: "0x0000000000000000000000000000000000000002",
+    });
+    mockGetRpFromContract.mockResolvedValue({ initialized: false });
+    const original = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation((query, variables) => {
+      if (getOperationName(query).includes("PrepareRpRegistration")) {
+        Object.assign(saved, {
+          manager_kms_key_id: variables.manager_kms_key_id,
+        });
+        return { update_rp_registration: { affected_rows: 1 } };
+      }
+      return original(query, variables);
+    });
+    const res = await POST(
+      callTool("retry_world_id_registration", {
+        app_id: appId,
+        environment: "production",
+      }),
+    );
+    const body = await res.json();
+    expect(body.error).toBeUndefined();
+    expect(saved.manager_kms_key_id).toBe("recovered-key");
+    expect(submitRegisterRpTransactionMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        rpId: BigInt("0x" + saved.rp_id.slice(3)),
+        signerAddress: saved.signer_address,
+      }),
+    );
+    expect(scheduleKeyDeletionMock).not.toHaveBeenCalled();
   });
 
   it("rejects retries for a self-managed RP", async () => {

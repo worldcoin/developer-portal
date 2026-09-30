@@ -4,6 +4,8 @@ import { NextRequest } from "next/server";
 // #region Mocks
 const requestMock = jest.fn();
 const getKMSClientMock = jest.fn();
+const createManagerKeyMock = jest.fn();
+const scheduleKeyDeletionMock = jest.fn();
 const getEthAddressFromKMSMock = jest.fn();
 const getRpFromContractMock = jest.fn();
 const submitRegisterMock = jest.fn();
@@ -16,8 +18,10 @@ jest.mock("@/lib/logger", () => ({
 }));
 jest.mock("@/api/helpers/kms", () => ({
   getKMSClient: (...args: unknown[]) => getKMSClientMock(...args),
+  scheduleKeyDeletion: (...args: unknown[]) => scheduleKeyDeletionMock(...args),
 }));
 jest.mock("@/api/helpers/kms-eth", () => ({
+  createManagerKey: (...args: unknown[]) => createManagerKeyMock(...args),
   getEthAddressFromKMS: (...args: unknown[]) =>
     getEthAddressFromKMSMock(...args),
 }));
@@ -46,6 +50,9 @@ const makeDbRecord = (overrides = {}) => ({
   staging_status: "failed",
   signer_address: signer,
   manager_kms_key_id: "saved-key",
+  is_unique_manager_key: true,
+  operation_hash: null,
+  staging_operation_hash: null,
   app: { id: appId, team_id: teamId, app_metadata: [{ name: "Test App" }] },
   ...overrides,
 });
@@ -74,6 +81,11 @@ const retryMutations = () =>
 
 beforeEach(async () => {
   jest.clearAllMocks();
+  delete process.env.ENABLE_SHARED_KEY_RP_REGISTRATION;
+  createManagerKeyMock.mockResolvedValue({
+    keyId: "recovered-key",
+    address: manager,
+  });
   await (global.RedisClient as { flushall: () => Promise<unknown> }).flushall();
   Object.assign(process.env, {
     INTERNAL_ENDPOINTS_SECRET: "internal-secret",
@@ -105,6 +117,13 @@ beforeEach(async () => {
     const operation = getOperationName(query);
     if (operation.includes("GetRpRegistrationForRetry"))
       return { rp_registration_by_pk: record };
+    if (operation.includes("PrepareRpRegistration")) {
+      if (!record?.manager_kms_key_id) {
+        record = { ...record!, manager_kms_key_id: "recovered-key" };
+        return { update_rp_registration: { affected_rows: 1 } };
+      }
+      return { update_rp_registration: { affected_rows: 0 } };
+    }
     if (operation.includes("CheckUserInApp"))
       return { team: authorized ? [{ id: teamId }] : [] };
     if (/Update(Production|Staging)Retry/.test(operation))
@@ -249,5 +268,135 @@ describe("/api/hasura/rp-retry", () => {
       ).toEqual(["GetRpRegistrationForRetry", "CheckUserInApp"]);
     },
   );
+});
+// #endregion
+
+// #region Missing manager key recovery
+describe("/api/hasura/rp-retry [manager key recovery]", () => {
+  beforeEach(() => {
+    record = makeDbRecord({ manager_kms_key_id: null });
+  });
+
+  it("recovers an interrupted allocation with its saved ID and signer", async () => {
+    const response = await POST(createMockRequest());
+    expect(response!.status).toBe(200);
+    expect(record!.manager_kms_key_id).toBe("recovered-key");
+    const prepareCall = requestMock.mock.calls.findIndex(([q]) =>
+      getOperationName(q).includes("PrepareRpRegistration"),
+    );
+    expect(prepareCall).toBeGreaterThan(-1);
+    expect(requestMock.mock.invocationCallOrder[prepareCall]).toBeLessThan(
+      submitRegisterMock.mock.invocationCallOrder[0],
+    );
+    expect(submitRegisterMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        rpId: 0x0123456789abcdefn,
+        signerAddress: signer,
+        managerAddress: manager,
+      }),
+    );
+  });
+
+  it.each([
+    ["pending", { status: "pending" }, "production"],
+    ["registered", { status: "registered" }, "production"],
+    ["production operation", { operation_hash: "0xoperation" }, "production"],
+    [
+      "staging operation",
+      { staging_operation_hash: "0xoperation" },
+      "production",
+    ],
+    ["staging retry", {}, "staging"],
+  ])(
+    "does not prepare a key for %s",
+    async (_label, overrides, environment) => {
+      record = makeDbRecord({ manager_kms_key_id: null, ...overrides });
+      const response = await POST(createMockRequest(environment));
+      expect((await response!.json()).extensions.code).toBe(
+        "recovery_not_available",
+      );
+      expect(createManagerKeyMock).not.toHaveBeenCalled();
+      expect(submitRegisterMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it("refuses recovery for an initialized contract", async () => {
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      manager,
+      signer,
+    });
+    const response = await POST(createMockRequest());
+    expect((await response!.json()).extensions.code).toBe(
+      "recovery_not_available",
+    );
+    expect(createManagerKeyMock).not.toHaveBeenCalled();
+    expect(submitRotateMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps the record unchanged when the recovery contract read fails", async () => {
+    getRpFromContractMock.mockRejectedValue(new Error("rpc timeout"));
+    const response = await POST(createMockRequest());
+    expect((await response!.json()).extensions.code).toBe("rpc_error");
+    expect(record!.manager_kms_key_id).toBeNull();
+    expect(createManagerKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("uses a key saved between the handler read and the recovery reread", async () => {
+    const original = requestMock.getMockImplementation()!;
+    let reads = 0;
+    requestMock.mockImplementation((q, vars) => {
+      if (
+        getOperationName(q).includes("GetRpRegistrationForRetry") &&
+        ++reads === 2
+      ) {
+        record = makeDbRecord({ manager_kms_key_id: "competing-key" });
+      }
+      return original(q, vars);
+    });
+    const response = await POST(createMockRequest());
+    expect(response!.status).toBe(200);
+    expect(createManagerKeyMock).not.toHaveBeenCalled();
+    expect(getEthAddressFromKMSMock).toHaveBeenCalledWith(
+      {},
+      "competing-key",
+      "us-east-1",
+    );
+  });
+
+  it("retains a key saved by a timed-out mutation and uses it on the next retry", async () => {
+    const original = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (q, vars) => {
+      const result = await original(q, vars);
+      if (getOperationName(q).includes("PrepareRpRegistration"))
+        throw new Error("response timeout");
+      return result;
+    });
+    const first = await POST(createMockRequest());
+    expect((await first!.json()).extensions.code).toBe("db_error");
+    expect(scheduleKeyDeletionMock).not.toHaveBeenCalled();
+    expect(submitRegisterMock).not.toHaveBeenCalled();
+    requestMock.mockImplementation(original);
+    const second = await POST(createMockRequest());
+    expect(second!.status).toBe(200);
+    expect(createManagerKeyMock).toHaveBeenCalledTimes(1);
+    expect(getEthAddressFromKMSMock).toHaveBeenCalledWith(
+      {},
+      "recovered-key",
+      "us-east-1",
+    );
+  });
+
+  it("reuses the recovered key after submit fails", async () => {
+    submitRegisterMock.mockRejectedValueOnce(new Error("submit timeout"));
+    const first = await POST(createMockRequest());
+    expect((await first!.json()).extensions.code).toBe("submission_error");
+    expect(record!.manager_kms_key_id).toBe("recovered-key");
+    const second = await POST(createMockRequest());
+    expect(second!.status).toBe(200);
+    expect(createManagerKeyMock).toHaveBeenCalledTimes(1);
+    expect(scheduleKeyDeletionMock).not.toHaveBeenCalled();
+  });
 });
 // #endregion

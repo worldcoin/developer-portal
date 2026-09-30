@@ -1,17 +1,21 @@
 mutation PrepareRpRegistration(
   $rp_id: String!
+  $app_id: String!
   $manager_kms_key_id: String!
   $is_unique_manager_key: Boolean!
 ) {
-  update_rp_registration_by_pk(
-    pk_columns: { rp_id: $rp_id }
+  update_rp_registration(
+    where: {
+      rp_id: { _eq: $rp_id }
+      app_id: { _eq: $app_id }
+      mode: { _eq: managed }
+      manager_kms_key_id: { _is_null: true }
+    }
     _set: {
       manager_kms_key_id: $manager_kms_key_id
       is_unique_manager_key: $is_unique_manager_key
     }
   ) {
-    rp_id
-    manager_kms_key_id
-    is_unique_manager_key
+    affected_rows
   }
 }

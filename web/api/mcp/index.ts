@@ -1274,6 +1274,7 @@ const tools = {
         "not_managed",
         "missing_signer",
         "rp_id_taken",
+        "recovery_not_available",
       ].includes(result.code);
       throw new McpError(result.detail, callerError ? -32004 : -32603, {
         reason: result.code,

@@ -1,3 +1,5 @@
+import { prepareRpManagerKey } from "@/api/helpers/rp-registration-preparation";
+import { getSdk as getRegistrationSdk } from "@/api/hasura/rp-retry/graphql/get-rp-registration.generated";
 import { getKMSClient } from "@/api/helpers/kms";
 import { getEthAddressFromKMS } from "@/api/helpers/kms-eth";
 import {
@@ -31,7 +33,9 @@ export type RpRetryResult =
         | "kms_error"
         | "rpc_error"
         | "rp_id_taken"
-        | "submission_error";
+        | "submission_error"
+        | "db_error"
+        | "recovery_not_available";
       detail: string;
     };
 
@@ -47,9 +51,39 @@ export async function retryRpRegistration({
   >;
   environment: RpRetryEnvironment;
 }): Promise<RpRetryResult> {
-  const rpId = dbRecord.rp_id;
-  const appId = dbRecord.app_id;
-  const teamId = dbRecord.app.team_id;
+  let registration = dbRecord;
+  if (registration.mode === "managed" && !registration.manager_kms_key_id) {
+    try {
+      const { rp_registration_by_pk: fresh } = await getRegistrationSdk(
+        client,
+      ).GetRpRegistrationForRetry({ rp_id: dbRecord.rp_id });
+      if (
+        !fresh ||
+        fresh.app_id !== dbRecord.app_id ||
+        fresh.app.team_id !== dbRecord.app.team_id
+      ) {
+        return {
+          ok: false,
+          code: "recovery_not_available",
+          detail: "Registration changed. Reload its status before retrying.",
+        };
+      }
+      registration = fresh;
+    } catch (error) {
+      logger.error("Failed to reread registration for manager key recovery", {
+        error,
+        rpId: dbRecord.rp_id,
+      });
+      return {
+        ok: false,
+        code: "db_error",
+        detail: "Failed to read registration for recovery.",
+      };
+    }
+  }
+  const rpId = registration.rp_id;
+  const appId = registration.app_id;
+  const teamId = registration.app.team_id;
   const config =
     environment === "production"
       ? getRpRegistryConfig()
@@ -61,7 +95,7 @@ export async function retryRpRegistration({
       detail: `The ${environment} contract is not configured.`,
     };
   }
-  if (dbRecord.mode !== "managed" || !dbRecord.manager_kms_key_id) {
+  if (registration.mode !== "managed") {
     return {
       ok: false,
       detail: "Retry is only available for managed mode RPs.",
@@ -69,8 +103,8 @@ export async function retryRpRegistration({
     };
   }
 
-  const managerKmsKeyId = dbRecord.manager_kms_key_id;
-  const signerAddress = dbRecord.signer_address;
+  let managerKmsKeyId = registration.manager_kms_key_id;
+  const signerAddress = registration.signer_address;
 
   if (!signerAddress) {
     return {
@@ -80,7 +114,83 @@ export async function retryRpRegistration({
     };
   }
 
-  const appName = dbRecord.app?.app_metadata?.[0]?.name || "";
+  if (!managerKmsKeyId) {
+    if (
+      environment !== "production" ||
+      registration.status !== "failed" ||
+      registration.operation_hash ||
+      registration.staging_operation_hash
+    ) {
+      logger.warn(
+        "Manager key recovery is not available for this registration",
+        { rpId, appId, environment },
+      );
+      return {
+        ok: false,
+        code: "recovery_not_available",
+        detail:
+          "Manager key recovery requires a failed production registration with no submitted operation. Contact support.",
+      };
+    }
+    try {
+      const onChain = await getRpFromContract(
+        parseRpId(rpId),
+        config.contractAddress,
+      );
+      if (onChain.initialized) {
+        logger.warn(
+          "Cannot recover a missing manager key for an initialized RP",
+          { rpId, appId },
+        );
+        return {
+          ok: false,
+          code: "recovery_not_available",
+          detail:
+            "RP is already registered on-chain but its manager key is missing. Contact support.",
+        };
+      }
+    } catch (error) {
+      logger.error("Failed to check contract before manager key recovery", {
+        error,
+        rpId,
+        appId,
+      });
+      return {
+        ok: false,
+        code: "rpc_error",
+        detail: "Failed to check on-chain registration before recovery.",
+      };
+    }
+    let prepared;
+    try {
+      prepared = await prepareRpManagerKey({
+        client,
+        kmsClient: await getKMSClient(config.kmsRegion),
+        kmsRegion: config.kmsRegion,
+        rpIdString: rpId,
+        appId,
+      });
+    } catch (error) {
+      logger.error("Failed to initialize manager key recovery", {
+        error,
+        rpId,
+        appId,
+      });
+      return {
+        ok: false,
+        code: "kms_error",
+        detail: "Failed to initialize manager key recovery.",
+      };
+    }
+    if (!prepared.ok) return prepared;
+    managerKmsKeyId = prepared.managerKmsKeyId;
+    logger.info("Recovered manager key for incomplete RP registration", {
+      rpId,
+      appId,
+    });
+  }
+
+  const appName = registration.app?.app_metadata?.[0]?.name || "";
   const numericRpId = parseRpId(rpId);
 
   let kmsClient: KMSClient;
