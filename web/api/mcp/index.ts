@@ -1,3 +1,8 @@
+import { getSdk as getRpRegistrationForRetrySdk } from "@/api/hasura/rp-retry/graphql/get-rp-registration.generated";
+import {
+  retryRpRegistration,
+  type RpRetryEnvironment,
+} from "@/api/helpers/rp-retry";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
 import { resolveManagerAddress } from "@/api/helpers/rp-manager";
@@ -133,7 +138,7 @@ const toolDefinitions = [
   {
     name: "configure_world_id",
     description:
-      "Create a managed World ID 4.0 RP for an app. The platform creates a KMS-backed manager key, submits the on-chain registration transaction, and (on production) duplicates to the staging contract. A new signer wallet is generated server-side; its private key is returned ONCE, at signing_key.private_key in the result — the portal does not retain it, so store it immediately.",
+      "Create a managed World ID 4.0 RP with a random ID if the app has no Portal registration. Existing on-chain RPs are not imported; switching an existing integration to the new ID changes users' nullifiers. The platform creates a KMS-backed manager key, submits the on-chain registration transaction, and (on production) duplicates to the staging contract. A new signer wallet is generated server-side; its private key is returned ONCE, at signing_key.private_key in the result — the portal does not retain it, so store it immediately.",
     inputSchema: {
       type: "object",
       properties: {
@@ -172,6 +177,20 @@ const toolDefinitions = [
         app_id: { type: "string" },
       },
       required: ["app_id"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "retry_world_id_registration",
+    description:
+      "Retry a managed World ID registration in one environment using the saved RP ID, manager key and signer. Checks the registry before submitting; does not generate a new signing key.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        app_id: { type: "string" },
+        environment: { type: "string", enum: ["production", "staging"] },
+      },
+      required: ["app_id", "environment"],
       additionalProperties: false,
     },
   },
@@ -975,7 +994,7 @@ const REGISTRATION_FLOW_RPC_CODE: Record<
 > = {
   staging_not_supported: -32004,
   already_registered: -32004,
-  rp_id_taken: -32004,
+  rpc_error: -32603,
   config_error: -32603,
   kms_error: -32603,
   submission_error: -32603,
@@ -1102,14 +1121,33 @@ const tools = {
     const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
     const existingRegistration = app.rp_registration[0];
     if (existingRegistration) {
+      let message: string;
+      switch (existingRegistration.status) {
+        case "pending":
+          message =
+            "World ID registration is pending. Poll status_endpoint until registration completes or fails.";
+          break;
+        case "failed":
+          message =
+            existingRegistration.mode === "managed"
+              ? "World ID registration failed. Use retry_world_id_registration with the failed environment to retry using the saved ID and keys."
+              : "World ID registration failed. Complete the self-managed registration on-chain, then poll status_endpoint.";
+          break;
+        case "deactivated":
+          message =
+            "World ID registration is deactivated. Reactivate it before using it for verification.";
+          break;
+        default:
+          message =
+            "World ID is already configured. Use rotate_world_id_signing_key to generate a new private signing key.";
+      }
       return content({
         rp_registration: existingRegistration,
         signing_key: null,
         verify_endpoint: `/api/v4/verify/${existingRegistration.rp_id}`,
         proof_context_endpoint: `/api/v4/proof-context/${existingRegistration.rp_id}`,
         status_endpoint: rpStatusEndpoint(existingRegistration.rp_id),
-        message:
-          "World ID is already configured. Use rotate_world_id_signing_key to generate a new private signing key.",
+        message,
       });
     }
     if (app.is_staging) {
@@ -1135,10 +1173,25 @@ const tools = {
     });
 
     if (!result.ok) {
+      const retained = result.retainedRegistration;
       throw new McpError(
         result.detail,
         REGISTRATION_FLOW_RPC_CODE[result.code],
-        { reason: result.code },
+        {
+          reason: result.code,
+          ...(retained
+            ? {
+                rp_id: retained.rpIdString,
+                signer_address: signingKey.signer_address,
+                operation_hash: retained.operationHash ?? null,
+                status: "pending",
+                signing_key: signingKey,
+                status_endpoint: rpStatusEndpoint(retained.rpIdString),
+                warning:
+                  "Registration state was retained. Store signing_key.private_key now, then poll status_endpoint and use retry_world_id_registration if it becomes failed.",
+              }
+            : {}),
+        },
       );
     }
 
@@ -1187,6 +1240,65 @@ const tools = {
   },
 
   get_world_id_registration_status: syncWorldIdRegistrationStatus,
+
+  retry_world_id_registration: async (input, ctx) => {
+    const args = await parseInput(
+      appIdSchema.shape({
+        environment: yup.string().oneOf(["production", "staging"]).required(),
+      }),
+      input,
+    );
+    const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
+    const saved = app.rp_registration[0];
+    if (!saved) {
+      throw new McpError("World ID is not configured for this app.", -32004);
+    }
+    const { rp_registration_by_pk: registration } =
+      await getRpRegistrationForRetrySdk(ctx.client).GetRpRegistrationForRetry({
+        rp_id: saved.rp_id,
+      });
+    if (
+      !registration ||
+      registration.app_id !== args.app_id ||
+      registration.app.team_id !== ctx.teamId
+    ) {
+      throw new McpError("RP registration not found for this app.", -32004);
+    }
+    const result = await retryRpRegistration({
+      client: ctx.client,
+      registration,
+      environment: args.environment as RpRetryEnvironment,
+    });
+    if (!result.ok) {
+      const callerError = [
+        "not_managed",
+        "missing_signer",
+        "rp_id_taken",
+        "recovery_not_available",
+        "retry_not_available",
+      ].includes(result.code);
+      throw new McpError(result.detail, callerError ? -32004 : -32603, {
+        reason: result.code,
+        ...(result.operationHash
+          ? {
+              operation_hash: result.operationHash,
+              environment: result.environment,
+              status_endpoint: rpStatusEndpoint(registration.rp_id),
+            }
+          : {}),
+      });
+    }
+    return content({
+      success: true,
+      app_id: args.app_id,
+      rp_id: registration.rp_id,
+      environment: result.environment,
+      operation_hash: result.operationHash,
+      status_endpoint: rpStatusEndpoint(registration.rp_id),
+      message:
+        "Poll status_endpoint to confirm registration status. The saved RP ID and signing key are unchanged.",
+    });
+  },
 
   rotate_world_id_signing_key: rotateWorldIdSigningKey,
 
@@ -1657,6 +1769,7 @@ const parseToolName = (value: unknown): ToolName => {
     case "get_app_config":
     case "create_app":
     case "configure_world_id":
+    case "retry_world_id_registration":
     case "get_world_id_signing_key":
     case "get_world_id_registration_status":
     case "rotate_world_id_signing_key":
@@ -1684,6 +1797,8 @@ const executeTool = async (
       return tools.create_app(input, ctx);
     case "configure_world_id":
       return tools.configure_world_id(input, ctx);
+    case "retry_world_id_registration":
+      return tools.retry_world_id_registration(input, ctx);
     case "get_world_id_signing_key":
       return tools.get_world_id_signing_key(input, ctx);
     case "get_world_id_registration_status":

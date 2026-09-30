@@ -4,14 +4,14 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpdateProductionRetryMutationVariables = Types.Exact<{
+export type PrepareRpRegistrationMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
-  claimed_at: Types.Scalars["timestamptz"]["input"];
-  operation_hash: Types.Scalars["String"]["input"];
-  status: Types.Scalars["rp_registration_status"]["input"];
+  app_id: Types.Scalars["String"]["input"];
+  manager_kms_key_id: Types.Scalars["String"]["input"];
+  is_unique_manager_key: Types.Scalars["Boolean"]["input"];
 }>;
 
-export type UpdateProductionRetryMutation = {
+export type PrepareRpRegistrationMutation = {
   __typename?: "mutation_root";
   update_rp_registration?: {
     __typename?: "rp_registration_mutation_response";
@@ -19,20 +19,24 @@ export type UpdateProductionRetryMutation = {
   } | null;
 };
 
-export const UpdateProductionRetryDocument = gql`
-  mutation UpdateProductionRetry(
+export const PrepareRpRegistrationDocument = gql`
+  mutation PrepareRpRegistration(
     $rp_id: String!
-    $claimed_at: timestamptz!
-    $operation_hash: String!
-    $status: rp_registration_status!
+    $app_id: String!
+    $manager_kms_key_id: String!
+    $is_unique_manager_key: Boolean!
   ) {
     update_rp_registration(
       where: {
         rp_id: { _eq: $rp_id }
-        updated_at: { _eq: $claimed_at }
-        status: { _eq: pending }
+        app_id: { _eq: $app_id }
+        mode: { _eq: managed }
+        manager_kms_key_id: { _is_null: true }
       }
-      _set: { operation_hash: $operation_hash, status: $status }
+      _set: {
+        manager_kms_key_id: $manager_kms_key_id
+        is_unique_manager_key: $is_unique_manager_key
+      }
     ) {
       affected_rows
     }
@@ -58,18 +62,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpdateProductionRetry(
-      variables: UpdateProductionRetryMutationVariables,
+    PrepareRpRegistration(
+      variables: PrepareRpRegistrationMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpdateProductionRetryMutation> {
+    ): Promise<PrepareRpRegistrationMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateProductionRetryMutation>(
-            UpdateProductionRetryDocument,
+          client.request<PrepareRpRegistrationMutation>(
+            PrepareRpRegistrationDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpdateProductionRetry",
+        "PrepareRpRegistration",
         "mutation",
         variables,
       );

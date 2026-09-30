@@ -121,12 +121,13 @@ export const useRpRegistrationController = ({
           }
         }
       } catch {
+        await fetchStatus();
         onRetryErrorRef.current?.();
       } finally {
         setRetryingEnvironment(null);
       }
     },
-    [retryRpMutation, rpId, updateProductionStatus],
+    [retryRpMutation, rpId, updateProductionStatus, fetchStatus],
   );
 
   return {

@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { useRpRegistrationController } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/use-rp-registration-controller";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/retry-rp.generated",
@@ -9,8 +9,9 @@ jest.mock(
 );
 
 // AC4: the controller calls useMutation(RetryRpDocument) from @apollo/client/react.
+const retryMutationMock = jest.fn();
 jest.mock("@apollo/client/react", () => ({
-  useMutation: () => [jest.fn(), { loading: false }],
+  useMutation: () => [retryMutationMock, { loading: false }],
 }));
 
 it("publishes a reconciled production status before the overview refetch", async () => {
@@ -44,4 +45,30 @@ it("publishes a reconciled production status before the overview refetch", async
   expect(onStatusReconciled).toHaveBeenCalledWith(
     RpRegistrationStatus.Registered,
   );
+});
+
+it("refreshes pending status after an uncertain retry response", async () => {
+  const onRetryError = jest.fn();
+  retryMutationMock.mockRejectedValueOnce(new Error("response lost"));
+  jest.spyOn(global, "fetch").mockResolvedValue({
+    ok: true,
+    json: async () => ({
+      production_status: RpRegistrationStatus.Pending,
+      staging_status: null,
+    }),
+  } as Response);
+  const { result, unmount } = renderHook(() =>
+    useRpRegistrationController({
+      rpId: "rp_1234567890abcdef",
+      initialProductionStatus: RpRegistrationStatus.Failed,
+      initialStagingStatus: null,
+      onRetryError,
+    }),
+  );
+  await act(async () => {
+    await result.current.retryRegistration("production");
+  });
+  expect(result.current.productionStatus).toBe(RpRegistrationStatus.Pending);
+  expect(onRetryError).toHaveBeenCalledTimes(1);
+  unmount();
 });

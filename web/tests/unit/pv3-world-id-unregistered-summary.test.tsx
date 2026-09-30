@@ -2,7 +2,6 @@
 
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { generateRpIdString } from "@/lib/rp";
 import { RegisterRpEmptyState } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout/RegisterRpEmptyState";
 
 jest.mock("next/dynamic", () => ({
@@ -52,9 +51,10 @@ it("shows the finalized configuration shape before registration", () => {
     screen.getByRole("region", { name: "World ID configuration" }),
   ).toBeInTheDocument();
   expect(screen.getByText(defaultProps.appId)).toBeInTheDocument();
+  expect(screen.getByText("Not registered")).toBeInTheDocument();
   expect(
-    screen.getByText(generateRpIdString(defaultProps.appId)),
-  ).toBeInTheDocument();
+    screen.queryByRole("button", { name: "Copy RP ID" }),
+  ).not.toBeInTheDocument();
   expect(screen.getByText("Signer address")).toBeInTheDocument();
   const registerButton = screen.getByRole("button", {
     name: "Register relying party",
