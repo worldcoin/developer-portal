@@ -1,8 +1,8 @@
+import { Nullifier } from "@/lib/nullifier";
 import {
   canonicalizeProof,
   decodeProof,
   decodeToHexString,
-  encodeNullifierForStorage,
   parseProofInputs,
   verifyProof,
 } from "@/api/helpers/verify";
@@ -61,8 +61,9 @@ describe("verify helpers", () => {
       "0x0936d98c83151035b528d1631df5c3607a740bd296b4c79c627130a96645dcc7",
     signal_hash:
       "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4",
-    nullifier_hash:
+    nullifier_hash: Nullifier.fromHex(
       "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
+    ),
     external_nullifier:
       "0x1c75ff6366690115808bd58e4c6e3342068088703dffa0a0ee07f55892bb10bd",
     proof: encodedProof,
@@ -292,6 +293,48 @@ describe("verify helpers", () => {
   });
 
   describe("parseProofInputs", () => {
+    it("passes an already checked nullifier through without parsing it again", () => {
+      const checked = Nullifier.fromHex("10");
+      const fromHex = jest.spyOn(Nullifier, "fromHex");
+      try {
+        const result = parseProofInputs({
+          ...validVerifyParams,
+          nullifier_hash: checked,
+        });
+        expect(result.params?.nullifier_hash).toBe(checked);
+        expect(result.params?.nullifier_hash.toBigInt()).toBe(16n);
+        expect(fromHex).not.toHaveBeenCalled();
+      } finally {
+        fromHex.mockRestore();
+      }
+    });
+
+    it.each([
+      `${validVerifyParams.nullifier_hash.toHex()}00`,
+      "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001",
+    ])(
+      "rejects unsafe raw nullifier %s before contacting the sequencer",
+      async (nullifier_hash) => {
+        global.fetch = jest.fn();
+        const result = await verifyProof(
+          {
+            ...validVerifyParams,
+            nullifier_hash: nullifier_hash as unknown as Nullifier,
+          },
+          {
+            is_staging: false,
+            verification_level: LegacyVerificationLevel.Orb,
+          },
+        );
+        expect(result.error).toMatchObject({
+          code: "invalid_format",
+          attribute: "nullifier_hash",
+          statusCode: 400,
+        });
+        expect(global.fetch).not.toHaveBeenCalled();
+      },
+    );
+
     it("should parse valid input params with an encoded proof", () => {
       const result = parseProofInputs(validVerifyParams);
 
@@ -351,7 +394,7 @@ describe("verify helpers", () => {
     it("should return an error for invalid nullifier_hash", () => {
       const result = parseProofInputs({
         ...validVerifyParams,
-        nullifier_hash: "invalid-nullifier-hash",
+        nullifier_hash: "invalid-nullifier-hash" as unknown as Nullifier,
       });
 
       expect(result.error).toBeDefined();
@@ -561,35 +604,41 @@ describe("verify helpers", () => {
     });
   });
 
-  describe("nullifierHashToBigIntStr", () => {
+  describe("checked nullifier numeric encoding", () => {
     it("should convert a standard hash to BigInt string", () => {
       const hash = "0x123abc";
-      const result = encodeNullifierForStorage(hash);
+      const result = Nullifier.fromHex(hash).toBigInt().toString();
       expect(result).toBe("1194684");
     });
 
     it("should normalize hash by removing 0x prefix and converting to lowercase", () => {
       const hash = "0xABC123";
-      const result = encodeNullifierForStorage(hash);
+      const result = Nullifier.fromHex(hash).toBigInt().toString();
       expect(result).toBe("11256099");
     });
 
     it("should handle hash without 0x prefix", () => {
       const hash = "abc123";
-      const result = encodeNullifierForStorage(hash);
+      const result = Nullifier.fromHex(hash).toBigInt().toString();
       expect(result).toBe("11256099");
     });
 
-    it("should handle hash with whitespace", () => {
+    it("rejects an unchecked hash even when it contains valid hex with whitespace", () => {
       const hash = " 0xabc123 ";
-      const result = encodeNullifierForStorage(hash);
-      expect(result).toBe("11256099");
+      const parsed = parseProofInputs({
+        ...validVerifyParams,
+        nullifier_hash: hash as unknown as Nullifier,
+      });
+      expect(parsed.error).toMatchObject({
+        code: "invalid_format",
+        attribute: "nullifier_hash",
+      });
     });
 
     it("should handle real-world size nullifier hash", () => {
       const hash =
         "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616";
-      const result = encodeNullifierForStorage(hash);
+      const result = Nullifier.fromHex(hash).toBigInt().toString();
       // A 256-bit number is too large to check the exact value, so we verify it's a string of digits
       expect(result).toMatch(/^\d+$/);
       expect(result.length).toBeGreaterThan(70); // A 256-bit number in decimal is ~78 digits

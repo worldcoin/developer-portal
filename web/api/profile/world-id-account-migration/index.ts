@@ -7,6 +7,7 @@ import { generateExternalNullifier } from "@/lib/hashing";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { isWorldUser } from "@/lib/is-world-user";
 import { logger } from "@/lib/logger";
+import { Nullifier } from "@/lib/nullifier";
 import { appIdRegex } from "@/lib/schema";
 import { Auth0SessionUser } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
@@ -190,6 +191,22 @@ export async function POST(req: NextRequest) {
   }
 
   const { response } = parsed;
+  let checkedNullifier: Nullifier;
+
+  try {
+    checkedNullifier = Nullifier.fromHex(response.nullifier.trim());
+  } catch {
+    return errorResponse({
+      statusCode: 400,
+      code: "invalid_format",
+      detail:
+        "Invalid nullifier. Expected a hex-encoded World ID field element.",
+      attribute: "nullifier",
+      req,
+      app_id: appId,
+    });
+  }
+
   const client = await getAPIServiceGraphqlClient();
 
   // Sign in With World ID uses the empty action, so its external nullifier is
@@ -201,7 +218,7 @@ export async function POST(req: NextRequest) {
       signal_hash: response.signal_hash ?? EMPTY_SIGNAL_HASH,
       proof: response.proof,
       merkle_root: response.merkle_root,
-      nullifier_hash: response.nullifier,
+      nullifier_hash: checkedNullifier,
       external_nullifier: externalNullifier,
     },
     {

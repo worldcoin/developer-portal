@@ -221,7 +221,23 @@ describe("/api/v2/verify", () => {
     expect(AtomicUpsertNullifier).toHaveBeenCalledWith(
       expect.objectContaining({
         nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+        nullifier_hash_int: BigInt(
+          semaphoreProofParamsMock.nullifier_hash,
+        ).toString(),
       }),
+    );
+    expect(FetchAppAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nullifier_hash_int: BigInt(
+          semaphoreProofParamsMock.nullifier_hash,
+        ).toString(),
+      }),
+    );
+    const verifierBody = JSON.parse(
+      (global.fetch as jest.Mock).mock.calls[0][1].body,
+    );
+    expect(BigInt(verifierBody.nullifierHash)).toBe(
+      BigInt(semaphoreProofParamsMock.nullifier_hash),
     );
   });
 
@@ -247,6 +263,21 @@ describe("/api/v2/verify", () => {
     expect(response.status).toBe(400);
     // Rejected before the nullifier is ever stored.
     expect(AtomicUpsertNullifier).not.toHaveBeenCalled();
+  });
+
+  it("rejects a nullifier outside the field before duplicate lookup or verification", async () => {
+    const response = await POST(
+      createMockRequest(getUrl(stagingAppId), {
+        ...validBody,
+        nullifier_hash:
+          "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001",
+      }),
+      { params: Promise.resolve({ app_id: stagingAppId }) },
+    );
+    expect(response.status).toBe(400);
+    expect(FetchAppAction).not.toHaveBeenCalled();
+    expect(AtomicUpsertNullifier).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it("can verify onchain action", async () => {
