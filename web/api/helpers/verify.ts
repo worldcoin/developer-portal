@@ -1,6 +1,7 @@
-import { Nullifier } from "@/graphql/graphql";
+import { Nullifier as StoredNullifier } from "@/graphql/graphql";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
+import { Nullifier } from "@/lib/nullifier";
 import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
 import { AbiCoder, toBeHex } from "ethers";
@@ -48,7 +49,7 @@ const KNOWN_ERROR_CODES_V2 = [
 export interface IInputParams {
   merkle_root: string;
   signal_hash: string;
-  nullifier_hash: string;
+  nullifier_hash: Nullifier;
   external_nullifier: string;
   proof: string;
 }
@@ -239,20 +240,18 @@ export const parseProofInputs = (params: IInputParams) => {
     };
   }
 
-  try {
-    nullifier_hash = decodeToHexString(params.nullifier_hash);
-  } catch (error) {
-    logger.error("Error create nullifier hash", { error });
+  if (!(params.nullifier_hash instanceof Nullifier)) {
     return {
       error: {
         message:
-          "This attribute is improperly formatted. Expected an ABI-encoded uint256.",
+          "This attribute is improperly formatted. Expected a hex-encoded World ID field element.",
         code: "invalid_format",
         statusCode: 400,
         attribute: "nullifier_hash",
       },
     };
   }
+  nullifier_hash = params.nullifier_hash;
 
   try {
     merkle_root = decodeToHexString(params.merkle_root);
@@ -314,7 +313,7 @@ export const parseProofInputs = (params: IInputParams) => {
  * Checks whether the person can be verified for a particular action based on the max number of verifications
  */
 export const canVerifyForAction = (
-  nullifier: Pick<Nullifier, "uses" | "nullifier_hash"> | undefined,
+  nullifier: Pick<StoredNullifier, "uses" | "nullifier_hash"> | undefined,
   max_verifications_per_person: number,
 ): boolean => {
   if (!nullifier) {
@@ -334,34 +333,6 @@ export const normalizeNullifierHash = (nullifierHash: string): string => {
 
   return `0x${normalized}`;
 };
-
-/**
- * Encodes a hex-encoded nullifier (0x...) into a decimal string for
- * storage in the nullifier_v4.nullifier numeric(78,0) column.
- *
- * Normalizes different hex representations (0xABC, abc, 0xabc) to a single
- * canonical decimal form, preventing case/prefix bypass attacks.
- *
- * @param hexNullifier - A hex-encoded nullifier string (with or without 0x prefix)
- * @returns Decimal string representation for DB storage
- */
-export const encodeNullifierForStorage = (nullifierHash: string): string => {
-  const normalized = normalizeNullifierHash(nullifierHash);
-  return BigInt(normalized).toString();
-};
-
-/**
- * Canonicalizes a nullifier hash to a fixed-width, 0x-prefixed, 32-byte
- * lowercase hex string.
- *
- * Collapses case / prefix / leading-zero re-encodings (0xABC, abc, 0x0abc, …)
- * of the same value to one representation so they cannot bypass a uniqueness
- * check, while remaining byte-identical to the standard 0x+64-hex form that
- * IDKit emits and that is already stored — so it is idempotent on existing
- * rows and needs no data backfill for the common case.
- */
-export const canonicalizeNullifierHash = (nullifierHash: string): string =>
-  toBeHex(BigInt(normalizeNullifierHash(nullifierHash)), 32);
 
 /**
  * Canonicalizes a proof into a single deterministic string that depends only on
@@ -403,7 +374,7 @@ export const verifyProof = async (
   // Query the signup sequencer to verify the proof (V2 API)
   const body = JSON.stringify({
     root: parsedParams.merkle_root,
-    nullifierHash: parsedParams.nullifier_hash,
+    nullifierHash: toBeHex(parsedParams.nullifier_hash.toBigInt()),
     externalNullifierHash: parsedParams.external_nullifier,
     signalHash: parsedParams.signal_hash,
     proof: parsedParams.proof,

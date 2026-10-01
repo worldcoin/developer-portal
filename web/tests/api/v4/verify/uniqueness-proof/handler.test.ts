@@ -1,3 +1,4 @@
+import { Nullifier } from "@/lib/nullifier";
 import { handleUniquenessProofVerification } from "@/api/v4/verify/uniqueness-proof/handler";
 import type { UniquenessProofResponseV4 } from "@/api/v4/verify/request-schema";
 import {
@@ -120,14 +121,18 @@ describe("handleUniquenessProofVerification [environment mismatch]", () => {
             identifier: LegacyVerificationLevel.Orb,
             signal_hash: semaphoreProofParamsMock.signal_hash,
             merkle_root: semaphoreProofParamsMock.merkle_root,
-            nullifier: semaphoreProofParamsMock.nullifier_hash,
+            nullifier: Nullifier.fromHex(
+              semaphoreProofParamsMock.nullifier_hash,
+            ),
             proof: semaphoreProofParamsMock.proof,
           },
           {
             identifier: LegacyVerificationLevel.Face,
             signal_hash: semaphoreProofParamsMock.signal_hash,
             merkle_root: semaphoreProofParamsMock.merkle_root,
-            nullifier: semaphoreProofParamsMock.nullifier_hash,
+            nullifier: Nullifier.fromHex(
+              semaphoreProofParamsMock.nullifier_hash,
+            ),
             proof: semaphoreProofParamsMock.proof,
           },
         ],
@@ -184,7 +189,7 @@ describe("handleUniquenessProofVerification [protocol_version disclosure]", () =
               identifier: LegacyVerificationLevel.Orb,
               signal_hash: semaphoreProofParamsMock.signal_hash,
               merkle_root: semaphoreProofParamsMock.merkle_root,
-              nullifier: input,
+              nullifier: Nullifier.fromHex(input),
               proof: semaphoreProofParamsMock.proof,
             },
           ],
@@ -206,6 +211,9 @@ describe("handleUniquenessProofVerification [protocol_version disclosure]", () =
       action_v4_id: "action_v4_test",
       nullifier: "10",
     });
+    for (const [, request] of (global.fetch as jest.Mock).mock.calls) {
+      expect(BigInt(JSON.parse(request.body).nullifierHash)).toBe(10n);
+    }
   });
 
   it("reports 3.0 on a success reached through the legacy sequencer path", async () => {
@@ -222,7 +230,9 @@ describe("handleUniquenessProofVerification [protocol_version disclosure]", () =
             identifier: LegacyVerificationLevel.Orb,
             signal_hash: semaphoreProofParamsMock.signal_hash,
             merkle_root: semaphoreProofParamsMock.merkle_root,
-            nullifier: semaphoreProofParamsMock.nullifier_hash,
+            nullifier: Nullifier.fromHex(
+              semaphoreProofParamsMock.nullifier_hash,
+            ),
             proof: semaphoreProofParamsMock.proof,
           },
         ],
@@ -257,7 +267,7 @@ describe("handleUniquenessProofVerification [protocol_version disclosure]", () =
             identifier: "credential",
             signal_hash: "0x0",
             issuer_schema_id: "128",
-            nullifier: "0x02",
+            nullifier: Nullifier.fromHex("0x02"),
             expires_at_min: "1772584197",
             proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
           },
@@ -315,7 +325,7 @@ describe("handleUniquenessProofVerification [protocol_version disclosure]", () =
           action: "test-action",
           nonce: "1",
           protocol_version: "4.0",
-          responses: [{ ...proof, nullifier: input }],
+          responses: [{ ...proof, nullifier: Nullifier.fromHex(input) }],
         },
         request,
       );
@@ -335,7 +345,7 @@ describe("handleUniquenessProofVerification [protocol_version disclosure]", () =
         action: "test-action",
         nonce: "1",
         protocol_version: "4.0",
-        responses: [{ ...proof, nullifier: "0xa" }],
+        responses: [{ ...proof, nullifier: Nullifier.fromHex("0xa") }],
       },
       request,
     );
@@ -374,7 +384,9 @@ describe("handleUniquenessProofVerification [protocol_version disclosure]", () =
             identifier: LegacyVerificationLevel.Orb,
             signal_hash: semaphoreProofParamsMock.signal_hash,
             merkle_root: semaphoreProofParamsMock.merkle_root,
-            nullifier: semaphoreProofParamsMock.nullifier_hash,
+            nullifier: Nullifier.fromHex(
+              semaphoreProofParamsMock.nullifier_hash,
+            ),
             proof: semaphoreProofParamsMock.proof,
           },
         ],

@@ -1,5 +1,6 @@
 import { POST } from "@/api/v1/precheck/[app_id]/index";
 import { Nullifier } from "@/graphql/graphql";
+import { APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER } from "@/lib/constants";
 import { NextRequest } from "next/server";
 
 type _Nullifier = Pick<Nullifier, "nullifier_hash" | "uses" | "__typename">;
@@ -45,6 +46,16 @@ jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(),
 }));
 const AppPrecheckQuery = jest.fn();
+const AppPrecheckByActionQuery = jest.fn();
+jest.mock(
+  "@/api/v1/precheck/[app_id]/graphql/app-precheck-by-action.generated",
+  () => ({
+    getSdk: () => ({ AppPrecheckByActionQuery }),
+  }),
+);
+jest.mock("@/lib/logger", () => ({
+  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+}));
 const FetchRpRegistrationForPrecheck = jest.fn();
 jest.mock("@/api/v1/precheck/[app_id]/graphql/app-precheck.generated", () => ({
   getSdk: () => ({
@@ -66,6 +77,56 @@ beforeEach(() => {
 });
 
 describe("/api/v1/precheck/[app_id]", () => {
+  test.each(["ordinary", "custom"])(
+    "encodes the checked number into the existing text lookup for %s actions",
+    async (kind) => {
+      const appId =
+        kind === "custom"
+          ? APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER[0]
+          : appPayload.id;
+      AppPrecheckQuery.mockResolvedValue({ app: [appPayload] });
+      AppPrecheckByActionQuery.mockResolvedValue({ app: [appPayload] });
+      const request = new NextRequest("http://localhost/api/v1/precheck", {
+        method: "POST",
+        body: JSON.stringify({
+          ...exampleValidRequestPayload,
+          nullifier_hash: "0X0010",
+        }),
+      });
+      const result = await POST(request, {
+        params: Promise.resolve({ app_id: appId }),
+      });
+      expect(result.status).toBe(200);
+      const query =
+        kind === "custom" ? AppPrecheckByActionQuery : AppPrecheckQuery;
+      expect(query).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nullifier_hash: `0x${"0".repeat(62)}10`,
+        }),
+      );
+    },
+  );
+
+  test("keeps advisory precheck available for an invalid nullifier", async () => {
+    AppPrecheckQuery.mockResolvedValue({ app: [appPayload] });
+    const result = await POST(
+      new NextRequest("http://localhost/api/v1/precheck", {
+        method: "POST",
+        body: JSON.stringify({
+          ...exampleValidRequestPayload,
+          nullifier_hash: "invalid",
+        }),
+      }),
+      { params: Promise.resolve({ app_id: appPayload.id }) },
+    );
+    expect(result.status).toBe(200);
+    expect(AppPrecheckQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nullifier_hash: "invalid",
+      }),
+    );
+  });
+
   test("can fetch precheck response verified", async () => {
     const getParameter = jest.fn().mockResolvedValue([]);
     global.ParameterStore = {

@@ -278,7 +278,10 @@ export function computeProofIntegrityDigest(params: {
         // Tags: uniqueness = 0, session = 1 (both session fields are signed).
         if ("nullifier" in response) {
           hasher.update(Buffer.from([0]));
-          hasher.update(parseNonceToFieldBytes(response.nullifier));
+          // Ordinary nullifiers were parsed as hex at the request boundary.
+          hasher.update(
+            Buffer.from(response.nullifier.toHex().slice(2), "hex"),
+          );
         } else {
           hasher.update(Buffer.from([1]));
           for (const field of response.session_nullifier) {

@@ -1,11 +1,8 @@
 import { errorResponse, ErrorResponseBody } from "@/api/helpers/errors";
 import { logPortalEvent } from "@/api/helpers/portal-events";
 import { parseRpId } from "@/api/helpers/rp-utils";
-import {
-  canonicalizeNullifierHash,
-  encodeNullifierForStorage,
-} from "@/api/helpers/verify";
 import { logger } from "@/lib/logger";
+import { Nullifier } from "@/lib/nullifier";
 import { captureEvent } from "@/services/posthogClient";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
@@ -24,7 +21,7 @@ import { processUniquenessProofV4 } from "./verify-v4";
 export interface UniquenessResult {
   identifier: string;
   success: boolean;
-  nullifier?: string;
+  nullifier?: Nullifier;
   code?: string;
   detail?: string;
   attribute?: string;
@@ -41,7 +38,7 @@ type UniquenessProofSuccessResponse = {
   // binds `nonce` as a circuit public input, so a relying party that has
   // migrated must check this to reject a proof it cannot bind to a session.
   protocol_version: "3.0" | "4.0";
-  results: UniquenessResult[];
+  results: Array<Omit<UniquenessResult, "nullifier"> & { nullifier?: string }>;
   message: string;
 };
 
@@ -49,7 +46,7 @@ type UniquenessProofErrorResponse = {
   success: false;
   code: string;
   detail: string;
-  results?: UniquenessResult[];
+  results?: Array<Omit<UniquenessResult, "nullifier"> & { nullifier?: string }>;
 };
 
 type UniquenessProofResponse =
@@ -136,6 +133,12 @@ export async function handleUniquenessProofVerification(
   }
 
   // Find first successful result
+  const responseResults = verificationResults.map(
+    ({ nullifier, ...result }) => ({
+      ...result,
+      ...(nullifier ? { nullifier: nullifier.toHex() } : {}),
+    }),
+  );
   const firstSuccess = verificationResults.find((r) => r.success);
   const anySuccess = Boolean(firstSuccess);
 
@@ -152,14 +155,14 @@ export async function handleUniquenessProofVerification(
         rp_id: rpId,
         app_id: appId,
         protocol_version: protocolVersion,
-        results: verificationResults,
+        results: responseResults,
       },
     });
 
     logger.warn("All proof verifications failed", {
       rp_id: rpId,
       app_id: appId,
-      results: verificationResults,
+      results: responseResults,
     });
 
     return NextResponse.json<UniquenessProofErrorResponse>(
@@ -172,24 +175,15 @@ export async function handleUniquenessProofVerification(
           ? firstEnvironmentMismatch?.detail ||
             "The proof was generated for a different environment."
           : "All proof verifications failed.",
-        results: verificationResults,
+        results: responseResults,
       },
       { status: 400 },
     );
   }
 
-  // Use the same verified value for storage and every nullifier in the response.
-  verificationResults = verificationResults.map((result) =>
-    result.success && result.nullifier
-      ? { ...result, nullifier: canonicalizeNullifierHash(result.nullifier) }
-      : result,
-  );
-
-  // Use nullifier from first successful verification (firstSuccess is guaranteed to exist here)
-  const normalizedNullifier = canonicalizeNullifierHash(
-    firstSuccess!.nullifier!,
-  );
-  const nullifierForStorage = encodeNullifierForStorage(normalizedNullifier);
+  // Encode the verified number only at the API and GraphQL boundaries.
+  const normalizedNullifier = firstSuccess!.nullifier!.toHex();
+  const nullifierForStorage = firstSuccess!.nullifier!.toBigInt().toString();
 
   // At least one proof is valid - now handle action creation and nullifier
 
@@ -237,7 +231,6 @@ export async function handleUniquenessProofVerification(
   if (existingNullifier) {
     // Nullifier already exists — skip saving and return success
     logger.info("Nullifier already exists, skipping save", {
-      nullifier: nullifierForStorage,
       rpId,
       action: parsedParams.action,
       protocol_version: protocolVersion,
@@ -277,7 +270,7 @@ export async function handleUniquenessProofVerification(
         created_at: existingNullifier.created_at,
         environment: requestedEnvironment,
         protocol_version: protocolVersion,
-        results: verificationResults,
+        results: responseResults,
         message: "Proof verified successfully (nullifier reuse)",
       },
       { status: 200 },
@@ -338,7 +331,7 @@ export async function handleUniquenessProofVerification(
         created_at: insertResult.insert_nullifier_v4_one.created_at,
         environment: requestedEnvironment,
         protocol_version: protocolVersion,
-        results: verificationResults,
+        results: responseResults,
         message: "Proof verified successfully",
       },
       { status: 200 },
@@ -368,7 +361,7 @@ export async function handleUniquenessProofVerification(
           nullifier: normalizedNullifier,
           environment: requestedEnvironment,
           protocol_version: protocolVersion,
-          results: verificationResults,
+          results: responseResults,
           message: "Proof verified successfully (nullifier reuse)",
         },
         { status: 200 },
