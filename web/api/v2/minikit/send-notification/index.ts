@@ -153,7 +153,7 @@ export const POST = async (req: NextRequest) => {
     return errorResponse({
       statusCode: 400,
       code: "validation_error",
-      detail: "Neither localisations nor title and message are specified",
+      detail: "Neither localizations nor title and message are specified",
       attribute: "request_body",
       req,
     });
@@ -477,7 +477,7 @@ export const POST = async (req: NextRequest) => {
           ) ?? (parsedParams as SendNotificationBodyV2).localisations?.[0]
         )?.message;
 
-  // Fire-and-forget: log wallet addresses once (not per localisation).
+  // Fire-and-forget: log wallet addresses once (not per localization).
   // .catch keeps any failure from becoming an unhandled rejection.
   logNotification(app_id, wallet_addresses, mini_app_path, logMessage).catch(
     (error) => {

@@ -1,11 +1,11 @@
 import * as yup from "yup";
 import {
-  localisationFormSchema,
+  localizationFormSchema,
   mainAppStoreFormReviewSubmitSchema,
   mainAppStoreFormSchema,
 } from "./form-schema";
 
-export type LocalisationFormSchema = yup.Asserts<typeof localisationFormSchema>;
+export type LocalizationFormSchema = yup.Asserts<typeof localizationFormSchema>;
 export type AppStoreFormValues = yup.Asserts<typeof mainAppStoreFormSchema>;
 
 export type MainAppStoreFormReviewSubmitSchema = yup.Asserts<

@@ -124,9 +124,9 @@ const DELETE_MEMBERSHIP_MUTATION = `
   }
 `;
 
-// Simple GraphQL mutation for creating localisation
-const CREATE_LOCALISATION_MUTATION = `
-  mutation CreateLocalisation($object: localisations_insert_input!) {
+// Simple GraphQL mutation for creating localization
+const CREATE_LOCALIZATION_MUTATION = `
+  mutation CreateLocalization($object: localisations_insert_input!) {
     insert_localisations_one(object: $object) {
       id
       locale
@@ -138,9 +138,9 @@ const CREATE_LOCALISATION_MUTATION = `
   }
 `;
 
-// Simple GraphQL mutation for deleting localisation
-const DELETE_LOCALISATION_MUTATION = `
-  mutation DeleteLocalisation($id: String!) {
+// Simple GraphQL mutation for deleting localization
+const DELETE_LOCALIZATION_MUTATION = `
+  mutation DeleteLocalization($id: String!) {
     delete_localisations_by_pk(id: $id) {
       id
     }
@@ -451,8 +451,8 @@ export const deleteTestMembership = async (membershipId: string) => {
   }
 };
 
-// Helper for creating test localisation
-export const createTestLocalisation = async (
+// Helper for creating test localization
+export const createTestLocalization = async (
   appMetadataId: string,
   locale: string,
   name: string,
@@ -462,7 +462,7 @@ export const createTestLocalisation = async (
 ) => {
   try {
     const response = (await adminGraphqlClient.request(
-      CREATE_LOCALISATION_MUTATION,
+      CREATE_LOCALIZATION_MUTATION,
       {
         object: {
           app_metadata_id: appMetadataId,
@@ -479,17 +479,17 @@ export const createTestLocalisation = async (
   } catch (error: any) {
     const errorMessage =
       error?.response?.data?.message || error?.message || "Unknown error";
-    throw new Error(`Failed to create test localisation: ${errorMessage}`);
+    throw new Error(`Failed to create test localization: ${errorMessage}`);
   }
 };
 
-// Helper for deleting test localisation
-export const deleteTestLocalisation = async (localisationId: string) => {
+// Helper for deleting test localization
+export const deleteTestLocalization = async (localizationId: string) => {
   try {
     const response = (await adminGraphqlClient.request(
-      DELETE_LOCALISATION_MUTATION,
+      DELETE_LOCALIZATION_MUTATION,
       {
-        id: localisationId,
+        id: localizationId,
       },
     )) as any;
 
@@ -498,7 +498,7 @@ export const deleteTestLocalisation = async (localisationId: string) => {
     const errorMessage =
       error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(
-      `Failed to delete test localisation ${localisationId}: ${errorMessage}`,
+      `Failed to delete test localization ${localizationId}: ${errorMessage}`,
     );
   }
 };

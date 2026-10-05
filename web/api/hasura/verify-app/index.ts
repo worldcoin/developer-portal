@@ -259,60 +259,60 @@ export const POST = async (req: NextRequest) => {
     copyPromises.push(...showcaseCopyPromises);
   }
 
-  // Handle localisation image updates
-  const localisationUpdates = [];
-  for (const localisation of awaitingReviewAppMetadata.localisations) {
+  // Handle localization image updates
+  const localizationUpdates = [];
+  for (const localization of awaitingReviewAppMetadata.localisations) {
     const update: Types.Localisations_Updates = {
-      where: { id: { _eq: localisation.id } },
+      where: { id: { _eq: localization.id } },
       _set: {},
     };
 
-    if (localisation.meta_tag_image_url) {
-      const metaTagFileType = getFileExtension(localisation.meta_tag_image_url);
-      const newLocalisationMetaTagImgName = randomUUID() + metaTagFileType;
+    if (localization.meta_tag_image_url) {
+      const metaTagFileType = getFileExtension(localization.meta_tag_image_url);
+      const newLocalizationMetaTagImgName = randomUUID() + metaTagFileType;
 
       copyPromises.push(
         s3Client.send(
           new CopyObjectCommand({
             Bucket: bucketName,
-            CopySource: `${bucketName}/${sourcePrefix}${localisation.locale}/${localisation.meta_tag_image_url}`,
-            Key: `${destinationPrefix}${localisation.locale}/${newLocalisationMetaTagImgName}`,
+            CopySource: `${bucketName}/${sourcePrefix}${localization.locale}/${localization.meta_tag_image_url}`,
+            Key: `${destinationPrefix}${localization.locale}/${newLocalizationMetaTagImgName}`,
           }),
         ),
       );
       if (update._set) {
-        update._set.meta_tag_image_url = newLocalisationMetaTagImgName;
+        update._set.meta_tag_image_url = newLocalizationMetaTagImgName;
       }
     }
 
-    if (localisation.showcase_img_urls) {
-      const showcaseFileTypes = localisation.showcase_img_urls.map(
+    if (localization.showcase_img_urls) {
+      const showcaseFileTypes = localization.showcase_img_urls.map(
         (url: string) => getFileExtension(url),
       );
-      const newLocalisationShowcaseImgNames =
-        localisation.showcase_img_urls.map(
+      const newLocalizationShowcaseImgNames =
+        localization.showcase_img_urls.map(
           (_: string, index: number) => randomUUID() + showcaseFileTypes[index],
         );
 
-      const showcaseCopyPromises = localisation.showcase_img_urls.map(
+      const showcaseCopyPromises = localization.showcase_img_urls.map(
         (key: string, index: number) => {
           return s3Client.send(
             new CopyObjectCommand({
               Bucket: bucketName,
-              CopySource: `${bucketName}/${sourcePrefix}${localisation.locale}/${key}`,
-              Key: `${destinationPrefix}${localisation.locale}/${newLocalisationShowcaseImgNames[index]}`,
+              CopySource: `${bucketName}/${sourcePrefix}${localization.locale}/${key}`,
+              Key: `${destinationPrefix}${localization.locale}/${newLocalizationShowcaseImgNames[index]}`,
             }),
           );
         },
       );
       copyPromises.push(...showcaseCopyPromises);
       if (update._set) {
-        update._set.showcase_img_urls = newLocalisationShowcaseImgNames;
+        update._set.showcase_img_urls = newLocalizationShowcaseImgNames;
       }
     }
 
     if (update._set && Object.keys(update._set).length > 0) {
-      localisationUpdates.push(update);
+      localizationUpdates.push(update);
     }
   }
 
@@ -344,7 +344,7 @@ export const POST = async (req: NextRequest) => {
       is_reviewer_app_store_approved: is_reviewer_app_store_approved,
       is_reviewer_world_app_approved: is_reviewer_world_app_approved,
     },
-    localisation_updates: localisationUpdates,
+    localisation_updates: localizationUpdates,
     app_id: app_id,
     app_updates: appUpdates,
   });
