@@ -248,6 +248,7 @@ it("ignores an old RP response whose body resolves after the RP changes", async 
 
 // #region Retry attempt ownership
 it("does not clear a newer RP retry when the old retry finishes", async () => {
+  const onRetryError = jest.fn();
   let resolveOldStatus!: (response: Response) => void;
   const oldStatus = new Promise<Response>((resolve) => {
     resolveOldStatus = resolve;
@@ -277,6 +278,7 @@ it("does not clear a newer RP retry when the old retry finishes", async () => {
         rpId,
         initialProductionStatus: RpRegistrationStatus.Failed,
         initialStagingStatus: RpRegistrationStatus.Failed,
+        onRetryError,
       }),
     { initialProps: { rpId: "rp_1234567890abcdef" } },
   );
@@ -298,6 +300,7 @@ it("does not clear a newer RP retry when the old retry finishes", async () => {
     await oldRetryPromise;
   });
   expect(result.current.retryingEnvironment).toBe("staging");
+  expect(onRetryError).not.toHaveBeenCalled();
 
   await act(async () => {
     resolveNewRetry({ data: { retry_rp: { success: true } } });
@@ -307,4 +310,63 @@ it("does not clear a newer RP retry when the old retry finishes", async () => {
   expect(result.current.stagingStatus).toBe(RpRegistrationStatus.Pending);
   unmount();
 });
+
+it.each(["production", "staging"] as const)(
+  "ignores a successful %s retry result after the RP changes",
+  async (environment) => {
+    let resolveRetry!: (response: unknown) => void;
+    const retry = new Promise((resolve) => {
+      resolveRetry = resolve;
+    });
+    retryMutationMock.mockReturnValueOnce(retry);
+    jest
+      .spyOn(global, "fetch")
+      .mockReset()
+      .mockImplementation(async (url) => {
+        const status = String(url).endsWith("rp_1234567890abcdef")
+          ? RpRegistrationStatus.Failed
+          : RpRegistrationStatus.Registered;
+        return {
+          ok: true,
+          json: async () => ({
+            production_status: status,
+            staging_status: status,
+          }),
+        } as Response;
+      });
+    const { result, rerender, unmount } = renderHook(
+      ({ rpId }) => {
+        const status =
+          rpId === "rp_1234567890abcdef"
+            ? RpRegistrationStatus.Failed
+            : RpRegistrationStatus.Registered;
+        return useRpRegistrationController({
+          rpId,
+          initialProductionStatus: status,
+          initialStagingStatus: status,
+        });
+      },
+      { initialProps: { rpId: "rp_1234567890abcdef" } },
+    );
+    let retryPromise!: Promise<void>;
+    await act(async () => {
+      retryPromise = result.current.retryRegistration(environment);
+    });
+    await act(async () => {
+      rerender({ rpId: "rp_fedcba0987654321" });
+    });
+
+    await act(async () => {
+      resolveRetry({ data: { retry_rp: { success: true } } });
+      await retryPromise;
+    });
+
+    expect(result.current.productionStatus).toBe(
+      RpRegistrationStatus.Registered,
+    );
+    expect(result.current.stagingStatus).toBe(RpRegistrationStatus.Registered);
+    expect(result.current.retryingEnvironment).toBeNull();
+    unmount();
+  },
+);
 // #endregion

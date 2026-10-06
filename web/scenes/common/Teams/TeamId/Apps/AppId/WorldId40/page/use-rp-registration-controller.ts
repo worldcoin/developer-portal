@@ -131,6 +131,7 @@ export const useRpRegistrationController = ({
         const { data } = await retryRpMutation({
           variables: { rp_id: rpId, environment },
         });
+        if (rpIdRef.current !== attempt.rpId) return;
 
         if (data?.retry_rp?.success) {
           if (environment === "production") {
@@ -143,7 +144,9 @@ export const useRpRegistrationController = ({
         const inFlight = statusFetchInFlight.current;
         if (inFlight?.rpId === rpId) await inFlight.promise;
         await fetchStatus();
-        onRetryErrorRef.current?.();
+        if (rpIdRef.current === attempt.rpId) {
+          onRetryErrorRef.current?.();
+        }
       } finally {
         setRetryAttempt((current) => (current === attempt ? null : current));
       }
