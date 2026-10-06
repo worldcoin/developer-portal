@@ -56,13 +56,13 @@ describe("wizard field-snapshot step statuses", () => {
     expect(blank[WizardStep.BASIC]).toBe("incomplete");
     expect(blank[WizardStep.STORE_LISTING]).toBe("incomplete");
     expect(blank[WizardStep.AVAILABILITY]).toBe("incomplete");
-    expect(blank[WizardStep.LOCALISED_CONTENT]).toBe("incomplete");
+    expect(blank[WizardStep.LOCALIZED_CONTENT]).toBe("incomplete");
 
     const ready = getStatuses();
     expect(ready[WizardStep.BASIC]).toBe("complete");
     expect(ready[WizardStep.STORE_LISTING]).toBe("complete");
     expect(ready[WizardStep.AVAILABILITY]).toBe("complete");
-    expect(ready[WizardStep.LOCALISED_CONTENT]).toBe("complete");
+    expect(ready[WizardStep.LOCALIZED_CONTENT]).toBe("complete");
     expect(ready[WizardStep.MINI_APP_PERMISSIONS]).toBe("untracked");
     expect(ready[WizardStep.REVIEW]).toBe("untracked");
   });
@@ -83,6 +83,6 @@ describe("wizard field-snapshot step statuses", () => {
 
     expect(statuses[WizardStep.STORE_LISTING]).toBe("untracked");
     expect(statuses[WizardStep.AVAILABILITY]).toBe("complete");
-    expect(statuses[WizardStep.LOCALISED_CONTENT]).toBe("complete");
+    expect(statuses[WizardStep.LOCALIZED_CONTENT]).toBe("complete");
   });
 });

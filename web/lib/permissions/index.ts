@@ -8,9 +8,9 @@ import { getSdk as getAppInsertPermissionsSdk } from "./graphql/server/get-app-i
 import { getSdk as getAppMetadataPermissionsSdk } from "./graphql/server/get-app-metadata-update-permissions.generated";
 import { getSdk as getAppReadPermissionsSdk } from "./graphql/server/get-app-read-permissions.generated";
 import { getSdk as getAppUpdatePermissionsSdk } from "./graphql/server/get-app-update-permissions.generated";
-import { getSdk as getLocalisationsDeletePermissionsSdk } from "./graphql/server/get-localisations-delete-permissions.generated";
-import { getSdk as getLocalisationsInsertPermissionsSdk } from "./graphql/server/get-localisations-insert-permissions.generated";
-import { getSdk as getLocalisationsUpdatePermissionsSdk } from "./graphql/server/get-localisations-update-permissions.generated";
+import { getSdk as getLocalizationsDeletePermissionsSdk } from "./graphql/server/get-localizations-delete-permissions.generated";
+import { getSdk as getLocalizationsInsertPermissionsSdk } from "./graphql/server/get-localizations-insert-permissions.generated";
+import { getSdk as getLocalizationsUpdatePermissionsSdk } from "./graphql/server/get-localizations-update-permissions.generated";
 import { getSdk as getTeamDeletePermissionsSdk } from "./graphql/server/get-team-delete-permissions.generated";
 import { getSdk as getTeamUpdatePermissionsSdk } from "./graphql/server/get-team-update-permissions.generated";
 import { getSdk as getVerificationStatusUpdatePermissionsSdk } from "./graphql/server/get-verification-status-update-permissions.generated";
@@ -193,7 +193,7 @@ export const getAppMetadataPermissionAndMode = async (
   return { allowed: true, appMode: row.app_mode };
 };
 
-export const getIsUserAllowedToInsertLocalisation = async (appId: string) => {
+export const getIsUserAllowedToInsertLocalization = async (appId: string) => {
   if (!(await getIsIdValid(appId))) {
     return false;
   }
@@ -204,9 +204,9 @@ export const getIsUserAllowedToInsertLocalisation = async (appId: string) => {
   }
 
   const userId = session.user.hasura.id;
-  const response = await getLocalisationsInsertPermissionsSdk(
+  const response = await getLocalizationsInsertPermissionsSdk(
     await getAPIServiceGraphqlClient(),
-  ).GetIsUserPermittedToInsertLocalisations({ appId, userId });
+  ).GetIsUserPermittedToInsertLocalizations({ appId, userId });
 
   if (response.app_metadata.length) {
     return true;
@@ -214,10 +214,10 @@ export const getIsUserAllowedToInsertLocalisation = async (appId: string) => {
   return false;
 };
 
-export const getIsUserAllowedToUpdateLocalisation = async (
-  localisationId: string,
+export const getIsUserAllowedToUpdateLocalization = async (
+  localizationId: string,
 ) => {
-  if (!(await getIsIdValid(localisationId))) {
+  if (!(await getIsIdValid(localizationId))) {
     return false;
   }
   const session = await auth0.getSession();
@@ -226,9 +226,9 @@ export const getIsUserAllowedToUpdateLocalisation = async (
   }
 
   const userId = session.user.hasura.id;
-  const response = await getLocalisationsUpdatePermissionsSdk(
+  const response = await getLocalizationsUpdatePermissionsSdk(
     await getAPIServiceGraphqlClient(),
-  ).GetIsUserPermittedToModifyLocalisations({ localisationId, userId });
+  ).GetIsUserPermittedToModifyLocalizations({ localizationId, userId });
 
   if (response.app_metadata.length) {
     return true;
@@ -236,7 +236,7 @@ export const getIsUserAllowedToUpdateLocalisation = async (
   return false;
 };
 
-export const getIsUserAllowedToDeleteLocalisation = async (
+export const getIsUserAllowedToDeleteLocalization = async (
   appMetadataId: string,
   locale: string,
 ) => {
@@ -250,9 +250,9 @@ export const getIsUserAllowedToDeleteLocalisation = async (
   }
 
   const userId = session.user.hasura.id;
-  const response = await getLocalisationsDeletePermissionsSdk(
+  const response = await getLocalizationsDeletePermissionsSdk(
     await getAPIServiceGraphqlClient(),
-  ).GetIsUserPermittedToDeleteLocalisations({
+  ).GetIsUserPermittedToDeleteLocalizations({
     appMetadataId,
     locale,
     userId,

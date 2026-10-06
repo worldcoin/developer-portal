@@ -22,7 +22,7 @@ import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import { submitAppForReviewFormServerSide } from "../server/submit";
 import { SubmitSuccessToast } from "../SubmitSuccessToast";
 import { useMutation } from "@apollo/client/react";
-import { ValidateLocalisationDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/SubmitAppModal/graphql/client/validate-localisations.generated";
+import { ValidateLocalizationDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/SubmitAppModal/graphql/client/validate-localizations.generated";
 
 const schema = yup
   .object({
@@ -63,7 +63,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     },
   );
 
-  const [validateLocalisation, {}] = useMutation(ValidateLocalisationDocument);
+  const [validateLocalization, {}] = useMutation(ValidateLocalizationDocument);
 
   const {
     register,
@@ -85,7 +85,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   const submit = useCallback(
     async (values: SubmitAppFormValues) => {
       try {
-        const { data } = await validateLocalisation({
+        const { data } = await validateLocalization({
           variables: {
             app_metadata_id: appMetadataId,
             team_id: teamId,
@@ -94,12 +94,12 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         });
 
         if (!data?.validate_localisation?.success) {
-          toast.error("Localisation not set for all languages");
+          toast.error("Localization not set for all languages");
           return;
         }
       } catch (error) {
-        console.error("Failed to validate localisation: ", error);
-        toast.error("Failed to validate localisation");
+        console.error("Failed to validate localization: ", error);
+        toast.error("Failed to validate localization");
         return;
       }
 
@@ -159,7 +159,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
       onSubmitted,
       setOpen,
       teamId,
-      validateLocalisation,
+      validateLocalization,
     ],
   );
 

@@ -28,7 +28,7 @@ import {
   useResolvedLogoUrl,
   WizardLogoUpload,
 } from "./BasicInformationStep";
-import { LocalisedContentStep } from "./LocalisedContentStep";
+import { LocalizedContentStep } from "./LocalizedContentStep";
 import { ReviewStep } from "./ReviewStep";
 import { StoreListingStep } from "./StoreListingStep";
 import { Stepper } from "./Stepper";
@@ -65,9 +65,9 @@ const cloneAppStoreFormValues = (
   ...values,
   supported_countries: [...values.supported_countries],
   supported_languages: [...values.supported_languages],
-  localisations: values.localisations.map((localisation) => ({
-    ...localisation,
-    showcase_img_urls: [...(localisation.showcase_img_urls ?? [])],
+  localisations: values.localisations.map((localization) => ({
+    ...localization,
+    showcase_img_urls: [...(localization.showcase_img_urls ?? [])],
   })),
 });
 
@@ -386,12 +386,12 @@ export const ConfigurationWizard = (props: {
 
           <div
             className={stepWrapperClassName(
-              WizardStep.LOCALISED_CONTENT,
+              WizardStep.LOCALIZED_CONTENT,
               "mx-auto mt-[76px] max-w-[626px]",
             )}
-            aria-hidden={activeStep !== WizardStep.LOCALISED_CONTENT}
+            aria-hidden={activeStep !== WizardStep.LOCALIZED_CONTENT}
           >
-            <LocalisedContentStep isMiniApp={isMiniApp} />
+            <LocalizedContentStep isMiniApp={isMiniApp} />
           </div>
 
           {isMiniApp && (

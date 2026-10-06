@@ -30,7 +30,7 @@ import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.g
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
 import { getSdk as getMcpUpsertActionV4Sdk } from "@/api/mcp/graphql/upsert-action-v4.generated";
 import { getSdk as getCreateDraftSdk } from "@/api/hasura/create-new-draft/graphql/create-draft.generated";
-import { getSdk as getFetchLocalisationsSdk } from "@/api/hasura/create-new-draft/graphql/fetch-localisations.generated";
+import { getSdk as getFetchLocalizationsSdk } from "@/api/hasura/create-new-draft/graphql/fetch-localizations.generated";
 import { SKILL_INSTRUCTIONS } from "@/api/mcp/skill";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
@@ -51,14 +51,14 @@ import {
 import { logger } from "@/lib/logger";
 import { getImageEndpoint } from "@/lib/utils";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
-import { LocalisationData } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
+import { LocalizationData } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
 import {
   encodeDescription,
   getSupportType,
   parseDescription,
 } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
 import {
-  getLocalisationFormValues,
+  getLocalizationFormValues,
   transformMailtoToRawEmail,
 } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils/dataTransforms";
 import { getSdk as getReviewAppMetadataSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/server/fetch-review-app-metadata.generated";
@@ -656,21 +656,21 @@ const createDraftFromVerifiedMetadata = async (
     ? patchedShowcaseImgUrls ?? null
     : showcase;
 
-  const { localisations } = await getFetchLocalisationsSdk(
+  const { localisations } = await getFetchLocalizationsSdk(
     ctx.client,
-  ).FetchLocalisations({ id: verified.id });
-  const localisationData = localisations.map((localisation) => {
+  ).FetchLocalizations({ id: verified.id });
+  const localizationData = localisations.map((localization) => {
     const {
       id: _id,
       __typename: _typename,
       app_metadata_id: _appMetadataId,
       meta_tag_image_url,
       showcase_img_urls,
-      ...copiedLocalisation
-    } = localisation;
+      ...copiedLocalization
+    } = localization;
 
     return {
-      ...copiedLocalisation,
+      ...copiedLocalization,
       hero_image_url: "",
       meta_tag_image_url: fileNameForDraft(
         meta_tag_image_url,
@@ -725,7 +725,7 @@ const createDraftFromVerifiedMetadata = async (
 
   const data = await getCreateDraftSdk(ctx.client).CreateDraft({
     ...draftValues,
-    localisations: localisationData.length ? { data: localisationData } : null,
+    localizations: localizationData.length ? { data: localizationData } : null,
   });
   const draftId = data.insert_app_metadata_one?.id;
   if (!draftId) {
@@ -1682,9 +1682,9 @@ const tools = {
       );
     }
 
-    const localisations = getLocalisationFormValues(
+    const localisations = getLocalizationFormValues(
       reviewMetadata,
-      reviewData.localisations as LocalisationData,
+      reviewData.localisations as LocalizationData,
     );
     const supportLinkOrEmail = reviewMetadata.support_link;
     const supportType = getSupportType(supportLinkOrEmail);
