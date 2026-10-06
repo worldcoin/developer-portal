@@ -32,8 +32,10 @@ export const useRpRegistrationController = ({
     initialProductionStatus,
   );
   const [stagingStatus, setStagingStatus] = useState(initialStagingStatus);
-  const [retryingEnvironment, setRetryingEnvironment] =
-    useState<RpEnvironment | null>(null);
+  const [retryAttempt, setRetryAttempt] = useState<{
+    rpId: string;
+    environment: RpEnvironment;
+  } | null>(null);
   const productionStatusRef = useRef(initialProductionStatus);
   const rpIdRef = useRef(rpId);
   const statusFetchInFlight = useRef<{
@@ -123,7 +125,8 @@ export const useRpRegistrationController = ({
 
   const retryRegistration = useCallback(
     async (environment: RpEnvironment) => {
-      setRetryingEnvironment(environment);
+      const attempt = { rpId, environment };
+      setRetryAttempt(attempt);
       try {
         const { data } = await retryRpMutation({
           variables: { rp_id: rpId, environment },
@@ -142,7 +145,7 @@ export const useRpRegistrationController = ({
         await fetchStatus();
         onRetryErrorRef.current?.();
       } finally {
-        setRetryingEnvironment(null);
+        setRetryAttempt((current) => (current === attempt ? null : current));
       }
     },
     [retryRpMutation, rpId, updateProductionStatus, fetchStatus],
@@ -151,7 +154,8 @@ export const useRpRegistrationController = ({
   return {
     productionStatus,
     stagingStatus,
-    retryingEnvironment,
+    retryingEnvironment:
+      retryAttempt?.rpId === rpId ? retryAttempt.environment : null,
     retryRegistration,
     markProductionPending: () =>
       updateProductionStatus(RpRegistrationStatus.Pending),

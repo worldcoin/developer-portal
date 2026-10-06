@@ -176,6 +176,7 @@ it("does not restart an old RP status request after an uncertain retry", async (
     rerender({ rpId: "rp_fedcba0987654321" });
   });
   expect(result.current.productionStatus).toBe(RpRegistrationStatus.Registered);
+  expect(result.current.retryingEnvironment).toBeNull();
 
   await act(async () => {
     resolveOldStatus({
@@ -241,6 +242,69 @@ it("ignores an old RP response whose body resolves after the RP changes", async 
   expect(result.current.productionStatus).toBe(RpRegistrationStatus.Registered);
   expect(result.current.stagingStatus).toBeNull();
   expect(onStatusReconciled).toHaveBeenCalledTimes(1);
+  unmount();
+});
+// #endregion
+
+// #region Retry attempt ownership
+it("does not clear a newer RP retry when the old retry finishes", async () => {
+  let resolveOldStatus!: (response: Response) => void;
+  const oldStatus = new Promise<Response>((resolve) => {
+    resolveOldStatus = resolve;
+  });
+  let resolveNewRetry!: (response: unknown) => void;
+  const newRetry = new Promise((resolve) => {
+    resolveNewRetry = resolve;
+  });
+  retryMutationMock
+    .mockRejectedValueOnce(new Error("response lost"))
+    .mockReturnValueOnce(newRetry);
+  const failedResponse = {
+    ok: true,
+    json: async () => ({
+      production_status: RpRegistrationStatus.Failed,
+      staging_status: RpRegistrationStatus.Failed,
+    }),
+  } as Response;
+  jest
+    .spyOn(global, "fetch")
+    .mockReset()
+    .mockReturnValueOnce(oldStatus)
+    .mockResolvedValue(failedResponse);
+  const { result, rerender, unmount } = renderHook(
+    ({ rpId }) =>
+      useRpRegistrationController({
+        rpId,
+        initialProductionStatus: RpRegistrationStatus.Failed,
+        initialStagingStatus: RpRegistrationStatus.Failed,
+      }),
+    { initialProps: { rpId: "rp_1234567890abcdef" } },
+  );
+  let oldRetryPromise!: Promise<void>;
+  await act(async () => {
+    oldRetryPromise = result.current.retryRegistration("production");
+  });
+  await act(async () => {
+    rerender({ rpId: "rp_fedcba0987654321" });
+  });
+  let newRetryPromise!: Promise<void>;
+  await act(async () => {
+    newRetryPromise = result.current.retryRegistration("staging");
+  });
+  expect(result.current.retryingEnvironment).toBe("staging");
+
+  await act(async () => {
+    resolveOldStatus(failedResponse);
+    await oldRetryPromise;
+  });
+  expect(result.current.retryingEnvironment).toBe("staging");
+
+  await act(async () => {
+    resolveNewRetry({ data: { retry_rp: { success: true } } });
+    await newRetryPromise;
+  });
+  expect(result.current.retryingEnvironment).toBeNull();
+  expect(result.current.stagingStatus).toBe(RpRegistrationStatus.Pending);
   unmount();
 });
 // #endregion
