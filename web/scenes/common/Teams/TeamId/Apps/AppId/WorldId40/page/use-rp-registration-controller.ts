@@ -35,6 +35,7 @@ export const useRpRegistrationController = ({
   const [retryingEnvironment, setRetryingEnvironment] =
     useState<RpEnvironment | null>(null);
   const productionStatusRef = useRef(initialProductionStatus);
+  const rpIdRef = useRef(rpId);
   const statusFetchInFlight = useRef<{
     rpId: string;
     promise: Promise<void>;
@@ -42,6 +43,7 @@ export const useRpRegistrationController = ({
   const onStatusReconciledRef = useRef(onStatusReconciled);
   const onRetryErrorRef = useRef(onRetryError);
 
+  rpIdRef.current = rpId;
   onStatusReconciledRef.current = onStatusReconciled;
   onRetryErrorRef.current = onRetryError;
 
@@ -61,6 +63,7 @@ export const useRpRegistrationController = ({
   ]);
 
   const fetchStatus = useCallback(async () => {
+    if (rpIdRef.current !== rpId) return;
     if (statusFetchInFlight.current?.rpId === rpId) return;
 
     const request = { rpId, promise: Promise.resolve() };
@@ -73,6 +76,12 @@ export const useRpRegistrationController = ({
         if (!response.ok || statusFetchInFlight.current !== request) return;
 
         const result = (await response.json()) as RpStatusResponse;
+        if (
+          rpIdRef.current !== rpId ||
+          statusFetchInFlight.current !== request
+        ) {
+          return;
+        }
         const productionChanged =
           result.production_status !== productionStatusRef.current;
 

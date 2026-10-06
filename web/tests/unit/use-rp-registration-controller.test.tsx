@@ -131,3 +131,116 @@ it("waits for an in-flight status fetch before reconciling an uncertain retry", 
   expect(onRetryError).toHaveBeenCalledTimes(1);
   unmount();
 });
+
+// #region Status requests for an outdated RP
+it("does not restart an old RP status request after an uncertain retry", async () => {
+  retryMutationMock.mockRejectedValueOnce(new Error("response lost"));
+  let resolveOldStatus!: (response: Response) => void;
+  const oldStatus = new Promise<Response>((resolve) => {
+    resolveOldStatus = resolve;
+  });
+  const onStatusReconciled = jest.fn();
+  const fetchMock = jest
+    .spyOn(global, "fetch")
+    .mockReset()
+    .mockReturnValueOnce(oldStatus)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        production_status: RpRegistrationStatus.Registered,
+        staging_status: null,
+      }),
+    } as Response)
+    .mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        production_status: RpRegistrationStatus.Failed,
+        staging_status: null,
+      }),
+    } as Response);
+  const { result, rerender, unmount } = renderHook(
+    ({ rpId }) =>
+      useRpRegistrationController({
+        rpId,
+        initialProductionStatus: RpRegistrationStatus.Failed,
+        initialStagingStatus: null,
+        onStatusReconciled,
+      }),
+    { initialProps: { rpId: "rp_1234567890abcdef" } },
+  );
+  let retryPromise!: Promise<void>;
+  await act(async () => {
+    retryPromise = result.current.retryRegistration("production");
+  });
+  await act(async () => {
+    rerender({ rpId: "rp_fedcba0987654321" });
+  });
+  expect(result.current.productionStatus).toBe(RpRegistrationStatus.Registered);
+
+  await act(async () => {
+    resolveOldStatus({
+      ok: true,
+      json: async () => ({
+        production_status: RpRegistrationStatus.Failed,
+        staging_status: null,
+      }),
+    } as Response);
+    await retryPromise;
+  });
+
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(result.current.productionStatus).toBe(RpRegistrationStatus.Registered);
+  expect(onStatusReconciled).toHaveBeenCalledTimes(1);
+  unmount();
+});
+
+it("ignores an old RP response whose body resolves after the RP changes", async () => {
+  let resolveOldBody!: (body: unknown) => void;
+  const oldBody = new Promise((resolve) => {
+    resolveOldBody = resolve;
+  });
+  const readOldBody = jest.fn(() => oldBody);
+  const onStatusReconciled = jest.fn();
+  jest
+    .spyOn(global, "fetch")
+    .mockReset()
+    .mockResolvedValueOnce({
+      ok: true,
+      json: readOldBody,
+    } as unknown as Response)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        production_status: RpRegistrationStatus.Registered,
+        staging_status: null,
+      }),
+    } as Response);
+  const { result, rerender, unmount } = renderHook(
+    ({ rpId }) =>
+      useRpRegistrationController({
+        rpId,
+        initialProductionStatus: RpRegistrationStatus.Failed,
+        initialStagingStatus: null,
+        onStatusReconciled,
+      }),
+    { initialProps: { rpId: "rp_1234567890abcdef" } },
+  );
+  await waitFor(() => expect(readOldBody).toHaveBeenCalledTimes(1));
+  await act(async () => {
+    rerender({ rpId: "rp_fedcba0987654321" });
+  });
+  expect(result.current.productionStatus).toBe(RpRegistrationStatus.Registered);
+
+  await act(async () => {
+    resolveOldBody({
+      production_status: RpRegistrationStatus.Failed,
+      staging_status: RpRegistrationStatus.Failed,
+    });
+  });
+
+  expect(result.current.productionStatus).toBe(RpRegistrationStatus.Registered);
+  expect(result.current.stagingStatus).toBeNull();
+  expect(onStatusReconciled).toHaveBeenCalledTimes(1);
+  unmount();
+});
+// #endregion
