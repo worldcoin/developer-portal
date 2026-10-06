@@ -35,7 +35,10 @@ export const useRpRegistrationController = ({
   const [retryingEnvironment, setRetryingEnvironment] =
     useState<RpEnvironment | null>(null);
   const productionStatusRef = useRef(initialProductionStatus);
-  const statusFetchInFlight = useRef<string | null>(null);
+  const statusFetchInFlight = useRef<{
+    rpId: string;
+    promise: Promise<void>;
+  } | null>(null);
   const onStatusReconciledRef = useRef(onStatusReconciled);
   const onRetryErrorRef = useRef(onRetryError);
 
@@ -58,32 +61,36 @@ export const useRpRegistrationController = ({
   ]);
 
   const fetchStatus = useCallback(async () => {
-    if (statusFetchInFlight.current === rpId) return;
+    if (statusFetchInFlight.current?.rpId === rpId) return;
 
-    statusFetchInFlight.current = rpId;
-    try {
-      const response = await fetch(`/api/v4/rp-status/${rpId}`, {
-        signal: AbortSignal.timeout(4000),
-      });
-      if (!response.ok || statusFetchInFlight.current !== rpId) return;
+    const request = { rpId, promise: Promise.resolve() };
+    statusFetchInFlight.current = request;
+    request.promise = (async () => {
+      try {
+        const response = await fetch(`/api/v4/rp-status/${rpId}`, {
+          signal: AbortSignal.timeout(4000),
+        });
+        if (!response.ok || statusFetchInFlight.current !== request) return;
 
-      const result = (await response.json()) as RpStatusResponse;
-      const productionChanged =
-        result.production_status !== productionStatusRef.current;
+        const result = (await response.json()) as RpStatusResponse;
+        const productionChanged =
+          result.production_status !== productionStatusRef.current;
 
-      updateProductionStatus(result.production_status);
-      setStagingStatus(result.staging_status);
+        updateProductionStatus(result.production_status);
+        setStagingStatus(result.staging_status);
 
-      if (productionChanged) {
-        onStatusReconciledRef.current?.(result.production_status);
+        if (productionChanged) {
+          onStatusReconciledRef.current?.(result.production_status);
+        }
+      } catch {
+        // Retain the last known status when reconciliation is unavailable.
+      } finally {
+        if (statusFetchInFlight.current === request) {
+          statusFetchInFlight.current = null;
+        }
       }
-    } catch {
-      // Retain the last known status when reconciliation is unavailable.
-    } finally {
-      if (statusFetchInFlight.current === rpId) {
-        statusFetchInFlight.current = null;
-      }
-    }
+    })();
+    await request.promise;
   }, [rpId, updateProductionStatus]);
 
   useEffect(() => {
@@ -121,6 +128,8 @@ export const useRpRegistrationController = ({
           }
         }
       } catch {
+        const inFlight = statusFetchInFlight.current;
+        if (inFlight?.rpId === rpId) await inFlight.promise;
         await fetchStatus();
         onRetryErrorRef.current?.();
       } finally {
