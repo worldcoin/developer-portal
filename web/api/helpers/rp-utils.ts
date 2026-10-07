@@ -6,6 +6,7 @@ import "server-only";
 
 import { generateRpId, generateRpIdString } from "@/lib/rp";
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
+import crypto from "crypto";
 import { keccak256, toUtf8Bytes } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
@@ -16,7 +17,7 @@ import { USER_OP_MAX_VALIDITY_MS } from "./user-operation";
  * operation is treated as dead. Mirrors the pending timeout the status endpoint
  * applies to registrations that never made it on-chain.
  */
-const PENDING_TIMEOUT_MS = 5 * 60 * 1000;
+export const PENDING_TIMEOUT_MS = 5 * 60 * 1000;
 
 // =============================================================================
 // Types
@@ -29,6 +30,16 @@ export { RpRegistrationStatus } from "@/lib/rp-registration-status";
 // =============================================================================
 
 export { generateRpId, generateRpIdString };
+
+/** Generates a non-zero random uint64 in the protocol's transport format. */
+export function generateRandomRpIdString(): `rp_${string}` {
+  let hex: string;
+  do {
+    hex = crypto.randomBytes(8).toString("hex");
+  } while (hex === "0000000000000000");
+
+  return `rp_${hex}`;
+}
 
 export function isValidRpId(rpId: string): boolean {
   if (typeof rpId !== "string" || !rpId.startsWith("rp_")) {
@@ -107,9 +118,9 @@ export type OnChainTrust = "trusted" | "untrusted" | "unknown";
 /**
  * Decides whether an on-chain RP reading describes *our* registration.
  *
- * `rp_id` is `uint64(keccak256(app_id))` over a public `app_id` and on-chain
- * `register()` is permissionless and first-come, so anyone can claim an app's
- * rp_id. Ownership therefore has to be proven, not assumed.
+ * On-chain `register()` is permissionless and first-come. Legacy RP IDs are
+ * also derived from public app IDs, so ownership has to be proven rather than
+ * inferred from an initialized record.
  *
  * The **manager** is the root of that proof: it is the only role the contract
  * lets update an RP, and only the Portal can sign for its KMS manager key. The
