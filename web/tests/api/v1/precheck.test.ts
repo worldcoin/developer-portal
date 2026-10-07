@@ -44,6 +44,9 @@ const exampleValidRequestPayload = {
 jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(),
 }));
+jest.mock("@/lib/logger", () => ({
+  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+}));
 const AppPrecheckQuery = jest.fn();
 const FetchRpRegistrationForPrecheck = jest.fn();
 jest.mock("@/api/v1/precheck/[app_id]/graphql/app-precheck.generated", () => ({
@@ -101,6 +104,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       verified_app_logo:
         "https://cdn.test.com/app_staging_6d1c9fb86751a40d952749022db1c1/logo_img.png",
       enable_face_check: true,
+      credential_request: { subtype: null },
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
@@ -111,8 +115,92 @@ describe("/api/v1/precheck/[app_id]", () => {
         max_accounts_per_user: 1,
       },
     });
-    expect(getParameter).not.toHaveBeenCalled();
+    expect(getParameter).toHaveBeenCalledWith(
+      "whitelisted-apps/grant-claiming",
+      [],
+    );
   });
+
+  // #region Grant-claiming subtype
+  test("tags an allowlisted app as grant claiming", async () => {
+    const appId = appPayload.id;
+    const getParameter = jest.fn().mockResolvedValue([appId]);
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+    AppPrecheckQuery.mockResolvedValue({ app: [appPayload] });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      credential_request: { subtype: "grant_claiming" },
+    });
+    expect(getParameter).toHaveBeenCalledWith(
+      "whitelisted-apps/grant-claiming",
+      [],
+    );
+  });
+
+  test("returns a null subtype when the allowlist parameter is missing", async () => {
+    const appId = appPayload.id;
+    const getParameter = jest.fn().mockResolvedValue(undefined);
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+    AppPrecheckQuery.mockResolvedValue({ app: [appPayload] });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      credential_request: { subtype: null },
+    });
+  });
+
+  test("includes the grant-claiming subtype with a synthetic action", async () => {
+    const appId = appPayload.id;
+    const getParameter = jest.fn().mockResolvedValue([appId]);
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+    AppPrecheckQuery.mockResolvedValue({
+      app: [{ ...appPayload, actions: [] }],
+    });
+    FetchRpRegistrationForPrecheck.mockResolvedValue({
+      rp_registration: [{ status: "registered" }],
+    });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(FetchRpRegistrationForPrecheck).toHaveBeenCalledWith({
+      app_id: appId,
+    });
+    expect(await response.json()).toMatchObject({
+      credential_request: { subtype: "grant_claiming" },
+      action: { action: exampleValidRequestPayload.action },
+    });
+  });
+  // #endregion
 
   test("can fetch precheck response unverified", async () => {
     const request = new NextRequest(
@@ -143,6 +231,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       engine: "cloud",
       verified_app_logo: "",
       enable_face_check: true,
+      credential_request: { subtype: null },
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
