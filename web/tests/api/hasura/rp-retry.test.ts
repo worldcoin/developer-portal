@@ -370,19 +370,42 @@ describe("/api/hasura/rp-retry", () => {
     },
   );
 
-  it("does not submit when the claim result is uncertain", async () => {
-    const original = requestMock.getMockImplementation()!;
-    requestMock.mockImplementation((query, variables) => {
-      const result = original(query, variables);
-      if (getOperationName(query).includes("ClaimProductionRpRetry"))
-        throw new Error("response timeout");
-      return result;
-    });
-    const response = await POST(createMockRequest());
-    expect((await response!.json()).extensions.code).toBe("db_error");
-    expect(record!.status).toBe("pending");
-    expect(submitRegisterMock).not.toHaveBeenCalled();
-  });
+  it.each(["production", "staging"])(
+    "invalidates stale cache without submitting when the %s claim result is uncertain",
+    async (environment) => {
+      const snapshot = (await readRpStatusCache(rpId))!;
+      const staleStatus = JSON.stringify({
+        production_status: "failed",
+        staging_status: "failed",
+      });
+      await writeRpStatusCache(rpId, snapshot.generation, staleStatus, 3600);
+      const original = requestMock.getMockImplementation()!;
+      requestMock.mockImplementation((query, variables) => {
+        const result = original(query, variables);
+        if (/Claim(Production|Staging)RpRetry/.test(getOperationName(query)))
+          throw new Error("response timeout");
+        return result;
+      });
+
+      const response = await POST(createMockRequest(environment));
+
+      expect((await response!.json()).extensions.code).toBe("db_error");
+      expect(
+        record![environment === "production" ? "status" : "staging_status"],
+      ).toBe("pending");
+      expect(record).toMatchObject({
+        rp_id: rpId,
+        manager_kms_key_id: "saved-key",
+        signer_address: signer,
+      });
+      expect(submitRegisterMock).not.toHaveBeenCalled();
+      expect(submitRotateMock).not.toHaveBeenCalled();
+      expect((await readRpStatusCache(rpId))?.value).toBeNull();
+      expect(
+        await writeRpStatusCache(rpId, snapshot.generation, staleStatus, 3600),
+      ).toBe(0);
+    },
+  );
 
   it.each(["kms_error", "rpc_error", "submission_error"])(
     "preserves saved state after %s",

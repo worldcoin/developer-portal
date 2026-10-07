@@ -315,17 +315,18 @@ export async function retryRpRegistration({
         detail:
           "Could not confirm retry claim. Check registration status before retrying.",
       };
-    }
-    // The claim invalidates cached failed status before submission, including timeouts.
-    try {
-      await invalidateRpStatusCache(rpId);
-    } catch (error) {
-      logger.warn("Failed to clear retry claim cache", {
-        rpId,
-        appId,
-        environment,
-        error,
-      });
+    } finally {
+      // A claim may commit even when its response is lost.
+      try {
+        await invalidateRpStatusCache(rpId);
+      } catch (error) {
+        logger.warn("Failed to clear retry claim cache", {
+          rpId,
+          appId,
+          environment,
+          error,
+        });
+      }
     }
   }
 
