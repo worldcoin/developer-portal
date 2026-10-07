@@ -5,7 +5,6 @@ import { NextRequest, NextResponse } from "next/server";
 // #region Mocks
 const mockResolveRpRegistration = jest.fn();
 const mockVerifyIntegrityBundle = jest.fn();
-const mockGenerateRpIdString = jest.fn();
 const mockHandleUniquenessProofVerification = jest.fn();
 const mockHandleSessionProofVerification = jest.fn();
 
@@ -18,7 +17,6 @@ jest.mock("../../../api/helpers/graphql", () => ({
 }));
 
 jest.mock("../../../api/helpers/rp-utils", () => ({
-  generateRpIdString: (...args: unknown[]) => mockGenerateRpIdString(...args),
   RpRegistrationStatus: { Registered: "registered" },
   resolveRpRegistration: (...args: unknown[]) =>
     mockResolveRpRegistration(...args),
@@ -100,7 +98,6 @@ beforeEach(() => {
     },
   });
   mockVerifyIntegrityBundle.mockResolvedValue({ success: true });
-  mockGenerateRpIdString.mockReturnValue("rp_legacy00000001");
   mockHandleUniquenessProofVerification.mockResolvedValue(
     NextResponse.json({ success: true }),
   );
@@ -384,9 +381,6 @@ describe("/api/v4/verify [integrity bundle]", () => {
         rpId,
       }),
     );
-    expect(
-      mockVerifyIntegrityBundle.mock.calls[0][0].legacyRpId,
-    ).toBeUndefined();
     expect(mockHandleUniquenessProofVerification).toHaveBeenCalledWith(
       expect.anything(),
       rpId,
@@ -395,28 +389,6 @@ describe("/api/v4/verify [integrity bundle]", () => {
       req,
     );
     expect(mockHandleSessionProofVerification).not.toHaveBeenCalled();
-  });
-
-  it("adds the server-derived legacy audience for protocol 3.0", async () => {
-    const req = createRequest({
-      protocol_version: "3.0",
-      nonce: "1",
-      action: "verify",
-      integrity_bundle: integrityBundle,
-      responses: [v3Response],
-    });
-
-    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
-
-    expect(res.status).toBe(200);
-    expect(mockGenerateRpIdString).toHaveBeenCalledWith(appId);
-    expect(mockVerifyIntegrityBundle).toHaveBeenCalledWith(
-      expect.objectContaining({
-        legacyRpId: "rp_legacy00000001",
-        protocolVersion: "3.0",
-        rpId,
-      }),
-    );
   });
 
   it("rejects Self Check 4.0 responses without an integrity bundle", async () => {

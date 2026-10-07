@@ -1,17 +1,14 @@
 mutation UpdateProductionRetry(
   $rp_id: String!
-  $claimed_at: timestamptz!
   $operation_hash: String!
   $status: rp_registration_status!
 ) {
-  update_rp_registration(
-    where: {
-      rp_id: { _eq: $rp_id }
-      updated_at: { _eq: $claimed_at }
-      status: { _eq: pending }
-    }
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
     _set: { operation_hash: $operation_hash, status: $status }
   ) {
-    affected_rows
+    rp_id
+    status
+    operation_hash
   }
 }

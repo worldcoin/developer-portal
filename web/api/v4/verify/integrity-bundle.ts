@@ -77,7 +77,6 @@ type IntegrityVerificationParams = {
     | UniquenessProofResponseV4[]
     | SessionResponseItem[];
   rpId: string;
-  legacyRpId?: string;
 };
 
 export type IntegrityVerificationResult =
@@ -506,13 +505,13 @@ async function verifyJwtWithJwk(params: {
   expectedIssuer: string;
   integrityJwt: string;
   jwk: JWK;
-  audiences: string | string[];
+  rpId: string;
 }) {
   const publicKey = await importJWK(params.jwk, "ES256");
   const { payload } = await jwtVerify(params.integrityJwt, publicKey, {
     algorithms: ["ES256"],
     issuer: params.expectedIssuer,
-    audience: params.audiences,
+    audience: params.rpId,
     requiredClaims: ["cnf", "exp", "platform", "pass"],
   });
 
@@ -527,7 +526,6 @@ async function verifyIntegrityToken(params: {
   environment?: IntegrityEnvironment;
   integrityJwt: string;
   rpId: string;
-  legacyRpId?: string;
   signatureFormat: SignatureFormat;
 }) {
   let protectedHeader: ReturnType<typeof decodeProtectedHeader>;
@@ -560,9 +558,7 @@ async function verifyIntegrityToken(params: {
       expectedIssuer: attestationConfig.issuer,
       integrityJwt: params.integrityJwt,
       jwk: keyResult.jwk,
-      audiences: params.legacyRpId
-        ? [params.rpId, params.legacyRpId]
-        : params.rpId,
+      rpId: params.rpId,
     });
   } catch (error) {
     if (!keyResult.fromCache || !shouldRefreshJwksAfterJwtFailure(error)) {
@@ -583,9 +579,7 @@ async function verifyIntegrityToken(params: {
         expectedIssuer: attestationConfig.issuer,
         integrityJwt: params.integrityJwt,
         jwk: keyResult.jwk,
-        audiences: params.legacyRpId
-          ? [params.rpId, params.legacyRpId]
-          : params.rpId,
+        rpId: params.rpId,
       });
     } catch (retryError) {
       throw new IntegrityBundleError(
@@ -700,8 +694,6 @@ export async function verifyIntegrityBundle(
       environment: params.environment,
       integrityJwt: bundle.jwt,
       rpId: params.rpId,
-      legacyRpId:
-        params.protocolVersion === "3.0" ? params.legacyRpId : undefined,
       signatureFormat: bundle.signatureFormat,
     });
 

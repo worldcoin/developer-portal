@@ -169,9 +169,7 @@ export function errorHasuraQuery({
   app_id,
   team_id,
   logLevel = "error",
-  errorExtensions,
 }: {
-  errorExtensions?: { operation_hash?: string; environment?: string };
   req: NextRequest;
   code?: string;
   detail?: string;
@@ -190,7 +188,6 @@ export function errorHasuraQuery({
     {
       message: detail,
       extensions: {
-        ...errorExtensions,
         code,
       },
     },

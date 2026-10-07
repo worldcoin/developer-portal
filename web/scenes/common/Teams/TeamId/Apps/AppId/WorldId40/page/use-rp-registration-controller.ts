@@ -32,20 +32,13 @@ export const useRpRegistrationController = ({
     initialProductionStatus,
   );
   const [stagingStatus, setStagingStatus] = useState(initialStagingStatus);
-  const [retryAttempt, setRetryAttempt] = useState<{
-    rpId: string;
-    environment: RpEnvironment;
-  } | null>(null);
+  const [retryingEnvironment, setRetryingEnvironment] =
+    useState<RpEnvironment | null>(null);
   const productionStatusRef = useRef(initialProductionStatus);
-  const rpIdRef = useRef(rpId);
-  const statusFetchInFlight = useRef<{
-    rpId: string;
-    promise: Promise<void>;
-  } | null>(null);
+  const statusFetchInFlight = useRef<string | null>(null);
   const onStatusReconciledRef = useRef(onStatusReconciled);
   const onRetryErrorRef = useRef(onRetryError);
 
-  rpIdRef.current = rpId;
   onStatusReconciledRef.current = onStatusReconciled;
   onRetryErrorRef.current = onRetryError;
 
@@ -65,43 +58,32 @@ export const useRpRegistrationController = ({
   ]);
 
   const fetchStatus = useCallback(async () => {
-    if (rpIdRef.current !== rpId) return;
-    if (statusFetchInFlight.current?.rpId === rpId) return;
+    if (statusFetchInFlight.current === rpId) return;
 
-    const request = { rpId, promise: Promise.resolve() };
-    statusFetchInFlight.current = request;
-    request.promise = (async () => {
-      try {
-        const response = await fetch(`/api/v4/rp-status/${rpId}`, {
-          signal: AbortSignal.timeout(4000),
-        });
-        if (!response.ok || statusFetchInFlight.current !== request) return;
+    statusFetchInFlight.current = rpId;
+    try {
+      const response = await fetch(`/api/v4/rp-status/${rpId}`, {
+        signal: AbortSignal.timeout(4000),
+      });
+      if (!response.ok || statusFetchInFlight.current !== rpId) return;
 
-        const result = (await response.json()) as RpStatusResponse;
-        if (
-          rpIdRef.current !== rpId ||
-          statusFetchInFlight.current !== request
-        ) {
-          return;
-        }
-        const productionChanged =
-          result.production_status !== productionStatusRef.current;
+      const result = (await response.json()) as RpStatusResponse;
+      const productionChanged =
+        result.production_status !== productionStatusRef.current;
 
-        updateProductionStatus(result.production_status);
-        setStagingStatus(result.staging_status);
+      updateProductionStatus(result.production_status);
+      setStagingStatus(result.staging_status);
 
-        if (productionChanged) {
-          onStatusReconciledRef.current?.(result.production_status);
-        }
-      } catch {
-        // Retain the last known status when reconciliation is unavailable.
-      } finally {
-        if (statusFetchInFlight.current === request) {
-          statusFetchInFlight.current = null;
-        }
+      if (productionChanged) {
+        onStatusReconciledRef.current?.(result.production_status);
       }
-    })();
-    await request.promise;
+    } catch {
+      // Retain the last known status when reconciliation is unavailable.
+    } finally {
+      if (statusFetchInFlight.current === rpId) {
+        statusFetchInFlight.current = null;
+      }
+    }
   }, [rpId, updateProductionStatus]);
 
   useEffect(() => {
@@ -125,13 +107,11 @@ export const useRpRegistrationController = ({
 
   const retryRegistration = useCallback(
     async (environment: RpEnvironment) => {
-      const attempt = { rpId, environment };
-      setRetryAttempt(attempt);
+      setRetryingEnvironment(environment);
       try {
         const { data } = await retryRpMutation({
           variables: { rp_id: rpId, environment },
         });
-        if (rpIdRef.current !== attempt.rpId) return;
 
         if (data?.retry_rp?.success) {
           if (environment === "production") {
@@ -141,24 +121,18 @@ export const useRpRegistrationController = ({
           }
         }
       } catch {
-        const inFlight = statusFetchInFlight.current;
-        if (inFlight?.rpId === rpId) await inFlight.promise;
-        await fetchStatus();
-        if (rpIdRef.current === attempt.rpId) {
-          onRetryErrorRef.current?.();
-        }
+        onRetryErrorRef.current?.();
       } finally {
-        setRetryAttempt((current) => (current === attempt ? null : current));
+        setRetryingEnvironment(null);
       }
     },
-    [retryRpMutation, rpId, updateProductionStatus, fetchStatus],
+    [retryRpMutation, rpId, updateProductionStatus],
   );
 
   return {
     productionStatus,
     stagingStatus,
-    retryingEnvironment:
-      retryAttempt?.rpId === rpId ? retryAttempt.environment : null,
+    retryingEnvironment,
     retryRegistration,
     markProductionPending: () =>
       updateProductionStatus(RpRegistrationStatus.Pending),

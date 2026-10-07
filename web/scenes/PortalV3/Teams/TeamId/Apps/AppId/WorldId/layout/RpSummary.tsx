@@ -50,9 +50,7 @@ export const RpSummary = (props: {
     initialStagingStatus: props.initialStagingStatus,
     onStatusReconciled: props.onRpChanged,
     onRetryError: () =>
-      toast.error(
-        "Could not confirm retry. Check registration status before trying again",
-      ),
+      toast.error("Failed to retry registration. Please try again"),
   });
 
   const isActive = productionStatus === RpRegistrationStatus.Registered;

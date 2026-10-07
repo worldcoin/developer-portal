@@ -1,6 +1,7 @@
 "use client";
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { generateRpIdString } from "@/lib/rp";
 import { RegisterRpButton } from "./RegisterRpButton";
 import { SummaryField } from "./SummaryField";
 
@@ -28,7 +29,11 @@ export const RegisterRpEmptyState = (props: {
         <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-5">
             <SummaryField label="App ID" value={props.appId} copy />
-            <SummaryField label="RP ID" value="Not registered" />
+            <SummaryField
+              label="RP ID"
+              value={generateRpIdString(props.appId)}
+              copy
+            />
             <div className="w-full min-w-0">
               <Typography
                 variant={TYPOGRAPHY.B4}

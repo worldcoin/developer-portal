@@ -8,6 +8,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import React from "react";
+import { generateRpIdString } from "@/lib/rp";
 import { WorldIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout";
 import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
 
@@ -254,9 +255,10 @@ describe("WorldIdLayout [loading boundary]", () => {
     expect(
       screen.getByRole("heading", { name: "World ID Configuration" }),
     ).toBeInTheDocument();
-    // App ID is route-derived. RP ID and signer wait for stored RP data.
+    // App ID and RP ID are route-derived and identical in both loaded
+    // variants, so they render for real; only the signer value shimmers.
     expect(screen.getByText("app_1")).toBeInTheDocument();
-    expect(screen.getByText("RP ID")).toBeInTheDocument();
+    expect(screen.getByText(generateRpIdString("app_1"))).toBeInTheDocument();
     expect(screen.getByText("Signer address")).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/search/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId("rp-summary")).not.toBeInTheDocument();

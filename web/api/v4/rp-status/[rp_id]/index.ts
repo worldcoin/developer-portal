@@ -2,16 +2,11 @@ import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { resolveManagerAddress } from "@/api/helpers/rp-manager";
 import {
-  readRpStatusCache,
-  writeRpStatusCache,
-} from "@/api/helpers/rp-status-cache";
-import {
   evaluateOnChainTrust,
   isValidRpId,
   mapOnChainToDbStatus,
   type OnChainTrust,
   parseRpId,
-  PENDING_TIMEOUT_MS,
   RpRegistrationStatus,
   shouldFailUntrustedRegistration,
 } from "@/api/helpers/rp-utils";
@@ -24,6 +19,8 @@ import { getSdk as getUpdateRpStatusSdk } from "./graphql/update-rp-status.gener
 import { getSdk as getUpdateStagingStatusSdk } from "./graphql/update-staging-status.generated";
 
 const CACHE_TTL_SECONDS = 3600;
+const CACHE_KEY_PREFIX = "rp_status:v2:";
+const PENDING_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 const SIGNER_MISMATCH_LOG_KEY_PREFIX = "rp_signer_mismatch_logged:";
 const SIGNER_MISMATCH_LOG_TTL_SECONDS = 600; // 10 minutes
 
@@ -79,13 +76,11 @@ export async function GET(
   }
 
   const redis = global.RedisClient;
-  let cacheGeneration: string | null = null;
 
   if (redis) {
     try {
-      const snapshot = await readRpStatusCache(rpId);
-      cacheGeneration = snapshot?.generation ?? null;
-      const cachedValue = snapshot?.value;
+      const cacheKey = `${CACHE_KEY_PREFIX}${rpId}`;
+      const cachedValue = await redis.get(cacheKey);
 
       if (cachedValue) {
         try {
@@ -315,6 +310,8 @@ export async function GET(
     }
   }
 
+  const ageMs = Date.now() - new Date(dbRecord.created_at).getTime();
+  const isPastGracePeriod = ageMs > PENDING_TIMEOUT_MS;
   // updated_at-based grace windows. updated_at is bumped by a fresh retry or an
   // in-flight signer rotation, so both restart these clocks.
   const updatedAgeMs = Date.now() - new Date(dbRecord.updated_at).getTime();
@@ -389,13 +386,13 @@ export async function GET(
     !isAppDeleted &&
     !productionInitialized &&
     currentDbStatus === RpRegistrationStatus.Pending &&
-    isPastGracePeriodSinceUpdate &&
+    isPastGracePeriod &&
     dbRecord.mode === "managed"
   ) {
     logger.warn("RP registration pending timeout — transitioning to failed", {
       rpId,
-      updatedAt: dbRecord.updated_at,
-      ageMs: updatedAgeMs,
+      createdAt: dbRecord.created_at,
+      ageMs,
       operation_hash: dbRecord.operation_hash ?? "null",
     });
 
@@ -509,19 +506,15 @@ export async function GET(
     staging_status: stagingStatus,
   };
 
-  if (redis && cacheGeneration !== null) {
+  if (redis) {
     try {
       // Use a minimal TTL for pending statuses so polling picks up on-chain changes quickly
       const ttl =
         productionStatus === "pending" || stagingStatus === "pending"
           ? 1
           : CACHE_TTL_SECONDS;
-      await writeRpStatusCache(
-        rpId,
-        cacheGeneration,
-        JSON.stringify(result),
-        ttl,
-      );
+      const cacheKey = `${CACHE_KEY_PREFIX}${rpId}`;
+      await redis.set(cacheKey, JSON.stringify(result), "EX", ttl);
     } catch (error) {
       logger.warn("Failed to write to cache", { rpId, error });
     }
