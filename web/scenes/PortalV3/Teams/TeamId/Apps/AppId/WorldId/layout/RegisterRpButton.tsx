@@ -83,7 +83,6 @@ export const RegisterRpButton = (props: RegisterRpButtonProps) => {
             completedRef.current = true;
             await onRegistered();
           }}
-          onRegistrationAttempt={onRegistered}
           onClose={closeDialog}
         />
       ) : null}

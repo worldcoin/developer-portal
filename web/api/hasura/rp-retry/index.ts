@@ -1,16 +1,34 @@
 import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getKMSClient } from "@/api/helpers/kms";
+import { getEthAddressFromKMS } from "@/api/helpers/kms-eth";
 import {
-  retryRpRegistration,
-  type RpRetryEnvironment,
-} from "@/api/helpers/rp-retry";
-import { isValidRpId } from "@/api/helpers/rp-utils";
+  submitRegisterRpTransaction,
+  submitRotateSignerTransaction,
+} from "@/api/helpers/rp-transactions";
+import {
+  getRpRegistryConfig,
+  getStagingRpRegistryConfig,
+  isValidRpId,
+  normalizeAddress,
+  parseRpId,
+  RpRegistryConfig,
+} from "@/api/helpers/rp-utils";
+import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { logger } from "@/lib/logger";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getGetRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
+import { getSdk as getUpdateProductionRetrySdk } from "./graphql/update-production-retry.generated";
+import { getSdk as getUpdateStagingRetrySdk } from "./graphql/update-staging-retry.generated";
+
+const CACHE_KEY_PREFIX = "rp_status:v2:";
+
+type Environment = "production" | "staging";
 
 const schema = yup
   .object({
@@ -18,6 +36,27 @@ const schema = yup
     environment: yup.string().oneOf(["production", "staging"]).required(),
   })
   .noUnknown();
+
+function getConfigForEnvironment(
+  environment: Environment,
+): RpRegistryConfig | null {
+  const primaryConfig = getRpRegistryConfig();
+  if (!primaryConfig) return null;
+
+  if (environment === "production") {
+    return primaryConfig;
+  }
+
+  const stagingOverrides = getStagingRpRegistryConfig();
+  if (!stagingOverrides) return null;
+
+  return {
+    ...primaryConfig,
+    contractAddress: stagingOverrides.contractAddress,
+    domainSeparator: stagingOverrides.domainSeparator,
+    updateRpTypehash: stagingOverrides.updateRpTypehash,
+  };
+}
 
 export const POST = async (req: NextRequest) => {
   const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);
@@ -57,13 +96,22 @@ export const POST = async (req: NextRequest) => {
   }
 
   const rpId = parsedParams.rp_id;
-  const environment = parsedParams.environment as RpRetryEnvironment;
+  const environment = parsedParams.environment as Environment;
 
   if (!isValidRpId(rpId)) {
     return errorHasuraQuery({
       req,
       detail: "Invalid rp_id format. Must start with 'rp_'.",
       code: "invalid_rp_id",
+    });
+  }
+
+  const config = getConfigForEnvironment(environment);
+  if (!config) {
+    return errorHasuraQuery({
+      req,
+      detail: `The ${environment} contract is not configured.`,
+      code: "environment_not_configured",
     });
   }
 
@@ -108,27 +156,226 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const result = await retryRpRegistration({
-    client,
-    registration: dbRecord,
-    environment,
-  });
-  if (!result.ok) {
+  if (dbRecord.mode !== "managed" || !dbRecord.manager_kms_key_id) {
     return errorHasuraQuery({
       req,
-      detail: result.detail,
-      code: result.code,
-      errorExtensions: {
-        operation_hash: result.operationHash,
-        environment: result.environment,
-      },
+      detail: "Retry is only available for managed mode RPs.",
+      code: "not_managed",
       app_id: appId,
       team_id: teamId,
     });
   }
+
+  const managerKmsKeyId = dbRecord.manager_kms_key_id;
+  const signerAddress = dbRecord.signer_address;
+
+  if (!signerAddress) {
+    return errorHasuraQuery({
+      req,
+      detail: "Signer address is missing for this managed RP.",
+      code: "missing_signer",
+      app_id: appId,
+      team_id: teamId,
+    });
+  }
+
+  const appName = dbRecord.app?.app_metadata?.[0]?.name || "";
+  const numericRpId = parseRpId(rpId);
+
+  const kmsClient: KMSClient = await getKMSClient(config.kmsRegion);
+
+  let managerAddress: string;
+  try {
+    managerAddress = await getEthAddressFromKMS(
+      kmsClient,
+      managerKmsKeyId,
+      config.kmsRegion,
+    );
+  } catch (error) {
+    logger.error("Failed to derive manager address from KMS key", {
+      rpId,
+      appId,
+      teamId,
+      error,
+    });
+    return errorHasuraQuery({
+      req,
+      detail: "Failed to derive manager address.",
+      code: "kms_error",
+      app_id: appId,
+      team_id: teamId,
+    });
+  }
+
+  let onChainRp;
+  try {
+    onChainRp = await getRpFromContract(numericRpId, config.contractAddress);
+  } catch (error) {
+    logger.error("Failed to fetch RP from contract", {
+      rpId,
+      appId,
+      teamId,
+      environment,
+      error,
+    });
+    return errorHasuraQuery({
+      req,
+      detail: "Failed to fetch on-chain RP status.",
+      code: "rpc_error",
+      app_id: appId,
+      team_id: teamId,
+    });
+  }
+
+  // An initialized RP whose on-chain manager is not our KMS manager belongs to
+  // someone else: rp_id is uint64(keccak256(app_id)) and on-chain `register()`
+  // is permissionless, so a third party can claim it before we do. Retrying
+  // would submit an `updateRp` signed by a key the contract does not recognise
+  // as the manager — it reverts, yet the handler below still writes
+  // `status: pending`, wedging the row and burning gas on every click. Bail
+  // with a distinct code so the UI stops offering an action that cannot work.
+  if (
+    onChainRp.initialized &&
+    normalizeAddress(onChainRp.manager).toLowerCase() !==
+      normalizeAddress(managerAddress).toLowerCase()
+  ) {
+    logger.warn("Retry: rp_id is managed on-chain by a foreign manager", {
+      rpId,
+      appId,
+      teamId,
+      environment,
+      expectedManager: managerAddress,
+      onChainManager: onChainRp.manager,
+    });
+    return errorHasuraQuery({
+      req,
+      detail:
+        "This app's RP is controlled on-chain by a different manager, so Portal cannot update it. Contact support.",
+      code: "rp_id_taken",
+      app_id: appId,
+      team_id: teamId,
+    });
+  }
+
+  let operationHash: string | undefined;
+
+  if (!onChainRp.initialized) {
+    try {
+      operationHash = await submitRegisterRpTransaction(config, {
+        rpId: numericRpId,
+        managerAddress,
+        signerAddress,
+        appName,
+        kmsClient,
+      });
+
+      logger.info("Retry: registerRp submitted", {
+        rpId,
+        appId,
+        teamId,
+        environment,
+        operationHash,
+      });
+    } catch (error) {
+      logger.error("Retry: failed to submit registerRp", {
+        rpId,
+        appId,
+        teamId,
+        environment,
+        error,
+      });
+      return errorHasuraQuery({
+        req,
+        detail: "Failed to submit registration transaction.",
+        code: "submission_error",
+        app_id: appId,
+        team_id: teamId,
+      });
+    }
+  } else if (
+    normalizeAddress(onChainRp.signer).toLowerCase() !==
+    normalizeAddress(signerAddress).toLowerCase()
+  ) {
+    try {
+      operationHash = await submitRotateSignerTransaction(config, {
+        rpId: numericRpId,
+        newSignerAddress: signerAddress,
+        managerKmsKeyId,
+        kmsClient,
+      });
+
+      logger.info("Retry: updateRp (signer rotation) submitted", {
+        rpId,
+        appId,
+        teamId,
+        environment,
+        operationHash,
+      });
+    } catch (error) {
+      logger.error("Retry: failed to submit updateRp", {
+        rpId,
+        appId,
+        teamId,
+        environment,
+        error,
+      });
+      return errorHasuraQuery({
+        req,
+        detail: "Failed to submit signer update transaction.",
+        code: "submission_error",
+        app_id: appId,
+        team_id: teamId,
+      });
+    }
+  } else {
+    logger.info("Retry: RP already in sync on-chain", {
+      rpId,
+      appId,
+      teamId,
+      environment,
+    });
+  }
+
+  // Persist operation hash and reset status to pending on retry
+  if (operationHash) {
+    try {
+      if (environment === "production") {
+        await getUpdateProductionRetrySdk(client).UpdateProductionRetry({
+          rp_id: rpId,
+          operation_hash: operationHash,
+          status: "pending",
+        });
+      } else {
+        await getUpdateStagingRetrySdk(client).UpdateStagingRetry({
+          rp_id: rpId,
+          staging_operation_hash: operationHash,
+          staging_status: "pending",
+        });
+      }
+    } catch (error) {
+      logger.error("Failed to update retry state in DB", {
+        rpId,
+        appId,
+        teamId,
+        environment,
+        error,
+      });
+    }
+  }
+
+  const redis = global.RedisClient;
+  if (redis) {
+    try {
+      const cacheKey = `${CACHE_KEY_PREFIX}${rpId}`;
+      await redis.del(cacheKey);
+    } catch (error) {
+      logger.warn("Failed to clear cache", { rpId, appId, teamId, error });
+    }
+  }
+
   return NextResponse.json({
     success: true,
-    environment: result.environment,
-    operation_hash: result.operationHash,
+    environment,
+    operation_hash: operationHash ?? null,
   });
 };

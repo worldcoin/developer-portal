@@ -6,38 +6,36 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type UpdateStagingRetryMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
-  claimed_at: Types.Scalars["timestamptz"]["input"];
   staging_operation_hash: Types.Scalars["String"]["input"];
   staging_status: Types.Scalars["rp_registration_status"]["input"];
 }>;
 
 export type UpdateStagingRetryMutation = {
   __typename?: "mutation_root";
-  update_rp_registration?: {
-    __typename?: "rp_registration_mutation_response";
-    affected_rows: number;
+  update_rp_registration_by_pk?: {
+    __typename?: "rp_registration";
+    rp_id: string;
+    staging_status?: unknown | null;
+    staging_operation_hash?: string | null;
   } | null;
 };
 
 export const UpdateStagingRetryDocument = gql`
   mutation UpdateStagingRetry(
     $rp_id: String!
-    $claimed_at: timestamptz!
     $staging_operation_hash: String!
     $staging_status: rp_registration_status!
   ) {
-    update_rp_registration(
-      where: {
-        rp_id: { _eq: $rp_id }
-        updated_at: { _eq: $claimed_at }
-        staging_status: { _eq: pending }
-      }
+    update_rp_registration_by_pk(
+      pk_columns: { rp_id: $rp_id }
       _set: {
         staging_operation_hash: $staging_operation_hash
         staging_status: $staging_status
       }
     ) {
-      affected_rows
+      rp_id
+      staging_status
+      staging_operation_hash
     }
   }
 `;
