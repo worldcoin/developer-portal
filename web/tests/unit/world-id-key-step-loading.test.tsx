@@ -10,6 +10,7 @@ import {
   within,
 } from "@testing-library/react";
 import React, { Suspense } from "react";
+import { toast } from "react-toastify";
 
 let mockKeyStepReady = false;
 let mockPendingKeyStep: Promise<void>;
@@ -203,22 +204,34 @@ it("PortalV3 registers the relying party in managed mode", async () => {
   await waitFor(() => expect(onClose).toHaveBeenCalledWith(false));
 });
 
-it("refreshes RP state when registration returns an error", async () => {
-  mockKeyStepReady = true;
-  registerRp.mockRejectedValue(new Error("submission timeout"));
-  const onRegistrationAttempt = jest.fn();
+it.each(["succeeds", "fails"])(
+  "reports an uncertain registration when the response is lost and refreshing RP state %s",
+  async (refreshResult) => {
+    mockKeyStepReady = true;
+    registerRp.mockRejectedValue(new Error("submission timeout"));
+    const onRegistrationAttempt = jest.fn().mockResolvedValue(undefined);
+    if (refreshResult === "fails") {
+      onRegistrationAttempt.mockRejectedValue(new Error("refresh timeout"));
+    }
 
-  render(
-    <PortalV3Dialog
-      appId="app_00000000000000000000000000000000"
-      onRegistrationAttempt={onRegistrationAttempt}
-      onClose={jest.fn()}
-      open
-    />,
-  );
+    render(
+      <PortalV3Dialog
+        appId="app_00000000000000000000000000000000"
+        onRegistrationAttempt={onRegistrationAttempt}
+        onClose={jest.fn()}
+        open
+      />,
+    );
 
-  fireEvent.click(screen.getByTestId("button-configure-signer-key-continue"));
-  fireEvent.click(await screen.findByTestId("generate-key-step"));
+    fireEvent.click(screen.getByTestId("button-configure-signer-key-continue"));
+    fireEvent.click(await screen.findByTestId("generate-key-step"));
 
-  await waitFor(() => expect(onRegistrationAttempt).toHaveBeenCalledTimes(1));
-});
+    await waitFor(() => expect(onRegistrationAttempt).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        "Registration could not be confirmed. Check the RP status or reload the page before trying again.",
+      ),
+    );
+    expect(toast.success).not.toHaveBeenCalled();
+  },
+);

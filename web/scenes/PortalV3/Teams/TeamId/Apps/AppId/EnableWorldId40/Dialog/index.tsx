@@ -135,10 +135,11 @@ export const RegisterRpDialog = ({
         try {
           await onRegistrationAttempt?.();
         } catch {
-          // The registration may already be pending. The error toast still
-          // leaves the dialog open so the developer can retry the refresh.
+          // The registration may already be pending even if refreshing also fails.
         }
-        toast.error("Failed to register Relying Party");
+        toast.error(
+          "Registration could not be confirmed. Check the RP status or reload the page before trying again.",
+        );
       }
     },
     [teamId, registerRp, appId, completeRpSetup, onRegistrationAttempt],
