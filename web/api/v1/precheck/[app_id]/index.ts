@@ -143,6 +143,7 @@ export async function POST(
     (await global.ParameterStore?.getParameter<string[]>(
       "whitelisted-apps/grant-claiming",
       [],
+      { cacheNotFound: true },
     )) ?? [];
 
   const unverified_app_metadata = rawAppValues.app_metadata[0];

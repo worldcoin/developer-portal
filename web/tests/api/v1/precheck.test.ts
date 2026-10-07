@@ -118,6 +118,7 @@ describe("/api/v1/precheck/[app_id]", () => {
     expect(getParameter).toHaveBeenCalledWith(
       "whitelisted-apps/grant-claiming",
       [],
+      { cacheNotFound: true },
     );
   });
 
@@ -145,6 +146,7 @@ describe("/api/v1/precheck/[app_id]", () => {
     expect(getParameter).toHaveBeenCalledWith(
       "whitelisted-apps/grant-claiming",
       [],
+      { cacheNotFound: true },
     );
   });
 
