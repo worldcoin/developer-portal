@@ -3,6 +3,7 @@ import { prepareRpManagerKey } from "@/api/helpers/rp-registration-preparation";
 import { getSdk as getRegistrationSdk } from "@/api/hasura/rp-retry/graphql/get-rp-registration.generated";
 import { getKMSClient } from "@/api/helpers/kms";
 import { getEthAddressFromKMS } from "@/api/helpers/kms-eth";
+import { invalidateRpStatusCache } from "@/api/helpers/rp-status-cache";
 import {
   submitRegisterRpTransaction,
   submitRotateSignerTransaction,
@@ -317,7 +318,7 @@ export async function retryRpRegistration({
     }
     // The claim invalidates cached failed status before submission, including timeouts.
     try {
-      await global.RedisClient?.del(`rp_status:v2:${rpId}`);
+      await invalidateRpStatusCache(rpId);
     } catch (error) {
       logger.warn("Failed to clear retry claim cache", {
         rpId,
@@ -454,8 +455,7 @@ export async function retryRpRegistration({
   const redis = global.RedisClient;
   if (redis) {
     try {
-      const cacheKey = `rp_status:v2:${rpId}`;
-      await redis.del(cacheKey);
+      await invalidateRpStatusCache(rpId);
     } catch (error) {
       logger.warn("Failed to clear cache", { rpId, appId, teamId, error });
     }

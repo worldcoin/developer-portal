@@ -1,4 +1,8 @@
 import { POST } from "@/api/hasura/rp-retry";
+import {
+  readRpStatusCache,
+  writeRpStatusCache,
+} from "@/api/helpers/rp-status-cache";
 import { NextRequest } from "next/server";
 
 // #region Mocks
@@ -148,6 +152,46 @@ beforeEach(async () => {
 
 // #region Saved registration lifecycle
 describe("/api/hasura/rp-retry", () => {
+  it("invalidates pre-claim cache writes even when submission times out", async () => {
+    const snapshot = (await readRpStatusCache(rpId))!;
+    const staleStatus = JSON.stringify({
+      production_status: "failed",
+      staging_status: "failed",
+    });
+    await writeRpStatusCache(rpId, snapshot.generation, staleStatus, 3600);
+    submitRegisterMock.mockRejectedValue(new Error("Submission timed out"));
+
+    const response = await POST(createMockRequest());
+
+    expect((await response!.json()).extensions.code).toBe("submission_error");
+    expect(record?.status).toBe("pending");
+    expect(
+      await writeRpStatusCache(rpId, snapshot.generation, staleStatus, 3600),
+    ).toBe(0);
+    expect(await global.RedisClient?.get(`rp_status:v2:${rpId}`)).toBeNull();
+  });
+
+  it("invalidates cache writes started during a staging retry before it completes", async () => {
+    let duringRetryGeneration!: string;
+    const staleStatus = JSON.stringify({
+      production_status: "failed",
+      staging_status: "pending",
+    });
+    submitRegisterMock.mockImplementation(async () => {
+      duringRetryGeneration = (await readRpStatusCache(rpId))!.generation;
+      await writeRpStatusCache(rpId, duringRetryGeneration, staleStatus, 1);
+      return "0xregister";
+    });
+
+    const response = await POST(createMockRequest("staging"));
+
+    expect((await response!.json()).success).toBe(true);
+    expect(await global.RedisClient?.get(`rp_status:v2:${rpId}`)).toBeNull();
+    expect(
+      await writeRpStatusCache(rpId, duringRetryGeneration, staleStatus, 1),
+    ).toBe(0);
+  });
+
   it.each(["production", "staging"])(
     "reuses the saved registration for %s and updates only that environment",
     async (environment) => {
