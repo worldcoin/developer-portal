@@ -11,6 +11,7 @@ import {
   mapOnChainToDbStatus,
   type OnChainTrust,
   parseRpId,
+  PENDING_TIMEOUT_MS,
   RpRegistrationStatus,
   shouldFailUntrustedRegistration,
 } from "@/api/helpers/rp-utils";
@@ -851,6 +852,29 @@ const syncWorldIdRegistrationStatus = async (
     });
   }
 
+  // Match /api/v4/rp-status: absent managed RPs become retryable after five
+  // minutes; self-managed RPs keep waiting for manual on-chain setup.
+  const isPastGracePeriodSinceUpdate =
+    Date.now() - new Date(registration.updated_at).getTime() >
+    PENDING_TIMEOUT_MS;
+  if (
+    !productionInitialized &&
+    currentProductionStatus === RpRegistrationStatus.Pending &&
+    isPastGracePeriodSinceUpdate &&
+    registration.mode === "managed"
+  ) {
+    logger.warn("RP registration pending timeout — transitioning to failed", {
+      app_id,
+      rp_id: rpId,
+      updatedAt: registration.updated_at,
+    });
+    await getUpdateRpStatusSdk(ctx.client).UpdateRpStatus({
+      rp_id: rpId,
+      status: RpRegistrationStatus.Failed,
+    });
+    productionStatus = RpRegistrationStatus.Failed;
+  }
+
   // Same timeout /api/v4/rp-status applies, via the same helper. Without it an
   // MCP-only client polls `pending` forever after its registration is front-run
   // on-chain, and the surviving pending row keeps follow-up MCP registration and
@@ -936,7 +960,20 @@ const syncWorldIdRegistrationStatus = async (
           stagingSynced = true;
         }
       } else {
-        stagingStatus = "pending";
+        stagingStatus =
+          registration.mode === "managed" && isPastGracePeriodSinceUpdate
+            ? RpRegistrationStatus.Failed
+            : RpRegistrationStatus.Pending;
+        if (
+          stagingStatus === RpRegistrationStatus.Failed &&
+          currentStagingStatus !== RpRegistrationStatus.Failed
+        ) {
+          await getUpdateStagingStatusSdk(ctx.client).UpdateStagingStatus({
+            rp_id: rpId,
+            staging_status: stagingStatus,
+          });
+          stagingSynced = true;
+        }
       }
     } catch (error) {
       logger.error("Failed to fetch MCP RP status from staging contract", {

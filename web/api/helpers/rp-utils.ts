@@ -17,7 +17,7 @@ import { USER_OP_MAX_VALIDITY_MS } from "./user-operation";
  * operation is treated as dead. Mirrors the pending timeout the status endpoint
  * applies to registrations that never made it on-chain.
  */
-const PENDING_TIMEOUT_MS = 5 * 60 * 1000;
+export const PENDING_TIMEOUT_MS = 5 * 60 * 1000;
 
 // =============================================================================
 // Types

@@ -11,6 +11,7 @@ import {
   mapOnChainToDbStatus,
   type OnChainTrust,
   parseRpId,
+  PENDING_TIMEOUT_MS,
   RpRegistrationStatus,
   shouldFailUntrustedRegistration,
 } from "@/api/helpers/rp-utils";
@@ -23,7 +24,6 @@ import { getSdk as getUpdateRpStatusSdk } from "./graphql/update-rp-status.gener
 import { getSdk as getUpdateStagingStatusSdk } from "./graphql/update-staging-status.generated";
 
 const CACHE_TTL_SECONDS = 3600;
-const PENDING_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 const SIGNER_MISMATCH_LOG_KEY_PREFIX = "rp_signer_mismatch_logged:";
 const SIGNER_MISMATCH_LOG_TTL_SECONDS = 600; // 10 minutes
 

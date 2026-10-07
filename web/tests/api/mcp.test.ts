@@ -1190,6 +1190,165 @@ describe("/api/mcp", () => {
     );
   });
 
+  // #region Pending registration timeout
+  it.each(["production", "staging"])(
+    "allows MCP recovery when a pending %s registration never reached the contract",
+    async (environment) => {
+      setManagedRegistration("pending");
+      const registration = currentAppContextResponse.app[0].rp_registration[0];
+      registration.updated_at = new Date(
+        Date.now() - 6 * 60 * 1000,
+      ).toISOString();
+      process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS =
+        "0x0000000000000000000000000000000000000049";
+      if (environment === "staging") registration.status = "registered";
+      const trustedRp = {
+        initialized: true,
+        active: true,
+        manager: "0x0000000000000000000000000000000000000002",
+        signer: registration.signer_address,
+      };
+      mockGetRpFromContract.mockImplementation((_rpId, contractAddress) =>
+        environment === "production" ||
+        contractAddress === process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS
+          ? { initialized: false }
+          : trustedRp,
+      );
+      const original = requestMock.getMockImplementation()!;
+      requestMock.mockImplementation((query, variables) => {
+        if (getOperationName(query) === "UpdateRpStatus")
+          registration.status = variables.status;
+        if (getOperationName(query) === "UpdateStagingStatus")
+          registration.staging_status = variables.staging_status;
+        return original(query, variables);
+      });
+
+      const status = await POST(
+        callTool("get_world_id_registration_status", { app_id: appId }),
+      );
+      const payload = JSON.parse((await status.json()).result.content[0].text);
+      expect(payload).toMatchObject({
+        rp_id: rpId,
+        production_status:
+          environment === "production" ? "failed" : "registered",
+        staging_status: "failed",
+      });
+
+      const retry = await POST(
+        callTool("retry_world_id_registration", { app_id: appId, environment }),
+      );
+      const body = await retry.json();
+      expect(body.error).toBeUndefined();
+      expect(JSON.parse(body.result.content[0].text)).toMatchObject({
+        rp_id: rpId,
+        environment,
+        operation_hash: "0xretry-register",
+      });
+      expect(getEthAddressFromKMSMock).toHaveBeenCalledWith(
+        {},
+        "kms-key-123",
+        "us-east-1",
+      );
+      expect(submitRegisterRpTransactionMock).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          rpId: BigInt(`0x${rpId.slice(3)}`),
+          signerAddress: registration.signer_address,
+        }),
+      );
+    },
+  );
+
+  it.each([
+    ["a fresh retry", "managed", "pending", new Date().toISOString()],
+    ["manual setup", "self_managed", "pending", "2026-01-01T00:00:00Z"],
+    ["an invalid update timestamp", "managed", "pending", "invalid"],
+    ["a registered RP", "managed", "registered", "2026-01-01T00:00:00Z"],
+  ])("does not time out %s", async (_label, mode, status, updatedAt) => {
+    setManagedRegistration("pending");
+    Object.assign(currentAppContextResponse.app[0].rp_registration[0], {
+      mode,
+      status,
+      updated_at: updatedAt,
+    });
+    if (status === "pending") {
+      process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS =
+        "0x0000000000000000000000000000000000000049";
+    }
+    mockGetRpFromContract.mockResolvedValue({ initialized: false });
+
+    const response = await POST(
+      callTool("get_world_id_registration_status", { app_id: appId }),
+    );
+
+    const payload = JSON.parse((await response.json()).result.content[0].text);
+    expect(payload.production_status).toBe(status);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "UpdateRpStatus",
+      ),
+    ).toBe(false);
+    if (status === "pending") {
+      expect(payload.staging_status).toBe("pending");
+      expect(
+        requestMock.mock.calls.some(
+          ([query]) => getOperationName(query) === "UpdateStagingStatus",
+        ),
+      ).toBe(false);
+    }
+  });
+
+  it.each(["production", "staging"])(
+    "does not persist a timeout when the %s registry read fails",
+    async (environment) => {
+      setManagedRegistration("pending");
+      currentAppContextResponse.app[0].rp_registration[0].updated_at =
+        "2026-01-01T00:00:00Z";
+      process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS =
+        "0x0000000000000000000000000000000000000049";
+      mockGetRpFromContract.mockImplementation((_rpId, contractAddress) => {
+        const unavailableContract =
+          environment === "production"
+            ? process.env.RP_REGISTRY_CONTRACT_ADDRESS
+            : process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
+        if (contractAddress === unavailableContract)
+          throw new Error("RPC unavailable");
+        return {
+          initialized: true,
+          active: true,
+          manager: "0x0000000000000000000000000000000000000002",
+          signer: "0x0000000000000000000000000000000000000001",
+        };
+      });
+
+      const response = await POST(
+        callTool("get_world_id_registration_status", { app_id: appId }),
+      );
+      const body = await response.json();
+      if (environment === "production") {
+        expect(body.error.code).toBe(-32603);
+        expect(
+          requestMock.mock.calls.some(
+            ([query]) => getOperationName(query) === "UpdateRpStatus",
+          ),
+        ).toBe(false);
+      } else {
+        const payload = JSON.parse(body.result.content[0].text);
+        expect(payload.production_status).toBe("registered");
+        expect(payload.staging_status).toBe("failed");
+      }
+      expect(
+        requestMock.mock.calls.some(
+          ([query]) => getOperationName(query) === "UpdateStagingStatus",
+        ),
+      ).toBe(false);
+      expect(
+        currentAppContextResponse.app[0].rp_registration[0].staging_status,
+      ).toBe("pending");
+    },
+  );
+  // #endregion
+
   it.each([
     [
       "manager and signer are both foreign",
