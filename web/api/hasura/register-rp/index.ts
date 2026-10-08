@@ -1,3 +1,4 @@
+import { rpSetupPaused } from "@/api/helpers/rp-id-backfill";
 import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
@@ -56,6 +57,7 @@ const REGISTRATION_ERROR_HTTP_CODE: Record<
   Exclude<ManagedRegistrationResult, { ok: true }>["code"],
   string
 > = {
+  setup_paused: "setup_paused",
   staging_not_supported: "staging_not_supported",
   config_error: "config_error",
   already_registered: "already_registered",
@@ -146,6 +148,15 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "Staging apps cannot be migrated to World ID 4.0.",
       code: "staging_not_supported",
+      app_id,
+    });
+  }
+
+  if (rpSetupPaused()) {
+    return errorHasuraQuery({
+      req,
+      code: "setup_paused",
+      detail: "World ID 4.0 setup is temporarily paused.",
       app_id,
     });
   }
