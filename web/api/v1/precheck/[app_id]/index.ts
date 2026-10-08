@@ -139,6 +139,13 @@ export async function POST(
     );
   }
 
+  const grantClaimingApps =
+    (await global.ParameterStore?.getParameter<string[]>(
+      "whitelisted-apps/grant-claiming",
+      [],
+      { cacheNotFound: true },
+    )) ?? [];
+
   const unverified_app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
   // If an image is present it should store it's relative path and extension ie logo.png
@@ -176,6 +183,9 @@ export async function POST(
       unverified_app_metadata?.integration_url ??
       "",
     enable_face_check: true,
+    credential_request: {
+      subtype: grantClaimingApps.includes(app_id) ? "grant_claiming" : null,
+    },
     actions: rawAppValues.actions,
   };
 
