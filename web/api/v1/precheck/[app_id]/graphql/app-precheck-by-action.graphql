@@ -14,6 +14,10 @@ query AppPrecheckByActionQuery(
     id
     is_staging
     engine
+    rp_registration(where: { status: { _eq: "registered" } }) {
+      rp_id
+      status
+    }
     app_metadata(where: { verification_status: { _neq: "verified" } }) {
       name
       logo_img_url
