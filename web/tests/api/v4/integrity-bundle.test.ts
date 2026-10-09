@@ -1,3 +1,4 @@
+import { Nullifier } from "@/lib/nullifier";
 import {
   computeIntegritySignatureDigest,
   computeProofIntegrityDigest,
@@ -44,7 +45,7 @@ const response = {
   identifier: "face",
   signal_hash: "0x0",
   issuer_schema_id: "1",
-  nullifier: "0x2",
+  nullifier: Nullifier.fromHex("0x2"),
   expires_at_min: "1772584197",
   proof: ["0x1", "0x2", "0x3", "0x4", "0x5"] as [
     string,
@@ -348,7 +349,9 @@ describe("integrity bundle verification", () => {
       await expect(
         verifyIntegrityBundle({
           ...params,
-          responses: [{ ...selfieResponse, nullifier: "0x3" }],
+          responses: [
+            { ...selfieResponse, nullifier: Nullifier.fromHex("0x3") },
+          ],
         }),
       ).resolves.toEqual({
         success: false,
@@ -381,7 +384,7 @@ describe("integrity bundle verification", () => {
       await expect(
         verifyIntegrityBundle({
           ...params,
-          responses: [{ ...item, nullifier: "0x3" }],
+          responses: [{ ...item, nullifier: Nullifier.fromHex("0x3") }],
         }),
       ).resolves.toEqual({
         success: false,
@@ -413,7 +416,7 @@ describe("integrity bundle verification", () => {
     for (const responses of [
       [response, selfieResponse],
       [selfieResponse],
-      [selfieResponse, { ...response, nullifier: "0x3" }],
+      [selfieResponse, { ...response, nullifier: Nullifier.fromHex("0x3") }],
     ]) {
       await expect(
         verifyIntegrityBundle({ ...params, responses }),
@@ -422,6 +425,29 @@ describe("integrity bundle verification", () => {
         reason: "invalid_device_signature",
       });
     }
+  });
+
+  it("encodes uniqueness nullifiers as the same hex number for integrity and verification", () => {
+    const digest = (input: string) =>
+      computeProofIntegrityDigest({
+        integrityBundleVersion: 2,
+        nonce: "1",
+        protocolVersion: "4.0",
+        responses: [{ ...response, nullifier: Nullifier.fromHex(input) }],
+      });
+    const field = (value: bigint) =>
+      Buffer.from(value.toString(16).padStart(64, "0"), "hex");
+    const expected = createHash("sha256")
+      .update("worldcoin/proof-integrity/v4")
+      .update(field(1n))
+      .update(Buffer.from("00000001", "hex"))
+      .update(Buffer.from([0]))
+      .update(field(16n))
+      .update(Buffer.from("00000000", "hex"))
+      .digest();
+    expect(digest("10")).toEqual(expected);
+    expect(digest("0X0010")).toEqual(expected);
+    expect(digest("0xa")).not.toEqual(expected);
   });
 
   it.each([false, true])(

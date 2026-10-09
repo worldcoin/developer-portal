@@ -2,6 +2,7 @@ import { OIDCErrorCodes, OIDCScopes } from "@/api/helpers/oidc";
 import { decodeProof } from "@/api/helpers/verify";
 import { POST } from "@/api/v1/oidc/authorize";
 import { OIDCResponseType } from "@/lib/types";
+import { Nullifier as CheckedNullifier } from "@/lib/nullifier";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
 import { jwtVerify } from "jose";
@@ -12,6 +13,15 @@ import { semaphoreProofParamsMock } from "../../__mocks__/proof.mock";
 // Mock the external dependencies
 jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(),
+}));
+
+jest.mock("@/lib/logger", () => ({
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
 }));
 
 jest.mock("@/api/helpers/kms", () =>
@@ -59,10 +69,10 @@ const mockVerifyProof = jest.fn().mockResolvedValue({ error: null });
 jest.mock("@/api/helpers/verify", () => ({
   ...jest.requireActual("@/api/helpers/verify"),
   verifyProof: (...args: unknown[]) => mockVerifyProof(...args),
-  encodeNullifierForStorage: jest.fn().mockReturnValue("0x123"),
 }));
 
 beforeEach(async () => {
+  jest.clearAllMocks();
   await global.RedisClient?.flushall();
   mockVerifyProof.mockResolvedValue({ error: null });
 
@@ -469,6 +479,88 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
 });
 
 describe("/api/v1/oidc/authorize [implicit flow]", () => {
+  test.each(["0X000AbC", " AbC "])(
+    "preserves the OIDC subject %j while verifying and storing its checked number",
+    async (rawNullifier) => {
+      // Execute the real verifier; mock only its HTTP boundary for this regression.
+      mockVerifyProof.mockImplementation(
+        jest.requireActual("@/api/helpers/verify").verifyProof,
+      );
+      const fetchSpy = jest
+        .spyOn(global, "fetch")
+        .mockResolvedValue(
+          new Response(JSON.stringify({ valid: true }), { status: 200 }),
+        );
+      const fromHex = jest.spyOn(CheckedNullifier, "fromHex");
+      try {
+        const res = await POST(
+          new NextRequest("http://localhost/api/v1/oidc/authorize", {
+            method: "POST",
+            body: JSON.stringify({
+              ...VALID_REQUEST,
+              nullifier_hash: rawNullifier,
+              response_type: "code id_token",
+            }),
+          }),
+        );
+        expect(res.status).toBe(200);
+        const { id_token } = await res.json();
+        const { payload } = await jwtVerify(
+          id_token,
+          createPublicKey({ format: "jwk", key: publicJwk }),
+        );
+        expect(payload.sub).toBe(rawNullifier);
+        expect(InsertAuthCode).toHaveBeenCalledWith(
+          expect.objectContaining({ nullifier_hash: rawNullifier }),
+        );
+        expect(Nullifier).toHaveBeenCalledWith({
+          nullifier_hash: rawNullifier,
+        });
+        expect(UpsertNullifier).toHaveBeenCalledWith(
+          expect.objectContaining({
+            object: {
+              nullifier_hash: rawNullifier,
+              nullifier_hash_int: "2748",
+              action_id: "action_staging_112233445566778",
+            },
+          }),
+        );
+        const body = JSON.parse(
+          (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+        );
+        expect(BigInt(body.nullifierHash)).toBe(2748n);
+        expect(fromHex).toHaveBeenCalledTimes(1);
+      } finally {
+        fetchSpy.mockRestore();
+        fromHex.mockRestore();
+        mockVerifyProof.mockReset().mockResolvedValue({ error: null });
+      }
+    },
+  );
+
+  test.each([
+    `${semaphoreProofParamsMock.nullifier_hash}00`,
+    "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001",
+  ])(
+    "rejects unsafe nullifiers without issuing identity tokens or keeping a proof lock",
+    async (nullifier_hash) => {
+      const request = (hash: string) =>
+        new NextRequest("http://localhost/api/v1/oidc/authorize", {
+          method: "POST",
+          body: JSON.stringify({ ...VALID_REQUEST, nullifier_hash: hash }),
+        });
+      const rejected = await POST(request(nullifier_hash));
+      expect(rejected.status).toBe(400);
+      expect(mockVerifyProof).not.toHaveBeenCalled();
+      expect(InsertAuthCode).not.toHaveBeenCalled();
+      expect(UpsertNullifier).not.toHaveBeenCalled();
+      const retried = await POST(
+        request(semaphoreProofParamsMock.nullifier_hash),
+      );
+      expect(retried.status).toBe(200);
+    },
+  );
+
   test("returns a valid token", async () => {
     const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
       method: "POST",

@@ -1,5 +1,6 @@
 import { POST } from "@/api/v4/verify";
 import { logger } from "@/lib/logger";
+import { Nullifier } from "@/lib/nullifier";
 import { NextRequest, NextResponse } from "next/server";
 
 // #region Mocks
@@ -321,6 +322,31 @@ describe("/api/v4/verify [Sandbox diagnostics]", () => {
 // #region Uniqueness nullifier width
 describe("/api/v4/verify [uniqueness nullifier width]", () => {
   it.each(["3.0", "4.0"] as const)(
+    "rejects an out-of-field %s nullifier before verification or storage",
+    async (protocolVersion) => {
+      const response = protocolVersion === "3.0" ? v3Response : v4Response;
+      const res = await POST(
+        createRequest({
+          protocol_version: protocolVersion,
+          nonce: "1",
+          action: "verify",
+          responses: [
+            {
+              ...response,
+              nullifier:
+                "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001",
+            },
+          ],
+        }),
+        { params: Promise.resolve({ app_id: appId }) },
+      );
+      expect(res.status).toBe(400);
+      expect(mockResolveRpRegistration).not.toHaveBeenCalled();
+      expect(mockVerifyIntegrityBundle).not.toHaveBeenCalled();
+      expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+    },
+  );
+  it.each(["3.0", "4.0"] as const)(
     "accepts a 32-byte %s nullifier and rejects an appended byte before verification",
     async (protocolVersion) => {
       const validNullifier = `0x08${"00".repeat(31)}`;
@@ -441,9 +467,18 @@ describe("/api/v4/verify [integrity bundle]", () => {
     expect(mockVerifyIntegrityBundle).toHaveBeenCalledWith(
       expect.objectContaining({
         integrityBundle: { ...integrityBundle, version: 2 },
-        responses: [selfieCheckV4Response],
+        responses: [
+          { ...selfieCheckV4Response, nullifier: expect.any(Nullifier) },
+        ],
       }),
     );
+    const checkedNullifier =
+      mockVerifyIntegrityBundle.mock.calls[0][0].responses[0].nullifier;
+    expect(checkedNullifier.toBigInt()).toBe(2n);
+    expect(
+      mockHandleUniquenessProofVerification.mock.calls[0][3].responses[0]
+        .nullifier,
+    ).toBe(checkedNullifier);
   });
 });
 // #endregion

@@ -1,7 +1,8 @@
+import { nullifierSchema } from "@/api/helpers/nullifier-schema";
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { canonicalizeNullifierHash, verifyProof } from "@/api/helpers/verify";
+import { verifyProof } from "@/api/helpers/verify";
 import { NativeAppToAppIdMapping } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { LegacyVerificationLevel } from "@/lib/idkit";
@@ -16,17 +17,7 @@ import { getSdk as updateAppReviewRating } from "./graphql/update-app-review-rat
 const schema = yup
   .object({
     proof: yup.string().strict().required("This attribute is required."),
-    nullifier_hash: yup
-      .string()
-      .strict()
-      // Bound to 64 hex chars (a uint256): rejects over-width values that
-      // would otherwise pass proof verification (decode reads the first 32
-      // bytes) but overflow the canonicalizer's toBeHex(..., 32) as a 500.
-      .matches(
-        /^(0x)?[\da-fA-F]{1,64}$/,
-        "Invalid nullifier_hash. Must be a hex string (≤ 64 hex chars) with optional 0x prefix.",
-      )
-      .required("This attribute is required."),
+    nullifier_hash: nullifierSchema.required("This attribute is required."),
     merkle_root: yup.string().strict().required("This attribute is required."),
     verification_level: yup
       .string()
@@ -109,10 +100,8 @@ export const POST = async (req: NextRequest) => {
 
   const serviceClient = await getAPIServiceGraphqlClient();
 
-  // Canonicalize the nullifier before any DB lookup/write so that re-encodings
-  // of the same nullifier (0xABC / abc / 0x0abc / …) collapse to one value and
-  // cannot bypass the per-person UNIQUE(nullifier_hash) constraint.
-  const nullifierHash = canonicalizeNullifierHash(parsedParams.nullifier_hash);
+  // The existing text uniqueness key is encoded from the verified number.
+  const nullifierHash = parsedParams.nullifier_hash.toHex();
   const country = parsedParams.country?.toLowerCase() ?? "";
 
   // Insert the review row; under concurrency one INSERT wins (the UNIQUE

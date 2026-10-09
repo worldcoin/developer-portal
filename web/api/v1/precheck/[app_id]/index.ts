@@ -4,12 +4,10 @@ import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { RpRegistrationStatus } from "@/api/helpers/rp-utils";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import {
-  canonicalizeNullifierHash,
-  canVerifyForAction,
-} from "@/api/helpers/verify";
+import { canVerifyForAction } from "@/api/helpers/verify";
 import { APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
+import { Nullifier } from "@/lib/nullifier";
 import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
@@ -78,13 +76,13 @@ export async function POST(
   }
 
   const action = parsedParams.action ?? "";
-  // Canonicalize the nullifier so the dedup lookup matches the canonical value
-  // /api/v2/verify stores, regardless of the caller's hex encoding. Falls back
-  // to the raw value if it is not a valid uint256 (it simply won't match a row).
+  // Encode the checked number into the existing indexed text key.
+  // Invalid input remains advisory and retains the previous lookup behavior.
   let nullifier_hash = parsedParams.nullifier_hash;
   if (nullifier_hash) {
     try {
-      nullifier_hash = canonicalizeNullifierHash(nullifier_hash);
+      const checkedNullifier = Nullifier.fromHex(nullifier_hash.trim());
+      nullifier_hash = checkedNullifier.toHex();
     } catch {
       // Leave the raw value as-is; an invalid nullifier matches no stored row.
     }

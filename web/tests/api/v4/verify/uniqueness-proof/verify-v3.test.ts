@@ -1,3 +1,4 @@
+import { Nullifier } from "@/lib/nullifier";
 import { verifyProof } from "@/api/helpers/verify";
 import { processUniquenessProofV3 } from "@/api/v4/verify/uniqueness-proof/verify-v3";
 import { LegacyVerificationLevel } from "@/lib/idkit";
@@ -19,7 +20,7 @@ const response = {
   identifier: LegacyVerificationLevel.Orb,
   signal_hash: "0x1",
   merkle_root: "0x2",
-  nullifier: "0x3",
+  nullifier: Nullifier.fromHex("0x3"),
   proof: "0x4",
 };
 

@@ -13,14 +13,11 @@ import {
 import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import {
-  canonicalizeProof,
-  encodeNullifierForStorage,
-  verifyProof,
-} from "@/api/helpers/verify";
+import { canonicalizeProof, verifyProof } from "@/api/helpers/verify";
 import { Nullifier_Constraint } from "@/graphql/graphql";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
+import { Nullifier } from "@/lib/nullifier";
 import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { captureEvent } from "@/services/posthogClient";
 import { hashSignal } from "@worldcoin/idkit/hashing";
@@ -293,12 +290,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Keep the original string for OIDC subjects and legacy identity lookups.
+    // Only proof verification and numeric storage use the checked field element.
+    let checkedNullifier: Nullifier;
+
+    try {
+      checkedNullifier = Nullifier.fromHex(nullifier_hash.trim());
+    } catch {
+      await redis.del(proofKey);
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: "invalid_format",
+          detail:
+            "Invalid nullifier_hash. Expected a hex-encoded World ID field element.",
+          attribute: "nullifier_hash",
+          req,
+          app_id,
+        }),
+        corsMethods,
+      );
+    }
+
     // Best effort: only clear the proof lock if verification fails.
     try {
       let { error: verifyError } = await verifyProof(
         {
           proof,
-          nullifier_hash,
+          nullifier_hash: checkedNullifier,
           merkle_root,
           signal_hash: signalHash,
           external_nullifier: app.external_nullifier,
@@ -413,7 +432,6 @@ export async function POST(req: NextRequest) {
     } catch (error) {
       // Temp Fix to reduce on call alerts
       logger.warn("Query error nullifier.", {
-        nullifier_hash,
         errorMessage: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         app_id,
@@ -427,7 +445,7 @@ export async function POST(req: NextRequest) {
             object: {
               nullifier_hash,
               action_id: app.action_id,
-              nullifier_hash_int: encodeNullifierForStorage(nullifier_hash),
+              nullifier_hash_int: checkedNullifier.toBigInt().toString(),
             },
             on_conflict: {
               constraint: Nullifier_Constraint.NullifierPkey,

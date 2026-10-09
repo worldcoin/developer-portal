@@ -1,4 +1,6 @@
+import { nullifierSchema } from "@/api/helpers/nullifier-schema";
 import { LegacyVerificationLevel } from "@/lib/idkit";
+import { Nullifier } from "@/lib/nullifier";
 import * as yup from "yup";
 
 /**
@@ -23,14 +25,7 @@ const v3ResponseItemSchema = yup.object({
       "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4",
     ),
   merkle_root: yup.string().strict().required("merkle_root is required for v3"),
-  nullifier: yup
-    .string()
-    .strict()
-    .matches(
-      /^(0x)?[\da-fA-F]{1,64}$/,
-      "Invalid nullifier. Must be a hex string of at most 64 characters with optional 0x prefix.",
-    )
-    .required("nullifier is required for v3"),
+  nullifier: nullifierSchema.required("nullifier is required for v3"),
   proof: yup.string().strict().required("proof is required for v3"),
   max_age: yup
     .number()
@@ -78,14 +73,9 @@ const v4ResponseItemSchema = yup.object({
     .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
     .default("0x0"),
   issuer_schema_id: v4IssuerSchemaIdSchema,
-  nullifier: yup
-    .string()
-    .strict()
-    .matches(
-      /^(0x)?[\da-fA-F]{1,64}$/,
-      "Invalid nullifier. Must be a hex string of at most 64 characters with optional 0x prefix.",
-    )
-    .required("nullifier is required for v4 uniqueness proofs"),
+  nullifier: nullifierSchema.required(
+    "nullifier is required for v4 uniqueness proofs",
+  ),
   expires_at_min: yup
     .number()
     .integer()
@@ -382,12 +372,13 @@ export const schema = yup
     },
   );
 
+// Internal parsed response items. JSON request nullifiers remain hex strings.
 export interface UniquenessProofResponseV3 {
   // Identifier uses VerificationLevel values (legacy term for credential type)
   identifier: string;
   signal_hash: string;
   merkle_root: string;
-  nullifier: string;
+  nullifier: Nullifier;
   proof: string;
   max_age?: number;
 }
@@ -407,7 +398,7 @@ export interface UniquenessProofResponseV4 {
   identifier: string;
   signal_hash: string;
   issuer_schema_id: string;
-  nullifier: string;
+  nullifier: Nullifier;
   expires_at_min: string;
   credential_genesis_issued_at_min?: string;
   proof: [string, string, string, string, string];
