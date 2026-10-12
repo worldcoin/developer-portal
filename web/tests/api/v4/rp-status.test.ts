@@ -1068,7 +1068,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     expect(UpdateStagingStatus).not.toHaveBeenCalled();
   });
 
-  it("does not persist staging failed on transient RPC error", async () => {
+  it("preserves pending staging status on transient RPC error", async () => {
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     GetRpRegistration.mockResolvedValue({
       rp_registration_by_pk: makeDbRecord({
@@ -1097,9 +1097,53 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     expect(res.status).toBe(200);
 
     const body = await res.json();
-    // Response reports failed (non-fatal), but DB should NOT be updated
-    expect(body.staging_status).toBe("failed");
+    expect(body.staging_status).toBe("pending");
     expect(UpdateStagingStatus).not.toHaveBeenCalled();
+    expect(await global.RedisClient?.ttl(`rp_status:v2:${rpId}`)).toBe(1);
+  });
+
+  it("briefly caches a stored staging failure and reconciles after RPC recovery", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        staging_status: "failed",
+      }),
+    });
+    const trustedRp = {
+      initialized: true,
+      active: true,
+      manager: portalManager,
+      signer: portalSigner,
+    };
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === stagingContract) throw new Error("RPC timeout");
+        return trustedRp;
+      },
+    );
+
+    const unavailableResponse = await GET(createRequest(), ctx);
+    expect(await unavailableResponse.json()).toEqual({
+      production_status: "registered",
+      staging_status: "failed",
+    });
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+    expect(await global.RedisClient?.ttl(`rp_status:v2:${rpId}`)).toBe(1);
+
+    // Simulate cache expiry without waiting in real time.
+    await global.RedisClient?.del(`rp_status:v2:${rpId}`);
+    getRpFromContractMock.mockResolvedValue(trustedRp);
+
+    const recoveredResponse = await GET(createRequest(), ctx);
+    expect(await recoveredResponse.json()).toEqual({
+      production_status: "registered",
+      staging_status: "registered",
+    });
+    expect(UpdateStagingStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      staging_status: "registered",
+    });
+    expect(await global.RedisClient?.ttl(`rp_status:v2:${rpId}`)).toBe(3600);
   });
 
   it("does not timeout staging after a fresh retry even if RP is old", async () => {

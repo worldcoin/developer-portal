@@ -310,8 +310,8 @@ export async function GET(
         rpId,
         error,
       });
-      // Staging failure is non-fatal; report as failed
-      stagingStatus = RpRegistrationStatus.Failed;
+      // An unavailable RPC does not establish that registration failed.
+      stagingStatus = currentDbStagingStatus;
     }
   }
 
@@ -511,9 +511,11 @@ export async function GET(
 
   if (redis && cacheGeneration !== null) {
     try {
-      // Use a minimal TTL for pending statuses so polling picks up on-chain changes quickly
+      // Pending or incomplete checks must not hide on-chain changes for an hour.
       const ttl =
-        productionStatus === "pending" || stagingStatus === "pending"
+        productionStatus === "pending" ||
+        stagingStatus === "pending" ||
+        (stagingContractAddress && !stagingRpcSucceeded)
           ? 1
           : CACHE_TTL_SECONDS;
       await writeRpStatusCache(

@@ -1335,7 +1335,7 @@ describe("/api/mcp", () => {
       } else {
         const payload = JSON.parse(body.result.content[0].text);
         expect(payload.production_status).toBe("registered");
-        expect(payload.staging_status).toBe("failed");
+        expect(payload.staging_status).toBe("pending");
       }
       expect(
         requestMock.mock.calls.some(

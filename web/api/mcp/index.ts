@@ -981,7 +981,7 @@ const syncWorldIdRegistrationStatus = async (
         app_id,
         rp_id: rpId,
       });
-      stagingStatus = "failed";
+      stagingStatus = currentStagingStatus;
     }
   }
 
