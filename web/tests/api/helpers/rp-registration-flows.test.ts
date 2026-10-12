@@ -198,6 +198,8 @@ beforeEach(async () => {
   // Non-production by default so the staging mirror is out of scope; the
   // staging suite opts in explicitly.
   process.env.NEXT_PUBLIC_APP_ENV = "test";
+  process.env.RP_REGISTRY_CONTRACT_ADDRESS = "0xcontract";
+  delete process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
   delete process.env.RP_REGISTRY_MANAGER_KMS_KEY_ID;
   delete process.env.ENABLE_SHARED_KEY_RP_REGISTRATION;
   mockGetRpRegistryConfig.mockReturnValue({
@@ -610,6 +612,7 @@ describe("submitManagedRpRegistration", () => {
 
   it("uses one ID across registries and keeps production when staging submit fails", async () => {
     process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS = "0xstaging";
     mockGetStagingRpRegistryConfig.mockReturnValue({
       contractAddress: "0xstaging",
       kmsRegion: "us-east-1",
@@ -650,6 +653,7 @@ describe("submitManagedRpRegistration", () => {
     "keeps production after a staging read failure when staging submission succeeds: %s",
     async (stagingSubmitSucceeds) => {
       process.env.NEXT_PUBLIC_APP_ENV = "production";
+      process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS = "0xstaging";
       mockGetStagingRpRegistryConfig.mockReturnValue({
         contractAddress: "0xstaging",
         kmsRegion: "us-east-1",
@@ -1551,6 +1555,68 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
       isStaging: false,
     });
 
+  it("allocates a self-managed ID without managed signing configuration", async () => {
+    const actual = jest.requireActual("@/api/helpers/rp-utils");
+    mockGetRpRegistryConfig.mockImplementation(actual.getRpRegistryConfig);
+    mockGetStagingRpRegistryConfig.mockImplementation(
+      actual.getStagingRpRegistryConfig,
+    );
+    delete process.env.RP_REGISTRY_SAFE_OWNER_KMS_KEY_ID;
+    delete process.env.RP_REGISTRY_STAGING_DOMAIN_SEPARATOR;
+    delete process.env.RP_REGISTRY_STAGING_UPDATE_RP_TYPEHASH;
+    process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS = "0xstaging";
+    getRpFromContractMock.mockResolvedValue({ initialized: false });
+
+    const result = await allocateRpRegistration({
+      client,
+      appId,
+      mode: "self_managed",
+      signerAddress: null,
+    });
+
+    expect(result).toEqual({ ok: true, rpIdString: rpId });
+    expect(ClaimRpRegistration).toHaveBeenCalledWith({
+      rp_id: rpId,
+      app_id: appId,
+      mode: "self_managed",
+      signer_address: null,
+    });
+    expect(getRpFromContractMock.mock.calls).toEqual([
+      [numericRpId, "0xcontract"],
+      [numericRpId, "0xstaging"],
+    ]);
+    expect(createManagerKey).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects allocation without a primary registry address before claiming an ID", async () => {
+    delete process.env.RP_REGISTRY_CONTRACT_ADDRESS;
+
+    const result = await allocateRpRegistration({
+      client,
+      appId,
+      mode: "self_managed",
+      signerAddress: null,
+    });
+
+    expect(result).toMatchObject({ ok: false, code: "config_error" });
+    expect(ClaimRpRegistration).not.toHaveBeenCalled();
+    expect(getRpFromContractMock).not.toHaveBeenCalled();
+  });
+
+  it("still requires managed signing configuration before claiming an ID", async () => {
+    const actual = jest.requireActual("@/api/helpers/rp-utils");
+    mockGetRpRegistryConfig.mockImplementation(actual.getRpRegistryConfig);
+    delete process.env.RP_REGISTRY_SAFE_OWNER_KMS_KEY_ID;
+
+    const result = await register();
+
+    expect(result).toMatchObject({ ok: false, code: "config_error" });
+    expect(ClaimRpRegistration).not.toHaveBeenCalled();
+    expect(createManagerKey).not.toHaveBeenCalled();
+    expect(submitRegisterRpTransactionMock).not.toHaveBeenCalled();
+  });
+
   it("registers when the rp_id is free on-chain", async () => {
     getRpFromContractMock.mockResolvedValue({
       initialized: false,
@@ -1569,10 +1635,7 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
     "allocates a new %s RP when the legacy ID is occupied",
     async (mode) => {
       const legacyRpId = generateRpId(appId);
-      mockGetStagingRpRegistryConfig.mockReturnValue({
-        contractAddress: "0xstaging",
-        kmsRegion: "us-east-1",
-      });
+      process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS = "0xstaging";
       getRpFromContractMock.mockImplementation(async (id: bigint) => ({
         initialized: id === legacyRpId,
       }));
@@ -1690,10 +1753,7 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
   it.each(["managed", "self_managed"] as const)(
     "keeps the allocated ID for %s when staging cannot be read",
     async (mode) => {
-      mockGetStagingRpRegistryConfig.mockReturnValue({
-        contractAddress: "0xstaging",
-        kmsRegion: "us-east-1",
-      });
+      process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS = "0xstaging";
       getRpFromContractMock
         .mockResolvedValueOnce({ initialized: false })
         .mockRejectedValueOnce(new Error("staging read unavailable"));
@@ -1724,10 +1784,7 @@ describe("submitManagedRpRegistration [rp_id collision guard]", () => {
 
   it("retries an ID occupied only in staging", async () => {
     const secondId = "rp_0000000000000002";
-    mockGetStagingRpRegistryConfig.mockReturnValue({
-      contractAddress: "0xstaging",
-      kmsRegion: "us-east-1",
-    });
+    process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS = "0xstaging";
     mockGenerateRandomRpIdString
       .mockReturnValueOnce(rpId)
       .mockReturnValueOnce(secondId);

@@ -109,8 +109,8 @@ export async function allocateRpRegistration({
   mode: "managed" | "self_managed";
   signerAddress: string | null;
 }): Promise<RpRegistrationAllocationResult> {
-  const primaryConfig = getRpRegistryConfig();
-  if (!primaryConfig) {
+  const primaryContractAddress = process.env.RP_REGISTRY_CONTRACT_ADDRESS;
+  if (!primaryContractAddress) {
     return {
       ok: false,
       code: "config_error",
@@ -118,7 +118,8 @@ export async function allocateRpRegistration({
     };
   }
 
-  const stagingConfig = getStagingRpRegistryConfig();
+  const stagingContractAddress =
+    process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
 
   for (let attempt = 1; attempt <= MAX_RP_ID_ALLOCATION_ATTEMPTS; attempt++) {
     const rpIdString = generateRandomRpIdString();
@@ -164,22 +165,17 @@ export async function allocateRpRegistration({
 
     try {
       const rpId = parseRpId(rpIdString);
-      const primaryRp = await getRpFromContract(
-        rpId,
-        primaryConfig.contractAddress,
-      );
-      let registeredAt = primaryRp.initialized
-        ? primaryConfig.contractAddress
-        : null;
+      const primaryRp = await getRpFromContract(rpId, primaryContractAddress);
+      let registeredAt = primaryRp.initialized ? primaryContractAddress : null;
 
-      if (!registeredAt && stagingConfig) {
+      if (!registeredAt && stagingContractAddress) {
         try {
           const stagingRp = await getRpFromContract(
             rpId,
-            stagingConfig.contractAddress,
+            stagingContractAddress,
           );
           if (stagingRp.initialized) {
-            registeredAt = stagingConfig.contractAddress;
+            registeredAt = stagingContractAddress;
           }
         } catch (error) {
           // Staging is best-effort; an unavailable mirror must not block the
@@ -188,7 +184,7 @@ export async function allocateRpRegistration({
             error,
             app_id: appId,
             rpIdString,
-            contractAddress: stagingConfig.contractAddress,
+            contractAddress: stagingContractAddress,
           });
         }
       }
