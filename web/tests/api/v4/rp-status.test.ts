@@ -1,4 +1,5 @@
 import { GET } from "@/api/v4/rp-status/[rp_id]";
+import { invalidateRpStatusCache } from "@/api/helpers/rp-status-cache";
 import { RpRegistrationStatus } from "@/api/helpers/rp-utils";
 import { NextRequest } from "next/server";
 
@@ -105,16 +106,82 @@ const productionContract = "0xProductionContract";
 const stagingContract = "0xStagingContract";
 // #endregion
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
   process.env.RP_REGISTRY_CONTRACT_ADDRESS = productionContract;
   process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS = stagingContract;
-  global.RedisClient?.flushall();
+  await global.RedisClient?.flushall();
   resolveManagerAddressMock.mockResolvedValue(portalManager);
   UpdateStagingStatus.mockResolvedValue({
     update_rp_registration_by_pk: { rp_id: rpId },
   });
 });
+
+// #region Status cache
+describe("/api/v4/rp-status [cache]", () => {
+  it("does not cache a failed status read before a retry", async () => {
+    delete process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({ status: "failed" }),
+    });
+
+    let finishContractRead!: (value: { initialized: boolean }) => void;
+    const contractResult = new Promise<{ initialized: boolean }>((resolve) => {
+      finishContractRead = resolve;
+    });
+    let signalContractRead!: () => void;
+    const contractReadStarted = new Promise<void>((resolve) => {
+      signalContractRead = resolve;
+    });
+    getRpFromContractMock
+      .mockImplementationOnce(() => {
+        signalContractRead();
+        return contractResult;
+      })
+      .mockResolvedValue({ initialized: false });
+
+    const oldRequest = GET(createRequest(), ctx);
+    await contractReadStarted;
+
+    // A retry claims pending and clears the cache, then clears it again after submit.
+    await invalidateRpStatusCache(rpId);
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({ status: "pending" }),
+    });
+    await invalidateRpStatusCache(rpId);
+    finishContractRead({ initialized: false });
+
+    expect((await (await oldRequest).json()).production_status).toBe("failed");
+    expect(await global.RedisClient?.get(`rp_status:v2:${rpId}`)).toBeNull();
+
+    const freshResponse = await GET(createRequest(), ctx);
+    expect(await freshResponse.json()).toEqual({
+      production_status: "pending",
+      staging_status: null,
+    });
+    expect(GetRpRegistration).toHaveBeenCalledTimes(2);
+    expect(await global.RedisClient?.ttl(`rp_status:v2:${rpId}`)).toBe(1);
+  });
+
+  it("caches a terminal status for an hour and reuses it", async () => {
+    delete process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({ status: "failed" }),
+    });
+    getRpFromContractMock.mockResolvedValue({ initialized: false });
+
+    await GET(createRequest(), ctx);
+    const cachedResponse = await GET(createRequest(), ctx);
+
+    expect(await cachedResponse.json()).toEqual({
+      production_status: "failed",
+      staging_status: null,
+    });
+    expect(GetRpRegistration).toHaveBeenCalledTimes(1);
+    expect(await global.RedisClient?.ttl(`rp_status:v2:${rpId}`)).toBe(3600);
+  });
+});
+// #endregion
 
 // #region Pending timeout tests
 describe("/api/v4/rp-status [pending timeout]", () => {
@@ -154,6 +221,23 @@ describe("/api/v4/rp-status [pending timeout]", () => {
       rp_id: rpId,
       staging_status: RpRegistrationStatus.Failed,
     });
+  });
+
+  it("keeps a recent retry pending even when the RP was created long ago", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      }),
+    });
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+    });
+    const response = await GET(createRequest(), ctx);
+    expect((await response.json()).production_status).toBe("pending");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
   });
 
   it("stays pending within the 5 minute grace period", async () => {

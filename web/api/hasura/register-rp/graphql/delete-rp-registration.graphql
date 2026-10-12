@@ -1,5 +1,11 @@
-mutation DeleteRpRegistration($rp_id: String!) {
-  delete_rp_registration_by_pk(rp_id: $rp_id) {
-    rp_id
+mutation DeleteRpRegistration($rp_id: String!, $app_id: String!) {
+  delete_rp_registration(
+    where: {
+      rp_id: { _eq: $rp_id }
+      app_id: { _eq: $app_id }
+      manager_kms_key_id: { _is_null: true }
+    }
+  ) {
+    affected_rows
   }
 }

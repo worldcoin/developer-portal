@@ -1,6 +1,7 @@
 import { errorRequiredAttribute, errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import {
+  generateRpIdString,
   resolveRpRegistration,
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
@@ -233,6 +234,10 @@ async function verify(
           | UniquenessProofResponseV3[]
           | UniquenessProofResponseV4[],
         rpId,
+        legacyRpId:
+          parsedParams.protocol_version === "3.0"
+            ? generateRpIdString(appId)
+            : undefined,
       });
 
       if (!integrityResult.success) {

@@ -2,11 +2,11 @@ import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.g
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import {
+  allocateRpRegistration,
   submitManagedRpRegistration,
   type ManagedRegistrationResult,
 } from "@/api/helpers/rp-registration-flows";
 import {
-  generateRpIdString,
   isZeroAddress,
   normalizeAddress,
   RpRegistrationStatus,
@@ -17,7 +17,6 @@ import { logger } from "@/lib/logger";
 import { isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk as getClaimRpSdk } from "./graphql/claim-rp-registration.generated";
 import { getSdk as getAppInfoSdk } from "./graphql/get-app-info.generated";
 
 const schema = yup
@@ -59,7 +58,7 @@ const REGISTRATION_ERROR_HTTP_CODE: Record<
   staging_not_supported: "staging_not_supported",
   config_error: "config_error",
   already_registered: "already_registered",
-  rp_id_taken: "rp_id_taken",
+  rpc_error: "rpc_error",
   kms_error: "kms_error",
   submission_error: "submission_error",
   db_error: "db_error",
@@ -67,6 +66,9 @@ const REGISTRATION_ERROR_HTTP_CODE: Record<
 
 /**
  * POST handler for the register_rp Hasura action.
+ * Creates a new RP with a random ID if the app has no Portal registration.
+ * Does not import existing on-chain RPs. Switching an existing integration
+ * to the new ID changes users' nullifiers.
  *
  * Auth path: dashboard user with ADMIN/OWNER on the team. The actual KMS +
  * on-chain + DB-update pipeline lives in submitManagedRpRegistration so the
@@ -152,23 +154,21 @@ export const POST = async (req: NextRequest) => {
 
   // Self-managed: just create the DB record. No KMS / on-chain work.
   if (mode === "self_managed") {
-    const rpIdString = generateRpIdString(app_id);
-    const { insert_rp_registration_one: claimedSlot } = await getClaimRpSdk(
+    const allocation = await allocateRpRegistration({
       client,
-    ).ClaimRpRegistration({
-      rp_id: rpIdString,
-      app_id,
+      appId: app_id,
       mode: "self_managed",
-      signer_address: null,
+      signerAddress: null,
     });
-    if (!claimedSlot) {
+    if (!allocation.ok) {
       return errorHasuraQuery({
         req,
-        detail: "Registration already in progress or completed for this app.",
-        code: "already_registered",
+        detail: allocation.detail,
+        code: REGISTRATION_ERROR_HTTP_CODE[allocation.code],
         app_id,
       });
     }
+    const rpIdString = allocation.rpIdString;
     logger.info("Self-managed RP registration created", {
       app_id,
       rpIdString,
