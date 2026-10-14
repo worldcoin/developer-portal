@@ -6,6 +6,10 @@ import { NextRequest } from "next/server";
 const VerifyFetchAPIKey = jest.fn();
 const CreateDynamicAction = jest.fn();
 
+jest.mock("../../../api/helpers/graphql", () => ({
+  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
+}));
+
 jest.mock("../../../lib/logger", () => ({
   logger: {
     error: jest.fn(),
@@ -81,6 +85,10 @@ const validApiKeyResponse = {
 const validAppId = validApiKeyResponse.api_key_by_pk.team.apps[0].id;
 const validApiKey = `api_${apiKeyValue}`;
 // #endregion
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 // #region Success cases tests
 describe("/api/v2/create-action [success cases]", () => {
@@ -227,6 +235,7 @@ describe("/api/v2/create-action [error cases]", () => {
 
     const res = await POST(mockReq, ctx);
     expect(res.status).toBe(403);
+    expect(CreateDynamicAction).not.toHaveBeenCalled();
   });
 
   it("returns 403 if api key is not valid for the app", async () => {
@@ -241,6 +250,7 @@ describe("/api/v2/create-action [error cases]", () => {
 
     const res = await POST(mockReq, ctx);
     expect(res.status).toBe(403);
+    expect(CreateDynamicAction).not.toHaveBeenCalled();
   });
 
   it("returns 400 if api key is inactive", async () => {
@@ -258,6 +268,7 @@ describe("/api/v2/create-action [error cases]", () => {
 
     const res = await POST(mockReq, ctx);
     expect(res.status).toBe(400);
+    expect(CreateDynamicAction).not.toHaveBeenCalled();
   });
 
   it("returns 400 if action is not provided", async () => {
