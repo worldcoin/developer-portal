@@ -1,8 +1,19 @@
 import { POST } from "@/api/v2/verify";
 import { NextRequest } from "next/server";
-import { decodeToHexString } from "../../../../api/helpers/verify";
+import {
+  canonicalizeNullifierHash,
+  decodeToHexString,
+} from "../../../../api/helpers/verify";
 import { semaphoreProofParamsMock } from "../../../api/__mocks__/proof.mock";
 import { integrationDBClean, integrationDBExecuteQuery } from "../../setup";
+
+jest.mock("../../../../lib/logger", () => ({
+  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+}));
+
+jest.mock("../../../../services/posthogClient", () => ({
+  captureEvent: jest.fn(),
+}));
 
 // Reset and seed the database before each test
 beforeEach(async () => {
@@ -328,3 +339,89 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
     });
   });
 });
+
+// #region Action-scoped usage accounting
+describe("/api/v2/verify [action-scoped usage]", () => {
+  it("rejects repeated verification when the nullifier belongs to another team's action", async () => {
+    const appId = await getStageAppId();
+    const { rows: otherApps } = await integrationDBExecuteQuery(
+      "SELECT id FROM app WHERE team_id <> (SELECT team_id FROM app WHERE id = $1) AND deleted_at IS NULL LIMIT 1",
+      [appId],
+    );
+    const targetActionId = await createTestAction(appId, "verify", 1);
+    const otherActionId = await createTestAction(
+      otherApps[0].id,
+      "unlimited-action",
+      0,
+    );
+    const nullifierHash = canonicalizeNullifierHash(
+      semaphoreProofParamsMock.nullifier_hash,
+    );
+    await createNullifierRecord(otherActionId, nullifierHash, 1);
+    global.fetch = createSuccessFetchMock([nullifierHash]);
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = await POST(createMockRequest(getUrl(appId), validBody), {
+        params: Promise.resolve({ app_id: appId }),
+      });
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual(
+        expect.objectContaining({ code: "verification_error" }),
+      );
+    }
+
+    const { rows } = await integrationDBExecuteQuery(
+      "SELECT action_id, uses FROM nullifier WHERE action_id IN ($1, $2)",
+      [targetActionId, otherActionId],
+    );
+    expect(rows).toEqual([{ action_id: otherActionId, uses: 1 }]);
+  });
+
+  it("enforces a single verification across concurrent requests for the same action", async () => {
+    const appId = await getStageAppId();
+    const actionId = await createTestAction(appId, "verify", 1);
+    global.fetch = createSuccessFetchMock([
+      semaphoreProofParamsMock.nullifier_hash,
+    ]);
+
+    const responses = await Promise.all(
+      Array.from({ length: 3 }, () =>
+        POST(createMockRequest(getUrl(appId), validBody), {
+          params: Promise.resolve({ app_id: appId }),
+        }),
+      ),
+    );
+    expect(responses.map((response) => response.status).sort()).toEqual([
+      200, 400, 400,
+    ]);
+    const { rows } = await integrationDBExecuteQuery(
+      "SELECT uses FROM nullifier WHERE action_id = $1",
+      [actionId],
+    );
+    expect(rows).toEqual([{ uses: 1 }]);
+  });
+
+  it("continues to count repeated verifications for an unlimited action", async () => {
+    const appId = await getStageAppId();
+    const actionId = await createTestAction(appId, "verify", 0);
+    global.fetch = createSuccessFetchMock([
+      semaphoreProofParamsMock.nullifier_hash,
+    ]);
+
+    for (let uses = 1; uses <= 3; uses++) {
+      const response = await POST(createMockRequest(getUrl(appId), validBody), {
+        params: Promise.resolve({ app_id: appId }),
+      });
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual(
+        expect.objectContaining({ success: true, uses }),
+      );
+    }
+    const { rows } = await integrationDBExecuteQuery(
+      "SELECT uses FROM nullifier WHERE action_id = $1",
+      [actionId],
+    );
+    expect(rows).toEqual([{ uses: 3 }]);
+  });
+});
+// #endregion

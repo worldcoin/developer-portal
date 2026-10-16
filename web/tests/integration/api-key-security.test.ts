@@ -1,6 +1,10 @@
 import { gql } from "@apollo/client";
 import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
-import { getAPIClient, getAPIUserClient } from "./test-utils";
+import {
+  getAPIClient,
+  getAPIServiceClient,
+  getAPIUserClient,
+} from "./test-utils";
 
 /**
  * Integration tests for API key security
@@ -287,10 +291,12 @@ describe("API key security", () => {
  * could set these columns directly by calling insert_action_one. They are now
  * removed from the api_key insert permission — partners set them through the
  * service-role UI path — so Hasura rejects them regardless of the caller.
+ * external_nullifier is also server-controlled to prevent cross-action proof reuse.
  */
 describe("API key action insert permissions", () => {
   // Each entry is [column, GraphQL literal] embedded inline in the insert input.
-  const PARTNER_ONLY_COLUMNS: Array<[string, string]> = [
+  const RESTRICTED_COLUMNS: Array<[string, string]> = [
+    ["external_nullifier", '"0x1234"'],
     ["webhook_uri", '"https://attacker.example.com/webhook"'],
     ["webhook_pem", '"attacker-pem"'],
     ["app_flow_on_complete", "VERIFY"],
@@ -339,8 +345,44 @@ describe("API key action insert permissions", () => {
     );
   });
 
-  test.each(PARTNER_ONLY_COLUMNS)(
-    "api_key role cannot set partner-only column '%s' on insert",
+  test("service role can set a custom nullifier and api_key role can read it", async () => {
+    const { app_id, team_id } = await getSeededApp();
+    const serviceClient = await getAPIServiceClient();
+    const externalNullifier = "0x1234";
+    const result = await serviceClient.mutate<any>({
+      mutation: gql`
+        mutation CreateTrustedAction($app_id: String!, $nullifier: String!) {
+          insert_action_one(
+            object: {
+              app_id: $app_id
+              action: "trusted-custom-action"
+              external_nullifier: $nullifier
+            }
+          ) {
+            id
+          }
+        }
+      `,
+      variables: { app_id, nullifier: externalNullifier },
+    });
+    const apiKeyClient = await getAPIClient({ team_id });
+    const response = await apiKeyClient.query<any>({
+      query: gql`
+        query ReadTrustedAction($id: String!) {
+          action_by_pk(id: $id) {
+            external_nullifier
+          }
+        }
+      `,
+      variables: { id: result.data?.insert_action_one?.id },
+    });
+    expect(response.data?.action_by_pk?.external_nullifier).toBe(
+      externalNullifier,
+    );
+  });
+
+  test.each(RESTRICTED_COLUMNS)(
+    "api_key role cannot set restricted column '%s' on insert",
     async (column, literal) => {
       const { app_id, team_id } = await getSeededApp();
       const client = await getAPIClient({ team_id });
