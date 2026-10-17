@@ -1,3 +1,4 @@
+import { rpSetupPaused } from "@/api/helpers/rp-id-backfill";
 import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
@@ -163,6 +164,14 @@ export const POST = async (req: NextRequest) => {
       code: "not_managed",
       app_id: appId,
       team_id: teamId,
+    });
+  }
+
+  if (rpSetupPaused()) {
+    return errorHasuraQuery({
+      req,
+      code: "setup_paused",
+      detail: "World ID 4.0 setup is temporarily paused.",
     });
   }
 

@@ -9,6 +9,7 @@
 // result so each caller (Hasura action vs JSON-RPC) can format its own
 // error envelope without parsing exception messages.
 
+import { rpSetupPaused } from "@/api/helpers/rp-id-backfill";
 import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
 import { getSdk as getDeleteRpSdk } from "@/api/hasura/register-rp/graphql/delete-rp-registration.generated";
 import { getSdk as getUpdateRpSdk } from "@/api/hasura/register-rp/graphql/update-rp-registration.generated";
@@ -61,6 +62,7 @@ export type ManagedRegistrationResult =
   | {
       ok: false;
       code:
+        | "setup_paused"
         | "staging_not_supported"
         | "config_error"
         | "already_registered"
@@ -96,6 +98,14 @@ export async function submitManagedRpRegistration({
       ok: false,
       code: "staging_not_supported",
       detail: "Staging apps cannot be migrated to World ID 4.0.",
+    };
+  }
+
+  if (rpSetupPaused()) {
+    return {
+      ok: false,
+      code: "setup_paused",
+      detail: "World ID 4.0 setup is temporarily paused.",
     };
   }
 

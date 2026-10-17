@@ -4,7 +4,6 @@ import "server-only";
  * Contains all functions for interacting with Amazon KMS
  */
 
-import { retrieveJWK } from "@/api/helpers/jwks";
 import { logger } from "@/lib/logger";
 import {
   CreateKeyCommand,
@@ -113,6 +112,7 @@ export const signJWTWithKMSKey = async (
   const encodedHeaderPayload = `${encodedHeader}.${encodedPayload}`;
 
   try {
+    const { retrieveJWK } = await import("@/api/helpers/jwks");
     const { kms_id } = await retrieveJWK(header.kid); // NOTE: JWK is already verified to be active at this point
 
     if (!kms_id) {
