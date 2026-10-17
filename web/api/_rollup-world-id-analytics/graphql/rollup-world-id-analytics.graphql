@@ -1,0 +1,8 @@
+mutation RollupWorldIdAnalytics($from_date: date, $to_date: date) {
+  rollup_world_id_analytics(
+    args: { from_date: $from_date, to_date: $to_date }
+  ) {
+    date_utc
+    unique_count
+  }
+}
