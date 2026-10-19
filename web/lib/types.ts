@@ -220,6 +220,7 @@ export type AppStoreMetadataFields = {
   max_notifications_per_day?: number | null;
   is_android_only?: boolean | null;
   app: {
+    rp_registration?: { rp_id: string }[];
     team: { name?: string | null; id: string };
     rating_sum: number;
     rating_count: number;
@@ -245,6 +246,7 @@ export type AppStoreFormattedFields = Omit<
   | "localisations"
   | "is_reviewer_world_app_approved"
 > & {
+  rp_id?: string;
   app_rating: number;
   impressions: number;
   ratings_external_nullifier: string;
