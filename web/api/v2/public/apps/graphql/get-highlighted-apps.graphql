@@ -61,6 +61,9 @@ query GetHighlights(
     }
 
     app {
+      rp_registration(where: { status: { _eq: "registered" } }) {
+        rp_id
+      }
       team {
         name
         id

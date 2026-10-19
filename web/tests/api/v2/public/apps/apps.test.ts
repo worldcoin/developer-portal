@@ -138,6 +138,48 @@ describe("/api/v2/public/apps", () => {
       }));
     });
 
+    test("should expose optional RP IDs in rankings and highlights", async () => {
+      const apps = mockAppsWithCountries.map((metadata, index) => ({
+        ...metadata,
+        app: {
+          ...metadata.app,
+          rp_registration:
+            index === 0 ? [{ rp_id: "rp_0123456789abcdef" }] : [],
+        },
+      }));
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({ top_apps: apps }),
+      }));
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({ highlights: apps }),
+      }));
+      jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          app_rankings: [{ rankings: ["1", "2"] }],
+        }),
+      }));
+
+      const response = await GET(
+        new NextRequest("https://cdn.test.com/api/v2/public/apps", {
+          headers: { host: "cdn.test.com", "CloudFront-Viewer-Country": "US" },
+        }),
+      );
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      for (const entries of [
+        data.app_rankings.top_apps,
+        data.app_rankings.highlights,
+      ]) {
+        expect(entries).toHaveLength(2);
+        expect(
+          entries.find((app: { app_id: string }) => app.app_id === "1"),
+        ).toHaveProperty("rp_id", "rp_0123456789abcdef");
+        expect(
+          entries.find((app: { app_id: string }) => app.app_id === "2"),
+        ).not.toHaveProperty("rp_id");
+      }
+    });
+
     test("should prioritize country from query parameter over CloudFront header", async () => {
       jest.mocked(getAppsSdk).mockImplementation(() => ({
         GetApps: jest.fn().mockResolvedValue({

@@ -63,6 +63,7 @@ export type GetAppMetadataQuery = {
       rating_sum: number;
       rating_count: number;
       deleted_at?: string | null;
+      rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
       team: { __typename?: "team"; name?: string | null; id: string };
     };
   }>;
@@ -118,6 +119,9 @@ export const GetAppMetadataDocument = gql`
         showcase_img_urls
       }
       app {
+        rp_registration(where: { status: { _eq: "registered" } }) {
+          rp_id
+        }
         team {
           name
           id

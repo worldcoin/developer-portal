@@ -60,6 +60,7 @@ jest.mock(
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             app: {
+              rp_registration: [],
               team: {
                 name: "Example Team",
               },
@@ -170,6 +171,7 @@ describe("/api/public/app/[app_id]", () => {
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             app: {
+              rp_registration: [{ rp_id: "rp_0123456789abcdef" }],
               team: {
                 name: "Example Team",
               },
@@ -192,6 +194,7 @@ describe("/api/public/app/[app_id]", () => {
     });
     expect(await response.json()).toEqual({
       app_data: {
+        rp_id: "rp_0123456789abcdef",
         name: "Example App",
         app_id: "1",
         app_rating: 3.33,

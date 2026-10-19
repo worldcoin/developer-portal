@@ -160,6 +160,9 @@ export const formatAppMetadata = (
 
   return {
     ...appMetadataWithoutLocalizations,
+    ...(app.rp_registration?.[0]
+      ? { rp_id: app.rp_registration[0].rp_id }
+      : {}),
     associated_domains: associatedDomains,
     name: name,
     app_rating: appRating ?? 0,
