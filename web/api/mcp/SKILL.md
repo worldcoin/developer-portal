@@ -5,7 +5,7 @@ description: Build, configure, and submit World ID 4.0 apps and Mini Apps via th
 
 # World ID developer portal MCP
 
-This MCP authenticates with a developer-portal team API key and exposes 11 tools for the full app lifecycle. Always use `get_team_context` first if the user hasn't given you an `app_id` — it returns the team and any existing apps so you can pick or confirm.
+This MCP authenticates with a developer-portal team API key and exposes 12 tools for the full app lifecycle. Always use `get_team_context` first if the user hasn't given you an `app_id` — it returns the team and any existing apps so you can pick or confirm.
 
 ## Tool reference
 
@@ -18,6 +18,7 @@ This MCP authenticates with a developer-portal team API key and exposes 11 tools
 | `get_world_id_signing_key`         | Read the signer address for an app. Private key is never returned here.                                       | `app_id`; optional `rotate_if_unavailable`                                                                                                               |
 | `rotate_world_id_signing_key`      | Generate a new World ID signing key. Returns the private key once.                                            | `app_id`; optional `signer_private_key`                                                                                                                  |
 | `get_world_id_registration_status` | Sync the on-chain registry status for an RP                                                                   | `app_id`                                                                                                                                                 |
+| `retry_world_id_registration`      | Retry managed registration using the saved RP ID, manager key and signer; checks the contract first           | `app_id`, `environment` (`production` or `staging`)                                                                                                      |
 | `create_world_id_action`           | Create / update a v4 action (the thing you `verify` against)                                                  | `app_id`, `action`; optional `description`, `environment`                                                                                                |
 | `configure_mini_app`               | Update mini-app store metadata + Advanced/Permissions config                                                  | `app_id`; many optional fields, see below                                                                                                                |
 | `upload_app_image`                 | Upload an app image (logo, hero, content_card, meta_tag, showcase_1/2/3) and patch the matching `*_url` field | `app_id`, `image_type`, one of `source_url` (https only, public addr, no redirects) / `image_base64`. Format detected from magic bytes. PNG/JPEG ≤500KB. |
@@ -138,6 +139,7 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
 ## Pitfalls and constraints
 
 - **`configure_world_id` is asynchronous.** The on-chain registration is submitted to the bundler and returns immediately with `status: "pending"` and an `operation_hash`. Watch `status_endpoint` until it returns `production_status: "registered"` before relying on the RP for verifications.
+- **A new Portal registration creates a new RP with a random ID.** Existing on-chain RPs are not imported. Switching an existing integration to this ID changes users' nullifiers; do not treat it as continuing an existing on-chain registration.
 - **`configure_world_id` is available by default.** There is no team-level World ID 4.0 feature flag gate. Staging apps return `-32004` with `data.reason: "staging_not_supported"` — use a production app instead. If the app already has an RP registration, the tool returns the existing record (use `rotate_world_id_signing_key` to change keys).
 - **Private keys are returned once.** If the user loses the value from `configure_world_id` / `rotate_world_id_signing_key`, they must rotate again. The portal does not store private keys.
 - **Submission preconditions are strict.** `submit_app_for_review` runs the same Yup completeness check as the dashboard. The full required set:
@@ -148,14 +150,14 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
 - **Draft creation is edit-driven.** `configure_mini_app` and `upload_app_image` can create a draft from an approved app when no draft exists. `submit_app_for_review` does not create a draft by itself; make at least one metadata or image change first.
 - **MCP-created apps are production apps.** The MCP no longer exposes staging app creation; use the dashboard or existing internal tooling for legacy staging-only sandbox flows.
 - **`is_developer_allow_listing` is optional on submit.** If you omit it, the existing value on `app_metadata` is preserved — the MCP will not silently un-list a previously listed app.
-- **Don't re-run `configure_world_id` on an already-configured app.** It returns the existing registration without rotating. Use `rotate_world_id_signing_key` if the user actually wants a new key.
+- **Don't re-run `configure_world_id` to retry registration or get a new key.** It returns the saved registration without resubmitting or rotating. For `pending`, poll `status_endpoint`. For a failed managed registration, use `retry_world_id_registration { app_id, environment }`; it keeps the saved ID and keys. Use `rotate_world_id_signing_key` only when registration is complete and the user wants a new key.
 
 ## Test native World ID 4.0 with the simulator
 
 The Portal MCP configures the app; the separate Simulator MCP completes its real staging proof request. The simulator's `complete_test_request` tool is not a Portal tool: connect it separately using the [simulator setup guide](https://github.com/worldcoin/simulator/blob/main/docs/mcp.md). If the tool is unavailable, fall back to the [simulator browser flow](https://simulator.worldcoin.org/) with the application's connector URL; do not invent a Portal test-payload endpoint.
 
-1. Use an existing production app, or create one first (canonical flow A: `create_app` → `configure_world_id`). Capture `result.signing_key.private_key` from `configure_world_id` immediately — it is returned only once. If it is lost, wait until registration completes, then `rotate_world_id_signing_key` on that app only.
-2. Poll `get_world_id_registration_status` until both `production_status` and `staging_status` are `registered`. While either is `pending`, wait and poll again; do not start the simulator request. Treat `failed` as a configuration failure (a failed staging mirror can be retried from the app's World ID configuration).
+1. Use an existing production app, or create one first (canonical flow A: `create_app` → `configure_world_id`). Capture `result.signing_key.private_key` from `configure_world_id` immediately — it is returned only once. If the call fails after retaining registration state, save `error.data.signing_key.private_key` instead. If it is lost, wait until registration completes, then `rotate_world_id_signing_key` on that app only.
+2. Poll `get_world_id_registration_status` until both `production_status` and `staging_status` are `registered`. While either is `pending`, wait and poll again; do not start the simulator request. Treat `failed` as a configuration failure (retry a failed managed registration with `retry_world_id_registration { app_id, environment: "production" }` or `environment: "staging"` for a failed staging mirror).
 3. Start the application's actual signed IDKit request: `environment: "staging"`, `allow_legacy_proofs: false`, RP-signed on the application's backend, and enforce `min_protocol_version: "4.0"` at verification. A minimal end-to-end example lives in the simulator setup guide. Actions need no pre-registration — the v4 verify endpoint lazy-creates them on first verification; use `create_world_id_action` only to configure one deliberately.
 4. Pass the request's connector URI to the Simulator MCP's `complete_test_request { connect_url }`. The first version supports a single native v4 Proof of Human uniqueness request; the signed request supplies the action and proof context.
 5. Wait for the application's own IDKit polling/callback to receive the proof, then check its real backend verification response and business effects. `proof_delivered` from the simulator is delivery acknowledgment, not application acceptance.

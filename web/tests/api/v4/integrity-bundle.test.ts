@@ -19,6 +19,7 @@ jest.mock("@/lib/logger", () => ({
 }));
 
 const RP_ID = "rp_test_123";
+const LEGACY_RP_ID = "rp_legacy_456";
 const AG_KID = "ag-test-key";
 const PRODUCTION_ISSUER = "attestation.worldcoin.org";
 const PRODUCTION_JWKS_URL =
@@ -53,6 +54,14 @@ const response = {
     string,
     string,
   ],
+};
+
+const v3Response = {
+  identifier: "orb",
+  signal_hash: "0x0",
+  merkle_root: "0x1",
+  nullifier: "0x2",
+  proof: "0x3",
 };
 
 const selfieResponse = {
@@ -126,12 +135,14 @@ async function createBundle(params?: {
   jwtExpirationTime?: number | string | Date;
   jwtPlatform?: "android" | "ios";
   pass?: boolean;
+  protocolVersion?: "3.0" | "4.0";
   signedNonce?: string;
   signedTimestamp?: number;
   signatureFormat?: "android_keystore" | "apple_app_attest";
   timestamp?: number;
   version?: 1 | 2;
   signedResponses?:
+    | (typeof v3Response)[]
     | (typeof response)[]
     | (typeof selfieResponse)[]
     | (typeof selfieSessionResponse)[];
@@ -160,7 +171,7 @@ async function createBundle(params?: {
     computeProofIntegrityDigest({
       integrityBundleVersion: params?.version,
       nonce,
-      protocolVersion: "4.0",
+      protocolVersion: params?.protocolVersion ?? "4.0",
       responses: params?.signedResponses ?? [response],
     });
   const timestamp = params?.timestamp ?? Math.floor(Date.now() / 1000);
@@ -775,4 +786,41 @@ describe("integrity bundle verification", () => {
       }),
     );
   });
+
+  it.each([
+    ["3.0", RP_ID, true],
+    ["3.0", LEGACY_RP_ID, true],
+    ["3.0", "rp_unrelated", false],
+    ["4.0", LEGACY_RP_ID, false],
+  ] as const)(
+    "validates the %s audience %s",
+    async (protocolVersion, audience, isValid) => {
+      const responses = protocolVersion === "3.0" ? [v3Response] : [response];
+      const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+        protocolVersion,
+        rpId: audience,
+        signedResponses: responses,
+      });
+      jest.spyOn(global, "fetch").mockResolvedValue(
+        new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+          status: 200,
+        }),
+      );
+
+      const result = await verifyIntegrityBundle({
+        integrityBundle,
+        legacyRpId: LEGACY_RP_ID,
+        nonce,
+        protocolVersion,
+        responses,
+        rpId: RP_ID,
+      });
+
+      expect(result).toEqual(
+        isValid
+          ? { success: true }
+          : { success: false, reason: "invalid_integrity_token" },
+      );
+    },
+  );
 });
