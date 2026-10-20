@@ -1,5 +1,5 @@
 import { nullifierSchema } from "@/api/helpers/nullifier-schema";
-import { Nullifier } from "@/lib/nullifier";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import * as yup from "yup";
 
 // #region Test Data

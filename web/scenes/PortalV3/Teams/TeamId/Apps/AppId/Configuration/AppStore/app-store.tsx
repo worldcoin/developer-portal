@@ -21,7 +21,7 @@ import { ContentCardImageSection } from "./components/FormSections/ContentCardIm
 import { CountriesSection } from "./components/FormSections/CountriesSection";
 import { HumansOnlySection } from "./components/FormSections/HumansOnlySection";
 import { LanguagesSection } from "./components/FormSections/LanguagesSection";
-import { LocalisationsSection } from "./components/FormSections/LocalisationsSection";
+import { LocalizationsSection } from "./components/FormSections/LocalizationsSection";
 import { SupportSection } from "./components/FormSections/SupportSection";
 import { AppStoreFormValues } from "./FormSchema/types";
 import { useAppStoreForm } from "./hooks/useAppStoreForm";
@@ -239,11 +239,11 @@ export const LocalizedContentFields = () => {
     teamId,
     supportedLanguages,
     refetchAppMetadata,
-    refetchLocalisations,
+    refetchLocalizations,
   } = useAppStoreFormContext();
 
   return (
-    <LocalisationsSection
+    <LocalizationsSection
       control={control}
       errors={errors}
       localisations={localisations}
@@ -255,7 +255,7 @@ export const LocalizedContentFields = () => {
       supportedLanguages={supportedLanguages}
       onAutosaveSuccess={() => {
         refetchAppMetadata();
-        refetchLocalisations();
+        refetchLocalizations();
       }}
     />
   );

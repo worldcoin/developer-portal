@@ -1,9 +1,9 @@
 import { Nullifier as StoredNullifier } from "@/graphql/graphql";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
-import { Nullifier } from "@/lib/nullifier";
 import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import { AbiCoder, toBeHex } from "ethers";
 import * as yup from "yup";
 

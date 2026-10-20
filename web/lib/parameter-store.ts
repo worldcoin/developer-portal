@@ -3,6 +3,7 @@ import {
   DescribeParametersCommandInput,
   GetParameterCommand,
   GetParameterCommandInput,
+  ParameterNotFound,
   SSMClient,
 } from "@aws-sdk/client-ssm";
 import NodeCache from "node-cache";
@@ -63,10 +64,12 @@ export class ParameterStore {
    *
    * @param name - The name of the parameter to retrieve.
    * @param defaultValue - The default value to return if the parameter is not found.
+   * @param options.cacheNotFound - Cache the default for a missing parameter until the normal cache TTL expires.
    */
   async getParameter<T = string | string[]>(
     name: string,
     defaultValue?: T,
+    options?: { cacheNotFound?: boolean },
   ): Promise<T | undefined> {
     const parameterName = normalizeParameterName(name, this.prefix);
 
@@ -97,6 +100,9 @@ export class ParameterStore {
       return value;
     } catch (error) {
       if (defaultValue !== undefined) {
+        if (options?.cacheNotFound && error instanceof ParameterNotFound) {
+          this.cache.set(parameterName, defaultValue);
+        }
         logger.warn(
           `Error getting parameter ${parameterName} from Parameter Store, falling back to default value`,
           {

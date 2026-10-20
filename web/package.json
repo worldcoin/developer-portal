@@ -28,7 +28,7 @@
     "@sendgrid/mail": "^8.1.3",
     "@tanstack/react-table": "^8.21.3",
     "@worldcoin/idkit": "^4.2.0",
-    "@worldcoin/idkit-server": "^1.1.1",
+    "@worldcoin/idkit-server": "^1.2.0",
     "auth0": "^4.10.0",
     "aws-sigv4-fetch": "^4.0.1",
     "cbor-x": "1.6.0",

@@ -104,7 +104,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     const app = appInfo[0].app_metadata[0];
-    const localisation =
+    const localization =
       (locale && locale !== "en" && app.localisations?.[0]) || null;
 
     if (!process.env.ASSETS_S3_REGION) {
@@ -139,8 +139,8 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    const showcaseImgUrls = localisation
-      ? localisation.showcase_img_urls
+    const showcaseImgUrls = localization
+      ? localization.showcase_img_urls
       : app.showcase_img_urls;
 
     if (showcaseImgUrls) {
@@ -149,7 +149,7 @@ export const POST = async (req: NextRequest) => {
           s3Client,
           new GetObjectCommand({
             Bucket: bucketName,
-            Key: `${objectKey}${localisation ? `${locale}/` : ""}${key}`,
+            Key: `${objectKey}${localization ? `${locale}/` : ""}${key}`,
           }),
           { expiresIn: 7200 },
         ),
@@ -161,8 +161,8 @@ export const POST = async (req: NextRequest) => {
       urlPromises.push({ showcase_img_urls: [] });
     }
 
-    const metaTagImageUrl = localisation
-      ? localisation.meta_tag_image_url
+    const metaTagImageUrl = localization
+      ? localization.meta_tag_image_url
       : app.meta_tag_image_url;
 
     if (metaTagImageUrl) {
@@ -171,7 +171,7 @@ export const POST = async (req: NextRequest) => {
           s3Client,
           new GetObjectCommand({
             Bucket: bucketName,
-            Key: `${objectKey}${localisation ? `${locale}/` : ""}${metaTagImageUrl}`,
+            Key: `${objectKey}${localization ? `${locale}/` : ""}${metaTagImageUrl}`,
           }),
           { expiresIn: 7200 },
         ).then((url) => ({ meta_tag_image_url: url })),

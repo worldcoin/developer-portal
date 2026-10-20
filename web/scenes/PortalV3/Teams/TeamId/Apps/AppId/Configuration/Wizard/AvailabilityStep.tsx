@@ -37,7 +37,7 @@ const LawsAndRegulationsBanner = () => (
 /**
  * Step 2 of the configuration wizard: supported countries and languages,
  * bound to the shared App Store form so autosave and the language ⇄
- * localisation row sync keep working exactly as on the previous page.
+ * localization row sync keep working exactly as on the previous page.
  */
 export const AvailabilityStep = (props: { isMiniApp: boolean }) => {
   const { control, errors, isEditable, isEnoughPermissions } =

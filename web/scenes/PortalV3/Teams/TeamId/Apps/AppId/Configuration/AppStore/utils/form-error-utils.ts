@@ -6,10 +6,10 @@ export const MULTIPLE_ERRORS_TOAST_MESSAGE =
   "There are multiple errors in the form";
 
 /**
- * extracts the localisation index from a react-hook-form ref name
- * @example "localisations.2.name" -> 2
+ * extracts the localization index from a react-hook-form ref name
+ * @example "localizations.2.name" -> 2
  */
-function extractLocalisationIndex(refName?: string): number | null {
+function extractLocalizationIndex(refName?: string): number | null {
   if (!refName) return null;
 
   const parts = refName.split(".");
@@ -22,14 +22,14 @@ function extractLocalisationIndex(refName?: string): number | null {
 /**
  * formats an error message with the language label prefix
  */
-function formatLocalisationErrorMessage(
+function formatLocalizationErrorMessage(
   fieldError: FieldError,
   localisations: AppStoreFormValues["localisations"],
 ): string | null {
-  const localisationIndex = extractLocalisationIndex(fieldError?.ref?.name);
+  const localizationIndex = extractLocalizationIndex(fieldError?.ref?.name);
 
-  if (localisationIndex !== null && localisations[localisationIndex]) {
-    const language = localisations[localisationIndex].language as FormLanguage;
+  if (localizationIndex !== null && localisations[localizationIndex]) {
+    const language = localisations[localizationIndex].language as FormLanguage;
     const languageLabel = languageMap[language].label;
     return fieldError.message
       ? `${languageLabel}: ${fieldError.message}`
@@ -40,38 +40,38 @@ function formatLocalisationErrorMessage(
 }
 
 /**
- * extracts the first error from localisation field errors
+ * extracts the first error from localization field errors
  */
-function extractLocalisationError(
-  localisationErrors: FieldErrors<AppStoreFormValues>["localisations"],
+function extractLocalizationError(
+  localizationErrors: FieldErrors<AppStoreFormValues>["localisations"],
   localisations: AppStoreFormValues["localisations"],
 ): string | null {
-  if (!Array.isArray(localisationErrors)) {
+  if (!Array.isArray(localizationErrors)) {
     return null;
   }
 
   // filters out undefined elements
-  if (localisationErrors.filter(Boolean).length > 1) {
+  if (localizationErrors.filter(Boolean).length > 1) {
     return MULTIPLE_ERRORS_TOAST_MESSAGE;
   }
 
-  for (const localisationError of localisationErrors) {
-    if (!localisationError || typeof localisationError !== "object") {
+  for (const localizationError of localizationErrors) {
+    if (!localizationError || typeof localizationError !== "object") {
       continue;
     }
-    const errorFields = Object.keys(localisationError);
+    const errorFields = Object.keys(localizationError);
 
     if (errorFields.length > 1) {
       return MULTIPLE_ERRORS_TOAST_MESSAGE;
     }
 
     for (const field of errorFields) {
-      const fieldError = localisationError[
-        field as keyof typeof localisationError
+      const fieldError = localizationError[
+        field as keyof typeof localizationError
       ] as FieldError;
 
       if (fieldError) {
-        const errorMessage = formatLocalisationErrorMessage(
+        const errorMessage = formatLocalizationErrorMessage(
           fieldError,
           localisations,
         );
@@ -111,14 +111,14 @@ export const getFirstFormError = (
     }
   }
 
-  // check nested localisation errors
+  // check nested localization errors
   if (errors.localisations) {
-    const localisationError = extractLocalisationError(
+    const localizationError = extractLocalizationError(
       errors.localisations,
       localisations,
     );
-    if (localisationError) {
-      return localisationError;
+    if (localizationError) {
+      return localizationError;
     }
   }
 

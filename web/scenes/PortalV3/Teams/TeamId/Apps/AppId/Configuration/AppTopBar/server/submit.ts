@@ -9,10 +9,10 @@ import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
 import * as yup from "yup";
 import { mainAppStoreFormReviewSubmitSchema } from "../../AppStore/FormSchema/form-schema";
-import { LocalisationData } from "../../AppStore/types/AppStoreFormTypes";
+import { LocalizationData } from "../../AppStore/types/AppStoreFormTypes";
 import { getSupportType } from "../../AppStore/utils";
 import {
-  getLocalisationFormValues,
+  getLocalizationFormValues,
   transformMailtoToRawEmail,
 } from "../../AppStore/utils/dataTransforms";
 import { getSdk as getSubmitAppSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/SubmitAppModal/graphql/server/submit-app.generated";
@@ -98,9 +98,9 @@ export async function submitAppForReviewFormServerSide({
         });
       }
 
-      const localisations = getLocalisationFormValues(
+      const localisations = getLocalizationFormValues(
         data.app_metadata[0],
-        data.localisations as LocalisationData,
+        data.localisations as LocalizationData,
       );
 
       // either a https:// link or a mailto: email

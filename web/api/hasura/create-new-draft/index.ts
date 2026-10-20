@@ -7,8 +7,8 @@ import { getImageEndpoint } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getCreateDraftSdk } from "./graphql/create-draft.generated";
-import { getSdk as getCreateLocalisation } from "./graphql/create-localisation.generated";
-import { getSdk as getFetchLocalisations } from "./graphql/fetch-localisations.generated";
+import { getSdk as getCreateLocalization } from "./graphql/create-localization.generated";
+import { getSdk as getFetchLocalizations } from "./graphql/fetch-localizations.generated";
 import { getSdk as getFetchMetadata } from "./graphql/fetch-metadata.generated";
 
 const schema = yup
@@ -161,27 +161,27 @@ export const POST = async (req: NextRequest) => {
 
   const newAppMetadataId = insert_app_metadata_one.id;
 
-  // Anchor: Fetch and Copy Localisations
-  const { localisations } = await getFetchLocalisations(
+  // Anchor: Fetch and Copy Localizations
+  const { localisations } = await getFetchLocalizations(
     client,
-  ).FetchLocalisations({
+  ).FetchLocalizations({
     id: appMetadata.verified_app_metadata[0].id,
   });
 
-  // If localisations exist copy them over
+  // If localizations exist copy them over
   if (localisations) {
-    for (const localisation of localisations) {
-      const { id, __typename, ...copiedLocalisation } = localisation;
-      await getCreateLocalisation(client).CreateLocalisation({
+    for (const localization of localisations) {
+      const { id, __typename, ...copiedLocalization } = localization;
+      await getCreateLocalization(client).CreateLocalization({
         input: {
-          ...copiedLocalisation,
+          ...copiedLocalization,
           app_metadata_id: newAppMetadataId,
           hero_image_url: "",
-          meta_tag_image_url: copiedLocalisation?.meta_tag_image_url
-            ? `meta_tag_image.${getImageEndpoint(copiedLocalisation.meta_tag_image_url)}`
+          meta_tag_image_url: copiedLocalization?.meta_tag_image_url
+            ? `meta_tag_image.${getImageEndpoint(copiedLocalization.meta_tag_image_url)}`
             : "",
-          showcase_img_urls: copiedLocalisation?.showcase_img_urls
-            ? copiedLocalisation.showcase_img_urls.map(
+          showcase_img_urls: copiedLocalization?.showcase_img_urls
+            ? copiedLocalization.showcase_img_urls.map(
                 (img: string, index: number) =>
                   `showcase_img_${index + 1}.${getImageEndpoint(img)}`,
               )

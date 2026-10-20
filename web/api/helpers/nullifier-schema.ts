@@ -1,4 +1,4 @@
-import { Nullifier } from "@/lib/nullifier";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import * as yup from "yup";
 
 // Parse once at the JSON boundary. Invalid input remains a schema error (400).

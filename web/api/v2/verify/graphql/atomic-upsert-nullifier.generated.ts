@@ -49,7 +49,10 @@ export const AtomicUpsertNullifierDocument = gql`
       nullifier_hash_int
     }
     update_nullifier(
-      where: { nullifier_hash_int: { _eq: $nullifier_hash_int } }
+      where: {
+        action_id: { _eq: $action_id }
+        nullifier_hash_int: { _eq: $nullifier_hash_int }
+      }
       _inc: { uses: 1 }
     ) {
       affected_rows

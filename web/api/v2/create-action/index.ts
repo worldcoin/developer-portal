@@ -1,8 +1,5 @@
 import { errorResponse } from "@/api/helpers/errors";
-import {
-  getAPIKeyGraphqlClient,
-  getAPIServiceGraphqlClient,
-} from "@/api/helpers/graphql";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { generateExternalNullifier } from "@/lib/hashing";
@@ -148,9 +145,6 @@ export const POST = async (
     });
   }
 
-  const team_id = api_key_by_pk.team.id;
-  const apiKeyClient = await getAPIKeyGraphqlClient({ team_id });
-
   const external_nullifier = generateExternalNullifier(
     app_id as `app_${string}`,
     action,
@@ -161,7 +155,7 @@ export const POST = async (
 
   try {
     const { insert_action_one } = await createDynamicActionSdk(
-      apiKeyClient,
+      serviceClient,
     ).CreateDynamicAction({
       app_id,
       action,

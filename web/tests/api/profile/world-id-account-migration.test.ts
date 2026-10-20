@@ -1,4 +1,4 @@
-import { Nullifier } from "@/lib/nullifier";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import { POST } from "@/api/profile/world-id-account-migration";
 import { NextRequest } from "next/server";
 

@@ -2,7 +2,7 @@ import { OIDCErrorCodes, OIDCScopes } from "@/api/helpers/oidc";
 import { decodeProof } from "@/api/helpers/verify";
 import { POST } from "@/api/v1/oidc/authorize";
 import { OIDCResponseType } from "@/lib/types";
-import { Nullifier as CheckedNullifier } from "@/lib/nullifier";
+import { Nullifier as CheckedNullifier } from "@worldcoin/idkit-server/nullifier";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
 import { jwtVerify } from "jose";

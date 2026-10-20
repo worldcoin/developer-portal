@@ -1,4 +1,4 @@
-import { Nullifier } from "@/lib/nullifier";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import { verifyProof } from "@/api/helpers/verify";
 import { processUniquenessProofV3 } from "@/api/v4/verify/uniqueness-proof/verify-v3";
 import { LegacyVerificationLevel } from "@/lib/idkit";

@@ -1,6 +1,6 @@
 import { nullifierSchema } from "@/api/helpers/nullifier-schema";
 import { LegacyVerificationLevel } from "@/lib/idkit";
-import { Nullifier } from "@/lib/nullifier";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import * as yup from "yup";
 
 /**

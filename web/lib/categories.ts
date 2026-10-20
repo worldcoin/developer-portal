@@ -334,7 +334,7 @@ export const CategoryNameToId = Categories.reduce(
   {} as Record<Category["name"], Category["id"]>,
 );
 
-export const getLocalisedCategory = (
+export const getLocalizedCategory = (
   name: Category["name"] | "All",
   locale: string,
 ) => {
@@ -358,7 +358,7 @@ export const getLocalisedCategory = (
   };
 };
 
-export const getAppStoreLocalisedCategoriesWithUrls = (
+export const getAppStoreLocalizedCategoriesWithUrls = (
   locale: string,
   shouldShowExternal: boolean,
 ) => {
@@ -367,7 +367,7 @@ export const getAppStoreLocalisedCategoriesWithUrls = (
     if (category.id === "external" && !shouldShowExternal) {
       return null;
     }
-    const { id, name } = getLocalisedCategory(category.name, defaultLocale);
+    const { id, name } = getLocalizedCategory(category.name, defaultLocale);
     return { id, name, icon_url: category.icon_url };
   }).filter((category) => category !== null);
 };

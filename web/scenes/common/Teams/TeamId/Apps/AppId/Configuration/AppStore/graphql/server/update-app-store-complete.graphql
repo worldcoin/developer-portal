@@ -15,7 +15,7 @@ mutation UpdateAppStoreComplete(
     affected_rows
   }
 
-  # Upsert localisations (insert or update based on unique constraint)
+  # Upsert localizations (insert or update based on unique constraint)
   insert_localisations(
     objects: $localisations_to_upsert
     on_conflict: {
@@ -33,8 +33,8 @@ mutation UpdateAppStoreComplete(
     }
   ) {
     # The rows the browser's Apollo cache is patched with after this server
-    # action returns. Must stay in sync with the FetchLocalisations selection
-    # set — see fetch-localisations.graphql.
+    # action returns. Must stay in sync with the FetchLocalizations selection
+    # set — see fetch-localizations.graphql.
     returning {
       id
       locale

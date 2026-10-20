@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import { FetchImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
-import { UpsertLocalisedShowcaseImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/upsert-localised-showcase-images.generated";
+import { UpsertLocalizedShowcaseImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/upsert-localized-showcase-images.generated";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageUploadField } from "./ImageUploadField";
 import { useMutation, useQuery } from "@apollo/client/react";
-import { appendLocalisationToCache } from "../utils/update-localisations-cache";
+import { appendLocalizationToCache } from "../utils/update-localizations-cache";
 import { useImageSaveStatus } from "./use-image-save-status";
 
 interface ShowcaseImagesFieldProps {
@@ -62,7 +62,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     useImageSaveStatus(`image:showcase:${locale}`);
 
   const [upsertShowcaseImages] = useMutation(
-    UpsertLocalisedShowcaseImagesDocument,
+    UpsertLocalizedShowcaseImagesDocument,
     {
       // Field values merge themselves through normalization; only list
       // membership for a row that did not exist yet needs handling.
@@ -70,7 +70,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
         const inserted = result.data?.insert_localisations?.returning?.[0];
         if (!variables?.is_localized || !inserted) return;
 
-        appendLocalisationToCache(cache, variables.app_metadata_id, inserted);
+        appendLocalizationToCache(cache, variables.app_metadata_id, inserted);
       },
     },
   );

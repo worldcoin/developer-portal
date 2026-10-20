@@ -1,0 +1,21 @@
+query FetchLocalizations($app_metadata_id: String!) {
+  localisations(where: { app_metadata_id: { _eq: $app_metadata_id } }) {
+    # Selecting the primary key makes Apollo normalize these rows as
+    # localizations:<id> entities instead of storing them inline, so a mutation
+    # that returns a row auto-merges into the cache. The catch: any mutation
+    # whose `returning` feeds this list must select at least these fields —
+    # a partially populated entity makes the whole query read null, not just
+    # the new row. Enforced by
+    # web/tests/unit/localizations-cache-selection.test.ts.
+    id
+    locale
+    name
+    description
+    world_app_button_text
+    world_app_description
+    short_name
+    hero_image_url
+    meta_tag_image_url
+    showcase_img_urls
+  }
+}

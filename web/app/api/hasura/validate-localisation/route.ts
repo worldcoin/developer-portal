@@ -1,1 +1,1 @@
-export { POST } from "@/api/hasura/validate-localisation";
+export { POST } from "@/api/hasura/validate-localization";

@@ -259,7 +259,7 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
     expect(res.status).toBe(200);
   });
 
-  it("prioritizes localisations over title/message fields", async () => {
+  it("prioritizes localizations over title/message fields", async () => {
     const requestWithBothFormats = new NextRequest(
       "http://localhost:3000/api/v2/minikit/send-notification",
       {
@@ -334,7 +334,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     );
   });
 
-  it("returns 400 if neither localisations nor title/message are specified", async () => {
+  it("returns 400 if neither localizations nor title/message are specified", async () => {
     const mockReq = new NextRequest(
       "http://localhost:3000/api/v2/minikit/send-notification",
       {
@@ -354,7 +354,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     const res = await POST(mockReq);
     expect(res.status).toBe(400);
     expect((await res.json()).detail).toBe(
-      "Neither localisations nor title and message are specified",
+      "Neither localizations nor title and message are specified",
     );
   });
 

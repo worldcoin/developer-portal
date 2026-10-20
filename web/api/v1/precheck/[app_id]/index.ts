@@ -7,14 +7,13 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { canVerifyForAction } from "@/api/helpers/verify";
 import { APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
-import { Nullifier } from "@/lib/nullifier";
 import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getAppPrecheckByActionSdk } from "./graphql/app-precheck-by-action.generated";
 import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
-import { getSdk as getFetchRpRegistrationForPrecheckSdk } from "./graphql/fetch-rp-registration-for-precheck.generated";
 
 // Whitelist some partner demo apps, that are not verified but we want to show their logos
 const APPS_TO_SHOW_UNVERIFIED_LOGO = [
@@ -137,6 +136,17 @@ export async function POST(
     );
   }
 
+  const rpRegistration = rawAppValues.rp_registration.find(
+    (registration) => registration.status === RpRegistrationStatus.Registered,
+  );
+
+  const grantClaimingApps =
+    (await global.ParameterStore?.getParameter<string[]>(
+      "whitelisted-apps/grant-claiming",
+      [],
+      { cacheNotFound: true },
+    )) ?? [];
+
   const unverified_app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
   // If an image is present it should store it's relative path and extension ie logo.png
@@ -163,6 +173,7 @@ export async function POST(
   // Prevent breaking changes
   const app = {
     id: rawAppValues.id,
+    ...(rpRegistration ? { rp_id: rpRegistration.rp_id } : {}),
     engine: rawAppValues.engine,
     is_staging: rawAppValues.is_staging,
     is_verified: verified_app_metadata ? true : false,
@@ -174,25 +185,16 @@ export async function POST(
       unverified_app_metadata?.integration_url ??
       "",
     enable_face_check: true,
+    credential_request: {
+      subtype: grantClaimingApps.includes(app_id) ? "grant_claiming" : null,
+    },
     actions: rawAppValues.actions,
   };
 
   // ANCHOR: If the action doesn't exist, check if app is migrated
   if (!app.actions.length) {
-    // Check if this app has been migrated to v4 (has rp_registration)
-    const rpRegistrationResult = await getFetchRpRegistrationForPrecheckSdk(
-      client,
-    ).FetchRpRegistrationForPrecheck({
-      app_id,
-    });
-
-    const rpRegistration = rpRegistrationResult.rp_registration[0];
-
     // Only return synthetic action if RP is registered and active
-    if (
-      rpRegistration &&
-      rpRegistration.status === RpRegistrationStatus.Registered
-    ) {
+    if (rpRegistration) {
       const nullifierData = generateExternalNullifier(app_id, action);
       // Generate action ID similar to DB pattern: action_<32 hex chars>
       const actionIdHash = nullifierData.hash.toString(16).slice(0, 32);

@@ -1,5 +1,5 @@
 import {
-  localisationFormSchema,
+  localizationFormSchema,
   mainAppStoreFormReviewSubmitSchema,
 } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import {
@@ -39,10 +39,10 @@ describe("BasicInformation editing schema", () => {
   });
 });
 
-describe("AppStore localisationFormSchema", () => {
-  it("accepts a freshly-added localisation with empty fields", () => {
+describe("AppStore localizationFormSchema", () => {
+  it("accepts a freshly-added localization with empty fields", () => {
     expect(
-      localisationFormSchema.isValidSync(
+      localizationFormSchema.isValidSync(
         {
           language: "fr",
           name: "",
@@ -59,7 +59,7 @@ describe("AppStore localisationFormSchema", () => {
 
   it("rejects unknown keys via .noUnknown()", () => {
     expect(
-      localisationFormSchema.isValidSync(
+      localizationFormSchema.isValidSync(
         {
           language: "en",
           something_else: "x",
@@ -71,7 +71,7 @@ describe("AppStore localisationFormSchema", () => {
 
   it("still rejects too-long values", () => {
     expect(
-      localisationFormSchema.isValidSync({
+      localizationFormSchema.isValidSync({
         language: "en",
         name: "x".repeat(60),
       }),

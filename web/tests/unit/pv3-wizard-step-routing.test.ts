@@ -10,14 +10,14 @@ describe("getWizardSteps", () => {
       WizardStep.BASIC,
       WizardStep.STORE_LISTING,
       WizardStep.AVAILABILITY,
-      WizardStep.LOCALISED_CONTENT,
+      WizardStep.LOCALIZED_CONTENT,
       WizardStep.MINI_APP_PERMISSIONS,
       WizardStep.REVIEW,
     ]);
     expect(getWizardSteps(false).map((step) => step.id)).toEqual([
       WizardStep.BASIC,
       WizardStep.AVAILABILITY,
-      WizardStep.LOCALISED_CONTENT,
+      WizardStep.LOCALIZED_CONTENT,
       WizardStep.REVIEW,
     ]);
   });
@@ -31,7 +31,7 @@ describe("getWizardStepForField", () => {
       WizardStep.AVAILABILITY,
     );
     expect(getWizardStepForField(true, "localisations.1.short_name")).toBe(
-      WizardStep.LOCALISED_CONTENT,
+      WizardStep.LOCALIZED_CONTENT,
     );
     // Unowned store fields: Store listing for mini apps, Basic otherwise
     // (external apps never render that step).

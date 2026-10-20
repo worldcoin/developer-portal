@@ -3,7 +3,7 @@ import {
   formatAppMetadata,
 } from "@/api/helpers/app-store";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { getAppStoreLocalisedCategoriesWithUrls } from "@/lib/categories";
+import { getAppStoreLocalizedCategoriesWithUrls } from "@/lib/categories";
 import { compareVersions } from "@/lib/compare-versions";
 import {
   APP_STORE_METADATA,
@@ -248,7 +248,7 @@ export async function GET(
   }
 
   const show_external = searchParams.get("show_external");
-  const categories = getAppStoreLocalisedCategoriesWithUrls(
+  const categories = getAppStoreLocalizedCategoriesWithUrls(
     locale,
     Boolean(show_external) ?? false,
   );

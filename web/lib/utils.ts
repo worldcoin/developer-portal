@@ -476,15 +476,15 @@ export const isValidHostName = (request: Request) => {
 };
 
 /**
- * Creates a localise category
- * @param category - The category to create a localise category for
- * @returns The localise category
+ * Creates a localize category
+ * @param category - The category to create a localize category for
+ * @returns The localize category
  */
-export const createLocaliseCategory = (category: string) => {
+export const createLocalizeCategory = (category: string) => {
   return `world_id_partner_category_${category.toLowerCase()}`;
 };
 
-export const createLocaliseField = (appId: string, field: string) => {
+export const createLocalizeField = (appId: string, field: string) => {
   return `world_id_partner_${appId}_${field}`;
 };
 

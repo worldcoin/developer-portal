@@ -3,8 +3,8 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
   AllCategory,
-  getAppStoreLocalisedCategoriesWithUrls,
-  getLocalisedCategory,
+  getAppStoreLocalizedCategoriesWithUrls,
+  getLocalizedCategory,
 } from "@/lib/categories";
 import { NativeApps, NativeAppToAppIdMapping } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
@@ -290,7 +290,7 @@ export const GET = async (request: NextRequest) => {
   /**
    * ANCHOR: Validate all apps have valid categories
    */
-  const categories = getAppStoreLocalisedCategoriesWithUrls(
+  const categories = getAppStoreLocalizedCategoriesWithUrls(
     locale,
     parsedParams.show_external ?? false,
   );
@@ -334,7 +334,7 @@ export const GET = async (request: NextRequest) => {
     },
     all_category: {
       ...AllCategory,
-      name: getLocalisedCategory(AllCategory.name, locale).name,
+      name: getLocalizedCategory(AllCategory.name, locale).name,
     },
     categories,
   };

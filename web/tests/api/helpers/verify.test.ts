@@ -1,4 +1,4 @@
-import { Nullifier } from "@/lib/nullifier";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import {
   canonicalizeProof,
   decodeProof,

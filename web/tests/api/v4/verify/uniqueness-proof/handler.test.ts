@@ -1,4 +1,4 @@
-import { Nullifier } from "@/lib/nullifier";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import { handleUniquenessProofVerification } from "@/api/v4/verify/uniqueness-proof/handler";
 import type { UniquenessProofResponseV4 } from "@/api/v4/verify/request-schema";
 import {

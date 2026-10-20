@@ -3,7 +3,7 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { formCountriesList } from "@/lib/languages";
 import { preloadIcons } from "@/scenes/PortalV3/common/Icon";
-import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
+import { FetchLocalizationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localizations.generated";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useQuery } from "@apollo/client/react";
@@ -14,7 +14,7 @@ import { preload } from "react-dom";
 import { AppStoreFormProvider } from "../AppStore/app-store-form-provider";
 import {
   AppMetadata,
-  LocalisationData,
+  LocalizationData,
 } from "../AppStore/types/AppStoreFormTypes";
 import { viewModeAtom } from "../layout/ImagesProvider";
 import { RejectionBanner } from "../RejectionBanner";
@@ -33,7 +33,7 @@ type ConfigurationWizardPageProps = {
  * layout so conditional / late-visible glyphs aren't blank on first paint.
  */
 const configurationWizardPreloadIcons = [
-  "share-ios", // LogoDropZone + LocalisedContentStep empty drop zones
+  "share-ios", // LogoDropZone + LocalizedContentStep empty drop zones
   "radio-check", // Stepper completed steps + AppModeCards selection
   "star", // ReviewStep rating placeholder
   "xmark", // ChipSelect remove on selected chips
@@ -106,8 +106,8 @@ export const ConfigurationWizardPage = ({
     }
   }, [app, setViewMode, viewMode]);
 
-  const { data: localisationsData, loading: isLocalisationsLoading } = useQuery(
-    FetchLocalisationsDocument,
+  const { data: localizationsData, loading: isLocalizationsLoading } = useQuery(
+    FetchLocalizationsDocument,
     {
       variables: { app_metadata_id: appMetadata?.id || "" },
       skip: !appMetadata?.id,
@@ -124,7 +124,7 @@ export const ConfigurationWizardPage = ({
     return <ErrorPage statusCode={404} title="App not found" />;
   }
 
-  if (loading || isLocalisationsLoading || !app || !appMetadata) {
+  if (loading || isLocalizationsLoading || !app || !appMetadata) {
     return <ConfigurationWizardSkeleton />;
   }
 
@@ -137,8 +137,8 @@ export const ConfigurationWizardPage = ({
         <AppStoreFormProvider
           key={`${appMetadata.id}-${viewMode}`}
           appMetadata={appMetadata as AppMetadata}
-          localisationsData={
-            (localisationsData?.localisations || []) as LocalisationData
+          localizationsData={
+            (localizationsData?.localisations || []) as LocalizationData
           }
         >
           <SaveStatusProvider>

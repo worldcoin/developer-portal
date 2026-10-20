@@ -10,11 +10,11 @@ import {
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { AppStoreFormValues } from "../FormSchema/types";
-import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
+import { FetchLocalizationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localizations.generated";
 import { updateAppStoreMetadata } from "../server/update-app-store";
 import { AppMetadata, SupportType } from "../types/AppStoreFormTypes";
 import { getFirstFormError } from "../utils/form-error-utils";
-import { synchronizeLocalisationsCache } from "../utils/update-localisations-cache";
+import { synchronizeLocalizationsCache } from "../utils/update-localizations-cache";
 import { useSupportType } from "./useSupportType";
 
 export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
@@ -25,8 +25,8 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
     FetchAppMetadataDocument,
     { id: appId },
   );
-  const { refetch: refetchLocalisations } = useRefetchQueries(
-    FetchLocalisationsDocument,
+  const { refetch: refetchLocalizations } = useRefetchQueries(
+    FetchLocalizationsDocument,
     { app_metadata_id: appMetadata.id },
   );
 
@@ -57,7 +57,7 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
 
   const { handleSupportTypeChange } = useSupportType(setValue);
 
-  // sync localisations with supported_languages
+  // sync localizations with supported_languages
   useEffect(() => {
     if (supportedLanguages) {
       const currentLanguages = localisations.map((field) => field.language);
@@ -68,7 +68,7 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
         (lang) => !supportedLanguages.includes(lang),
       );
 
-      // remove localisations for removed languages
+      // remove localizations for removed languages
       removedLanguages.forEach((lang) => {
         const index = localisations.findIndex(
           (field) => field.language === lang,
@@ -78,7 +78,7 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
         }
       });
 
-      // add localisations for new languages
+      // add localizations for new languages
       newLanguages.forEach((lang) => {
         append({
           language: lang,
@@ -97,24 +97,24 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
     async (data: AppStoreFormValues, signal?: AbortSignal) => {
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
-      // The English localisation in this form mirrors columns on app_metadata
+      // The English localization in this form mirrors columns on app_metadata
       // (name/short_name/description/world_app_description) that BasicInformation
       // also writes. AppStore's snapshot of those fields is initialised once and
       // is NOT refreshed when BasicInformation saves a new value, so persisting
       // them unconditionally here can revert the user's BasicInformation edit.
-      // Only forward en-localisation fields that the user actually dirtied in
+      // Only forward en-localization fields that the user actually dirtied in
       // *this* form; the server treats undefined fields as "leave unchanged".
       const dirtyFields = formContext.formState.dirtyFields as Record<
         string,
         unknown
       >;
-      const dirtyLocalisations =
+      const dirtyLocalizations =
         (dirtyFields.localisations as
           | Array<Record<string, boolean>>
           | undefined) ?? [];
       const localisations = data.localisations.map((l, i) => {
         if (l.language !== "en") return l;
-        const dirty = dirtyLocalisations[i];
+        const dirty = dirtyLocalizations[i];
         if (!dirty) return { language: "en" };
         return {
           language: "en",
@@ -145,7 +145,7 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
         throw new Error(result.message);
       }
       if (result.localisations) {
-        synchronizeLocalisationsCache(
+        synchronizeLocalizationsCache(
           apolloClient.cache,
           appMetadata.id,
           result.localisations,
@@ -153,7 +153,7 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
       }
       // Patch the Apollo cache locally instead of refetching. A network
       // round-trip would refresh every metadata consumer and look like a page
-      // reload. Keep the en-localisation mirror columns current for previews.
+      // reload. Keep the en-localization mirror columns current for previews.
       const en = localisations.find((l) => l.language === "en") as
         | Record<string, unknown>
         | undefined;
@@ -219,6 +219,6 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
     onInvalid,
     isEditable,
     refetchAppMetadata,
-    refetchLocalisations,
+    refetchLocalizations,
   };
 };

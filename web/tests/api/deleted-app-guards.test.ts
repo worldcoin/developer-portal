@@ -4,7 +4,6 @@ import { FetchAppSecretDocument } from "@/api/helpers/oidc/graphql/fetch-app-sec
 import { FetchOidcAppDocument } from "@/api/helpers/oidc/graphql/fetch-oidc-app.generated";
 import { AppPrecheckByActionQueryDocument } from "@/api/v1/precheck/[app_id]/graphql/app-precheck-by-action.generated";
 import { AppPrecheckQueryDocument } from "@/api/v1/precheck/[app_id]/graphql/app-precheck.generated";
-import { FetchRpRegistrationForPrecheckDocument } from "@/api/v1/precheck/[app_id]/graphql/fetch-rp-registration-for-precheck.generated";
 import { FetchAppActionDocument } from "@/api/v2/verify/graphql/fetch-app-action.generated";
 import { print } from "graphql";
 import { DocumentNode } from "graphql/language";
@@ -19,7 +18,6 @@ describe("deleted app guards", () => {
     const documents = [
       AppPrecheckQueryDocument,
       AppPrecheckByActionQueryDocument,
-      FetchRpRegistrationForPrecheckDocument,
       FetchAppActionDocument,
       FetchOidcAppDocument,
       FetchAppSecretDocument,

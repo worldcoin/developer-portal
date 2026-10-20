@@ -15,14 +15,14 @@ import {
   supportLinkSchema,
 } from "./field-schema";
 
-export const localisationFormSchema = yup
+export const localizationFormSchema = yup
   .object({
     language: yup.string().required("Locale is required"),
     // Use .notRequired() rather than .optional() — in yup 1.3.x, .optional()
     // only allows undefined; the underlying string `required` test still
-    // rejects empty strings. New localisations are initialised with empty
+    // rejects empty strings. New localizations are initialised with empty
     // string fields, so without notRequired() autosave would always fail
-    // validation and silently block draft progress until every localisation
+    // validation and silently block draft progress until every localization
     // text field is filled.
     name: appNameSchema.notRequired(),
     short_name: appShortNameSchema.notRequired(),
@@ -73,14 +73,14 @@ export const mainAppStoreFormSchema = yup
         "English is a required language",
         (langs) => langs?.includes("en") ?? false,
       ),
-    localisations: yup.array().of(localisationFormSchema).default([]),
+    localisations: yup.array().of(localizationFormSchema).default([]),
   })
   .noUnknown();
 
 /**
  * for validating the final object when submitting for review
  */
-export const localisationFormReviewSubmitSchema = yup
+export const localizationFormReviewSubmitSchema = yup
   .object({
     language: yup.string().required("Locale is required"),
     name: appNameSchema.required("Name is required"),
@@ -101,7 +101,7 @@ export const localisationFormReviewSubmitSchema = yup
     showcase_img_urls: yup
       .array()
       .of(yup.string())
-      .min(1, "At least one showcase image is required for each localisation"),
+      .min(1, "At least one showcase image is required for each localization"),
   })
   .noUnknown();
 
@@ -184,7 +184,7 @@ export const mainAppStoreFormReviewSubmitSchema = yup
       ),
     localisations: yup
       .array()
-      .of(localisationFormReviewSubmitSchema)
+      .of(localizationFormReviewSubmitSchema)
       .test(
         "has-english",
         "English is a required language",
@@ -192,7 +192,7 @@ export const mainAppStoreFormReviewSubmitSchema = yup
           if (!localisations) return false;
 
           const hasEnglish = localisations.some(
-            (localisation) => localisation.language === "en",
+            (localization) => localization.language === "en",
           );
           if (!hasEnglish) return false;
 

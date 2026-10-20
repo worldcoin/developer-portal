@@ -1,0 +1,1 @@
+export { LocalizationsSection } from "./LocalizationsSection";

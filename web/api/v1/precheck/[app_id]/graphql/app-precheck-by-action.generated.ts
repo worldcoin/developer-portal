@@ -17,6 +17,11 @@ export type AppPrecheckByActionQueryQuery = {
     id: string;
     is_staging: boolean;
     engine: string;
+    rp_registration: Array<{
+      __typename?: "rp_registration";
+      rp_id: string;
+      status: string;
+    }>;
     app_metadata: Array<{
       __typename?: "app_metadata";
       name: string;
@@ -72,6 +77,10 @@ export const AppPrecheckByActionQueryDocument = gql`
       id
       is_staging
       engine
+      rp_registration(where: { status: { _eq: "registered" } }) {
+        rp_id
+        status
+      }
       app_metadata(where: { verification_status: { _neq: "verified" } }) {
         name
         logo_img_url

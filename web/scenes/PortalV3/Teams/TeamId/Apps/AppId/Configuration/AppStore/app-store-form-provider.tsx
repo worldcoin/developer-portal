@@ -5,19 +5,19 @@ import { isMiniAppAtom } from "../layout/ImagesProvider";
 import { mainAppStoreFormSchema } from "./FormSchema/form-schema";
 import { AppStoreFormValues } from "./FormSchema/types";
 import { useFormData } from "./hooks/useFormData";
-import { AppMetadata, LocalisationData } from "./types/AppStoreFormTypes";
+import { AppMetadata, LocalizationData } from "./types/AppStoreFormTypes";
 
 export const AppStoreFormProvider = ({
   children,
   appMetadata,
-  localisationsData,
+  localizationsData,
 }: {
   children: React.ReactNode;
   appMetadata: AppMetadata;
-  localisationsData: LocalisationData;
+  localizationsData: LocalizationData;
 }) => {
   const isMiniApp = useAtomValue(isMiniAppAtom);
-  const { defaultValues } = useFormData(appMetadata, localisationsData);
+  const { defaultValues } = useFormData(appMetadata, localizationsData);
 
   const form = useForm<AppStoreFormValues>({
     resolver: yupResolver(mainAppStoreFormSchema),

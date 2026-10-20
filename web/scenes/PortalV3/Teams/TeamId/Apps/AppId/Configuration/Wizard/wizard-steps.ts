@@ -10,7 +10,8 @@ export enum WizardStep {
   STORE_LISTING = "store-listing",
   MINI_APP_PERMISSIONS = "mini-app-permissions",
   AVAILABILITY = "availability",
-  LOCALISED_CONTENT = "localised-content",
+  // Preserve existing wizard URLs and saved step selections.
+  LOCALIZED_CONTENT = "localised-content",
   REVIEW = "review-and-confirm",
 }
 
@@ -127,8 +128,8 @@ const WIZARD_STEP_DEFINITIONS: readonly WizardStepDefinition[] = [
     completion: { kind: "app-store-review-fields" },
   },
   {
-    id: WizardStep.LOCALISED_CONTENT,
-    label: "Localised content",
+    id: WizardStep.LOCALIZED_CONTENT,
+    label: "Localized content",
     isVisible: isAlwaysVisible,
     validationFields: [{ path: "localisations" }],
     completion: { kind: "app-store-review-fields" },

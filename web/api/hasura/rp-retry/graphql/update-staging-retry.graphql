@@ -1,17 +1,20 @@
 mutation UpdateStagingRetry(
   $rp_id: String!
+  $claimed_at: timestamptz!
   $staging_operation_hash: String!
   $staging_status: rp_registration_status!
 ) {
-  update_rp_registration_by_pk(
-    pk_columns: { rp_id: $rp_id }
+  update_rp_registration(
+    where: {
+      rp_id: { _eq: $rp_id }
+      updated_at: { _eq: $claimed_at }
+      staging_status: { _eq: pending }
+    }
     _set: {
       staging_operation_hash: $staging_operation_hash
       staging_status: $staging_status
     }
   ) {
-    rp_id
-    staging_status
-    staging_operation_hash
+    affected_rows
   }
 }

@@ -20,6 +20,7 @@ const appPayload = {
       logo_img_url: "logo_img.png",
     },
   ],
+  rp_registration: [] as { rp_id: string; status: string }[],
   actions: [
     {
       name: "Swag Pack 2022",
@@ -45,28 +46,21 @@ const exampleValidRequestPayload = {
 jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(),
 }));
-const AppPrecheckQuery = jest.fn();
-const AppPrecheckByActionQuery = jest.fn();
-jest.mock(
-  "@/api/v1/precheck/[app_id]/graphql/app-precheck-by-action.generated",
-  () => ({
-    getSdk: () => ({ AppPrecheckByActionQuery }),
-  }),
-);
 jest.mock("@/lib/logger", () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
-const FetchRpRegistrationForPrecheck = jest.fn();
+const AppPrecheckQuery = jest.fn();
+const AppPrecheckByActionQuery = jest.fn();
 jest.mock("@/api/v1/precheck/[app_id]/graphql/app-precheck.generated", () => ({
   getSdk: () => ({
     AppPrecheckQuery,
   }),
 }));
 jest.mock(
-  "@/api/v1/precheck/[app_id]/graphql/fetch-rp-registration-for-precheck.generated",
+  "@/api/v1/precheck/[app_id]/graphql/app-precheck-by-action.generated",
   () => ({
     getSdk: () => ({
-      FetchRpRegistrationForPrecheck,
+      AppPrecheckByActionQuery,
     }),
   }),
 );
@@ -142,7 +136,14 @@ describe("/api/v1/precheck/[app_id]", () => {
     );
 
     AppPrecheckQuery.mockResolvedValue({
-      app: [{ ...appPayload }],
+      app: [
+        {
+          ...appPayload,
+          rp_registration: [
+            { rp_id: "rp_0123456789abcdef", status: "registered" },
+          ],
+        },
+      ],
     });
 
     const response = await POST(request, {
@@ -155,6 +156,7 @@ describe("/api/v1/precheck/[app_id]", () => {
     const responseBody = await response.json();
     expect(responseBody).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      rp_id: "rp_0123456789abcdef",
       name: "The Yellow App Verified",
       is_verified: true,
       is_staging: true,
@@ -162,6 +164,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       verified_app_logo:
         "https://cdn.test.com/app_staging_6d1c9fb86751a40d952749022db1c1/logo_img.png",
       enable_face_check: true,
+      credential_request: { subtype: null },
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
@@ -172,8 +175,154 @@ describe("/api/v1/precheck/[app_id]", () => {
         max_accounts_per_user: 1,
       },
     });
-    expect(getParameter).not.toHaveBeenCalled();
+    expect(getParameter).toHaveBeenCalledWith(
+      "whitelisted-apps/grant-claiming",
+      [],
+      { cacheNotFound: true },
+    );
   });
+
+  test("returns the registered RP ID for apps with custom external nullifiers", async () => {
+    const appId = "app_1f7f2c379f20307a414f6cf8b544ec8a";
+    const action = "humanity";
+    AppPrecheckByActionQuery.mockResolvedValue({
+      app: [
+        {
+          ...appPayload,
+          id: appId,
+          actions: [{ ...appPayload.actions[0], action }],
+          rp_registration: [
+            { rp_id: "rp_0123456789abcdef", status: "registered" },
+          ],
+        },
+      ],
+    });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify({ action }),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      id: appId,
+      rp_id: "rp_0123456789abcdef",
+      action: { action },
+    });
+  });
+
+  test("does not expose an RP ID before the registration is active", async () => {
+    const appId = appPayload.id;
+    AppPrecheckQuery.mockResolvedValue({
+      app: [
+        {
+          ...appPayload,
+          rp_registration: [
+            { rp_id: "rp_0123456789abcdef", status: "pending" },
+          ],
+        },
+      ],
+    });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).not.toHaveProperty("rp_id");
+  });
+
+  // #region Grant-claiming subtype
+  test("tags an allowlisted app as grant claiming", async () => {
+    const appId = appPayload.id;
+    const getParameter = jest.fn().mockResolvedValue([appId]);
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+    AppPrecheckQuery.mockResolvedValue({ app: [appPayload] });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      credential_request: { subtype: "grant_claiming" },
+    });
+    expect(getParameter).toHaveBeenCalledWith(
+      "whitelisted-apps/grant-claiming",
+      [],
+      { cacheNotFound: true },
+    );
+  });
+
+  test("returns a null subtype when the allowlist parameter is missing", async () => {
+    const appId = appPayload.id;
+    const getParameter = jest.fn().mockResolvedValue(undefined);
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+    AppPrecheckQuery.mockResolvedValue({ app: [appPayload] });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      credential_request: { subtype: null },
+    });
+  });
+
+  test("includes the grant-claiming subtype with a synthetic action", async () => {
+    const appId = appPayload.id;
+    const getParameter = jest.fn().mockResolvedValue([appId]);
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+    AppPrecheckQuery.mockResolvedValue({
+      app: [
+        {
+          ...appPayload,
+          actions: [],
+          rp_registration: [
+            { rp_id: "rp_0123456789abcdef", status: "registered" },
+          ],
+        },
+      ],
+    });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      credential_request: { subtype: "grant_claiming" },
+      action: { action: exampleValidRequestPayload.action },
+      rp_id: "rp_0123456789abcdef",
+    });
+  });
+  // #endregion
 
   test("can fetch precheck response unverified", async () => {
     const request = new NextRequest(
@@ -204,6 +353,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       engine: "cloud",
       verified_app_logo: "",
       enable_face_check: true,
+      credential_request: { subtype: null },
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
@@ -585,7 +735,6 @@ describe("/api/v1/precheck/[action_id] [error cases]", () => {
     });
 
     expect(response.status).toBe(404);
-    expect(FetchRpRegistrationForPrecheck).not.toHaveBeenCalled();
     const responseBody = await response.json();
     expect(responseBody).toEqual(
       expect.objectContaining({ code: "not_found" }),
@@ -604,9 +753,6 @@ describe("/api/v1/precheck/[action_id] [error cases]", () => {
     AppPrecheckQuery.mockResolvedValue({
       app: [{ ...appPayload, actions: [] }],
     });
-    FetchRpRegistrationForPrecheck.mockResolvedValue({
-      rp_registration: [],
-    });
 
     const response = await POST(request, {
       params: Promise.resolve({
@@ -615,9 +761,6 @@ describe("/api/v1/precheck/[action_id] [error cases]", () => {
     });
 
     expect(response.status).toBe(400);
-    expect(FetchRpRegistrationForPrecheck).toHaveBeenCalledWith({
-      app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
-    });
     const responseBody = await response.json();
     expect(responseBody).toEqual(
       expect.objectContaining({ code: "required", attribute: "action" }),
