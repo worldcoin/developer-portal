@@ -60,6 +60,7 @@ const currentUserId = "usr_current";
 const legacyUserId = "usr_legacy";
 const nullifier = "0xABC123";
 const normalizedNullifier = "0xabc123";
+const canonicalNullifier = Nullifier.fromHex(nullifier).toHex();
 const signalHash = "0xsignal";
 const emptySignalHash =
   "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4";
@@ -274,7 +275,13 @@ describe("/api/profile/world-id-account-migration [no legacy account]", () => {
       },
     );
     expect(FetchUserByWorldIdNullifier).toHaveBeenCalledWith({
-      world_id_nullifiers: [nullifier, normalizedNullifier, "abc123"],
+      world_id_nullifiers: [
+        canonicalNullifier,
+        canonicalNullifier.slice(2),
+        normalizedNullifier,
+        "abc123",
+        nullifier,
+      ],
       current_user_id: currentUserId,
     });
     expect(MergeWorldIdAccounts).not.toHaveBeenCalled();
@@ -317,6 +324,39 @@ describe("/api/profile/world-id-account-migration [merge]", () => {
     });
   });
 
+  it("looks up equivalent hex forms and passes the stored legacy nullifier to the merge", async () => {
+    const proofNullifier = "0x01A";
+    const storedNullifier = "0x1a";
+    const canonical = Nullifier.fromHex(proofNullifier).toHex();
+    mockLookup([
+      makeMatchedUser(legacyUserId, { world_id_nullifier: storedNullifier }),
+    ]);
+
+    const response = await POST(
+      createRequest(makeProof({ nullifier: proofNullifier })),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ status: "merged" });
+    expect(FetchUserByWorldIdNullifier).toHaveBeenCalledWith({
+      world_id_nullifiers: [
+        canonical,
+        canonical.slice(2),
+        storedNullifier,
+        "1a",
+        proofNullifier,
+        "0x01a",
+        "01a",
+      ],
+      current_user_id: currentUserId,
+    });
+    expect(MergeWorldIdAccounts).toHaveBeenCalledWith({
+      current_user_id: currentUserId,
+      legacy_user_id: legacyUserId,
+      world_id_nullifier: storedNullifier,
+    });
+  });
+
   it("merges even when the current user already holds the same nullifier", async () => {
     mockLookup(
       [
@@ -334,7 +374,7 @@ describe("/api/profile/world-id-account-migration [merge]", () => {
     expect(MergeWorldIdAccounts).toHaveBeenCalledWith({
       current_user_id: currentUserId,
       legacy_user_id: legacyUserId,
-      world_id_nullifier: normalizedNullifier,
+      world_id_nullifier: nullifier,
     });
   });
 

@@ -94,11 +94,26 @@ function isLegacyWorldIdAccount(auth0Id: string | null | undefined): boolean {
   return auth0Id?.startsWith("oauth2|worldcoin|") ?? false;
 }
 
-function getNullifierLookupValues(nullifier: string): string[] {
+function getNullifierLookupValues(
+  nullifier: string,
+  checkedNullifier: Nullifier,
+): string[] {
   const normalized = normalizeNullifierHash(nullifier);
   const withoutPrefix = normalized.replace(/^0x/, "");
+  const canonical = checkedNullifier.toHex();
+  const minimal = `0x${checkedNullifier.toBigInt().toString(16)}`;
 
-  return Array.from(new Set([nullifier, normalized, withoutPrefix]));
+  return Array.from(
+    new Set([
+      canonical,
+      canonical.replace(/^0x/, ""),
+      minimal,
+      minimal.replace(/^0x/, ""),
+      nullifier,
+      normalized,
+      withoutPrefix,
+    ]),
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -245,7 +260,10 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const nullifierLookupValues = getNullifierLookupValues(response.nullifier);
+  const nullifierLookupValues = getNullifierLookupValues(
+    response.nullifier,
+    checkedNullifier,
+  );
   const userResponse = await getFetchUserByWorldIdNullifierSdk(
     client,
   ).FetchUserByWorldIdNullifier({
@@ -356,7 +374,7 @@ export async function POST(req: NextRequest) {
     await getMergeWorldIdAccountsSdk(client).MergeWorldIdAccounts({
       current_user_id: currentUserId,
       legacy_user_id: legacyUser.id,
-      world_id_nullifier: normalizeNullifierHash(response.nullifier),
+      world_id_nullifier: legacyUser.world_id_nullifier!,
     });
   } catch (error) {
     logger.error("World ID account migration merge failed", {
