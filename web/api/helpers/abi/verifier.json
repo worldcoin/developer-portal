@@ -18,6 +18,24 @@
   },
   {
     "type": "function",
+    "name": "verifyProofAndSignals",
+    "inputs": [
+      { "name": "nullifier", "type": "uint256" },
+      { "name": "action", "type": "uint256" },
+      { "name": "rpId", "type": "uint64" },
+      { "name": "nonce", "type": "uint256" },
+      { "name": "signalHash", "type": "uint256" },
+      { "name": "expiresAtMin", "type": "uint64" },
+      { "name": "issuerSchemaId", "type": "uint64" },
+      { "name": "credentialGenesisIssuedAtMin", "type": "uint256" },
+      { "name": "sessionId", "type": "uint256" },
+      { "name": "zeroKnowledgeProof", "type": "uint256[5]" }
+    ],
+    "outputs": [],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "verifySession",
     "inputs": [
       { "name": "rpId", "type": "uint64" },
@@ -32,5 +50,15 @@
     ],
     "outputs": [],
     "stateMutability": "view"
+  },
+  {
+    "type": "error",
+    "name": "ProofInvalid",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PublicInputNotInField",
+    "inputs": []
   }
 ]

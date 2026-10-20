@@ -1,5 +1,6 @@
 import { nullifierSchema } from "@/api/helpers/nullifier-schema";
 import { LegacyVerificationLevel } from "@/lib/idkit";
+import { getSessionCommitment } from "@worldcoin/idkit-server";
 import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import * as yup from "yup";
 
@@ -210,6 +211,31 @@ export function isProtocolVersionBelowMinimum(
   );
 }
 
+/** Classify a validated request; a bound uniqueness proof retains its action. */
+export function isSessionProofRequest(value: {
+  session_id?: unknown;
+  action?: unknown;
+}): boolean {
+  return value.session_id !== undefined && value.action === undefined;
+}
+
+const BN254_SCALAR_FIELD =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+
+function isBoundSessionId(sessionId: string): boolean {
+  try {
+    const commitment = getSessionCommitment(sessionId);
+    // The protocol encodes a field commitment followed by a SessionSeed (prefix 0x01).
+    return (
+      commitment > 0n &&
+      commitment < BN254_SCALAR_FIELD &&
+      sessionId.slice(72, 74) === "01"
+    );
+  } catch {
+    return false;
+  }
+}
+
 // Base schema - responses validated in custom test based on protocol version
 export const schema = yup
   .object({
@@ -240,8 +266,8 @@ export const schema = yup
     // Parameters for action creation (used if action_v4 doesn't exist)
     action_description: yup.string().optional().default(""),
 
-    // Session id, only present in session proofs
-    // We use this field to detect session proofs in custom validation
+    // Session-only proofs omit action. A uniqueness proof may also create a session.
+    // Keep action when supplying a session bound to a uniqueness nullifier.
     session_id: yup.string().strict().optional(),
 
     // Sandbox is accepted as a distinct request environment and is
@@ -264,30 +290,37 @@ export const schema = yup
   .test("request-validation", "Request validation failed", function (value) {
     const { action, session_id, protocol_version } = value;
 
-    if (session_id) {
-      // Session proofs are a 4.0-only construct: the session nullifier and the
-      // session id are public inputs of the 4.0 circuit and have no 3.0
-      // equivalent.
+    if (session_id !== undefined) {
+      // Both session-only proofs and uniqueness proofs bound to a session require v4.
       if (protocol_version && protocol_version !== "4.0") {
         return this.createError({
           path: "protocol_version",
           message: "session proofs require protocol_version 4.0",
         });
       }
-
-      // Session proofs must NOT have action field
-      if (action) {
+      if (!session_id) {
         return this.createError({
-          path: "action",
-          message: "action field must not be present for session proofs",
+          path: "session_id",
+          message: "session_id must not be empty",
         });
       }
-    } else if (!action) {
-      // Uniqueness proofs require action field
-      return this.createError({
-        path: "action",
-        message: "action is required for uniqueness proofs",
-      });
+    }
+
+    if (!isSessionProofRequest(value)) {
+      // Empty action is invalid, including when a session is present. It must
+      // never silently turn a bound uniqueness proof into a session-only proof.
+      if (!action) {
+        return this.createError({
+          path: "action",
+          message: "action is required for uniqueness proofs",
+        });
+      }
+      if (session_id !== undefined && !isBoundSessionId(session_id)) {
+        return this.createError({
+          path: "session_id",
+          message: "Invalid session_id for bound uniqueness proof",
+        });
+      }
     }
 
     return true;
@@ -296,12 +329,13 @@ export const schema = yup
     "responses-schema",
     "Invalid response items for protocol version",
     function (value) {
-      const { protocol_version, session_id, responses } = value;
+      const { protocol_version, responses } = value;
       if (!responses || responses.length === 0) return true;
 
       // Determine which schema to use
       let itemSchema;
-      if (session_id && protocol_version === "4.0") {
+      const isSession = isSessionProofRequest(value);
+      if (isSession && protocol_version === "4.0") {
         itemSchema = sessionResponseItemSchema;
       } else if (protocol_version === "4.0") {
         itemSchema = v4ResponseItemSchema;
@@ -312,6 +346,23 @@ export const schema = yup
           path: "protocol_version",
           message: "Unknown protocol_version",
         });
+      }
+
+      // Reject contradictory proof modes before stripUnknown can erase them.
+      // This also rejects mixed lists where only some items match the request.
+      const forbiddenField = isSession ? "nullifier" : "session_nullifier";
+      for (let i = 0; i < responses.length; i++) {
+        const response = responses[i];
+        if (
+          response !== null &&
+          typeof response === "object" &&
+          Object.prototype.hasOwnProperty.call(response, forbiddenField)
+        ) {
+          return this.createError({
+            path: `responses[${i}].${forbiddenField}`,
+            message: `${forbiddenField} must not be present for ${isSession ? "session" : "uniqueness"} proofs`,
+          });
+        }
       }
 
       for (let i = 0; i < responses.length; i++) {
@@ -408,6 +459,8 @@ export interface UniquenessProofResponseV4 {
 
 export interface UniquenessProofRequestV4 {
   protocol_version: "4.0";
+  /** Present when the uniqueness proof atomically creates a bound session. */
+  session_id?: string;
   min_protocol_version?: "3.0" | "4.0";
   nonce: string;
   action: string;

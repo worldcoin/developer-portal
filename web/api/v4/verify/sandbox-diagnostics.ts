@@ -1,3 +1,4 @@
+import { isSessionProofRequest } from "./request-schema";
 import { logger } from "@/lib/logger";
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
@@ -53,7 +54,7 @@ function requestSummary(value: unknown): RequestSummary {
     proof_count: request.responses.length,
     credential_types: [...new Set(credentialTypes)].slice(0, 10),
     integrity_bundle_present: request.integrity_bundle !== undefined,
-    session_proof: request.session_id !== undefined,
+    session_proof: isSessionProofRequest(request),
   };
 }
 
