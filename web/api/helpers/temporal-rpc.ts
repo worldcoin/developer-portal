@@ -381,16 +381,14 @@ export async function verifyProofOnChain(
     const provider = createProvider();
     const contract = new Contract(contractAddress, VERIFIER_ABI, provider);
 
-    // Zero would verify an unbound proof despite the caller supplying a session.
-    if (params.sessionCommitment === 0n) {
+    const { sessionCommitment, zeroKnowledgeProof } = params;
+
+    // A supplied session must bind the proof to a nonzero commitment.
+    if (sessionCommitment === 0n) {
       throw new Error("Session commitment must be nonzero");
     }
-    // processUniquenessProofV4 hashes the action into namespace 0.
-    const verify =
-      params.sessionCommitment === undefined
-        ? contract.verify
-        : contract.verifyProofAndSignals;
-    await verify(
+
+    const commonArgs = [
       params.nullifier,
       params.action,
       params.rpId,
@@ -399,11 +397,18 @@ export async function verifyProofOnChain(
       params.expiresAtMin,
       params.issuerSchemaId,
       params.credentialGenesisIssuedAtMin,
-      ...(params.sessionCommitment === undefined
-        ? []
-        : [params.sessionCommitment]),
-      params.zeroKnowledgeProof,
-    );
+    ] as const;
+
+    if (sessionCommitment === undefined) {
+      await contract.verify(...commonArgs, zeroKnowledgeProof);
+    } else {
+      // processUniquenessProofV4 hashes the action into namespace 0.
+      await contract.verifyProofAndSignals(
+        ...commonArgs,
+        sessionCommitment,
+        zeroKnowledgeProof,
+      );
+    }
 
     logger.info("Proof verified successfully", {
       rpId: params.rpId.toString(),
