@@ -55,7 +55,6 @@ export interface OnChainRelyingParty {
 }
 
 export interface VerifyProofParams {
-  /** Bind the uniqueness proof to this newly created session commitment. */
   sessionCommitment?: bigint;
   nullifier: bigint;
   action: bigint;
@@ -96,9 +95,6 @@ const RPC_TIMEOUT_MS = 10_000;
 const RPC_MAX_RETRIES = 2;
 const WORLD_CHAIN_ID = 480;
 const WORLD_CHAIN_NETWORK = "worldchain";
-const BN254_SCALAR_FIELD =
-  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
-const UNIQUENESS_ACTION_LIMIT = 1n << 248n;
 
 /** Maps Verifier contract revert reasons to user-friendly error codes. */
 const VERIFIER_ERROR_MAP: Record<string, { code: string; detail: string }> = {
@@ -363,7 +359,7 @@ export async function getERC20Allowance(
 // =============================================================================
 
 /**
- * Verifies a World ID v4 uniqueness proof, optionally bound to a new session.
+ * Verifies a World ID v4 uniqueness proof by calling the on-chain Verifier contract.
  * The contract reverts if the proof is invalid (no return value on success).
  */
 export async function verifyProofOnChain(
@@ -385,57 +381,29 @@ export async function verifyProofOnChain(
     const provider = createProvider();
     const contract = new Contract(contractAddress, VERIFIER_ABI, provider);
 
-    if (params.sessionCommitment !== undefined) {
-      // The deployed generic entry point preserves all registry and proof checks,
-      // but does not apply the convenience wrapper's uniqueness action namespace.
-      if (params.action < 0n || params.action >= UNIQUENESS_ACTION_LIMIT) {
-        return {
-          success: false,
-          error: {
-            code: "invalid_action",
-            detail: "A uniqueness proof must use an action in namespace 0.",
-          },
-        };
-      }
-      if (
-        typeof params.sessionCommitment !== "bigint" ||
-        params.sessionCommitment <= 0n ||
-        params.sessionCommitment >= BN254_SCALAR_FIELD
-      ) {
-        return {
-          success: false,
-          error: {
-            code: "invalid_public_input",
-            detail: "The session commitment must be a nonzero field element.",
-          },
-        };
-      }
-
-      await contract.verifyProofAndSignals(
-        params.nullifier,
-        params.action,
-        params.rpId,
-        params.nonce,
-        params.signalHash,
-        params.expiresAtMin,
-        params.issuerSchemaId,
-        params.credentialGenesisIssuedAtMin,
-        params.sessionCommitment,
-        params.zeroKnowledgeProof,
-      );
-    } else {
-      await contract.verify(
-        params.nullifier,
-        params.action,
-        params.rpId,
-        params.nonce,
-        params.signalHash,
-        params.expiresAtMin,
-        params.issuerSchemaId,
-        params.credentialGenesisIssuedAtMin,
-        params.zeroKnowledgeProof,
-      );
+    // Zero would verify an unbound proof despite the caller supplying a session.
+    if (params.sessionCommitment === 0n) {
+      throw new Error("Session commitment must be nonzero");
     }
+    // processUniquenessProofV4 hashes the action into namespace 0.
+    const verify =
+      params.sessionCommitment === undefined
+        ? contract.verify
+        : contract.verifyProofAndSignals;
+    await verify(
+      params.nullifier,
+      params.action,
+      params.rpId,
+      params.nonce,
+      params.signalHash,
+      params.expiresAtMin,
+      params.issuerSchemaId,
+      params.credentialGenesisIssuedAtMin,
+      ...(params.sessionCommitment === undefined
+        ? []
+        : [params.sessionCommitment]),
+      params.zeroKnowledgeProof,
+    );
 
     logger.info("Proof verified successfully", {
       rpId: params.rpId.toString(),

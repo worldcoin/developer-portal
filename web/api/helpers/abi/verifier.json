@@ -50,15 +50,5 @@
     ],
     "outputs": [],
     "stateMutability": "view"
-  },
-  {
-    "type": "error",
-    "name": "ProofInvalid",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "PublicInputNotInField",
-    "inputs": []
   }
 ]

@@ -31,8 +31,6 @@ export interface UniquenessResult {
 type UniquenessProofSuccessResponse = {
   success: true;
   action: string;
-  /** Present only after verifying the uniqueness proof with this session binding. */
-  session_id?: string;
   nullifier: string; // Hex format `0x` prefixed
   created_at?: string;
   environment: string;
@@ -270,9 +268,6 @@ export async function handleUniquenessProofVerification(
       {
         success: true,
         action: actionV4.action,
-        ...(parsedParams.session_id
-          ? { session_id: parsedParams.session_id }
-          : {}),
         nullifier: normalizedNullifier,
         created_at: existingNullifier.created_at,
         environment: requestedEnvironment,
@@ -334,9 +329,6 @@ export async function handleUniquenessProofVerification(
       {
         success: true,
         action: actionV4.action,
-        ...(parsedParams.session_id
-          ? { session_id: parsedParams.session_id }
-          : {}),
         nullifier: normalizedNullifier,
         created_at: insertResult.insert_nullifier_v4_one.created_at,
         environment: requestedEnvironment,
@@ -368,9 +360,6 @@ export async function handleUniquenessProofVerification(
         {
           success: true,
           action: actionV4.action,
-          ...(parsedParams.session_id
-            ? { session_id: parsedParams.session_id }
-            : {}),
           nullifier: normalizedNullifier,
           environment: requestedEnvironment,
           protocol_version: protocolVersion,

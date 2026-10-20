@@ -10,7 +10,6 @@ import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 import {
   isProtocolVersionBelowMinimum,
-  isSessionProofRequest,
   schema,
   SessionProofRequest,
   UniquenessProofResponseV3,
@@ -253,12 +252,11 @@ async function verify(
       }
     }
 
-    // Only session-only proofs use session nullifiers. A uniqueness proof may
-    // also create a session and must retain action/nullifier verification.
-    if (isSessionProofRequest(parsedParams)) {
+    // A uniqueness proof can create a session; only session-only proofs use this handler.
+    if (parsedParams.session_id && !parsedParams.action) {
       diagnostics.mark("session_verification");
       return await handleSessionProofVerification(rpId, appId, {
-        session_id: parsedParams.session_id!,
+        session_id: parsedParams.session_id,
         nonce: parsedParams.nonce!,
         protocol_version: parsedParams.protocol_version,
         responses: parsedParams.responses as SessionProofRequest["responses"],
