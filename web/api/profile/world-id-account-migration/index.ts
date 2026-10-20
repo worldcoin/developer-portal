@@ -9,6 +9,7 @@ import { isWorldUser } from "@/lib/is-world-user";
 import { logger } from "@/lib/logger";
 import { appIdRegex } from "@/lib/schema";
 import { Auth0SessionUser } from "@/lib/types";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getFetchUserByWorldIdNullifierSdk } from "./graphql/fetch-user-by-world-id-nullifier.generated";
 import { getSdk as getMergeWorldIdAccountsSdk } from "./graphql/merge-world-id-accounts.generated";
@@ -93,11 +94,26 @@ function isLegacyWorldIdAccount(auth0Id: string | null | undefined): boolean {
   return auth0Id?.startsWith("oauth2|worldcoin|") ?? false;
 }
 
-function getNullifierLookupValues(nullifier: string): string[] {
+function getNullifierLookupValues(
+  nullifier: string,
+  checkedNullifier: Nullifier,
+): string[] {
   const normalized = normalizeNullifierHash(nullifier);
   const withoutPrefix = normalized.replace(/^0x/, "");
+  const canonical = checkedNullifier.toHex();
+  const minimal = `0x${checkedNullifier.toBigInt().toString(16)}`;
 
-  return Array.from(new Set([nullifier, normalized, withoutPrefix]));
+  return Array.from(
+    new Set([
+      canonical,
+      canonical.replace(/^0x/, ""),
+      minimal,
+      minimal.replace(/^0x/, ""),
+      nullifier,
+      normalized,
+      withoutPrefix,
+    ]),
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -190,6 +206,22 @@ export async function POST(req: NextRequest) {
   }
 
   const { response } = parsed;
+  let checkedNullifier: Nullifier;
+
+  try {
+    checkedNullifier = Nullifier.fromHex(response.nullifier.trim());
+  } catch {
+    return errorResponse({
+      statusCode: 400,
+      code: "invalid_format",
+      detail:
+        "Invalid nullifier. Expected a hex-encoded World ID field element.",
+      attribute: "nullifier",
+      req,
+      app_id: appId,
+    });
+  }
+
   const client = await getAPIServiceGraphqlClient();
 
   // Sign in With World ID uses the empty action, so its external nullifier is
@@ -201,7 +233,7 @@ export async function POST(req: NextRequest) {
       signal_hash: response.signal_hash ?? EMPTY_SIGNAL_HASH,
       proof: response.proof,
       merkle_root: response.merkle_root,
-      nullifier_hash: response.nullifier,
+      nullifier_hash: checkedNullifier,
       external_nullifier: externalNullifier,
     },
     {
@@ -228,7 +260,10 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const nullifierLookupValues = getNullifierLookupValues(response.nullifier);
+  const nullifierLookupValues = getNullifierLookupValues(
+    response.nullifier,
+    checkedNullifier,
+  );
   const userResponse = await getFetchUserByWorldIdNullifierSdk(
     client,
   ).FetchUserByWorldIdNullifier({
@@ -339,7 +374,7 @@ export async function POST(req: NextRequest) {
     await getMergeWorldIdAccountsSdk(client).MergeWorldIdAccounts({
       current_user_id: currentUserId,
       legacy_user_id: legacyUser.id,
-      world_id_nullifier: normalizeNullifierHash(response.nullifier),
+      world_id_nullifier: legacyUser.world_id_nullifier!,
     });
   } catch (error) {
     logger.error("World ID account migration merge failed", {

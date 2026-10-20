@@ -1,3 +1,4 @@
+import { nullifierSchema } from "@/api/helpers/nullifier-schema";
 import { errorResponse } from "@/api/helpers/errors";
 import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { corsHandler } from "@/api/helpers/utils";
@@ -28,10 +29,7 @@ const schema = yup
       .defined("This attribute is required."),
     proof: yup.string().strict().required("This attribute is required."),
     merkle_root: yup.string().strict().required("This attribute is required."),
-    nullifier_hash: yup
-      .string()
-      .strict()
-      .required("This attribute is required."),
+    nullifier_hash: nullifierSchema.required("This attribute is required."),
     is_staging: yup.boolean().strict().required("This attribute is required."),
     verification_level: yup
       .string()

@@ -106,8 +106,8 @@ importers:
         specifier: ^4.2.0
         version: 4.2.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@worldcoin/idkit-server':
-        specifier: ^1.1.1
-        version: 1.1.1
+        specifier: ^1.2.0
+        version: 1.2.0
       auth0:
         specifier: ^4.10.0
         version: 4.10.0
@@ -3801,6 +3801,10 @@ packages:
 
   '@worldcoin/idkit-server@1.1.1':
     resolution: {integrity: sha512-iO4Kd3QBLzJak3BPz5eIzRjW0kT8Px5c3LbNzvCKMnczLvVSKoWqdvGiJlkK8Dp29KstNI62iv4ak0z8nzui/Q==}
+    engines: {node: '>=18'}
+
+  '@worldcoin/idkit-server@1.2.0':
+    resolution: {integrity: sha512-CvaiX5idPbPsETBkbbD1cwueM2WJn2CNQ3vMZbFf7LKbJP+IKmvbxW3pubG5OThRKuciqEAHocxnuGLRYI9WuQ==}
     engines: {node: '>=18'}
 
   '@worldcoin/idkit@4.2.0':
@@ -12386,6 +12390,11 @@ snapshots:
       '@worldcoin/idkit-server': 1.1.1
 
   '@worldcoin/idkit-server@1.1.1':
+    dependencies:
+      '@noble/hashes': 1.8.0
+      '@noble/secp256k1': 2.3.0
+
+  '@worldcoin/idkit-server@1.2.0':
     dependencies:
       '@noble/hashes': 1.8.0
       '@noble/secp256k1': 2.3.0

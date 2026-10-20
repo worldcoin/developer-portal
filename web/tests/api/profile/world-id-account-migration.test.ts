@@ -1,3 +1,4 @@
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import { POST } from "@/api/profile/world-id-account-migration";
 import { NextRequest } from "next/server";
 
@@ -59,6 +60,7 @@ const currentUserId = "usr_current";
 const legacyUserId = "usr_legacy";
 const nullifier = "0xABC123";
 const normalizedNullifier = "0xabc123";
+const canonicalNullifier = Nullifier.fromHex(nullifier).toHex();
 const signalHash = "0xsignal";
 const emptySignalHash =
   "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4";
@@ -243,6 +245,15 @@ describe("/api/profile/world-id-account-migration [request guards]", () => {
 
 // #region No legacy account
 describe("/api/profile/world-id-account-migration [no legacy account]", () => {
+  it("rejects unsafe nullifiers before verification, identity lookup or merging", async () => {
+    const res = await POST(
+      createRequest(makeProof({ nullifier: `0x${"f".repeat(64)}` })),
+    );
+    expect(res.status).toBe(400);
+    expect(verifyProofMock).not.toHaveBeenCalled();
+    expect(FetchUserByWorldIdNullifier).not.toHaveBeenCalled();
+    expect(MergeWorldIdAccounts).not.toHaveBeenCalled();
+  });
   it("verifies the proof as a device-legacy proof and returns not_found without writing", async () => {
     const response = await POST(createRequest(makeProof()));
     const body = await response.json();
@@ -255,7 +266,7 @@ describe("/api/profile/world-id-account-migration [no legacy account]", () => {
         signal_hash: signalHash,
         proof: "0xproof",
         merkle_root: "0xroot",
-        nullifier_hash: nullifier,
+        nullifier_hash: Nullifier.fromHex(nullifier),
         external_nullifier: "0xexternal",
       },
       {
@@ -264,7 +275,13 @@ describe("/api/profile/world-id-account-migration [no legacy account]", () => {
       },
     );
     expect(FetchUserByWorldIdNullifier).toHaveBeenCalledWith({
-      world_id_nullifiers: [nullifier, normalizedNullifier, "abc123"],
+      world_id_nullifiers: [
+        canonicalNullifier,
+        canonicalNullifier.slice(2),
+        normalizedNullifier,
+        "abc123",
+        nullifier,
+      ],
       current_user_id: currentUserId,
     });
     expect(MergeWorldIdAccounts).not.toHaveBeenCalled();
@@ -307,6 +324,39 @@ describe("/api/profile/world-id-account-migration [merge]", () => {
     });
   });
 
+  it("looks up equivalent hex forms and passes the stored legacy nullifier to the merge", async () => {
+    const proofNullifier = "0x01A";
+    const storedNullifier = "0x1a";
+    const canonical = Nullifier.fromHex(proofNullifier).toHex();
+    mockLookup([
+      makeMatchedUser(legacyUserId, { world_id_nullifier: storedNullifier }),
+    ]);
+
+    const response = await POST(
+      createRequest(makeProof({ nullifier: proofNullifier })),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ status: "merged" });
+    expect(FetchUserByWorldIdNullifier).toHaveBeenCalledWith({
+      world_id_nullifiers: [
+        canonical,
+        canonical.slice(2),
+        storedNullifier,
+        "1a",
+        proofNullifier,
+        "0x01a",
+        "01a",
+      ],
+      current_user_id: currentUserId,
+    });
+    expect(MergeWorldIdAccounts).toHaveBeenCalledWith({
+      current_user_id: currentUserId,
+      legacy_user_id: legacyUserId,
+      world_id_nullifier: storedNullifier,
+    });
+  });
+
   it("merges even when the current user already holds the same nullifier", async () => {
     mockLookup(
       [
@@ -324,7 +374,7 @@ describe("/api/profile/world-id-account-migration [merge]", () => {
     expect(MergeWorldIdAccounts).toHaveBeenCalledWith({
       current_user_id: currentUserId,
       legacy_user_id: legacyUserId,
-      world_id_nullifier: normalizedNullifier,
+      world_id_nullifier: nullifier,
     });
   });
 

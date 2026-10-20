@@ -1,9 +1,7 @@
 import { POST } from "@/api/v2/verify";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import { NextRequest } from "next/server";
-import {
-  canonicalizeNullifierHash,
-  decodeToHexString,
-} from "../../../../api/helpers/verify";
+import { decodeToHexString } from "../../../../api/helpers/verify";
 import { semaphoreProofParamsMock } from "../../../api/__mocks__/proof.mock";
 import { integrationDBClean, integrationDBExecuteQuery } from "../../setup";
 
@@ -205,11 +203,22 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
 
     const body = await secondResponse.json();
     expect(body).toEqual({
-      attribute: "nullifier_hash",
-      code: "validation_error",
-      detail:
-        "Invalid nullifier_hash. Must be a hex string (≤ 64 hex chars) with optional 0x prefix.",
+      app_id: appId,
+      attribute: null,
+      code: "max_verifications_reached",
+      detail: "This person has already verified for this action.",
     });
+
+    const storedNullifiers = await integrationDBExecuteQuery(
+      "SELECT nullifier_hash_int, uses FROM nullifier WHERE action_id = $1",
+      [actionId],
+    );
+    expect(storedNullifiers.rows).toEqual([
+      {
+        nullifier_hash_int: nullifierHashToBigIntStr(VALID_NULLIFIER_HASH),
+        uses: 1,
+      },
+    ]);
   });
 
   // Test: Fix for vulnerability where nullifiers without 0x prefix bypass verification limit
@@ -271,7 +280,7 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
       attribute: "nullifier_hash",
       code: "validation_error",
       detail:
-        "Invalid nullifier_hash. Must be a hex string (≤ 64 hex chars) with optional 0x prefix.",
+        "Invalid nullifier. Expected 1–64 hex digits within the World ID field, with optional 0x prefix.",
     });
   });
 
@@ -354,9 +363,9 @@ describe("/api/v2/verify [action-scoped usage]", () => {
       "unlimited-action",
       0,
     );
-    const nullifierHash = canonicalizeNullifierHash(
+    const nullifierHash = Nullifier.fromHex(
       semaphoreProofParamsMock.nullifier_hash,
-    );
+    ).toHex();
     await createNullifierRecord(otherActionId, nullifierHash, 1);
     global.fetch = createSuccessFetchMock([nullifierHash]);
 

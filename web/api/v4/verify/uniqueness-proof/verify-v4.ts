@@ -1,4 +1,3 @@
-import { canonicalizeNullifierHash } from "@/api/helpers/verify";
 import { verifyProofOnChain } from "@/api/helpers/temporal-rpc";
 import { logger } from "@/lib/logger";
 import { hashSignal } from "@worldcoin/idkit/hashing";
@@ -19,10 +18,10 @@ export async function processUniquenessProofV4(
   const results = await Promise.all(
     responses.map(async (item): Promise<UniquenessResult> => {
       try {
-        const nullifier = canonicalizeNullifierHash(item.nullifier);
+        const nullifier = item.nullifier;
         const verifyResult = await verifyProofOnChain(
           {
-            nullifier: BigInt(nullifier),
+            nullifier: nullifier.toBigInt(),
             // Note: `hashSignal` is same as `hashToField` from previous idkit versions
             action: BigInt(hashSignal(action)),
             rpId,

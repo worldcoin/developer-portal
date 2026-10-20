@@ -1,3 +1,4 @@
+import { nullifierSchema } from "@/api/helpers/nullifier-schema";
 import {
   errorRequiredAttribute,
   errorResponse,
@@ -5,12 +6,7 @@ import {
 } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import {
-  canonicalizeNullifierHash,
-  canVerifyForAction,
-  encodeNullifierForStorage,
-  verifyProof,
-} from "@/api/helpers/verify";
+import { canVerifyForAction, verifyProof } from "@/api/helpers/verify";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
@@ -33,17 +29,7 @@ const schema = yup
         "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4", // hashToField("")
       ),
     proof: yup.string().strict().required("This attribute is required."),
-    nullifier_hash: yup
-      .string()
-      .strict()
-      // Bound to 64 hex chars (a uint256): rejects over-width values that
-      // would otherwise pass proof verification (decode reads the first 32
-      // bytes) but overflow the canonicalizer's toBeHex(..., 32) as a 500.
-      .matches(
-        /^(0x)?[\da-fA-F]{1,64}$/,
-        "Invalid nullifier_hash. Must be a hex string (≤ 64 hex chars) with optional 0x prefix.",
-      )
-      .required("This attribute is required."),
+    nullifier_hash: nullifierSchema.required("This attribute is required."),
     merkle_root: yup.string().strict().required("This attribute is required."),
     verification_level: yup
       .string()
@@ -114,9 +100,8 @@ export async function POST(
   const client = await getAPIServiceGraphqlClient();
 
   // Convert the nullifier hash to its integer representation for more robust comparison
-  const nullifier_hash_int = encodeNullifierForStorage(
-    parsedParams.nullifier_hash,
-  );
+  const checkedNullifier = parsedParams.nullifier_hash;
+  const nullifier_hash_int = checkedNullifier.toBigInt().toString();
 
   let appActionResponse = await getFetchAppActionSdk(client).FetchAppAction({
     app_id,
@@ -205,7 +190,7 @@ export async function POST(
         signal_hash: parsedParams.signal_hash,
         proof: parsedParams.proof,
         merkle_root: parsedParams.merkle_root,
-        nullifier_hash: parsedParams.nullifier_hash,
+        nullifier_hash: checkedNullifier,
         external_nullifier: action.external_nullifier,
       },
       {
@@ -249,16 +234,8 @@ export async function POST(
     });
   }
 
-  // Store the nullifier in canonical (fixed-width hex) form so that hex
-  // re-encodings of the same nullifier collide on the unique_nullifier_hash
-  // constraint instead of creating sibling rows that each independently pass
-  // the per-row uses-limit trigger and bypass max_verifications. Computed only
-  // after verifyProof succeeds: parseProofInputs has already rejected malformed
-  // / over-width nullifiers with a structured 400, so toBeHex cannot throw an
-  // unhandled 500 here.
-  const canonical_nullifier_hash = canonicalizeNullifierHash(
-    parsedParams.nullifier_hash,
-  );
+  // Preserve the existing text key; both DB encodings come from the verified number.
+  const canonical_nullifier_hash = checkedNullifier.toHex();
 
   try {
     const upsertResponse = await atomicUpsertNullifierSdk(

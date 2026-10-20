@@ -3,6 +3,9 @@ import { NextRequest } from "next/server";
 import { appReviewMockProof } from "../../__mocks__/app-review-proof.mock";
 
 // #region Mocks
+jest.mock("@/api/helpers/graphql", () => ({
+  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
+}));
 const InsertAppReview = jest.fn();
 const UpdateAppReviewRating = jest.fn();
 
@@ -168,6 +171,20 @@ describe("/api/v2/app/submit-app-review", () => {
 
     expect(res.status).toBe(400);
     expect(InsertAppReview).not.toHaveBeenCalled();
+  });
+
+  it("rejects an out-of-field nullifier before verification or review writes", async () => {
+    const res = await POST(
+      makeReq({
+        ...validBody,
+        nullifier_hash:
+          "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001",
+      }),
+    );
+    expect(res.status).toBe(400);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(InsertAppReview).not.toHaveBeenCalled();
+    expect(UpdateAppReviewRating).not.toHaveBeenCalled();
   });
   // #endregion
 });
