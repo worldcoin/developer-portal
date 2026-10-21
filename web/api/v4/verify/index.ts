@@ -252,8 +252,8 @@ async function verify(
       }
     }
 
-    // Early return for session proofs - handle separately
-    if (parsedParams.session_id) {
+    // A uniqueness proof can create a session; only session-only proofs use this handler.
+    if (parsedParams.session_id && !parsedParams.action) {
       diagnostics.mark("session_verification");
       return await handleSessionProofVerification(rpId, appId, {
         session_id: parsedParams.session_id,
@@ -272,6 +272,7 @@ async function verify(
       appId,
       {
         action: parsedParams.action!,
+        session_id: parsedParams.session_id,
         action_description: parsedParams.action_description,
         nonce: parsedParams.nonce,
         protocol_version: parsedParams.protocol_version as "3.0" | "4.0",

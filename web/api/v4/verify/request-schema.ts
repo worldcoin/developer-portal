@@ -240,9 +240,12 @@ export const schema = yup
     // Parameters for action creation (used if action_v4 doesn't exist)
     action_description: yup.string().optional().default(""),
 
-    // Session id, only present in session proofs
-    // We use this field to detect session proofs in custom validation
-    session_id: yup.string().strict().optional(),
+    // Uniqueness proofs may create a session; session-only proofs omit action.
+    session_id: yup
+      .string()
+      .strict()
+      .min(1, "session_id must not be empty")
+      .optional(),
 
     // Sandbox is accepted as a distinct request environment and is
     // normalized to staging only where verifier/storage environment is needed.
@@ -264,7 +267,7 @@ export const schema = yup
   .test("request-validation", "Request validation failed", function (value) {
     const { action, session_id, protocol_version } = value;
 
-    if (session_id) {
+    if (session_id !== undefined) {
       // Session proofs are a 4.0-only construct: the session nullifier and the
       // session id are public inputs of the 4.0 circuit and have no 3.0
       // equivalent.
@@ -272,14 +275,6 @@ export const schema = yup
         return this.createError({
           path: "protocol_version",
           message: "session proofs require protocol_version 4.0",
-        });
-      }
-
-      // Session proofs must NOT have action field
-      if (action) {
-        return this.createError({
-          path: "action",
-          message: "action field must not be present for session proofs",
         });
       }
     } else if (!action) {
@@ -296,12 +291,12 @@ export const schema = yup
     "responses-schema",
     "Invalid response items for protocol version",
     function (value) {
-      const { protocol_version, session_id, responses } = value;
+      const { protocol_version, session_id, action, responses } = value;
       if (!responses || responses.length === 0) return true;
 
       // Determine which schema to use
       let itemSchema;
-      if (session_id && protocol_version === "4.0") {
+      if (session_id && !action && protocol_version === "4.0") {
         itemSchema = sessionResponseItemSchema;
       } else if (protocol_version === "4.0") {
         itemSchema = v4ResponseItemSchema;
@@ -408,6 +403,7 @@ export interface UniquenessProofResponseV4 {
 
 export interface UniquenessProofRequestV4 {
   protocol_version: "4.0";
+  session_id?: string;
   min_protocol_version?: "3.0" | "4.0";
   nonce: string;
   action: string;

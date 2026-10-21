@@ -63,6 +63,7 @@ export async function handleUniquenessProofVerification(
   appId: string,
   parsedParams: {
     action: string;
+    session_id?: string;
     action_description?: string;
     nonce?: string;
     protocol_version: "3.0" | "4.0";
@@ -129,6 +130,7 @@ export async function handleUniquenessProofVerification(
       parsedParams.action!,
       parsedParams.responses as UniquenessProofResponseV4[],
       verifierAddress,
+      parsedParams.session_id,
     );
   }
 
