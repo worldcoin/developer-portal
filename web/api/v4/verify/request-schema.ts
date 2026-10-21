@@ -241,7 +241,11 @@ export const schema = yup
     action_description: yup.string().optional().default(""),
 
     // Uniqueness proofs may create a session; session-only proofs omit action.
-    session_id: yup.string().strict().optional(),
+    session_id: yup
+      .string()
+      .strict()
+      .min(1, "session_id must not be empty")
+      .optional(),
 
     // Sandbox is accepted as a distinct request environment and is
     // normalized to staging only where verifier/storage environment is needed.

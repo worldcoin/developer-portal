@@ -155,6 +155,22 @@ it("keeps session-only proofs on verifySession without uniqueness storage", asyn
   expect(InsertNullifierV4).not.toHaveBeenCalled();
 });
 
+it.each([undefined, "signup"])(
+  "rejects an empty session_id at validation with action %s",
+  async (action) => {
+    const response = await verify({ action, session_id: "" });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      code: "validation_error",
+      attribute: "session_id",
+      detail: "session_id must not be empty",
+    });
+    expect(mockProviderCall).not.toHaveBeenCalled();
+    expect(CreateActionV4).not.toHaveBeenCalled();
+    expect(InsertNullifierV4).not.toHaveBeenCalled();
+  },
+);
+
 it.each(["invalid", `session_${field(0n)}01${"00".repeat(31)}`])(
   "rejects malformed or zero session commitments before RPC: %s",
   async (session_id) => {
