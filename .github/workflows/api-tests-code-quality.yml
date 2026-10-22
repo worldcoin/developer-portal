@@ -23,7 +23,7 @@ jobs:
       - name: Set up Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.23.4
           cache: "pnpm"
           cache-dependency-path: tests/api/pnpm-lock.yaml
 
@@ -50,7 +50,7 @@ jobs:
       - name: Set up Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.23.4
           cache: "pnpm"
           cache-dependency-path: tests/api/pnpm-lock.yaml
 
