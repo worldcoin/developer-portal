@@ -1,5 +1,5 @@
 # https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
-FROM --platform=linux/amd64 public.ecr.aws/docker/library/node:20.15.1-alpine AS base
+FROM --platform=linux/amd64 public.ecr.aws/docker/library/node:22.23.4-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -22,10 +22,7 @@ WORKDIR /app
 # Install working version of corepack
 RUN npm install -g corepack@0.31.0 && corepack --version
 
-# This stage has no project package.json, so corepack would otherwise fall back
-# to the latest pnpm (incompatible with the Node 20 base, fails with
-# ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING). Pin to the same version declared in
-# the project's packageManager field.
+# Pin pnpm to packageManager because this stage has no package.json.
 # TODO: Can be further optimized to remove next peer dependency
 # dd-trace must be >=5.27.0 so its Next.js instrumentation detects
 # middlewareInvoke via the request meta symbol introduced in Next.js 14.2.7
