@@ -69,7 +69,7 @@ export class ParameterStore {
   async getParameter<T = string | string[]>(
     name: string,
     defaultValue?: T,
-    options?: { cacheNotFound?: boolean },
+    options?: { cacheNotFound?: boolean; timeoutMs?: number },
   ): Promise<T | undefined> {
     const parameterName = normalizeParameterName(name, this.prefix);
 
@@ -84,7 +84,12 @@ export class ParameterStore {
     };
 
     try {
-      const result = await this.client.send(new GetParameterCommand(input));
+      const result = await this.client.send(
+        new GetParameterCommand(input),
+        options?.timeoutMs
+          ? { abortSignal: AbortSignal.timeout(options.timeoutMs) }
+          : {},
+      );
       const rawValue = result.Parameter?.Value;
 
       let value: T;
