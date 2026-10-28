@@ -163,7 +163,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       engine: "cloud",
       verified_app_logo:
         "https://cdn.test.com/app_staging_6d1c9fb86751a40d952749022db1c1/logo_img.png",
-      enable_face_check: true,
+      enable_face_check: false,
       credential_request: { subtype: null },
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
@@ -352,7 +352,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       is_staging: true,
       engine: "cloud",
       verified_app_logo: "",
-      enable_face_check: true,
+      enable_face_check: false,
       credential_request: { subtype: null },
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
@@ -369,6 +369,49 @@ describe("/api/v1/precheck/[app_id]", () => {
   test("creates action on the fly when it does not exist", async () => {
     // TODO
   });
+
+  test.each([
+    { allowlist: [appPayload.id], enabled: true },
+    { allowlist: ["app_0123456789abcdef0123456789abcdef"], enabled: false },
+    { allowlist: [], enabled: false },
+    { allowlist: appPayload.id, enabled: false },
+    { allowlist: undefined, enabled: false },
+  ])(
+    "gates face check using the SSM app allowlist: $enabled",
+    async ({ allowlist, enabled }) => {
+      const getParameter = jest
+        .fn()
+        .mockImplementation((name: string) =>
+          Promise.resolve(
+            name === "whitelisted-apps/face-check" ? allowlist : [],
+          ),
+        );
+      global.ParameterStore = {
+        getParameter,
+      } as unknown as NonNullable<typeof global.ParameterStore>;
+      AppPrecheckQuery.mockResolvedValue({ app: [{ ...appPayload }] });
+
+      const response = await POST(
+        new NextRequest(
+          `http://localhost:3000/api/v1/precheck/${appPayload.id}`,
+          {
+            method: "POST",
+            body: JSON.stringify(exampleValidRequestPayload),
+          },
+        ),
+        { params: Promise.resolve({ app_id: appPayload.id }) },
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        enable_face_check: enabled,
+      });
+      expect(getParameter).toHaveBeenCalledWith(
+        "whitelisted-apps/face-check",
+        [],
+      );
+    },
+  );
 
   test("can fetch precheck response with nullifier", async () => {
     // This is used to check if a specific person has already verified for an action
