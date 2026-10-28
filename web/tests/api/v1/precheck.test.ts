@@ -409,6 +409,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       expect(getParameter).toHaveBeenCalledWith(
         "whitelisted-apps/face-check",
         [],
+        { cacheNotFound: true, timeoutMs: 3000 },
       );
     },
   );

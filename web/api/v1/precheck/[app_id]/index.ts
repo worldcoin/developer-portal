@@ -152,7 +152,10 @@ export async function POST(
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
   const faceCheckEnabledApps = await global.ParameterStore?.getParameter<
     string[]
-  >(FACE_CHECK_ENABLED_APPS_PARAMETER, []);
+  >(FACE_CHECK_ENABLED_APPS_PARAMETER, [], {
+    cacheNotFound: true,
+    timeoutMs: 3000,
+  });
   const enableFaceCheck =
     Array.isArray(faceCheckEnabledApps) &&
     faceCheckEnabledApps.includes(app_id);

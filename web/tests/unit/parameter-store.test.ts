@@ -52,5 +52,19 @@ describe("ParameterStore.getParameter", () => {
     ).toEqual([]);
     expect(send).toHaveBeenCalledTimes(2);
   });
+
+  it("returns the default when a timed request is aborted", async () => {
+    const send = jest.spyOn(SSMClient.prototype, "send");
+    send.mockImplementation((_command, options) => {
+      return new Promise((_resolve, reject) => {
+        options.abortSignal!.onabort = () => reject(new Error("aborted"));
+      });
+    });
+    const store = new ParameterStore("developer-portal");
+
+    await expect(
+      store.getParameter("whitelisted-apps/face-check", [], { timeoutMs: 10 }),
+    ).resolves.toEqual([]);
+  });
 });
 // #endregion
