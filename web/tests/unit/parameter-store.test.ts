@@ -55,9 +55,13 @@ describe("ParameterStore.getParameter", () => {
 
   it("returns the default when a timed request is aborted", async () => {
     const send = jest.spyOn(SSMClient.prototype, "send");
+    const onAbort = jest.fn();
     send.mockImplementation((_command, options) => {
       return new Promise((_resolve, reject) => {
-        options.abortSignal!.onabort = () => reject(new Error("aborted"));
+        options.abortSignal!.onabort = () => {
+          onAbort();
+          reject(new Error("aborted"));
+        };
       });
     });
     const store = new ParameterStore("developer-portal");
@@ -65,6 +69,7 @@ describe("ParameterStore.getParameter", () => {
     await expect(
       store.getParameter("whitelisted-apps/face-check", [], { timeoutMs: 10 }),
     ).resolves.toEqual([]);
+    expect(onAbort).toHaveBeenCalledTimes(1);
   });
 });
 // #endregion
