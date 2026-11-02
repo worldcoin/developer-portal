@@ -21,6 +21,23 @@
 
 Always run formatting and type checks before committing. Make sure tests pass as well.
 
+## Security
+
+- In `web/api/`, server actions and `hasura/metadata/`, enforce each role's defined permissions server-side. Check team settings, membership, API-key management and RP manager transfers explicitly; reject operations outside the caller's authorized permissions.
+- For protected reads/mutations, authorize the authenticated principal and validate team/app/action/key/RP relationships. Recheck current membership for user requests, including operations through service-role clients; never trust request-supplied identity or role claims.
+- Minimize GraphQL columns and public API fields. Prevent unauthorized disclosure of internal account identifiers, credentials, private team/payment data, webhook configuration and unpublished app metadata/images.
+- Allowlist writable fields; protect verification status, privileged capabilities and reserved actions. Bind approval to the submitted metadata and localisations; prevent edits from bypassing review.
+- In auth/session/invite callbacks, prevent identity substitution, session fixation and CSRF. Enforce invitation recipient, expiry and revocation rules; consume invitations atomically.
+- Validate metadata schemas, lengths and URL schemes; escape untrusted content in pages, emails and OIDC responses. Malformed configuration must not lock authorized users out.
+- In proof verification, token issuance and app reviews, enforce replay and one-use limits atomically with the protected state change.
+- Test forbidden roles, foreign resource IDs, anonymous access and concurrent/replayed requests across API, GraphQL and server-action paths.
+
+### Nullifier handling
+
+- In cloud verification, OIDC and app reviews, treat nullifiers as field elements. Parse and validate them once at the input boundary; verification, identity lookup, replay checks, responses and persistence must use the same lossless numeric value.
+- For World ID 4.0, use protocol-native nullifier types and serializers where available. Preserve each API version's supported wire format and use one checked, lossless representation internally. Store full-width numeric values, never JavaScript `Number` or 64-bit PostgreSQL `BIGINT`.
+- Reject invalid widths, trailing bytes and out-of-field values without truncating or reducing them. Test equivalent encodings and concurrent reuse against identity, uniqueness and use limits.
+
 ## Pull request follow-up
 
 After pushing a branch with an open pull request, wait 5 minutes, then check the
