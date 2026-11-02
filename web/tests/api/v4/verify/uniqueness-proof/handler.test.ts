@@ -403,3 +403,148 @@ describe("handleUniquenessProofVerification [protocol_version disclosure]", () =
   });
 });
 // #endregion
+
+// #region Automatic action metadata
+describe("handleUniquenessProofVerification [automatic action metadata]", () => {
+  const legacyResponse = {
+    identifier: LegacyVerificationLevel.Orb,
+    signal_hash: semaphoreProofParamsMock.signal_hash,
+    merkle_root: semaphoreProofParamsMock.merkle_root,
+    nullifier: Nullifier.fromHex(semaphoreProofParamsMock.nullifier_hash),
+    proof: semaphoreProofParamsMock.proof,
+  };
+
+  it("creates a v3 action without persisting the caller's description", async () => {
+    const response = await handleUniquenessProofVerification(
+      {} as never,
+      rpId,
+      appId,
+      {
+        action: "test-action",
+        action_description: "A description from a proof submitter",
+        protocol_version: "3.0",
+        responses: [legacyResponse],
+      },
+      request,
+    );
+
+    expect(response.status).toBe(200);
+    expect(CreateActionV4).toHaveBeenCalledWith({
+      rp_id: rpId,
+      action: "test-action",
+      description: "",
+      environment: "production",
+    });
+    expect(InsertNullifierV4).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps sandbox action creation and nullifier storage without persisting metadata", async () => {
+    process.env.VERIFIER_CONTRACT_ADDRESS_STAGING = "0xstaging-verifier";
+    verifyProofOnChain.mockResolvedValue({ success: true });
+
+    const response = await handleUniquenessProofVerification(
+      {} as never,
+      rpId,
+      appId,
+      {
+        action: "test-action",
+        action_description: "A description from a proof submitter",
+        nonce: "1",
+        protocol_version: "4.0",
+        environment: "sandbox",
+        responses: [
+          {
+            identifier: "proof_of_human",
+            signal_hash: "0x0",
+            issuer_schema_id: "128",
+            nullifier: Nullifier.fromHex("0x02"),
+            expires_at_min: "1772584197",
+            proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+          },
+        ],
+      },
+      request,
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      success: true,
+      environment: "sandbox",
+    });
+    expect(CreateActionV4).toHaveBeenCalledWith({
+      rp_id: rpId,
+      action: "test-action",
+      description: "",
+      environment: "staging",
+    });
+    expect(InsertNullifierV4).toHaveBeenCalledWith({
+      action_v4_id: "action_v4_test",
+      nullifier: "2",
+    });
+  });
+
+  it("preserves an existing action's description and identity", async () => {
+    const existingAction = {
+      id: "action_v4_existing",
+      action: "test-action",
+      description: "Description configured by the app owner",
+    };
+    FetchActionV4.mockResolvedValue({ action_v4: [existingAction] });
+
+    const response = await handleUniquenessProofVerification(
+      {} as never,
+      rpId,
+      appId,
+      {
+        action: "test-action",
+        action_description: "A replacement from a proof submitter",
+        protocol_version: "3.0",
+        responses: [legacyResponse],
+      },
+      request,
+    );
+
+    expect(response.status).toBe(200);
+    expect(CreateActionV4).not.toHaveBeenCalled();
+    expect(existingAction.description).toBe(
+      "Description configured by the app owner",
+    );
+    expect(InsertNullifierV4).toHaveBeenCalledWith({
+      action_v4_id: existingAction.id,
+      nullifier: legacyResponse.nullifier.toBigInt().toString(),
+    });
+  });
+
+  it("does not create action metadata or store a nullifier when proof verification fails", async () => {
+    process.env.VERIFIER_CONTRACT_ADDRESS = "0xverifier";
+    verifyProofOnChain.mockResolvedValue({ success: false });
+
+    const response = await handleUniquenessProofVerification(
+      {} as never,
+      rpId,
+      appId,
+      {
+        action: "test-action",
+        action_description: "Unverified metadata",
+        nonce: "1",
+        protocol_version: "4.0",
+        responses: [
+          {
+            identifier: "proof_of_human",
+            signal_hash: "0x0",
+            issuer_schema_id: "1",
+            nullifier: Nullifier.fromHex("0x02"),
+            expires_at_min: "1772584197",
+            proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+          },
+        ],
+      },
+      request,
+    );
+
+    expect(response.status).toBe(400);
+    expect(CreateActionV4).not.toHaveBeenCalled();
+    expect(InsertNullifierV4).not.toHaveBeenCalled();
+  });
+});
+// #endregion

@@ -237,7 +237,8 @@ export const schema = yup
 
     // Action identifier required for uniqueness proofs
     action: yup.string().strict().optional(),
-    // Parameters for action creation (used if action_v4 doesn't exist)
+    // Accepted for compatibility only. Public proof verification must not persist
+    // this caller-supplied value as the app's action metadata.
     action_description: yup.string().optional().default(""),
 
     // Uniqueness proofs may create a session; session-only proofs omit action.

@@ -1,4 +1,5 @@
 import { POST } from "@/api/v4/verify";
+import { POST as proofContext } from "@/api/v4/proof-context/[id]";
 import VERIFIER_ABI from "@/api/helpers/abi/verifier.json";
 import { Interface } from "ethers";
 import { hashSignal } from "@worldcoin/idkit/hashing";
@@ -11,6 +12,7 @@ const CreateActionV4 = jest.fn();
 const CheckNullifierV4 = jest.fn();
 const InsertNullifierV4 = jest.fn();
 const mockProviderCall = jest.fn();
+const FetchAppMetadata = jest.fn();
 
 jest.mock("server-only", () => ({}));
 
@@ -26,6 +28,18 @@ jest.mock("@/api/helpers/graphql/fetch-rp-registration.generated", () => ({
 jest.mock("@/api/v4/verify/graphql/fetch-action-v4.generated", () => ({
   getSdk: () => ({ FetchActionV4 }),
 }));
+jest.mock(
+  "@/api/v4/proof-context/[id]/graphql/fetch-action-v4.generated",
+  () => ({
+    getSdk: () => ({ FetchActionV4 }),
+  }),
+);
+jest.mock(
+  "@/api/v4/proof-context/[id]/graphql/fetch-app-metadata.generated",
+  () => ({
+    getSdk: () => ({ FetchAppMetadata }),
+  }),
+);
 jest.mock("@/api/v4/verify/graphql/create-action-v4.generated", () => ({
   getSdk: () => ({ CreateActionV4 }),
 }));
@@ -108,6 +122,14 @@ beforeEach(() => {
     insert_nullifier_v4_one: { created_at: createdAt },
   });
   mockProviderCall.mockReset().mockResolvedValue("0x");
+  FetchAppMetadata.mockReset().mockResolvedValue({
+    app_by_pk: {
+      app_metadata: [],
+      verified_app_metadata: [
+        { name: "Example app", integration_url: "https://example.test" },
+      ],
+    },
+  });
 });
 
 // #region Uniqueness with session creation
@@ -187,5 +209,37 @@ it("does not retry without the binding or write uniqueness state if the contract
   expect(contractCall().name).toBe("verifyProofAndSignals");
   expect(CreateActionV4).not.toHaveBeenCalled();
   expect(InsertNullifierV4).not.toHaveBeenCalled();
+});
+// #endregion
+
+// #region Automatic action metadata round trip
+it("does not publish proof-submitter descriptions through proof-context", async () => {
+  CreateActionV4.mockImplementation(async (input) => {
+    const action = { id: "action_signup", ...input };
+    FetchActionV4.mockResolvedValue({ action_v4: [action] });
+    return { insert_action_v4_one: action };
+  });
+
+  const response = await verify({
+    session_id: undefined,
+    action_description: "A description supplied by the proof submitter",
+  });
+  expect(response.status).toBe(200);
+  expect(InsertNullifierV4).toHaveBeenCalledTimes(1);
+
+  const contextResponse = await proofContext(
+    new NextRequest(`http://localhost/api/v4/proof-context/${rpId}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "signup", environment: "production" }),
+    }),
+    { params: Promise.resolve({ id: rpId }) },
+  );
+  expect(contextResponse.status).toBe(200);
+  await expect(contextResponse.json()).resolves.toMatchObject({
+    name: "Example app",
+    rp_id: rpId,
+    action: { action: "signup", description: "", environment: "production" },
+  });
 });
 // #endregion
