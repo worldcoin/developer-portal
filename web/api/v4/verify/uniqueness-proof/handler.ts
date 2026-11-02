@@ -197,7 +197,9 @@ export async function handleUniquenessProofVerification(
     const createResult = await getCreateActionV4Sdk(client).CreateActionV4({
       rp_id: rpId,
       action: parsedParams.action!,
-      description: parsedParams.action_description || "",
+      // A valid user proof does not authorize configuring RP-owned metadata.
+      // Keep dynamic actions, but let authenticated app management set the description.
+      description: "",
       environment: verificationEnvironment,
     });
 
