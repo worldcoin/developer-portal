@@ -1,0 +1,7 @@
+function:
+  name: rollup_world_id_analytics
+  schema: public
+configuration:
+  exposed_as: mutation
+permissions:
+  - role: service
