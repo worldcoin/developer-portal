@@ -15,7 +15,6 @@ import * as yup from "yup";
 import { getSdk as getAppPrecheckByActionSdk } from "./graphql/app-precheck-by-action.generated";
 import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
 
-const FACE_CHECK_ENABLED_APPS_PARAMETER = "whitelisted-apps/face-check";
 // Whitelist some partner demo apps, that are not verified but we want to show their logos
 const APPS_TO_SHOW_UNVERIFIED_LOGO = [
   "app_staging_c8137371ceac59890774ccc932e11dcf",
@@ -150,15 +149,6 @@ export async function POST(
 
   const unverified_app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
-  const faceCheckEnabledApps = await global.ParameterStore?.getParameter<
-    string[]
-  >(FACE_CHECK_ENABLED_APPS_PARAMETER, [], {
-    cacheNotFound: true,
-    timeoutMs: 3000,
-  });
-  const enableFaceCheck =
-    Array.isArray(faceCheckEnabledApps) &&
-    faceCheckEnabledApps.includes(app_id);
   // If an image is present it should store it's relative path and extension ie logo.png
   let logo_img_url = verified_app_metadata?.logo_img_url
     ? getCDNImageUrl(rawAppValues.id, verified_app_metadata?.logo_img_url)
@@ -194,7 +184,7 @@ export async function POST(
       verified_app_metadata?.integration_url ??
       unverified_app_metadata?.integration_url ??
       "",
-    enable_face_check: enableFaceCheck,
+    enable_face_check: true,
     credential_request: {
       subtype: grantClaimingApps.includes(app_id) ? "grant_claiming" : null,
     },
