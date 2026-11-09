@@ -23,7 +23,7 @@ const ANDROID_URL: string | null =
 
 const ANDROID_FIRST_SIGN_IN_NOTE =
   "If this is your first Play Store sign-in, accept all Google Play Terms of Service before continuing. Make sure the browser opening the test link and the Play Store use that same account; mismatched sessions can block the download.";
-const SANDBOX_SUPPORT_EMAIL = "sandbox.access@toolsforhumanity.org";
+const SANDBOX_SUPPORT_EMAIL = "sandbox.access@toolsforhumanity.com";
 const TESTFLIGHT_APP_STORE_URL =
   "https://apps.apple.com/us/app/testflight/id899247664";
 
