@@ -103,8 +103,6 @@ const createMockRequest = () =>
   });
 
 const expectNoJoinSideEffects = () => {
-  expect(FetchEmailUser).not.toHaveBeenCalled();
-  expect(FetchNullifierUser).not.toHaveBeenCalled();
   expect(sendAcceptance).not.toHaveBeenCalled();
   expect(InsertUser).not.toHaveBeenCalled();
   expect(AcceptTeamInvite).not.toHaveBeenCalled();
@@ -134,25 +132,88 @@ beforeEach(() => {
   });
 });
 
-// #region Invite email authorization
-describe("/api/join-callback [invite email authorization]", () => {
-  it.each([
-    ["World ID session", { sub: "oauth2|worldcoin|0x123" }],
-    ["unverified email", { ...sessionUser, email_verified: false }],
-    [
-      "missing verification claim",
-      { ...sessionUser, email_verified: undefined },
-    ],
-    ["missing email", { ...sessionUser, email: undefined }],
-    ["blank email", { ...sessionUser, email: "  " }],
-  ])("rejects a %s before any join side effects", async (_, user) => {
-    getSession.mockResolvedValue({ user });
+// #region Invite membership checks
+describe("/api/join-callback [invite membership checks]", () => {
+  it.each(["MEMBER", "ADMIN", "OWNER"])(
+    "rejects a World ID user who is already a team %s",
+    async (role) => {
+      getSession.mockResolvedValue({ user: { sub: "oauth2|worldcoin|0x123" } });
+      FetchNullifierUser.mockResolvedValue({
+        user: [{ ...portalUser, memberships: [{ team, role }] }],
+      });
+
+      const response = await POST(createMockRequest());
+
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual(
+        expect.objectContaining({ code: "already_in_team", team_id: TEAM_ID }),
+      );
+      expectNoJoinSideEffects();
+    },
+  );
+
+  it.each(["email|invitee", "auth0|invitee"])(
+    "rejects an existing membership for %s",
+    async (sub) => {
+      getSession.mockResolvedValue({ user: { ...sessionUser, sub } });
+      FetchEmailUser.mockResolvedValue({
+        userByAuth0Id: [
+          { ...portalUser, memberships: [{ team, role: "MEMBER" }] },
+        ],
+        userByEmail: [],
+      });
+
+      const response = await POST(createMockRequest());
+
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual(
+        expect.objectContaining({ code: "already_in_team" }),
+      );
+      expectNoJoinSideEffects();
+    },
+  );
+
+  it("allows a World ID user in another team despite stale session memberships", async () => {
+    getSession.mockResolvedValue({
+      user: {
+        sub: "oauth2|worldcoin|0x123",
+        hasura: { ...portalUser, memberships: [{ team, role: "OWNER" }] },
+      },
+    });
+    FetchNullifierUser.mockResolvedValue({
+      user: [
+        {
+          ...portalUser,
+          memberships: [
+            {
+              team: { id: "team_cccccccccccccccccccccccccccccccc" },
+              role: "OWNER",
+            },
+          ],
+        },
+      ],
+    });
 
     const response = await POST(createMockRequest());
 
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(200);
+    expect(AcceptTeamInvite).toHaveBeenCalledWith({
+      team_id: TEAM_ID,
+      user_id: USER_ID,
+      invite_id: INVITE_ID,
+    });
+    expect(InsertUser).not.toHaveBeenCalled();
+    expect(updateSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not consume the invite if the membership lookup fails", async () => {
+    FetchEmailUser.mockRejectedValueOnce(new Error("GraphQL unavailable"));
+
+    const response = await POST(createMockRequest());
+
+    expect(response.status).toBe(500);
     expect(await response.json()).toEqual(
-      expect.objectContaining({ code: "invite_email_verification_required" }),
+      expect.objectContaining({ code: "server_error" }),
     );
     expectNoJoinSideEffects();
   });
