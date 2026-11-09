@@ -49,6 +49,17 @@ const isValidDeepFaceDeepLink = (value: string): boolean => {
   }
 };
 
+const isValidHumanBadgeRenewalDeepLink = (value: string): boolean => {
+  if (!/^worldid(?:stg)?:\/\/renew-human-badge\?/.test(value)) return false;
+
+  try {
+    const environments = new URL(value).searchParams.getAll("environment");
+    return environments.length === 1 && environments[0] !== "";
+  } catch {
+    return false;
+  }
+};
+
 const MINI_APP_DEEPLINK_PREFIXES = [
   "worldapp://mini-app?",
   "worldid://mini-app?",
@@ -65,7 +76,7 @@ const isValidMiniAppDeepLink = (
 };
 
 const MINI_APP_PATH_ERROR_MESSAGE =
-  "mini_app_path must be a valid WorldApp or World ID deeplink (worldapp://mini-app?app_id= or worldid://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), or a Deep Face deeplink (worldapp://verify?t=deepface, worldid://verify?t=deepface, or worldidstg://verify?t=deepface)";
+  "mini_app_path must be a valid WorldApp or World ID deeplink (worldapp://mini-app?app_id= or worldid://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), a Deep Face deeplink (worldapp://verify?t=deepface, worldid://verify?t=deepface, or worldidstg://verify?t=deepface), or a human badge renewal deeplink (worldid://renew-human-badge or worldidstg://renew-human-badge) with exactly one non-empty environment query parameter";
 
 export const sendNotificationBodySchemaV1 = yup
   .object({
@@ -91,7 +102,8 @@ export const sendNotificationBodySchemaV1 = yup
           return (
             isValidMiniAppDeepLink(value, app_id) ||
             isValidDeepFaceUniversalLink(value ?? "") ||
-            isValidDeepFaceDeepLink(value ?? "")
+            isValidDeepFaceDeepLink(value ?? "") ||
+            isValidHumanBadgeRenewalDeepLink(value ?? "")
           );
         },
       ),
@@ -138,7 +150,8 @@ export const sendNotificationBodySchemaV2 = yup
           return (
             isValidMiniAppDeepLink(value, app_id) ||
             isValidDeepFaceUniversalLink(value ?? "") ||
-            isValidDeepFaceDeepLink(value ?? "")
+            isValidDeepFaceDeepLink(value ?? "") ||
+            isValidHumanBadgeRenewalDeepLink(value ?? "")
           );
         },
       ),
