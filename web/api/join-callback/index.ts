@@ -173,10 +173,18 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
+    if (auth0User.email_verified !== true || !auth0User.email?.trim()) {
+      return errorResponse({
+        statusCode: 403,
+        code: "invite_email_verification_required",
+        detail:
+          "Sign out and sign in with the email address this invitation was sent to, then try again.",
+        req,
+        team_id: invite.team.id,
+      });
+    }
+
     if (
-      (isEmailUser(auth0User) || isPasswordUser(auth0User)) &&
-      auth0User.email_verified &&
-      auth0User.email &&
       invite.email.toLowerCase().trim() !== auth0User.email.toLowerCase().trim()
     ) {
       return errorResponse({
@@ -262,12 +270,6 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    let nullifier_hash: string | undefined = undefined;
-
-    if (!isEmailUser(auth0User) && !isPasswordUser(auth0User)) {
-      nullifier_hash = auth0User.sub.split("|")[2];
-    }
-
     let insertedUser: InsertUserMutation["insert_user_one"] | null = null;
 
     try {
@@ -277,12 +279,7 @@ export const POST = async (req: NextRequest) => {
           auth0Id: auth0User.sub,
           name: auth0User.name ?? "",
 
-          ...(nullifier_hash ? { world_id_nullifier: nullifier_hash } : {}),
-
-          ...(auth0User.email_verified && auth0User.email
-            ? { email: auth0User.email }
-            : {}),
-
+          email: auth0User.email,
           team_id: inviteData.team.id,
         },
       });
