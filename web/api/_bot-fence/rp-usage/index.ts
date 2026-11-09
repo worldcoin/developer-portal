@@ -28,13 +28,10 @@ const schema = yup
  *
  * Counts new nullifiers for Bot Fence actions (`wid/waf/<window>/<index>`) of one RP in
  * [from, to), as unix seconds. Returns a count only, never nullifier values.
- * Authenticated with BOT_FENCE_USAGE_TOKEN, not INTERNAL_ENDPOINTS_SECRET.
  */
 export async function POST(req: NextRequest) {
-  const { isAuthenticated, errorResponse: authError } = protectInternalEndpoint(
-    req,
-    process.env.BOT_FENCE_USAGE_TOKEN,
-  );
+  const { isAuthenticated, errorResponse: authError } =
+    protectInternalEndpoint(req);
   if (!isAuthenticated) {
     return authError;
   }

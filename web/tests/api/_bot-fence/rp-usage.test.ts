@@ -17,7 +17,7 @@ jest.mock("@/lib/logger", () => ({
 // #endregion
 
 // #region Test Data
-const TOKEN = "bot-fence-usage-token";
+const TOKEN = "internal-secret";
 const RP_ID = "rp_0123456789abcdef";
 // 2026-11-09T10:00:00Z, one closed hour
 const FROM = 1794218400;
@@ -43,8 +43,7 @@ const usage = (count: number, minCreatedAt: string | null) => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
-  process.env.BOT_FENCE_USAGE_TOKEN = TOKEN;
-  process.env.INTERNAL_ENDPOINTS_SECRET = "internal-secret";
+  process.env.INTERNAL_ENDPOINTS_SECRET = TOKEN;
   GetRpUsage.mockResolvedValue(usage(0, null));
 });
 
@@ -59,23 +58,9 @@ describe("/api/_bot-fence/rp-usage [auth]", () => {
     expect(GetRpUsage).not.toHaveBeenCalled();
   });
 
-  it("rejects the general internal secret", async () => {
+  it("rejects requests with the wrong token", async () => {
     const res = (await POST(
-      createRequest(
-        { rp_id: RP_ID, from: FROM, to: TO },
-        "Bearer internal-secret",
-      ),
-    ))!;
-
-    expect(res.status).toBe(403);
-    expect(GetRpUsage).not.toHaveBeenCalled();
-  });
-
-  it("rejects every request when the token is not configured", async () => {
-    delete process.env.BOT_FENCE_USAGE_TOKEN;
-
-    const res = (await POST(
-      createRequest({ rp_id: RP_ID, from: FROM, to: TO }, "Bearer "),
+      createRequest({ rp_id: RP_ID, from: FROM, to: TO }, "Bearer nope"),
     ))!;
 
     expect(res.status).toBe(403);
