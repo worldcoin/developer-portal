@@ -38,6 +38,10 @@ jest.mock("@/lib/auth0", () => ({
   toSessionRequest: (req: unknown) => req,
 }));
 
+jest.mock("@/lib/logger", () => ({
+  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+}));
+
 const getSession = auth0.getSession as jest.Mock;
 const updateSession = auth0.updateSession as jest.Mock;
 
@@ -437,6 +441,68 @@ describe("test /join-callback", () => {
     )) as { rows: { role: string }[] };
     expect(membershipRows).toEqual([{ role: "MEMBER" }]);
   });
+
+  it.each([
+    ["OWNER", "0x123", "usr_a78f59e547fa5bd3d76bc1a1817c6d89"],
+    ["ADMIN", "0x1234", "usr_a78f59e547fa5bd3d76bc1a1817c6d90"],
+    ["MEMBER", "0x12345", "usr_a78f59e547fa5bd3d76bc1a1817c6d91"],
+  ])(
+    "preserves the invite and existing role when a World ID %s tries to join again",
+    async (role, nullifier, userId) => {
+      const teamId = "team_d7cde14f17eda7e0ededba7ded6b4467";
+      const inviteEmail = "new-teammate@example.com";
+      const { rows: invites } = await integrationDBExecuteQuery(
+        `INSERT INTO public.invite (team_id, expires_at, email)
+         VALUES ($1, '2030-01-01 00:00:00+00', $2) RETURNING id`,
+        [teamId, inviteEmail],
+      );
+      getSession.mockResolvedValue({
+        user: {
+          ...validNullifierSessionUser,
+          sub: `oauth2|worldcoin|${nullifier}`,
+        },
+      });
+
+      const response = await POST(
+        createMockRequest({ invite_id: invites[0].id }),
+      );
+
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual(
+        expect.objectContaining({ code: "already_in_team" }),
+      );
+      expect(updateSession).not.toHaveBeenCalled();
+      expect(IroncladActivityApi).not.toHaveBeenCalled();
+      const { rows: memberships } = await integrationDBExecuteQuery(
+        `SELECT role FROM public.membership WHERE user_id = $1 AND team_id = $2`,
+        [userId, teamId],
+      );
+      expect(memberships).toEqual([{ role }]);
+      const { rowCount: remainingInvites } = await integrationDBExecuteQuery(
+        `SELECT id FROM public.invite WHERE id = $1`,
+        [invites[0].id],
+      );
+      expect(remainingInvites).toBe(1);
+
+      getSession.mockResolvedValue({
+        user: {
+          ...validSessionUser,
+          email: inviteEmail,
+          sub: "email|new-teammate",
+        },
+      });
+      const recipientResponse = await POST(
+        createMockRequest({ invite_id: invites[0].id }),
+      );
+      expect(recipientResponse.status).toBe(200);
+      const { rowCount: invitesAfterAcceptance } =
+        await integrationDBExecuteQuery(
+          `SELECT id FROM public.invite WHERE id = $1`,
+          [invites[0].id],
+        );
+      expect(invitesAfterAcceptance).toBe(0);
+    },
+  );
 
   it("adds membership for an existing World ID user", async () => {
     const inviteEmail = "invited-world-user@example.com";

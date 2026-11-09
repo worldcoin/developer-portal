@@ -227,6 +227,21 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  if (
+    existingUser?.memberships.some(
+      (membership) => membership.team.id === inviteData.team.id,
+    )
+  ) {
+    return errorResponse({
+      statusCode: 409,
+      code: "already_in_team",
+      detail:
+        "You are already a member of this team. Sign in with a different account to accept this invitation.",
+      req,
+      team_id: inviteData.team.id,
+    });
+  }
+
   let userId: string;
 
   if (existingUser) {
