@@ -531,3 +531,52 @@ describe("V1 schema mini_app_path validation", () => {
     ).toBe(false);
   });
 });
+
+describe.each([
+  {
+    version: "V1",
+    schema: sendNotificationBodySchemaV1,
+    body: {
+      ...notificationBody,
+      title: "This is a title",
+      message: "This is a message",
+    },
+  },
+  {
+    version: "V2",
+    schema: sendNotificationBodySchemaV2,
+    body: {
+      ...notificationBody,
+      localisations: allSupportedLocalizations,
+    },
+  },
+])("$version human badge renewal links", ({ schema, body }) => {
+  test.each([
+    "worldid://renew-human-badge?environment=production",
+    "worldidstg://renew-human-badge?environment=production",
+    "worldid://renew-human-badge?environment=custom-environment",
+    "worldid://renew-human-badge?source=notification&environment=staging&extra=value",
+    "worldid://renew-human-badge?environment=production#details",
+  ])("accepts %s", (mini_app_path) => {
+    expect(schema.isValidSync({ ...body, mini_app_path })).toBe(true);
+  });
+
+  test.each([
+    "worldid://renew-human-badge",
+    "worldid://renew-human-badge?environment=",
+    "worldid://renew-human-badge?environment=#production",
+    "worldid://renew-human-badge?source=notification#environment=production",
+    "worldid://renew-human-badge?environment=production&environment=production",
+    "worldid://renew-human-badge?environment=production&environment=",
+    "worldapp://renew-human-badge?environment=production",
+    "worldid://renew-human-badges?environment=production",
+    "worldid://user@renew-human-badge?environment=production",
+    "worldid://@renew-human-badge?environment=production",
+    "worldid://renew-human-badge:123?environment=production",
+    "worldid://renew-human-badge:?environment=production",
+    "worldid://renew-human-badge/?environment=production",
+    "worldid://renew-human-badge/extra?environment=production",
+  ])("rejects %s", (mini_app_path) => {
+    expect(schema.isValidSync({ ...body, mini_app_path })).toBe(false);
+  });
+});
