@@ -27,6 +27,7 @@ select_permissions:
         - action_v4_id
         - nullifier
       filter: {}
+      allow_aggregations: true
   - role: user
     permission:
       columns:

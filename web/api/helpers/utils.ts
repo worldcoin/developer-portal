@@ -19,16 +19,17 @@ if (!GENERAL_SECRET_KEY) {
 /**
  * Ensures endpoint is properly authenticated using internal token. For interactions between Hasura -> Next.js API
  * @param req
+ * @param secret Expected bearer token. Pass a dedicated secret to scope access to one endpoint.
  * @returns Object containing authentication status and response if authentication failed
  */
 export const protectInternalEndpoint = (
   req: NextRequest,
+  secret = process.env.INTERNAL_ENDPOINTS_SECRET,
 ): { isAuthenticated: boolean; errorResponse: NextResponse | null } => {
   const requestHeaders = new Headers(req.headers);
   if (
-    !process.env.INTERNAL_ENDPOINTS_SECRET ||
-    requestHeaders.get("authorization")?.replace("Bearer ", "") !==
-      process.env.INTERNAL_ENDPOINTS_SECRET
+    !secret ||
+    requestHeaders.get("authorization")?.replace("Bearer ", "") !== secret
   ) {
     const response = errorForbidden(req);
     return { isAuthenticated: false, errorResponse: response };
