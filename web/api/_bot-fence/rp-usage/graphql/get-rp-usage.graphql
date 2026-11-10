@@ -1,0 +1,24 @@
+query GetRpUsage(
+  $rp_id: String!
+  $environment: action_environment!
+  $from: timestamptz!
+  $to: timestamptz!
+) {
+  nullifier_v4_aggregate(
+    where: {
+      created_at: { _gte: $from, _lt: $to }
+      action_v4: {
+        rp_id: { _eq: $rp_id }
+        environment: { _eq: $environment }
+        action: { _regex: "^wid/waf/[0-9]+/[0-9]+$" }
+      }
+    }
+  ) {
+    aggregate {
+      count
+      min {
+        created_at
+      }
+    }
+  }
+}
