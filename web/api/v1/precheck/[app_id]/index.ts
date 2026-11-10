@@ -49,7 +49,7 @@ const corsMethods = ["POST", "OPTIONS"];
 /**
  * Fetches public metadata for an app & action.
  * Can be used to check whether a user can verify for a particular action.
- * Called by the World App before rendering proof request modals.
+ * Called by the World ID App before rendering proof request modals.
  * Called by the kiosk.
  * This endpoint is publicly available.
  */

@@ -143,7 +143,7 @@ export const DevelopContent = ({
           as="p"
           className="font-world text-[15px] leading-[130%] font-medium text-content-secondary"
         >
-          Set the URL World App opens and preview your Mini App.
+          Set the URL World ID App opens and preview your Mini App.
         </Typography>
       </div>
 
@@ -177,7 +177,7 @@ export const DevelopContent = ({
                     <span className="block max-w-[280px] whitespace-normal">
                       While developing, use ngrok or a similar tunneling service
                       to expose your local app over HTTPS and preview it in
-                      World App. Replace it with your production URL before
+                      World ID App. Replace it with your production URL before
                       submitting for review.
                     </span>
                   </TooltipContent>

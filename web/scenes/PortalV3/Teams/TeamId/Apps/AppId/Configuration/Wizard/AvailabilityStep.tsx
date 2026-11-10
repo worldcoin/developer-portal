@@ -78,7 +78,7 @@ export const AvailabilityStep = (props: { isMiniApp: boolean }) => {
             props.isMiniApp ? (
               <>
                 Choose the countries where your Mini App is available in World
-                App and can be featured on the <EcosystemLink />.
+                ID App and can be featured on the <EcosystemLink />.
               </>
             ) : (
               <>
@@ -127,7 +127,8 @@ export const AvailabilityStep = (props: { isMiniApp: boolean }) => {
             props.isMiniApp ? (
               <>
                 Choose the languages for your Mini App listing. People will see
-                the localized version in World App and on the <EcosystemLink />.
+                the localized version in World ID App and on the{" "}
+                <EcosystemLink />.
               </>
             ) : (
               <>

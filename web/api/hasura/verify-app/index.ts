@@ -117,7 +117,7 @@ export const POST = async (req: NextRequest) => {
     (metadata) => metadata.verification_status === "verified",
   );
 
-  // Check if app is allowed to be app store and world app approved
+  // Check if app is allowed to be app store and World ID App approved
   if (
     (is_reviewer_app_store_approved || is_reviewer_world_app_approved) &&
     !awaitingReviewAppMetadata.showcase_img_urls
@@ -125,7 +125,7 @@ export const POST = async (req: NextRequest) => {
     return errorHasuraQuery({
       req,
       detail:
-        "Showcase images are required for app store and world app approval",
+        "Showcase images are required for app store and World ID App approval",
       code: "invalid_approval_permissions",
       app_id,
     });

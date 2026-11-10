@@ -451,7 +451,7 @@ describe("/api/v1/precheck/[app_id]", () => {
   });
 
   test("can fetch precheck response with external_nullifier=null", async () => {
-    // For broader compatibility we accept empty strings as well as `null`. World App on Android in particular requires this.
+    // For broader compatibility we accept empty strings as well as `null`. World ID App on Android in particular requires this.
     const request = new NextRequest(
       "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
       {

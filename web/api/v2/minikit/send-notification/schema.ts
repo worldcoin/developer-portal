@@ -76,7 +76,7 @@ const isValidMiniAppDeepLink = (
 };
 
 const MINI_APP_PATH_ERROR_MESSAGE =
-  "mini_app_path must be a valid WorldApp or World ID deeplink (worldapp://mini-app?app_id= or worldid://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), a Deep Face deeplink (worldapp://verify?t=deepface, worldid://verify?t=deepface, or worldidstg://verify?t=deepface), or a human badge renewal deeplink (worldid://renew-human-badge or worldidstg://renew-human-badge) with exactly one non-empty environment query parameter";
+  "mini_app_path must be a valid World ID App or World ID deeplink (worldapp://mini-app?app_id= or worldid://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), a Deep Face deeplink (worldapp://verify?t=deepface, worldid://verify?t=deepface, or worldidstg://verify?t=deepface), or a human badge renewal deeplink (worldid://renew-human-badge or worldidstg://renew-human-badge) with exactly one non-empty environment query parameter";
 
 export const sendNotificationBodySchemaV1 = yup
   .object({

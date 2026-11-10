@@ -286,7 +286,7 @@ export const SandboxButton = (props: {
                   variant={TYPOGRAPHY.R3}
                   className="text-content-secondary"
                 >
-                  Test World ID in World App without using production data.
+                  Test World ID in World ID App without using production data.
                 </Typography>
               </div>
             </header>
