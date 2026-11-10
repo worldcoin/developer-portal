@@ -99,6 +99,10 @@ describe("/api/_bot-fence/rp-usage [validation]", () => {
     ["an empty range", { rp_id: RP_ID, from: FROM, to: FROM }],
     ["a reversed range", { rp_id: RP_ID, from: TO, to: FROM }],
     [
+      "timestamps past the JavaScript Date range",
+      { rp_id: RP_ID, from: 8640000000001, to: 8640000003601 },
+    ],
+    [
       "a range over 31 days",
       { rp_id: RP_ID, from: FROM, to: FROM + 31 * DAY + 1 },
     ],

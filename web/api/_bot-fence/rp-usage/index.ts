@@ -9,12 +9,26 @@ import * as yup from "yup";
 import { getSdk as getRpUsageSdk } from "./graphql/get-rp-usage.generated";
 
 const MAX_RANGE_SECONDS = 31 * 24 * 60 * 60;
+// Latest instant a JavaScript Date can represent (8.64e15 ms), in seconds.
+const MAX_TIMESTAMP_SECONDS = 8_640_000_000_000;
 
 const schema = yup
   .object({
     rp_id: yup.string().strict().required(),
-    from: yup.number().strict().integer().min(0).required(),
-    to: yup.number().strict().integer().min(0).required(),
+    from: yup
+      .number()
+      .strict()
+      .integer()
+      .min(0)
+      .max(MAX_TIMESTAMP_SECONDS)
+      .required(),
+    to: yup
+      .number()
+      .strict()
+      .integer()
+      .min(0)
+      .max(MAX_TIMESTAMP_SECONDS)
+      .required(),
     // Not strict: strict mode skips the default.
     environment: yup
       .string()
