@@ -255,7 +255,7 @@ export const schema = yup
       .oneOf(["production", "staging", "sandbox"])
       .optional(),
 
-    // Optional World App integrity attestation bundle. When present, it is
+    // Optional World ID App integrity attestation bundle. When present, it is
     // verified before proof verification.
     integrity_bundle: integrityBundleSchema.optional(),
 

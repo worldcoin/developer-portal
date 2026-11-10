@@ -150,7 +150,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         {screen === KioskScreen.ConnectionError && (
           <KioskError
             title="Connection Error"
-            description="We cannot establish a connection to the person's World App. Please refresh and try again."
+            description="We cannot establish a connection to the person's World ID App. Please refresh and try again."
             buttonText="Retry"
             reset={resetKiosk}
           />
@@ -168,7 +168,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         {screen === KioskScreen.VerificationRejected && (
           <KioskError
             title="Verification Rejected"
-            description="Person rejected the verification in the World App."
+            description="Person rejected the verification in the World ID App."
             buttonText="Try again"
             reset={resetKiosk}
           />

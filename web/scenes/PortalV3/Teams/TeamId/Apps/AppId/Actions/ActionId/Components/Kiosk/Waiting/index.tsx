@@ -103,7 +103,7 @@ export const Waiting = memo(function Waiting(props: {
             variant={TYPOGRAPHY.M3}
             className="text-center text-content-strong"
           >
-            Scan using the World App
+            Scan using the World ID App
           </Typography>
         )}
       </div>

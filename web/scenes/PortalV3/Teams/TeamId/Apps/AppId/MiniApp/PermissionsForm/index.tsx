@@ -406,7 +406,7 @@ export const SetupForm = ({ teamId, appMetadata }: PermissionsFormProps) => {
           <section className="grid gap-y-3 pb-4">
             <SectionHeader
               title="Additional Domains"
-              tooltip="Additional Domains are the external websites your Mini App is allowed to open or make requests to from inside World App. Anything you don't list here is blocked, so add every domain your app needs to reach. You don't need to include subdomains, as they're covered automatically."
+              tooltip="Additional Domains are the external websites your Mini App is allowed to open or make requests to from inside World ID App. Anything you don't list here is blocked, so add every domain your app needs to reach. You don't need to include subdomains, as they're covered automatically."
             />
 
             <EntryList

@@ -157,7 +157,7 @@ type FooterLink = { href: string; label: string; nested?: boolean };
 const FOOTER_LINK_COLUMNS: FooterLink[][] = [
   [
     { href: "https://world.org/world-id", label: "World ID" },
-    { href: "https://world.org/world-app", label: "World App" },
+    { href: "https://world.org/world-app", label: "World ID App" },
     { href: "https://world.org/world-chain", label: "World Chain" },
     { href: "https://world.org/ecosystem", label: "Mini Apps" },
   ],
@@ -458,7 +458,7 @@ export const HomePage = async () => {
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                World App
+                World ID App
               </a>{" "}
               to people, companies or organizations who are residents of, or are
               located or incorporated in the State of New York or other

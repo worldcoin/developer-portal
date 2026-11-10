@@ -20,7 +20,7 @@ const APP_MODES: { value: AppMode; title: string; description: ReactNode }[] = [
     title: "Mini App",
     description: (
       <>
-        Web apps that run inside World App and use MiniKit for native-like
+        Web apps that run inside World ID App and use MiniKit for native-like
         experiences. Verified Mini Apps can be featured on the <EcosystemLink />{" "}
         and become eligible for the Mini App Store.
       </>

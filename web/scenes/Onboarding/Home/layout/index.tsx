@@ -19,7 +19,7 @@ const HOME_HEADER_LINKS = [
   {
     external: true,
     href: "https://world.org/world-app",
-    label: "World App",
+    label: "World ID App",
   },
 ] as const;
 

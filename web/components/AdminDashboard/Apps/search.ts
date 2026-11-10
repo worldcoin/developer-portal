@@ -29,7 +29,7 @@ export const APPS_SEARCH_FIELDS: Array<SearchField & { label: string }> = [
     field: "name",
     label: "App name",
     type: "string",
-    examples: ['name:"World App"'],
+    examples: ['name:"World ID App"'],
   },
   { field: "team", label: "Team ID", type: "string", examples: ["team:team_"] },
   {

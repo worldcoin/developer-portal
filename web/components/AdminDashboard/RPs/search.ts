@@ -35,7 +35,7 @@ export const RPS_SEARCH_FIELDS: Array<SearchField & { label: string }> = [
     field: "app_name",
     label: "App name",
     type: "string",
-    examples: ['app_name:"World App"'],
+    examples: ['app_name:"World ID App"'],
   },
   { field: "team", label: "Team ID", type: "string", examples: ["team:team_"] },
   {
