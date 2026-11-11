@@ -40,8 +40,9 @@ const schema = yup
 /**
  * POST /api/_bot-fence/rp-usage
  *
- * Counts new nullifiers for Bot Fence actions (`wid/waf/<window>/<index>`) of one RP in
- * [from, to), as unix seconds. Returns a count only, never nullifier values.
+ * Counts new nullifiers for Bot Fence actions of one RP in [from, to), as unix seconds.
+ * The action is `wid/waf/<window>/<index>`, with `/<epoch>` appended after an emergency
+ * key rotation. Returns a count only, never nullifier values.
  * Authenticated with BOT_FENCE_USAGE_TOKEN, not INTERNAL_ENDPOINTS_SECRET.
  */
 export async function POST(req: NextRequest) {

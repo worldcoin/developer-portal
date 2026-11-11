@@ -8,7 +8,9 @@ import { FormActionResult } from "@/lib/types";
 import { getSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Danger/page/graphql/server/delete-action-v4.generated";
 import { getSdk as getActionWithAppSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Settings/UpdateActionV4Form/server/graphql/server/get-action-v4-with-app.generated";
 
-const BOT_FENCE_ACTION_PATTERN = /^wid\/waf\/[0-9]+\/[0-9]+$/;
+// `wid/waf/<window>/<index>`, with `/<epoch>` after an emergency key rotation.
+// Keep in sync with the pattern in get-rp-usage.graphql.
+const BOT_FENCE_ACTION_PATTERN = /^wid\/waf\/[0-9]+\/[0-9]+(\/[0-9]+)?$/;
 
 export async function deleteActionV4ServerSide(
   actionId: string,

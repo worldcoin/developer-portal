@@ -1,5 +1,6 @@
 // Deleting an action cascades to its nullifiers. Bot Fence bills from those
-// nullifiers, so its `wid/waf/<window>/<index>` actions must not be deletable.
+// nullifiers, so its `wid/waf/<window>/<index>[/<epoch>]` actions must not be
+// deletable.
 
 // #region Mocks
 jest.mock("@/api/helpers/graphql", () => ({
@@ -59,8 +60,11 @@ beforeEach(() => {
 
 // #region Bot Fence guard
 describe("deleteActionV4ServerSide [Bot Fence guard]", () => {
-  it("refuses to delete a Bot Fence window action", async () => {
-    GetActionV4WithApp.mockResolvedValue(actionRecord("wid/waf/600/2989728"));
+  it.each([
+    ["window action", "wid/waf/600/2989728"],
+    ["window action after an emergency key rotation", "wid/waf/600/2989728/1"],
+  ])("refuses to delete a Bot Fence %s", async (_, action) => {
+    GetActionV4WithApp.mockResolvedValue(actionRecord(action));
 
     const result = await deleteActionV4ServerSide(ACTION_ID, APP_ID);
 
@@ -71,8 +75,12 @@ describe("deleteActionV4ServerSide [Bot Fence guard]", () => {
     expect(DeleteActionV4).not.toHaveBeenCalled();
   });
 
-  it("still deletes customer actions that only share the wid/waf/ prefix", async () => {
-    GetActionV4WithApp.mockResolvedValue(actionRecord("wid/waf/signup"));
+  it.each([
+    "wid/waf/signup",
+    "wid/waf/600/2989728/",
+    "wid/waf/600/2989728/1/2",
+  ])("still deletes the customer action %s", async (action) => {
+    GetActionV4WithApp.mockResolvedValue(actionRecord(action));
 
     const result = await deleteActionV4ServerSide(ACTION_ID, APP_ID);
 
