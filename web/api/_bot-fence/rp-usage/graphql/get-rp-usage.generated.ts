@@ -39,7 +39,7 @@ export const GetRpUsageDocument = gql`
         action_v4: {
           rp_id: { _eq: $rp_id }
           environment: { _eq: $environment }
-          action: { _regex: "^wid/waf/[0-9]+/[0-9]+$" }
+          action: { _regex: "^wid/waf/[0-9]+/[0-9]+(/[0-9]+)?$" }
         }
       }
     ) {
