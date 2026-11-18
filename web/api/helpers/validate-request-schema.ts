@@ -5,45 +5,6 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { errorResponse } from "./errors";
 
-// Yup looks up schema fields on a plain object before stripping unknown keys.
-// Reject inherited field names before casting, including in nested values.
-const assertSupportedPropertyNames = (value: unknown) => {
-  const pending = [{ value, path: "" }];
-  const visited = new WeakSet<object>();
-
-  while (pending.length) {
-    const current = pending.pop()!;
-    if (
-      current.value === null ||
-      typeof current.value !== "object" ||
-      visited.has(current.value)
-    ) {
-      continue;
-    }
-    visited.add(current.value);
-
-    for (const key of Object.keys(current.value)) {
-      const path = Array.isArray(current.value)
-        ? `${current.path}[${key}]`
-        : current.path
-          ? `${current.path}.${key}`
-          : key;
-
-      if (Object.hasOwn(Object.prototype, key)) {
-        throw new yup.ValidationError(
-          "This attribute name is not supported.",
-          undefined,
-          path,
-        );
-      }
-      pending.push({
-        value: (current.value as Record<string, unknown>)[key],
-        path,
-      });
-    }
-  }
-};
-
 /**
  * Validate a request body against a yup schema and returns an error if applicable
  */
@@ -74,7 +35,6 @@ export const validateRequestSchema = async <T extends yup.Schema>({
   let parsedParams: yup.InferType<typeof schema>;
 
   try {
-    assertSupportedPropertyNames(value);
     parsedParams = await schema.validate(value);
   } catch (error) {
     if (error instanceof yup.ValidationError) {

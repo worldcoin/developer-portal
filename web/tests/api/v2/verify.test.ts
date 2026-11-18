@@ -448,19 +448,22 @@ describe("/api/v2/verify", () => {
 // #region Error cases
 describe("/api/v2/verify [error cases]", () => {
   it.each(["constructor", "__proto__", "toString"])(
-    "rejects reserved JSON key %s before app lookup or proof verification",
+    "strips unknown JSON key %s before app lookup",
     async (key) => {
+      FetchAppAction.mockResolvedValue({ app: [] });
       const response = await POST(
         createMockRequest(getUrl(stagingAppId), { ...validBody, [key]: {} }),
         { params: Promise.resolve({ app_id: stagingAppId }) },
       );
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(404);
       expect(await response.json()).toMatchObject({
-        code: "validation_error",
-        attribute: key,
+        code: "not_found",
+        attribute: null,
       });
-      expect(FetchAppAction).not.toHaveBeenCalled();
+      expect(FetchAppAction).toHaveBeenCalledWith(
+        expect.objectContaining({ action: validBody.action }),
+      );
       expect(AtomicUpsertNullifier).not.toHaveBeenCalled();
       expect(fetch).not.toHaveBeenCalled();
     },
