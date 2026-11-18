@@ -18,54 +18,108 @@ beforeEach(() => {
 // #region Property-name validation
 describe("validateRequestSchema", () => {
   it.each(Object.getOwnPropertyNames(Object.prototype))(
-    "rejects the inherited schema-field name %s with a field-specific 400",
+    "strips undeclared %s like other unknown fields",
     async (key) => {
-      const value = JSON.parse(JSON.stringify({ name: "Ada", [key]: {} }));
+      const value = JSON.parse(JSON.stringify({ count: "2", [key]: {} }));
       const result = await validateRequestSchema({
-        schema: yup.object({ name: yup.string().required() }).noUnknown(),
+        schema: yup.object({ count: yup.number().required() }).noUnknown(),
         value,
-        app_id: "app_0123456789abcdef0123456789abcdef",
       });
 
-      expect(result.isValid).toBe(false);
-      if (result.isValid) throw new Error("Expected validation rejection");
-      const response = result.handleError(request());
-      expect(response.status).toBe(400);
-      expect(await response.json()).toEqual({
-        code: "validation_error",
-        detail: "This attribute name is not supported.",
-        attribute: key,
-        app_id: "app_0123456789abcdef0123456789abcdef",
-      });
+      expect(result).toEqual({ isValid: true, parsedParams: { count: 2 } });
       expect(logger.error).not.toHaveBeenCalled();
       expect(Object.hasOwn(value, key)).toBe(true);
     },
   );
 
-  it.each([
-    { value: { profile: { toString: "value" } }, path: "profile.toString" },
-    {
-      value: { items: [{ constructor: "value" }] },
-      path: "items[0].constructor",
+  it.each(Object.getOwnPropertyNames(Object.prototype))(
+    "preserves undeclared %s when the schema allows unknown fields",
+    async (key) => {
+      const value = JSON.parse(JSON.stringify({ count: "2", [key]: {} }));
+      const result = await validateRequestSchema({
+        schema: yup.object({ count: yup.number().required() }),
+        value,
+      });
+
+      expect(result.isValid).toBe(true);
+      if (!result.isValid) throw new Error("Expected successful validation");
+      expect(result.parsedParams).toEqual({ count: 2, [key]: {} });
+      expect(Object.hasOwn(result.parsedParams, key)).toBe(true);
+      expect(Object.getPrototypeOf(result.parsedParams)).toBe(Object.prototype);
+      expect(logger.error).not.toHaveBeenCalled();
     },
-  ])("rejects nested property $path", async ({ value, path }) => {
+  );
+
+  it.each(["constructor", "toString"])(
+    "uses an explicitly declared %s validator",
+    async (key) => {
+      const schema = yup.object({ [key]: yup.number().required() }).noUnknown();
+      const result = await validateRequestSchema({
+        schema,
+        value: { [key]: "2" },
+      });
+      expect(result).toEqual({ isValid: true, parsedParams: { [key]: 2 } });
+
+      const invalid = await validateRequestSchema({
+        schema,
+        value: { [key]: "invalid" },
+      });
+      if (invalid.isValid) throw new Error("Expected validation rejection");
+      const response = invalid.handleError(request());
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        code: "validation_error",
+        attribute: key,
+      });
+    },
+  );
+
+  it("preserves strict unknown-field rejection", async () => {
     const result = await validateRequestSchema({
-      schema: yup.object({
-        profile: yup.object({ label: yup.string() }),
-        items: yup.array().of(yup.object({ label: yup.string() })),
-      }),
-      value,
+      schema: yup.object({ name: yup.string() }).noUnknown().strict(),
+      value: { name: "Ada", constructor: {} },
     });
 
-    expect(result.isValid).toBe(false);
     if (result.isValid) throw new Error("Expected validation rejection");
     const response = result.handleError(request());
     expect(response.status).toBe(400);
     expect(await response.json()).toMatchObject({
       code: "validation_error",
-      attribute: path,
+      detail: "this field has unspecified keys: constructor",
     });
-    expect(logger.error).not.toHaveBeenCalled();
+  });
+
+  it("strips unknown fields in nested objects and arrays", async () => {
+    const result = await validateRequestSchema({
+      schema: yup.object({
+        profile: yup.object({ label: yup.string().default("Ada") }).noUnknown(),
+        items: yup.array().of(yup.object({ count: yup.number() }).noUnknown()),
+      }),
+      value: JSON.parse(
+        '{"profile":{"toString":"value"},"items":[{"constructor":{},"__proto__":{},"count":"2"}]}',
+      ),
+    });
+
+    expect(result).toEqual({
+      isValid: true,
+      parsedParams: { profile: { label: "Ada" }, items: [{ count: 2 }] },
+    });
+  });
+
+  it("keeps an unknown __proto__ object as data without inheriting its fields", async () => {
+    const result = await validateRequestSchema({
+      schema: yup.object({ count: yup.number().default(2) }),
+      value: JSON.parse('{"__proto__":{"admin":true}}'),
+    });
+
+    if (!result.isValid) throw new Error("Expected successful validation");
+    expect(result.parsedParams).toEqual({
+      count: 2,
+      ["__proto__"]: { admin: true },
+    });
+    expect(Object.hasOwn(result.parsedParams, "__proto__")).toBe(true);
+    expect(Object.getPrototypeOf(result.parsedParams)).toBe(Object.prototype);
+    expect("admin" in result.parsedParams).toBe(false);
   });
 
   it("preserves casts, defaults, ordinary unknown-key stripping and property names as values", async () => {

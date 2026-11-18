@@ -122,7 +122,7 @@ const VALID_REQUEST: Record<string, string> = {
 
 describe("/api/v1/oidc/authorize [request validation]", () => {
   test.each(["constructor", "__proto__", "toString"])(
-    "rejects reserved JSON key %s before app lookup or proof verification",
+    "strips unknown JSON key %s and completes authorization",
     async (key) => {
       const response = await POST(
         new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
@@ -131,14 +131,13 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
         }),
       );
 
-      expect(response.status).toBe(400);
-      expect(await response.json()).toMatchObject({
-        code: "validation_error",
-        attribute: key,
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({
+        code: expect.stringMatching(/^[a-f0-9]{16,30}$/),
       });
-      expect(FetchOIDCApp).not.toHaveBeenCalled();
-      expect(mockVerifyProof).not.toHaveBeenCalled();
-      expect(InsertAuthCode).not.toHaveBeenCalled();
+      expect(FetchOIDCApp).toHaveBeenCalled();
+      expect(mockVerifyProof).toHaveBeenCalled();
+      expect(InsertAuthCode).toHaveBeenCalled();
     },
   );
 

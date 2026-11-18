@@ -12,6 +12,7 @@ RUN npm install -g corepack@0.31.0 && corepack --version
 
 # Install dependencies based on the preferred package manager
 COPY package.json pnpm-lock.yaml ./
+COPY patches ./patches
 RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
 # Server depencies are runtime depencies required for running the Node.JS server, bundled separately
