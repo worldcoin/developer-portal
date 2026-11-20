@@ -1,4 +1,3 @@
-import { Role_Enum } from "@/graphql/graphql";
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,7 +11,6 @@ import { parseAppsPage } from "@/components/AdminDashboard/Apps/pagination";
 import { parseAppsSearchQuery } from "@/components/AdminDashboard/Apps/search";
 import { parseUsersPage } from "@/components/AdminDashboard/Users/pagination";
 import { parseUsersSearchQuery } from "@/components/AdminDashboard/Users/search";
-import { InviteTeamMemberForm } from "./InviteTeamMemberForm";
 import { fetchAdminTeamDetails } from "./server/fetch-team-details";
 
 type AdminTeamPageProps = {
@@ -144,9 +142,6 @@ export const AdminTeamPage = async ({
           </section>
           <section className="mt-6">
             <h3 className="text-14 font-semibold text-grey-900">Invites</h3>
-            {!details.team.deleted_at && (
-              <InviteTeamMemberForm teamId={teamId} />
-            )}
             <div className="mt-2 divide-y divide-grey-100">
               {details.invites.length === 0 ? (
                 <p className="py-3 text-14 text-grey-500">No invites.</p>
@@ -159,12 +154,9 @@ export const AdminTeamPage = async ({
                     <p className="truncate text-14 text-grey-900">
                       {invite.email}
                     </p>
-                    <div className="flex shrink-0 items-center gap-3 text-12 text-grey-500">
-                      <span>
-                        {invite.role === Role_Enum.Admin ? "Admin" : "Member"}
-                      </span>
-                      <time>{invite.expires_at.slice(0, 10)}</time>
-                    </div>
+                    <time className="shrink-0 text-12 text-grey-500">
+                      {invite.expires_at.slice(0, 10)}
+                    </time>
                   </div>
                 ))
               )}
@@ -180,6 +172,7 @@ export const AdminTeamPage = async ({
         </Suspense>
         <Suspense fallback={<PanelSkeleton label="Members" />}>
           <TeamMembersPanel
+            canAddMembers={!details.team.deleted_at}
             membersPage={membersPage}
             membersQuery={membersQuery}
             teamId={teamId}

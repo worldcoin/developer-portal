@@ -4,38 +4,32 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type GetTeamInviteContextQueryVariables = Types.Exact<{
+export type GetAddTeamMemberContextQueryVariables = Types.Exact<{
   team_id: Types.Scalars["String"]["input"];
-  email: Types.Scalars["String"]["input"];
+  email_pattern: Types.Scalars["String"]["input"];
 }>;
 
-export type GetTeamInviteContextQuery = {
+export type GetAddTeamMemberContextQuery = {
   __typename?: "query_root";
-  team?: {
-    __typename?: "team";
+  team?: { __typename?: "team"; id: string; deleted_at?: string | null } | null;
+  user: Array<{
+    __typename?: "user";
     id: string;
-    name?: string | null;
-    deleted_at?: string | null;
-  } | null;
-  membership: Array<{ __typename?: "membership"; id: string }>;
-  invite: Array<{ __typename?: "invite"; id: string }>;
+    memberships: Array<{ __typename?: "membership"; id: string }>;
+  }>;
 };
 
-export const GetTeamInviteContextDocument = gql`
-  query GetTeamInviteContext($team_id: String!, $email: String!) {
+export const GetAddTeamMemberContextDocument = gql`
+  query GetAddTeamMemberContext($team_id: String!, $email_pattern: String!) {
     team: team_by_pk(id: $team_id) {
       id
-      name
       deleted_at
     }
-    membership(
-      where: { team_id: { _eq: $team_id }, user: { email: { _eq: $email } } }
-      limit: 1
-    ) {
+    user(where: { email: { _ilike: $email_pattern } }, limit: 2) {
       id
-    }
-    invite(where: { team_id: { _eq: $team_id }, email: { _eq: $email } }) {
-      id
+      memberships(where: { team_id: { _eq: $team_id } }, limit: 1) {
+        id
+      }
     }
   }
 `;
@@ -59,18 +53,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetTeamInviteContext(
-      variables: GetTeamInviteContextQueryVariables,
+    GetAddTeamMemberContext(
+      variables: GetAddTeamMemberContextQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetTeamInviteContextQuery> {
+    ): Promise<GetAddTeamMemberContextQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetTeamInviteContextQuery>(
-            GetTeamInviteContextDocument,
+          client.request<GetAddTeamMemberContextQuery>(
+            GetAddTeamMemberContextDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "GetTeamInviteContext",
+        "GetAddTeamMemberContext",
         "query",
         variables,
       );

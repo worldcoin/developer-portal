@@ -39,7 +39,6 @@ query FetchAdminTeamDetails($teamId: String!) {
     id
     email
     expires_at
-    role
   }
   api_key(
     where: { team_id: { _eq: $teamId } }

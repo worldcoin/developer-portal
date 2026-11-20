@@ -5740,7 +5740,6 @@ export type Invite = {
   email: Scalars["String"]["output"];
   expires_at: Scalars["timestamptz"]["output"];
   id: Scalars["String"]["output"];
-  role: Role_Enum;
   /** An object relationship */
   team: Team;
   team_id: Scalars["String"]["output"];
@@ -5800,7 +5799,6 @@ export type Invite_Bool_Exp = {
   email?: InputMaybe<String_Comparison_Exp>;
   expires_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
-  role?: InputMaybe<Role_Enum_Comparison_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
 };
@@ -5816,7 +5814,6 @@ export type Invite_Insert_Input = {
   email?: InputMaybe<Scalars["String"]["input"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  role?: InputMaybe<Role_Enum>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
 };
@@ -5876,7 +5873,6 @@ export type Invite_Order_By = {
   email?: InputMaybe<Order_By>;
   expires_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  role?: InputMaybe<Order_By>;
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
 };
@@ -5895,8 +5891,6 @@ export enum Invite_Select_Column {
   /** column name */
   Id = "id",
   /** column name */
-  Role = "role",
-  /** column name */
   TeamId = "team_id",
 }
 
@@ -5905,7 +5899,6 @@ export type Invite_Set_Input = {
   email?: InputMaybe<Scalars["String"]["input"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  role?: InputMaybe<Role_Enum>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -5922,7 +5915,6 @@ export type Invite_Stream_Cursor_Value_Input = {
   email?: InputMaybe<Scalars["String"]["input"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  role?: InputMaybe<Role_Enum>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -5934,8 +5926,6 @@ export enum Invite_Update_Column {
   ExpiresAt = "expires_at",
   /** column name */
   Id = "id",
-  /** column name */
-  Role = "role",
   /** column name */
   TeamId = "team_id",
 }

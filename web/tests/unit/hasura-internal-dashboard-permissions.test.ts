@@ -41,41 +41,35 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).not.toContain("- updated_at");
   });
 
+  it("lets dashboard readers add ADMIN or MEMBER memberships to live teams only", () => {
+    const insert = getReadonlyPermission(
+      "public_membership.yaml",
+      "insert_permissions:",
+    );
+
+    expect(insert).toContain("- role");
+    expect(insert).toContain("- team_id");
+    expect(insert).toContain("- user_id");
+    expect(insert).not.toContain("- id");
+    expect(insert).toMatch(/_in:\s+- ADMIN\s+- MEMBER/);
+    expect(insert).not.toContain("OWNER");
+    expect(insert).toMatch(/deleted_at:\s+_is_null: true/);
+
+    expect(
+      getReadonlyPermission("public_membership.yaml", "update_permissions:"),
+    ).toBe("");
+    expect(
+      getReadonlyPermission("public_membership.yaml", "delete_permissions:"),
+    ).toBe("");
+  });
+
   it("allows invite identity and expiry for internal support", () => {
     const permission = getReadonlyPermission("public_invite.yaml");
 
     expect(permission).toContain("- id");
     expect(permission).toContain("- email");
     expect(permission).toContain("- expires_at");
-    expect(permission).toContain("- role");
     expect(permission).toContain("allow_aggregations: true");
-  });
-
-  it("lets dashboard readers create and refresh invites but not delete them", () => {
-    const insert = getReadonlyPermission(
-      "public_invite.yaml",
-      "insert_permissions:",
-    );
-    expect(insert).toContain("- email");
-    expect(insert).toContain("- role");
-    expect(insert).toContain("- team_id");
-    expect(insert).not.toContain("- id");
-    expect(insert).not.toContain("- expires_at");
-    expect(insert).toMatch(/deleted_at:\s+_is_null: true/);
-
-    const update = getReadonlyPermission(
-      "public_invite.yaml",
-      "update_permissions:",
-    );
-    expect(update).toContain("- expires_at");
-    expect(update).toContain("- role");
-    expect(update).not.toContain("- email");
-    expect(update).not.toContain("- team_id");
-    expect(update).toMatch(/deleted_at:\s+_is_null: true/);
-
-    expect(
-      getReadonlyPermission("public_invite.yaml", "delete_permissions:"),
-    ).toBe("");
   });
 
   it("allows API key inventory fields but never the API key secret", () => {

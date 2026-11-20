@@ -5,16 +5,18 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useId, useState } from "react";
 import { toast } from "react-toastify";
 
-type InviteRole = "MEMBER" | "ADMIN";
+type MemberRole = "MEMBER" | "ADMIN";
 
-// OWNER is intentionally absent: ownership is never granted by invite.
-const ROLE_OPTIONS: ReadonlyArray<{ value: InviteRole; label: string }> = [
+// OWNER is intentionally absent: ownership is never granted from here.
+const ROLE_OPTIONS: ReadonlyArray<{ value: MemberRole; label: string }> = [
   { value: "MEMBER", label: "Member" },
   { value: "ADMIN", label: "Admin" },
 ];
 
 const FIELD_CLASS_NAME =
-  "h-9 rounded-12 border border-grey-200 bg-grey-0 px-3 text-14 text-grey-900 outline-none placeholder:text-grey-400 focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-60";
+  "h-9 min-w-0 rounded-12 border border-grey-200 bg-grey-0 px-3 text-14 text-grey-900 outline-none placeholder:text-grey-400 focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-60";
+
+const GENERIC_ERROR = "Couldn't add the account. Please try again.";
 
 const readErrorMessage = async (response: Response) => {
   try {
@@ -27,15 +29,15 @@ const readErrorMessage = async (response: Response) => {
   } catch {
     // Fall through to the generic message.
   }
-  return "Couldn't send the invite. Please try again.";
+  return GENERIC_ERROR;
 };
 
-export const InviteTeamMemberForm = (props: { teamId: string }) => {
+export const AddTeamMemberForm = (props: { teamId: string }) => {
   const router = useRouter();
   const emailId = useId();
   const roleId = useId();
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<InviteRole>("MEMBER");
+  const [role, setRole] = useState<MemberRole>("MEMBER");
   const [submitting, setSubmitting] = useState(false);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -45,7 +47,7 @@ export const InviteTeamMemberForm = (props: { teamId: string }) => {
     setSubmitting(true);
     try {
       const response = await fetch(
-        `/api/admin/teams/${encodeURIComponent(props.teamId)}/invites`,
+        `/api/admin/teams/${encodeURIComponent(props.teamId)}/members`,
         {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -58,17 +60,12 @@ export const InviteTeamMemberForm = (props: { teamId: string }) => {
         return;
       }
 
-      const result = (await response.json()) as { refreshed?: boolean };
-      toast.success(
-        result.refreshed
-          ? `Invite to ${email.trim()} refreshed and resent`
-          : `Invite sent to ${email.trim()}`,
-      );
+      toast.success(`Added ${email.trim()} to the team`);
       setEmail("");
       setRole("MEMBER");
       router.refresh();
     } catch {
-      toast.error("Couldn't send the invite. Please try again.");
+      toast.error(GENERIC_ERROR);
     } finally {
       setSubmitting(false);
     }
@@ -76,11 +73,11 @@ export const InviteTeamMemberForm = (props: { teamId: string }) => {
 
   return (
     <form
-      className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
+      className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
       onSubmit={submit}
     >
       <label className="sr-only" htmlFor={emailId}>
-        Email
+        Account email
       </label>
       <input
         autoComplete="off"
@@ -89,7 +86,7 @@ export const InviteTeamMemberForm = (props: { teamId: string }) => {
         id={emailId}
         maxLength={254}
         onChange={(event) => setEmail(event.target.value)}
-        placeholder="name@example.com"
+        placeholder="Account email"
         required
         type="email"
         value={email}
@@ -101,7 +98,7 @@ export const InviteTeamMemberForm = (props: { teamId: string }) => {
         className={FIELD_CLASS_NAME}
         disabled={submitting}
         id={roleId}
-        onChange={(event) => setRole(event.target.value as InviteRole)}
+        onChange={(event) => setRole(event.target.value as MemberRole)}
         value={role}
       >
         {ROLE_OPTIONS.map((option) => (
@@ -116,7 +113,7 @@ export const InviteTeamMemberForm = (props: { teamId: string }) => {
         type="submit"
         variant="secondary"
       >
-        Send invite
+        Add user
       </DecoratedButton>
     </form>
   );
