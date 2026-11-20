@@ -1,0 +1,6 @@
+mutation AddTeamMember($object: membership_insert_input!) {
+  insert_membership_one(object: $object) {
+    id
+    role
+  }
+}

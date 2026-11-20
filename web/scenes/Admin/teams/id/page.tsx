@@ -172,6 +172,7 @@ export const AdminTeamPage = async ({
         </Suspense>
         <Suspense fallback={<PanelSkeleton label="Members" />}>
           <TeamMembersPanel
+            canAddMembers={!details.team.deleted_at}
             membersPage={membersPage}
             membersQuery={membersQuery}
             teamId={teamId}

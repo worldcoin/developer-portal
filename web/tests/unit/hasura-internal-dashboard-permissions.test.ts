@@ -7,12 +7,26 @@ const tablesPath = path.join(
   "hasura/metadata/databases/default/tables",
 );
 
-const getReadonlyPermission = (filename: string) => {
+const getReadonlyPermission = (
+  filename: string,
+  section = "select_permissions:",
+) => {
   const metadata = readFileSync(path.join(tablesPath, filename), "utf8");
-  const start = metadata.indexOf("  - role: internal_dashboard_readonly");
+  const sectionStart = metadata.indexOf(section);
+  if (sectionStart === -1) return "";
+  const start = metadata.indexOf(
+    "  - role: internal_dashboard_readonly",
+    sectionStart,
+  );
+  if (start === -1) return "";
   const end = metadata.indexOf("\n  - role:", start + 1);
+  const nextSection = metadata.slice(start).search(/\n\w+:/);
+  const sectionEnd = nextSection === -1 ? -1 : start + nextSection;
+  const stop = [end, sectionEnd].filter((index) => index !== -1);
 
-  return end === -1 ? metadata.slice(start) : metadata.slice(start, end);
+  return stop.length === 0
+    ? metadata.slice(start)
+    : metadata.slice(start, Math.min(...stop));
 };
 
 describe("internal dashboard detail permissions", () => {
@@ -25,6 +39,28 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).toContain("- user_id");
     expect(permission).not.toContain("- created_at");
     expect(permission).not.toContain("- updated_at");
+  });
+
+  it("lets dashboard readers add ADMIN or MEMBER memberships to live teams only", () => {
+    const insert = getReadonlyPermission(
+      "public_membership.yaml",
+      "insert_permissions:",
+    );
+
+    expect(insert).toContain("- role");
+    expect(insert).toContain("- team_id");
+    expect(insert).toContain("- user_id");
+    expect(insert).not.toContain("- id");
+    expect(insert).toMatch(/_in:\s+- ADMIN\s+- MEMBER/);
+    expect(insert).not.toContain("OWNER");
+    expect(insert).toMatch(/deleted_at:\s+_is_null: true/);
+
+    expect(
+      getReadonlyPermission("public_membership.yaml", "update_permissions:"),
+    ).toBe("");
+    expect(
+      getReadonlyPermission("public_membership.yaml", "delete_permissions:"),
+    ).toBe("");
   });
 
   it("allows invite identity and expiry for internal support", () => {
