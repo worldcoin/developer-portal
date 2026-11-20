@@ -1,0 +1,7 @@
+mutation CreateTeamInvite($object: invite_insert_input!) {
+  insert_invite_one(object: $object) {
+    id
+    email
+    role
+  }
+}

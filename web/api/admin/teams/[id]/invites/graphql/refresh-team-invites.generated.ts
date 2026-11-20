@@ -1,0 +1,84 @@
+/* eslint-disable import/no-relative-parent-imports -- auto generated file */
+import * as Types from "@/graphql/graphql";
+
+import { GraphQLClient, RequestOptions } from "graphql-request";
+import gql from "graphql-tag";
+type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
+export type RefreshTeamInvitesMutationVariables = Types.Exact<{
+  ids:
+    | Array<Types.Scalars["String"]["input"]>
+    | Types.Scalars["String"]["input"];
+  expires_at: Types.Scalars["timestamptz"]["input"];
+  role: Types.Role_Enum;
+}>;
+
+export type RefreshTeamInvitesMutation = {
+  __typename?: "mutation_root";
+  update_invite?: {
+    __typename?: "invite_mutation_response";
+    returning: Array<{
+      __typename?: "invite";
+      id: string;
+      email: string;
+      role: Types.Role_Enum;
+    }>;
+  } | null;
+};
+
+export const RefreshTeamInvitesDocument = gql`
+  mutation RefreshTeamInvites(
+    $ids: [String!]!
+    $expires_at: timestamptz!
+    $role: role_enum!
+  ) {
+    update_invite(
+      where: { id: { _in: $ids } }
+      _set: { expires_at: $expires_at, role: $role }
+    ) {
+      returning {
+        id
+        email
+        role
+      }
+    }
+  }
+`;
+
+export type SdkFunctionWrapper = <T>(
+  action: (requestHeaders?: Record<string, string>) => Promise<T>,
+  operationName: string,
+  operationType?: string,
+  variables?: any,
+) => Promise<T>;
+
+const defaultWrapper: SdkFunctionWrapper = (
+  action,
+  _operationName,
+  _operationType,
+  _variables,
+) => action();
+
+export function getSdk(
+  client: GraphQLClient,
+  withWrapper: SdkFunctionWrapper = defaultWrapper,
+) {
+  return {
+    RefreshTeamInvites(
+      variables: RefreshTeamInvitesMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<RefreshTeamInvitesMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<RefreshTeamInvitesMutation>(
+            RefreshTeamInvitesDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "RefreshTeamInvites",
+        "mutation",
+        variables,
+      );
+    },
+  };
+}
+export type Sdk = ReturnType<typeof getSdk>;

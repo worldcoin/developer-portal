@@ -1,0 +1,16 @@
+mutation RefreshTeamInvites(
+  $ids: [String!]!
+  $expires_at: timestamptz!
+  $role: role_enum!
+) {
+  update_invite(
+    where: { id: { _in: $ids } }
+    _set: { expires_at: $expires_at, role: $role }
+  ) {
+    returning {
+      id
+      email
+      role
+    }
+  }
+}

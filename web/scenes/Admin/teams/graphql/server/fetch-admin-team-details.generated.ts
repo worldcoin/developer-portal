@@ -47,6 +47,7 @@ export type FetchAdminTeamDetailsQuery = {
     id: string;
     email: string;
     expires_at: string;
+    role: Types.Role_Enum;
   }>;
   api_key: Array<{
     __typename?: "api_key";
@@ -100,6 +101,7 @@ export const FetchAdminTeamDetailsDocument = gql`
       id
       email
       expires_at
+      role
     }
     api_key(
       where: { team_id: { _eq: $teamId } }

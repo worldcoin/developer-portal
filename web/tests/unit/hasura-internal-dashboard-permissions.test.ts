@@ -7,12 +7,26 @@ const tablesPath = path.join(
   "hasura/metadata/databases/default/tables",
 );
 
-const getReadonlyPermission = (filename: string) => {
+const getReadonlyPermission = (
+  filename: string,
+  section = "select_permissions:",
+) => {
   const metadata = readFileSync(path.join(tablesPath, filename), "utf8");
-  const start = metadata.indexOf("  - role: internal_dashboard_readonly");
+  const sectionStart = metadata.indexOf(section);
+  if (sectionStart === -1) return "";
+  const start = metadata.indexOf(
+    "  - role: internal_dashboard_readonly",
+    sectionStart,
+  );
+  if (start === -1) return "";
   const end = metadata.indexOf("\n  - role:", start + 1);
+  const nextSection = metadata.slice(start).search(/\n\w+:/);
+  const sectionEnd = nextSection === -1 ? -1 : start + nextSection;
+  const stop = [end, sectionEnd].filter((index) => index !== -1);
 
-  return end === -1 ? metadata.slice(start) : metadata.slice(start, end);
+  return stop.length === 0
+    ? metadata.slice(start)
+    : metadata.slice(start, Math.min(...stop));
 };
 
 describe("internal dashboard detail permissions", () => {
@@ -33,7 +47,35 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).toContain("- id");
     expect(permission).toContain("- email");
     expect(permission).toContain("- expires_at");
+    expect(permission).toContain("- role");
     expect(permission).toContain("allow_aggregations: true");
+  });
+
+  it("lets dashboard readers create and refresh invites but not delete them", () => {
+    const insert = getReadonlyPermission(
+      "public_invite.yaml",
+      "insert_permissions:",
+    );
+    expect(insert).toContain("- email");
+    expect(insert).toContain("- role");
+    expect(insert).toContain("- team_id");
+    expect(insert).not.toContain("- id");
+    expect(insert).not.toContain("- expires_at");
+    expect(insert).toMatch(/deleted_at:\s+_is_null: true/);
+
+    const update = getReadonlyPermission(
+      "public_invite.yaml",
+      "update_permissions:",
+    );
+    expect(update).toContain("- expires_at");
+    expect(update).toContain("- role");
+    expect(update).not.toContain("- email");
+    expect(update).not.toContain("- team_id");
+    expect(update).toMatch(/deleted_at:\s+_is_null: true/);
+
+    expect(
+      getReadonlyPermission("public_invite.yaml", "delete_permissions:"),
+    ).toBe("");
   });
 
   it("allows API key inventory fields but never the API key secret", () => {

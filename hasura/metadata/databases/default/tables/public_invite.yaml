@@ -6,6 +6,19 @@ object_relationships:
     using:
       foreign_key_constraint_on: team_id
 insert_permissions:
+  # Internal dashboard users invite people into a customer team. The role
+  # column is limited to ADMIN/MEMBER by a database constraint, and invites
+  # into soft-deleted teams are rejected.
+  - role: internal_dashboard_readonly
+    permission:
+      check:
+        team:
+          deleted_at:
+            _is_null: true
+      columns:
+        - email
+        - role
+        - team_id
   - role: service
     permission:
       check: {}
@@ -19,6 +32,7 @@ select_permissions:
         - id
         - email
         - expires_at
+        - role
         - team_id
       filter: {}
       allow_aggregations: true
@@ -46,6 +60,17 @@ select_permissions:
               - user_id:
                   _eq: X-Hasura-User-Id
 update_permissions:
+  # Re-inviting an existing pending invite refreshes its expiry and role.
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - expires_at
+        - role
+      filter:
+        team:
+          deleted_at:
+            _is_null: true
+      check: {}
   - role: service
     permission:
       columns:

@@ -41832,6 +41832,22 @@
             "deprecationReason": null
           },
           {
+            "name": "role",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "role_enum",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "team",
             "description": "An object relationship",
             "args": [],
@@ -42283,6 +42299,18 @@
             "deprecationReason": null
           },
           {
+            "name": "role",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "role_enum_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "team",
             "description": null,
             "type": {
@@ -42364,6 +42392,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "role",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "role_enum",
               "ofType": null
             },
             "defaultValue": null,
@@ -42792,6 +42832,18 @@
             "deprecationReason": null
           },
           {
+            "name": "role",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "team",
             "description": null,
             "type": {
@@ -42874,6 +42926,12 @@
             "deprecationReason": null
           },
           {
+            "name": "role",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "team_id",
             "description": "column name",
             "isDeprecated": false,
@@ -42918,6 +42976,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "role",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "role_enum",
               "ofType": null
             },
             "defaultValue": null,
@@ -43023,6 +43093,18 @@
             "deprecationReason": null
           },
           {
+            "name": "role",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "role_enum",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "team_id",
             "description": null,
             "type": {
@@ -43061,6 +43143,12 @@
           },
           {
             "name": "id",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "role",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
