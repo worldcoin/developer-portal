@@ -29,7 +29,9 @@ const errorFormatter = winston.format((info) => {
       : {}),
 
     // Calling logger.error({error: new Error('Some error')}) will produce {message: {error: ...}}
-    ...(info.message instanceof Object && info.message?.error instanceof Error
+    ...(info.message instanceof Object &&
+    "error" in info.message &&
+    info.message.error instanceof Error
       ? {
           error: {
             message: info.message.error?.message,
