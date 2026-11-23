@@ -14,7 +14,7 @@
     "@graphql-typed-document-node/core": "^3.2.0",
     "@headlessui/react": "^2.2.10",
     "@hookform/resolvers": "^3.3.4",
-    "@next/env": "^16.2.9",
+    "@next/env": "^16.4.6",
     "@noble/curves": "1.9.1",
     "@opensearch-project/opensearch": "^3.5.1",
     "@parcel/watcher": "^2.4.1",
