@@ -1,8 +1,12 @@
-import { getInternalDashboardGraphqlClientForUser } from "@/api/helpers/graphql";
-import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import {
+  getInternalDashboardGraphqlClientForUser,
+  getInternalDashboardWriteGraphqlClientForUser,
+} from "@/api/helpers/graphql";
 import { Role_Enum } from "@/graphql/graphql";
 import { authenticateAdminRequest } from "@/lib/admin-auth";
+import { AdminHasuraRole } from "@/lib/admin-auth/types";
 import { logger } from "@/lib/logger";
+import { ClientError } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getAddTeamMemberSdk } from "./graphql/add-team-member.generated";
@@ -27,18 +31,34 @@ const schema = yup
       .oneOf([...ADDABLE_ROLES], "Role must be ADMIN or MEMBER")
       .required("Role is required"),
   })
-  .noUnknown();
+  .required()
+  .test("known-keys", "Unexpected request fields", (_value, context) =>
+    Object.keys(context.originalValue).every(
+      (key) => key === "email" || key === "role",
+    ),
+  );
 
 // ILIKE treats `%` and `_` as wildcards. Escape them so the email matches
 // literally and only letter case is ignored.
 const toEmailPattern = (email: string) => email.replace(/[\\%_]/g, "\\$&");
 
+const alreadyMember = () =>
+  NextResponse.json(
+    { error: "This account is already a member of the team" },
+    { status: 409 },
+  );
+
+const isMembershipConflict = (error: unknown) =>
+  error instanceof ClientError &&
+  error.response.errors?.some(
+    ({ extensions, message }) =>
+      extensions?.code === "constraint-violation" &&
+      message.includes('"membership_team_id_user_id_key"'),
+  );
+
 /**
  * Adds an existing Developer Portal account to a customer team as ADMIN or
- * MEMBER, on behalf of an authenticated internal dashboard user. There is no
- * invite or email: the account must already exist, and it joins immediately.
- * Like the sandbox request actions, this is available to every authenticated
- * dashboard user.
+ * MEMBER. The caller needs dashboard write access. The account joins immediately.
  */
 export async function POST(
   req: NextRequest,
@@ -47,6 +67,10 @@ export async function POST(
   const admin = await authenticateAdminRequest(req.headers);
   if (!admin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (admin.role !== AdminHasuraRole.Write) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { id: teamId } = await props.params;
@@ -64,20 +88,35 @@ export async function POST(
     );
   }
 
-  const { isValid, parsedParams, handleError } = await validateRequestSchema({
-    schema,
-    value: body,
-  });
-  if (!isValid) {
-    return handleError(req);
+  let params;
+  try {
+    params = await schema.validate(body);
+  } catch (error) {
+    if (error instanceof yup.ValidationError) {
+      return NextResponse.json(
+        {
+          code: "validation_error",
+          detail: error.message,
+          attribute: error.path ?? null,
+        },
+        { status: 400 },
+      );
+    }
+    logger.error("Admin add team member failed: validation error", {
+      teamId,
+      adminSubject: admin.subject,
+    });
+    return NextResponse.json(
+      { error: "Unable to validate request" },
+      { status: 500 },
+    );
   }
-  const { email, role } = parsedParams;
+  const { email, role } = params;
   const logContext = { teamId, role, adminSubject: admin.subject };
 
-  let client;
   let context;
   try {
-    client = await getInternalDashboardGraphqlClientForUser(admin);
+    const client = await getInternalDashboardGraphqlClientForUser(admin);
     context = await getAddTeamMemberContextSdk(client).GetAddTeamMemberContext({
       team_id: teamId,
       email_pattern: toEmailPattern(email),
@@ -86,7 +125,7 @@ export async function POST(
     logger.error("Admin add team member failed: lookup error", {
       ...logContext,
       stage: "lookup",
-      error,
+      errorKind: error instanceof ClientError ? "graphql" : "unexpected",
     });
     return NextResponse.json(
       { error: "Unable to look up the team or account" },
@@ -123,26 +162,28 @@ export async function POST(
 
   const [user] = context.user;
   if (user.memberships.length > 0) {
-    return NextResponse.json(
-      { error: "This account is already a member of the team" },
-      { status: 409 },
-    );
+    return alreadyMember();
   }
 
   try {
+    const client = await getInternalDashboardWriteGraphqlClientForUser(admin);
     const result = await getAddTeamMemberSdk(client).AddTeamMember({
       object: { team_id: teamId, user_id: user.id, role },
     });
 
-    if (!result.insert_membership_one) {
+    if (result.insert_membership?.affected_rows !== 1) {
       throw new Error("Membership insert returned no row");
     }
   } catch (error) {
+    if (isMembershipConflict(error)) {
+      return alreadyMember();
+    }
+
     logger.error("Admin add team member failed: insert error", {
       ...logContext,
       userId: user.id,
       stage: "insert",
-      error,
+      errorKind: error instanceof ClientError ? "graphql" : "unexpected",
     });
     return NextResponse.json(
       { error: "Unable to add the account to the team" },

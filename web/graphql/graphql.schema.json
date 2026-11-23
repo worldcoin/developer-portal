@@ -47983,6 +47983,12 @@
             "description": "unique or primary key constraint on columns \"id\"",
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "membership_team_id_user_id_key",
+            "description": "unique or primary key constraint on columns \"user_id\", \"team_id\"",
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "possibleTypes": null

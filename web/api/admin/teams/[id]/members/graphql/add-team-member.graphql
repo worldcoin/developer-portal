@@ -1,6 +1,5 @@
 mutation AddTeamMember($object: membership_insert_input!) {
-  insert_membership_one(object: $object) {
-    id
-    role
+  insert_membership(objects: [$object]) {
+    affected_rows
   }
 }

@@ -11,7 +11,7 @@ object_relationships:
 insert_permissions:
   # Internal support adds an existing account to a customer team. Ownership is
   # never granted this way, and soft-deleted teams cannot gain members.
-  - role: internal_dashboard_readonly
+  - role: internal_dashboard_write
     permission:
       check:
         _and:

@@ -10,18 +10,16 @@ export type AddTeamMemberMutationVariables = Types.Exact<{
 
 export type AddTeamMemberMutation = {
   __typename?: "mutation_root";
-  insert_membership_one?: {
-    __typename?: "membership";
-    id: string;
-    role: Types.Role_Enum;
+  insert_membership?: {
+    __typename?: "membership_mutation_response";
+    affected_rows: number;
   } | null;
 };
 
 export const AddTeamMemberDocument = gql`
   mutation AddTeamMember($object: membership_insert_input!) {
-    insert_membership_one(object: $object) {
-      id
-      role
+    insert_membership(objects: [$object]) {
+      affected_rows
     }
   }
 `;

@@ -7,3 +7,4 @@ disabled_for_roles:
   - service
   - analytics
   - internal_dashboard_readonly
+  - internal_dashboard_write
