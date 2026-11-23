@@ -10,8 +10,8 @@ updates:
       - "andy-t-wang"
       - "michalstruck"
     assignees:
-      - "andy-t-wang"
-      - "michalstruck"
+      - "Takaros999"
+      - "Dzejkop"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -22,3 +22,6 @@ updates:
       github-actions:
         patterns:
           - "*"
+    assignees:
+      - "Takaros999"
+      - "Dzejkop"
