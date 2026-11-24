@@ -9,6 +9,23 @@ object_relationships:
     using:
       foreign_key_constraint_on: user_id
 insert_permissions:
+  # Internal support adds an existing account to a customer team. Ownership is
+  # never granted this way, and soft-deleted teams cannot gain members.
+  - role: internal_dashboard_write
+    permission:
+      check:
+        _and:
+          - role:
+              _in:
+                - ADMIN
+                - MEMBER
+          - team:
+              deleted_at:
+                _is_null: true
+      columns:
+        - role
+        - team_id
+        - user_id
   - role: qa
     permission:
       check:

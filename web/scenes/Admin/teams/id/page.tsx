@@ -14,6 +14,7 @@ import { parseUsersSearchQuery } from "@/components/AdminDashboard/Users/search"
 import { fetchAdminTeamDetails } from "./server/fetch-team-details";
 
 type AdminTeamPageProps = {
+  canAddMembers: boolean;
   searchParams?: Promise<{
     appsPage?: string | string[];
     appsQuery?: string | string[];
@@ -36,6 +37,7 @@ const PanelSkeleton = ({ label }: { label: string }) => (
 );
 
 export const AdminTeamPage = async ({
+  canAddMembers,
   searchParams = Promise.resolve({}),
   teamId,
 }: AdminTeamPageProps) => {
@@ -172,6 +174,7 @@ export const AdminTeamPage = async ({
         </Suspense>
         <Suspense fallback={<PanelSkeleton label="Members" />}>
           <TeamMembersPanel
+            canAddMembers={canAddMembers && !details.team.deleted_at}
             membersPage={membersPage}
             membersQuery={membersQuery}
             teamId={teamId}

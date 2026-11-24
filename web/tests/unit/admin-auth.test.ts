@@ -138,6 +138,7 @@ beforeEach(() => {
   delete process.env.CF_ACCESS_TEAM_DOMAIN;
   delete process.env.CF_ACCESS_AUD;
   delete process.env.CF_GROUP_TO_ACCESS_LEVEL;
+  delete process.env.INTERNAL_DASHBOARD_HOST;
 });
 
 afterAll(() => {
@@ -514,6 +515,68 @@ describe("cloudflare-access provider", () => {
         headers: { cookie: "CF_Authorization=valid-token" },
       }),
     );
+  });
+
+  it.each([
+    [
+      "staging-developer-admin.toolsforhumanity.dev",
+      "acl-devportal-stage-dashboard-write",
+      "write",
+    ],
+    [
+      "developer-dashboard.toolsforhumanity.com",
+      "acl-devportal-prod-dashboard-write",
+      "write",
+    ],
+    [
+      "developer-dashboard.toolsforhumanity.com",
+      "acl-devportal-stage-dashboard-write",
+      "read",
+    ],
+    ["unknown.example.com", "acl-devportal-prod-dashboard-write", "read"],
+  ])(
+    "scopes writer group %s to the configured environment",
+    async (host, group, expected) => {
+      cloudflareEnv();
+      process.env.ADMIN_AUTH_PROVIDER = "cloudflare-access";
+      process.env.INTERNAL_DASHBOARD_HOST = host;
+      jwtVerify.mockResolvedValue({
+        payload: { email: "user@example.com", sub: "user-1" },
+      });
+      mockIdentityResponse({ idp: { groups: ["example-readers", group] } });
+
+      const user = await authenticateAdminRequest(
+        new Headers({ "cf-access-jwt-assertion": "valid-token" }),
+      );
+
+      expect(user).toMatchObject({
+        role:
+          expected === "write"
+            ? AdminHasuraRole.Write
+            : AdminHasuraRole.Readonly,
+      });
+    },
+  );
+
+  it("does not grant write access from fallback token groups", async () => {
+    cloudflareEnv();
+    process.env.INTERNAL_DASHBOARD_HOST =
+      "developer-dashboard.toolsforhumanity.com";
+    jwtVerify.mockResolvedValue({
+      payload: {
+        email: "user@example.com",
+        sub: "user-1",
+        custom: {
+          groups: ["acl-devportal-prod-dashboard-write", "example-readers"],
+        },
+      },
+    });
+
+    const user = await cloudflareAccessAdminAuthProvider.authenticate(
+      new Headers({ "cf-access-jwt-assertion": "valid-token" }),
+    );
+
+    expect(user).toMatchObject({ accessLevel: "read" });
   });
 
   it("returns no access when get-identity returns malformed group fields", async () => {

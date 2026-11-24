@@ -1,16 +1,19 @@
 import { UIModule } from "@/components/AdminDashboard/UIModule";
 import { fetchAdminTeamMembersPage } from "@/scenes/Admin/teams/id/server/fetch-team-members";
 
+import { AddTeamMemberForm } from "./AddTeamMemberForm";
 import { TeamMembersInfiniteList } from "./TeamMembersInfiniteList";
 import { TeamMembersPanelControls } from "./TeamMembersPanelControls";
 
 type TeamMembersPanelProps = {
+  canAddMembers: boolean;
   membersPage: number;
   membersQuery: string;
   teamId: string;
 };
 
 export const TeamMembersPanel = async ({
+  canAddMembers,
   membersPage,
   membersQuery,
   teamId,
@@ -26,6 +29,11 @@ export const TeamMembersPanel = async ({
       <div className="flex min-h-6 items-center">
         <h2 className="text-16 font-semibold text-grey-900">Members</h2>
       </div>
+      {canAddMembers && (
+        <div className="shrink-0">
+          <AddTeamMemberForm teamId={teamId} />
+        </div>
+      )}
       <div className="shrink-0">
         <TeamMembersPanelControls searchQuery={membersQuery} />
       </div>
