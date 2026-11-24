@@ -2,6 +2,7 @@ import {
   fetchParameterStoreValues,
   formatAppMetadata,
 } from "@/api/helpers/app-store";
+import { isFaceCheckEnabled } from "@/api/helpers/face-check";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getAppStoreLocalizedCategoriesWithUrls } from "@/lib/categories";
 import { compareVersions } from "@/lib/compare-versions";
@@ -321,7 +322,12 @@ export async function GET(
   }
 
   // Default behavior - return full app_data as JSON
-  const responseBody = { app_data: formattedMetadata };
+  const responseBody = {
+    app_data: {
+      ...formattedMetadata,
+      enable_face_check: await isFaceCheckEnabled(app_id),
+    },
+  };
   const contentLength = Buffer.byteLength(
     JSON.stringify(responseBody),
     "utf-8",

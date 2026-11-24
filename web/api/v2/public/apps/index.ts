@@ -1,4 +1,5 @@
 import { errorResponse } from "@/api/helpers/errors";
+import { getFaceCheckEnabledApps } from "@/api/helpers/face-check";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
@@ -8,6 +9,7 @@ import {
 } from "@/lib/categories";
 import { NativeApps, NativeAppToAppIdMapping } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
+import type { AppStoreMetadataFields } from "@/lib/types";
 import { isValidHostName } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -214,10 +216,12 @@ export const GET = async (request: NextRequest) => {
   }
 
   // ANCHOR: Fetch app stats and parameter store values in parallel
-  const [metricsData, paramStoreValues] = await Promise.all([
-    fetchMetrics(country),
-    fetchParameterStoreValues(),
-  ]);
+  const [metricsData, paramStoreValues, faceCheckEnabledApps] =
+    await Promise.all([
+      fetchMetrics(country),
+      fetchParameterStoreValues(),
+      getFaceCheckEnabledApps(),
+    ]);
 
   // Build a Map for O(1) metric lookups
   const metricsMap = new Map(metricsData.map((stat) => [stat.app_id, stat]));
@@ -225,8 +229,9 @@ export const GET = async (request: NextRequest) => {
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
   // ANCHOR: Format all app metadata
-  let formattedTopApps = topApps.map((app) =>
-    formatAppMetadata(
+  const enabledApps = new Set(faceCheckEnabledApps);
+  const formatMetadata = (app: AppStoreMetadataFields) => ({
+    ...formatAppMetadata(
       app,
       metricsMap,
       locale,
@@ -234,18 +239,10 @@ export const GET = async (request: NextRequest) => {
       country,
       paramStoreValues,
     ),
-  );
-
-  let highlightedApps = highlightsApps.map((app) =>
-    formatAppMetadata(
-      app,
-      metricsMap,
-      locale,
-      platform,
-      country,
-      paramStoreValues,
-    ),
-  );
+    enable_face_check: enabledApps.has(app.app_id),
+  });
+  let formattedTopApps = topApps.map(formatMetadata);
+  let highlightedApps = highlightsApps.map(formatMetadata);
 
   formattedTopApps = formattedTopApps.map((app) => {
     if (app.app_id in nativeAppMetadata) {
