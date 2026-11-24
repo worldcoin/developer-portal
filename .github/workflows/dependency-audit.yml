@@ -1,0 +1,43 @@
+name: Dependency audit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "23 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit ${{ matrix.directory }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: [web, tests/api]
+    defaults:
+      run:
+        working-directory: ${{ matrix.directory }}
+    steps:
+      # v7.0.1 https://github.com/actions/checkout/releases/tag/v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      # v7.1.0 https://github.com/actions/setup-node/releases/tag/v7.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22
+          package-manager-cache: false
+      # v6.1.1 https://github.com/pnpm/action-setup/releases/tag/v6.1.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115
+        with:
+          package_json_file: ${{ matrix.directory }}/package.json
+      - name: Validate lockfile without running dependency scripts
+        run: pnpm install --lockfile-only --frozen-lockfile --ignore-scripts
+      - name: Reject known vulnerabilities, including development dependencies
+        run: pnpm audit --audit-level=moderate
