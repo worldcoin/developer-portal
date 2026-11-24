@@ -5,7 +5,6 @@ import {
   AdminAuthProvider,
   AdminAuthResult,
   DashboardAccessLevel,
-  isDashboardAccessLevel,
 } from "../types";
 
 // All Cloudflare Access / Okta specifics live in this file only. The rest of
@@ -68,7 +67,19 @@ const parseGroupIdentifiers = (value: unknown): string[] => {
   });
 };
 
-type GroupToAccessLevel = Record<string, DashboardAccessLevel>;
+// These environment-specific groups are provisioned in infrastructure/iam/okta-cloudflare.
+const dashboardWriteGroupByHost = new Map([
+  [
+    "staging-developer-admin.toolsforhumanity.dev",
+    "acl-devportal-stage-dashboard-write",
+  ],
+  [
+    "developer-dashboard.toolsforhumanity.com",
+    "acl-devportal-prod-dashboard-write",
+  ],
+]);
+
+type GroupToAccessLevel = Record<string, DashboardAccessLevel.Read>;
 
 const parseGroupToAccessLevel = (): GroupToAccessLevel | null => {
   const rawMapping = process.env.CF_GROUP_TO_ACCESS_LEVEL;
@@ -90,13 +101,10 @@ const parseGroupToAccessLevel = (): GroupToAccessLevel | null => {
     return null;
   }
 
-  const groupToAccessLevel: GroupToAccessLevel = {};
+  const groupToAccessLevel: GroupToAccessLevel = Object.create(null);
 
   for (const [group, accessLevel] of Object.entries(parsed)) {
-    if (
-      typeof accessLevel !== "string" ||
-      !isDashboardAccessLevel(accessLevel)
-    ) {
+    if (accessLevel !== DashboardAccessLevel.Read) {
       logger.error(
         "CF_GROUP_TO_ACCESS_LEVEL group must map to a valid access level",
         { group, accessLevel },
@@ -294,7 +302,13 @@ export const cloudflareAccessAdminAuthProvider: AdminAuthProvider = {
     const groupIdentifiers =
       identityGroups ?? parseTokenGroups(verifiedToken.payload);
 
-    const accessLevel = resolveCloudflareAccessLevel(groupIdentifiers);
+    const writeGroup = dashboardWriteGroupByHost.get(
+      process.env.INTERNAL_DASHBOARD_HOST?.toLowerCase() ?? "",
+    );
+    const accessLevel =
+      writeGroup && identityGroups?.includes(writeGroup)
+        ? DashboardAccessLevel.Write
+        : resolveCloudflareAccessLevel(groupIdentifiers);
 
     return {
       email: verifiedToken.payload.email,

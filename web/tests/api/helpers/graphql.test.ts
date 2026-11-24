@@ -30,6 +30,7 @@ jest.mock("@/api/helpers/jwts", () => ({
 
 import {
   getInternalDashboardGraphqlClient,
+  getInternalDashboardWriteGraphqlClientForUser,
   internalDashboardGraphqlFetchPolicy,
   isRetryableOperation,
   makeGraphqlFetchWithRetry,
@@ -280,6 +281,39 @@ describe("getInternalDashboardGraphqlClient", () => {
     jest.clearAllMocks();
     process.env.NEXT_PUBLIC_GRAPHQL_API_URL =
       "https://hasura.example/v1/graphql";
+  });
+
+  it("uses the read role on existing dashboard paths for a writer", async () => {
+    const writer = {
+      email: "writer@example.com",
+      subject: "writer-subject",
+      role: AdminHasuraRole.Write,
+    };
+    mockRequireAdminUser.mockResolvedValue(writer);
+
+    await getInternalDashboardGraphqlClient();
+
+    expect(generateInternalDashboardJWT).toHaveBeenCalledWith({
+      ...writer,
+      role: AdminHasuraRole.Readonly,
+    });
+  });
+
+  it("issues the write JWT only to a writer", async () => {
+    const reader = {
+      email: "reader@example.com",
+      subject: "reader-subject",
+      role: AdminHasuraRole.Readonly,
+    };
+    await expect(
+      getInternalDashboardWriteGraphqlClientForUser(reader),
+    ).rejects.toThrow("Dashboard write access required");
+    expect(generateInternalDashboardJWT).not.toHaveBeenCalled();
+
+    const writer = { ...reader, role: AdminHasuraRole.Write };
+    await getInternalDashboardWriteGraphqlClientForUser(writer);
+
+    expect(generateInternalDashboardJWT).toHaveBeenCalledWith(writer);
   });
 
   it("creates a GraphQL client using the current admin user's dashboard JWT", async () => {

@@ -6,9 +6,19 @@ updates:
       interval: "monthly"
     versioning-strategy: increase
     open-pull-requests-limit: 10
-    reviewers:
-      - "andy-t-wang"
-      - "michalstruck"
     assignees:
-      - "andy-t-wang"
-      - "michalstruck"
+      - "Takaros999"
+      - "Dzejkop"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 14
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    assignees:
+      - "Takaros999"
+      - "Dzejkop"

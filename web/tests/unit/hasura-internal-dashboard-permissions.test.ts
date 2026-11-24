@@ -7,17 +7,27 @@ const tablesPath = path.join(
   "hasura/metadata/databases/default/tables",
 );
 
-const getReadonlyPermission = (filename: string) => {
+const getPermission = (
+  filename: string,
+  section = "select_permissions:",
+  role = "internal_dashboard_readonly",
+) => {
   const metadata = readFileSync(path.join(tablesPath, filename), "utf8");
-  const start = metadata.indexOf("  - role: internal_dashboard_readonly");
-  const end = metadata.indexOf("\n  - role:", start + 1);
-
-  return end === -1 ? metadata.slice(start) : metadata.slice(start, end);
+  const sectionStart = metadata.indexOf(section);
+  if (sectionStart === -1) return "";
+  const sectionBody = metadata.slice(sectionStart + section.length);
+  const nextSection = sectionBody.search(/\n\w+:/);
+  const permissions =
+    nextSection === -1 ? sectionBody : sectionBody.slice(0, nextSection);
+  const start = permissions.indexOf(`  - role: ${role}\n`);
+  if (start === -1) return "";
+  const end = permissions.indexOf("\n  - role:", start + 1);
+  return end === -1 ? permissions.slice(start) : permissions.slice(start, end);
 };
 
 describe("internal dashboard detail permissions", () => {
   it("allows only team member fields needed by the detail page", () => {
-    const permission = getReadonlyPermission("public_membership.yaml");
+    const permission = getPermission("public_membership.yaml");
 
     expect(permission).toContain("- id");
     expect(permission).toContain("- role");
@@ -27,8 +37,35 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).not.toContain("- updated_at");
   });
 
+  it("lets only dashboard writers insert ADMIN or MEMBER on live teams", () => {
+    const writeRole = "internal_dashboard_write";
+    const insert = getPermission(
+      "public_membership.yaml",
+      "insert_permissions:",
+      writeRole,
+    );
+
+    expect(getPermission("public_membership.yaml", "insert_permissions:")).toBe(
+      "",
+    );
+    expect(insert).toContain("- role");
+    expect(insert).toContain("- team_id");
+    expect(insert).toContain("- user_id");
+    expect(insert).not.toContain("- id");
+    expect(insert).toMatch(/_in:\s+- ADMIN\s+- MEMBER/);
+    expect(insert).not.toContain("OWNER");
+    expect(insert).toMatch(/deleted_at:\s+_is_null: true/);
+
+    expect(
+      getPermission("public_membership.yaml", "update_permissions:", writeRole),
+    ).toBe("");
+    expect(
+      getPermission("public_membership.yaml", "delete_permissions:", writeRole),
+    ).toBe("");
+  });
+
   it("allows invite identity and expiry for internal support", () => {
-    const permission = getReadonlyPermission("public_invite.yaml");
+    const permission = getPermission("public_invite.yaml");
 
     expect(permission).toContain("- id");
     expect(permission).toContain("- email");
@@ -37,7 +74,7 @@ describe("internal dashboard detail permissions", () => {
   });
 
   it("allows API key inventory fields but never the API key secret", () => {
-    const permission = getReadonlyPermission("public_api_key.yaml");
+    const permission = getPermission("public_api_key.yaml");
 
     expect(permission).toContain("- id");
     expect(permission).toContain("- name");
@@ -48,7 +85,7 @@ describe("internal dashboard detail permissions", () => {
   });
 
   it("allows RP registration reads without manager KMS key IDs", () => {
-    const permission = getReadonlyPermission("public_rp_registration.yaml");
+    const permission = getPermission("public_rp_registration.yaml");
 
     expect(permission).toContain("- rp_id");
     expect(permission).toContain("- app_id");
@@ -64,8 +101,8 @@ describe("internal dashboard detail permissions", () => {
   });
 
   it("allows legacy action aggregates without exposing nullifier identity", () => {
-    const actionPermission = getReadonlyPermission("public_action.yaml");
-    const nullifierPermission = getReadonlyPermission("public_nullifier.yaml");
+    const actionPermission = getPermission("public_action.yaml");
+    const nullifierPermission = getPermission("public_nullifier.yaml");
 
     expect(actionPermission).toContain("- action");
     expect(actionPermission).toContain("- app_id");
@@ -83,10 +120,8 @@ describe("internal dashboard detail permissions", () => {
   });
 
   it("allows World ID 4.0 counts without exposing nullifier values", () => {
-    const actionPermission = getReadonlyPermission("public_action_v4.yaml");
-    const nullifierPermission = getReadonlyPermission(
-      "public_nullifier_v4.yaml",
-    );
+    const actionPermission = getPermission("public_action_v4.yaml");
+    const nullifierPermission = getPermission("public_nullifier_v4.yaml");
 
     expect(actionPermission).toContain("- action");
     expect(actionPermission).toContain("- environment");
@@ -229,7 +264,7 @@ describe("internal dashboard detail permissions", () => {
     expect(migration).toContain('"rejection_reason" IS NULL');
   });
 
-  it("does not define elevated internal dashboard roles", () => {
+  it("keeps dashboard permissions independent of inherited Hasura roles", () => {
     const inheritedRoles = readFileSync(
       path.join(tablesPath, "../../../inherited_roles.yaml"),
       "utf8",

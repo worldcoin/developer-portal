@@ -1,5 +1,5 @@
 # https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
-FROM --platform=linux/amd64 public.ecr.aws/docker/library/node:22.23.4-alpine AS base
+FROM --platform=linux/amd64 public.ecr.aws/docker/library/node:22.23.5-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -33,7 +33,8 @@ RUN npm install -g corepack@0.31.0 && corepack --version
 # error on every middleware-matched request, generating tens of thousands of
 # noisy "untyped Error" events in Datadog Error Tracking despite HTTP 200
 # responses. Keep this in sync with the `dd-trace` version in package.json.
-RUN corepack enable pnpm && corepack prepare pnpm@9.15.4 --activate && pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.115.0
+RUN corepack enable pnpm && corepack prepare pnpm@9.15.4 --activate && \
+    pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.137.0
 
 # Rebuild the source code only when needed
 FROM base AS builder

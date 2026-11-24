@@ -6,7 +6,7 @@ import {
   generateReviewerJWT,
   generateServiceJWT,
 } from "@/api/helpers/jwts";
-import type { AdminUser } from "@/lib/admin-auth";
+import { AdminHasuraRole, type AdminUser } from "@/lib/admin-auth/types";
 import { logger } from "@/lib/logger";
 import { parse } from "graphql";
 import { GraphQLClient } from "graphql-request";
@@ -410,15 +410,30 @@ export const getAPIReviewerGraphqlClient = async () => {
   });
 };
 
-export const getInternalDashboardGraphqlClientForUser = async (
-  user: AdminUser,
-) => {
+const createInternalDashboardGraphqlClient = async (user: AdminUser) => {
   return new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
     ...internalDashboardFetchConfig,
     headers: {
       authorization: `Bearer ${await generateInternalDashboardJWT(user)}`,
     },
   });
+};
+
+export const getInternalDashboardGraphqlClientForUser = async (
+  user: AdminUser,
+) =>
+  createInternalDashboardGraphqlClient({
+    ...user,
+    role: AdminHasuraRole.Readonly,
+  });
+
+export const getInternalDashboardWriteGraphqlClientForUser = async (
+  user: AdminUser,
+) => {
+  if (user.role !== AdminHasuraRole.Write) {
+    throw new Error("Dashboard write access required");
+  }
+  return createInternalDashboardGraphqlClient(user);
 };
 
 export const getInternalDashboardGraphqlClient = async () => {
