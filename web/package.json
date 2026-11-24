@@ -65,7 +65,7 @@
     "react-animate-height": "^3.2.3",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
-    "react-dropzone": "^14.2.3",
+    "react-dropzone": "^20.2.1",
     "react-hook-form": "^7.76.1",
     "react-image-crop": "11.1.2",
     "react-loading-skeleton": "^3.5.0",
