@@ -1,0 +1,16 @@
+# Everything the handler needs to decide whether an account can be added to a
+# team. `email_pattern` is an escaped ILIKE pattern, so it matches the email
+# literally but ignores case; up to two users are fetched so the handler can
+# refuse an ambiguous match instead of picking one.
+query GetAddTeamMemberContext($team_id: String!, $email_pattern: String!) {
+  team: team_by_pk(id: $team_id) {
+    id
+    deleted_at
+  }
+  user(where: { email: { _ilike: $email_pattern } }, limit: 2) {
+    id
+    memberships(where: { team_id: { _eq: $team_id } }, limit: 1) {
+      id
+    }
+  }
+}

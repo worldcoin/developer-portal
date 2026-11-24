@@ -1,5 +1,6 @@
 export enum AdminHasuraRole {
   Readonly = "internal_dashboard_readonly",
+  Write = "internal_dashboard_write",
 }
 
 /**
@@ -8,6 +9,7 @@ export enum AdminHasuraRole {
  */
 export enum DashboardAccessLevel {
   Read = "read",
+  Write = "write",
 }
 
 export const isDashboardAccessLevel = (

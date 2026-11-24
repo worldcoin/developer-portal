@@ -6597,6 +6597,8 @@ export type Membership_Bool_Exp = {
 export enum Membership_Constraint {
   /** unique or primary key constraint on columns "id" */
   MembershipPkey = "membership_pkey",
+  /** unique or primary key constraint on columns "user_id", "team_id" */
+  MembershipTeamIdUserIdKey = "membership_team_id_user_id_key",
 }
 
 /** input type for inserting data into table "membership" */

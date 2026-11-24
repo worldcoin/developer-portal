@@ -1,4 +1,4 @@
-import { requireAdminUser } from "@/lib/admin-auth";
+import { AdminHasuraRole, requireAdminUser } from "@/lib/admin-auth";
 import { generateMetaTitle } from "@/lib/genarate-title";
 import { AdminTeamPage } from "@/scenes/Admin/teams/id/page";
 import { AdminSearchParamsController } from "@/components/AdminDashboard/common/SearchParamsController";
@@ -21,13 +21,17 @@ export const metadata: Metadata = {
 };
 
 export default async function Page({ params, searchParams }: PageProps) {
-  await requireAdminUser();
+  const admin = await requireAdminUser();
 
   const { id } = await params;
 
   return (
     <AdminSearchParamsController>
-      <AdminTeamPage searchParams={searchParams} teamId={id} />
+      <AdminTeamPage
+        canAddMembers={admin.role === AdminHasuraRole.Write}
+        searchParams={searchParams}
+        teamId={id}
+      />
     </AdminSearchParamsController>
   );
 }

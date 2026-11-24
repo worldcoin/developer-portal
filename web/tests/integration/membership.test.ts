@@ -41,23 +41,22 @@ describe("user role", () => {
       `SELECT id, user_id, team_id FROM "public"."membership" WHERE role = 'OWNER'`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
-    const firstOwnerMember = ownerMemberships[0];
+    const { rows: promotedOwnerMemberships } = (await integrationDBExecuteQuery(
+      `UPDATE "public"."membership"
+       SET role = 'OWNER'
+       WHERE id = (
+         SELECT id FROM "public"."membership"
+         WHERE team_id = $1 AND role = 'MEMBER'
+         LIMIT 1
+       )
+       RETURNING id, user_id`,
+      [ownerMemberships[0].team_id],
+    )) as { rows: Array<{ id: string; user_id: string }> };
 
-    const { rows: membersFromAnotherTeam } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE role = 'MEMBER' AND team_id != '${firstOwnerMember.team_id}'`,
-    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
-
-    const secondOwnerMember = membersFromAnotherTeam[0];
-
-    const { rows: insertedSecondOwnerMembership } =
-      (await integrationDBExecuteQuery(
-        `INSERT INTO "public"."membership" (user_id, team_id, role) VALUES ('${secondOwnerMember.user_id}', '${secondOwnerMember.team_id}', 'OWNER') RETURNING id, user_id, team_id`,
-      )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
-
-    const insertedOwner = insertedSecondOwnerMembership[0];
+    const secondOwner = promotedOwnerMemberships[0];
 
     const client = await getAPIUserClient({
-      user_id: insertedOwner.user_id,
+      user_id: secondOwner.user_id,
     });
 
     const mutation = gql`
@@ -71,11 +70,11 @@ describe("user role", () => {
     const response = await client.mutate<any>({
       mutation,
       variables: {
-        id: insertedOwner.id,
+        id: secondOwner.id,
       },
     });
 
-    expect(response.data.delete_membership_by_pk.id).toBe(insertedOwner.id);
+    expect(response.data.delete_membership_by_pk.id).toBe(secondOwner.id);
   });
 
   test("member can leave the team", async () => {
