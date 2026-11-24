@@ -23,6 +23,12 @@ import { handleSessionProofVerification } from "./session-proof/handler";
 import { handleUniquenessProofVerification } from "./uniqueness-proof/handler";
 import { SandboxVerifyDiagnostics } from "./sandbox-diagnostics";
 
+// TODO: Remove once Web Authenticator Selfie Check proofs carry a verifiable integrity bundle.
+// The staging Web Authenticator demo RP issues Selfie Check credentials through the
+// Nitro-attested web enrollment path, so its proofs have no device key to sign a bundle with.
+const STAGING_SELFIE_CHECK_INTEGRITY_EXEMPT_RP_IDS: ReadonlySet<string> =
+  new Set(["rp_f82d4637a3068697"]);
+
 /**
  * POST /api/v4/verify/:id
  *
@@ -204,8 +210,23 @@ async function verify(
         (response) => Number(response.issuer_schema_id) === 11,
       );
 
+    // Only a missing bundle is exempt; a bundle that is sent is still checked in full.
+    const selfieCheckIntegrityExempt =
+      requiresSelfieCheckIntegrity &&
+      !parsedParams.integrity_bundle &&
+      parsedParams.environment === "staging" &&
+      STAGING_SELFIE_CHECK_INTEGRITY_EXEMPT_RP_IDS.has(rpId);
+
+    if (selfieCheckIntegrityExempt) {
+      logger.warn("Self Check integrity requirement exempted for staging RP", {
+        app_id: appId,
+        rp_id: rpId,
+      });
+    }
+
     if (
       requiresSelfieCheckIntegrity &&
+      !selfieCheckIntegrityExempt &&
       (!parsedParams.integrity_bundle ||
         parsedParams.integrity_bundle.version !== 2)
     ) {

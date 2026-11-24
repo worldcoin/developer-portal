@@ -511,6 +511,104 @@ describe("/api/v4/verify [integrity bundle]", () => {
 });
 // #endregion
 
+// #region Staging Self Check integrity exemption
+describe("/api/v4/verify [staging Self Check integrity exemption]", () => {
+  const exemptRpId = "rp_f82d4637a3068697";
+
+  const selfieCheckRequest = (body: Record<string, unknown> = {}) =>
+    createRequest({
+      protocol_version: "4.0",
+      nonce: "1",
+      action: "verify",
+      environment: "staging",
+      responses: [selfieCheckV4Response],
+      ...body,
+    });
+
+  const registerRp = (id: string) =>
+    mockResolveRpRegistration.mockResolvedValue({
+      success: true,
+      registration: {
+        app_id: appId,
+        rp_id: id,
+        status: "registered",
+        app: { status: "active", is_archived: false, deleted_at: null },
+      },
+    });
+
+  beforeEach(() => registerRp(exemptRpId));
+
+  it("verifies the exempt staging RP's Self Check proof without an integrity bundle", async () => {
+    const res = await POST(selfieCheckRequest(), {
+      params: Promise.resolve({ app_id: appId }),
+    });
+
+    expect(res.status).toBe(200);
+    expect(mockVerifyIntegrityBundle).not.toHaveBeenCalled();
+    expect(mockHandleUniquenessProofVerification).toHaveBeenCalledWith(
+      expect.anything(),
+      exemptRpId,
+      appId,
+      expect.objectContaining({ environment: "staging" }),
+      expect.anything(),
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      "Self Check integrity requirement exempted for staging RP",
+      { app_id: appId, rp_id: exemptRpId },
+    );
+  });
+
+  it.each(["production", "sandbox"])(
+    "still requires an integrity bundle from the exempt RP in %s",
+    async (environment) => {
+      const res = await POST(selfieCheckRequest({ environment }), {
+        params: Promise.resolve({ app_id: appId }),
+      });
+
+      expect(res.status).toBe(403);
+      expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+    },
+  );
+
+  it("still requires an integrity bundle from other staging RPs", async () => {
+    registerRp(rpId);
+
+    const res = await POST(selfieCheckRequest(), {
+      params: Promise.resolve({ app_id: appId }),
+    });
+
+    expect(res.status).toBe(403);
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+  });
+
+  it("still rejects a version 1 bundle sent by the exempt RP", async () => {
+    const res = await POST(
+      selfieCheckRequest({ integrity_bundle: integrityBundle }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(res.status).toBe(403);
+    expect(mockVerifyIntegrityBundle).not.toHaveBeenCalled();
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+  });
+
+  it("still verifies a version 2 bundle sent by the exempt RP", async () => {
+    mockVerifyIntegrityBundle.mockResolvedValue({ success: false });
+
+    const res = await POST(
+      selfieCheckRequest({
+        integrity_bundle: { ...integrityBundle, version: 2 },
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(mockVerifyIntegrityBundle).toHaveBeenCalled();
+    expect(res.status).toBe(403);
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
 // #region Staging verification
 // The request selects the proof environment without a separate window or token.
 describe("/api/v4/verify [staging environment]", () => {
