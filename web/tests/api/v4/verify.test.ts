@@ -513,7 +513,7 @@ describe("/api/v4/verify [integrity bundle]", () => {
 
 // #region Staging Self Check integrity exemption
 describe("/api/v4/verify [staging Self Check integrity exemption]", () => {
-  const exemptRpId = "rp_f82d4637a3068697";
+  const exemptRpId = "rp_c8b34be5b84c6722";
 
   const selfieCheckRequest = (body: Record<string, unknown> = {}) =>
     createRequest({

@@ -24,10 +24,12 @@ import { handleUniquenessProofVerification } from "./uniqueness-proof/handler";
 import { SandboxVerifyDiagnostics } from "./sandbox-diagnostics";
 
 // TODO: Remove once Web Authenticator Selfie Check proofs carry a verifiable integrity bundle.
-// The staging Web Authenticator demo RP issues Selfie Check credentials through the
-// Nitro-attested web enrollment path, so its proofs have no device key to sign a bundle with.
+// The Web Authenticator issues Selfie Check credentials through the Nitro-attested web
+// enrollment path, so its proofs have no device key to sign a bundle with.
 const STAGING_SELFIE_CHECK_INTEGRITY_EXEMPT_RP_IDS: ReadonlySet<string> =
-  new Set(["rp_f82d4637a3068697"]);
+  new Set([
+    "rp_c8b34be5b84c6722", // Web Authenticator v1 (app_e05e48013341a4feca7ed126deaa15b6)
+  ]);
 
 /**
  * POST /api/v4/verify/:id
