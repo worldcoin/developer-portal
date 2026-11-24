@@ -1,0 +1,27 @@
+query FetchAdminRpDetails($rpId: String!) {
+  rp_registration_by_pk(rp_id: $rpId) {
+    rp_id
+    app_id
+    mode
+    status
+    staging_status
+    signer_address
+    operation_hash
+    staging_operation_hash
+    created_at
+    updated_at
+    app {
+      id
+      name
+      created_at
+      deleted_at
+      team_id
+      team {
+        id
+        name
+        created_at
+        deleted_at
+      }
+    }
+  }
+}

@@ -16,13 +16,13 @@ export const StatCard = (props: {
           className={clsx("size-1.5 rounded-[1px]", props.mainColorClassName)}
         />
 
-        <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
+        <Typography variant={TYPOGRAPHY.R5} className="text-content-tertiary">
           {props.title}
         </Typography>
       </div>
 
       <div className="flex items-center gap-x-2">
-        <Typography variant={TYPOGRAPHY.H6} className="text-grey-700">
+        <Typography variant={TYPOGRAPHY.H6} className="text-content-strong">
           {props.value != null ? (
             Number(props.value).toLocaleString()
           ) : (
@@ -32,20 +32,20 @@ export const StatCard = (props: {
 
         <div
           className={clsx("grid grid-cols-auto/1fr items-center gap-x-1", {
-            "text-system-success-500": props.changePercentage > 0,
-            "text-system-error-500": props.changePercentage < 0,
-            "text-grey-500": props.changePercentage === 0,
+            "text-content-success-500": props.changePercentage > 0,
+            "text-content-error-500": props.changePercentage < 0,
+            "text-content-secondary": props.changePercentage === 0,
           })}
         >
           <div
             className={clsx(
               "flex size-4 items-center justify-center rounded-full",
               {
-                "bg-system-success-50 text-system-success-500":
+                "bg-surface-success-50 text-content-success-500":
                   props.changePercentage > 0,
-                "bg-system-error-50 text-system-error-500":
+                "bg-surface-error-50 text-content-error-500":
                   props.changePercentage < 0,
-                "bg-grey-100": props.changePercentage === 0,
+                "bg-surface-muted": props.changePercentage === 0,
               },
             )}
           >

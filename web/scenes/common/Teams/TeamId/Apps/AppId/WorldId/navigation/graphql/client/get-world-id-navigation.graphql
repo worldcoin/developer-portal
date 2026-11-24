@@ -1,0 +1,13 @@
+query GetWorldIdNavigation($app_id: String!) {
+  app(where: { id: { _eq: $app_id } }) {
+    id
+    rp_registration {
+      rp_id
+      status
+    }
+  }
+
+  action(where: { app_id: { _eq: $app_id }, action: { _neq: "" } }, limit: 1) {
+    id
+  }
+}

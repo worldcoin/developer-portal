@@ -55,12 +55,12 @@ export const HomeMobileNav = ({
     <details className="group relative md:hidden" ref={detailsRef}>
       <summary
         aria-label="Open navigation menu"
-        className="grid size-12 cursor-pointer list-none place-items-center rounded-full border border-black bg-white text-black transition-colors hover:bg-grey-50 [&::-webkit-details-marker]:hidden"
+        className="grid size-10 cursor-pointer list-none place-items-center text-black [&::-webkit-details-marker]:hidden"
       >
         <span className="grid gap-1">
-          <span className="block h-0.5 w-5 rounded-full bg-current" />
-          <span className="block h-0.5 w-5 rounded-full bg-current" />
-          <span className="block h-0.5 w-5 rounded-full bg-current" />
+          <span className="block h-0.5 w-[26px] bg-current" />
+          <span className="block h-0.5 w-[26px] bg-current" />
+          <span className="block h-0.5 w-[26px] bg-current" />
         </span>
       </summary>
 

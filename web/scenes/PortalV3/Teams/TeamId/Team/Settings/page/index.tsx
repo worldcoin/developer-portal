@@ -1,97 +1,147 @@
 "use client";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Input } from "@/components/Input";
-import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { teamNameSchema } from "@/lib/schema";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { Role_Enum } from "@/graphql/graphql";
+import {
+  resolveTeamSettingsTab,
+  TEAM_SETTINGS_TABS,
+} from "@/lib/team-settings";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
+import { FetchTeamDocument } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useQuery } from "@apollo/client/react";
 import { useParams } from "next/navigation";
-import { useCallback } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
-import * as yup from "yup";
-import { TeamProfile } from "@/scenes/PortalV3/Teams/TeamId/Team/common/TeamProfile";
-import { useFetchTeamQuery } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
-import { validateAndUpdateTeamServerSide } from "../server/submit";
+import { ApiKeys } from "../../sections/ApiKeys";
+import { McpSetup } from "../../sections/ApiKeys/McpSetup";
+import { TeamDangerZone } from "../../sections/DangerZone";
+import { LeaveTeam } from "../../sections/LeaveTeam";
+import { Members } from "../../sections/Members";
+import { TeamSettingsForm } from "../../sections/SettingsForm";
 
-const schema = yup
-  .object({
-    name: teamNameSchema,
-  })
-  .noUnknown();
+type QueryValue = string | string[] | undefined;
 
-type FormValues = yup.InferType<typeof schema>;
-
-export const TeamSettingsPage = () => {
+export const TeamSettingsPage = (props: { requestedTab?: QueryValue }) => {
   const { teamId } = useParams() as { teamId: string };
+  const { user } = useUser() as Auth0SessionUser;
 
-  const { refetch: refetchMe } = useRefetchQueries(FetchMeDocument);
+  // Owner-only write access for the display name and destructive controls.
+  // Everyone can open this page (sidebar is ungated); non-owners get a
+  // read-only UI and never receive the delete-team control.
+  const canWriteTeamSettings = checkUserPermissions(user, teamId, [
+    Role_Enum.Owner,
+  ]);
+  const canViewApiKeys = checkUserPermissions(user, teamId, [
+    Role_Enum.Owner,
+    Role_Enum.Admin,
+  ]);
+  const activeTab = resolveTeamSettingsTab(props.requestedTab, canViewApiKeys);
 
-  const { data: fetchTeamQueryRes, refetch: refetchTeam } = useFetchTeamQuery({
-    variables: {
-      teamId: teamId,
-    },
+  // Only General needs the team record. Members and credentials own their
+  // separate queries, so switching tabs does not fetch hidden page sections.
+  const { data, refetch: refetchTeam } = useQuery(FetchTeamDocument, {
+    variables: { teamId },
+    skip: activeTab !== TEAM_SETTINGS_TABS.General,
   });
+  const team = data?.team_by_pk;
 
-  const {
-    register,
-    handleSubmit,
-    formState: { isValid, errors, isSubmitting },
-  } = useForm<FormValues>({
-    values: {
-      name: fetchTeamQueryRes?.team_by_pk?.name ?? "",
-    },
-    resolver: yupResolver(schema),
-    mode: "onChange",
-  });
+  if (activeTab === TEAM_SETTINGS_TABS.General) {
+    return (
+      <div className="w-full px-4 pt-[23px] pb-28 sm:px-6">
+        <div className="mx-auto w-full max-w-[800px]">
+          <h1 className="font-world text-19 leading-[1.2] font-[500] tracking-[-0.01em] text-content-ink">
+            General
+          </h1>
 
-  const submit = useCallback(
-    async (values: FormValues) => {
-      const result = await validateAndUpdateTeamServerSide(values.name, teamId);
-      if (!result.success) {
-        toast.error(result.message);
-      } else {
-        toast.success("Your team was successfully updated");
-        await Promise.all([refetchTeam(), refetchMe()]);
-      }
-    },
-    [teamId, refetchTeam, refetchMe],
-  );
+          <section aria-labelledby="team-name-heading" className="mt-10">
+            <h2
+              id="team-name-heading"
+              className="font-world text-15 leading-[1.2] font-[450] text-content-ink"
+            >
+              Team name
+            </h2>
+            <div className="mt-4">
+              <TeamSettingsForm
+                teamId={teamId}
+                teamName={team?.name ?? ""}
+                canWrite={canWriteTeamSettings}
+                onSaved={refetchTeam}
+              />
+            </div>
+          </section>
+
+          <div className="mt-10 border-t border-portal-border" />
+
+          <div className="mt-10">
+            <McpSetup />
+          </div>
+
+          <div className="mt-10 border-t border-portal-border" />
+
+          {team ? (
+            <section aria-labelledby="danger-zone-heading" className="mt-10">
+              <h2
+                id="danger-zone-heading"
+                className="font-world text-17 leading-[1.2] font-[450] tracking-[-0.01em] text-content-ink"
+              >
+                Danger zone
+              </h2>
+
+              <div className="mt-4 flex min-h-[71px] flex-col items-start justify-between gap-4 rounded-[10px] border border-portal-border p-[15px] sm:flex-row sm:items-center sm:gap-0">
+                {canWriteTeamSettings ? (
+                  <>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-world text-15 leading-[1.2] font-[450] text-content-ink">
+                        Delete team
+                      </h3>
+                      <p className="mt-1 font-world text-13 leading-[1.3] font-[350] text-content-description">
+                        Permanently delete this team and all of its apps.
+                      </p>
+                    </div>
+                    <TeamDangerZone team={{ id: team.id, name: team.name }} />
+                  </>
+                ) : (
+                  <>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-world text-15 leading-[1.2] font-[450] text-content-ink">
+                        Leave team
+                      </h3>
+                      <p className="mt-1 font-world text-13 leading-[1.3] font-[350] text-content-description">
+                        You will need another invitation to rejoin this team.
+                      </p>
+                    </div>
+                    <LeaveTeam team={{ id: team.id, name: team.name }} />
+                  </>
+                )}
+              </div>
+            </section>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <SizingWrapper gridClassName="order-1">
-        <TeamProfile />
-      </SizingWrapper>
+    <SizingWrapper
+      gridClassName="order-1 grow"
+      className="mx-auto w-full max-w-[1120px]"
+    >
+      <div className="flex flex-col py-8 pb-28 md:py-10 md:pb-28">
+        <header className="mb-6">
+          <h1 className="font-twk text-24 leading-[1.2] font-[550] text-portal-heading">
+            Team settings
+          </h1>
+        </header>
 
-      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
-        <Section>
-          <Section.Header>
-            <Section.Header.Title>Team settings</Section.Header.Title>
-          </Section.Header>
+        <div className="grid gap-5">
+          {activeTab === TEAM_SETTINGS_TABS.Members ? (
+            <Members teamId={teamId} />
+          ) : null}
 
-          <form
-            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]"
-            onSubmit={handleSubmit(submit)}
-          >
-            <Input
-              label="Display name"
-              register={register("name")}
-              errors={errors.name}
-            />
-
-            <DecoratedButton
-              type="submit"
-              variant="primary"
-              disabled={!isValid || isSubmitting}
-            >
-              Save changes
-            </DecoratedButton>
-          </form>
-        </Section>
-      </SizingWrapper>
-    </>
+          {activeTab === TEAM_SETTINGS_TABS.ApiKeys && canViewApiKeys ? (
+            <ApiKeys teamId={teamId} canWrite={canWriteTeamSettings} />
+          ) : null}
+        </div>
+      </div>
+    </SizingWrapper>
   );
 };

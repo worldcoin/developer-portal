@@ -69,6 +69,12 @@ export const updateSetupInitialSchema = schema
   })
   .noUnknown();
 
+export const updatePermissionsSchema = schema.omit(["app_mode"]).noUnknown();
+
 export type UpdateSetupInitialSchema = yup.Asserts<
   typeof updateSetupInitialSchema
+>;
+
+export type UpdatePermissionsSchema = yup.Asserts<
+  typeof updatePermissionsSchema
 >;

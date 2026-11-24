@@ -6,7 +6,7 @@ const RP_CONTEXT_TTL_SECONDS = 300;
 const MOCK_RP_SIGNATURE = `0x${"00".repeat(64)}1b` as const;
 
 /**
- * RP ID is derived as uint64(keccak256(app_id)).
+ * Derives the legacy RP ID as uint64(keccak256(app_id)).
  */
 export function generateRpId(appId: string): bigint {
   const hash = keccak256(toUtf8Bytes(appId));
@@ -15,7 +15,7 @@ export function generateRpId(appId: string): bigint {
 }
 
 /**
- * Returns rp_id string (rp_ + 16 hex chars) for storage and transport.
+ * Returns the legacy rp_id string used by v3 and mock contexts.
  */
 export function generateRpIdString(appId: string): `rp_${string}` {
   const rpId = generateRpId(appId);

@@ -2,17 +2,19 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { resolveAppStoreCategory } from "@/lib/categories";
 import { getAppMetadataPermissionAndMode } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
 import * as yup from "yup";
 import { mainAppStoreFormSchema } from "../FormSchema/form-schema";
-import { getSdk as getDeleteUnusedSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/server/delete-unused-localisations.generated";
+import { getSdk as getDeleteUnusedSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/server/delete-unused-localizations.generated";
 import { getSdk as getUpdateAppStoreSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/server/update-app-store-complete.generated";
 import {
   encodeDescription,
   extractImagePathWithExtensionFromActualUrl,
 } from "../utils";
+import type { LocalizationCacheRow } from "../types/AppStoreFormTypes";
 
 const schema = mainAppStoreFormSchema
   .concat(
@@ -23,13 +25,17 @@ const schema = mainAppStoreFormSchema
   .noUnknown();
 type Schema = yup.Asserts<typeof schema>;
 
+type UpdateAppStoreMetadataResult = FormActionResult & {
+  localisations?: LocalizationCacheRow[];
+};
+
 const formatEmailLink = (email: string): string => {
   return `mailto:${email}`;
 };
 
 export async function updateAppStoreMetadata(
   formData: Schema,
-): Promise<FormActionResult> {
+): Promise<UpdateAppStoreMetadataResult> {
   const path = (await getPathFromHeaders()) || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -51,12 +57,14 @@ export async function updateAppStoreMetadata(
       });
     }
 
+    const isMiniApp = appMode === "mini-app";
+
     let parsedParams: Schema;
 
     try {
       parsedParams = await schema.validate(formData, {
         abortEarly: false,
-        context: { isMiniApp: appMode === "mini-app" },
+        context: { isMiniApp },
       });
     } catch (validationError) {
       return errorFormAction({
@@ -75,57 +83,63 @@ export async function updateAppStoreMetadata(
           ? formatEmailLink(parsedParams.support_email)
           : ""
         : parsedParams.support_link;
-    const enLocalisation = parsedParams.localisations.find(
+    const enLocalization = parsedParams.localisations.find(
       (l) => l.language === "en",
     );
-    // The client filters the en-localisation payload to only the fields the
+    // The client filters the en-localization payload to only the fields the
     // user actually edited (so AppStore autosaves can't revert BasicInformation
     // edits to overlapping columns). Treat undefined here as "do not touch the
     // column"; only forward keys the client explicitly sent.
     const appMetadataInput: Record<string, unknown> = {
-      category: parsedParams.category || "External",
+      category: resolveAppStoreCategory(parsedParams.category, isMiniApp),
       is_android_only: parsedParams.is_android_only,
       is_for_humans_only: parsedParams.is_for_humans_only,
       support_link: supportLink,
       supported_countries: parsedParams.supported_countries,
       supported_languages: parsedParams.supported_languages,
     };
-    if (enLocalisation?.name != null) {
-      appMetadataInput.name = enLocalisation.name;
+    if (enLocalization?.name != null) {
+      appMetadataInput.name = enLocalization.name;
     }
-    if (enLocalisation?.short_name != null) {
-      appMetadataInput.short_name = enLocalisation.short_name;
+    if (enLocalization?.short_name != null) {
+      appMetadataInput.short_name = enLocalization.short_name;
     }
-    if (enLocalisation?.world_app_description != null) {
+    if (enLocalization?.world_app_description != null) {
       appMetadataInput.world_app_description =
-        enLocalisation.world_app_description;
+        enLocalization.world_app_description;
     }
-    if (enLocalisation?.description_overview != null) {
+    if (enLocalization?.description_overview != null) {
       appMetadataInput.description = encodeDescription(
-        enLocalisation.description_overview,
+        enLocalization.description_overview,
       );
     }
-    if (enLocalisation?.meta_tag_image_url != null) {
+    if (enLocalization?.meta_tag_image_url != null) {
       appMetadataInput.meta_tag_image_url =
         extractImagePathWithExtensionFromActualUrl(
-          enLocalisation.meta_tag_image_url,
+          enLocalization.meta_tag_image_url,
         );
     }
-    if (enLocalisation?.showcase_img_urls != null) {
+    if (enLocalization?.showcase_img_urls != null) {
       appMetadataInput.showcase_img_urls =
-        (enLocalisation.showcase_img_urls
+        (enLocalization.showcase_img_urls
           ?.map(extractImagePathWithExtensionFromActualUrl)
           .filter(Boolean) as string[]) || [];
     }
 
-    const localisationsToUpsert = parsedParams.localisations
-      .filter((l) => l.language !== "en")
+    // Deliberately carries no id: Postgres keeps assigning primary keys and
+    // the on_conflict upsert stays the sole way an existing row is matched.
+    const localizationsToUpsert = parsedParams.localisations
+      .filter(
+        (l) =>
+          l.language !== "en" &&
+          parsedParams.supported_languages.includes(l.language),
+      )
       .map((l) => ({
         app_metadata_id: formData.app_metadata_id,
         locale: l.language,
-        name: l.name,
-        short_name: l.short_name,
-        world_app_description: l.world_app_description,
+        name: l.name ?? "",
+        short_name: l.short_name ?? "",
+        world_app_description: l.world_app_description ?? "",
         world_app_button_text: "", // backwards compat
         description: encodeDescription(l.description_overview ?? ""),
         meta_tag_image_url: extractImagePathWithExtensionFromActualUrl(
@@ -141,16 +155,23 @@ export async function updateAppStoreMetadata(
     const client = await getAPIServiceGraphqlClient();
     const updateAppStoreSdk = getUpdateAppStoreSdk(client);
 
-    await updateAppStoreSdk.UpdateAppStoreComplete({
-      app_metadata_id: formData.app_metadata_id,
-      app_metadata_input: appMetadataInput,
-      localisations_to_upsert: localisationsToUpsert,
-    });
+    const { insert_localisations } =
+      await updateAppStoreSdk.UpdateAppStoreComplete({
+        app_metadata_id: formData.app_metadata_id,
+        app_metadata_input: appMetadataInput,
+        localisations_to_upsert: localizationsToUpsert,
+      });
 
-    // delete any localisations that are no longer supported
+    // Nothing in a server action passes through the browser's Apollo link, so
+    // the client patches the cache with these by hand. They are the persisted
+    // rows rather than an echo of the input, so the ids are real.
+    const savedLocalizations: LocalizationCacheRow[] =
+      insert_localisations?.returning ?? [];
+
+    // delete any localizations that are no longer supported
     // this handles languages that were removed from supported_languages
     const deleteUnusedSdk = getDeleteUnusedSdk(client);
-    await deleteUnusedSdk.DeleteUnusedLocalisations({
+    await deleteUnusedSdk.DeleteUnusedLocalizations({
       app_metadata_id: formData.app_metadata_id,
       languages_to_keep: parsedParams.supported_languages,
     });
@@ -158,6 +179,7 @@ export async function updateAppStoreMetadata(
     return {
       success: true,
       message: "app store information updated successfully",
+      localisations: savedLocalizations,
     };
   } catch (error) {
     return errorFormAction({

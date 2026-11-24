@@ -26,7 +26,7 @@ describe("user role", () => {
       }
     `;
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
       variables: {
         id: ownerMembership.id,
@@ -68,7 +68,7 @@ describe("user role", () => {
       }
     `;
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
       variables: {
         id: insertedOwner.id,
@@ -97,7 +97,7 @@ describe("user role", () => {
       }
     `;
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
       variables: {
         id: memberMembership.id,
@@ -132,7 +132,7 @@ describe("user role", () => {
       }
     `;
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
       variables: {
         id: memberMembership.id,

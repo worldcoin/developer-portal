@@ -1,0 +1,9 @@
+mutation TouchDeletedAppRp($rp_id: String!, $now: timestamptz!) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: { updated_at: $now }
+  ) {
+    rp_id
+    updated_at
+  }
+}

@@ -4,12 +4,15 @@ import { NextRequest } from "next/server";
 // #region Mocks
 const requestMock = jest.fn();
 const submitManagedRpRegistrationMock = jest.fn();
+const allocateRpRegistrationMock = jest.fn();
 
 jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(async () => ({ request: requestMock })),
 }));
 
 jest.mock("@/api/helpers/rp-registration-flows", () => ({
+  allocateRpRegistration: (...args: unknown[]) =>
+    allocateRpRegistrationMock(...args),
   submitManagedRpRegistration: (...args: unknown[]) =>
     submitManagedRpRegistrationMock(...args),
 }));
@@ -78,6 +81,10 @@ beforeEach(() => {
     stagingOperationHash: null,
     stagingStatus: null,
   });
+  allocateRpRegistrationMock.mockResolvedValue({
+    ok: true,
+    rpIdString: "rp_fedcba9876543210",
+  });
 
   requestMock.mockImplementation(async (query: unknown) => {
     const operationName = getOperationName(query);
@@ -97,10 +104,6 @@ beforeEach(() => {
 
     if (operationName.includes("CheckUserInApp")) {
       return { team: authorizedTeam };
-    }
-
-    if (operationName.includes("ClaimRpRegistration")) {
-      return { insert_rp_registration_one: { rp_id: "rp_abc123" } };
     }
 
     throw new Error(`Unexpected query: ${operationName}`);
@@ -145,10 +148,17 @@ describe("/api/hasura/register-rp [success]", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.rp_id).toEqual(expect.any(String));
+    expect(body.rp_id).toBe("rp_fedcba9876543210");
     expect(body.status).toBe("pending");
     // Self-managed skips the managed pipeline entirely.
     expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+    expect(allocateRpRegistrationMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        appId,
+        mode: "self_managed",
+        signerAddress: null,
+      }),
+    );
   });
 });
 // #endregion
@@ -188,6 +198,47 @@ describe("/api/hasura/register-rp [staging app migration]", () => {
     const body = await res.json();
     expect(body.extensions.code).toBe("staging_not_supported");
     expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Signer validation
+describe("/api/hasura/register-rp [signer validation]", () => {
+  it("rejects the zero address as a managed signer", async () => {
+    // `isAddress` accepts it, but an RP whose signer is the zero address can
+    // never sign a proof request.
+    const res = (await POST(
+      createMockRequest({
+        app_id: appId,
+        mode: "managed",
+        signer_address: `0x${"0".repeat(40)}`,
+      }),
+    ))!;
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.extensions.code).toBe("invalid_request");
+    expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+  });
+
+  it("surfaces a registry RPC failure from the managed pipeline", async () => {
+    submitManagedRpRegistrationMock.mockResolvedValueOnce({
+      ok: false,
+      code: "rpc_error",
+      detail: "Failed to check RP ID availability on-chain.",
+    });
+
+    const res = (await POST(
+      createMockRequest({
+        app_id: appId,
+        mode: "managed",
+        signer_address: signerAddress,
+      }),
+    ))!;
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.extensions.code).toBe("rpc_error");
   });
 });
 // #endregion

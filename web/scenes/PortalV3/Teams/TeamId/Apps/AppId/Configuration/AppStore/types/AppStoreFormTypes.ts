@@ -1,12 +1,15 @@
 import { Categories } from "@/lib/categories";
 import { languageMap } from "@/lib/languages";
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { FetchLocalisationsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
+import { FetchLocalizationsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localizations.generated";
 
-export type LocalisationData = Readonly<
+export type LocalizationCacheRow =
+  FetchLocalizationsQuery["localisations"][number];
+
+export type LocalizationData = Readonly<
   Array<
     Pick<
-      FetchLocalisationsQuery["localisations"][0],
+      FetchLocalizationsQuery["localisations"][0],
       | "locale"
       | "name"
       | "short_name"

@@ -1,5 +1,6 @@
 import { verifyProofOnChain } from "@/api/helpers/temporal-rpc";
 import { logger } from "@/lib/logger";
+import { getSessionCommitment } from "@worldcoin/idkit-server";
 import { hashSignal } from "@worldcoin/idkit/hashing";
 import { UniquenessProofResponseV4 } from "../request-schema";
 import { UniquenessResult } from "./handler";
@@ -14,13 +15,18 @@ export async function processUniquenessProofV4(
   action: string,
   responses: UniquenessProofResponseV4[],
   verifierAddress: string,
+  sessionId?: string,
 ): Promise<UniquenessResult[]> {
   const results = await Promise.all(
     responses.map(async (item): Promise<UniquenessResult> => {
       try {
+        const nullifier = item.nullifier;
         const verifyResult = await verifyProofOnChain(
           {
-            nullifier: BigInt(item.nullifier),
+            nullifier: nullifier.toBigInt(),
+            ...(sessionId === undefined
+              ? {}
+              : { sessionCommitment: getSessionCommitment(sessionId) }),
             // Note: `hashSignal` is same as `hashToField` from previous idkit versions
             action: BigInt(hashSignal(action)),
             rpId,
@@ -57,7 +63,7 @@ export async function processUniquenessProofV4(
         return {
           identifier: item.identifier,
           success: true,
-          nullifier: item.nullifier,
+          nullifier,
         };
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : String(e);

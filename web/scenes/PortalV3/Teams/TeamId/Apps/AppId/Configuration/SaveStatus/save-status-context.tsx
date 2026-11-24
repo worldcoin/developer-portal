@@ -21,9 +21,9 @@ type Registered = {
   flush: () => Promise<boolean>;
 };
 
-// Action handles are stable across renders. Forms (autosave hooks, mini-app
-// toggle, AppTopBar's submitForReview) consume actions only — they don't need
-// to re-render when the indicator's status changes.
+// Action handles are stable across renders. Forms, the mini-app toggle, and
+// review submission consume actions only — they don't need to re-render when
+// the indicator's status changes.
 export type SaveStatusActions = {
   register: (id: string, r: Registered) => () => void;
   pushStatus: (id: string, status: AutosaveStatus) => void;
@@ -217,8 +217,8 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
 };
 
 // Convenience: get both actions and values together. Use only in places that
-// genuinely need values (the indicator, the AppTopBar submit button) — using
-// this elsewhere reintroduces the unnecessary re-render cascade.
+// genuinely need values (the indicator and review submit button) — using this
+// elsewhere reintroduces the unnecessary re-render cascade.
 export const useSaveStatus = (): SaveStatusActions & SaveStatusValues => {
   const actions = useContext(SaveStatusActionsContext);
   const values = useContext(SaveStatusValuesContext);

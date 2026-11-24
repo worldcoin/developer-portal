@@ -186,7 +186,80 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
     expect(res.status).toBe(200);
   });
 
-  it("prioritizes localisations over title/message fields", async () => {
+  it("allows a Mini App whose store category is External", async () => {
+    GetAppMetadata.mockResolvedValue({
+      app_metadata: [
+        {
+          ...validAppMetadata.app_metadata[0],
+          app_mode: "mini-app",
+          category: "External",
+        },
+      ],
+    });
+
+    const mockReq = createMockRequest({
+      url: "http://localhost:3000/api/v2/minikit/send-notification",
+      api_key: validApiKey,
+    });
+
+    const res = await POST(mockReq);
+
+    expect(res.status).toBe(200);
+  });
+
+  it("forwards Zoom Pulse template metadata to app-backend", async () => {
+    const mockReq = new NextRequest(
+      "http://localhost:3000/api/v2/minikit/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${validApiKey}`,
+        },
+        body: JSON.stringify({
+          ...v2RequestBody,
+          template_key: "pulse_zoom_deep_face",
+          template_args: { app_name: "Zoom", is_self: "yes" },
+        }),
+      },
+    );
+
+    const res = await POST(mockReq);
+
+    expect(res.status).toBe(200);
+    const [, options] = mockSignedFetcher.mock.calls[0] as any;
+    expect(JSON.parse(options.body)).toMatchObject({
+      templateKey: "pulse_zoom_deep_face",
+      templateArgs: { app_name: "Zoom", is_self: "yes" },
+    });
+  });
+
+  it("prioritizes a verified Mini App over an external draft", async () => {
+    GetAppMetadata.mockResolvedValue({
+      app_metadata: [
+        {
+          ...validAppMetadata.app_metadata[0],
+          verification_status: "unverified",
+          app_mode: "external",
+        },
+        {
+          ...validAppMetadata.app_metadata[0],
+          app_mode: "mini-app",
+        },
+      ],
+    });
+
+    const mockReq = createMockRequest({
+      url: "http://localhost:3000/api/v2/minikit/send-notification",
+      api_key: validApiKey,
+    });
+
+    const res = await POST(mockReq);
+
+    expect(res.status).toBe(200);
+  });
+
+  it("prioritizes localizations over title/message fields", async () => {
     const requestWithBothFormats = new NextRequest(
       "http://localhost:3000/api/v2/minikit/send-notification",
       {
@@ -261,7 +334,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     );
   });
 
-  it("returns 400 if neither localisations nor title/message are specified", async () => {
+  it("returns 400 if neither localizations nor title/message are specified", async () => {
     const mockReq = new NextRequest(
       "http://localhost:3000/api/v2/minikit/send-notification",
       {
@@ -281,8 +354,34 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     const res = await POST(mockReq);
     expect(res.status).toBe(400);
     expect((await res.json()).detail).toBe(
-      "Neither localisations nor title and message are specified",
+      "Neither localizations nor title and message are specified",
     );
+  });
+
+  it("rejects incomplete Pulse template metadata", async () => {
+    mockSignedFetcher.mockClear();
+    const mockReq = new NextRequest(
+      "http://localhost:3000/api/v2/minikit/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${validApiKey}`,
+        },
+        body: JSON.stringify({
+          ...v2RequestBody,
+          template_key: "pulse_zoom_deep_face",
+        }),
+      },
+    );
+
+    const res = await POST(mockReq);
+
+    expect(res.status).toBe(400);
+    expect((await res.json()).detail).toBe(
+      "template_key and template_args must be provided together",
+    );
+    expect(mockSignedFetcher).not.toHaveBeenCalled();
   });
 
   it("returns 404 if api key not exists", async () => {
@@ -358,18 +457,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     expect((await res.json()).detail).toBe("API key is inactive.");
   });
 
-  it.each([
-    {
-      label: "app_mode is external",
-      app_mode: "external",
-      category: "Social",
-    },
-    {
-      label: "category is External",
-      app_mode: "mini-app",
-      category: "External",
-    },
-  ])("returns 400 when $label", async ({ app_mode, category }) => {
+  it("returns 400 when app_mode is external", async () => {
     const mockReq = createMockRequest({
       url: "http://localhost:3000/api/v2/minikit/send-notification",
       api_key: validApiKey,
@@ -380,8 +468,8 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
         {
           name: "Example App",
           app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
-          app_mode,
-          category,
+          app_mode: "external",
+          category: "Social",
           is_reviewer_app_store_approved: true,
           is_allowed_unlimited_notifications: true,
           max_notifications_per_day: 10,

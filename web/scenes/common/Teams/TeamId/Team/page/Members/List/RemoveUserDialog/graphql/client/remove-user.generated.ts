@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type RemoveUserMutationVariables = Types.Exact<{
   userId: Types.Scalars["String"]["input"];
   teamId: Types.Scalars["String"]["input"];
@@ -17,58 +15,125 @@ export type RemoveUserMutation = {
   } | null;
 };
 
-export const RemoveUserDocument = gql`
-  mutation RemoveUser($userId: String!, $teamId: String!) {
-    delete_membership(
-      where: {
-        _and: [{ user_id: { _eq: $userId } }, { team_id: { _eq: $teamId } }]
-      }
-    ) {
-      affected_rows
-    }
-  }
-`;
-export type RemoveUserMutationFn = Apollo.MutationFunction<
-  RemoveUserMutation,
-  RemoveUserMutationVariables
->;
-
-/**
- * __useRemoveUserMutation__
- *
- * To run a mutation, you first call `useRemoveUserMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useRemoveUserMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [removeUserMutation, { data, loading, error }] = useRemoveUserMutation({
- *   variables: {
- *      userId: // value for 'userId'
- *      teamId: // value for 'teamId'
- *   },
- * });
- */
-export function useRemoveUserMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    RemoveUserMutation,
-    RemoveUserMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<RemoveUserMutation, RemoveUserMutationVariables>(
-    RemoveUserDocument,
-    options,
-  );
-}
-export type RemoveUserMutationHookResult = ReturnType<
-  typeof useRemoveUserMutation
->;
-export type RemoveUserMutationResult =
-  Apollo.MutationResult<RemoveUserMutation>;
-export type RemoveUserMutationOptions = Apollo.BaseMutationOptions<
-  RemoveUserMutation,
-  RemoveUserMutationVariables
->;
+export const RemoveUserDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "RemoveUser" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "userId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "teamId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "delete_membership" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "_and" },
+                      value: {
+                        kind: "ListValue",
+                        values: [
+                          {
+                            kind: "ObjectValue",
+                            fields: [
+                              {
+                                kind: "ObjectField",
+                                name: { kind: "Name", value: "user_id" },
+                                value: {
+                                  kind: "ObjectValue",
+                                  fields: [
+                                    {
+                                      kind: "ObjectField",
+                                      name: { kind: "Name", value: "_eq" },
+                                      value: {
+                                        kind: "Variable",
+                                        name: { kind: "Name", value: "userId" },
+                                      },
+                                    },
+                                  ],
+                                },
+                              },
+                            ],
+                          },
+                          {
+                            kind: "ObjectValue",
+                            fields: [
+                              {
+                                kind: "ObjectField",
+                                name: { kind: "Name", value: "team_id" },
+                                value: {
+                                  kind: "ObjectValue",
+                                  fields: [
+                                    {
+                                      kind: "ObjectField",
+                                      name: { kind: "Name", value: "_eq" },
+                                      value: {
+                                        kind: "Variable",
+                                        name: { kind: "Name", value: "teamId" },
+                                      },
+                                    },
+                                  ],
+                                },
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "affected_rows" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RemoveUserMutation, RemoveUserMutationVariables>;

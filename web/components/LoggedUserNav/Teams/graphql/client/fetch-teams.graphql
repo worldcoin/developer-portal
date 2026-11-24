@@ -1,6 +1,0 @@
-query FetchTeams {
-  teams: team {
-    id
-    name
-  }
-}

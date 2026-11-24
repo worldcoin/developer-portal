@@ -1,0 +1,15 @@
+mutation UpdateAppReviewRating(
+  $app_id: String!
+  $nullifier_hash: String!
+  $rating: Int!
+) {
+  update_app_reviews(
+    where: {
+      app_id: { _eq: $app_id }
+      nullifier_hash: { _eq: $nullifier_hash }
+    }
+    _set: { rating: $rating }
+  ) {
+    affected_rows
+  }
+}

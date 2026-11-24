@@ -12,6 +12,7 @@ export type FetchInvitesQuery = {
   __typename?: "query_root";
   invite_by_pk?: {
     __typename?: "invite";
+    expires_at: string;
     team: { __typename?: "team"; name?: string | null };
   } | null;
 };
@@ -19,6 +20,7 @@ export type FetchInvitesQuery = {
 export const FetchInvitesDocument = gql`
   query FetchInvites($invite_id: String!) {
     invite_by_pk(id: $invite_id) {
+      expires_at
       team {
         name
       }

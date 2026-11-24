@@ -14,17 +14,17 @@ export const TransactionStatusBadge = memo(function Status(props: {
         <div className="flex items-center">
           <div
             className={clsx(
-              "w-fit  rounded-full  px-3 py-1",
+              "w-fit rounded-full px-3 py-1",
               {
-                "bg-system-success-50 text-system-success-500":
+                "bg-surface-success-50 text-content-success-500":
                   status === TransactionStatus.Mined,
               },
               {
-                "bg-system-warning-50 text-system-warning-700":
+                "bg-surface-warning-50 text-content-warning-700":
                   status === TransactionStatus.Pending,
               },
               {
-                "bg-system-error-100 text-system-error-700":
+                "bg-surface-error-100 text-content-error-700":
                   status === TransactionStatus.Failed,
               },
             )}

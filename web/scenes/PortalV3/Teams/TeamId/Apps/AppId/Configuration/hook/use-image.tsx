@@ -1,7 +1,10 @@
 import { tryParseJSON } from "@/lib/utils";
+import posthog from "posthog-js";
+import { useState } from "react";
 import { toast } from "react-toastify";
-import { useGetUploadedImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/get-uploaded-image.generated";
-import { useUploadImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/upload-image.generated";
+import { useLazyQuery } from "@apollo/client/react";
+import { GetUploadedImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/get-uploaded-image.generated";
+import { UploadImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/upload-image.generated";
 
 export class ImageValidationError extends Error {
   public readonly toastId: string;
@@ -12,8 +15,101 @@ export class ImageValidationError extends Error {
   }
 }
 
+export type ImageDimensions = {
+  width: number;
+  height: number;
+};
+
+export const MAX_IMAGE_BYTES = 500 * 1024;
+
+/** Decodes a local image once and returns its intrinsic pixel dimensions. */
+export const readImageDimensions = (file: File): Promise<ImageDimensions> =>
+  new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new window.Image();
+
+    const cleanUp = () => URL.revokeObjectURL(url);
+
+    image.onload = () => {
+      cleanUp();
+      resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    };
+    image.onerror = () => {
+      cleanUp();
+      reject(new ImageValidationError("Unable to read this image"));
+    };
+    image.src = url;
+  });
+
+export const hasAspectRatio = (
+  dimensions: ImageDimensions,
+  width: number,
+  height: number,
+) => Math.abs(dimensions.width / dimensions.height - width / height) <= 0.01;
+
+export const getImageUploadAction = async (
+  file: File,
+  width: number,
+  height: number,
+): Promise<"upload" | "crop"> => {
+  if (!["image/jpeg", "image/png"].includes(file.type)) {
+    throw new ImageValidationError("Image must be a jpeg or png");
+  }
+  if (file.size >= MAX_IMAGE_BYTES) {
+    throw new ImageValidationError("Image size must be under 500kB");
+  }
+
+  const dimensions = await readImageDimensions(file);
+  return hasAspectRatio(dimensions, width, height) ? "upload" : "crop";
+};
+
+/**
+ * Shared select → validate-once → crop-or-upload flow for image uploaders.
+ * Validation happens only here, at selection time: cropper output is
+ * exact-ratio and under the size limit by construction, so `upload` must not
+ * re-validate the files it receives.
+ */
+export const useCroppedImageUpload = (params: {
+  targetWidth: number;
+  targetHeight: number;
+  upload: (file: File) => Promise<unknown>;
+}) => {
+  const [cropCandidate, setCropCandidate] = useState<File>();
+
+  const handleFileSelected = async (file: File) => {
+    try {
+      const action = await getImageUploadAction(
+        file,
+        params.targetWidth,
+        params.targetHeight,
+      );
+      if (action === "crop") {
+        setCropCandidate(file);
+        return;
+      }
+      await params.upload(file);
+    } catch (error) {
+      if (!(error instanceof ImageValidationError)) {
+        console.error("Image selection failed: ", error);
+      }
+      toast.error(
+        error instanceof Error ? error.message : "Unable to read this image",
+      );
+    }
+  };
+
+  return {
+    cropCandidate,
+    clearCropCandidate: () => setCropCandidate(undefined),
+    handleFileSelected,
+  };
+};
+
 export const useImage = () => {
-  const [getUploadedImage, { refetch }] = useGetUploadedImageLazyQuery();
+  // network-only: presigned URLs expire, so a cached result is never useful.
+  const [getUploadedImage] = useLazyQuery(GetUploadedImageDocument, {
+    fetchPolicy: "network-only",
+  });
 
   const getImage = async (
     fileType: string, // png, jpeg
@@ -41,60 +137,7 @@ export const useImage = () => {
     return imageUrl;
   };
 
-  const validateImageAspectRatio = (
-    file: File,
-    width: number,
-    height: number,
-  ): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(file);
-      const img = new window.Image();
-      img.onload = () => {
-        URL.revokeObjectURL(url); // Clean up the URL object
-
-        if (!["image/jpeg", "image/png"].includes(file.type)) {
-          toast("Image must be a jpeg or png", {
-            toastId: ImageValidationError.prototype.toastId,
-            type: "error",
-          });
-          reject(new ImageValidationError(`Image must be a jpeg or png`));
-        }
-
-        const imageAspectRatio = img.naturalWidth / img.naturalHeight;
-        const targetAspectRatio = width / height;
-
-        if (Math.abs(imageAspectRatio - targetAspectRatio) > 0.01) {
-          toast(`Image must have an aspect ratio of ${width}:${height}`, {
-            toastId: ImageValidationError.prototype.toastId,
-            type: "error",
-          });
-          reject(new ImageValidationError(`Image aspect ratio is incorrect`));
-        }
-
-        if (file.size >= 500 * 1024) {
-          toast("Image size must be under 500kB", {
-            toastId: ImageValidationError.prototype.toastId,
-            type: "error",
-          });
-          reject(new ImageValidationError(`Image size must be under 500kB`));
-        }
-        resolve();
-      };
-
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject("Error loading image");
-      };
-
-      const parsedUrl = new URL(url);
-      if (parsedUrl.protocol !== "blob:") {
-        reject("Invalid image URL");
-      }
-
-      img.src = parsedUrl.href;
-    });
-  };
-  const [uploadImage] = useUploadImageLazyQuery({
+  const [uploadImage] = useLazyQuery(UploadImageDocument, {
     fetchPolicy: "network-only",
   });
 
@@ -117,7 +160,13 @@ export const useImage = () => {
     });
 
     if (!response.data?.upload_image?.url) {
-      throw new Error("Failed to get upload signed URL");
+      // Surface the server's error (e.g. missing AWS credentials on a local
+      // stack) instead of a blind "failed" — it lands in the console/toast.
+      throw new Error(
+        response.error?.message
+          ? `Failed to get upload signed URL: ${response.error.message}`
+          : "Failed to get upload signed URL",
+      );
     }
 
     const { url, stringifiedFields } = response.data.upload_image;
@@ -145,23 +194,25 @@ export const useImage = () => {
 
     if (!uploadResponse.ok) {
       const errorBody = await uploadResponse.text();
+      // The presigned POST goes browser → S3 without touching our servers, so
+      // this failure is invisible to server logs — emit it from the client.
+      posthog.capture("image_upload_failed", {
+        app_id: appId,
+        team_id: teamId,
+        image_type: imageType,
+        status: uploadResponse.status,
+      });
       throw new Error(
         `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`,
       );
     }
 
-    await refetch({
-      app_id: appId,
-      image_type: imageType,
-      content_type_ending: file.type.split("/")[1],
-      team_id: teamId,
-      locale: locale,
-    });
+    // No post-upload request needed: S3's 2xx above is the upload
+    // confirmation, and callers fetch the display URL via getImage themselves.
   };
 
   return {
     getImage,
-    validateImageAspectRatio,
     uploadViaPresignedPost,
   };
 };

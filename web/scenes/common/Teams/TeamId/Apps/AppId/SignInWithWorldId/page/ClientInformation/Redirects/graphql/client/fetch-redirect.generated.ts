@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type RedirectsQueryVariables = Types.Exact<{
   action_id: Types.Scalars["String"]["input"];
 }>;
@@ -20,87 +18,93 @@ export type RedirectsQuery = {
   }>;
 };
 
-export const RedirectsDocument = gql`
-  query Redirects($action_id: String!) {
-    redirect(
-      where: { action_id: { _eq: $action_id } }
-      order_by: { created_at: asc }
-    ) {
-      id
-      action_id
-      redirect_uri
-      created_at
-      updated_at
-    }
-  }
-`;
-
-/**
- * __useRedirectsQuery__
- *
- * To run a query within a React component, call `useRedirectsQuery` and pass it any options that fit your needs.
- * When your component renders, `useRedirectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useRedirectsQuery({
- *   variables: {
- *      action_id: // value for 'action_id'
- *   },
- * });
- */
-export function useRedirectsQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    RedirectsQuery,
-    RedirectsQueryVariables
-  > &
-    (
-      | { variables: RedirectsQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<RedirectsQuery, RedirectsQueryVariables>(
-    RedirectsDocument,
-    options,
-  );
-}
-export function useRedirectsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    RedirectsQuery,
-    RedirectsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<RedirectsQuery, RedirectsQueryVariables>(
-    RedirectsDocument,
-    options,
-  );
-}
-export function useRedirectsSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<RedirectsQuery, RedirectsQueryVariables>,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<RedirectsQuery, RedirectsQueryVariables>(
-    RedirectsDocument,
-    options,
-  );
-}
-export type RedirectsQueryHookResult = ReturnType<typeof useRedirectsQuery>;
-export type RedirectsLazyQueryHookResult = ReturnType<
-  typeof useRedirectsLazyQuery
->;
-export type RedirectsSuspenseQueryHookResult = ReturnType<
-  typeof useRedirectsSuspenseQuery
->;
-export type RedirectsQueryResult = Apollo.QueryResult<
-  RedirectsQuery,
-  RedirectsQueryVariables
->;
+export const RedirectsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "Redirects" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "action_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "redirect" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "action_id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "action_id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "order_by" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "created_at" },
+                      value: { kind: "EnumValue", value: "asc" },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "action_id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "redirect_uri" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "created_at" } },
+                { kind: "Field", name: { kind: "Name", value: "updated_at" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RedirectsQuery, RedirectsQueryVariables>;

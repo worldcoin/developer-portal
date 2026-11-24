@@ -7,7 +7,6 @@ import { generateHashedSecret } from "@/api/helpers/utils";
 import {
   ApolloClient,
   InMemoryCache,
-  NormalizedCacheObject,
   createHttpLink,
   gql,
 } from "@apollo/client";
@@ -48,7 +47,7 @@ export const setClientSecret = async (app_id: string) => {
     }
   `;
 
-  const response = await client.mutate({
+  const response = await client.mutate<any>({
     mutation,
     variables: {
       app_id,
@@ -65,7 +64,7 @@ export const setClientSecret = async (app_id: string) => {
 
 export const getAPIUserClient = async (params?: {
   user_id?: string;
-}): Promise<ApolloClient<NormalizedCacheObject>> => {
+}): Promise<ApolloClient> => {
   const user_id = params?.user_id ?? "usr_a78f59e547fa5bd3d76bc1a1817c6d89";
 
   const authLink = setContext(async (_, { headers }) => ({
@@ -88,7 +87,7 @@ export const getAPIUserClient = async (params?: {
 
 export const getAPIClient = async (params?: {
   team_id: string;
-}): Promise<ApolloClient<NormalizedCacheObject>> => {
+}): Promise<ApolloClient> => {
   const team_id = params?.team_id ?? "team_d7cde14f17eda7e0ededba7ded6b4467"; // cspell: disable-line
 
   const authLink = setContext(async (_, { headers }) => ({
@@ -112,9 +111,7 @@ export const getAPIClient = async (params?: {
 /**
  * Returns an Apollo Client to interact with GraphQL's API with a service token
  */
-export const getAPIServiceClient = async (): Promise<
-  ApolloClient<NormalizedCacheObject>
-> => {
+export const getAPIServiceClient = async (): Promise<ApolloClient> => {
   const authLink = setContext(async (_, { headers }) => ({
     headers: {
       ...headers,

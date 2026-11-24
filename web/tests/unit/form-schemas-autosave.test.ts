@@ -1,8 +1,11 @@
-import { localisationFormSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
+import {
+  localizationFormSchema,
+  mainAppStoreFormReviewSubmitSchema,
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import {
   reviewSchema as basicReviewSchema,
   schema as basicSchema,
-} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/BasicInformation/form-schema";
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/BasicInformation/form-schema";
 
 describe("BasicInformation editing schema", () => {
   it("accepts empty strings for all fields (autosave-friendly)", () => {
@@ -36,10 +39,10 @@ describe("BasicInformation editing schema", () => {
   });
 });
 
-describe("AppStore localisationFormSchema", () => {
-  it("accepts a freshly-added localisation with empty fields", () => {
+describe("AppStore localizationFormSchema", () => {
+  it("accepts a freshly-added localization with empty fields", () => {
     expect(
-      localisationFormSchema.isValidSync(
+      localizationFormSchema.isValidSync(
         {
           language: "fr",
           name: "",
@@ -56,7 +59,7 @@ describe("AppStore localisationFormSchema", () => {
 
   it("rejects unknown keys via .noUnknown()", () => {
     expect(
-      localisationFormSchema.isValidSync(
+      localizationFormSchema.isValidSync(
         {
           language: "en",
           something_else: "x",
@@ -68,10 +71,35 @@ describe("AppStore localisationFormSchema", () => {
 
   it("still rejects too-long values", () => {
     expect(
-      localisationFormSchema.isValidSync({
+      localizationFormSchema.isValidSync({
         language: "en",
         name: "x".repeat(60),
       }),
     ).toBe(false);
+  });
+});
+
+describe("review submit schema — category vs mini app", () => {
+  const validateCategory = (category: string | undefined, isMiniApp: boolean) =>
+    mainAppStoreFormReviewSubmitSchema.validateSyncAt(
+      "category",
+      { category },
+      { context: { isMiniApp } },
+    );
+
+  it("rejects the External category for mini apps", () => {
+    expect(() => validateCategory("External", true)).toThrow();
+  });
+
+  it("rejects External case-insensitively for mini apps", () => {
+    expect(() => validateCategory("external", true)).toThrow();
+  });
+
+  it("accepts a normal category for mini apps", () => {
+    expect(() => validateCategory("Social", true)).not.toThrow();
+  });
+
+  it("does not require a category for non-mini apps", () => {
+    expect(() => validateCategory(undefined, false)).not.toThrow();
   });
 });

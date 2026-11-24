@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type EditRoleMutationVariables = Types.Exact<{
   membershipId: Types.Scalars["String"]["input"];
   role?: Types.InputMaybe<Types.Role_Enum>;
@@ -17,54 +15,88 @@ export type EditRoleMutation = {
   } | null;
 };
 
-export const EditRoleDocument = gql`
-  mutation EditRole($membershipId: String!, $role: role_enum) {
-    update_membership_by_pk(
-      pk_columns: { id: $membershipId }
-      _set: { role: $role }
-    ) {
-      role
-    }
-  }
-`;
-export type EditRoleMutationFn = Apollo.MutationFunction<
-  EditRoleMutation,
-  EditRoleMutationVariables
->;
-
-/**
- * __useEditRoleMutation__
- *
- * To run a mutation, you first call `useEditRoleMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useEditRoleMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [editRoleMutation, { data, loading, error }] = useEditRoleMutation({
- *   variables: {
- *      membershipId: // value for 'membershipId'
- *      role: // value for 'role'
- *   },
- * });
- */
-export function useEditRoleMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    EditRoleMutation,
-    EditRoleMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<EditRoleMutation, EditRoleMutationVariables>(
-    EditRoleDocument,
-    options,
-  );
-}
-export type EditRoleMutationHookResult = ReturnType<typeof useEditRoleMutation>;
-export type EditRoleMutationResult = Apollo.MutationResult<EditRoleMutation>;
-export type EditRoleMutationOptions = Apollo.BaseMutationOptions<
-  EditRoleMutation,
-  EditRoleMutationVariables
->;
+export const EditRoleDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "EditRole" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "membershipId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "role" } },
+          type: {
+            kind: "NamedType",
+            name: { kind: "Name", value: "role_enum" },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "update_membership_by_pk" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "pk_columns" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "membershipId" },
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "_set" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "role" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "role" },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "role" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EditRoleMutation, EditRoleMutationVariables>;

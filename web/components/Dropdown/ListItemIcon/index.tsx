@@ -13,7 +13,7 @@ export const ListItemIcon = (props: ListItemIconProps) => {
   const Component = asChild ? Slot : Fragment;
   return (
     <Component
-      className={twMerge("size-6 text-grey-400 md:size-4", className)}
+      className={twMerge("size-6 text-content-tertiary md:size-4", className)}
       {...otherProps}
     >
       {children}

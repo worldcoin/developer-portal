@@ -4,19 +4,16 @@ import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { RpRegistrationStatus } from "@/api/helpers/rp-utils";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import {
-  canonicalizeNullifierHash,
-  canVerifyForAction,
-} from "@/api/helpers/verify";
+import { canVerifyForAction } from "@/api/helpers/verify";
 import { APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getAppPrecheckByActionSdk } from "./graphql/app-precheck-by-action.generated";
 import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
-import { getSdk as getFetchRpRegistrationForPrecheckSdk } from "./graphql/fetch-rp-registration-for-precheck.generated";
 
 const FACE_CHECK_ENABLED_APPS_PARAMETER = "whitelisted-apps/face-check";
 // Whitelist some partner demo apps, that are not verified but we want to show their logos
@@ -53,7 +50,7 @@ const corsMethods = ["POST", "OPTIONS"];
 /**
  * Fetches public metadata for an app & action.
  * Can be used to check whether a user can verify for a particular action.
- * Called by the World App before rendering proof request modals.
+ * Called by the World ID App before rendering proof request modals.
  * Called by the kiosk.
  * This endpoint is publicly available.
  */
@@ -79,23 +76,17 @@ export async function POST(
   }
 
   const action = parsedParams.action ?? "";
-  // Canonicalize the nullifier so the dedup lookup matches the canonical value
-  // /api/v2/verify stores, regardless of the caller's hex encoding. Falls back
-  // to the raw value if it is not a valid uint256 (it simply won't match a row).
+  // Encode the checked number into the existing indexed text key.
+  // Invalid input remains advisory and retains the previous lookup behavior.
   let nullifier_hash = parsedParams.nullifier_hash;
   if (nullifier_hash) {
     try {
-      nullifier_hash = canonicalizeNullifierHash(nullifier_hash);
+      const checkedNullifier = Nullifier.fromHex(nullifier_hash.trim());
+      nullifier_hash = checkedNullifier.toHex();
     } catch {
       // Leave the raw value as-is; an invalid nullifier matches no stored row.
     }
   }
-
-  const faceCheckEnabledAppsPromise =
-    global.ParameterStore?.getParameter<string[]>(
-      FACE_CHECK_ENABLED_APPS_PARAMETER,
-      [],
-    ) ?? Promise.resolve([] as string[]);
 
   // Check if this app uses custom external_nullifier values
   const useCustomExternalNullifier =
@@ -146,10 +137,28 @@ export async function POST(
     );
   }
 
+  const rpRegistration = rawAppValues.rp_registration.find(
+    (registration) => registration.status === RpRegistrationStatus.Registered,
+  );
+
+  const grantClaimingApps =
+    (await global.ParameterStore?.getParameter<string[]>(
+      "whitelisted-apps/grant-claiming",
+      [],
+      { cacheNotFound: true },
+    )) ?? [];
+
   const unverified_app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
-  const faceCheckEnabledApps = await faceCheckEnabledAppsPromise;
-  const enableFaceCheck = faceCheckEnabledApps?.includes(app_id) ?? false;
+  const faceCheckEnabledApps = await global.ParameterStore?.getParameter<
+    string[]
+  >(FACE_CHECK_ENABLED_APPS_PARAMETER, [], {
+    cacheNotFound: true,
+    timeoutMs: 3000,
+  });
+  const enableFaceCheck =
+    Array.isArray(faceCheckEnabledApps) &&
+    faceCheckEnabledApps.includes(app_id);
   // If an image is present it should store it's relative path and extension ie logo.png
   let logo_img_url = verified_app_metadata?.logo_img_url
     ? getCDNImageUrl(rawAppValues.id, verified_app_metadata?.logo_img_url)
@@ -174,6 +183,7 @@ export async function POST(
   // Prevent breaking changes
   const app = {
     id: rawAppValues.id,
+    ...(rpRegistration ? { rp_id: rpRegistration.rp_id } : {}),
     engine: rawAppValues.engine,
     is_staging: rawAppValues.is_staging,
     is_verified: verified_app_metadata ? true : false,
@@ -185,25 +195,16 @@ export async function POST(
       unverified_app_metadata?.integration_url ??
       "",
     enable_face_check: enableFaceCheck,
+    credential_request: {
+      subtype: grantClaimingApps.includes(app_id) ? "grant_claiming" : null,
+    },
     actions: rawAppValues.actions,
   };
 
   // ANCHOR: If the action doesn't exist, check if app is migrated
   if (!app.actions.length) {
-    // Check if this app has been migrated to v4 (has rp_registration)
-    const rpRegistrationResult = await getFetchRpRegistrationForPrecheckSdk(
-      client,
-    ).FetchRpRegistrationForPrecheck({
-      app_id,
-    });
-
-    const rpRegistration = rpRegistrationResult.rp_registration[0];
-
     // Only return synthetic action if RP is registered and active
-    if (
-      rpRegistration &&
-      rpRegistration.status === RpRegistrationStatus.Registered
-    ) {
+    if (rpRegistration) {
       const nullifierData = generateExternalNullifier(app_id, action);
       // Generate action ID similar to DB pattern: action_<32 hex chars>
       const actionIdHash = nullifierData.hash.toString(16).slice(0, 32);

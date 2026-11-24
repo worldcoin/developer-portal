@@ -27,23 +27,23 @@ export const AppStatus = (props: StatusProps) => {
 
   const statusStyles = {
     unverified: {
-      normal: "bg-grey-100 text-grey-900",
+      normal: "bg-surface-muted text-content-primary",
     },
     awaiting_review: {
-      normal: "bg-system-warning-100 text-system-warning-700",
+      normal: "bg-surface-warning-100 text-content-warning-700",
     },
     changes_requested: {
-      normal: "bg-system-error-100 text-system-error-700",
+      normal: "bg-surface-error-100 text-content-error-700",
     },
     verified: {
-      normal: "bg-system-success-100 text-system-success-700",
+      normal: "bg-surface-success-100 text-content-success-700",
     },
   };
   return (
     <div
       className={twMerge(
         clsx(
-          "flex flex-row items-center gap-x-1.5 whitespace-nowrap rounded-3xl px-3 py-1",
+          "flex flex-row items-center gap-x-1.5 rounded-3xl px-3 py-1 whitespace-nowrap",
           statusStyles[status]?.normal,
           className,
         ),

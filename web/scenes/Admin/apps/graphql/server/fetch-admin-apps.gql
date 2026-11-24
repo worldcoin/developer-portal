@@ -1,0 +1,36 @@
+query FetchAdminApps(
+  $includeCreatedAt: Boolean!
+  $includeDraftMetadata: Boolean!
+  $includeTeamId: Boolean!
+  $includeVerifiedMetadata: Boolean!
+  $limit: Int!
+  $offset: Int!
+  $orderBy: [app_order_by!]!
+  $where: app_bool_exp!
+) {
+  app(limit: $limit, offset: $offset, order_by: $orderBy, where: $where) {
+    id
+    name
+    team_id @include(if: $includeTeamId)
+    created_at @include(if: $includeCreatedAt)
+    draft_metadata: app_metadata(
+      where: { verification_status: { _neq: "verified" } }
+      order_by: { updated_at: desc }
+      limit: 1
+    ) @include(if: $includeDraftMetadata) {
+      name
+    }
+    verified_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+      order_by: { verified_at: desc }
+      limit: 1
+    ) @include(if: $includeVerifiedMetadata) {
+      name
+    }
+  }
+  app_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}

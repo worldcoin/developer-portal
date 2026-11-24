@@ -1,6 +1,4 @@
-import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SelectMultiple } from "@/components/SelectMultiple";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { formCountriesList } from "@/lib/languages";
 import Image from "next/image";
 import { useMemo, useState } from "react";
@@ -29,19 +27,8 @@ export const CountriesSection = ({
       title="Supported Countries"
       description="List of countries where your app is available. This setting allows you to display your App in the Mini App Store in selected countries only."
     >
-      <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
-          <AlertIcon className="size-4 text-white" />
-        </div>
-        <Typography
-          variant={TYPOGRAPHY.B3}
-          className="flex-1 text-system-warning-600"
-        >
-          Laws and regulations governing mini apps vary by country and region.
-          Before launching, ensure your app complies with all relevant local
-          rules, especially regarding chance-based or gambling-like features.
-        </Typography>
-      </div>
+      {/* The laws/regulations warning banner moved to the Availability
+          accordion header (always visible, even collapsed). */}
       <Controller
         control={control}
         name="supported_countries"

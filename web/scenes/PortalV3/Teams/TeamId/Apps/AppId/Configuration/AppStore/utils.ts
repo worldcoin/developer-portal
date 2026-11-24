@@ -53,6 +53,7 @@ export const SHOWCASE_IMAGE_NAMES = [
   "showcase_img_3",
 ] as const;
 export const META_TAG_IMAGE_NAME = "meta_tag_image" as const;
+export const CONTENT_CARD_IMAGE_NAME = "content_card_image" as const;
 export const ALLOWED_IMAGE_EXTENSIONS = ["jpg", "png"] as const;
 
 type ImagePath =
@@ -87,6 +88,10 @@ export const extractImagePathWithExtensionFromActualUrl = (
 
   if (url.includes(META_TAG_IMAGE_NAME)) {
     return `${META_TAG_IMAGE_NAME}.${extension}` as const;
+  }
+
+  if (url.includes(CONTENT_CARD_IMAGE_NAME)) {
+    return `${CONTENT_CARD_IMAGE_NAME}.${extension}` as const;
   }
 
   return "" as const;

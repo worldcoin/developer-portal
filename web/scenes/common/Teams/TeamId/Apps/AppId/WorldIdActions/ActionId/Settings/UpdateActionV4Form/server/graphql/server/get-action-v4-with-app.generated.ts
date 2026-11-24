@@ -13,6 +13,7 @@ export type GetActionV4WithAppQuery = {
   action_v4_by_pk?: {
     __typename?: "action_v4";
     id: string;
+    action: string;
     environment: unknown;
     rp_registration: { __typename?: "rp_registration"; app_id: string };
   } | null;
@@ -22,6 +23,7 @@ export const GetActionV4WithAppDocument = gql`
   query GetActionV4WithApp($action_id: String!) {
     action_v4_by_pk(id: $action_id) {
       id
+      action
       environment
       rp_registration {
         app_id

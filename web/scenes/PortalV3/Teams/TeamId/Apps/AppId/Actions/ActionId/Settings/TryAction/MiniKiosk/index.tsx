@@ -116,10 +116,10 @@ export const MiniKiosk = (props: MiniKioskProps) => {
   return (
     <div
       className={clsx(
-        "grid h-full items-center rounded-3xl border border-grey-100 bg-grey-50",
+        "grid h-full items-center rounded-3xl border border-edge-subtle bg-surface-soft",
         {
-          "bg-system-success-50": screen === KioskScreen.Success,
-          "bg-system-error-50":
+          "bg-surface-success-50": screen === KioskScreen.Success,
+          "bg-surface-error-50":
             screen === KioskScreen.ConnectionError ||
             screen === KioskScreen.VerificationError ||
             screen === KioskScreen.InvalidRequest ||
@@ -128,7 +128,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         },
       )}
     >
-      <div className="grid grow grid-rows-auto/1fr/auto items-center justify-center">
+      <div className="grid grow grid-rows-auto-1fr-auto items-center justify-center">
         {!action && (
           <KioskError title="This request is invalid." reset={resetKiosk} />
         )}
@@ -150,7 +150,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         {screen === KioskScreen.ConnectionError && (
           <KioskError
             title="Connection Error"
-            description="We cannot establish a connection to the person's World App. Please refresh and try again."
+            description="We cannot establish a connection to the person's World ID App. Please refresh and try again."
             buttonText="Retry"
             reset={resetKiosk}
           />
@@ -168,7 +168,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         {screen === KioskScreen.VerificationRejected && (
           <KioskError
             title="Verification Rejected"
-            description="Person rejected the verification in the World App."
+            description="Person rejected the verification in the World ID App."
             buttonText="Try again"
             reset={resetKiosk}
           />

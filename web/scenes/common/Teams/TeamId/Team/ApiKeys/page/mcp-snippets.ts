@@ -1,0 +1,159 @@
+const MCP_SERVER_NAME = "worldcoin-developer-portal";
+const MCP_API_KEY_ENV_VAR = "WORLD_DEVELOPER_API_KEY";
+
+const PRODUCTION_MCP_ENDPOINT = "https://developer.world.org/api/mcp";
+const STAGING_MCP_ENDPOINT = "https://staging-developer.world.org/api/mcp";
+
+// Public MCP host for this deployment. Never inherit the portal origin
+// (localhost, preview deployments, or custom hosts).
+export const MCP_ENDPOINT = () =>
+  process.env.NEXT_PUBLIC_APP_ENV === "production"
+    ? PRODUCTION_MCP_ENDPOINT
+    : STAGING_MCP_ENDPOINT;
+
+export type ProviderId = "codex" | "claude" | "cursor" | "chatgpt" | "zed";
+
+export type Provider = {
+  id: ProviderId;
+  name: string;
+  setupLabel: string;
+};
+
+export type ProviderSnippet = {
+  command: string;
+  rawConfig: string;
+};
+
+const shellQuote = (value: string) => `'${value.replace(/'/g, "'\\''")}'`;
+const envReference = (name: string) => `\${${name}}`;
+const tomlString = (value: string) => JSON.stringify(value);
+
+const getClaudeMcpCommand = (apiKey: string, endpoint: string) =>
+  `claude mcp add ${MCP_SERVER_NAME} ${endpoint} --transport http --header "Authorization: Bearer ${apiKey}"`;
+
+const getCodexMcpCommand = (apiKey: string, endpoint: string) =>
+  `codex mcp add ${MCP_SERVER_NAME} --env ${MCP_API_KEY_ENV_VAR}=${shellQuote(apiKey)} -- npx -y mcp-remote ${endpoint} --transport http-only --header 'Authorization:Bearer ${envReference(MCP_API_KEY_ENV_VAR)}'`;
+
+const getClaudeJsonConfig = (apiKey: string, endpoint: string) =>
+  JSON.stringify(
+    {
+      mcpServers: {
+        [MCP_SERVER_NAME]: {
+          type: "http",
+          url: endpoint,
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+          },
+        },
+      },
+    },
+    null,
+    2,
+  );
+
+const getCursorJsonConfig = (apiKey: string, endpoint: string) =>
+  JSON.stringify(
+    {
+      mcpServers: {
+        [MCP_SERVER_NAME]: {
+          url: endpoint,
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+          },
+        },
+      },
+    },
+    null,
+    2,
+  );
+
+const getChatGptConnectorConfig = (apiKey: string, endpoint: string) =>
+  [
+    `Name: World Developer Portal`,
+    `URL: ${endpoint}`,
+    `Authorization: Bearer ${apiKey}`,
+  ].join("\n");
+
+const getZedJsonConfig = (apiKey: string, endpoint: string) =>
+  JSON.stringify(
+    {
+      context_servers: {
+        [MCP_SERVER_NAME]: {
+          url: endpoint,
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+          },
+        },
+      },
+    },
+    null,
+    2,
+  );
+
+export const getProviderSnippets = (
+  apiKey: string,
+  endpoint: string,
+): Record<ProviderId, ProviderSnippet> => {
+  const claudeJsonConfig = getClaudeJsonConfig(apiKey, endpoint);
+  const cursorJsonConfig = getCursorJsonConfig(apiKey, endpoint);
+  const chatGptConnectorConfig = getChatGptConnectorConfig(apiKey, endpoint);
+  const zedJsonConfig = getZedJsonConfig(apiKey, endpoint);
+
+  return {
+    codex: {
+      command: getCodexMcpCommand(apiKey, endpoint),
+      rawConfig: [
+        `[mcp_servers.${MCP_SERVER_NAME}]`,
+        `command = "npx"`,
+        `args = ["-y", "mcp-remote", ${tomlString(endpoint)}, "--transport", "http-only", "--header", ${tomlString(`Authorization:Bearer ${envReference(MCP_API_KEY_ENV_VAR)}`)}]`,
+        "",
+        `[mcp_servers.${MCP_SERVER_NAME}.env]`,
+        `${MCP_API_KEY_ENV_VAR} = ${tomlString(apiKey)}`,
+      ].join("\n"),
+    },
+    claude: {
+      command: getClaudeMcpCommand(apiKey, endpoint),
+      rawConfig: claudeJsonConfig,
+    },
+    cursor: {
+      command: cursorJsonConfig,
+      rawConfig: cursorJsonConfig,
+    },
+    chatgpt: {
+      command: chatGptConnectorConfig,
+      rawConfig: chatGptConnectorConfig,
+    },
+    zed: {
+      command: zedJsonConfig,
+      rawConfig: zedJsonConfig,
+    },
+  };
+};
+
+export const PROVIDERS: Provider[] = [
+  {
+    id: "codex",
+    name: "Codex",
+    setupLabel: "Run in your terminal",
+  },
+  {
+    id: "claude",
+    name: "Claude",
+    setupLabel: "Run in your terminal",
+  },
+  {
+    id: "cursor",
+    name: "Cursor",
+    setupLabel: "Paste into .cursor/mcp.json",
+  },
+  {
+    id: "chatgpt",
+    name: "ChatGPT",
+    setupLabel: "Use as connector config",
+  },
+  {
+    id: "zed",
+    name: "Zed",
+    setupLabel: "Paste into settings.json",
+  },
+];

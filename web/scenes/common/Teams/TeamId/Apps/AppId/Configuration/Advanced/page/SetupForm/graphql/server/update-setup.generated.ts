@@ -23,6 +23,7 @@ export type UpdateSetupMutationVariables = Types.Exact<{
   can_use_attestation: Types.Scalars["Boolean"]["input"];
   is_allowed_unlimited_notifications: Types.Scalars["Boolean"]["input"];
   max_notifications_per_day: Types.Scalars["Int"]["input"];
+  clear_external_category?: Types.InputMaybe<Types.Scalars["Boolean"]["input"]>;
 }>;
 
 export type UpdateSetupMutation = {
@@ -30,6 +31,10 @@ export type UpdateSetupMutation = {
   update_app_metadata_by_pk?: {
     __typename?: "app_metadata";
     id: string;
+  } | null;
+  cleared_external_category?: {
+    __typename?: "app_metadata_mutation_response";
+    affected_rows: number;
   } | null;
 };
 
@@ -45,6 +50,7 @@ export const UpdateSetupDocument = gql`
     $can_use_attestation: Boolean!
     $is_allowed_unlimited_notifications: Boolean!
     $max_notifications_per_day: Int!
+    $clear_external_category: Boolean = false
   ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
@@ -61,6 +67,12 @@ export const UpdateSetupDocument = gql`
       }
     ) {
       id
+    }
+    cleared_external_category: update_app_metadata(
+      where: { id: { _eq: $app_metadata_id }, category: { _eq: "External" } }
+      _set: { category: "Other" }
+    ) @include(if: $clear_external_category) {
+      affected_rows
     }
   }
 `;

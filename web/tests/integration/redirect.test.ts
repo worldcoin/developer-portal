@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { CombinedGraphQLErrors, gql } from "@apollo/client";
 import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
 import { getAPIServiceClient, getAPIUserClient } from "./test-utils";
 
@@ -31,11 +31,11 @@ describe("redirect model", () => {
       "https://localhost/123", // localhost
     ];
     for (const redirect_uri of validRedirects) {
-      const response = await client.mutate({
+      const response = await client.mutate<any>({
         mutation: insertRedirectMutation,
         variables: { redirect_uri, action_id },
       });
-      expect(response.errors).toBeUndefined();
+      expect(response.error).toBeUndefined();
       expect(response.data?.insert_redirect_one.redirect_uri).toEqual(
         redirect_uri,
       );
@@ -66,12 +66,12 @@ describe("redirect model", () => {
       "@example.com",
     ];
     for (const redirect_uri of validRedirects) {
-      const response = await client.mutate({
+      const response = await client.mutate<any>({
         mutation: insertRedirectMutation,
         variables: { redirect_uri, action_id },
         errorPolicy: "all",
       });
-      expect(response.errors).toEqual([
+      expect((response.error as CombinedGraphQLErrors)?.errors).toEqual([
         {
           extensions: expect.objectContaining({
             code: "data-exception",
@@ -104,12 +104,12 @@ describe("redirect model", () => {
       "http://example.com/123?query=string",
     ];
     for (const redirect_uri of validRedirects) {
-      const response = await client.mutate({
+      const response = await client.mutate<any>({
         mutation: insertRedirectMutation,
         variables: { redirect_uri, action_id },
         errorPolicy: "all",
       });
-      expect(response.errors).toEqual([
+      expect((response.error as CombinedGraphQLErrors)?.errors).toEqual([
         {
           extensions: expect.objectContaining({
             code: "data-exception",

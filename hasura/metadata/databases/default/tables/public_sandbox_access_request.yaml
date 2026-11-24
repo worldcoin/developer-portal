@@ -1,0 +1,65 @@
+table:
+  name: sandbox_access_request
+  schema: public
+object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - google_email
+        - user_id
+select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - id
+        - google_email
+        - user_id
+        - accepted
+        - created_at
+        - processed_at
+      filter: {}
+      allow_aggregations: true
+  - role: service
+    permission:
+      columns:
+        - id
+        - google_email
+        - user_id
+        - accepted
+        - created_at
+        - processed_at
+      filter: {}
+update_permissions:
+  # Marking a sandbox invite as sent is a low-stakes operational update, so
+  # every authenticated dashboard user may process these requests.
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - accepted
+        - processed_at
+      filter: {}
+      check: {}
+  # Hasura exposes `on_conflict` only when the caller also has update
+  # permission. The service mutation uses `update_columns: []` strictly for
+  # idempotent insert-or-ignore behavior, so keep ordinary service updates
+  # unusable with a filter that cannot match this table's non-null primary key.
+  - role: service
+    permission:
+      columns:
+        - google_email
+      filter:
+        id:
+          _is_null: true
+      check: {}
+delete_permissions:
+  # Rejection deletes only pending requests so the developer can submit again.
+  - role: internal_dashboard_readonly
+    permission:
+      filter:
+        accepted:
+          _eq: false

@@ -1,0 +1,46 @@
+query FetchAdminTeams(
+  $includeActiveApiKeysCount: Boolean!
+  $includeAppsCount: Boolean!
+  $includeCreatedAt: Boolean!
+  $includeMembersCount: Boolean!
+  $includeStatus: Boolean!
+  $limit: Int!
+  $offset: Int!
+  $orderBy: [team_order_by!]!
+  $where: team_bool_exp!
+) {
+  team(limit: $limit, offset: $offset, order_by: $orderBy, where: $where) {
+    id
+    name
+    created_at @include(if: $includeCreatedAt)
+    deleted_at @include(if: $includeStatus)
+    memberships_aggregate @include(if: $includeMembersCount) {
+      aggregate {
+        count
+      }
+    }
+    apps_aggregate(where: { deleted_at: { _is_null: true } })
+      @include(if: $includeAppsCount) {
+      aggregate {
+        count
+      }
+    }
+    api_keys_aggregate(where: { is_active: { _eq: true } })
+      @include(if: $includeActiveApiKeysCount) {
+      aggregate {
+        count
+      }
+    }
+  }
+  team_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+
+query FetchAdminTeamPendingInvites($teamIds: [String!]!) {
+  invite(where: { expires_at: { _gte: "now()" }, team_id: { _in: $teamIds } }) {
+    team_id
+  }
+}

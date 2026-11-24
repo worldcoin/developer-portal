@@ -1,3 +1,4 @@
+import { nullifierSchema } from "@/api/helpers/nullifier-schema";
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -10,17 +11,13 @@ import { captureEvent } from "@/services/posthogClient";
 import { hashSignal } from "@worldcoin/idkit/hashing";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk as fetchAppReview } from "./graphql/fetch-current-app-review.generated";
-import { getSdk as updateReviewCount } from "./graphql/update-review-counter.generated";
-import { getSdk as upsertAppReview } from "./graphql/upsert-app-review.generated";
+import { getSdk as insertAppReview } from "./graphql/insert-app-review.generated";
+import { getSdk as updateAppReviewRating } from "./graphql/update-app-review-rating.generated";
 
 const schema = yup
   .object({
     proof: yup.string().strict().required("This attribute is required."),
-    nullifier_hash: yup
-      .string()
-      .strict()
-      .required("This attribute is required."),
+    nullifier_hash: nullifierSchema.required("This attribute is required."),
     merkle_root: yup.string().strict().required("This attribute is required."),
     verification_level: yup
       .string()
@@ -103,52 +100,66 @@ export const POST = async (req: NextRequest) => {
 
   const serviceClient = await getAPIServiceGraphqlClient();
 
-  const { app_reviews } = await fetchAppReview(serviceClient).GetAppReview({
-    nullifier_hash: parsedParams.nullifier_hash,
-    app_id: app_id,
-  });
+  // The existing text uniqueness key is encoded from the verified number.
+  const nullifierHash = parsedParams.nullifier_hash.toHex();
+  const country = parsedParams.country?.toLowerCase() ?? "";
 
-  // Anchor: Insert App Rating or Update App Rating
-  const { insert_app_reviews_one } = await upsertAppReview(
-    serviceClient,
-  ).UpsertAppReview({
-    nullifier_hash: parsedParams.nullifier_hash,
-    app_id: app_id,
-    country: parsedParams.country?.toLowerCase() ?? "",
-    rating: parsedParams.rating,
-  });
+  // Insert the review row; under concurrency one INSERT wins (the UNIQUE
+  // constraint serializes the rest). A per-person nullifier conflict means an
+  // existing review to update in place. app.rating_sum / rating_count are
+  // maintained transactionally by the app_reviews_maintain_rating DB trigger,
+  // so the handler never touches them (no read-modify-write race).
+  let reviewWritten = false;
 
-  if (!insert_app_reviews_one) {
+  try {
+    const { insert_app_reviews_one } = await insertAppReview(
+      serviceClient,
+    ).InsertAppReview({
+      nullifier_hash: nullifierHash,
+      app_id,
+      country,
+      rating: parsedParams.rating,
+    });
+    reviewWritten = Boolean(insert_app_reviews_one);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+
+    // Only a per-person nullifier uniqueness violation means "already reviewed".
+    // Any other error (e.g. an app_reviews_pkey collision or a transport
+    // failure) is a genuine failure.
+    if (!message.includes("app_reviews_nullifier_hash_key")) {
+      logger.error("Failed to insert app review", { error, app_id });
+      return errorResponse({
+        statusCode: 500,
+        code: "app_review_failed",
+        detail: "Failed to set app review.",
+        attribute: null,
+        req,
+        app_id,
+      });
+    }
+
+    // Existing review for this person — update their rating in place.
+    const { update_app_reviews } = await updateAppReviewRating(
+      serviceClient,
+    ).UpdateAppReviewRating({
+      app_id,
+      nullifier_hash: nullifierHash,
+      rating: parsedParams.rating,
+    });
+    reviewWritten = Boolean(update_app_reviews?.affected_rows);
+  }
+
+  if (!reviewWritten) {
+    logger.error("App review was neither inserted nor updated", { app_id });
     return errorResponse({
-      statusCode: 400,
+      statusCode: 500,
       code: "app_review_failed",
       detail: "Failed to set app review.",
       attribute: null,
       req,
       app_id,
     });
-  }
-
-  // Calculate the rating sum and count increment
-  let ratingSumIncrement = parsedParams.rating;
-  let ratingCountIncrement = 1;
-  if (app_reviews.length) {
-    // If we already have an existing row for this user, only adjust for the difference
-    ratingSumIncrement = parsedParams.rating - app_reviews[0].rating;
-    ratingCountIncrement = 0;
-  }
-
-  // Anchor: Update App Review Count
-  const { update_app } = await updateReviewCount(
-    serviceClient,
-  ).UpdateAppRatingSumMutation({
-    app_id: app_id,
-    rating: ratingSumIncrement,
-    rating_count_inc: ratingCountIncrement,
-  });
-
-  if (!update_app) {
-    console.warn("Failed to update app review count", { app_id });
   }
 
   await captureEvent({

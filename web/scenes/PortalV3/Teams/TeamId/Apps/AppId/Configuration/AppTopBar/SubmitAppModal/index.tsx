@@ -2,7 +2,6 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
-import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SendIcon } from "@/components/Icons/SendIcon";
 import { ModalIcon } from "@/components/ModalIcon";
 import { TextArea } from "@/components/TextArea";
@@ -10,6 +9,7 @@ import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { appChangelogSchema } from "@/lib/schema";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { WarningBadgeIcon } from "@/scenes/PortalV3/common/Icon";
 import { removeAppFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/server";
 import { yupResolver } from "@hookform/resolvers/yup";
 import posthog from "posthog-js";
@@ -21,7 +21,8 @@ import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppI
 import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import { submitAppForReviewFormServerSide } from "../server/submit";
 import { SubmitSuccessToast } from "../SubmitSuccessToast";
-import { useValidateLocalisationMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/SubmitAppModal/graphql/client/validate-localisations.generated";
+import { useMutation } from "@apollo/client/react";
+import { ValidateLocalizationDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/SubmitAppModal/graphql/client/validate-localizations.generated";
 
 const schema = yup
   .object({
@@ -38,6 +39,7 @@ type SubmitAppModalProps = {
   appMetadataId: string;
   canSubmitAppStore: boolean;
   isDeveloperAllowListing: boolean;
+  onSubmitted?: () => void;
 };
 
 export type SubmitAppFormValues = yup.InferType<typeof schema>;
@@ -51,6 +53,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     canSubmitAppStore,
     isDeveloperAllowListing,
     appMetadataId,
+    onSubmitted,
   } = props;
 
   const { refetch: refetchAppMetadata } = useRefetchQueries(
@@ -60,7 +63,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     },
   );
 
-  const [validateLocalisation, {}] = useValidateLocalisationMutation();
+  const [validateLocalization, {}] = useMutation(ValidateLocalizationDocument);
 
   const {
     register,
@@ -82,7 +85,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   const submit = useCallback(
     async (values: SubmitAppFormValues) => {
       try {
-        const { data } = await validateLocalisation({
+        const { data } = await validateLocalization({
           variables: {
             app_metadata_id: appMetadataId,
             team_id: teamId,
@@ -91,12 +94,12 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         });
 
         if (!data?.validate_localisation?.success) {
-          toast.error("Localisation not set for all languages");
+          toast.error("Localization not set for all languages");
           return;
         }
       } catch (error) {
-        console.error("Failed to validate localisation: ", error);
-        toast.error("Failed to validate localisation");
+        console.error("Failed to validate localization: ", error);
+        toast.error("Failed to validate localization");
         return;
       }
 
@@ -146,53 +149,61 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         },
       );
       setOpen(false);
+      onSubmitted?.();
     },
     [
       appId,
       appMetadataId,
       canSubmitAppStore,
       refetchAppMetadata,
+      onSubmitted,
       setOpen,
       teamId,
-      validateLocalisation,
+      validateLocalization,
     ],
   );
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogOverlay />
-      <DialogPanel className="gap-y-8 md:max-w-[36rem]">
+      <DialogPanel className="gap-y-8 md:max-w-xl">
         <ModalIcon variant="info">
           <SendIcon className="size-10 text-white" />
         </ModalIcon>
         <form className="grid gap-y-6" onSubmit={handleSubmit(submit)}>
           <div className="grid grid-cols-1 justify-items-center gap-y-1 text-center">
-            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
+            <Typography
+              variant={TYPOGRAPHY.H6}
+              className="text-content-primary"
+            >
               Submit for review
             </Typography>
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            <Typography
+              variant={TYPOGRAPHY.R3}
+              className="text-content-secondary"
+            >
               Submit your app for review to get the badge "Verified"
             </Typography>
           </div>
 
           <div className="mt-2 grid gap-y-3">
-            <div className="grid gap-y-4 rounded-xl border border-grey-200 p-6">
+            <div className="grid gap-y-4 rounded-xl border border-edge p-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <Typography
                       variant={TYPOGRAPHY.M3}
-                      className="text-grey-900"
+                      className="text-content-primary"
                     >
                       Display in the Worldcoin App Store
                     </Typography>
-                    <span className="rounded-full bg-grey-100 px-2 py-0.5 text-xs text-grey-500">
+                    <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-content-secondary">
                       Optional
                     </span>
                   </div>
                   <Typography
                     variant={TYPOGRAPHY.R4}
-                    className="mt-1 text-grey-500"
+                    className="mt-1 text-content-secondary"
                   >
                     If approved, your app can be featured in the Worldcoin App
                     Store
@@ -208,13 +219,11 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
             </div>
 
             {isDeveloperAllowListing && !isAllowListing && (
-              <div className="flex items-center gap-3 rounded-xl bg-system-warning-100 p-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
-                  <AlertIcon className="size-4 text-white" />
-                </div>
+              <div className="flex items-center gap-3 rounded-xl bg-surface-warning-100 p-3">
+                <WarningBadgeIcon />
                 <Typography
                   variant={TYPOGRAPHY.R4}
-                  className="text-system-warning-600"
+                  className="text-content-warning-600"
                 >
                   Your app will be removed from the Worldcoin App Store
                 </Typography>

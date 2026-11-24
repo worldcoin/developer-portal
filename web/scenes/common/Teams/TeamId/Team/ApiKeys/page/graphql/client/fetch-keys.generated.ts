@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type FetchKeysQueryVariables = Types.Exact<{
   teamId: Types.Scalars["String"]["input"];
 }>;
@@ -21,88 +19,91 @@ export type FetchKeysQuery = {
   }>;
 };
 
-export const FetchKeysDocument = gql`
-  query FetchKeys($teamId: String!) {
-    api_key(
-      order_by: { created_at: asc }
-      where: { team_id: { _eq: $teamId } }
-    ) {
-      id
-      team_id
-      created_at
-      updated_at
-      is_active
-      name
-    }
-  }
-`;
-
-/**
- * __useFetchKeysQuery__
- *
- * To run a query within a React component, call `useFetchKeysQuery` and pass it any options that fit your needs.
- * When your component renders, `useFetchKeysQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useFetchKeysQuery({
- *   variables: {
- *      teamId: // value for 'teamId'
- *   },
- * });
- */
-export function useFetchKeysQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    FetchKeysQuery,
-    FetchKeysQueryVariables
-  > &
-    (
-      | { variables: FetchKeysQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<FetchKeysQuery, FetchKeysQueryVariables>(
-    FetchKeysDocument,
-    options,
-  );
-}
-export function useFetchKeysLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    FetchKeysQuery,
-    FetchKeysQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<FetchKeysQuery, FetchKeysQueryVariables>(
-    FetchKeysDocument,
-    options,
-  );
-}
-export function useFetchKeysSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<FetchKeysQuery, FetchKeysQueryVariables>,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<FetchKeysQuery, FetchKeysQueryVariables>(
-    FetchKeysDocument,
-    options,
-  );
-}
-export type FetchKeysQueryHookResult = ReturnType<typeof useFetchKeysQuery>;
-export type FetchKeysLazyQueryHookResult = ReturnType<
-  typeof useFetchKeysLazyQuery
->;
-export type FetchKeysSuspenseQueryHookResult = ReturnType<
-  typeof useFetchKeysSuspenseQuery
->;
-export type FetchKeysQueryResult = Apollo.QueryResult<
-  FetchKeysQuery,
-  FetchKeysQueryVariables
->;
+export const FetchKeysDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "FetchKeys" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "teamId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "api_key" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "order_by" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "created_at" },
+                      value: { kind: "EnumValue", value: "asc" },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "team_id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "teamId" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "team_id" } },
+                { kind: "Field", name: { kind: "Name", value: "created_at" } },
+                { kind: "Field", name: { kind: "Name", value: "updated_at" } },
+                { kind: "Field", name: { kind: "Name", value: "is_active" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<FetchKeysQuery, FetchKeysQueryVariables>;

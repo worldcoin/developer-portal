@@ -1,0 +1,20 @@
+query FetchAdminRpInventory {
+  admin_rp_inventory {
+    total_rps
+    managed_rps
+    self_managed_rps
+    managed_with_key
+    managed_without_key
+    unique_manager_key_rps
+    shared_manager_key_rps
+    status_pending
+    status_registered
+    status_failed
+    status_deactivated
+    staging_status_pending
+    staging_status_registered
+    staging_status_failed
+    staging_status_deactivated
+    staging_status_null
+  }
+}

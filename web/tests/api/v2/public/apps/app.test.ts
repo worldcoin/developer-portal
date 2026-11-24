@@ -8,6 +8,23 @@ jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(),
 }));
 
+// The handler fetches per-app stats from NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT, which
+// .env.test points at the real metrics service — so every test here would otherwise
+// make a live request with a 5s timeout, on the network path rather than the behaviour
+// under test. Stub fetch at the boundary instead of the whole utils module, which also
+// exports isValidHostName that the handler needs for real. A 404 reproduces exactly
+// what the real service returns for these synthetic app_ids: the handler leaves
+// metricsData empty, and fetchWithRetry treats a non-retryable 4xx as final.
+beforeAll(() => {
+  jest
+    .spyOn(global, "fetch")
+    .mockResolvedValue(new Response(null, { status: 404 }));
+});
+
+afterAll(() => {
+  jest.restoreAllMocks();
+});
+
 jest.mock(
   "../../../../../api/v2/public/app/[app_id]/graphql/get-app-metadata.generated",
   () => ({
@@ -43,6 +60,7 @@ jest.mock(
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             app: {
+              rp_registration: [],
               team: {
                 name: "Example Team",
               },
@@ -153,6 +171,7 @@ describe("/api/public/app/[app_id]", () => {
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             app: {
+              rp_registration: [{ rp_id: "rp_0123456789abcdef" }],
               team: {
                 name: "Example Team",
               },
@@ -175,6 +194,7 @@ describe("/api/public/app/[app_id]", () => {
     });
     expect(await response.json()).toEqual({
       app_data: {
+        rp_id: "rp_0123456789abcdef",
         name: "Example App",
         app_id: "1",
         app_rating: 3.33,

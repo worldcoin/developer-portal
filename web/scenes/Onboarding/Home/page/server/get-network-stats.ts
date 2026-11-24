@@ -11,9 +11,9 @@ const METRICS_ENDPOINT = "https://metrics.worldcoin.org/";
 const METRICS_FETCH_TIMEOUT_MS = 3000;
 
 const FALLBACK_NETWORK_STATS: NetworkStat[] = [
-  { label: "Humans verified", value: "18M" },
-  { label: "Countries using World ID", value: "191" },
-  { label: "Proofs generated", value: "267M" },
+  { label: "Verified humans", value: "18M+" },
+  { label: "Proofs generated", value: "268M" },
+  { label: "Countries", value: "191" },
 ];
 
 type MetricsPayload = {
@@ -72,16 +72,16 @@ export const getNetworkStats = async (): Promise<NetworkStat[]> => {
 
     return [
       {
-        label: "Humans verified",
+        label: "Verified humans",
         value: formatCompactNumber(humansVerified),
-      },
-      {
-        label: "Countries using World ID",
-        value: countriesUsingWorldId.toLocaleString("en"),
       },
       {
         label: "Proofs generated",
         value: formatCompactNumber(proofsGenerated),
+      },
+      {
+        label: "Countries",
+        value: countriesUsingWorldId.toLocaleString("en"),
       },
     ];
   } catch (error) {

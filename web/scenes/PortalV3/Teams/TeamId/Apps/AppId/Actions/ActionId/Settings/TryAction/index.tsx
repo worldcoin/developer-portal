@@ -42,7 +42,7 @@ export const TryAction = (props: TryActionProps) => {
   return (
     <div className="grid h-full grid-rows-auto/1fr items-start gap-y-5 lg:w-[480px]">
       <div className="grid w-full grid-cols-2 items-center justify-between">
-        <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
+        <Typography variant={TYPOGRAPHY.M3} className="text-content-primary">
           Try it out
         </Typography>
         <div className="flex w-full justify-end gap-x-4">
@@ -51,14 +51,14 @@ export const TryAction = (props: TryActionProps) => {
               type="button"
               onClick={() => setShowCode(false)}
               className={clsx(
-                "flex size-11 items-center justify-center rounded-xl bg-white shadow-button hover:bg-grey-50",
-                { "border border-grey-200": showKioskView },
+                "flex size-11 items-center justify-center rounded-xl bg-surface shadow-button hover:bg-surface-soft",
+                { "border border-edge": showKioskView },
               )}
             >
               <QRIcon
                 className={clsx("size-4", {
-                  "text-blue-500": showKioskView,
-                  "text-grey-700": !showKioskView,
+                  "text-content-link-legacy": showKioskView,
+                  "text-content-strong": !showKioskView,
                 })}
               />
             </Button>
@@ -68,14 +68,14 @@ export const TryAction = (props: TryActionProps) => {
               type="button"
               onClick={() => setShowCode(true)}
               className={clsx(
-                "flex size-11 items-center justify-center rounded-xl bg-white shadow-button hover:bg-grey-50",
-                { "border border-grey-200": showCodeView },
+                "flex size-11 items-center justify-center rounded-xl bg-surface shadow-button hover:bg-surface-soft",
+                { "border border-edge": showCodeView },
               )}
             >
               <CodeIcon
                 className={clsx("size-4", {
-                  "text-blue-500": showCodeView,
-                  "text-grey-700": !showCodeView,
+                  "text-content-link-legacy": showCodeView,
+                  "text-content-strong": !showCodeView,
                 })}
               />
             </Button>

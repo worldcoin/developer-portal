@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type GetKioskActionQueryVariables = Types.Exact<{
   action_id: Types.Scalars["String"]["input"];
   app_id: Types.Scalars["String"]["input"];
@@ -28,106 +26,197 @@ export type GetKioskActionQuery = {
   app_metadata: Array<{ __typename?: "app_metadata"; logo_img_url: string }>;
 };
 
-export const GetKioskActionDocument = gql`
-  query GetKioskAction($action_id: String!, $app_id: String!) {
-    action(order_by: { created_at: asc }, where: { id: { _eq: $action_id } }) {
-      id
-      app_id
-      action
-      description
-      name
-      max_verifications
-      kiosk_enabled
-      app_flow_on_complete
-      webhook_uri
-      webhook_pem
-    }
-    app_by_pk(id: $app_id) {
-      engine
-    }
-    app_metadata(
-      where: {
-        app_id: { _eq: $app_id }
-        verification_status: { _eq: "verified" }
-      }
-    ) {
-      logo_img_url
-    }
-  }
-`;
-
-/**
- * __useGetKioskActionQuery__
- *
- * To run a query within a React component, call `useGetKioskActionQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetKioskActionQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetKioskActionQuery({
- *   variables: {
- *      action_id: // value for 'action_id'
- *      app_id: // value for 'app_id'
- *   },
- * });
- */
-export function useGetKioskActionQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetKioskActionQuery,
-    GetKioskActionQueryVariables
-  > &
-    (
-      | { variables: GetKioskActionQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetKioskActionQuery, GetKioskActionQueryVariables>(
-    GetKioskActionDocument,
-    options,
-  );
-}
-export function useGetKioskActionLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetKioskActionQuery,
-    GetKioskActionQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetKioskActionQuery, GetKioskActionQueryVariables>(
-    GetKioskActionDocument,
-    options,
-  );
-}
-export function useGetKioskActionSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetKioskActionQuery,
-        GetKioskActionQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    GetKioskActionQuery,
-    GetKioskActionQueryVariables
-  >(GetKioskActionDocument, options);
-}
-export type GetKioskActionQueryHookResult = ReturnType<
-  typeof useGetKioskActionQuery
->;
-export type GetKioskActionLazyQueryHookResult = ReturnType<
-  typeof useGetKioskActionLazyQuery
->;
-export type GetKioskActionSuspenseQueryHookResult = ReturnType<
-  typeof useGetKioskActionSuspenseQuery
->;
-export type GetKioskActionQueryResult = Apollo.QueryResult<
-  GetKioskActionQuery,
-  GetKioskActionQueryVariables
->;
+export const GetKioskActionDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetKioskAction" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "action_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "app_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "action" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "order_by" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "created_at" },
+                      value: { kind: "EnumValue", value: "asc" },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "action_id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "app_id" } },
+                { kind: "Field", name: { kind: "Name", value: "action" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "max_verifications" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "kiosk_enabled" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "app_flow_on_complete" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "webhook_uri" } },
+                { kind: "Field", name: { kind: "Name", value: "webhook_pem" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "app_by_pk" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "app_id" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "engine" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "app_metadata" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "app_id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "app_id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "verification_status" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "StringValue",
+                              value: "verified",
+                              block: false,
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "logo_img_url" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetKioskActionQuery, GetKioskActionQueryVariables>;

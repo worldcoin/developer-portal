@@ -20,15 +20,16 @@ import {
   FetchMeQuery,
 } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { skipToken, useMutation, useQuery } from "@apollo/client/react";
 import { useCallback } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import {
+  FetchMembersDocument,
   FetchMembersQuery,
-  useFetchMembersQuery,
 } from "@/scenes/common/Profile/Teams/page/TransferTeamDialog/graphql/client/fetch-members.generated";
-import { useFetchUserMembershipQuery } from "@/scenes/common/Profile/Teams/page/TransferTeamDialog/graphql/client/fetch-user-membership.generated";
-import { useTransferOwnershipMutation } from "@/scenes/common/Profile/Teams/page/TransferTeamDialog/graphql/client/transfer-ownership.generated";
+import { FetchUserMembershipDocument } from "@/scenes/common/Profile/Teams/page/TransferTeamDialog/graphql/client/fetch-user-membership.generated";
+import { TransferOwnershipDocument } from "@/scenes/common/Profile/Teams/page/TransferTeamDialog/graphql/client/transfer-ownership.generated";
 
 type TransferTeamDialogProps = DialogProps & {
   team?: NonNullable<FetchMeQuery["user_by_pk"]>["memberships"][0]["team"];
@@ -42,17 +43,17 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
   const { team, ...otherProps } = props;
   const { user } = useUser() as Auth0SessionUser;
 
-  const { data } = useFetchMembersQuery({
-    variables:
-      !team || !user?.hasura
-        ? undefined
-        : {
+  const { data } = useQuery(
+    FetchMembersDocument,
+    !team || !user?.hasura
+      ? skipToken
+      : {
+          variables: {
             user_id: user?.hasura.id,
             team_id: team.id,
           },
-
-    skip: !team || !user?.hasura,
-  });
+        },
+  );
 
   const getName = useCallback((member?: FetchMembersQuery["members"][0]) => {
     return (
@@ -63,7 +64,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
     );
   }, []);
 
-  const [transferMembership] = useTransferOwnershipMutation();
+  const [transferMembership] = useMutation(TransferOwnershipDocument);
 
   const {
     control,
@@ -76,7 +77,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
 
   const member = useWatch({ control, name: "member" });
 
-  const { data: userMembership } = useFetchUserMembershipQuery({
+  const { data: userMembership } = useQuery(FetchUserMembershipDocument, {
     variables: {
       user_id: user?.hasura.id ?? "",
       team_id: team?.id ?? "",
@@ -112,7 +113,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
     <Dialog {...otherProps}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[32rem]">
+      <DialogPanel className="grid gap-y-8 md:max-w-lg">
         <CircleIconContainer variant="info">
           <ExchangeIcon />
         </CircleIconContainer>
@@ -152,7 +153,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                   <SelectButton className="relative grid w-full grid-cols-1fr/auto items-center py-3 text-start">
                     <Typography variant={TYPOGRAPHY.R3}>
                       {!field.value ? (
-                        <span className="text-gray-400">
+                        <span className="text-content-tertiary">
                           Select team member
                         </span>
                       ) : (
@@ -163,8 +164,8 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                       )}
                     </Typography>
 
-                    <fieldset className="pointer-events-none absolute inset-x-0 bottom-0 top-[-12px] rounded-lg border border-grey-200">
-                      <legend className="ml-4 px-0.5 text-grey-400">
+                    <fieldset className="pointer-events-none absolute inset-x-0 top-[-12px] bottom-0 rounded-lg border border-edge">
+                      <legend className="ml-4 px-0.5 text-content-tertiary">
                         <Typography variant={TYPOGRAPHY.R4}>User</Typography>
                       </legend>
                     </fieldset>
@@ -176,7 +177,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                     {data?.members.map((member) => (
                       <SelectOption
                         key={member.id}
-                        className="transition hover:bg-grey-100"
+                        className="transition hover:bg-surface-muted"
                         value={member}
                       >
                         {getName(member)}{" "}

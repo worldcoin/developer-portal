@@ -13,6 +13,20 @@ array_relationships:
         table:
           name: membership
           schema: public
+  - name: sandbox_access_requests
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: sandbox_access_request
+          schema: public
+  - name: sandbox_access_requests_ios
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: sandbox_access_request_ios
+          schema: public
 insert_permissions:
   - role: qa
     permission:
@@ -43,6 +57,15 @@ insert_permissions:
         - team_id
         - world_id_nullifier
 select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - created_at
+        - email
+        - id
+        - name
+      filter: {}
+      allow_aggregations: true
   - role: qa
     permission:
       columns:
@@ -84,13 +107,11 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - auth0Id
         - created_at
         - email
         - id
         - is_subscribed
         - name
-        - posthog_id
         - world_id_nullifier
         - is_allow_tracking
       filter:

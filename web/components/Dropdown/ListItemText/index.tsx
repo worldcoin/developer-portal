@@ -14,7 +14,7 @@ export const ListItemText = (props: ListItemTextProps) => {
   return (
     <Component
       className={twMerge(
-        "max-md:truncate max-md:text-lg md:whitespace-nowrap md:text-sm md:!leading-[1px]",
+        "max-md:truncate max-md:text-lg md:text-sm md:leading-px! md:whitespace-nowrap",
         className,
       )}
       {...otherProps}

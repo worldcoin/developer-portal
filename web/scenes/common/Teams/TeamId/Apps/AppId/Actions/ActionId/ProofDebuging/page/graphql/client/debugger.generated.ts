@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type DebuggerQueryVariables = Types.Exact<{
   action_id: Types.Scalars["String"]["input"];
 }>;
@@ -20,80 +18,102 @@ export type DebuggerQuery = {
   }>;
 };
 
-export const DebuggerDocument = gql`
-  query Debugger($action_id: String!) {
-    action(order_by: { created_at: asc }, where: { id: { _eq: $action_id } }) {
-      id
-      app_id
-      name
-      action
-      app {
-        is_staging
-      }
-    }
-  }
-`;
-
-/**
- * __useDebuggerQuery__
- *
- * To run a query within a React component, call `useDebuggerQuery` and pass it any options that fit your needs.
- * When your component renders, `useDebuggerQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useDebuggerQuery({
- *   variables: {
- *      action_id: // value for 'action_id'
- *   },
- * });
- */
-export function useDebuggerQuery(
-  baseOptions: Apollo.QueryHookOptions<DebuggerQuery, DebuggerQueryVariables> &
-    ({ variables: DebuggerQueryVariables; skip?: boolean } | { skip: boolean }),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<DebuggerQuery, DebuggerQueryVariables>(
-    DebuggerDocument,
-    options,
-  );
-}
-export function useDebuggerLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    DebuggerQuery,
-    DebuggerQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<DebuggerQuery, DebuggerQueryVariables>(
-    DebuggerDocument,
-    options,
-  );
-}
-export function useDebuggerSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<DebuggerQuery, DebuggerQueryVariables>,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<DebuggerQuery, DebuggerQueryVariables>(
-    DebuggerDocument,
-    options,
-  );
-}
-export type DebuggerQueryHookResult = ReturnType<typeof useDebuggerQuery>;
-export type DebuggerLazyQueryHookResult = ReturnType<
-  typeof useDebuggerLazyQuery
->;
-export type DebuggerSuspenseQueryHookResult = ReturnType<
-  typeof useDebuggerSuspenseQuery
->;
-export type DebuggerQueryResult = Apollo.QueryResult<
-  DebuggerQuery,
-  DebuggerQueryVariables
->;
+export const DebuggerDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "Debugger" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "action_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "action" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "order_by" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "created_at" },
+                      value: { kind: "EnumValue", value: "asc" },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "action_id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "app_id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "action" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "app" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "is_staging" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DebuggerQuery, DebuggerQueryVariables>;

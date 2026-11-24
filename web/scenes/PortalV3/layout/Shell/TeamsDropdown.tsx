@@ -1,97 +1,71 @@
 "use client";
 
-import { CaretIcon } from "@/components/Icons/CaretIcon";
-import { WorldIcon } from "@/components/Icons/WorldIcon";
-import { Placeholder } from "@/components/PlaceholderImage";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 import { urls } from "@/lib/urls";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import clsx from "clsx";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { useCreateTeamDialog } from "@/scenes/Onboarding/CreateTeam/useCreateTeamDialog";
+import { ChevronsUpDownIcon } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useMemo } from "react";
+import {
+  SearchableSwitcher,
+  switcherTriggerClassName,
+} from "./SearchableSwitcher";
 
 export type DropdownTeam = { id: string; name: string };
 
-const TeamsDropdownRow = (props: {
-  team: DropdownTeam;
-  isCurrent: boolean;
-  onSelect: () => void;
-}) => (
-  <DropdownMenu.Item
-    onSelect={props.onSelect}
-    className={clsx(
-      "flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-grey-100",
-      props.isCurrent && "font-medium",
-    )}
-  >
-    <Placeholder
-      name={props.team.name}
-      seed={props.team.id}
-      className="size-5 shrink-0 text-xs"
-    />
-    <span className="truncate">{props.team.name}</span>
-  </DropdownMenu.Item>
-);
-
 export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
-  const router = useRouter();
-  const { teams } = props;
+  const { open: openCreateTeamDialog } = useCreateTeamDialog();
   const { teamId } = useParams<{ teamId?: string }>();
-  const currentTeam = teams.find((t) => t.id === teamId);
+  const teams = useMemo(
+    () =>
+      [...props.teams].sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+      ),
+    [props.teams],
+  );
+  const currentTeam = teams.find((team) => team.id === teamId);
 
   return (
-    <div className="border-border flex h-14 items-center gap-1 border-b px-2">
-      {currentTeam ? (
-        <Link
-          href={urls.apps({ team_id: currentTeam.id })}
-          className="focus-visible:ring-ring flex min-w-0 flex-1 items-center gap-2.5 rounded-8 p-1.5 outline-none focus-visible:ring-2"
-        >
-          <WorldIcon className="size-6 shrink-0" />
-          <span className="min-w-0 flex-1 truncate font-gta text-18 font-medium">
-            {currentTeam.name}
-          </span>
-        </Link>
-      ) : (
-        <div className="flex min-w-0 flex-1 items-center gap-2.5 p-1.5">
-          <WorldIcon className="size-6 shrink-0" />
-          <span className="text-muted-foreground min-w-0 flex-1 truncate font-gta text-14 font-medium">
-            Select team
-          </span>
-        </div>
-      )}
-
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger
-          aria-label="Switch team"
-          className="text-muted-foreground hover:bg-muted focus-visible:ring-ring flex size-7 shrink-0 items-center justify-center rounded-8 outline-none focus-visible:ring-2"
-        >
-          <CaretIcon className="size-3" />
-        </DropdownMenu.Trigger>
-
-        <DropdownMenu.Portal>
-          <DropdownMenu.Content
-            align="end"
-            sideOffset={6}
-            collisionPadding={12}
-            className="border-border z-50 max-h-[60vh] w-[232px] overflow-y-auto rounded-12 border bg-white p-1 shadow-lg "
-          >
-            {teams.map((team) => (
-              <TeamsDropdownRow
-                key={team.id}
-                team={team}
-                isCurrent={team.id === currentTeam?.id}
-                onSelect={() => router.push(urls.teams({ team_id: team.id }))}
-              />
-            ))}
-            <DropdownMenu.Separator className="bg-border my-1 h-px" />
-            <DropdownMenu.Item
-              onSelect={() => router.push(urls.createTeam())}
-              className="text-muted-foreground flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-grey-100"
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SearchableSwitcher
+          items={teams}
+          selectedId={teamId}
+          renderTrigger={(open) => (
+            <SidebarMenuButton
+              aria-label="Switch team"
+              aria-expanded={open}
+              title="Switch team"
+              size="lg"
+              className={cn(
+                switcherTriggerClassName,
+                "text-portal-text hover:bg-portal-border focus-visible:bg-portal-border focus-visible:ring-0 aria-expanded:bg-portal-border",
+              )}
             >
-              Create team
-            </DropdownMenu.Item>
-          </DropdownMenu.Content>
-        </DropdownMenu.Portal>
-      </DropdownMenu.Root>
-    </div>
+              <span className="min-w-0 flex-1 truncate font-world text-13 leading-none font-medium group-data-[collapsible=icon]:hidden">
+                {currentTeam?.name ?? "Select team"}
+              </span>
+              <ChevronsUpDownIcon className="ml-auto size-4 text-portal-muted group-data-[collapsible=icon]:m-auto" />
+            </SidebarMenuButton>
+          )}
+          getItemHref={(team) => urls.teams({ team_id: team.id })}
+          searchLabel="Find a team"
+          listLabel="Teams"
+          emptyLabel="No teams, yet"
+          noResultsLabel="No teams found"
+          createAction={{
+            label: "Create new team",
+            onSelect: openCreateTeamDialog,
+          }}
+          side="bottom"
+          testIdPrefix="team"
+        />
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 };

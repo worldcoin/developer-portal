@@ -2,27 +2,27 @@
 
 import { ApolloLink, HttpLink } from "@apollo/client";
 import {
+  ApolloClient,
   ApolloNextAppProvider,
-  NextSSRApolloClient,
-  NextSSRInMemoryCache,
+  InMemoryCache,
   SSRMultipartLink,
-} from "@apollo/experimental-nextjs-app-support/ssr";
+} from "@apollo/client-integration-nextjs";
 
 function makeClient() {
   const httpLink = new HttpLink({
     uri: `/api/v1/graphql`,
   });
 
-  return new NextSSRApolloClient({
-    cache: new NextSSRInMemoryCache(),
+  return new ApolloClient({
+    cache: new InMemoryCache(),
     link:
       typeof window === "undefined"
-        ? (ApolloLink.from([
+        ? ApolloLink.from([
             new SSRMultipartLink({
               stripDefer: true,
-            }) as any,
+            }),
             httpLink,
-          ]) as any)
+          ])
         : httpLink,
   });
 }

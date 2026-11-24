@@ -62,6 +62,7 @@ export type GetHighlightsQuery = {
       __typename?: "app";
       rating_count: number;
       rating_sum: number;
+      rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
       team: { __typename?: "team"; name?: string | null; id: string };
     };
   }>;
@@ -130,6 +131,9 @@ export const GetHighlightsDocument = gql`
         showcase_img_urls
       }
       app {
+        rp_registration(where: { status: { _eq: "registered" } }) {
+          rp_id
+        }
         team {
           name
           id

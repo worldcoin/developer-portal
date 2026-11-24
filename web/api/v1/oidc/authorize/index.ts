@@ -13,12 +13,13 @@ import {
 import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { encodeNullifierForStorage, verifyProof } from "@/api/helpers/verify";
+import { canonicalizeProof, verifyProof } from "@/api/helpers/verify";
 import { Nullifier_Constraint } from "@/graphql/graphql";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { captureEvent } from "@/services/posthogClient";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import { hashSignal } from "@worldcoin/idkit/hashing";
 import { createHash } from "crypto";
 import { toBeHex } from "ethers";
@@ -216,11 +217,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Anchor: Check the proof hasn't been replayed
+    // Anchor: Check the proof hasn't been replayed.
+    // Key off the canonical proof rather than the raw request string: the same
+    // proof can be submitted in several byte-distinct encodings that all decode
+    // to identical field elements, so a raw-string key lets an already-used
+    // proof be re-encoded into a fresh lock. Canonicalizing also rejects
+    // undecodable proofs here instead of forwarding them to the sequencer.
     let hashedProof: string;
     try {
-      hashedProof = createHash("sha256").update(proof).digest("hex");
+      hashedProof = createHash("sha256")
+        .update(canonicalizeProof(proof))
+        .digest("hex");
     } catch (error) {
+      // Canonicalization fails for a malformed proof, but it would also fail on
+      // a bug in the canonicalizer itself. Record the cause so the two are
+      // distinguishable — otherwise both surface only as a generic 400.
+      logger.warn("Could not canonicalize proof in OIDC authorize", {
+        error: error instanceof Error ? error.message : String(error),
+        app_id,
+      });
+
       return corsHandler(
         errorResponse({
           statusCode: 400,
@@ -234,9 +250,14 @@ export async function POST(req: NextRequest) {
       );
     }
     const proofKey = `oidc:proof:${hashedProof}`;
-    const isProofReplayed = await redis.get(proofKey);
 
-    if (isProofReplayed) {
+    // Claim the proof early to prevent duplicate submissions while we process
+    // it. SET NX makes the check and the claim one atomic round trip — a
+    // GET-then-SET lets two concurrent submissions of the same proof both read
+    // an empty key and both proceed.
+    const proofLockAcquired = await redis.set(proofKey, "1", "EX", 5400, "NX");
+
+    if (!proofLockAcquired) {
       return corsHandler(
         errorResponse({
           statusCode: 400,
@@ -249,9 +270,6 @@ export async function POST(req: NextRequest) {
         corsMethods,
       );
     }
-
-    // Lock the exact proof blob early to prevent duplicate submissions while we process it.
-    await redis.set(proofKey, "1", "EX", 5400);
 
     // For OIDC we should always hash the signal now.
     let signalHash: string;
@@ -272,12 +290,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Keep the original string for OIDC subjects and legacy identity lookups.
+    // Only proof verification and numeric storage use the checked field element.
+    let checkedNullifier: Nullifier;
+
+    try {
+      checkedNullifier = Nullifier.fromHex(nullifier_hash.trim());
+    } catch {
+      await redis.del(proofKey);
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: "invalid_format",
+          detail:
+            "Invalid nullifier_hash. Expected a hex-encoded World ID field element.",
+          attribute: "nullifier_hash",
+          req,
+          app_id,
+        }),
+        corsMethods,
+      );
+    }
+
     // Best effort: only clear the proof lock if verification fails.
     try {
       let { error: verifyError } = await verifyProof(
         {
           proof,
-          nullifier_hash,
+          nullifier_hash: checkedNullifier,
           merkle_root,
           signal_hash: signalHash,
           external_nullifier: app.external_nullifier,
@@ -392,7 +432,6 @@ export async function POST(req: NextRequest) {
     } catch (error) {
       // Temp Fix to reduce on call alerts
       logger.warn("Query error nullifier.", {
-        nullifier_hash,
         errorMessage: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         app_id,
@@ -406,7 +445,7 @@ export async function POST(req: NextRequest) {
             object: {
               nullifier_hash,
               action_id: app.action_id,
-              nullifier_hash_int: encodeNullifierForStorage(nullifier_hash),
+              nullifier_hash_int: checkedNullifier.toBigInt().toString(),
             },
             on_conflict: {
               constraint: Nullifier_Constraint.NullifierPkey,

@@ -1,0 +1,39 @@
+query FetchAdminRps(
+  $includeCreatedAt: Boolean!
+  $includeOperationHash: Boolean!
+  $includeSignerAddress: Boolean!
+  $includeStagingOperationHash: Boolean!
+  $includeTeamId: Boolean!
+  $limit: Int!
+  $offset: Int!
+  $orderBy: [rp_registration_order_by!]!
+  $where: rp_registration_bool_exp!
+) {
+  rp_registration(
+    limit: $limit
+    offset: $offset
+    order_by: $orderBy
+    where: $where
+  ) {
+    rp_id
+    app_id
+    mode
+    status
+    staging_status
+    updated_at
+    created_at @include(if: $includeCreatedAt)
+    signer_address @include(if: $includeSignerAddress)
+    operation_hash @include(if: $includeOperationHash)
+    staging_operation_hash @include(if: $includeStagingOperationHash)
+    app {
+      id
+      name
+      team_id @include(if: $includeTeamId)
+    }
+  }
+  rp_registration_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}

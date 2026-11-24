@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { SectionSubTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/common/SectionSubTabs";
 import { ImagesProvider } from "./ImagesProvider";
 
 type Params = {
@@ -13,9 +12,8 @@ type AppProfileLayout = {
   children: ReactNode;
 };
 
-// The Overview / Danger zone sub-tabs were removed in v3: Danger zone now lives
-// as a section inside the Configuration (Overview) page. The flex wrapper is
-// kept so the page's `order-*` sections keep their ordering.
+// Configuration and its separated Danger zone route share image/view state.
+// The flex wrapper keeps each page's `order-*` sections ordered consistently.
 export const AppProfileLayout = (props: AppProfileLayout) => {
   const params = props.params;
 

@@ -1,0 +1,271 @@
+/** @jest-environment jsdom */
+import "@testing-library/jest-dom";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import React from "react";
+
+// #region Mocks
+jest.mock("react-toastify", () => ({
+  toast: { success: jest.fn(), error: jest.fn() },
+}));
+
+const push = jest.fn();
+const refresh = jest.fn();
+let pathname = "/teams/team_1/settings";
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push, refresh }),
+  usePathname: () => pathname,
+}));
+
+const invalidate = jest.fn();
+jest.mock("@auth0/nextjs-auth0/client", () => ({
+  useUser: () => ({
+    user: { hasura: { id: "usr_1" } },
+    invalidate,
+  }),
+}));
+
+const refetch = jest.fn();
+jest.mock("@/scenes/common/me-query/client", () => ({
+  useMeQuery: () => ({ refetch }),
+}));
+
+const deleteTeamServerSide = jest.fn();
+jest.mock("@/scenes/common/common/DeleteTeamDialog/server", () => ({
+  deleteTeamServerSide: (...args: unknown[]) => deleteTeamServerSide(...args),
+}));
+
+// FormDialog's DialogTitle needs the real Headless UI Dialog parent. The dialog
+// chrome renders in jsdom, so this test keeps it intact and still exercises the
+// real submit flow.
+// #endregion
+
+import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
+import { toast } from "react-toastify";
+
+// #region Test Data
+const team = { id: "team_1", name: "My team" };
+
+const refetchResultWithMemberships = (count: number) => ({
+  data: {
+    user_by_pk: {
+      id: "usr_1",
+      memberships: Array.from({ length: count }, (_, i) => ({
+        role: "OWNER",
+        team: { id: `team_${i + 1}`, name: `Team ${i + 1}` },
+      })),
+    },
+  },
+});
+
+const renderDialog = () =>
+  render(<DeleteTeamDialog open onClose={jest.fn()} team={team} />);
+
+const confirmAndSubmit = async () => {
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "DELETE" },
+  });
+  const submitButton = screen.getByRole("button", { name: "Delete team" });
+  await waitFor(() => expect(submitButton).toBeEnabled());
+  fireEvent.click(submitButton);
+};
+// #endregion
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  pathname = "/teams/team_1/settings";
+  deleteTeamServerSide.mockResolvedValue({
+    success: true,
+    sessionUpdated: true,
+  });
+  global.fetch = jest
+    .fn()
+    .mockResolvedValue({ ok: true, json: async () => ({ success: true }) });
+});
+
+// #region Post-delete navigation
+describe("DeleteTeamDialog [post-delete navigation]", () => {
+  it("lands on the profile page after delete, without re-syncing the session", async () => {
+    refetch.mockResolvedValue(refetchResultWithMemberships(0));
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
+    expect(deleteTeamServerSide).toHaveBeenCalledWith("team_1");
+    // The action already rewrote the cookie, so the fallback route stays idle.
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(invalidate).toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it("refetches me-query before invalidating session (avoids unmount race)", async () => {
+    const order: string[] = [];
+    refetch.mockImplementation(async () => {
+      order.push("refetch");
+      return refetchResultWithMemberships(1);
+    });
+    invalidate.mockImplementation(async () => {
+      order.push("invalidate");
+    });
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
+    expect(order).toEqual(["refetch", "invalidate"]);
+  });
+
+  it("closes the dialog in place when deleted from the profile page", async () => {
+    pathname = "/profile";
+    refetch.mockResolvedValue(refetchResultWithMemberships(0));
+
+    const onClose = jest.fn();
+    render(<DeleteTeamDialog open onClose={onClose} team={team} />);
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(push).not.toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it("refreshes before navigating to profile when other teams remain", async () => {
+    refetch.mockResolvedValue(refetchResultWithMemberships(2));
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it("falls back to the update-session route when the action could not rewrite the cookie", async () => {
+    deleteTeamServerSide.mockResolvedValue({
+      success: true,
+      sessionUpdated: false,
+    });
+    refetch.mockResolvedValue(refetchResultWithMemberships(2));
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/update-session",
+      expect.objectContaining({
+        method: "POST",
+        signal: expect.anything(),
+      }),
+    );
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("refreshes the session-fed sidebar when already on the profile page", async () => {
+    pathname = "/profile";
+    refetch.mockResolvedValue(refetchResultWithMemberships(2));
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("retries transient session refresh failures before navigating", async () => {
+    deleteTeamServerSide.mockResolvedValue({
+      success: true,
+      sessionUpdated: false,
+    });
+    refetch.mockResolvedValue(refetchResultWithMemberships(0));
+    (global.fetch as jest.Mock)
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce({ ok: false, status: 500 })
+      .mockResolvedValueOnce({ ok: true, status: 200 });
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(toast.success).toHaveBeenCalledWith("Team deleted");
+  });
+
+  it("does not retry a non-retryable session refresh response", async () => {
+    deleteTeamServerSide.mockResolvedValue({
+      success: true,
+      sessionUpdated: false,
+    });
+    refetch.mockResolvedValue(refetchResultWithMemberships(2));
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ success: false }),
+    });
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledWith(
+      "Team deleted, but navigation could not be refreshed. Sign in again if it remains out of date.",
+    );
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it("stops after three retryable session refresh failures", async () => {
+    deleteTeamServerSide.mockResolvedValue({
+      success: true,
+      sessionUpdated: false,
+    });
+    refetch.mockResolvedValue(refetchResultWithMemberships(0));
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 503,
+    });
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(toast.error).toHaveBeenCalledWith(
+      "Team deleted, but navigation could not be refreshed. Sign in again if it remains out of date.",
+    );
+  });
+
+  it("does not navigate when the delete fails", async () => {
+    deleteTeamServerSide.mockResolvedValue({ success: false, message: "nope" });
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(deleteTeamServerSide).toHaveBeenCalled());
+    expect(refetch).not.toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Unmount race (team settings page revokes canWrite mid-flow)
+describe("DeleteTeamDialog [unmounted before delete resolves]", () => {
+  it("completes the redirect even after the dialog unmounts", async () => {
+    let resolveRefetch!: (value: unknown) => void;
+    refetch.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRefetch = resolve;
+      }),
+    );
+
+    const { unmount } = renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(deleteTeamServerSide).toHaveBeenCalled());
+
+    // The settings page unmounts the dialog once canWrite collapses — before the refetch resolves.
+    unmount();
+    resolveRefetch(refetchResultWithMemberships(0));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile"));
+  });
+});
+// #endregion

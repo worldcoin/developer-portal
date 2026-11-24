@@ -1,29 +1,30 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { DangerZoneCard } from "@/components/DangerZoneCard";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions, truncateString } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import clsx from "clsx";
 import { useMemo, useState } from "react";
 import { DeleteModal } from "./DeleteModal";
 
 type DangerZoneSectionProps = {
-  appId: `app_${string}`;
+  appId: string;
   teamId: string;
   appName?: string;
+  variant?: "default" | "compact";
 };
 
 /**
- * Danger zone (delete app) content, rendered as a section on the Configuration page
- * The delete button is only actionable for team owners.
+ * Destructive app action that can render either as the dedicated danger-page
+ * card or the compact World ID Configuration card.
  */
 export const DangerZoneSection = ({
   appId,
   teamId,
   appName,
+  variant,
 }: DangerZoneSectionProps) => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const { user } = useUser() as Auth0SessionUser;
@@ -34,29 +35,26 @@ export const DangerZoneSection = ({
   );
 
   return (
-    <div className="grid grid-cols-1 gap-y-10 md:w-1/2">
-      <div className="grid gap-y-2">
-        <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-          Danger zone
-        </Typography>
-
-        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          This will immediately and permanently delete the app{" "}
-          <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
-            {truncateString(appName, 30)}
-          </Typography>{" "}
-          and its data for everyone. This cannot be undone.
-        </Typography>
-      </div>
-
-      <DecoratedButton
-        type="button"
-        variant="destructive"
-        onClick={() => setOpenDeleteModal(true)}
-        className={clsx("w-fit", { hidden: !isEnoughPermissions })}
-      >
-        <Typography variant={TYPOGRAPHY.R3}>Delete app</Typography>
-      </DecoratedButton>
+    <>
+      <DangerZoneCard
+        name={truncateString(appName, 30)}
+        variant={variant}
+        footerText={
+          isEnoughPermissions
+            ? undefined
+            : "Only a team owner can delete this app."
+        }
+        footerAction={
+          isEnoughPermissions && (
+            <DestructiveTriggerButton
+              onClick={() => setOpenDeleteModal(true)}
+              className="shrink-0"
+            >
+              Delete app
+            </DestructiveTriggerButton>
+          )
+        }
+      />
 
       <DeleteModal
         appName={appName ?? ""}
@@ -65,6 +63,6 @@ export const DangerZoneSection = ({
         openDeleteModal={openDeleteModal}
         setOpenDeleteModal={setOpenDeleteModal}
       />
-    </div>
+    </>
   );
 };

@@ -1,4 +1,5 @@
 import { POST } from "@/api/v2/verify";
+import { FACE_SEQUENCER_STAGING, ORB_SEQUENCER_STAGING } from "@/lib/constants";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { NextRequest } from "next/server";
 import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
@@ -124,8 +125,14 @@ afterEach(() => {
 
 // #region Success cases
 describe("/api/v2/verify", () => {
-  it("can verify proof", async () => {
-    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+  it.each([
+    [LegacyVerificationLevel.Orb, ORB_SEQUENCER_STAGING],
+    [LegacyVerificationLevel.Selfie, FACE_SEQUENCER_STAGING],
+  ])("can verify %s proof", async (verificationLevel, sequencer) => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...validBody,
+      verification_level: verificationLevel,
+    });
     const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
@@ -161,6 +168,10 @@ describe("/api/v2/verify", () => {
 
     const response = await POST(mockReq, ctx);
     expect(response.status).toBe(200);
+    expect(fetch).toHaveBeenCalledWith(
+      `${sequencer}/v2/semaphore-proof/verify`,
+      expect.objectContaining({ method: "POST" }),
+    );
     const body = await response.json();
 
     expect(body).toEqual({
@@ -170,7 +181,7 @@ describe("/api/v2/verify", () => {
       action: validBody.action,
       created_at: validNullifier.created_at,
       max_uses: 0,
-      verification_level: LegacyVerificationLevel.Orb,
+      verification_level: verificationLevel,
       nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
     });
   });
@@ -210,7 +221,23 @@ describe("/api/v2/verify", () => {
     expect(AtomicUpsertNullifier).toHaveBeenCalledWith(
       expect.objectContaining({
         nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+        nullifier_hash_int: BigInt(
+          semaphoreProofParamsMock.nullifier_hash,
+        ).toString(),
       }),
+    );
+    expect(FetchAppAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nullifier_hash_int: BigInt(
+          semaphoreProofParamsMock.nullifier_hash,
+        ).toString(),
+      }),
+    );
+    const verifierBody = JSON.parse(
+      (global.fetch as jest.Mock).mock.calls[0][1].body,
+    );
+    expect(BigInt(verifierBody.nullifierHash)).toBe(
+      BigInt(semaphoreProofParamsMock.nullifier_hash),
     );
   });
 
@@ -236,6 +263,21 @@ describe("/api/v2/verify", () => {
     expect(response.status).toBe(400);
     // Rejected before the nullifier is ever stored.
     expect(AtomicUpsertNullifier).not.toHaveBeenCalled();
+  });
+
+  it("rejects a nullifier outside the field before duplicate lookup or verification", async () => {
+    const response = await POST(
+      createMockRequest(getUrl(stagingAppId), {
+        ...validBody,
+        nullifier_hash:
+          "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001",
+      }),
+      { params: Promise.resolve({ app_id: stagingAppId }) },
+    );
+    expect(response.status).toBe(400);
+    expect(FetchAppAction).not.toHaveBeenCalled();
+    expect(AtomicUpsertNullifier).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it("can verify onchain action", async () => {
@@ -405,6 +447,44 @@ describe("/api/v2/verify", () => {
 
 // #region Error cases
 describe("/api/v2/verify [error cases]", () => {
+  it.each(["constructor", "__proto__", "toString"])(
+    "rejects reserved JSON key %s before app lookup or proof verification",
+    async (key) => {
+      const response = await POST(
+        createMockRequest(getUrl(stagingAppId), { ...validBody, [key]: {} }),
+        { params: Promise.resolve({ app_id: stagingAppId }) },
+      );
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        code: "validation_error",
+        attribute: key,
+      });
+      expect(FetchAppAction).not.toHaveBeenCalled();
+      expect(AtomicUpsertNullifier).not.toHaveBeenCalled();
+      expect(fetch).not.toHaveBeenCalled();
+    },
+  );
+
+  it("returns not found when app is excluded from active app lookup", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
+
+    FetchAppAction.mockResolvedValue({ app: [] });
+
+    const response = await POST(mockReq, ctx);
+
+    expect(response.status).toBe(404);
+    expect(fetch).not.toHaveBeenCalled();
+    const body = await response.json();
+    expect(body).toEqual({
+      attribute: null,
+      code: "not_found",
+      detail: "App not found. App may be no longer active.",
+      app_id: stagingAppId,
+    });
+  });
+
   it("action inactive or not found", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
     const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };

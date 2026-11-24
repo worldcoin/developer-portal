@@ -1,8 +1,21 @@
-mutation UpdateAppMode($app_metadata_id: String!, $app_mode: String!) {
+mutation UpdateAppMode(
+  $app_metadata_id: String!
+  $app_mode: String!
+  $clear_external_category: Boolean = false
+) {
   update_app_metadata_by_pk(
     pk_columns: { id: $app_metadata_id }
     _set: { app_mode: $app_mode }
   ) {
     id
+  }
+  # When switching to a mini app, drop an existing "External" category: like the
+  # external app_mode it hides the app from the mini app store, so mini apps
+  # must not use it. Only touches rows that are still "External".
+  cleared_external_category: update_app_metadata(
+    where: { id: { _eq: $app_metadata_id }, category: { _eq: "External" } }
+    _set: { category: "Other" }
+  ) @include(if: $clear_external_category) {
+    affected_rows
   }
 }

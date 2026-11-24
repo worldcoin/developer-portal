@@ -103,6 +103,16 @@ const MINUTE_MS = 60 * 1000;
 const DEFAULT_VALID_AFTER_OFFSET_MINUTES = 10;
 const DEFAULT_VALID_UNTIL_OFFSET_MINUTES = 30;
 
+/**
+ * Maximum lifetime of a submitted UserOperation: `validUntil` is set to
+ * `now + 30m`, and the 4337 module rejects inclusion once `block.timestamp`
+ * passes it. After this window elapses an in-flight op is provably dead and can
+ * no longer land on-chain. Callers that reconcile pending on-chain state key
+ * their grace windows off this so they never race a still-includable op.
+ */
+export const USER_OP_MAX_VALIDITY_MS =
+  DEFAULT_VALID_UNTIL_OFFSET_MINUTES * MINUTE_MS;
+
 // Nonce layout constants
 const NONCE_MAGIC_BYTES = new Uint8Array([100, 118, 112, 114, 116, 108]); // 'dvprtl'
 const NONCE_CONCURRENCY_BYTES = 7;

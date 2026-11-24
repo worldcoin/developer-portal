@@ -1,6 +1,6 @@
 "use client";
 import { CopyButton } from "@/components/CopyButton";
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -13,12 +13,13 @@ import clsx from "clsx";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { useCallback, useMemo, useState } from "react";
-import Skeleton from "react-loading-skeleton";
+import { SkeletonForm } from "@/components/Skeletons";
 import { toast } from "react-toastify";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { LinksForm } from "./Links";
 import { Redirects } from "./Redirects";
-import { useFetchSignInActionQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/graphql/client/fetch-sign-in-action.generated";
-import { useResetClientSecretMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/graphql/client/reset-secret.generated";
+import { FetchSignInActionDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/graphql/client/fetch-sign-in-action.generated";
+import { ResetClientSecretDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/graphql/client/reset-secret.generated";
 
 export const ClientInformationPage = (props: {
   appID: string;
@@ -35,9 +36,12 @@ export const ClientInformationPage = (props: {
     ]);
   }, [user, teamID]);
 
-  const { data, loading: fetchingAction } = useFetchSignInActionQuery({
-    variables: { app_id: appID },
-  });
+  const { data, loading: fetchingAction } = useQuery(
+    FetchSignInActionDocument,
+    {
+      variables: { app_id: appID },
+    },
+  );
 
   const signInAction = data?.action[0];
   const isStaging = data?.app[0]?.is_staging;
@@ -52,7 +56,7 @@ export const ClientInformationPage = (props: {
     return appCreatedDate > cutoffDate;
   }, [createdAt, teamID]);
 
-  const [resetClientSecretMutation] = useResetClientSecretMutation({
+  const [resetClientSecretMutation] = useMutation(ResetClientSecretDocument, {
     variables: { app_id: appID, team_id: teamID },
   });
 
@@ -74,18 +78,35 @@ export const ClientInformationPage = (props: {
 
   if (fetchingAction) {
     return (
-      <div className="grid w-full gap-y-10 pb-10 pt-5">
-        <Skeleton height={200} />
+      <div className="grid w-full gap-y-10 pt-5 pb-10">
+        <div className="grid gap-y-5">
+          <div className="grid gap-y-3">
+            <Typography variant={TYPOGRAPHY.H7}>Client information</Typography>
+
+            <Typography
+              variant={TYPOGRAPHY.R3}
+              className="text-content-secondary"
+            >
+              Use these attributes to configure Sign in with World ID in your
+              app
+            </Typography>
+          </div>
+
+          <SkeletonForm count={2} fieldHeight={64} className="w-full" />
+        </div>
       </div>
     );
   }
 
   if (isAppCreatedAfterCutoff) {
     return (
-      <div className="grid w-full gap-y-10 pb-10 pt-5">
+      <div className="grid w-full gap-y-10 pt-5 pb-10">
         <div className="grid gap-y-3">
           <Typography variant={TYPOGRAPHY.H7}>Feature Not Available</Typography>
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+          <Typography
+            variant={TYPOGRAPHY.R3}
+            className="text-content-secondary"
+          >
             Your app was created after Sign in with World ID was deprecated and
             is not eligible for this feature. Please read the announcement
             above.
@@ -104,12 +125,15 @@ export const ClientInformationPage = (props: {
   }
 
   return (
-    <div className="grid w-full gap-y-10 pb-10 pt-5">
+    <div className="grid w-full gap-y-10 pt-5 pb-10">
       <div className="grid gap-y-5">
         <div className="grid gap-y-3">
           <Typography variant={TYPOGRAPHY.H7}>Client information</Typography>
 
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+          <Typography
+            variant={TYPOGRAPHY.R3}
+            className="text-content-secondary"
+          >
             Use these attributes to configure Sign in with World ID in your app
           </Typography>
         </div>
@@ -135,7 +159,7 @@ export const ClientInformationPage = (props: {
             helperText="Save the generated client secret. You won't be able to see it again."
             addOnLeft={
               clientSecret == "" ? (
-                <LockIcon className="w-8 pl-1 text-grey-400" />
+                <LockIcon className="w-8 pl-1 text-content-tertiary" />
               ) : (
                 <></>
               )
@@ -147,14 +171,9 @@ export const ClientInformationPage = (props: {
                   { hidden: !isEnoughPermissions },
                 )}
               >
-                <DecoratedButton
-                  type="button"
-                  variant="secondary"
-                  className="h-9"
-                  onClick={handleReset}
-                >
+                <DestructiveTriggerButton onClick={handleReset}>
                   Reset
-                </DecoratedButton>
+                </DestructiveTriggerButton>
 
                 {clientSecret !== "" && (
                   <CopyButton
@@ -174,7 +193,11 @@ export const ClientInformationPage = (props: {
             Redirects
           </Typography>
 
-          <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
+          <Typography
+            as="p"
+            variant={TYPOGRAPHY.R3}
+            className="text-content-secondary"
+          >
             You must specify at least one URL for authentication to work
           </Typography>
         </div>

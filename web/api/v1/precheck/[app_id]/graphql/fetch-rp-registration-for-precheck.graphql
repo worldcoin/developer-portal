@@ -1,7 +1,0 @@
-query FetchRpRegistrationForPrecheck($app_id: String!) {
-  rp_registration(where: { app_id: { _eq: $app_id } }) {
-    rp_id
-    app_id
-    status
-  }
-}

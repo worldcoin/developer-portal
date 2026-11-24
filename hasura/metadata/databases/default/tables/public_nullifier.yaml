@@ -20,6 +20,12 @@ insert_permissions:
         - nullifier_hash_int
         - uses
 select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - uses
+      filter: {}
+      allow_aggregations: true
   - role: api_key
     permission:
       columns:

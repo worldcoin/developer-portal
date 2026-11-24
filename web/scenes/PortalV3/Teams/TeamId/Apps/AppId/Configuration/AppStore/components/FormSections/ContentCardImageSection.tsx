@@ -26,7 +26,7 @@ export const ContentCardImageSection = ({
   return (
     <FormSection
       title="Content card image"
-      description="This image will be used when featuring your app in the Mini App Store. Required aspect ratio is 345px width and 240px height."
+      description="This image will be used when featuring your app in the Mini App Store. Other aspect ratios can be cropped to 345:240 before upload."
       titleVariant={TYPOGRAPHY.S2}
     >
       <ContentCardImageUpload

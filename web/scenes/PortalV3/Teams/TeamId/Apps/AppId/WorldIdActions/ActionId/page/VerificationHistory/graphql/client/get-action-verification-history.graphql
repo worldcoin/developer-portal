@@ -1,0 +1,30 @@
+query GetActionVerificationHistory(
+  $action_id: String!
+  $app_id: String!
+  $limit: Int!
+  $offset: Int!
+) {
+  action_v4(
+    limit: 1
+    where: {
+      id: { _eq: $action_id }
+      rp_registration: { app_id: { _eq: $app_id } }
+    }
+  ) {
+    id
+    nullifiers_aggregate {
+      aggregate {
+        count
+      }
+    }
+    nullifiers(
+      limit: $limit
+      offset: $offset
+      order_by: [{ created_at: desc }, { id: desc }]
+    ) {
+      id
+      created_at
+      nullifier
+    }
+  }
+}

@@ -15,7 +15,25 @@ export type UseAutosaveOptions<T extends FieldValues> = {
   enabled: boolean;
   debounceMs?: number;
   onStatus: (status: AutosaveStatus) => void;
+  /**
+   * Called with the exact form snapshot only after that edit has been saved
+   * and is still current. Consumers can use this for UI that must never
+   * acknowledge a change while it is merely waiting in the debounce window.
+   */
+  onSavedEdit?: (data: T) => void;
   onPendingChange?: (isPending: boolean) => void;
+  /**
+   * Returns true for fields persisted by someone other than this autosave —
+   * currently the image fields, which upsert through their own mutation and
+   * then write the resulting URL back into the form so the UI can show it.
+   * That write-back must not trigger a full-form save of data already stored.
+   *
+   * RHF's dirty flags cannot express this: `setValue` notifies watch
+   * subscribers regardless of `shouldDirty`, and keying off dirtyFields would
+   * silently stop saving a genuine edit that returns a field to its original
+   * value.
+   */
+  isSelfPersisting?: (name: string) => boolean;
 };
 
 export type UseAutosaveResult = {
@@ -111,11 +129,11 @@ export function useAutosave<T extends FieldValues>(
         if (controller.signal.aborted) throw new StaleSaveError();
 
         const fresh = f.getValues();
-        const stable =
+        const isSnapshotStillCurrent =
           JSON.stringify(fresh) === JSON.stringify(snapshot) &&
           controllerRef.current === controller;
 
-        if (stable) {
+        if (isSnapshotStillCurrent) {
           f.reset(snapshot, {
             keepValues: true,
             keepDirty: false,
@@ -123,12 +141,13 @@ export function useAutosave<T extends FieldValues>(
             keepTouched: true,
           });
           onStatus({ state: "saved", at: Date.now() });
+          optionsRef.current.onSavedEdit?.(snapshot);
         }
-        // When not stable the user typed during the save: a new debounce was
-        // scheduled by the watch subscription, so leave the status on "saving"
-        // until that next save settles. Emitting "saved" here would flash the
-        // indicator misleadingly for snapshot data the user has already moved
-        // past.
+        // When the snapshot is no longer current, the user typed during the
+        // save: a new debounce was scheduled by the watch subscription, so
+        // leave the status on "saving" until that next save settles. Emitting
+        // "saved" here would flash the indicator misleadingly for snapshot data
+        // the user has already moved past.
         return true;
       } catch (err) {
         if (
@@ -187,6 +206,10 @@ export function useAutosave<T extends FieldValues>(
     const subscription = form.watch((_values, info) => {
       if (!info.name) return;
       if (!optionsRef.current.enabled) return;
+      // Must stay a plain early return: touching the unsaved-changes flag or
+      // the debounce timer would let a write-back landing just before a
+      // keystroke cancel that keystroke's save.
+      if (optionsRef.current.isSelfPersisting?.(info.name)) return;
       hasUnsavedChangesRef.current = true;
       clearDebounce();
       optionsRef.current.onPendingChange?.(true);

@@ -1,13 +1,12 @@
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { PaymentMetadata } from "@/lib/types";
+import { InkButton } from "@/scenes/PortalV3/common/InkButton";
+import { getTransactionData } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/server/getTransactionData";
 import { ComponentProps } from "react";
 import { Suspense } from "react";
-import Skeleton from "react-loading-skeleton";
-import { MiniAppSubTabs } from "../../SubTabs";
+import { SkeletonTable } from "@/components/Skeletons";
 import { ErrorState } from "./ErrorState";
 import { TransactionsTable } from "./TransactionsTable";
-import { getTransactionData } from "./server";
 
 type TransactionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -21,13 +20,9 @@ const TransactionsPageLayout = ({
   showHeading?: boolean;
 }) => {
   return (
-    <div className="my-6 min-h-[100dvh]">
-      <div className="md:hidden">
-        <MiniAppSubTabs />
-      </div>
-
+    <div className="my-8 min-h-dvh">
       {showHeading && (
-        <div className="flex items-center justify-start text-gray-900">
+        <div className="flex items-center justify-start text-content-primary">
           <Typography variant={TYPOGRAPHY.H6}>Transactions</Typography>
         </div>
       )}
@@ -93,19 +88,19 @@ const EmptyState = () => {
         </div>
         <Typography
           variant={TYPOGRAPHY.R3}
-          className="text-center text-grey-500"
+          className="text-center text-content-secondary"
         >
           Once you receive your first payment, you
           <br />
           will see the transaction here.
         </Typography>
 
-        <DecoratedButton
+        <InkButton
           href="https://docs.world.org/mini-apps/commands/pay"
-          className="min-w-[112px] py-4"
+          className="min-w-[112px]"
         >
           See docs
-        </DecoratedButton>
+        </InkButton>
       </div>
     </div>
   );
@@ -117,7 +112,23 @@ const TransactionsContent = ({
   transactionData: PaymentMetadata[];
 }) => {
   return (
-    <Suspense fallback={<Skeleton />}>
+    <Suspense
+      fallback={
+        <SkeletonTable
+          className="py-5"
+          rows={5}
+          columns={[
+            "Amount",
+            "Reference Id",
+            "Transaction Hash",
+            "From",
+            "To",
+            "Timestamp",
+            "Status",
+          ]}
+        />
+      }
+    >
       <TransactionsTable transactionData={transactionData} />
     </Suspense>
   );

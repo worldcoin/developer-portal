@@ -50,7 +50,7 @@ describe("user role", () => {
       user_id: ownerUserFromTeam0?.user_id,
     });
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
       variables: {
         id: userFromTeam1?.user_id,
@@ -66,7 +66,7 @@ describe("user role", () => {
 
     expect(userFromTeam2AfterUpdate[0].name).not.toBe("new name");
 
-    const response2 = await client.mutate({
+    const response2 = await client.mutate<any>({
       mutation,
       variables: {
         id: anotherUserFromTeam0?.user_id,
@@ -105,7 +105,6 @@ describe("user role", () => {
           id
           email
           name
-          auth0Id
           memberships {
             id
             team {
@@ -130,7 +129,7 @@ describe("user role", () => {
       user_id: userFromTeam0?.user_id,
     });
 
-    const response = await client.query({
+    const response = await client.query<any>({
       query,
       variables: {
         id: userFromTeam1?.user_id,
@@ -139,4 +138,20 @@ describe("user role", () => {
 
     expect(response.data.user).toEqual([]);
   });
+
+  test.each(["auth0Id", "posthog_id"])(
+    "can't select user field %s",
+    async (field) => {
+      const client = await getAPIUserClient();
+      const query = gql(`
+        query FetchUserField {
+          user(limit: 1) {
+            ${field}
+          }
+        }
+      `);
+
+      await expect(client.query({ query })).rejects.toThrow();
+    },
+  );
 });

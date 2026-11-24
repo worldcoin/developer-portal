@@ -28,23 +28,7 @@ const config: PlaywrightTestConfig = {
       testMatch: ["tests/e2e/specs/**/*.spec.ts"],
     },
   ],
-  reporter: [
-    ["list"],
-    ["html", { open: "never" }],
-    [
-      "playwright-qase-reporter",
-      {
-        environment: "dev",
-        testops: {
-          project: "DP",
-          uploadAttachments: true,
-          run: {
-            complete: true,
-          },
-        },
-      },
-    ],
-  ],
+  reporter: [["list"], ["html", { open: "never" }]],
   webServer: {
     command: "pnpm dev",
     port: 3000,

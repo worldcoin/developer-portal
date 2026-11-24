@@ -1,5 +1,6 @@
 import { POST } from "@/api/v1/precheck/[app_id]/index";
 import { Nullifier } from "@/graphql/graphql";
+import { APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER } from "@/lib/constants";
 import { NextRequest } from "next/server";
 
 type _Nullifier = Pick<Nullifier, "nullifier_hash" | "uses" | "__typename">;
@@ -19,6 +20,7 @@ const appPayload = {
       logo_img_url: "logo_img.png",
     },
   ],
+  rp_registration: [] as { rp_id: string; status: string }[],
   actions: [
     {
       name: "Swag Pack 2022",
@@ -44,15 +46,87 @@ const exampleValidRequestPayload = {
 jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(),
 }));
+jest.mock("@/lib/logger", () => ({
+  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+}));
 const AppPrecheckQuery = jest.fn();
+const AppPrecheckByActionQuery = jest.fn();
 jest.mock("@/api/v1/precheck/[app_id]/graphql/app-precheck.generated", () => ({
   getSdk: () => ({
     AppPrecheckQuery,
   }),
 }));
+jest.mock(
+  "@/api/v1/precheck/[app_id]/graphql/app-precheck-by-action.generated",
+  () => ({
+    getSdk: () => ({
+      AppPrecheckByActionQuery,
+    }),
+  }),
+);
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  global.ParameterStore = undefined;
+});
 
 describe("/api/v1/precheck/[app_id]", () => {
+  test.each(["ordinary", "custom"])(
+    "encodes the checked number into the existing text lookup for %s actions",
+    async (kind) => {
+      const appId =
+        kind === "custom"
+          ? APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER[0]
+          : appPayload.id;
+      AppPrecheckQuery.mockResolvedValue({ app: [appPayload] });
+      AppPrecheckByActionQuery.mockResolvedValue({ app: [appPayload] });
+      const request = new NextRequest("http://localhost/api/v1/precheck", {
+        method: "POST",
+        body: JSON.stringify({
+          ...exampleValidRequestPayload,
+          nullifier_hash: "0X0010",
+        }),
+      });
+      const result = await POST(request, {
+        params: Promise.resolve({ app_id: appId }),
+      });
+      expect(result.status).toBe(200);
+      const query =
+        kind === "custom" ? AppPrecheckByActionQuery : AppPrecheckQuery;
+      expect(query).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nullifier_hash: `0x${"0".repeat(62)}10`,
+        }),
+      );
+    },
+  );
+
+  test("keeps advisory precheck available for an invalid nullifier", async () => {
+    AppPrecheckQuery.mockResolvedValue({ app: [appPayload] });
+    const result = await POST(
+      new NextRequest("http://localhost/api/v1/precheck", {
+        method: "POST",
+        body: JSON.stringify({
+          ...exampleValidRequestPayload,
+          nullifier_hash: "invalid",
+        }),
+      }),
+      { params: Promise.resolve({ app_id: appPayload.id }) },
+    );
+    expect(result.status).toBe(200);
+    expect(AppPrecheckQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nullifier_hash: "invalid",
+      }),
+    );
+  });
+
   test("can fetch precheck response verified", async () => {
+    const getParameter = jest.fn().mockResolvedValue([]);
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+
     const request = new NextRequest(
       "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
       {
@@ -62,7 +136,14 @@ describe("/api/v1/precheck/[app_id]", () => {
     );
 
     AppPrecheckQuery.mockResolvedValue({
-      app: [{ ...appPayload }],
+      app: [
+        {
+          ...appPayload,
+          rp_registration: [
+            { rp_id: "rp_0123456789abcdef", status: "registered" },
+          ],
+        },
+      ],
     });
 
     const response = await POST(request, {
@@ -75,6 +156,7 @@ describe("/api/v1/precheck/[app_id]", () => {
     const responseBody = await response.json();
     expect(responseBody).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      rp_id: "rp_0123456789abcdef",
       name: "The Yellow App Verified",
       is_verified: true,
       is_staging: true,
@@ -82,6 +164,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       verified_app_logo:
         "https://cdn.test.com/app_staging_6d1c9fb86751a40d952749022db1c1/logo_img.png",
       enable_face_check: false,
+      credential_request: { subtype: null },
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
@@ -92,7 +175,154 @@ describe("/api/v1/precheck/[app_id]", () => {
         max_accounts_per_user: 1,
       },
     });
+    expect(getParameter).toHaveBeenCalledWith(
+      "whitelisted-apps/grant-claiming",
+      [],
+      { cacheNotFound: true },
+    );
   });
+
+  test("returns the registered RP ID for apps with custom external nullifiers", async () => {
+    const appId = "app_1f7f2c379f20307a414f6cf8b544ec8a";
+    const action = "humanity";
+    AppPrecheckByActionQuery.mockResolvedValue({
+      app: [
+        {
+          ...appPayload,
+          id: appId,
+          actions: [{ ...appPayload.actions[0], action }],
+          rp_registration: [
+            { rp_id: "rp_0123456789abcdef", status: "registered" },
+          ],
+        },
+      ],
+    });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify({ action }),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      id: appId,
+      rp_id: "rp_0123456789abcdef",
+      action: { action },
+    });
+  });
+
+  test("does not expose an RP ID before the registration is active", async () => {
+    const appId = appPayload.id;
+    AppPrecheckQuery.mockResolvedValue({
+      app: [
+        {
+          ...appPayload,
+          rp_registration: [
+            { rp_id: "rp_0123456789abcdef", status: "pending" },
+          ],
+        },
+      ],
+    });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).not.toHaveProperty("rp_id");
+  });
+
+  // #region Grant-claiming subtype
+  test("tags an allowlisted app as grant claiming", async () => {
+    const appId = appPayload.id;
+    const getParameter = jest.fn().mockResolvedValue([appId]);
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+    AppPrecheckQuery.mockResolvedValue({ app: [appPayload] });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      credential_request: { subtype: "grant_claiming" },
+    });
+    expect(getParameter).toHaveBeenCalledWith(
+      "whitelisted-apps/grant-claiming",
+      [],
+      { cacheNotFound: true },
+    );
+  });
+
+  test("returns a null subtype when the allowlist parameter is missing", async () => {
+    const appId = appPayload.id;
+    const getParameter = jest.fn().mockResolvedValue(undefined);
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+    AppPrecheckQuery.mockResolvedValue({ app: [appPayload] });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      credential_request: { subtype: null },
+    });
+  });
+
+  test("includes the grant-claiming subtype with a synthetic action", async () => {
+    const appId = appPayload.id;
+    const getParameter = jest.fn().mockResolvedValue([appId]);
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+    AppPrecheckQuery.mockResolvedValue({
+      app: [
+        {
+          ...appPayload,
+          actions: [],
+          rp_registration: [
+            { rp_id: "rp_0123456789abcdef", status: "registered" },
+          ],
+        },
+      ],
+    });
+
+    const response = await POST(
+      new NextRequest(`http://localhost:3000/api/v1/precheck/${appId}`, {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      }),
+      { params: Promise.resolve({ app_id: appId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      credential_request: { subtype: "grant_claiming" },
+      action: { action: exampleValidRequestPayload.action },
+      rp_id: "rp_0123456789abcdef",
+    });
+  });
+  // #endregion
 
   test("can fetch precheck response unverified", async () => {
     const request = new NextRequest(
@@ -123,6 +353,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       engine: "cloud",
       verified_app_logo: "",
       enable_face_check: false,
+      credential_request: { subtype: null },
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
@@ -139,48 +370,49 @@ describe("/api/v1/precheck/[app_id]", () => {
     // TODO
   });
 
-  test("can fetch precheck response with face check enabled", async () => {
-    const request = new NextRequest(
-      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
-      {
-        method: "POST",
-        body: JSON.stringify(exampleValidRequestPayload),
-      },
-    );
+  test.each([
+    { allowlist: [appPayload.id], enabled: true },
+    { allowlist: ["app_0123456789abcdef0123456789abcdef"], enabled: false },
+    { allowlist: [], enabled: false },
+    { allowlist: appPayload.id, enabled: false },
+    { allowlist: undefined, enabled: false },
+  ])(
+    "gates face check using the SSM app allowlist: $enabled",
+    async ({ allowlist, enabled }) => {
+      const getParameter = jest
+        .fn()
+        .mockImplementation((name: string) =>
+          Promise.resolve(
+            name === "whitelisted-apps/face-check" ? allowlist : [],
+          ),
+        );
+      global.ParameterStore = {
+        getParameter,
+      } as unknown as NonNullable<typeof global.ParameterStore>;
+      AppPrecheckQuery.mockResolvedValue({ app: [{ ...appPayload }] });
 
-    const getParameter = jest
-      .fn()
-      .mockResolvedValue(["app_staging_6d1c9fb86751a40d952749022db1c1"]);
-    global.ParameterStore = {
-      getParameter,
-    } as unknown as NonNullable<typeof global.ParameterStore>;
-
-    try {
-      AppPrecheckQuery.mockResolvedValue({
-        app: [{ ...appPayload }],
-      });
-
-      const response = await POST(request, {
-        params: Promise.resolve({
-          app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
-        }),
-      });
+      const response = await POST(
+        new NextRequest(
+          `http://localhost:3000/api/v1/precheck/${appPayload.id}`,
+          {
+            method: "POST",
+            body: JSON.stringify(exampleValidRequestPayload),
+          },
+        ),
+        { params: Promise.resolve({ app_id: appPayload.id }) },
+      );
 
       expect(response.status).toBe(200);
-      const responseBody = await response.json();
-      expect(responseBody).toMatchObject({
-        id: "app_staging_6d1c9fb86751a40d952749022db1c1",
-        enable_face_check: true,
+      await expect(response.json()).resolves.toMatchObject({
+        enable_face_check: enabled,
       });
-
       expect(getParameter).toHaveBeenCalledWith(
         "whitelisted-apps/face-check",
         [],
+        { cacheNotFound: true, timeoutMs: 3000 },
       );
-    } finally {
-      global.ParameterStore = undefined;
-    }
-  });
+    },
+  );
 
   test("can fetch precheck response with nullifier", async () => {
     // This is used to check if a specific person has already verified for an action
@@ -263,7 +495,7 @@ describe("/api/v1/precheck/[app_id]", () => {
   });
 
   test("can fetch precheck response with external_nullifier=null", async () => {
-    // For broader compatibility we accept empty strings as well as `null`. World App on Android in particular requires this.
+    // For broader compatibility we accept empty strings as well as `null`. World ID App on Android in particular requires this.
     const request = new NextRequest(
       "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
       {
@@ -527,6 +759,58 @@ describe("/api/v1/precheck/[app_id]", () => {
 });
 
 describe("/api/v1/precheck/[action_id] [error cases]", () => {
+  test("returns not found when app is excluded from active app lookup", async () => {
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      },
+    );
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [],
+    });
+
+    const response = await POST(request, {
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
+    });
+
+    expect(response.status).toBe(404);
+    const responseBody = await response.json();
+    expect(responseBody).toEqual(
+      expect.objectContaining({ code: "not_found" }),
+    );
+  });
+
+  test("does not synthesize a migrated action without an active app registration", async () => {
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      },
+    );
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [{ ...appPayload, actions: [] }],
+    });
+
+    const response = await POST(request, {
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    const responseBody = await response.json();
+    expect(responseBody).toEqual(
+      expect.objectContaining({ code: "required", attribute: "action" }),
+    );
+  });
+
   test("non-existent action", async () => {
     const request = new NextRequest(
       "http://localhost:3000/api/v1/precheck/app_id_do_not_exist",

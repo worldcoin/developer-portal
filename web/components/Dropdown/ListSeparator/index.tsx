@@ -7,9 +7,6 @@ export const ListSeparator = (props: ListSeparatorProps) => {
   const { className, ...otherProps } = props;
 
   return (
-    <hr
-      className={twMerge("my-1 border-grey-200", className)}
-      {...otherProps}
-    />
+    <hr className={twMerge("my-1 border-edge", className)} {...otherProps} />
   );
 };

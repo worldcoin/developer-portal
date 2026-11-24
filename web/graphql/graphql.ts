@@ -37,8 +37,25 @@ export type Scalars = {
   review_status_enum: { input: unknown; output: unknown };
   rp_registration_mode: { input: unknown; output: unknown };
   rp_registration_status: { input: unknown; output: unknown };
+  sandbox_access_request_ios_status: {
+    input:
+      | "pending"
+      | "approving"
+      | "approved"
+      | "rejected"
+      | "revoking"
+      | "revoked";
+    output:
+      | "pending"
+      | "approving"
+      | "approved"
+      | "rejected"
+      | "revoking"
+      | "revoked";
+  };
   timestamp: { input: string; output: string };
   timestamptz: { input: string; output: string };
+  uuid: { input: unknown; output: unknown };
   violation_enum: { input: unknown; output: unknown };
 };
 
@@ -305,6 +322,12 @@ export enum ViolationEnum {
   Features = "FEATURES",
   MaliciousApp = "MALICIOUS_APP",
 }
+
+export type Accept_Team_Invite_Args = {
+  _invite_id?: InputMaybe<Scalars["String"]["input"]>;
+  _team_id?: InputMaybe<Scalars["String"]["input"]>;
+  _user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
 
 /** columns and relationships of "action" */
 export type Action = {
@@ -1660,6 +1683,385 @@ export type Action_Variance_Order_By = {
   max_accounts_per_user?: InputMaybe<Order_By>;
   /** Only used for actions. Only for actions verified in the Developer Portal. Determines the maximum number of verifications that a user can perform for this action. */
   max_verifications?: InputMaybe<Order_By>;
+};
+
+export type Admin_Dashboard_Inventory = {
+  __typename?: "admin_dashboard_inventory";
+  active_api_keys: Scalars["bigint"]["output"];
+  active_apps: Scalars["bigint"]["output"];
+  active_teams: Scalars["bigint"]["output"];
+  deleted_apps: Scalars["bigint"]["output"];
+  deleted_teams: Scalars["bigint"]["output"];
+  new_apps: Scalars["bigint"]["output"];
+  new_teams: Scalars["bigint"]["output"];
+  new_users: Scalars["bigint"]["output"];
+  pending_invites: Scalars["bigint"]["output"];
+  total_users: Scalars["bigint"]["output"];
+};
+
+/** Boolean expression to filter rows from the logical model for "admin_dashboard_inventory". All fields are combined with a logical 'AND'. */
+export type Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp = {
+  _and?: InputMaybe<Array<Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp>>;
+  _not?: InputMaybe<Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp>;
+  _or?: InputMaybe<Array<Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp>>;
+  active_api_keys?: InputMaybe<Bigint_Comparison_Exp>;
+  active_apps?: InputMaybe<Bigint_Comparison_Exp>;
+  active_teams?: InputMaybe<Bigint_Comparison_Exp>;
+  deleted_apps?: InputMaybe<Bigint_Comparison_Exp>;
+  deleted_teams?: InputMaybe<Bigint_Comparison_Exp>;
+  new_apps?: InputMaybe<Bigint_Comparison_Exp>;
+  new_teams?: InputMaybe<Bigint_Comparison_Exp>;
+  new_users?: InputMaybe<Bigint_Comparison_Exp>;
+  pending_invites?: InputMaybe<Bigint_Comparison_Exp>;
+  total_users?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+export enum Admin_Dashboard_Inventory_Enum_Name {
+  /** column name */
+  ActiveApiKeys = "active_api_keys",
+  /** column name */
+  ActiveApps = "active_apps",
+  /** column name */
+  ActiveTeams = "active_teams",
+  /** column name */
+  DeletedApps = "deleted_apps",
+  /** column name */
+  DeletedTeams = "deleted_teams",
+  /** column name */
+  NewApps = "new_apps",
+  /** column name */
+  NewTeams = "new_teams",
+  /** column name */
+  NewUsers = "new_users",
+  /** column name */
+  PendingInvites = "pending_invites",
+  /** column name */
+  TotalUsers = "total_users",
+}
+
+/** Ordering options when selecting data from "admin_dashboard_inventory". */
+export type Admin_Dashboard_Inventory_Order_By = {
+  active_api_keys?: InputMaybe<Order_By>;
+  active_apps?: InputMaybe<Order_By>;
+  active_teams?: InputMaybe<Order_By>;
+  deleted_apps?: InputMaybe<Order_By>;
+  deleted_teams?: InputMaybe<Order_By>;
+  new_apps?: InputMaybe<Order_By>;
+  new_teams?: InputMaybe<Order_By>;
+  new_users?: InputMaybe<Order_By>;
+  pending_invites?: InputMaybe<Order_By>;
+  total_users?: InputMaybe<Order_By>;
+};
+
+export type Admin_Dashboard_Queue = {
+  __typename?: "admin_dashboard_queue";
+  email?: Maybe<Scalars["String"]["output"]>;
+  id: Scalars["String"]["output"];
+  kind: Scalars["String"]["output"];
+  name?: Maybe<Scalars["String"]["output"]>;
+  owner_email?: Maybe<Scalars["String"]["output"]>;
+  owner_id?: Maybe<Scalars["String"]["output"]>;
+  owner_name?: Maybe<Scalars["String"]["output"]>;
+  team_id?: Maybe<Scalars["String"]["output"]>;
+  total_count: Scalars["bigint"]["output"];
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the logical model for "admin_dashboard_queue". All fields are combined with a logical 'AND'. */
+export type Admin_Dashboard_Queue_Bool_Exp_Bool_Exp = {
+  _and?: InputMaybe<Array<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>>;
+  _not?: InputMaybe<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>;
+  _or?: InputMaybe<Array<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>>;
+  email?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  kind?: InputMaybe<String_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  owner_email?: InputMaybe<String_Comparison_Exp>;
+  owner_id?: InputMaybe<String_Comparison_Exp>;
+  owner_name?: InputMaybe<String_Comparison_Exp>;
+  team_id?: InputMaybe<String_Comparison_Exp>;
+  total_count?: InputMaybe<Bigint_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+export enum Admin_Dashboard_Queue_Enum_Name {
+  /** column name */
+  Email = "email",
+  /** column name */
+  Id = "id",
+  /** column name */
+  Kind = "kind",
+  /** column name */
+  Name = "name",
+  /** column name */
+  OwnerEmail = "owner_email",
+  /** column name */
+  OwnerId = "owner_id",
+  /** column name */
+  OwnerName = "owner_name",
+  /** column name */
+  TeamId = "team_id",
+  /** column name */
+  TotalCount = "total_count",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+/** Ordering options when selecting data from "admin_dashboard_queue". */
+export type Admin_Dashboard_Queue_Order_By = {
+  email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  kind?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  owner_email?: InputMaybe<Order_By>;
+  owner_id?: InputMaybe<Order_By>;
+  owner_name?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  total_count?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+export type Admin_Rp_Inventory = {
+  __typename?: "admin_rp_inventory";
+  managed_rps: Scalars["bigint"]["output"];
+  managed_with_key: Scalars["bigint"]["output"];
+  managed_without_key: Scalars["bigint"]["output"];
+  self_managed_rps: Scalars["bigint"]["output"];
+  shared_manager_key_rps: Scalars["bigint"]["output"];
+  staging_status_deactivated: Scalars["bigint"]["output"];
+  staging_status_failed: Scalars["bigint"]["output"];
+  staging_status_null: Scalars["bigint"]["output"];
+  staging_status_pending: Scalars["bigint"]["output"];
+  staging_status_registered: Scalars["bigint"]["output"];
+  status_deactivated: Scalars["bigint"]["output"];
+  status_failed: Scalars["bigint"]["output"];
+  status_pending: Scalars["bigint"]["output"];
+  status_registered: Scalars["bigint"]["output"];
+  total_rps: Scalars["bigint"]["output"];
+  unique_manager_key_rps: Scalars["bigint"]["output"];
+};
+
+/** Boolean expression to filter rows from the logical model for "admin_rp_inventory". All fields are combined with a logical 'AND'. */
+export type Admin_Rp_Inventory_Bool_Exp_Bool_Exp = {
+  _and?: InputMaybe<Array<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>>;
+  _not?: InputMaybe<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>;
+  _or?: InputMaybe<Array<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>>;
+  managed_rps?: InputMaybe<Bigint_Comparison_Exp>;
+  managed_with_key?: InputMaybe<Bigint_Comparison_Exp>;
+  managed_without_key?: InputMaybe<Bigint_Comparison_Exp>;
+  self_managed_rps?: InputMaybe<Bigint_Comparison_Exp>;
+  shared_manager_key_rps?: InputMaybe<Bigint_Comparison_Exp>;
+  staging_status_deactivated?: InputMaybe<Bigint_Comparison_Exp>;
+  staging_status_failed?: InputMaybe<Bigint_Comparison_Exp>;
+  staging_status_null?: InputMaybe<Bigint_Comparison_Exp>;
+  staging_status_pending?: InputMaybe<Bigint_Comparison_Exp>;
+  staging_status_registered?: InputMaybe<Bigint_Comparison_Exp>;
+  status_deactivated?: InputMaybe<Bigint_Comparison_Exp>;
+  status_failed?: InputMaybe<Bigint_Comparison_Exp>;
+  status_pending?: InputMaybe<Bigint_Comparison_Exp>;
+  status_registered?: InputMaybe<Bigint_Comparison_Exp>;
+  total_rps?: InputMaybe<Bigint_Comparison_Exp>;
+  unique_manager_key_rps?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+export enum Admin_Rp_Inventory_Enum_Name {
+  /** column name */
+  ManagedRps = "managed_rps",
+  /** column name */
+  ManagedWithKey = "managed_with_key",
+  /** column name */
+  ManagedWithoutKey = "managed_without_key",
+  /** column name */
+  SelfManagedRps = "self_managed_rps",
+  /** column name */
+  SharedManagerKeyRps = "shared_manager_key_rps",
+  /** column name */
+  StagingStatusDeactivated = "staging_status_deactivated",
+  /** column name */
+  StagingStatusFailed = "staging_status_failed",
+  /** column name */
+  StagingStatusNull = "staging_status_null",
+  /** column name */
+  StagingStatusPending = "staging_status_pending",
+  /** column name */
+  StagingStatusRegistered = "staging_status_registered",
+  /** column name */
+  StatusDeactivated = "status_deactivated",
+  /** column name */
+  StatusFailed = "status_failed",
+  /** column name */
+  StatusPending = "status_pending",
+  /** column name */
+  StatusRegistered = "status_registered",
+  /** column name */
+  TotalRps = "total_rps",
+  /** column name */
+  UniqueManagerKeyRps = "unique_manager_key_rps",
+}
+
+/** Ordering options when selecting data from "admin_rp_inventory". */
+export type Admin_Rp_Inventory_Order_By = {
+  managed_rps?: InputMaybe<Order_By>;
+  managed_with_key?: InputMaybe<Order_By>;
+  managed_without_key?: InputMaybe<Order_By>;
+  self_managed_rps?: InputMaybe<Order_By>;
+  shared_manager_key_rps?: InputMaybe<Order_By>;
+  staging_status_deactivated?: InputMaybe<Order_By>;
+  staging_status_failed?: InputMaybe<Order_By>;
+  staging_status_null?: InputMaybe<Order_By>;
+  staging_status_pending?: InputMaybe<Order_By>;
+  staging_status_registered?: InputMaybe<Order_By>;
+  status_deactivated?: InputMaybe<Order_By>;
+  status_failed?: InputMaybe<Order_By>;
+  status_pending?: InputMaybe<Order_By>;
+  status_registered?: InputMaybe<Order_By>;
+  total_rps?: InputMaybe<Order_By>;
+  unique_manager_key_rps?: InputMaybe<Order_By>;
+};
+
+export type Admin_Rp_Manager_Key_Migration = {
+  __typename?: "admin_rp_manager_key_migration";
+  audit_blocked: Scalars["bigint"]["output"];
+  audit_deleted: Scalars["bigint"]["output"];
+  audit_deletion_overdue: Scalars["bigint"]["output"];
+  audit_deletion_scheduled: Scalars["bigint"]["output"];
+  audit_failed: Scalars["bigint"]["output"];
+  audit_pending: Scalars["bigint"]["output"];
+  audit_ready_for_external_cleanup: Scalars["bigint"]["output"];
+  on_shared_with_audit: Scalars["bigint"]["output"];
+  on_shared_without_audit: Scalars["bigint"]["output"];
+  remaining_cron_candidates: Scalars["bigint"]["output"];
+  unique_excluded_from_cron: Scalars["bigint"]["output"];
+  unique_with_audit: Scalars["bigint"]["output"];
+};
+
+/** Boolean expression to filter rows from the logical model for "admin_rp_manager_key_migration". All fields are combined with a logical 'AND'. */
+export type Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp = {
+  _and?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp>>;
+  _not?: InputMaybe<Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp>;
+  _or?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp>>;
+  audit_blocked?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_deleted?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_deletion_overdue?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_deletion_scheduled?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_failed?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_pending?: InputMaybe<Bigint_Comparison_Exp>;
+  audit_ready_for_external_cleanup?: InputMaybe<Bigint_Comparison_Exp>;
+  on_shared_with_audit?: InputMaybe<Bigint_Comparison_Exp>;
+  on_shared_without_audit?: InputMaybe<Bigint_Comparison_Exp>;
+  remaining_cron_candidates?: InputMaybe<Bigint_Comparison_Exp>;
+  unique_excluded_from_cron?: InputMaybe<Bigint_Comparison_Exp>;
+  unique_with_audit?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+export enum Admin_Rp_Manager_Key_Migration_Enum_Name {
+  /** column name */
+  AuditBlocked = "audit_blocked",
+  /** column name */
+  AuditDeleted = "audit_deleted",
+  /** column name */
+  AuditDeletionOverdue = "audit_deletion_overdue",
+  /** column name */
+  AuditDeletionScheduled = "audit_deletion_scheduled",
+  /** column name */
+  AuditFailed = "audit_failed",
+  /** column name */
+  AuditPending = "audit_pending",
+  /** column name */
+  AuditReadyForExternalCleanup = "audit_ready_for_external_cleanup",
+  /** column name */
+  OnSharedWithAudit = "on_shared_with_audit",
+  /** column name */
+  OnSharedWithoutAudit = "on_shared_without_audit",
+  /** column name */
+  RemainingCronCandidates = "remaining_cron_candidates",
+  /** column name */
+  UniqueExcludedFromCron = "unique_excluded_from_cron",
+  /** column name */
+  UniqueWithAudit = "unique_with_audit",
+}
+
+/** Ordering options when selecting data from "admin_rp_manager_key_migration". */
+export type Admin_Rp_Manager_Key_Migration_Order_By = {
+  audit_blocked?: InputMaybe<Order_By>;
+  audit_deleted?: InputMaybe<Order_By>;
+  audit_deletion_overdue?: InputMaybe<Order_By>;
+  audit_deletion_scheduled?: InputMaybe<Order_By>;
+  audit_failed?: InputMaybe<Order_By>;
+  audit_pending?: InputMaybe<Order_By>;
+  audit_ready_for_external_cleanup?: InputMaybe<Order_By>;
+  on_shared_with_audit?: InputMaybe<Order_By>;
+  on_shared_without_audit?: InputMaybe<Order_By>;
+  remaining_cron_candidates?: InputMaybe<Order_By>;
+  unique_excluded_from_cron?: InputMaybe<Order_By>;
+  unique_with_audit?: InputMaybe<Order_By>;
+};
+
+export type Admin_Rp_Manager_Key_Migration_Queue = {
+  __typename?: "admin_rp_manager_key_migration_queue";
+  app_id: Scalars["String"]["output"];
+  app_name?: Maybe<Scalars["String"]["output"]>;
+  cleanup_status?: Maybe<Scalars["String"]["output"]>;
+  expected_deletion_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  kind: Scalars["String"]["output"];
+  last_error_detail?: Maybe<Scalars["String"]["output"]>;
+  rp_id: Scalars["String"]["output"];
+  total_count: Scalars["bigint"]["output"];
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the logical model for "admin_rp_manager_key_migration_queue". All fields are combined with a logical 'AND'. */
+export type Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp = {
+  _and?: InputMaybe<
+    Array<Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp>
+  >;
+  _not?: InputMaybe<Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp>;
+  _or?: InputMaybe<
+    Array<Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp>
+  >;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  app_name?: InputMaybe<String_Comparison_Exp>;
+  cleanup_status?: InputMaybe<String_Comparison_Exp>;
+  expected_deletion_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  kind?: InputMaybe<String_Comparison_Exp>;
+  last_error_detail?: InputMaybe<String_Comparison_Exp>;
+  rp_id?: InputMaybe<String_Comparison_Exp>;
+  total_count?: InputMaybe<Bigint_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+export enum Admin_Rp_Manager_Key_Migration_Queue_Enum_Name {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  AppName = "app_name",
+  /** column name */
+  CleanupStatus = "cleanup_status",
+  /** column name */
+  ExpectedDeletionAt = "expected_deletion_at",
+  /** column name */
+  Kind = "kind",
+  /** column name */
+  LastErrorDetail = "last_error_detail",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  TotalCount = "total_count",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+/** Ordering options when selecting data from "admin_rp_manager_key_migration_queue". */
+export type Admin_Rp_Manager_Key_Migration_Queue_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  app_name?: InputMaybe<Order_By>;
+  cleanup_status?: InputMaybe<Order_By>;
+  expected_deletion_at?: InputMaybe<Order_By>;
+  kind?: InputMaybe<Order_By>;
+  last_error_detail?: InputMaybe<Order_By>;
+  rp_id?: InputMaybe<Order_By>;
+  total_count?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "api_key" */
@@ -5350,6 +5752,17 @@ export type Invite_Aggregate = {
   nodes: Array<Invite>;
 };
 
+export type Invite_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Invite_Aggregate_Bool_Exp_Count>;
+};
+
+export type Invite_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Invite_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Invite_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "invite" */
 export type Invite_Aggregate_Fields = {
   __typename?: "invite_aggregate_fields";
@@ -5362,6 +5775,20 @@ export type Invite_Aggregate_Fields = {
 export type Invite_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Invite_Select_Column>>;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "invite" */
+export type Invite_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Invite_Max_Order_By>;
+  min?: InputMaybe<Invite_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "invite" */
+export type Invite_Arr_Rel_Insert_Input = {
+  data: Array<Invite_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Invite_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "invite". All fields are combined with a logical 'AND'. */
@@ -5400,6 +5827,14 @@ export type Invite_Max_Fields = {
   team_id?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** order by max() on columns of table "invite" */
+export type Invite_Max_Order_By = {
+  email?: InputMaybe<Order_By>;
+  expires_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type Invite_Min_Fields = {
   __typename?: "invite_min_fields";
@@ -5407,6 +5842,14 @@ export type Invite_Min_Fields = {
   expires_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   team_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "invite" */
+export type Invite_Min_Order_By = {
+  email?: InputMaybe<Order_By>;
+  expires_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "invite" */
@@ -6306,9 +6749,17 @@ export type Membership_Updates = {
   where: Membership_Bool_Exp;
 };
 
+export type Merge_World_Id_Accounts_Args = {
+  _current_user_id?: InputMaybe<Scalars["String"]["input"]>;
+  _legacy_user_id?: InputMaybe<Scalars["String"]["input"]>;
+  _world_id_nullifier?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 /** mutation root */
 export type Mutation_Root = {
   __typename?: "mutation_root";
+  /** execute VOLATILE function "accept_team_invite" which returns "membership" */
+  accept_team_invite: Array<Membership>;
   /** Bans app by app_id */
   ban_app: BanAppOutput;
   /** Closes the report with a decision */
@@ -6416,10 +6867,22 @@ export type Mutation_Root = {
   delete_role?: Maybe<Role_Mutation_Response>;
   /** delete single row from the table: "role" */
   delete_role_by_pk?: Maybe<Role>;
+  /** delete data from the table: "rp_manager_key_migration_audit" */
+  delete_rp_manager_key_migration_audit?: Maybe<Rp_Manager_Key_Migration_Audit_Mutation_Response>;
+  /** delete single row from the table: "rp_manager_key_migration_audit" */
+  delete_rp_manager_key_migration_audit_by_pk?: Maybe<Rp_Manager_Key_Migration_Audit>;
   /** delete data from the table: "rp_registration" */
   delete_rp_registration?: Maybe<Rp_Registration_Mutation_Response>;
   /** delete single row from the table: "rp_registration" */
   delete_rp_registration_by_pk?: Maybe<Rp_Registration>;
+  /** delete data from the table: "sandbox_access_request" */
+  delete_sandbox_access_request?: Maybe<Sandbox_Access_Request_Mutation_Response>;
+  /** delete single row from the table: "sandbox_access_request" */
+  delete_sandbox_access_request_by_pk?: Maybe<Sandbox_Access_Request>;
+  /** delete data from the table: "sandbox_access_request_ios" */
+  delete_sandbox_access_request_ios?: Maybe<Sandbox_Access_Request_Ios_Mutation_Response>;
+  /** delete single row from the table: "sandbox_access_request_ios" */
+  delete_sandbox_access_request_ios_by_pk?: Maybe<Sandbox_Access_Request_Ios>;
   /** delete data from the table: "team" */
   delete_team?: Maybe<Team_Mutation_Response>;
   /** delete single row from the table: "team" */
@@ -6529,10 +6992,22 @@ export type Mutation_Root = {
   insert_role?: Maybe<Role_Mutation_Response>;
   /** insert a single row into the table: "role" */
   insert_role_one?: Maybe<Role>;
+  /** insert data into the table: "rp_manager_key_migration_audit" */
+  insert_rp_manager_key_migration_audit?: Maybe<Rp_Manager_Key_Migration_Audit_Mutation_Response>;
+  /** insert a single row into the table: "rp_manager_key_migration_audit" */
+  insert_rp_manager_key_migration_audit_one?: Maybe<Rp_Manager_Key_Migration_Audit>;
   /** insert data into the table: "rp_registration" */
   insert_rp_registration?: Maybe<Rp_Registration_Mutation_Response>;
   /** insert a single row into the table: "rp_registration" */
   insert_rp_registration_one?: Maybe<Rp_Registration>;
+  /** insert data into the table: "sandbox_access_request" */
+  insert_sandbox_access_request?: Maybe<Sandbox_Access_Request_Mutation_Response>;
+  /** insert data into the table: "sandbox_access_request_ios" */
+  insert_sandbox_access_request_ios?: Maybe<Sandbox_Access_Request_Ios_Mutation_Response>;
+  /** insert a single row into the table: "sandbox_access_request_ios" */
+  insert_sandbox_access_request_ios_one?: Maybe<Sandbox_Access_Request_Ios>;
+  /** insert a single row into the table: "sandbox_access_request" */
+  insert_sandbox_access_request_one?: Maybe<Sandbox_Access_Request>;
   /** insert data into the table: "team" */
   insert_team?: Maybe<Team_Mutation_Response>;
   /** insert a single row into the table: "team" */
@@ -6544,6 +7019,8 @@ export type Mutation_Root = {
   invalidate_cache?: Maybe<InvalidateCacheOutput>;
   /** Create invites and send emails */
   invite_team_members?: Maybe<InviteTeamMembersOutput>;
+  /** execute VOLATILE function "merge_world_id_accounts" which returns "user" */
+  merge_world_id_accounts: Array<User>;
   /** Register an RP (Relying Party) for an app with managed mode */
   register_rp?: Maybe<RegisterRpOutput>;
   /** Reset the given API key for the developer portal */
@@ -6732,6 +7209,14 @@ export type Mutation_Root = {
   update_role_by_pk?: Maybe<Role>;
   /** update multiples rows of table: "role" */
   update_role_many?: Maybe<Array<Maybe<Role_Mutation_Response>>>;
+  /** update data of the table: "rp_manager_key_migration_audit" */
+  update_rp_manager_key_migration_audit?: Maybe<Rp_Manager_Key_Migration_Audit_Mutation_Response>;
+  /** update single row of the table: "rp_manager_key_migration_audit" */
+  update_rp_manager_key_migration_audit_by_pk?: Maybe<Rp_Manager_Key_Migration_Audit>;
+  /** update multiples rows of table: "rp_manager_key_migration_audit" */
+  update_rp_manager_key_migration_audit_many?: Maybe<
+    Array<Maybe<Rp_Manager_Key_Migration_Audit_Mutation_Response>>
+  >;
   /** update data of the table: "rp_registration" */
   update_rp_registration?: Maybe<Rp_Registration_Mutation_Response>;
   /** update single row of the table: "rp_registration" */
@@ -6739,6 +7224,22 @@ export type Mutation_Root = {
   /** update multiples rows of table: "rp_registration" */
   update_rp_registration_many?: Maybe<
     Array<Maybe<Rp_Registration_Mutation_Response>>
+  >;
+  /** update data of the table: "sandbox_access_request" */
+  update_sandbox_access_request?: Maybe<Sandbox_Access_Request_Mutation_Response>;
+  /** update single row of the table: "sandbox_access_request" */
+  update_sandbox_access_request_by_pk?: Maybe<Sandbox_Access_Request>;
+  /** update data of the table: "sandbox_access_request_ios" */
+  update_sandbox_access_request_ios?: Maybe<Sandbox_Access_Request_Ios_Mutation_Response>;
+  /** update single row of the table: "sandbox_access_request_ios" */
+  update_sandbox_access_request_ios_by_pk?: Maybe<Sandbox_Access_Request_Ios>;
+  /** update multiples rows of table: "sandbox_access_request_ios" */
+  update_sandbox_access_request_ios_many?: Maybe<
+    Array<Maybe<Sandbox_Access_Request_Ios_Mutation_Response>>
+  >;
+  /** update multiples rows of table: "sandbox_access_request" */
+  update_sandbox_access_request_many?: Maybe<
+    Array<Maybe<Sandbox_Access_Request_Mutation_Response>>
   >;
   /** update data of the table: "team" */
   update_team?: Maybe<Team_Mutation_Response>;
@@ -6755,6 +7256,16 @@ export type Mutation_Root = {
   validate_localisation?: Maybe<ValidateLocalisationOutput>;
   /** Verify an App */
   verify_app?: Maybe<VerifyAppOutput>;
+};
+
+/** mutation root */
+export type Mutation_RootAccept_Team_InviteArgs = {
+  args: Accept_Team_Invite_Args;
+  distinct_on?: InputMaybe<Array<Membership_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Membership_Order_By>>;
+  where?: InputMaybe<Membership_Bool_Exp>;
 };
 
 /** mutation root */
@@ -7032,6 +7543,16 @@ export type Mutation_RootDelete_Role_By_PkArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootDelete_Rp_Manager_Key_Migration_AuditArgs = {
+  where: Rp_Manager_Key_Migration_Audit_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Rp_Manager_Key_Migration_Audit_By_PkArgs = {
+  rp_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
 export type Mutation_RootDelete_Rp_RegistrationArgs = {
   where: Rp_Registration_Bool_Exp;
 };
@@ -7039,6 +7560,26 @@ export type Mutation_RootDelete_Rp_RegistrationArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Rp_Registration_By_PkArgs = {
   rp_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Sandbox_Access_RequestArgs = {
+  where: Sandbox_Access_Request_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Sandbox_Access_Request_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Sandbox_Access_Request_IosArgs = {
+  where: Sandbox_Access_Request_Ios_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Sandbox_Access_Request_Ios_By_PkArgs = {
+  id: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -7367,6 +7908,18 @@ export type Mutation_RootInsert_Role_OneArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootInsert_Rp_Manager_Key_Migration_AuditArgs = {
+  objects: Array<Rp_Manager_Key_Migration_Audit_Insert_Input>;
+  on_conflict?: InputMaybe<Rp_Manager_Key_Migration_Audit_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Rp_Manager_Key_Migration_Audit_OneArgs = {
+  object: Rp_Manager_Key_Migration_Audit_Insert_Input;
+  on_conflict?: InputMaybe<Rp_Manager_Key_Migration_Audit_On_Conflict>;
+};
+
+/** mutation root */
 export type Mutation_RootInsert_Rp_RegistrationArgs = {
   objects: Array<Rp_Registration_Insert_Input>;
   on_conflict?: InputMaybe<Rp_Registration_On_Conflict>;
@@ -7376,6 +7929,30 @@ export type Mutation_RootInsert_Rp_RegistrationArgs = {
 export type Mutation_RootInsert_Rp_Registration_OneArgs = {
   object: Rp_Registration_Insert_Input;
   on_conflict?: InputMaybe<Rp_Registration_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Sandbox_Access_RequestArgs = {
+  objects: Array<Sandbox_Access_Request_Insert_Input>;
+  on_conflict?: InputMaybe<Sandbox_Access_Request_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Sandbox_Access_Request_IosArgs = {
+  objects: Array<Sandbox_Access_Request_Ios_Insert_Input>;
+  on_conflict?: InputMaybe<Sandbox_Access_Request_Ios_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Sandbox_Access_Request_Ios_OneArgs = {
+  object: Sandbox_Access_Request_Ios_Insert_Input;
+  on_conflict?: InputMaybe<Sandbox_Access_Request_Ios_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Sandbox_Access_Request_OneArgs = {
+  object: Sandbox_Access_Request_Insert_Input;
+  on_conflict?: InputMaybe<Sandbox_Access_Request_On_Conflict>;
 };
 
 /** mutation root */
@@ -7406,6 +7983,16 @@ export type Mutation_RootInsert_User_OneArgs = {
 export type Mutation_RootInvite_Team_MembersArgs = {
   emails?: InputMaybe<Array<Scalars["String"]["input"]>>;
   team_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootMerge_World_Id_AccountsArgs = {
+  args: Merge_World_Id_Accounts_Args;
+  distinct_on?: InputMaybe<Array<User_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<User_Order_By>>;
+  where?: InputMaybe<User_Bool_Exp>;
 };
 
 /** mutation root */
@@ -7929,6 +8516,35 @@ export type Mutation_RootUpdate_Role_ManyArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootUpdate_Rp_Manager_Key_Migration_AuditArgs = {
+  _append?: InputMaybe<Rp_Manager_Key_Migration_Audit_Append_Input>;
+  _delete_at_path?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Key_Input>;
+  _inc?: InputMaybe<Rp_Manager_Key_Migration_Audit_Inc_Input>;
+  _prepend?: InputMaybe<Rp_Manager_Key_Migration_Audit_Prepend_Input>;
+  _set?: InputMaybe<Rp_Manager_Key_Migration_Audit_Set_Input>;
+  where: Rp_Manager_Key_Migration_Audit_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Rp_Manager_Key_Migration_Audit_By_PkArgs = {
+  _append?: InputMaybe<Rp_Manager_Key_Migration_Audit_Append_Input>;
+  _delete_at_path?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Key_Input>;
+  _inc?: InputMaybe<Rp_Manager_Key_Migration_Audit_Inc_Input>;
+  _prepend?: InputMaybe<Rp_Manager_Key_Migration_Audit_Prepend_Input>;
+  _set?: InputMaybe<Rp_Manager_Key_Migration_Audit_Set_Input>;
+  pk_columns: Rp_Manager_Key_Migration_Audit_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Rp_Manager_Key_Migration_Audit_ManyArgs = {
+  updates: Array<Rp_Manager_Key_Migration_Audit_Updates>;
+};
+
+/** mutation root */
 export type Mutation_RootUpdate_Rp_RegistrationArgs = {
   _set?: InputMaybe<Rp_Registration_Set_Input>;
   where: Rp_Registration_Bool_Exp;
@@ -7943,6 +8559,40 @@ export type Mutation_RootUpdate_Rp_Registration_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Rp_Registration_ManyArgs = {
   updates: Array<Rp_Registration_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Sandbox_Access_RequestArgs = {
+  _set?: InputMaybe<Sandbox_Access_Request_Set_Input>;
+  where: Sandbox_Access_Request_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Sandbox_Access_Request_By_PkArgs = {
+  _set?: InputMaybe<Sandbox_Access_Request_Set_Input>;
+  pk_columns: Sandbox_Access_Request_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Sandbox_Access_Request_IosArgs = {
+  _set?: InputMaybe<Sandbox_Access_Request_Ios_Set_Input>;
+  where: Sandbox_Access_Request_Ios_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Sandbox_Access_Request_Ios_By_PkArgs = {
+  _set?: InputMaybe<Sandbox_Access_Request_Ios_Set_Input>;
+  pk_columns: Sandbox_Access_Request_Ios_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Sandbox_Access_Request_Ios_ManyArgs = {
+  updates: Array<Sandbox_Access_Request_Ios_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Sandbox_Access_Request_ManyArgs = {
+  updates: Array<Sandbox_Access_Request_Updates>;
 };
 
 /** mutation root */
@@ -9292,6 +9942,11 @@ export type Query_Root = {
   action_v4_aggregate: Action_V4_Aggregate;
   /** fetch data from the table: "action_v4" using primary key columns */
   action_v4_by_pk?: Maybe<Action_V4>;
+  admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
+  admin_dashboard_queues: Array<Admin_Dashboard_Queue>;
+  admin_rp_inventory: Array<Admin_Rp_Inventory>;
+  admin_rp_manager_key_migration: Array<Admin_Rp_Manager_Key_Migration>;
+  admin_rp_manager_key_migration_queue: Array<Admin_Rp_Manager_Key_Migration_Queue>;
   /** fetch data from the table: "api_key" */
   api_key: Array<Api_Key>;
   /** fetch aggregated fields from the table: "api_key" */
@@ -9429,12 +10084,30 @@ export type Query_Root = {
   role_aggregate: Role_Aggregate;
   /** fetch data from the table: "role" using primary key columns */
   role_by_pk?: Maybe<Role>;
+  /** fetch data from the table: "rp_manager_key_migration_audit" */
+  rp_manager_key_migration_audit: Array<Rp_Manager_Key_Migration_Audit>;
+  /** fetch aggregated fields from the table: "rp_manager_key_migration_audit" */
+  rp_manager_key_migration_audit_aggregate: Rp_Manager_Key_Migration_Audit_Aggregate;
+  /** fetch data from the table: "rp_manager_key_migration_audit" using primary key columns */
+  rp_manager_key_migration_audit_by_pk?: Maybe<Rp_Manager_Key_Migration_Audit>;
   /** An array relationship */
   rp_registration: Array<Rp_Registration>;
   /** An aggregate relationship */
   rp_registration_aggregate: Rp_Registration_Aggregate;
   /** fetch data from the table: "rp_registration" using primary key columns */
   rp_registration_by_pk?: Maybe<Rp_Registration>;
+  /** fetch data from the table: "sandbox_access_request" */
+  sandbox_access_request: Array<Sandbox_Access_Request>;
+  /** fetch aggregated fields from the table: "sandbox_access_request" */
+  sandbox_access_request_aggregate: Sandbox_Access_Request_Aggregate;
+  /** fetch data from the table: "sandbox_access_request" using primary key columns */
+  sandbox_access_request_by_pk?: Maybe<Sandbox_Access_Request>;
+  /** fetch data from the table: "sandbox_access_request_ios" */
+  sandbox_access_request_ios: Array<Sandbox_Access_Request_Ios>;
+  /** fetch aggregated fields from the table: "sandbox_access_request_ios" */
+  sandbox_access_request_ios_aggregate: Sandbox_Access_Request_Ios_Aggregate;
+  /** fetch data from the table: "sandbox_access_request_ios" using primary key columns */
+  sandbox_access_request_ios_by_pk?: Maybe<Sandbox_Access_Request_Ios>;
   /** fetch data from the table: "team" */
   team: Array<Team>;
   /** fetch aggregated fields from the table: "team" */
@@ -9527,6 +10200,48 @@ export type Query_RootAction_V4_AggregateArgs = {
 
 export type Query_RootAction_V4_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootAdmin_Dashboard_InventoryArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Dashboard_Inventory_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Dashboard_Inventory_Order_By>>;
+  where?: InputMaybe<Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp>;
+};
+
+export type Query_RootAdmin_Dashboard_QueuesArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Dashboard_Queue_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Dashboard_Queue_Order_By>>;
+  where?: InputMaybe<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>;
+};
+
+export type Query_RootAdmin_Rp_InventoryArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Rp_Inventory_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Inventory_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>;
+};
+
+export type Query_RootAdmin_Rp_Manager_Key_MigrationArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp>;
+};
+
+export type Query_RootAdmin_Rp_Manager_Key_Migration_QueueArgs = {
+  distinct_on?: InputMaybe<
+    Array<Admin_Rp_Manager_Key_Migration_Queue_Enum_Name>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Queue_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp>;
 };
 
 export type Query_RootApi_KeyArgs = {
@@ -9996,6 +10711,26 @@ export type Query_RootRole_By_PkArgs = {
   value: Scalars["String"]["input"];
 };
 
+export type Query_RootRp_Manager_Key_Migration_AuditArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Order_By>>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+};
+
+export type Query_RootRp_Manager_Key_Migration_Audit_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Order_By>>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+};
+
+export type Query_RootRp_Manager_Key_Migration_Audit_By_PkArgs = {
+  rp_id: Scalars["String"]["input"];
+};
+
 export type Query_RootRp_RegistrationArgs = {
   distinct_on?: InputMaybe<Array<Rp_Registration_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -10014,6 +10749,46 @@ export type Query_RootRp_Registration_AggregateArgs = {
 
 export type Query_RootRp_Registration_By_PkArgs = {
   rp_id: Scalars["String"]["input"];
+};
+
+export type Query_RootSandbox_Access_RequestArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+};
+
+export type Query_RootSandbox_Access_Request_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+};
+
+export type Query_RootSandbox_Access_Request_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Query_RootSandbox_Access_Request_IosArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+export type Query_RootSandbox_Access_Request_Ios_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+export type Query_RootSandbox_Access_Request_Ios_By_PkArgs = {
+  id: Scalars["String"]["input"];
 };
 
 export type Query_RootTeamArgs = {
@@ -10450,6 +11225,475 @@ export type Rollup_App_Stats_Args = {
   _until?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
 
+/** columns and relationships of "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit = {
+  __typename?: "rp_manager_key_migration_audit";
+  app_id: Scalars["String"]["output"];
+  attempt_count: Scalars["Int"]["output"];
+  cleanup_attempt_count: Scalars["Int"]["output"];
+  cleanup_candidate: Scalars["Boolean"]["output"];
+  cleanup_status: Scalars["String"]["output"];
+  completed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  created_at: Scalars["timestamptz"]["output"];
+  deletion_scheduled_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  expected_deletion_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_attempt_id?: Maybe<Scalars["uuid"]["output"]>;
+  last_error_detail?: Maybe<Scalars["String"]["output"]>;
+  last_error_stage?: Maybe<Scalars["String"]["output"]>;
+  migration_status: Scalars["String"]["output"];
+  old_manager_kms_key_arn: Scalars["String"]["output"];
+  old_manager_kms_key_id: Scalars["String"]["output"];
+  operation_hashes: Scalars["jsonb"]["output"];
+  retry_after?: Maybe<Scalars["timestamptz"]["output"]>;
+  rp_id: Scalars["String"]["output"];
+  shared_manager_kms_key_id: Scalars["String"]["output"];
+  skipped_registries: Array<Scalars["String"]["output"]>;
+  updated_at: Scalars["timestamptz"]["output"];
+};
+
+/** columns and relationships of "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_AuditOperation_HashesArgs = {
+  path?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregated selection of "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Aggregate = {
+  __typename?: "rp_manager_key_migration_audit_aggregate";
+  aggregate?: Maybe<Rp_Manager_Key_Migration_Audit_Aggregate_Fields>;
+  nodes: Array<Rp_Manager_Key_Migration_Audit>;
+};
+
+/** aggregate fields of "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Aggregate_Fields = {
+  __typename?: "rp_manager_key_migration_audit_aggregate_fields";
+  avg?: Maybe<Rp_Manager_Key_Migration_Audit_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Rp_Manager_Key_Migration_Audit_Max_Fields>;
+  min?: Maybe<Rp_Manager_Key_Migration_Audit_Min_Fields>;
+  stddev?: Maybe<Rp_Manager_Key_Migration_Audit_Stddev_Fields>;
+  stddev_pop?: Maybe<Rp_Manager_Key_Migration_Audit_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Rp_Manager_Key_Migration_Audit_Stddev_Samp_Fields>;
+  sum?: Maybe<Rp_Manager_Key_Migration_Audit_Sum_Fields>;
+  var_pop?: Maybe<Rp_Manager_Key_Migration_Audit_Var_Pop_Fields>;
+  var_samp?: Maybe<Rp_Manager_Key_Migration_Audit_Var_Samp_Fields>;
+  variance?: Maybe<Rp_Manager_Key_Migration_Audit_Variance_Fields>;
+};
+
+/** aggregate fields of "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type Rp_Manager_Key_Migration_Audit_Append_Input = {
+  operation_hashes?: InputMaybe<Scalars["jsonb"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type Rp_Manager_Key_Migration_Audit_Avg_Fields = {
+  __typename?: "rp_manager_key_migration_audit_avg_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "rp_manager_key_migration_audit". All fields are combined with a logical 'AND'. */
+export type Rp_Manager_Key_Migration_Audit_Bool_Exp = {
+  _and?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Bool_Exp>>;
+  _not?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+  _or?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Bool_Exp>>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  attempt_count?: InputMaybe<Int_Comparison_Exp>;
+  cleanup_attempt_count?: InputMaybe<Int_Comparison_Exp>;
+  cleanup_candidate?: InputMaybe<Boolean_Comparison_Exp>;
+  cleanup_status?: InputMaybe<String_Comparison_Exp>;
+  completed_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  deletion_scheduled_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  expected_deletion_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  last_attempt_id?: InputMaybe<Uuid_Comparison_Exp>;
+  last_error_detail?: InputMaybe<String_Comparison_Exp>;
+  last_error_stage?: InputMaybe<String_Comparison_Exp>;
+  migration_status?: InputMaybe<String_Comparison_Exp>;
+  old_manager_kms_key_arn?: InputMaybe<String_Comparison_Exp>;
+  old_manager_kms_key_id?: InputMaybe<String_Comparison_Exp>;
+  operation_hashes?: InputMaybe<Jsonb_Comparison_Exp>;
+  retry_after?: InputMaybe<Timestamptz_Comparison_Exp>;
+  rp_id?: InputMaybe<String_Comparison_Exp>;
+  shared_manager_kms_key_id?: InputMaybe<String_Comparison_Exp>;
+  skipped_registries?: InputMaybe<String_Array_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "rp_manager_key_migration_audit" */
+export enum Rp_Manager_Key_Migration_Audit_Constraint {
+  /** unique or primary key constraint on columns "rp_id" */
+  RpManagerKeyMigrationAuditPkey = "rp_manager_key_migration_audit_pkey",
+}
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type Rp_Manager_Key_Migration_Audit_Delete_At_Path_Input = {
+  operation_hashes?: InputMaybe<Array<Scalars["String"]["input"]>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type Rp_Manager_Key_Migration_Audit_Delete_Elem_Input = {
+  operation_hashes?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type Rp_Manager_Key_Migration_Audit_Delete_Key_Input = {
+  operation_hashes?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** input type for incrementing numeric columns in table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Inc_Input = {
+  attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** input type for inserting data into table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Insert_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_candidate?: InputMaybe<Scalars["Boolean"]["input"]>;
+  cleanup_status?: InputMaybe<Scalars["String"]["input"]>;
+  completed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deletion_scheduled_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  expected_deletion_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_attempt_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  last_error_detail?: InputMaybe<Scalars["String"]["input"]>;
+  last_error_stage?: InputMaybe<Scalars["String"]["input"]>;
+  migration_status?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_arn?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  operation_hashes?: InputMaybe<Scalars["jsonb"]["input"]>;
+  retry_after?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  shared_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  skipped_registries?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Rp_Manager_Key_Migration_Audit_Max_Fields = {
+  __typename?: "rp_manager_key_migration_audit_max_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  cleanup_status?: Maybe<Scalars["String"]["output"]>;
+  completed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  deletion_scheduled_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  expected_deletion_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_attempt_id?: Maybe<Scalars["uuid"]["output"]>;
+  last_error_detail?: Maybe<Scalars["String"]["output"]>;
+  last_error_stage?: Maybe<Scalars["String"]["output"]>;
+  migration_status?: Maybe<Scalars["String"]["output"]>;
+  old_manager_kms_key_arn?: Maybe<Scalars["String"]["output"]>;
+  old_manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
+  retry_after?: Maybe<Scalars["timestamptz"]["output"]>;
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  shared_manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
+  skipped_registries?: Maybe<Array<Scalars["String"]["output"]>>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Rp_Manager_Key_Migration_Audit_Min_Fields = {
+  __typename?: "rp_manager_key_migration_audit_min_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  cleanup_status?: Maybe<Scalars["String"]["output"]>;
+  completed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  deletion_scheduled_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  expected_deletion_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_attempt_id?: Maybe<Scalars["uuid"]["output"]>;
+  last_error_detail?: Maybe<Scalars["String"]["output"]>;
+  last_error_stage?: Maybe<Scalars["String"]["output"]>;
+  migration_status?: Maybe<Scalars["String"]["output"]>;
+  old_manager_kms_key_arn?: Maybe<Scalars["String"]["output"]>;
+  old_manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
+  retry_after?: Maybe<Scalars["timestamptz"]["output"]>;
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  shared_manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
+  skipped_registries?: Maybe<Array<Scalars["String"]["output"]>>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** response of any mutation on the table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Mutation_Response = {
+  __typename?: "rp_manager_key_migration_audit_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Rp_Manager_Key_Migration_Audit>;
+};
+
+/** on_conflict condition type for table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_On_Conflict = {
+  constraint: Rp_Manager_Key_Migration_Audit_Constraint;
+  update_columns?: Array<Rp_Manager_Key_Migration_Audit_Update_Column>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "rp_manager_key_migration_audit". */
+export type Rp_Manager_Key_Migration_Audit_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  attempt_count?: InputMaybe<Order_By>;
+  cleanup_attempt_count?: InputMaybe<Order_By>;
+  cleanup_candidate?: InputMaybe<Order_By>;
+  cleanup_status?: InputMaybe<Order_By>;
+  completed_at?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  deletion_scheduled_at?: InputMaybe<Order_By>;
+  expected_deletion_at?: InputMaybe<Order_By>;
+  last_attempt_id?: InputMaybe<Order_By>;
+  last_error_detail?: InputMaybe<Order_By>;
+  last_error_stage?: InputMaybe<Order_By>;
+  migration_status?: InputMaybe<Order_By>;
+  old_manager_kms_key_arn?: InputMaybe<Order_By>;
+  old_manager_kms_key_id?: InputMaybe<Order_By>;
+  operation_hashes?: InputMaybe<Order_By>;
+  retry_after?: InputMaybe<Order_By>;
+  rp_id?: InputMaybe<Order_By>;
+  shared_manager_kms_key_id?: InputMaybe<Order_By>;
+  skipped_registries?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: rp_manager_key_migration_audit */
+export type Rp_Manager_Key_Migration_Audit_Pk_Columns_Input = {
+  rp_id: Scalars["String"]["input"];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type Rp_Manager_Key_Migration_Audit_Prepend_Input = {
+  operation_hashes?: InputMaybe<Scalars["jsonb"]["input"]>;
+};
+
+/** select columns of table "rp_manager_key_migration_audit" */
+export enum Rp_Manager_Key_Migration_Audit_Select_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  AttemptCount = "attempt_count",
+  /** column name */
+  CleanupAttemptCount = "cleanup_attempt_count",
+  /** column name */
+  CleanupCandidate = "cleanup_candidate",
+  /** column name */
+  CleanupStatus = "cleanup_status",
+  /** column name */
+  CompletedAt = "completed_at",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  DeletionScheduledAt = "deletion_scheduled_at",
+  /** column name */
+  ExpectedDeletionAt = "expected_deletion_at",
+  /** column name */
+  LastAttemptId = "last_attempt_id",
+  /** column name */
+  LastErrorDetail = "last_error_detail",
+  /** column name */
+  LastErrorStage = "last_error_stage",
+  /** column name */
+  MigrationStatus = "migration_status",
+  /** column name */
+  OldManagerKmsKeyArn = "old_manager_kms_key_arn",
+  /** column name */
+  OldManagerKmsKeyId = "old_manager_kms_key_id",
+  /** column name */
+  OperationHashes = "operation_hashes",
+  /** column name */
+  RetryAfter = "retry_after",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  SharedManagerKmsKeyId = "shared_manager_kms_key_id",
+  /** column name */
+  SkippedRegistries = "skipped_registries",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+/** input type for updating data in table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Set_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_candidate?: InputMaybe<Scalars["Boolean"]["input"]>;
+  cleanup_status?: InputMaybe<Scalars["String"]["input"]>;
+  completed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deletion_scheduled_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  expected_deletion_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_attempt_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  last_error_detail?: InputMaybe<Scalars["String"]["input"]>;
+  last_error_stage?: InputMaybe<Scalars["String"]["input"]>;
+  migration_status?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_arn?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  operation_hashes?: InputMaybe<Scalars["jsonb"]["input"]>;
+  retry_after?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  shared_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  skipped_registries?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Rp_Manager_Key_Migration_Audit_Stddev_Fields = {
+  __typename?: "rp_manager_key_migration_audit_stddev_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Rp_Manager_Key_Migration_Audit_Stddev_Pop_Fields = {
+  __typename?: "rp_manager_key_migration_audit_stddev_pop_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Rp_Manager_Key_Migration_Audit_Stddev_Samp_Fields = {
+  __typename?: "rp_manager_key_migration_audit_stddev_samp_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "rp_manager_key_migration_audit" */
+export type Rp_Manager_Key_Migration_Audit_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Rp_Manager_Key_Migration_Audit_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Rp_Manager_Key_Migration_Audit_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_attempt_count?: InputMaybe<Scalars["Int"]["input"]>;
+  cleanup_candidate?: InputMaybe<Scalars["Boolean"]["input"]>;
+  cleanup_status?: InputMaybe<Scalars["String"]["input"]>;
+  completed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deletion_scheduled_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  expected_deletion_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_attempt_id?: InputMaybe<Scalars["uuid"]["input"]>;
+  last_error_detail?: InputMaybe<Scalars["String"]["input"]>;
+  last_error_stage?: InputMaybe<Scalars["String"]["input"]>;
+  migration_status?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_arn?: InputMaybe<Scalars["String"]["input"]>;
+  old_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  operation_hashes?: InputMaybe<Scalars["jsonb"]["input"]>;
+  retry_after?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  shared_manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
+  skipped_registries?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Rp_Manager_Key_Migration_Audit_Sum_Fields = {
+  __typename?: "rp_manager_key_migration_audit_sum_fields";
+  attempt_count?: Maybe<Scalars["Int"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** update columns of table "rp_manager_key_migration_audit" */
+export enum Rp_Manager_Key_Migration_Audit_Update_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  AttemptCount = "attempt_count",
+  /** column name */
+  CleanupAttemptCount = "cleanup_attempt_count",
+  /** column name */
+  CleanupCandidate = "cleanup_candidate",
+  /** column name */
+  CleanupStatus = "cleanup_status",
+  /** column name */
+  CompletedAt = "completed_at",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  DeletionScheduledAt = "deletion_scheduled_at",
+  /** column name */
+  ExpectedDeletionAt = "expected_deletion_at",
+  /** column name */
+  LastAttemptId = "last_attempt_id",
+  /** column name */
+  LastErrorDetail = "last_error_detail",
+  /** column name */
+  LastErrorStage = "last_error_stage",
+  /** column name */
+  MigrationStatus = "migration_status",
+  /** column name */
+  OldManagerKmsKeyArn = "old_manager_kms_key_arn",
+  /** column name */
+  OldManagerKmsKeyId = "old_manager_kms_key_id",
+  /** column name */
+  OperationHashes = "operation_hashes",
+  /** column name */
+  RetryAfter = "retry_after",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  SharedManagerKmsKeyId = "shared_manager_kms_key_id",
+  /** column name */
+  SkippedRegistries = "skipped_registries",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+export type Rp_Manager_Key_Migration_Audit_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<Rp_Manager_Key_Migration_Audit_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<Rp_Manager_Key_Migration_Audit_Delete_Key_Input>;
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Rp_Manager_Key_Migration_Audit_Inc_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<Rp_Manager_Key_Migration_Audit_Prepend_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Rp_Manager_Key_Migration_Audit_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Rp_Manager_Key_Migration_Audit_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Rp_Manager_Key_Migration_Audit_Var_Pop_Fields = {
+  __typename?: "rp_manager_key_migration_audit_var_pop_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Rp_Manager_Key_Migration_Audit_Var_Samp_Fields = {
+  __typename?: "rp_manager_key_migration_audit_var_samp_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Rp_Manager_Key_Migration_Audit_Variance_Fields = {
+  __typename?: "rp_manager_key_migration_audit_variance_fields";
+  attempt_count?: Maybe<Scalars["Float"]["output"]>;
+  cleanup_attempt_count?: Maybe<Scalars["Float"]["output"]>;
+};
+
 /** columns and relationships of "rp_registration" */
 export type Rp_Registration = {
   __typename?: "rp_registration";
@@ -10461,6 +11705,7 @@ export type Rp_Registration = {
   app: App;
   app_id: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
+  is_unique_manager_key: Scalars["Boolean"]["output"];
   manager_kms_key_id?: Maybe<Scalars["String"]["output"]>;
   mode: Scalars["rp_registration_mode"]["output"];
   operation_hash?: Maybe<Scalars["String"]["output"]>;
@@ -10498,7 +11743,23 @@ export type Rp_Registration_Aggregate = {
 };
 
 export type Rp_Registration_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Rp_Registration_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Rp_Registration_Aggregate_Bool_Exp_Bool_Or>;
   count?: InputMaybe<Rp_Registration_Aggregate_Bool_Exp_Count>;
+};
+
+export type Rp_Registration_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Rp_Registration_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Rp_Registration_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Rp_Registration_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
 };
 
 export type Rp_Registration_Aggregate_Bool_Exp_Count = {
@@ -10546,6 +11807,7 @@ export type Rp_Registration_Bool_Exp = {
   app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  is_unique_manager_key?: InputMaybe<Boolean_Comparison_Exp>;
   manager_kms_key_id?: InputMaybe<String_Comparison_Exp>;
   mode?: InputMaybe<Rp_Registration_Mode_Comparison_Exp>;
   operation_hash?: InputMaybe<String_Comparison_Exp>;
@@ -10571,6 +11833,7 @@ export type Rp_Registration_Insert_Input = {
   app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  is_unique_manager_key?: InputMaybe<Scalars["Boolean"]["input"]>;
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -10686,6 +11949,7 @@ export type Rp_Registration_Order_By = {
   app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
+  is_unique_manager_key?: InputMaybe<Order_By>;
   manager_kms_key_id?: InputMaybe<Order_By>;
   mode?: InputMaybe<Order_By>;
   operation_hash?: InputMaybe<Order_By>;
@@ -10709,6 +11973,8 @@ export enum Rp_Registration_Select_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
+  /** column name */
   ManagerKmsKeyId = "manager_kms_key_id",
   /** column name */
   Mode = "mode",
@@ -10728,10 +11994,23 @@ export enum Rp_Registration_Select_Column {
   UpdatedAt = "updated_at",
 }
 
+/** select "rp_registration_aggregate_bool_exp_bool_and_arguments_columns" columns of table "rp_registration" */
+export enum Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
+}
+
+/** select "rp_registration_aggregate_bool_exp_bool_or_arguments_columns" columns of table "rp_registration" */
+export enum Rp_Registration_Select_Column_Rp_Registration_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
+}
+
 /** input type for updating data in table "rp_registration" */
 export type Rp_Registration_Set_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  is_unique_manager_key?: InputMaybe<Scalars["Boolean"]["input"]>;
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -10768,6 +12047,7 @@ export type Rp_Registration_Stream_Cursor_Input = {
 export type Rp_Registration_Stream_Cursor_Value_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  is_unique_manager_key?: InputMaybe<Scalars["Boolean"]["input"]>;
   manager_kms_key_id?: InputMaybe<Scalars["String"]["input"]>;
   mode?: InputMaybe<Scalars["rp_registration_mode"]["input"]>;
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
@@ -10785,6 +12065,8 @@ export enum Rp_Registration_Update_Column {
   AppId = "app_id",
   /** column name */
   CreatedAt = "created_at",
+  /** column name */
+  IsUniqueManagerKey = "is_unique_manager_key",
   /** column name */
   ManagerKmsKeyId = "manager_kms_key_id",
   /** column name */
@@ -10810,6 +12092,590 @@ export type Rp_Registration_Updates = {
   _set?: InputMaybe<Rp_Registration_Set_Input>;
   /** filter the rows which have to be updated */
   where: Rp_Registration_Bool_Exp;
+};
+
+/** columns and relationships of "sandbox_access_request" */
+export type Sandbox_Access_Request = {
+  __typename?: "sandbox_access_request";
+  accepted: Scalars["Boolean"]["output"];
+  created_at: Scalars["timestamptz"]["output"];
+  google_email: Scalars["String"]["output"];
+  id: Scalars["String"]["output"];
+  processed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  /** An object relationship */
+  user: User;
+  user_id: Scalars["String"]["output"];
+};
+
+/** aggregated selection of "sandbox_access_request" */
+export type Sandbox_Access_Request_Aggregate = {
+  __typename?: "sandbox_access_request_aggregate";
+  aggregate?: Maybe<Sandbox_Access_Request_Aggregate_Fields>;
+  nodes: Array<Sandbox_Access_Request>;
+};
+
+export type Sandbox_Access_Request_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<Sandbox_Access_Request_Aggregate_Bool_Exp_Count>;
+};
+
+export type Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Sandbox_Access_Request_Select_Column_Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Sandbox_Access_Request_Select_Column_Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Sandbox_Access_Request_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Sandbox_Access_Request_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "sandbox_access_request" */
+export type Sandbox_Access_Request_Aggregate_Fields = {
+  __typename?: "sandbox_access_request_aggregate_fields";
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Sandbox_Access_Request_Max_Fields>;
+  min?: Maybe<Sandbox_Access_Request_Min_Fields>;
+};
+
+/** aggregate fields of "sandbox_access_request" */
+export type Sandbox_Access_Request_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Sandbox_Access_Request_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "sandbox_access_request" */
+export type Sandbox_Access_Request_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Sandbox_Access_Request_Max_Order_By>;
+  min?: InputMaybe<Sandbox_Access_Request_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "sandbox_access_request" */
+export type Sandbox_Access_Request_Arr_Rel_Insert_Input = {
+  data: Array<Sandbox_Access_Request_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Sandbox_Access_Request_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "sandbox_access_request". All fields are combined with a logical 'AND'. */
+export type Sandbox_Access_Request_Bool_Exp = {
+  _and?: InputMaybe<Array<Sandbox_Access_Request_Bool_Exp>>;
+  _not?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+  _or?: InputMaybe<Array<Sandbox_Access_Request_Bool_Exp>>;
+  accepted?: InputMaybe<Boolean_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  google_email?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  processed_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user?: InputMaybe<User_Bool_Exp>;
+  user_id?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "sandbox_access_request" */
+export enum Sandbox_Access_Request_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  SandboxAccessRequestPkey = "sandbox_access_request_pkey",
+  /** unique or primary key constraint on columns "user_id" */
+  UniqueSandboxAccessRequestUserId = "unique_sandbox_access_request_user_id",
+}
+
+/** input type for inserting data into table "sandbox_access_request" */
+export type Sandbox_Access_Request_Insert_Input = {
+  accepted?: InputMaybe<Scalars["Boolean"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  google_email?: InputMaybe<Scalars["String"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  processed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  user?: InputMaybe<User_Obj_Rel_Insert_Input>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** columns and relationships of "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios = {
+  __typename?: "sandbox_access_request_ios";
+  approved_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  asc_email: Scalars["String"]["output"];
+  created_at: Scalars["timestamptz"]["output"];
+  id: Scalars["String"]["output"];
+  portal_email: Scalars["String"]["output"];
+  rejection_reason?: Maybe<Scalars["String"]["output"]>;
+  revoked_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  status: Scalars["sandbox_access_request_ios_status"]["output"];
+  /** An object relationship */
+  team: Team;
+  team_id: Scalars["String"]["output"];
+  updated_at: Scalars["timestamptz"]["output"];
+  /** An object relationship */
+  user: User;
+  user_id: Scalars["String"]["output"];
+};
+
+/** aggregated selection of "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Aggregate = {
+  __typename?: "sandbox_access_request_ios_aggregate";
+  aggregate?: Maybe<Sandbox_Access_Request_Ios_Aggregate_Fields>;
+  nodes: Array<Sandbox_Access_Request_Ios>;
+};
+
+export type Sandbox_Access_Request_Ios_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Sandbox_Access_Request_Ios_Aggregate_Bool_Exp_Count>;
+};
+
+export type Sandbox_Access_Request_Ios_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Aggregate_Fields = {
+  __typename?: "sandbox_access_request_ios_aggregate_fields";
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Sandbox_Access_Request_Ios_Max_Fields>;
+  min?: Maybe<Sandbox_Access_Request_Ios_Min_Fields>;
+};
+
+/** aggregate fields of "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Sandbox_Access_Request_Ios_Max_Order_By>;
+  min?: InputMaybe<Sandbox_Access_Request_Ios_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Arr_Rel_Insert_Input = {
+  data: Array<Sandbox_Access_Request_Ios_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Sandbox_Access_Request_Ios_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "sandbox_access_request_ios". All fields are combined with a logical 'AND'. */
+export type Sandbox_Access_Request_Ios_Bool_Exp = {
+  _and?: InputMaybe<Array<Sandbox_Access_Request_Ios_Bool_Exp>>;
+  _not?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+  _or?: InputMaybe<Array<Sandbox_Access_Request_Ios_Bool_Exp>>;
+  approved_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  asc_email?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  portal_email?: InputMaybe<String_Comparison_Exp>;
+  rejection_reason?: InputMaybe<String_Comparison_Exp>;
+  revoked_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  status?: InputMaybe<Sandbox_Access_Request_Ios_Status_Comparison_Exp>;
+  team?: InputMaybe<Team_Bool_Exp>;
+  team_id?: InputMaybe<String_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user?: InputMaybe<User_Bool_Exp>;
+  user_id?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "sandbox_access_request_ios" */
+export enum Sandbox_Access_Request_Ios_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  SandboxAccessRequestIosPkey = "sandbox_access_request_ios_pkey",
+  /** unique or primary key constraint on columns "asc_email" */
+  UniqueSandboxAccessRequestIosAscEmail = "unique_sandbox_access_request_ios_asc_email",
+  /** unique or primary key constraint on columns "user_id" */
+  UniqueSandboxAccessRequestIosUserId = "unique_sandbox_access_request_ios_user_id",
+}
+
+/** input type for inserting data into table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Insert_Input = {
+  approved_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  asc_email?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  portal_email?: InputMaybe<Scalars["String"]["input"]>;
+  rejection_reason?: InputMaybe<Scalars["String"]["input"]>;
+  revoked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  status?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
+  team_id?: InputMaybe<Scalars["String"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  user?: InputMaybe<User_Obj_Rel_Insert_Input>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Sandbox_Access_Request_Ios_Max_Fields = {
+  __typename?: "sandbox_access_request_ios_max_fields";
+  approved_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  asc_email?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  portal_email?: Maybe<Scalars["String"]["output"]>;
+  rejection_reason?: Maybe<Scalars["String"]["output"]>;
+  revoked_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  status?: Maybe<Scalars["sandbox_access_request_ios_status"]["output"]>;
+  team_id?: Maybe<Scalars["String"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  user_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by max() on columns of table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Max_Order_By = {
+  approved_at?: InputMaybe<Order_By>;
+  asc_email?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  portal_email?: InputMaybe<Order_By>;
+  rejection_reason?: InputMaybe<Order_By>;
+  revoked_at?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Sandbox_Access_Request_Ios_Min_Fields = {
+  __typename?: "sandbox_access_request_ios_min_fields";
+  approved_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  asc_email?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  portal_email?: Maybe<Scalars["String"]["output"]>;
+  rejection_reason?: Maybe<Scalars["String"]["output"]>;
+  revoked_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  status?: Maybe<Scalars["sandbox_access_request_ios_status"]["output"]>;
+  team_id?: Maybe<Scalars["String"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  user_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Min_Order_By = {
+  approved_at?: InputMaybe<Order_By>;
+  asc_email?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  portal_email?: InputMaybe<Order_By>;
+  rejection_reason?: InputMaybe<Order_By>;
+  revoked_at?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Mutation_Response = {
+  __typename?: "sandbox_access_request_ios_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Sandbox_Access_Request_Ios>;
+};
+
+/** on_conflict condition type for table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_On_Conflict = {
+  constraint: Sandbox_Access_Request_Ios_Constraint;
+  update_columns?: Array<Sandbox_Access_Request_Ios_Update_Column>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "sandbox_access_request_ios". */
+export type Sandbox_Access_Request_Ios_Order_By = {
+  approved_at?: InputMaybe<Order_By>;
+  asc_email?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  portal_email?: InputMaybe<Order_By>;
+  rejection_reason?: InputMaybe<Order_By>;
+  revoked_at?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+  team?: InputMaybe<Team_Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user?: InputMaybe<User_Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: sandbox_access_request_ios */
+export type Sandbox_Access_Request_Ios_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** select columns of table "sandbox_access_request_ios" */
+export enum Sandbox_Access_Request_Ios_Select_Column {
+  /** column name */
+  ApprovedAt = "approved_at",
+  /** column name */
+  AscEmail = "asc_email",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  PortalEmail = "portal_email",
+  /** column name */
+  RejectionReason = "rejection_reason",
+  /** column name */
+  RevokedAt = "revoked_at",
+  /** column name */
+  Status = "status",
+  /** column name */
+  TeamId = "team_id",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  UserId = "user_id",
+}
+
+/** input type for updating data in table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Set_Input = {
+  approved_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  asc_email?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  portal_email?: InputMaybe<Scalars["String"]["input"]>;
+  rejection_reason?: InputMaybe<Scalars["String"]["input"]>;
+  revoked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  status?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  team_id?: InputMaybe<Scalars["String"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** Boolean expression to compare columns of type "sandbox_access_request_ios_status". All fields are combined with logical 'AND'. */
+export type Sandbox_Access_Request_Ios_Status_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _gt?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _gte?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _in?: InputMaybe<
+    Array<Scalars["sandbox_access_request_ios_status"]["input"]>
+  >;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _lte?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _neq?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  _nin?: InputMaybe<
+    Array<Scalars["sandbox_access_request_ios_status"]["input"]>
+  >;
+};
+
+/** Streaming cursor of the table "sandbox_access_request_ios" */
+export type Sandbox_Access_Request_Ios_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Sandbox_Access_Request_Ios_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Sandbox_Access_Request_Ios_Stream_Cursor_Value_Input = {
+  approved_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  asc_email?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  portal_email?: InputMaybe<Scalars["String"]["input"]>;
+  rejection_reason?: InputMaybe<Scalars["String"]["input"]>;
+  revoked_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  status?: InputMaybe<Scalars["sandbox_access_request_ios_status"]["input"]>;
+  team_id?: InputMaybe<Scalars["String"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** update columns of table "sandbox_access_request_ios" */
+export enum Sandbox_Access_Request_Ios_Update_Column {
+  /** column name */
+  ApprovedAt = "approved_at",
+  /** column name */
+  AscEmail = "asc_email",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  PortalEmail = "portal_email",
+  /** column name */
+  RejectionReason = "rejection_reason",
+  /** column name */
+  RevokedAt = "revoked_at",
+  /** column name */
+  Status = "status",
+  /** column name */
+  TeamId = "team_id",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  UserId = "user_id",
+}
+
+export type Sandbox_Access_Request_Ios_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Sandbox_Access_Request_Ios_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Sandbox_Access_Request_Ios_Bool_Exp;
+};
+
+/** aggregate max on columns */
+export type Sandbox_Access_Request_Max_Fields = {
+  __typename?: "sandbox_access_request_max_fields";
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  google_email?: Maybe<Scalars["String"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  processed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  user_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by max() on columns of table "sandbox_access_request" */
+export type Sandbox_Access_Request_Max_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  google_email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  processed_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Sandbox_Access_Request_Min_Fields = {
+  __typename?: "sandbox_access_request_min_fields";
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  google_email?: Maybe<Scalars["String"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  processed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  user_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "sandbox_access_request" */
+export type Sandbox_Access_Request_Min_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  google_email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  processed_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "sandbox_access_request" */
+export type Sandbox_Access_Request_Mutation_Response = {
+  __typename?: "sandbox_access_request_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Sandbox_Access_Request>;
+};
+
+/** on_conflict condition type for table "sandbox_access_request" */
+export type Sandbox_Access_Request_On_Conflict = {
+  constraint: Sandbox_Access_Request_Constraint;
+  update_columns?: Array<Sandbox_Access_Request_Update_Column>;
+  where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "sandbox_access_request". */
+export type Sandbox_Access_Request_Order_By = {
+  accepted?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  google_email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  processed_at?: InputMaybe<Order_By>;
+  user?: InputMaybe<User_Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: sandbox_access_request */
+export type Sandbox_Access_Request_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** select columns of table "sandbox_access_request" */
+export enum Sandbox_Access_Request_Select_Column {
+  /** column name */
+  Accepted = "accepted",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  GoogleEmail = "google_email",
+  /** column name */
+  Id = "id",
+  /** column name */
+  ProcessedAt = "processed_at",
+  /** column name */
+  UserId = "user_id",
+}
+
+/** select "sandbox_access_request_aggregate_bool_exp_bool_and_arguments_columns" columns of table "sandbox_access_request" */
+export enum Sandbox_Access_Request_Select_Column_Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Accepted = "accepted",
+}
+
+/** select "sandbox_access_request_aggregate_bool_exp_bool_or_arguments_columns" columns of table "sandbox_access_request" */
+export enum Sandbox_Access_Request_Select_Column_Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Accepted = "accepted",
+}
+
+/** input type for updating data in table "sandbox_access_request" */
+export type Sandbox_Access_Request_Set_Input = {
+  accepted?: InputMaybe<Scalars["Boolean"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  google_email?: InputMaybe<Scalars["String"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  processed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** Streaming cursor of the table "sandbox_access_request" */
+export type Sandbox_Access_Request_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Sandbox_Access_Request_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Sandbox_Access_Request_Stream_Cursor_Value_Input = {
+  accepted?: InputMaybe<Scalars["Boolean"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  google_email?: InputMaybe<Scalars["String"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  processed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** update columns of table "sandbox_access_request" */
+export enum Sandbox_Access_Request_Update_Column {
+  /** column name */
+  Accepted = "accepted",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  GoogleEmail = "google_email",
+  /** column name */
+  Id = "id",
+  /** column name */
+  ProcessedAt = "processed_at",
+  /** column name */
+  UserId = "user_id",
+}
+
+export type Sandbox_Access_Request_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Sandbox_Access_Request_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Sandbox_Access_Request_Bool_Exp;
 };
 
 export type Subscription_Root = {
@@ -10842,6 +12708,11 @@ export type Subscription_Root = {
   action_v4_by_pk?: Maybe<Action_V4>;
   /** fetch data from the table in a streaming manner: "action_v4" */
   action_v4_stream: Array<Action_V4>;
+  admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
+  admin_dashboard_queues: Array<Admin_Dashboard_Queue>;
+  admin_rp_inventory: Array<Admin_Rp_Inventory>;
+  admin_rp_manager_key_migration: Array<Admin_Rp_Manager_Key_Migration>;
+  admin_rp_manager_key_migration_queue: Array<Admin_Rp_Manager_Key_Migration_Queue>;
   /** fetch data from the table: "api_key" */
   api_key: Array<Api_Key>;
   /** fetch aggregated fields from the table: "api_key" */
@@ -11018,6 +12889,14 @@ export type Subscription_Root = {
   role_by_pk?: Maybe<Role>;
   /** fetch data from the table in a streaming manner: "role" */
   role_stream: Array<Role>;
+  /** fetch data from the table: "rp_manager_key_migration_audit" */
+  rp_manager_key_migration_audit: Array<Rp_Manager_Key_Migration_Audit>;
+  /** fetch aggregated fields from the table: "rp_manager_key_migration_audit" */
+  rp_manager_key_migration_audit_aggregate: Rp_Manager_Key_Migration_Audit_Aggregate;
+  /** fetch data from the table: "rp_manager_key_migration_audit" using primary key columns */
+  rp_manager_key_migration_audit_by_pk?: Maybe<Rp_Manager_Key_Migration_Audit>;
+  /** fetch data from the table in a streaming manner: "rp_manager_key_migration_audit" */
+  rp_manager_key_migration_audit_stream: Array<Rp_Manager_Key_Migration_Audit>;
   /** An array relationship */
   rp_registration: Array<Rp_Registration>;
   /** An aggregate relationship */
@@ -11026,6 +12905,22 @@ export type Subscription_Root = {
   rp_registration_by_pk?: Maybe<Rp_Registration>;
   /** fetch data from the table in a streaming manner: "rp_registration" */
   rp_registration_stream: Array<Rp_Registration>;
+  /** fetch data from the table: "sandbox_access_request" */
+  sandbox_access_request: Array<Sandbox_Access_Request>;
+  /** fetch aggregated fields from the table: "sandbox_access_request" */
+  sandbox_access_request_aggregate: Sandbox_Access_Request_Aggregate;
+  /** fetch data from the table: "sandbox_access_request" using primary key columns */
+  sandbox_access_request_by_pk?: Maybe<Sandbox_Access_Request>;
+  /** fetch data from the table: "sandbox_access_request_ios" */
+  sandbox_access_request_ios: Array<Sandbox_Access_Request_Ios>;
+  /** fetch aggregated fields from the table: "sandbox_access_request_ios" */
+  sandbox_access_request_ios_aggregate: Sandbox_Access_Request_Ios_Aggregate;
+  /** fetch data from the table: "sandbox_access_request_ios" using primary key columns */
+  sandbox_access_request_ios_by_pk?: Maybe<Sandbox_Access_Request_Ios>;
+  /** fetch data from the table in a streaming manner: "sandbox_access_request_ios" */
+  sandbox_access_request_ios_stream: Array<Sandbox_Access_Request_Ios>;
+  /** fetch data from the table in a streaming manner: "sandbox_access_request" */
+  sandbox_access_request_stream: Array<Sandbox_Access_Request>;
   /** fetch data from the table: "team" */
   team: Array<Team>;
   /** fetch aggregated fields from the table: "team" */
@@ -11138,6 +13033,48 @@ export type Subscription_RootAction_V4_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Action_V4_Stream_Cursor_Input>>;
   where?: InputMaybe<Action_V4_Bool_Exp>;
+};
+
+export type Subscription_RootAdmin_Dashboard_InventoryArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Dashboard_Inventory_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Dashboard_Inventory_Order_By>>;
+  where?: InputMaybe<Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp>;
+};
+
+export type Subscription_RootAdmin_Dashboard_QueuesArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Dashboard_Queue_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Dashboard_Queue_Order_By>>;
+  where?: InputMaybe<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>;
+};
+
+export type Subscription_RootAdmin_Rp_InventoryArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Rp_Inventory_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Inventory_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>;
+};
+
+export type Subscription_RootAdmin_Rp_Manager_Key_MigrationArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Manager_Key_Migration_Bool_Exp_Bool_Exp>;
+};
+
+export type Subscription_RootAdmin_Rp_Manager_Key_Migration_QueueArgs = {
+  distinct_on?: InputMaybe<
+    Array<Admin_Rp_Manager_Key_Migration_Queue_Enum_Name>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Manager_Key_Migration_Queue_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Manager_Key_Migration_Queue_Bool_Exp_Bool_Exp>;
 };
 
 export type Subscription_RootApi_KeyArgs = {
@@ -11721,6 +13658,32 @@ export type Subscription_RootRole_StreamArgs = {
   where?: InputMaybe<Role_Bool_Exp>;
 };
 
+export type Subscription_RootRp_Manager_Key_Migration_AuditArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Order_By>>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+};
+
+export type Subscription_RootRp_Manager_Key_Migration_Audit_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rp_Manager_Key_Migration_Audit_Order_By>>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+};
+
+export type Subscription_RootRp_Manager_Key_Migration_Audit_By_PkArgs = {
+  rp_id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootRp_Manager_Key_Migration_Audit_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Rp_Manager_Key_Migration_Audit_Stream_Cursor_Input>>;
+  where?: InputMaybe<Rp_Manager_Key_Migration_Audit_Bool_Exp>;
+};
+
 export type Subscription_RootRp_RegistrationArgs = {
   distinct_on?: InputMaybe<Array<Rp_Registration_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -11745,6 +13708,58 @@ export type Subscription_RootRp_Registration_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Rp_Registration_Stream_Cursor_Input>>;
   where?: InputMaybe<Rp_Registration_Bool_Exp>;
+};
+
+export type Subscription_RootSandbox_Access_RequestArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+};
+
+export type Subscription_RootSandbox_Access_Request_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+};
+
+export type Subscription_RootSandbox_Access_Request_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootSandbox_Access_Request_IosArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+export type Subscription_RootSandbox_Access_Request_Ios_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+export type Subscription_RootSandbox_Access_Request_Ios_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootSandbox_Access_Request_Ios_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Sandbox_Access_Request_Ios_Stream_Cursor_Input>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+export type Subscription_RootSandbox_Access_Request_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Sandbox_Access_Request_Stream_Cursor_Input>>;
+  where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
 };
 
 export type Subscription_RootTeamArgs = {
@@ -11814,6 +13829,10 @@ export type Team = {
   deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["String"]["output"];
   /** An array relationship */
+  invites: Array<Invite>;
+  /** An aggregate relationship */
+  invites_aggregate: Invite_Aggregate;
+  /** An array relationship */
   memberships: Array<Membership>;
   /** An aggregate relationship */
   memberships_aggregate: Membership_Aggregate;
@@ -11857,6 +13876,24 @@ export type TeamApps_AggregateArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Order_By>>;
   where?: InputMaybe<App_Bool_Exp>;
+};
+
+/** columns and relationships of "team" */
+export type TeamInvitesArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
+};
+
+/** columns and relationships of "team" */
+export type TeamInvites_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
 };
 
 /** columns and relationships of "team" */
@@ -11925,6 +13962,8 @@ export type Team_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   deleted_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  invites?: InputMaybe<Invite_Bool_Exp>;
+  invites_aggregate?: InputMaybe<Invite_Aggregate_Bool_Exp>;
   memberships?: InputMaybe<Membership_Bool_Exp>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Bool_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
@@ -11945,6 +13984,7 @@ export type Team_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
+  invites?: InputMaybe<Invite_Arr_Rel_Insert_Input>;
   memberships?: InputMaybe<Membership_Arr_Rel_Insert_Input>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -12004,6 +14044,7 @@ export type Team_Order_By = {
   created_at?: InputMaybe<Order_By>;
   deleted_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  invites_aggregate?: InputMaybe<Invite_Aggregate_Order_By>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
   team_owners_count?: InputMaybe<Order_By>;
@@ -12167,6 +14208,14 @@ export type User = {
   memberships_aggregate: Membership_Aggregate;
   name: Scalars["String"]["output"];
   posthog_id?: Maybe<Scalars["String"]["output"]>;
+  /** An array relationship */
+  sandbox_access_requests: Array<Sandbox_Access_Request>;
+  /** An aggregate relationship */
+  sandbox_access_requests_aggregate: Sandbox_Access_Request_Aggregate;
+  /** An array relationship */
+  sandbox_access_requests_ios: Array<Sandbox_Access_Request_Ios>;
+  /** An aggregate relationship */
+  sandbox_access_requests_ios_aggregate: Sandbox_Access_Request_Ios_Aggregate;
   /** An object relationship */
   team?: Maybe<Team>;
   team_id?: Maybe<Scalars["String"]["output"]>;
@@ -12190,6 +14239,42 @@ export type UserMemberships_AggregateArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<Membership_Order_By>>;
   where?: InputMaybe<Membership_Bool_Exp>;
+};
+
+/** columns and relationships of "user" */
+export type UserSandbox_Access_RequestsArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+};
+
+/** columns and relationships of "user" */
+export type UserSandbox_Access_Requests_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+};
+
+/** columns and relationships of "user" */
+export type UserSandbox_Access_Requests_IosArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+};
+
+/** columns and relationships of "user" */
+export type UserSandbox_Access_Requests_Ios_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Ios_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Ios_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
 };
 
 /** aggregated selection of "user" */
@@ -12229,6 +14314,10 @@ export type User_Bool_Exp = {
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Bool_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   posthog_id?: InputMaybe<String_Comparison_Exp>;
+  sandbox_access_requests?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+  sandbox_access_requests_aggregate?: InputMaybe<Sandbox_Access_Request_Aggregate_Bool_Exp>;
+  sandbox_access_requests_ios?: InputMaybe<Sandbox_Access_Request_Ios_Bool_Exp>;
+  sandbox_access_requests_ios_aggregate?: InputMaybe<Sandbox_Access_Request_Ios_Aggregate_Bool_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -12259,6 +14348,8 @@ export type User_Insert_Input = {
   memberships?: InputMaybe<Membership_Arr_Rel_Insert_Input>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   posthog_id?: InputMaybe<Scalars["String"]["input"]>;
+  sandbox_access_requests?: InputMaybe<Sandbox_Access_Request_Arr_Rel_Insert_Input>;
+  sandbox_access_requests_ios?: InputMaybe<Sandbox_Access_Request_Ios_Arr_Rel_Insert_Input>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -12330,6 +14421,8 @@ export type User_Order_By = {
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
   posthog_id?: InputMaybe<Order_By>;
+  sandbox_access_requests_aggregate?: InputMaybe<Sandbox_Access_Request_Aggregate_Order_By>;
+  sandbox_access_requests_ios_aggregate?: InputMaybe<Sandbox_Access_Request_Ios_Aggregate_Order_By>;
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -12442,6 +14535,19 @@ export type User_Updates = {
   _set?: InputMaybe<User_Set_Input>;
   /** filter the rows which have to be updated */
   where: User_Bool_Exp;
+};
+
+/** Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'. */
+export type Uuid_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["uuid"]["input"]>;
+  _gt?: InputMaybe<Scalars["uuid"]["input"]>;
+  _gte?: InputMaybe<Scalars["uuid"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["uuid"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["uuid"]["input"]>;
+  _lte?: InputMaybe<Scalars["uuid"]["input"]>;
+  _neq?: InputMaybe<Scalars["uuid"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["uuid"]["input"]>>;
 };
 
 /** Boolean expression to compare columns of type "violation_enum". All fields are combined with logical 'AND'. */

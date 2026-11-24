@@ -21,6 +21,8 @@ module.exports = {
       numeric: "string",
       _text: "any",
       bigint: "number",
+      sandbox_access_request_ios_status:
+        "'pending' | 'approving' | 'approved' | 'rejected' | 'revoking' | 'revoked'",
     },
   },
 
@@ -95,11 +97,8 @@ module.exports = {
           },
         },
         "typescript-operations",
-        "typescript-react-apollo",
+        "typed-document-node",
       ],
-      config: {
-        withMutationFn: true,
-      },
     },
 
     "components/client": {
@@ -120,11 +119,8 @@ module.exports = {
           },
         },
         "typescript-operations",
-        "typescript-react-apollo",
+        "typed-document-node",
       ],
-      config: {
-        withMutationFn: true,
-      },
     },
 
     app: {
@@ -142,11 +138,8 @@ module.exports = {
           },
         },
         "typescript-operations",
-        "typescript-react-apollo",
+        "typed-document-node",
       ],
-      config: {
-        withMutationFn: true,
-      },
     },
 
     "lib/permissions": {

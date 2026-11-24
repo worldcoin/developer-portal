@@ -10,8 +10,8 @@ export const DisclosurePanel = (props: {
   return (
     <Disclosure.Panel
       className={clsx(
-        "flex w-full rounded-b-xl border-grey-100 bg-grey-50",
-        { "border-b border-l border-r": isOpen },
+        "flex w-full rounded-b-xl border-edge-subtle bg-surface-soft",
+        { "border-r border-b border-l": isOpen },
         { "rounded-xl border": !isOpen },
         props.className,
       )}

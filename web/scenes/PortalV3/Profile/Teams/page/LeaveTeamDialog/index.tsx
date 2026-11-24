@@ -9,21 +9,19 @@ import { Auth0SessionUser } from "@/lib/types";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
-import { useLeaveTeamMutation } from "@/scenes/common/Profile/Teams/page/LeaveTeamDialog/graphql/client/leave-team.generated";
+import { useMutation } from "@apollo/client/react";
+import { LeaveTeamDocument } from "@/scenes/common/Profile/Teams/page/LeaveTeamDialog/graphql/client/leave-team.generated";
 
-import {
-  FetchMeDocument,
-  FetchMeQuery,
-} from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
+import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 
 type LeaveTeamDialogProps = DialogProps & {
-  team?: NonNullable<FetchMeQuery["user_by_pk"]>["memberships"][0]["team"];
+  team?: { id: string; name?: string | null };
 };
 
 export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
   const { team, ...otherProps } = props;
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const [leaveTeam, leaveTeamMutationRes] = useLeaveTeamMutation();
+  const [leaveTeam, leaveTeamMutationRes] = useMutation(LeaveTeamDocument);
 
   const submit = useCallback(async () => {
     if (!team || !auth0User?.hasura) {
@@ -40,7 +38,7 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
         refetchQueries: [FetchMeDocument],
       });
 
-      toast.success("Team leaved!");
+      toast.success("You left the team");
       props.onClose(true);
     } catch (e) {
       console.error("Leave Team Dialog: ", e);
@@ -56,7 +54,7 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
     <Dialog {...otherProps}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[28rem]">
+      <DialogPanel className="grid gap-y-8 md:max-w-md">
         <CircleIconContainer variant="error">
           <AlertIcon />
         </CircleIconContainer>
@@ -66,9 +64,11 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
             Are you sure?
           </Typography>
 
-          <p className="text-center text-16 font-medium leading-6 text-grey-500">
+          <p className="text-center text-16 leading-6 font-medium text-content-secondary">
             If you choose to leave the{" "}
-            <span className="font-medium text-grey-900">{team?.name}</span>{" "}
+            <span className="font-medium text-content-primary">
+              {team?.name}
+            </span>{" "}
             team, you will need to be invited again in order to rejoin if you
             change your mind.
           </p>

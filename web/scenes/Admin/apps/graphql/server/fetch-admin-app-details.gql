@@ -1,0 +1,74 @@
+query FetchAdminAppDetails($appId: String!) {
+  app_by_pk(id: $appId) {
+    id
+    name
+    team_id
+    created_at
+    deleted_at
+    team {
+      id
+      name
+      created_at
+      deleted_at
+    }
+    actions(order_by: { created_at: desc }) {
+      id
+      action
+      name
+      status
+      created_at
+      nullifiers_aggregate {
+        aggregate {
+          count
+          sum {
+            uses
+          }
+        }
+      }
+    }
+    rp_registration(order_by: { created_at: desc }) {
+      rp_id
+      actions_v4(order_by: { created_at: desc }) {
+        id
+        action
+        environment
+        created_at
+        nullifiers_aggregate {
+          aggregate {
+            count
+          }
+        }
+      }
+    }
+    draft_metadata: app_metadata(
+      where: { verification_status: { _neq: "verified" } }
+      order_by: { updated_at: desc }
+      limit: 1
+    ) {
+      name
+      verification_status
+      updated_at
+    }
+    verified_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+      order_by: { verified_at: desc }
+      limit: 1
+    ) {
+      name
+      verification_status
+      verified_at
+      updated_at
+    }
+  }
+  metadata_versions: app_metadata(
+    where: { app_id: { _eq: $appId } }
+    order_by: { updated_at: desc }
+    limit: 25
+  ) {
+    app_id
+    name
+    verification_status
+    updated_at
+    verified_at
+  }
+}

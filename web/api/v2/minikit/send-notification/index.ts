@@ -153,7 +153,7 @@ export const POST = async (req: NextRequest) => {
     return errorResponse({
       statusCode: 400,
       code: "validation_error",
-      detail: "Neither localisations nor title and message are specified",
+      detail: "Neither localizations nor title and message are specified",
       attribute: "request_body",
       req,
     });
@@ -292,10 +292,7 @@ export const POST = async (req: NextRequest) => {
   const appMetadata = app_metadata?.[0];
   const teamId = appMetadata.app.team.id;
 
-  if (
-    verifiedOrDefaultApp.app_mode === "external" ||
-    verifiedOrDefaultApp.category?.toLowerCase() === "external"
-  ) {
+  if (verifiedOrDefaultApp.app_mode === "external") {
     return errorResponse({
       statusCode: 400,
       code: "external_app_not_allowed",
@@ -380,6 +377,12 @@ export const POST = async (req: NextRequest) => {
           miniAppPath: mini_app_path,
           teamId: teamId,
           localisations: (parsedParams as SendNotificationBodyV2).localisations,
+          ...((parsedParams as SendNotificationBodyV2).template_key !==
+            undefined && {
+            templateKey: (parsedParams as SendNotificationBodyV2).template_key,
+            templateArgs: (parsedParams as SendNotificationBodyV2)
+              .template_args,
+          }),
           ...(draft_id !== undefined && { draftId: draft_id }),
         };
 
@@ -474,7 +477,7 @@ export const POST = async (req: NextRequest) => {
           ) ?? (parsedParams as SendNotificationBodyV2).localisations?.[0]
         )?.message;
 
-  // Fire-and-forget: log wallet addresses once (not per localisation).
+  // Fire-and-forget: log wallet addresses once (not per localization).
   // .catch keeps any failure from becoming an unhandled rejection.
   logNotification(app_id, wallet_addresses, mini_app_path, logMessage).catch(
     (error) => {

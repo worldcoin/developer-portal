@@ -2,9 +2,10 @@
 import { use } from "react";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import Skeleton from "react-loading-skeleton";
+import { SkeletonCard, SkeletonForm } from "@/components/Skeletons";
+import { useQuery } from "@apollo/client/react";
 import { Debugger } from "../Debugger";
-import { useDebuggerQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/ProofDebuging/page/graphql/client/debugger.generated";
+import { DebuggerDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/ProofDebuging/page/graphql/client/debugger.generated";
 
 type ActionIdSettingsPageProps = {
   params: Promise<Record<string, string>>;
@@ -16,7 +17,7 @@ export const ActionIdProofDebugingPage = (props: ActionIdSettingsPageProps) => {
   const teamId = params?.teamId;
   const actionID = params?.actionId;
 
-  const { data, loading } = useDebuggerQuery({
+  const { data, loading } = useQuery(DebuggerDocument, {
     variables: {
       action_id: actionID ?? "",
     },
@@ -35,9 +36,9 @@ export const ActionIdProofDebugingPage = (props: ActionIdSettingsPageProps) => {
       <SizingWrapper gridClassName="pt-6 pb-6 md:pb-10">
         {loading ? (
           <div className="grid grid-cols-1fr/auto gap-x-16">
-            <Skeleton count={5} />
+            <SkeletonForm count={5} className="w-full max-w-[580px]" />
 
-            <Skeleton height={250} className="md:w-[480px]" />
+            <SkeletonCard className="h-[250px] md:w-[480px]" lines={3} />
           </div>
         ) : (
           <Debugger action={action!} appID={appId ?? ""} />

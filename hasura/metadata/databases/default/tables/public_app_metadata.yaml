@@ -114,6 +114,15 @@ insert_permissions:
         - world_app_description
     comment: ""
 select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - app_id
+        - name
+        - updated_at
+        - verification_status
+        - verified_at
+      filter: {}
   - role: api_key
     permission:
       columns:

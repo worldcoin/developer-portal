@@ -1,4 +1,5 @@
-import { createActionSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/page/CreateActionModal/server/form-schema";
+import { createUpdateActionSchema } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/Settings/UpdateAction/server/form-schema";
+import { generateKeyPairSync } from "node:crypto";
 
 const baseValues = {
   name: "Test action",
@@ -8,9 +9,15 @@ const baseValues = {
   max_verifications: 1,
 };
 
-describe("createActionSchema post-action deep links", () => {
+// The v3 schema enforces the webhook_uri/webhook_pem pairing regardless of
+// app_flow_on_complete, so every webhook case carries a valid PEM — that way a
+// rejection is attributable to the webhook_uri check alone.
+const { publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+const VALID_PEM = publicKey.export({ type: "spki", format: "pem" }).toString();
+
+describe("createUpdateActionSchema post-action deep links", () => {
   test("rejects invalid schemes in production", async () => {
-    const schema = createActionSchema({ isProduction: true });
+    const schema = createUpdateActionSchema({ isProduction: true });
     await expect(
       schema.validate({
         ...baseValues,
@@ -21,7 +28,7 @@ describe("createActionSchema post-action deep links", () => {
   });
 
   test("rejects invalid schemes in staging", async () => {
-    const schema = createActionSchema({ isProduction: false });
+    const schema = createUpdateActionSchema({ isProduction: false });
     await expect(
       schema.validate({
         ...baseValues,
@@ -32,13 +39,54 @@ describe("createActionSchema post-action deep links", () => {
   });
 
   test("accepts valid https and custom schemes", async () => {
-    const schema = createActionSchema({ isProduction: true });
+    const schema = createUpdateActionSchema({ isProduction: true });
     await expect(
       schema.validate({
         ...baseValues,
         post_action_deep_link_android: "https://example.com/android",
         post_action_deep_link_ios: "worldapp://callback",
       }),
+    ).resolves.toBeTruthy();
+  });
+});
+
+// Regression for VULN-6369 / CE25-C014: the create/update action schema must
+// reject SSRF-prone webhook_uri values (loopback, private, link-local, cloud
+// metadata, non-HTTPS) so app-backend never fetches an internal target. The
+// field-level webhook_uri test runs regardless of app_flow_on_complete, and —
+// unlike the old behavior — is no longer skipped on the staging deployment.
+describe("createUpdateActionSchema webhook_uri SSRF validation", () => {
+  const withWebhook = (webhook_uri: string) => ({
+    ...baseValues,
+    webhook_uri,
+    webhook_pem: VALID_PEM,
+  });
+
+  test("rejects a cloud-metadata webhook_uri in production", async () => {
+    const schema = createUpdateActionSchema({ isProduction: true });
+    await expect(
+      schema.validate(withWebhook("https://169.254.169.254/latest/meta-data/")),
+    ).rejects.toBeTruthy();
+  });
+
+  test("rejects a loopback webhook_uri in staging (validation not skipped)", async () => {
+    const schema = createUpdateActionSchema({ isProduction: false });
+    await expect(
+      schema.validate(withWebhook("https://127.0.0.1/hook")),
+    ).rejects.toBeTruthy();
+  });
+
+  test("rejects a non-HTTPS webhook_uri", async () => {
+    const schema = createUpdateActionSchema({ isProduction: true });
+    await expect(
+      schema.validate(withWebhook("http://collector.example.com/hook")),
+    ).rejects.toBeTruthy();
+  });
+
+  test("accepts a public HTTPS webhook_uri", async () => {
+    const schema = createUpdateActionSchema({ isProduction: true });
+    await expect(
+      schema.validate(withWebhook("https://collector.example.com/ce25")),
     ).resolves.toBeTruthy();
   });
 });

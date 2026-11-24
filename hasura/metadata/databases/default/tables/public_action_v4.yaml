@@ -23,6 +23,16 @@ insert_permissions:
         - description
         - environment
 select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - action
+        - created_at
+        - environment
+        - id
+        - rp_id
+      filter: {}
+      allow_aggregations: true
   - role: service
     permission:
       columns:

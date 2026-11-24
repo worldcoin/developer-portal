@@ -1,0 +1,20 @@
+# Calls the merge_world_id_accounts Postgres function (see the
+# merge_world_id_accounts_function Hasura migration), which owns all writes for
+# this endpoint in a single transaction: membership moves, dedupe, role bumps,
+# nullifier hand-over and legacy account neutralization.
+mutation MergeWorldIdAccounts(
+  $current_user_id: String!
+  $legacy_user_id: String!
+  $world_id_nullifier: String!
+) {
+  merge_world_id_accounts(
+    args: {
+      _current_user_id: $current_user_id
+      _legacy_user_id: $legacy_user_id
+      _world_id_nullifier: $world_id_nullifier
+    }
+  ) {
+    id
+    world_id_nullifier
+  }
+}

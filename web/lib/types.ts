@@ -34,7 +34,7 @@ export enum AppStatusType {
   Inactive = "inactive",
 }
 
-export enum AppLocaliseKeys {
+export enum AppLocalizeKeys {
   description_overview = "overview",
   description_how_it_works = "how_it_works",
   description_connect = "connect",
@@ -208,7 +208,7 @@ export type AppStoreMetadataFields = {
   support_link: string;
   supported_countries?: any | null;
   supported_languages?: any | null;
-  localisations: LocalisedMetadata[];
+  localisations: LocalizedMetadata[];
   is_reviewer_world_app_approved: boolean;
   associated_domains?: string[] | null;
   contracts?: string[] | null;
@@ -220,13 +220,14 @@ export type AppStoreMetadataFields = {
   max_notifications_per_day?: number | null;
   is_android_only?: boolean | null;
   app: {
+    rp_registration?: { rp_id: string }[];
     team: { name?: string | null; id: string };
     rating_sum: number;
     rating_count: number;
   };
 };
 
-export type LocalisedMetadata = {
+export type LocalizedMetadata = {
   name: string;
   world_app_button_text: string;
   world_app_description: string;
@@ -245,6 +246,7 @@ export type AppStoreFormattedFields = Omit<
   | "localisations"
   | "is_reviewer_world_app_approved"
 > & {
+  rp_id?: string;
   app_rating: number;
   impressions: number;
   ratings_external_nullifier: string;

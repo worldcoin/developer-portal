@@ -65,7 +65,9 @@ describe("test /login-callback", () => {
     const response = await loginCallback(mockReq);
 
     expect(getSession).toHaveReturned();
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
   it("should login nullifier user successfully", async () => {
@@ -81,7 +83,9 @@ describe("test /login-callback", () => {
     const response = await loginCallback(mockReq);
 
     expect(getSession).toHaveReturned();
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
   it("should redirect to /create-team if no user is found", async () => {
@@ -181,10 +185,12 @@ describe("test /login-callback", () => {
       }),
     );
 
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
-  it("Should redirect new invited user to /join-callback", async () => {
+  it("Should redirect new invited user to /join", async () => {
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
     const email = "new-test-email@world.org";
 
@@ -215,7 +221,7 @@ describe("test /login-callback", () => {
     expect(
       response.headers
         .get("location")
-        ?.endsWith(`/join-callback?invite_id=${insertedInvite[0].id}`),
+        ?.endsWith(`/join?invite_id=${insertedInvite[0].id}`),
     ).toBeTruthy();
   });
 
@@ -247,7 +253,9 @@ describe("test /login-callback", () => {
     const response = await loginCallback(mockReq);
 
     expect(response.headers.get("location")).not.toContain("evil.com");
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
   it("should ignore a protocol-relative URL returnTo and use default redirect", async () => {
@@ -262,7 +270,9 @@ describe("test /login-callback", () => {
     const response = await loginCallback(mockReq);
 
     expect(response.headers.get("location")).not.toContain("evil.com");
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
   it("should ignore a backslash-prefixed returnTo that resolves off-site", async () => {
@@ -277,10 +287,12 @@ describe("test /login-callback", () => {
     const response = await loginCallback(mockReq);
 
     expect(response.headers.get("location")).not.toContain("evil.com");
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+    expect(
+      response.headers.get("location")?.endsWith("/dashboard"),
+    ).toBeTruthy();
   });
 
-  it("Should add membership for the invited existing user", async () => {
+  it("does not consume an invite for an existing email user; redirects to /join", async () => {
     const email = "test1-member@team2.example.com";
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
 
@@ -305,56 +317,27 @@ describe("test /login-callback", () => {
     (getSession as jest.Mock).mockResolvedValue(mockSession);
     const response = await loginCallback(mockReq);
 
-    const userQuery = gql`
-      query FetchUserByEmail($email: String!) {
-        user(where: { email: { _eq: $email } }) {
-          id
-          email
-          name
-          auth0Id
-          posthog_id
-          is_allow_tracking
-          name
-          memberships {
-            team {
-              id
-              name
-            }
-            role
-          }
-        }
-      }
-    `;
+    const { rows: membershipRows } = (await integrationDBExecuteQuery(
+      `SELECT count(*)::int AS count
+         FROM public.membership m
+         JOIN public."user" u ON u.id = m.user_id
+        WHERE m.team_id = '${team_id}' AND u.email = '${email}'`,
+    )) as { rows: { count: number }[] };
+    expect(membershipRows[0].count).toBe(0);
 
-    const client = await getAPIServiceGraphqlClient();
-
-    const fetchUserRes = await client.request<{
-      user: Array<{
-        id: string;
-        email: string;
-        auth0Id: string;
-        posthog_id: string;
-        is_allow_tracking: boolean;
-        name: string;
-        memberships: Array<{
-          team: {
-            id: string;
-            name: string;
-          };
-          role: string;
-        }>;
-      }>;
-    }>(userQuery, { email });
+    const { rowCount: remainingInvites } = await integrationDBExecuteQuery(
+      `SELECT id FROM public.invite WHERE id = '${insertedInvite[0].id}'`,
+    );
+    expect(remainingInvites).toBe(1);
 
     expect(
-      fetchUserRes.user[0].memberships.some((m) => m.team.id === team_id),
+      response.headers
+        .get("location")
+        ?.endsWith(`/join?invite_id=${insertedInvite[0].id}`),
     ).toBeTruthy();
-
-    expect(getSession).toHaveReturned();
-    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
   });
 
-  it("Should add membership for the invited existing World ID user", async () => {
+  it("does not consume an invite for an existing World ID user; redirects to /join", async () => {
     const inviteEmail = "invited-world-user@example.com";
     const team_id = "team_2222214f17eda7e0ededba7ded6b4222";
 
@@ -373,47 +356,151 @@ describe("test /login-callback", () => {
       nextUrl: url,
     } as unknown as NextRequest;
 
-    const mockSession = {
+    (getSession as jest.Mock).mockResolvedValue({
       user: validNullifierSessionUser,
-    };
-
-    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    });
     const response = await loginCallback(mockReq);
 
-    const userQuery = gql`
-      query FetchUserByNullifier($world_id_nullifier: String!) {
-        user(where: { world_id_nullifier: { _eq: $world_id_nullifier } }) {
-          memberships {
-            team {
-              id
-            }
-          }
-        }
-      }
-    `;
-
-    const client = await getAPIServiceGraphqlClient();
-
-    const fetchUserRes = await client.request<{
-      user: Array<{
-        memberships: Array<{
-          team: {
-            id: string;
-          };
-        }>;
-      }>;
-    }>(userQuery, { world_id_nullifier: "0x123" });
+    const { rows: membershipRows } = (await integrationDBExecuteQuery(
+      `SELECT count(*)::int AS count
+         FROM public.membership m
+         JOIN public."user" u ON u.id = m.user_id
+        WHERE m.team_id = '${team_id}' AND u.world_id_nullifier = '0x123'`,
+    )) as { rows: { count: number }[] };
+    expect(membershipRows[0].count).toBe(0);
 
     expect(
-      fetchUserRes.user[0].memberships.some((m) => m.team.id === team_id),
+      response.headers
+        .get("location")
+        ?.endsWith(`/join?invite_id=${insertedInvite[0].id}`),
     ).toBeTruthy();
+  });
 
-    expect(getSession).toHaveReturned();
+  it("ignores a bogus invite_id without logging the user out", async () => {
+    const url = new URL("/login-callback", "http://localhost:3000");
+    url.searchParams.append("invite_id", "inv_does_not_exist");
+    url.searchParams.append("returnTo", "/dashboard");
+
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    (getSession as jest.Mock).mockResolvedValue({
+      user: validEmailSessionUser,
+    });
+
+    const response = await loginCallback(mockReq);
+
+    expect(response.headers.get("location")).not.toContain("/api/auth/logout");
     expect(
-      updateSession.mock.calls[0][2].user.hasura.memberships.some(
-        (m: { team: { id: string } }) => m.team.id === team_id,
-      ),
+      response.headers
+        .get("location")
+        ?.endsWith(`/join?invite_id=inv_does_not_exist`),
     ).toBeTruthy();
-    expect(response.headers.get("location")).not.toContain("/unauthorized");
+  });
+
+  it("prefers invite_id over returnTo so confirm cannot be skipped", async () => {
+    const url = new URL("/login-callback", "http://localhost:3000");
+    url.searchParams.append("invite_id", "inv_prefer_join");
+    url.searchParams.append("returnTo", "/dashboard");
+
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    (getSession as jest.Mock).mockResolvedValue({
+      user: validEmailSessionUser,
+    });
+
+    const response = await loginCallback(mockReq);
+
+    expect(
+      response.headers
+        .get("location")
+        ?.endsWith(`/join?invite_id=inv_prefer_join`),
+    ).toBeTruthy();
+  });
+
+  it("reads invite_id from returnTo=/join when the top-level param is missing", async () => {
+    const url = new URL("/login-callback", "http://localhost:3000");
+    url.searchParams.append("returnTo", "/join?invite_id=inv_from_return_to");
+
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    (getSession as jest.Mock).mockResolvedValue({
+      user: validEmailSessionUser,
+    });
+
+    const response = await loginCallback(mockReq);
+
+    expect(
+      response.headers
+        .get("location")
+        ?.endsWith("/join?invite_id=inv_from_return_to"),
+    ).toBeTruthy();
+  });
+
+  it("routes a new user to /join when invite_id is only inside returnTo", async () => {
+    const url = new URL("/login-callback", "http://localhost:3000");
+    url.searchParams.append("returnTo", "/join?invite_id=inv_new_user");
+
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    (getSession as jest.Mock).mockResolvedValue({
+      user: {
+        ...validEmailSessionUser,
+        email: "brand-new-invitee@world.org",
+        sub: "email|brand-new-invitee",
+      },
+    });
+
+    const response = await loginCallback(mockReq);
+
+    expect(
+      response.headers
+        .get("location")
+        ?.endsWith("/join?invite_id=inv_new_user"),
+    ).toBeTruthy();
+    expect(response.headers.get("location")).not.toContain("/create-team");
+  });
+
+  // Exercises the accept_team_invite DB function directly for the branches a
+  // handler test can't force deterministically (a race between fetch and
+  // consume): idempotent re-consume by the winner vs. an empty result for a
+  // different user. This is what keeps a duplicate callback from the same user
+  // (browser retry, second tab) from logging them out after they just joined.
+  it("accept_team_invite is idempotent for the winner and empty for others", async () => {
+    const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
+    const winner = "usr_a78f59e547fa5bd3d76bc1a1817c6d94"; // seeded in team_2222, not team_d7cde
+    const loser = "usr_a78f59e547fa5bd3d76bc1a1817c6d93"; // seeded in team_2222, not team_d7cde
+
+    const { rows: inv } = (await integrationDBExecuteQuery(
+      `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}','2030-01-01 00:00:00+00','invite-fn@example.com') RETURNING id`,
+    )) as { rows: { id: string }[] };
+    const inviteId = inv[0].id;
+
+    // First call consumes the invite and creates the membership.
+    const first = await integrationDBExecuteQuery(
+      `SELECT team_id, user_id, role FROM public.accept_team_invite('${inviteId}', '${team_id}', '${winner}')`,
+    );
+    expect(first.rows).toHaveLength(1);
+    expect(first.rows[0]).toMatchObject({
+      team_id,
+      user_id: winner,
+      role: "MEMBER",
+    });
+
+    // Re-consuming the now-deleted invite as the same user is idempotent: it
+    // returns the existing membership (not an empty/logout result) and creates
+    // no duplicate.
+    const second = await integrationDBExecuteQuery(
+      `SELECT team_id, user_id FROM public.accept_team_invite('${inviteId}', '${team_id}', '${winner}')`,
+    );
+    expect(second.rows).toHaveLength(1);
+    expect(second.rows[0]).toMatchObject({ team_id, user_id: winner });
+
+    // A different user who never won the invite gets nothing.
+    const other = await integrationDBExecuteQuery(
+      `SELECT team_id, user_id FROM public.accept_team_invite('${inviteId}', '${team_id}', '${loser}')`,
+    );
+    expect(other.rows).toHaveLength(0);
+
+    // Exactly one membership was created for the winner.
+    const { rows: countRows } = (await integrationDBExecuteQuery(
+      `SELECT count(*)::int AS count FROM public.membership WHERE team_id='${team_id}' AND user_id='${winner}'`,
+    )) as { rows: { count: number }[] };
+    expect(countRows[0].count).toBe(1);
   });
 });

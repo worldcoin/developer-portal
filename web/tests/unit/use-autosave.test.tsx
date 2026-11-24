@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import {
   AutosaveStatus,
   useAutosave,
-} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/hook/use-autosave";
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/hook/use-autosave";
 
 type Values = { name: string; url: string };
 

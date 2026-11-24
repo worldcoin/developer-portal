@@ -1,6 +1,8 @@
 import { OIDCErrorCodes, OIDCScopes } from "@/api/helpers/oidc";
+import { decodeProof } from "@/api/helpers/verify";
 import { POST } from "@/api/v1/oidc/authorize";
 import { OIDCResponseType } from "@/lib/types";
+import { Nullifier as CheckedNullifier } from "@worldcoin/idkit-server/nullifier";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
 import { jwtVerify } from "jose";
@@ -11,6 +13,15 @@ import { semaphoreProofParamsMock } from "../../__mocks__/proof.mock";
 // Mock the external dependencies
 jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(),
+}));
+
+jest.mock("@/lib/logger", () => ({
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
 }));
 
 jest.mock("@/api/helpers/kms", () =>
@@ -51,14 +62,17 @@ jest.mock("@/api/helpers/oidc/graphql/insert-auth-code.generated", () => ({
   }),
 }));
 
-// Mock the verifyProof function
+// Mock the verifyProof function. Everything else in the module stays real —
+// the replay key is derived from canonicalizeProof, so mocking it out would
+// make the replay tests below assert nothing.
 const mockVerifyProof = jest.fn().mockResolvedValue({ error: null });
 jest.mock("@/api/helpers/verify", () => ({
+  ...jest.requireActual("@/api/helpers/verify"),
   verifyProof: (...args: unknown[]) => mockVerifyProof(...args),
-  encodeNullifierForStorage: jest.fn().mockReturnValue("0x123"),
 }));
 
 beforeEach(async () => {
+  jest.clearAllMocks();
   await global.RedisClient?.flushall();
   mockVerifyProof.mockResolvedValue({ error: null });
 
@@ -107,6 +121,27 @@ const VALID_REQUEST: Record<string, string> = {
 };
 
 describe("/api/v1/oidc/authorize [request validation]", () => {
+  test.each(["constructor", "__proto__", "toString"])(
+    "rejects reserved JSON key %s before app lookup or proof verification",
+    async (key) => {
+      const response = await POST(
+        new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+          method: "POST",
+          body: JSON.stringify({ ...VALID_REQUEST, [key]: {} }),
+        }),
+      );
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        code: "validation_error",
+        attribute: key,
+      });
+      expect(FetchOIDCApp).not.toHaveBeenCalled();
+      expect(mockVerifyProof).not.toHaveBeenCalled();
+      expect(InsertAuthCode).not.toHaveBeenCalled();
+    },
+  );
+
   test("validate required attributes", async () => {
     const required_attributes = [
       "proof",
@@ -218,6 +253,26 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
 });
 
 describe("/api/v1/oidc/authorize [authorization code flow]", () => {
+  test("rejects apps excluded from active OIDC lookup", async () => {
+    FetchOIDCApp.mockResolvedValueOnce({ app: [] });
+
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+      method: "POST",
+      body: JSON.stringify({ ...VALID_REQUEST }),
+    });
+
+    const response = await POST(req);
+    const data = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(data).toMatchObject({
+      code: "app_not_found",
+      attribute: "app_id",
+      detail: "App not found or not active.",
+    });
+    expect(mockVerifyProof).not.toHaveBeenCalled();
+  });
+
   test("returns an authorization code", async () => {
     const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
       method: "POST",
@@ -355,9 +410,178 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
       detail: "This proof has already been used. Please try again",
     });
   });
+
+  // The replay lock used to be keyed on the raw `proof` string, so any of the
+  // encodings decodeProof accepts produced a fresh key for an already-used
+  // proof and sailed past the check.
+  test.each([
+    [
+      "an uppercase ABI blob",
+      `0x${semaphoreProofParamsMock.proof.slice(2).toUpperCase()}`,
+    ],
+    [
+      "nested JSON with decimal leaves",
+      JSON.stringify(
+        (([a, b, c, d, e, f, g, h]) => [
+          [a, b],
+          [
+            [c, d],
+            [e, f],
+          ],
+          [g, h],
+        ])(
+          decodeProof(semaphoreProofParamsMock.proof)
+            .flat(2)
+            .map((leaf) => BigInt(leaf).toString()),
+        ),
+      ),
+    ],
+  ])("rejects a used proof re-encoded as %s", async (_label, reencoded) => {
+    const first = await POST(
+      new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST }),
+      }),
+    );
+    expect(first.status).toBe(200);
+
+    const response = await POST(
+      new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST, proof: reencoded }),
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toMatchObject({
+      code: "invalid_proof",
+      attribute: "proof",
+      detail: "This proof has already been used. Please try again",
+    });
+  });
+
+  test("rejects a proof that cannot be decoded without calling the sequencer", async () => {
+    mockVerifyProof.mockClear();
+
+    const response = await POST(
+      new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST, proof: "0x123" }),
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toMatchObject({
+      code: "invalid_proof",
+      attribute: "proof",
+      detail: "Provided proof is invalid.",
+    });
+    expect(mockVerifyProof).not.toHaveBeenCalled();
+  });
+
+  test("only one of two concurrent submissions of the same proof succeeds", async () => {
+    const submit = () =>
+      POST(
+        new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+          method: "POST",
+          body: JSON.stringify({ ...VALID_REQUEST }),
+        }),
+      );
+
+    const statuses = (await Promise.all([submit(), submit()])).map(
+      (response) => response.status,
+    );
+
+    expect(statuses.filter((status) => status === 200)).toHaveLength(1);
+    expect(statuses.filter((status) => status === 400)).toHaveLength(1);
+  });
 });
 
 describe("/api/v1/oidc/authorize [implicit flow]", () => {
+  test.each(["0X000AbC", " AbC "])(
+    "preserves the OIDC subject %j while verifying and storing its checked number",
+    async (rawNullifier) => {
+      // Execute the real verifier; mock only its HTTP boundary for this regression.
+      mockVerifyProof.mockImplementation(
+        jest.requireActual("@/api/helpers/verify").verifyProof,
+      );
+      const fetchSpy = jest
+        .spyOn(global, "fetch")
+        .mockResolvedValue(
+          new Response(JSON.stringify({ valid: true }), { status: 200 }),
+        );
+      const fromHex = jest.spyOn(CheckedNullifier, "fromHex");
+      try {
+        const res = await POST(
+          new NextRequest("http://localhost/api/v1/oidc/authorize", {
+            method: "POST",
+            body: JSON.stringify({
+              ...VALID_REQUEST,
+              nullifier_hash: rawNullifier,
+              response_type: "code id_token",
+            }),
+          }),
+        );
+        expect(res.status).toBe(200);
+        const { id_token } = await res.json();
+        const { payload } = await jwtVerify(
+          id_token,
+          createPublicKey({ format: "jwk", key: publicJwk }),
+        );
+        expect(payload.sub).toBe(rawNullifier);
+        expect(InsertAuthCode).toHaveBeenCalledWith(
+          expect.objectContaining({ nullifier_hash: rawNullifier }),
+        );
+        expect(Nullifier).toHaveBeenCalledWith({
+          nullifier_hash: rawNullifier,
+        });
+        expect(UpsertNullifier).toHaveBeenCalledWith(
+          expect.objectContaining({
+            object: {
+              nullifier_hash: rawNullifier,
+              nullifier_hash_int: "2748",
+              action_id: "action_staging_112233445566778",
+            },
+          }),
+        );
+        const body = JSON.parse(
+          (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+        );
+        expect(BigInt(body.nullifierHash)).toBe(2748n);
+        expect(fromHex).toHaveBeenCalledTimes(1);
+      } finally {
+        fetchSpy.mockRestore();
+        fromHex.mockRestore();
+        mockVerifyProof.mockReset().mockResolvedValue({ error: null });
+      }
+    },
+  );
+
+  test.each([
+    `${semaphoreProofParamsMock.nullifier_hash}00`,
+    "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001",
+  ])(
+    "rejects unsafe nullifiers without issuing identity tokens or keeping a proof lock",
+    async (nullifier_hash) => {
+      const request = (hash: string) =>
+        new NextRequest("http://localhost/api/v1/oidc/authorize", {
+          method: "POST",
+          body: JSON.stringify({ ...VALID_REQUEST, nullifier_hash: hash }),
+        });
+      const rejected = await POST(request(nullifier_hash));
+      expect(rejected.status).toBe(400);
+      expect(mockVerifyProof).not.toHaveBeenCalled();
+      expect(InsertAuthCode).not.toHaveBeenCalled();
+      expect(UpsertNullifier).not.toHaveBeenCalled();
+      const retried = await POST(
+        request(semaphoreProofParamsMock.nullifier_hash),
+      );
+      expect(retried.status).toBe(200);
+    },
+  );
+
   test("returns a valid token", async () => {
     const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
       method: "POST",

@@ -3,6 +3,10 @@
 const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_IMAGES_CDN_URL || "https://world-id-assets.com",
 );
+const assetsS3Endpoint = process.env.AWS_ENDPOINT_URL_S3?.trim();
+const assetsS3EndpointURL = assetsS3Endpoint
+  ? new URL(assetsS3Endpoint)
+  : undefined;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -12,6 +16,7 @@ const nextConfig = {
 
   output: "standalone",
   images: {
+    dangerouslyAllowLocalIP: assetsS3EndpointURL?.protocol === "http:",
     // Next 16 changed the default from 60s to 4h. Pin the previous value so a
     // user who updates an app icon/image doesn't keep seeing the stale one (up to
     // 4h) from the image optimizer cache.
@@ -22,9 +27,12 @@ const nextConfig = {
         hostname: cdnURLObject.hostname,
       },
       {
-        protocol: "https",
-        hostname: `${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
-        pathname: `/unverified/**`,
+        protocol: assetsS3EndpointURL?.protocol === "http:" ? "http" : "https",
+        hostname: assetsS3EndpointURL
+          ? `${process.env.ASSETS_S3_BUCKET_NAME}.${assetsS3EndpointURL.hostname}`
+          : `${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
+        port: assetsS3EndpointURL?.port,
+        pathname: "/unverified/**",
       },
     ],
   },
@@ -63,6 +71,26 @@ const nextConfig = {
 
   async redirects() {
     return [
+      // Sunset the worldcoin.org portal hosts in favor of world.org. Browser
+      // paths are redirected, including the Auth0 browser routes under
+      // /api/auth/* so the whole login flow (and its cookies) stays on one
+      // registrable domain. The machine API (other /api/*) and /.well-known/*
+      // stay on worldcoin.org so existing API and OIDC consumers (POST verify,
+      // CORS preflight, discovery/JWKS) keep working. :subdomain maps each env to
+      // its world.org sibling; runs before middleware so auth never sees the
+      // legacy host.
+      {
+        source: "/:path((?!api/(?!auth/)|\\.well-known/).*)",
+        has: [
+          {
+            type: "host",
+            value:
+              "(?<subdomain>developer|staging-developer)\\.worldcoin\\.org",
+          },
+        ],
+        destination: "https://:subdomain.world.org/:path",
+        permanent: true,
+      },
       {
         source: "/teams/:teamId/apps/:appId/configuration/app-store",
         permanent: false,

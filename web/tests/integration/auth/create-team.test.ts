@@ -4,6 +4,11 @@ import { Auth0User } from "@/lib/types";
 import { gql } from "@apollo/client";
 import { auth0 } from "@/lib/auth0";
 import { NextRequest } from "next/server";
+import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
+
+const existingUserId = "usr_a78f59e547fa5bd3d76bc1a1817c6d89";
+
+beforeEach(integrationDBClean);
 
 const validSessionUser = {
   email: "test@world.org",
@@ -27,6 +32,13 @@ jest.mock("@/lib/auth0", () => ({
 
 const getSession = auth0.getSession as jest.Mock;
 const updateSession = auth0.updateSession as jest.Mock;
+
+const syncExistingUserAuth0Id = async () => {
+  await integrationDBExecuteQuery(
+    `UPDATE public."user" SET "auth0Id" = $1 WHERE id = $2`,
+    [validSessionUser.sub, existingUserId],
+  );
+};
 
 jest.mock("../../../lib/logger", () => ({
   logger: {
@@ -117,6 +129,8 @@ describe("test /create-team", () => {
   });
 
   it("Should create team for a user that exists", async () => {
+    await syncExistingUserAuth0Id();
+
     const mockReq = {
       json: () => Promise.resolve({ team_name: "Test Team", hasUser: true }),
     } as unknown as NextRequest;
@@ -125,7 +139,7 @@ describe("test /create-team", () => {
       user: {
         ...validSessionUser,
         hasura: {
-          id: "usr_a78f59e547fa5bd3d76bc1a1817c6d89",
+          id: existingUserId,
         },
       },
     };
@@ -158,8 +172,10 @@ describe("test /create-team", () => {
   });
 
   it("should update session successfully", async () => {
+    await syncExistingUserAuth0Id();
+
     const mockUser = {
-      id: "usr_a78f59e547fa5bd3d76bc1a1817c6d89",
+      id: existingUserId,
       name: "Test User",
     };
 
@@ -170,7 +186,7 @@ describe("test /create-team", () => {
     const mockSession = {
       user: {
         ...validSessionUser,
-        hasura: { id: "usr_a78f59e547fa5bd3d76bc1a1817c6d89" },
+        hasura: { id: existingUserId },
       },
     };
 
@@ -218,7 +234,7 @@ describe("test /create-team", () => {
         }[];
       };
     }>(userQuery, {
-      id: "usr_a78f59e547fa5bd3d76bc1a1817c6d89",
+      id: existingUserId,
     });
 
     expect(updateSession).toHaveBeenCalledWith(

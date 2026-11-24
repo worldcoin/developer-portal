@@ -41,6 +41,15 @@ services:
     ports:
       - "6379:6379"
 
+  localstack:
+    image: localstack/localstack:4.14.0
+    ports:
+      - "127.0.0.1:4566:4566"
+    configs:
+      - source: localstack_s3_init
+        target: /etc/localstack/init/ready.d/10-s3.sh
+        mode: 0555
+
   opensearch:
     image: opensearchproject/opensearch:3
     environment:
@@ -64,3 +73,11 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+
+configs:
+  localstack_s3_init:
+    content: |
+      #!/bin/sh
+      awslocal s3 mb s3://developer-portal-assets 2>/dev/null || true
+      awslocal s3api put-bucket-cors --bucket developer-portal-assets --cors-configuration \
+        '{"CORSRules":[{"AllowedOrigins":["http://localhost:3000"],"AllowedMethods":["GET","HEAD","POST"],"AllowedHeaders":["*"],"ExposeHeaders":["ETag"]}]}'

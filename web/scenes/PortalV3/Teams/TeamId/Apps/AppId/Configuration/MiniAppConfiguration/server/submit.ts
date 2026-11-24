@@ -34,6 +34,9 @@ export async function updateAppMode(
     await getUpdateAppModeSdk(client).UpdateAppMode({
       app_metadata_id,
       app_mode,
+      // Switching to a mini app must not leave the store-hiding "External"
+      // category behind; clear it as part of the same update.
+      clear_external_category: app_mode === "mini-app",
     });
 
     return {

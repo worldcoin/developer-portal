@@ -1,19 +1,22 @@
 "use client";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog, DialogProps } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
+import type { DialogProps } from "@/components/Dialog";
+import {
+  FormDialog,
+  formDialogDangerActionClassName,
+  formDialogErrorClassName,
+  formDialogInputClassName,
+  formDialogLabelClassName,
+  formDialogSecondaryActionClassName,
+} from "@/components/FormDialog";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { Input } from "@/components/Input";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -37,12 +40,85 @@ const schema = yup
 
 type FormValues = yup.InferType<typeof schema>;
 
+const SESSION_REFRESH_MAX_ATTEMPTS = 3;
+const SESSION_REFRESH_TIMEOUT_MS = 4_000;
+const SESSION_REFRESH_BASE_DELAY_MS = 100;
+
+const wait = (durationMs: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, durationMs));
+
+const fetchSessionRefresh = async () => {
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    SESSION_REFRESH_TIMEOUT_MS,
+  );
+
+  try {
+    return await fetch("/api/update-session", {
+      method: "POST",
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const refreshSessionWithRetry = async () => {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < SESSION_REFRESH_MAX_ATTEMPTS; attempt += 1) {
+    let response: Response;
+
+    try {
+      response = await fetchSessionRefresh();
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === SESSION_REFRESH_MAX_ATTEMPTS - 1) {
+        break;
+      }
+
+      const delayMs =
+        SESSION_REFRESH_BASE_DELAY_MS * 2 ** attempt +
+        Math.floor(Math.random() * SESSION_REFRESH_BASE_DELAY_MS);
+      await wait(delayMs);
+      continue;
+    }
+
+    if (response.ok) {
+      return;
+    }
+
+    lastError = new Error(
+      `Session refresh failed with HTTP ${response.status}`,
+    );
+
+    const retryable =
+      response.status === 408 ||
+      response.status === 429 ||
+      response.status >= 500;
+    if (!retryable || attempt === SESSION_REFRESH_MAX_ATTEMPTS - 1) {
+      break;
+    }
+
+    const delayMs =
+      SESSION_REFRESH_BASE_DELAY_MS * 2 ** attempt +
+      Math.floor(Math.random() * SESSION_REFRESH_BASE_DELAY_MS);
+    await wait(delayMs);
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Session refresh failed without an error");
+};
+
 export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
-  const { team } = props;
+  const { team, onClose: onCloseDialog } = props;
   const router = useRouter();
   const path = usePathname();
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const [deleteFinished, setDeleteFinished] = useState(false);
+  const { invalidate } = useUser();
 
   const {
     register,
@@ -55,13 +131,16 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
   });
 
   const onClose = useCallback(() => {
+    onCloseDialog(false);
+  }, [onCloseDialog]);
+
+  const afterLeave = useCallback(() => {
     reset();
-    setDeleteFinished(false);
-    props.onClose(false);
-  }, [props, reset, setDeleteFinished]);
+  }, [reset]);
 
-  const { user, loading, refetch } = useMeQuery();
+  const { refetch } = useMeQuery();
 
+  // Post-delete flow lives here, not in an effect: the settings page unmounts this dialog when canWrite collapses, but an async handler keeps running.
   const submit = useCallback(async () => {
     if (!team?.id || !auth0User?.hasura?.id) {
       return toast.error("Error deleting team. Try again later");
@@ -70,114 +149,149 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
     try {
       const result = await deleteTeamServerSide(team.id);
 
-      if (result.success) {
-        await refetch();
-        toast.success("Team deleted!");
-        setDeleteFinished(true);
-      } else {
-        toast.error(result.message || "Error deleting team");
+      if (!result.success) {
+        return toast.error(result.message || "Error deleting team");
       }
+
+      // Refetch before invalidate: invalidate updates the Auth0 client user,
+      // which can flip canWrite false on team settings and unmount this dialog.
+      // Parallel refetch then rejects on the unmounted Apollo hook and we toast
+      // an error even though the delete already succeeded.
+      await refetch();
+
+      // The action rewrites the cookie itself; this only retries that
+      // idempotent session refresh, never the destructive deletion.
+      let sessionRefreshError: unknown;
+      if (!result.sessionUpdated) {
+        try {
+          await refreshSessionWithRetry();
+        } catch (error) {
+          sessionRefreshError = error;
+          console.error(
+            "Delete Team Dialog: team deleted but session refresh failed",
+            error,
+          );
+        }
+      }
+
+      try {
+        await invalidate();
+      } catch (error) {
+        sessionRefreshError ??= error;
+        console.error(
+          "Delete Team Dialog: team deleted but Auth0 user invalidation failed",
+          error,
+        );
+      }
+
+      if (sessionRefreshError) {
+        toast.error(
+          "Team deleted, but navigation could not be refreshed. Sign in again if it remains out of date.",
+        );
+      } else {
+        toast.success("Team deleted");
+      }
+
+      // Refresh so the session-fed sidebar drops the deleted team; push alone
+      // is a no-op when already on /profile (same layout).
+      router.refresh();
+      if (path !== urls.profile()) {
+        return router.push(urls.profile());
+      }
+
+      onClose();
     } catch (e) {
       console.error("Delete Team Dialog: ", e);
       toast.error("Error deleting team");
     }
-  }, [team?.id, auth0User?.hasura?.id, refetch]);
-
-  useEffect(() => {
-    if (!deleteFinished || loading) {
-      return;
-    }
-
-    const membershipsCount = user.memberships?.length;
-
-    if (typeof membershipsCount === "number" && membershipsCount === 0) {
-      return router.push(urls.createTeam());
-    }
-
-    if (path !== urls.profileTeams()) {
-      return router.push(urls.profileTeams());
-    }
-
-    onClose();
   }, [
-    deleteFinished,
-    loading,
-    onClose,
-    path,
+    team?.id,
+    auth0User?.hasura?.id,
+    refetch,
+    invalidate,
     router,
-    user.memberships?.length,
+    path,
+    onClose,
   ]);
 
   return (
-    <Dialog {...props} onClose={onClose}>
-      <DialogOverlay />
+    <FormDialog
+      open={Boolean(props.open)}
+      onClose={onClose}
+      afterLeave={afterLeave}
+      dismissable={!isSubmitting}
+      closeLabel="Close delete team dialog"
+      title="Delete team"
+    >
+      <form onSubmit={handleSubmit(submit)} className="grid w-full gap-y-6">
+        <div className="grid justify-items-center gap-y-4">
+          <CircleIconContainer variant="error">
+            <AlertIcon />
+          </CircleIconContainer>
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[25rem]">
-        <CircleIconContainer variant="error">
-          <AlertIcon />
-        </CircleIconContainer>
-
-        <div className="grid gap-y-4">
-          <Typography as="h3" variant={TYPOGRAPHY.H6} className="text-center">
-            Are you sure?
-          </Typography>
-
-          <Typography
-            variant={TYPOGRAPHY.R3}
-            className="max-w-[344px] text-center text-grey-500"
-          >
+          <p className="max-w-[344px] text-center font-world text-14 leading-[1.5] text-portal-muted">
             The{" "}
-            <span className="select-none break-all font-medium text-gray-900">
+            <span className="font-medium break-all text-portal-text select-none">
               {team?.name}
             </span>{" "}
             will be deleted, along with all of its apps, actions, configurations
             and statistics.
-          </Typography>
+          </p>
 
-          <div className="grid grid-cols-auto/1fr items-center gap-x-1 justify-self-center rounded-lg bg-system-error-50 px-3 py-2 text-system-error-600">
-            <AlertIcon />
-
-            <Typography variant={TYPOGRAPHY.B4}>
+          <div className="flex items-center gap-x-2 rounded-8 bg-surface-error-50 px-3 py-2 text-content-error-600">
+            <AlertIcon className="size-4 shrink-0" />
+            <span className="font-world text-13 leading-none font-medium">
               This action cannot be undone.
-            </Typography>
+            </span>
           </div>
         </div>
 
-        <form
-          onSubmit={handleSubmit(submit)}
-          className="mt-2 grid w-full gap-y-10"
-        >
-          <Input
-            register={register("confirmation")}
-            errors={errors.confirmation}
-            label={
-              <span className="select-none">To verify, type DELETE below</span>
+        <div>
+          <label
+            htmlFor="delete-team-confirmation"
+            className={formDialogLabelClassName}
+          >
+            To verify, type DELETE below
+          </label>
+          <input
+            id="delete-team-confirmation"
+            {...register("confirmation")}
+            className={formDialogInputClassName}
+            aria-invalid={Boolean(errors.confirmation)}
+            aria-describedby={
+              errors.confirmation ? "delete-team-confirmation-error" : undefined
             }
+            autoComplete="off"
             autoFocus
           />
-
-          <div className="grid gap-x-4 gap-y-2 md:grid-cols-2">
-            <DecoratedButton
-              disabled={!isValid || isSubmitting}
-              type="submit"
-              variant="danger"
-              className="order-2 whitespace-nowrap md:order-1"
+          {errors.confirmation?.message ? (
+            <p
+              id="delete-team-confirmation-error"
+              className={formDialogErrorClassName}
             >
-              Delete team
-            </DecoratedButton>
+              {errors.confirmation.message}
+            </p>
+          ) : null}
+        </div>
 
-            <DecoratedButton
-              type="button"
-              onClick={onClose}
-              variant="primary"
-              className="order-1 whitespace-nowrap"
-              disabled={isSubmitting}
-            >
-              Keep team
-            </DecoratedButton>
-          </div>
-        </form>
-      </DialogPanel>
-    </Dialog>
+        <div className="grid gap-3 md:grid-cols-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className={formDialogSecondaryActionClassName}
+            disabled={isSubmitting}
+          >
+            Keep team
+          </button>
+          <button
+            disabled={!isValid || isSubmitting}
+            type="submit"
+            className={formDialogDangerActionClassName}
+          >
+            Delete team
+          </button>
+        </div>
+      </form>
+    </FormDialog>
   );
 };

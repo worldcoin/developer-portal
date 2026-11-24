@@ -1,3 +1,5 @@
+import type { WorldIdTab } from "./world-id-tabs";
+
 type SignupParams = {
   invite_id?: string;
 };
@@ -12,8 +14,17 @@ export const urls = {
   configuration: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/configuration`,
 
+  configurationDanger: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/configuration/danger`,
+
+  miniApp: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app`,
+
   miniAppPermissions: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/mini-app/permissions`,
+
+  miniAppDevelop: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app/develop`,
 
   miniAppTransactions: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/mini-app/transactions`,
@@ -29,6 +40,21 @@ export const urls = {
 
   enableWorldId4: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}?enableWorldId4=true`,
+
+  worldId: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/world-id`,
+
+  worldIdTab: (params: {
+    team_id: string;
+    app_id: string;
+    tab: WorldIdTab;
+    query?: string | URLSearchParams | Record<string, string>;
+  }): string => {
+    const query = new URLSearchParams(params.query);
+    query.set("tab", params.tab);
+
+    return `/teams/${params.team_id}/apps/${params.app_id}/world-id?${query.toString()}`;
+  },
 
   worldId40: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/world-id-4-0`,
@@ -58,6 +84,8 @@ export const urls = {
     `/teams/${params.team_id}/apps/${params.app_id}/world-id-actions/${params.action_id}/danger`,
 
   createTeam: (): "/create-team" => "/create-team",
+
+  dashboard: (): "/dashboard" => "/dashboard",
 
   signInWorldId: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/sign-in-with-world-id`,
@@ -100,10 +128,26 @@ export const urls = {
     `/teams/${params.team_id}/apps/${params.app_id}/profile/setup${params.language ? "#languages" : ""}`,
 
   teams: (params: { team_id?: string }): string =>
-    `/teams/${params.team_id ? params.team_id : ""}`,
+    params.team_id ? `/teams/${params.team_id}` : "/teams",
 
-  teamSettings: (params: { team_id: string }): string =>
-    `/teams/${params.team_id}/settings`,
+  teamSettings: (params: {
+    team_id: string;
+    return_to?: string;
+    tab?: string;
+  }): string => {
+    const searchParams = new URLSearchParams();
+
+    if (params.return_to) {
+      searchParams.set("return_to", params.return_to);
+    }
+
+    if (params.tab) {
+      searchParams.set("tab", params.tab);
+    }
+
+    const query = searchParams.toString();
+    return `/teams/${params.team_id}/settings${query ? `?${query}` : ""}`;
+  },
 
   profile: (): "/profile" => "/profile",
   profileTeams: (): "/profile/teams" => "/profile/teams",
@@ -141,13 +185,15 @@ export const urls = {
       invite_id?: string | null;
       returnTo?: string | null;
     }): string => {
-      // v4 mounts /api/auth/login via middleware; it honours a `returnTo` query
-      // param and redirects there after the Auth0 callback completes. We point
-      // that at the login-callback pipeline (Hasura sync + session enrichment),
-      // forwarding invite_id and the originally requested deep link.
+      // Auth0 drops nested query strings inside returnTo, so invite_id is also
+      // a top-level login-callback param.
+      const postLoginReturnTo = params?.invite_id
+        ? urls.join({ invite_id: params.invite_id })
+        : params?.returnTo;
+
       const returnTo = urls.api.loginCallback({
         invite_id: params?.invite_id,
-        returnTo: params?.returnTo,
+        returnTo: postLoginReturnTo,
       });
 
       const searchParams = new URLSearchParams({ returnTo });
@@ -157,5 +203,9 @@ export const urls = {
 
     authDeleteAccount: (): "/api/auth/delete-account" =>
       "/api/auth/delete-account",
+
+    // API endpoint that helps recover an account created with "Sign in With World"
+    worldIdAccountMigration: (): "/api/profile/world-id-account-migration" =>
+      "/api/profile/world-id-account-migration",
   },
 };

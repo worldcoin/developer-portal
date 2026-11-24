@@ -1,0 +1,27 @@
+query FetchAdminTeamMembers(
+  $limit: Int!
+  $offset: Int!
+  $where: membership_bool_exp!
+) {
+  membership(
+    limit: $limit
+    offset: $offset
+    order_by: [{ user: { name: asc } }, { id: asc }]
+    where: $where
+  ) {
+    id
+    role
+    user_id
+    user {
+      id
+      name
+      email
+      created_at
+    }
+  }
+  membership_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}

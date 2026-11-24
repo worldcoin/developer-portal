@@ -1,18 +1,17 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { DestructiveTriggerButton } from "@/components/DestructiveTriggerButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { EngineType } from "@/lib/types";
 import clsx from "clsx";
 import { use, useState } from "react";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { KioskError } from "../Components/Kiosk/KioskError";
 import { VerificationLevelPicker } from "../Components/Kiosk/VerificationLevelPicker";
-import {
-  GetKioskActionDocument,
-  useGetKioskActionQuery,
-} from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/get-kiosk-action.generated";
-import { useToggleKioskMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/toggle-kiosk.generated";
+import { GetKioskActionDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/get-kiosk-action.generated";
+import { ToggleKioskDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/toggle-kiosk.generated";
 
 type ActionIdKioskPageProps = {
   params: Promise<Record<string, string>>;
@@ -25,9 +24,9 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const actionId = params?.actionId as `action_${string}`;
   const teamId = params?.teamId as `team_${string}`;
-  const [toggleKiosk] = useToggleKioskMutation();
+  const [toggleKiosk] = useMutation(ToggleKioskDocument);
 
-  const { data } = useGetKioskActionQuery({
+  const { data } = useQuery(GetKioskActionDocument, {
     variables: {
       action_id: actionId,
       app_id: appId,
@@ -57,11 +56,17 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
         <div className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 md:grid-cols-1fr/auto">
           <div className={clsx("grid max-w-[480px] gap-y-10")}>
             <div className="grid gap-y-5">
-              <Typography variant={TYPOGRAPHY.H6} className="text-grey-700">
+              <Typography
+                variant={TYPOGRAPHY.H6}
+                className="text-content-strong"
+              >
                 What is Kiosk?
               </Typography>
 
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+              <Typography
+                variant={TYPOGRAPHY.R3}
+                className="text-content-strong"
+              >
                 Kiosk allows you to verify users with World ID in person.
                 Activating it will create a screen that displays a large QR code
                 to verify with World ID. Use it to run promotions, giveaways, or
@@ -78,11 +83,14 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
 
             {kioskApp?.engine === EngineType.Cloud && (
               <div className="grid gap-y-5">
-                <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+                <Typography
+                  variant={TYPOGRAPHY.R3}
+                  className="text-content-strong"
+                >
                   This action&apos;s kiosk is currently:{" "}
                   <span
-                    className={clsx("text-system-error-500", {
-                      "text-system-success-500": kioskAction?.kiosk_enabled,
+                    className={clsx("text-content-error-500", {
+                      "text-content-success-500": kioskAction?.kiosk_enabled,
                     })}
                   >
                     {kioskAction?.kiosk_enabled ? "Enabled" : "Disabled"}
@@ -117,13 +125,11 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
                 )}
 
                 {kioskAction?.kiosk_enabled && (
-                  <DecoratedButton
-                    type="button"
-                    variant="danger"
+                  <DestructiveTriggerButton
                     onClick={() => handleToggleKiosk(false)}
                   >
                     Deactivate Kiosk
-                  </DecoratedButton>
+                  </DestructiveTriggerButton>
                 )}
               </div>
             )}

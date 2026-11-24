@@ -5,7 +5,7 @@ import {
   submitManagedSignerRotation,
   type ManagedRotationResult,
 } from "@/api/helpers/rp-registration-flows";
-import { normalizeAddress } from "@/api/helpers/rp-utils";
+import { isZeroAddress, normalizeAddress } from "@/api/helpers/rp-utils";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { isAddress } from "ethers";
@@ -25,6 +25,11 @@ const schema = yup
         "is-address",
         "Invalid signer key. Must be 40 hex characters (0x followed by 40 characters)",
         (value) => (value ? isAddress(value) : false),
+      )
+      .test(
+        "not-zero",
+        "Cannot use zero address as the signer",
+        (value) => !value || !isZeroAddress(value),
       ),
   })
   .noUnknown();
@@ -35,6 +40,7 @@ const ROTATION_ERROR_HTTP_CODE: Record<
 > = {
   config_error: "config_error",
   rp_not_registered: "rp_not_registered",
+  app_not_active: "app_not_active",
   self_managed_mode: "self_managed_mode",
   rotation_in_progress: "rotation_in_progress",
   submission_error: "submission_error",

@@ -1,8 +1,7 @@
-import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
-import { AppPermissionsPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/MiniApp/Permissions/page";
-import { AppPermissionsPage as AppPermissionsPageV3 } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MiniApp/Permissions/page";
+import { urls } from "@/lib/urls";
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Permissions" }),
@@ -11,8 +10,12 @@ export const metadata: Metadata = {
 export default async function Page(props: {
   params: Promise<Record<string, string>>;
 }) {
-  return pickPortalVersion(
-    () => <AppPermissionsPageV3 params={props.params} />,
-    () => <AppPermissionsPage params={props.params} />,
+  const params = await props.params;
+
+  return redirect(
+    urls.miniAppDevelop({
+      team_id: params.teamId,
+      app_id: params.appId,
+    }),
   );
 }

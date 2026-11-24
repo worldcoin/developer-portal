@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type FetchUserMembershipQueryVariables = Types.Exact<{
   user_id: Types.Scalars["String"]["input"];
   team_id: Types.Scalars["String"]["input"];
@@ -14,90 +12,116 @@ export type FetchUserMembershipQuery = {
   members: Array<{ __typename?: "membership"; id: string }>;
 };
 
-export const FetchUserMembershipDocument = gql`
-  query FetchUserMembership($user_id: String!, $team_id: String!) {
-    members: membership(
-      where: {
-        _and: { user_id: { _eq: $user_id }, team_id: { _eq: $team_id } }
-      }
-    ) {
-      id
-    }
-  }
-`;
-
-/**
- * __useFetchUserMembershipQuery__
- *
- * To run a query within a React component, call `useFetchUserMembershipQuery` and pass it any options that fit your needs.
- * When your component renders, `useFetchUserMembershipQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useFetchUserMembershipQuery({
- *   variables: {
- *      user_id: // value for 'user_id'
- *      team_id: // value for 'team_id'
- *   },
- * });
- */
-export function useFetchUserMembershipQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    FetchUserMembershipQuery,
-    FetchUserMembershipQueryVariables
-  > &
-    (
-      | { variables: FetchUserMembershipQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    FetchUserMembershipQuery,
-    FetchUserMembershipQueryVariables
-  >(FetchUserMembershipDocument, options);
-}
-export function useFetchUserMembershipLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    FetchUserMembershipQuery,
-    FetchUserMembershipQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    FetchUserMembershipQuery,
-    FetchUserMembershipQueryVariables
-  >(FetchUserMembershipDocument, options);
-}
-export function useFetchUserMembershipSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        FetchUserMembershipQuery,
-        FetchUserMembershipQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    FetchUserMembershipQuery,
-    FetchUserMembershipQueryVariables
-  >(FetchUserMembershipDocument, options);
-}
-export type FetchUserMembershipQueryHookResult = ReturnType<
-  typeof useFetchUserMembershipQuery
->;
-export type FetchUserMembershipLazyQueryHookResult = ReturnType<
-  typeof useFetchUserMembershipLazyQuery
->;
-export type FetchUserMembershipSuspenseQueryHookResult = ReturnType<
-  typeof useFetchUserMembershipSuspenseQuery
->;
-export type FetchUserMembershipQueryResult = Apollo.QueryResult<
+export const FetchUserMembershipDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "FetchUserMembership" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "user_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "team_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            alias: { kind: "Name", value: "members" },
+            name: { kind: "Name", value: "membership" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "_and" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "user_id" },
+                            value: {
+                              kind: "ObjectValue",
+                              fields: [
+                                {
+                                  kind: "ObjectField",
+                                  name: { kind: "Name", value: "_eq" },
+                                  value: {
+                                    kind: "Variable",
+                                    name: { kind: "Name", value: "user_id" },
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "team_id" },
+                            value: {
+                              kind: "ObjectValue",
+                              fields: [
+                                {
+                                  kind: "ObjectField",
+                                  name: { kind: "Name", value: "_eq" },
+                                  value: {
+                                    kind: "Variable",
+                                    name: { kind: "Name", value: "team_id" },
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   FetchUserMembershipQuery,
   FetchUserMembershipQueryVariables
 >;

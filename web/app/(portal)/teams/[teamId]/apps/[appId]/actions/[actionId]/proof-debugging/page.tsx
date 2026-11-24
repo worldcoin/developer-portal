@@ -1,5 +1,5 @@
 import { generateMetaTitle } from "@/lib/genarate-title";
-import { ActionIdProofDebugingPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/ProofDebuging/page";
+import { ActionIdProofDebugingPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/ProofDebuging/page";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

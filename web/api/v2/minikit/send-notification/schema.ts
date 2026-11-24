@@ -6,6 +6,7 @@ import {
 import * as yup from "yup";
 
 const USERNAME_SPECIAL_STRING = "${username}";
+const PULSE_ZOOM_DEEP_FACE_TEMPLATE_KEY = "pulse_zoom_deep_face";
 
 const isProduction = process.env.NEXT_PUBLIC_APP_ENV === "production";
 
@@ -31,6 +32,7 @@ const isValidDeepFaceUniversalLink = (value: string): boolean => {
 const DEEP_FACE_DEEPLINK_PREFIXES = [
   "worldapp://verify?",
   "worldid://verify?",
+  "worldidstg://verify?",
 ] as const;
 
 const isValidDeepFaceDeepLink = (value: string): boolean => {
@@ -42,6 +44,17 @@ const isValidDeepFaceDeepLink = (value: string): boolean => {
     const params = new URLSearchParams(value.slice(prefix.length));
 
     return params.get("t") === "deepface";
+  } catch {
+    return false;
+  }
+};
+
+const isValidHumanBadgeRenewalDeepLink = (value: string): boolean => {
+  if (!/^worldid(?:stg)?:\/\/renew-human-badge\?/.test(value)) return false;
+
+  try {
+    const environments = new URL(value).searchParams.getAll("environment");
+    return environments.length === 1 && environments[0] !== "";
   } catch {
     return false;
   }
@@ -63,7 +76,7 @@ const isValidMiniAppDeepLink = (
 };
 
 const MINI_APP_PATH_ERROR_MESSAGE =
-  "mini_app_path must be a valid WorldApp or World ID deeplink (worldapp://mini-app?app_id= or worldid://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), or a Deep Face deeplink (worldapp://verify?t=deepface or worldid://verify?t=deepface)";
+  "mini_app_path must be a valid World ID App or World ID deeplink (worldapp://mini-app?app_id= or worldid://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), a Deep Face deeplink (worldapp://verify?t=deepface, worldid://verify?t=deepface, or worldidstg://verify?t=deepface), or a human badge renewal deeplink (worldid://renew-human-badge or worldidstg://renew-human-badge) with exactly one non-empty environment query parameter";
 
 export const sendNotificationBodySchemaV1 = yup
   .object({
@@ -89,7 +102,8 @@ export const sendNotificationBodySchemaV1 = yup
           return (
             isValidMiniAppDeepLink(value, app_id) ||
             isValidDeepFaceUniversalLink(value ?? "") ||
-            isValidDeepFaceDeepLink(value ?? "")
+            isValidDeepFaceDeepLink(value ?? "") ||
+            isValidHumanBadgeRenewalDeepLink(value ?? "")
           );
         },
       ),
@@ -136,11 +150,25 @@ export const sendNotificationBodySchemaV2 = yup
           return (
             isValidMiniAppDeepLink(value, app_id) ||
             isValidDeepFaceUniversalLink(value ?? "") ||
-            isValidDeepFaceDeepLink(value ?? "")
+            isValidDeepFaceDeepLink(value ?? "") ||
+            isValidHumanBadgeRenewalDeepLink(value ?? "")
           );
         },
       ),
     draft_id: yup.string().optional(),
+    template_key: yup
+      .string()
+      .oneOf([PULSE_ZOOM_DEEP_FACE_TEMPLATE_KEY])
+      .strict()
+      .optional(),
+    template_args: yup
+      .object({
+        app_name: yup.string().oneOf(["Zoom"]).strict().required(),
+        is_self: yup.string().oneOf(["yes", "no"]).strict().required(),
+      })
+      .noUnknown()
+      .strict()
+      .optional(),
     localisations: yup
       .array()
       .of(
@@ -175,4 +203,11 @@ export const sendNotificationBodySchemaV2 = yup
         return Boolean(value?.find(({ language }) => language === "en"));
       }),
   })
+  .test(
+    "pulse-template-pair",
+    "template_key and template_args must be provided together",
+    (value) =>
+      (value?.template_key === undefined) ===
+      (value?.template_args === undefined),
+  )
   .noUnknown();

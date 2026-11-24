@@ -1,5 +1,5 @@
 import { generateMetaTitle } from "@/lib/genarate-title";
-import { ActionIdKioskPage } from "@/scenes/Portal/Kiosk";
+import { ActionIdKioskPage } from "@/scenes/PortalV3/Kiosk";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

@@ -16,7 +16,7 @@ export const SelectOptions = (props: SelectOptionsProps) => {
       <div
         ref={setFloating}
         style={floatingStyles}
-        className="z-[100] flex flex-col"
+        className="z-100 flex flex-col"
       >
         <Transition
           enter="transition duration-300 ease-out"
@@ -29,7 +29,7 @@ export const SelectOptions = (props: SelectOptionsProps) => {
         >
           <Listbox.Options
             className={twMerge(
-              "min-h-0 overflow-y-auto rounded-12 border border-grey-200 bg-grey-0 py-1 shadow-lg",
+              "min-h-0 overflow-y-auto rounded-12 border border-edge bg-surface py-1 shadow-lg",
               className,
             )}
           >

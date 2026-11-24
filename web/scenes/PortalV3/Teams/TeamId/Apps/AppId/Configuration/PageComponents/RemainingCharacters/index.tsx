@@ -12,7 +12,7 @@ export const RemainingCharacters: React.FC<RemainingCharactersProps> = ({
   const remainingCharacters = maxChars - (text?.length || 0);
 
   return (
-    <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
+    <Typography variant={TYPOGRAPHY.R5} className="text-content-tertiary">
       {remainingCharacters}
     </Typography>
   );

@@ -51,45 +51,45 @@ export const Typography = <T extends ElementType = "span">(
     <Component
       className={twMerge(
         clsx(className, {
-          "font-twk text-5xl font-medium leading-[1.3]":
+          "font-twk text-5xl leading-[1.3] font-medium":
             variant === TYPOGRAPHY.H3,
-          "font-twk text-4xl font-medium leading-[1.3]":
+          "font-twk text-4xl leading-[1.3] font-medium":
             variant === TYPOGRAPHY.H4,
-          "font-twk text-3xl font-medium leading-[1.3]":
+          "font-twk text-3xl leading-[1.3] font-medium":
             variant === TYPOGRAPHY.H5,
-          "font-twk text-2xl font-[550] leading-[1.3]":
+          "font-twk text-2xl leading-[1.3] font-[550]":
             variant === TYPOGRAPHY.H6,
-          "font-twk text-lg font-[550] leading-[1.3]":
+          "font-twk text-lg leading-[1.3] font-[550]":
             variant === TYPOGRAPHY.H7,
 
-          "font-gta text-lg font-medium leading-[1.5]":
+          "font-gta text-lg leading-normal font-medium":
             variant === TYPOGRAPHY.M2,
-          "font-gta text-base font-medium leading-[1.5]":
+          "font-gta text-base leading-normal font-medium":
             variant === TYPOGRAPHY.M3,
-          "font-gta text-sm font-medium leading-[1.4]":
+          "font-gta text-sm leading-[1.4] font-medium":
             variant === TYPOGRAPHY.M4,
-          "font-gta text-xs font-medium leading-[1.3]":
+          "font-gta text-xs leading-[1.3] font-medium":
             variant === TYPOGRAPHY.M5,
 
-          "font-gta text-base font-normal leading-[1.4] md:text-sm":
+          "font-gta text-base leading-[1.4] font-normal md:text-sm":
             variant === TYPOGRAPHY.R0,
-          "font-gta text-base font-normal leading-[1.5]":
+          "font-gta text-base leading-normal font-normal":
             variant === TYPOGRAPHY.R3,
-          "font-gta text-sm font-normal leading-[1.4]":
+          "font-gta text-sm leading-[1.4] font-normal":
             variant === TYPOGRAPHY.R4,
-          "font-gta text-xs font-normal leading-[1.3]":
+          "font-gta text-xs leading-[1.3] font-normal":
             variant === TYPOGRAPHY.R5,
 
-          "font-world text-sm font-[325] leading-[1.3]":
+          "font-world text-sm leading-[1.3] font-[325]":
             variant === TYPOGRAPHY.B3,
-          "font-world text-xs font-[325] leading-[1.3]":
+          "font-world text-xs leading-[1.3] font-[325]":
             variant === TYPOGRAPHY.B4,
 
-          "font-world text-base font-[500] leading-[1.25]":
+          "font-world text-base leading-tight font-medium":
             variant === TYPOGRAPHY.S2,
-          "font-world text-sm font-medium leading-[1.4]":
+          "font-world text-sm leading-[1.4] font-medium":
             variant === TYPOGRAPHY.S3,
-          "font-world text-xs font-medium leading-[1.3]":
+          "font-world text-xs leading-[1.3] font-medium":
             variant === TYPOGRAPHY.S4,
         }),
       )}

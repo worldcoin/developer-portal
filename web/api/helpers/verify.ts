@@ -1,8 +1,9 @@
-import { Nullifier } from "@/graphql/graphql";
+import { Nullifier as StoredNullifier } from "@/graphql/graphql";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
+import { Nullifier } from "@worldcoin/idkit-server/nullifier";
 import { AbiCoder, toBeHex } from "ethers";
 import * as yup from "yup";
 
@@ -48,7 +49,7 @@ const KNOWN_ERROR_CODES_V2 = [
 export interface IInputParams {
   merkle_root: string;
   signal_hash: string;
-  nullifier_hash: string;
+  nullifier_hash: Nullifier;
   external_nullifier: string;
   proof: string;
 }
@@ -57,6 +58,8 @@ export interface IVerifyParams {
   is_staging: boolean;
   verification_level: LegacyVerificationLevel;
   max_age?: number;
+  // Opt in to detecting proofs from the opposite environment.
+  detect_environment_mismatch?: boolean;
 }
 
 /**
@@ -237,20 +240,18 @@ export const parseProofInputs = (params: IInputParams) => {
     };
   }
 
-  try {
-    nullifier_hash = decodeToHexString(params.nullifier_hash);
-  } catch (error) {
-    logger.error("Error create nullifier hash", { error });
+  if (!(params.nullifier_hash instanceof Nullifier)) {
     return {
       error: {
         message:
-          "This attribute is improperly formatted. Expected an ABI-encoded uint256.",
+          "This attribute is improperly formatted. Expected a hex-encoded World ID field element.",
         code: "invalid_format",
         statusCode: 400,
         attribute: "nullifier_hash",
       },
     };
   }
+  nullifier_hash = params.nullifier_hash;
 
   try {
     merkle_root = decodeToHexString(params.merkle_root);
@@ -312,7 +313,7 @@ export const parseProofInputs = (params: IInputParams) => {
  * Checks whether the person can be verified for a particular action based on the max number of verifications
  */
 export const canVerifyForAction = (
-  nullifier: Pick<Nullifier, "uses" | "nullifier_hash"> | undefined,
+  nullifier: Pick<StoredNullifier, "uses" | "nullifier_hash"> | undefined,
   max_verifications_per_person: number,
 ): boolean => {
   if (!nullifier) {
@@ -334,32 +335,25 @@ export const normalizeNullifierHash = (nullifierHash: string): string => {
 };
 
 /**
- * Encodes a hex-encoded nullifier (0x...) into a decimal string for
- * storage in the nullifier_v4.nullifier numeric(78,0) column.
+ * Canonicalizes a proof into a single deterministic string that depends only on
+ * the eight field elements it carries, not on the wire encoding it arrived in.
  *
- * Normalizes different hex representations (0xABC, abc, 0xabc) to a single
- * canonical decimal form, preventing case/prefix bypass attacks.
+ * `decodeProof` intentionally accepts many byte-distinct encodings of the same
+ * proof — ABI blob in either hex case or with trailing padding, nested JSON,
+ * escaped JSON, decimal or zero-padded leaves, embedded whitespace — so
+ * anything that identifies a proof (an anti-replay lock, a dedup key) must key
+ * off this value. Keying off the raw request string instead gives one distinct
+ * key per encoding, which defeats the check entirely.
  *
- * @param hexNullifier - A hex-encoded nullifier string (with or without 0x prefix)
- * @returns Decimal string representation for DB storage
+ * Throws when the proof cannot be decoded, or when a leaf is not a number or
+ * does not fit in 32 bytes — all cases the sequencer would reject anyway, so
+ * callers should surface them as an invalid-proof 400.
  */
-export const encodeNullifierForStorage = (nullifierHash: string): string => {
-  const normalized = normalizeNullifierHash(nullifierHash);
-  return BigInt(normalized).toString();
-};
-
-/**
- * Canonicalizes a nullifier hash to a fixed-width, 0x-prefixed, 32-byte
- * lowercase hex string.
- *
- * Collapses case / prefix / leading-zero re-encodings (0xABC, abc, 0x0abc, …)
- * of the same value to one representation so they cannot bypass a uniqueness
- * check, while remaining byte-identical to the standard 0x+64-hex form that
- * IDKit emits and that is already stored — so it is idempotent on existing
- * rows and needs no data backfill for the common case.
- */
-export const canonicalizeNullifierHash = (nullifierHash: string): string =>
-  toBeHex(BigInt(normalizeNullifierHash(nullifierHash)), 32);
+export const canonicalizeProof = (proof: string): string =>
+  decodeProof(proof)
+    .flat(2)
+    .map((leaf) => toBeHex(BigInt(leaf), 32))
+    .join(",");
 
 export const verifyProof = async (
   proofParams: IInputParams,
@@ -380,7 +374,7 @@ export const verifyProof = async (
   // Query the signup sequencer to verify the proof (V2 API)
   const body = JSON.stringify({
     root: parsedParams.merkle_root,
-    nullifierHash: parsedParams.nullifier_hash,
+    nullifierHash: toBeHex(parsedParams.nullifier_hash.toBigInt()),
     externalNullifierHash: parsedParams.external_nullifier,
     signalHash: parsedParams.signal_hash,
     proof: parsedParams.proof,
@@ -405,6 +399,57 @@ export const verifyProof = async (
     try {
       // V2 API returns JSON error responses
       const errorResponse = await response.json();
+
+      // Check whether the root belongs to the opposite environment.
+      if (
+        verifyParams.detect_environment_mismatch &&
+        errorResponse.errorId === "invalid_root"
+      ) {
+        const proofEnvironment = verifyParams.is_staging
+          ? "production"
+          : "staging";
+        const oppositeSequencerUrl =
+          sequencerMapping[verifyParams.verification_level]?.[
+            (!verifyParams.is_staging).toString()
+          ];
+
+        try {
+          const oppositeResponse = await fetch(
+            `${oppositeSequencerUrl}/v2/semaphore-proof/verify`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body,
+            },
+          );
+
+          if (
+            oppositeResponse.ok &&
+            (await oppositeResponse.json()).valid === true
+          ) {
+            return {
+              error: {
+                message: `This proof was generated for the ${proofEnvironment} environment, but this request uses ${verifyParams.is_staging ? "staging" : "production"}. Set environment to \"${proofEnvironment}\" or generate a new ${verifyParams.is_staging ? "staging" : "production"} proof.`,
+                code: "environment_mismatch",
+                statusCode: 400,
+                attribute: "environment",
+              },
+            };
+          }
+        } catch (error) {
+          // A diagnostic lookup must not replace the original verifier error.
+          logger.warn(
+            "Unable to check proof against the opposite environment",
+            {
+              error,
+              verificationLevel: verifyParams.verification_level,
+            },
+          );
+        }
+      }
+
       const knownError = KNOWN_ERROR_CODES_V2.find(
         ({ errorId }) => errorId === errorResponse.errorId,
       );

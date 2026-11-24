@@ -17,8 +17,35 @@
 - `cd web && npx jest --no-cache` — Run all tests
 - `cd web && pnpm format:check` — Check code formatting
 
+## Feature flags
+
+Each feature flag lives in its own directory under `web/lib/feature-flags/<flag-name>/` and is imported directly by call sites (e.g. the `world-id-4-0` team allowlist). Flags read their configuration from env vars or hardcoded lists inside their module, so resolution backends can change without touching call sites. Delete the directory when a rollout completes — do not leave dead flags behind.
+
 ## Making Changes
+
 Always run formatting and type checks before committing. Make sure tests pass as well.
+
+Never commit or push to a branch other than the one currently being worked on — especially a branch with its own open pull request — without asking first. Propose the change and wait for explicit approval.
+
+## Icons and glyph optical centering (required check when adding icons or badges)
+
+Any change that adds an icon, a numbered/lettered bubble, or a glyph beside a
+text label MUST be checked for optical centering — geometric centering is not
+enough, because flex centers the text's **line box**, not the glyph, and the
+World Pro font reserves descender space that digits/caps don't use:
+
+- **Icon beside cap-height text** → wrap it with `opticalIconClassName`
+  (exported from `web/scenes/PortalV3/common/Icon`); otherwise it reads ~1px low.
+- **Digit/cap glyph inside a fixed circle or pill** (stepper dots, count
+  badges) → wrap the glyph with `bubbleDigitClassName` from the same file;
+  otherwise it paints ~2.75px high at text-13. The class applies 0.12em, an
+  optical value chosen by eye — exact ink-centering (0.21em) reads too low.
+- Verify with `cd web && node scripts/check-optical-centering.mjs` — it
+  renders the bubble recipe with the real font and fails if the corrected
+  glyph drifts more than 0.15px from the circle's center. Run it whenever you
+  touch bubble markup, the correction offsets, or `WorldProMVP.ttf`.
+- Zoomed screenshots are the manual fallback: capture the element at 4x+ and
+  compare the ink's top/bottom gaps before calling the UI done.
 
 ## Pull request follow-up
 
@@ -42,9 +69,12 @@ Mock at the **I/O boundary only**: GraphQL SDK calls, external RPC, Redis, third
 ```typescript
 // Good: mock the generated GraphQL SDK
 const GetRpRegistration = jest.fn();
-jest.mock("../../../api/v4/rp-status/[rp_id]/graphql/get-rp-registration.generated", () => ({
-  getSdk: () => ({ GetRpRegistration }),
-}));
+jest.mock(
+  "../../../api/v4/rp-status/[rp_id]/graphql/get-rp-registration.generated",
+  () => ({
+    getSdk: () => ({ GetRpRegistration }),
+  }),
+);
 
 // Good: mock external RPC
 jest.mock("../../../api/helpers/temporal-rpc", () => ({

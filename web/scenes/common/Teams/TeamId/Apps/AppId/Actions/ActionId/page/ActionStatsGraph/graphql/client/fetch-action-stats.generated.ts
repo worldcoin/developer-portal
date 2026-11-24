@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type FetchActionStatsQueryVariables = Types.Exact<{
   actionId: Types.Scalars["String"]["input"];
   startsAt: Types.Scalars["timestamptz"]["input"];
@@ -21,96 +19,119 @@ export type FetchActionStatsQuery = {
   }>;
 };
 
-export const FetchActionStatsDocument = gql`
-  query FetchActionStats(
-    $actionId: String!
-    $startsAt: timestamptz!
-    $timeSpan: String!
-  ) {
-    action_stats(
-      args: { actionId: $actionId, startsAt: $startsAt, timespan: $timeSpan }
-    ) {
-      action_id
-      date
-      verifications
-      unique_users
-    }
-  }
-`;
-
-/**
- * __useFetchActionStatsQuery__
- *
- * To run a query within a React component, call `useFetchActionStatsQuery` and pass it any options that fit your needs.
- * When your component renders, `useFetchActionStatsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useFetchActionStatsQuery({
- *   variables: {
- *      actionId: // value for 'actionId'
- *      startsAt: // value for 'startsAt'
- *      timeSpan: // value for 'timeSpan'
- *   },
- * });
- */
-export function useFetchActionStatsQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    FetchActionStatsQuery,
-    FetchActionStatsQueryVariables
-  > &
-    (
-      | { variables: FetchActionStatsQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<FetchActionStatsQuery, FetchActionStatsQueryVariables>(
-    FetchActionStatsDocument,
-    options,
-  );
-}
-export function useFetchActionStatsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    FetchActionStatsQuery,
-    FetchActionStatsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    FetchActionStatsQuery,
-    FetchActionStatsQueryVariables
-  >(FetchActionStatsDocument, options);
-}
-export function useFetchActionStatsSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        FetchActionStatsQuery,
-        FetchActionStatsQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    FetchActionStatsQuery,
-    FetchActionStatsQueryVariables
-  >(FetchActionStatsDocument, options);
-}
-export type FetchActionStatsQueryHookResult = ReturnType<
-  typeof useFetchActionStatsQuery
->;
-export type FetchActionStatsLazyQueryHookResult = ReturnType<
-  typeof useFetchActionStatsLazyQuery
->;
-export type FetchActionStatsSuspenseQueryHookResult = ReturnType<
-  typeof useFetchActionStatsSuspenseQuery
->;
-export type FetchActionStatsQueryResult = Apollo.QueryResult<
+export const FetchActionStatsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "FetchActionStats" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "actionId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "startsAt" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "timestamptz" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "timeSpan" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "action_stats" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "args" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "actionId" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "actionId" },
+                      },
+                    },
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "startsAt" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "startsAt" },
+                      },
+                    },
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "timespan" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "timeSpan" },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "action_id" } },
+                { kind: "Field", name: { kind: "Name", value: "date" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "verifications" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "unique_users" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   FetchActionStatsQuery,
   FetchActionStatsQueryVariables
 >;

@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { InvalidConfigurationError } from "@auth0/nextjs-auth0/errors";
-import { auth0 } from "@/lib/auth0";
+import { hasAdminAuthenticationEvidence } from "@/lib/admin-auth";
 import {
   getAllowedAppBaseUrls,
   getPrimaryAppBaseUrl,
   siblingOrigin,
 } from "@/lib/app-base-url";
+import { auth0 } from "@/lib/auth0";
+import { InvalidConfigurationError } from "@auth0/nextjs-auth0/errors";
+import { NextRequest, NextResponse } from "next/server";
 import { Role_Enum } from "./graphql/graphql";
 import { Auth0SessionUser } from "./lib/types";
 import { urls } from "./lib/urls";
@@ -14,7 +15,24 @@ import { checkUserPermissions } from "./lib/utils";
 const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_IMAGES_CDN_URL || "https://world-id-assets.com",
 );
-const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
+
+const getAssetsS3BucketOrigin = () => {
+  const bucket = process.env.ASSETS_S3_BUCKET_NAME?.trim();
+  if (!bucket) return undefined;
+
+  const endpoint = process.env.AWS_ENDPOINT_URL_S3?.trim();
+  if (endpoint) {
+    const endpointURL = new URL(endpoint);
+    endpointURL.hostname = `${bucket}.${endpointURL.hostname}`;
+    return endpointURL.origin;
+  }
+
+  const region = process.env.ASSETS_S3_REGION?.trim();
+  if (!region) return undefined;
+
+  return `https://${bucket}.s3.${region}.amazonaws.com`;
+};
+
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 // The portal is served from both worldcoin.org and world.org variants of the
 // same hostname. NEXT_PUBLIC_APP_URL is build-baked, so we mirror it onto the
@@ -23,6 +41,7 @@ const altAppUrl = siblingOrigin(appUrl);
 const isDev = process.env.NODE_ENV === "development";
 const generateCsp = () => {
   const nonce = crypto.randomUUID();
+  const s3BucketOrigin = getAssetsS3BucketOrigin();
 
   const csp = [
     { name: "default-src", values: ["'self'"] },
@@ -44,9 +63,8 @@ const generateCsp = () => {
       name: "font-src",
       values: [
         "'self'",
-        // Font files are served from https://world-id-assets.com (see
-        // `web/styles/globals.css`), so the source must match the https
-        // scheme — http-only source expressions don't match https requests.
+        // IDKit's bundled UI still injects TWK Lausanne font faces from this
+        // asset host. App-level fonts are self-hosted by next/font.
         "https://world-id-assets.com",
         "https://staging.world-id-assets.com",
       ],
@@ -56,7 +74,6 @@ const generateCsp = () => {
       values: [
         "'self'",
         "'unsafe-inline'",
-        "fonts.googleapis.com",
         ...(isDev ? ["'unsafe-inline'"] : []),
       ],
     },
@@ -72,7 +89,7 @@ const generateCsp = () => {
         "https://bridge.worldcoin.org",
         "https://us.i.posthog.com",
         "https://us-assets.i.posthog.com",
-        ...(s3BucketUrl ? [s3BucketUrl] : []),
+        ...(s3BucketOrigin ? [s3BucketOrigin] : []),
         ...(appUrl ? [appUrl] : []),
         ...(altAppUrl ? [altAppUrl] : []),
       ],
@@ -84,7 +101,7 @@ const generateCsp = () => {
         "blob:", // Used to enforce image width and height
         "data:",
         "https://world.org",
-        ...(s3BucketUrl ? [s3BucketUrl] : []),
+        ...(s3BucketOrigin ? [s3BucketOrigin] : []),
         ...(cdnURLObject ? [cdnURLObject.hostname] : []),
         ...(appUrl ? [appUrl] : []),
         ...(altAppUrl ? [altAppUrl] : []),
@@ -109,12 +126,21 @@ const checkRouteRolesRestrictions = (
   const urlSegments = pathname.split("/");
   const teamId = urlSegments[2];
 
+  // No membership in the URL's team (deleted/foreign) → send home; a member with the wrong role still gets the 401.
+  const isTeamMember = Boolean(
+    user?.hasura?.memberships?.some((m) => m.team?.id === teamId),
+  );
+  const restrictedRouteResponse = () =>
+    isTeamMember
+      ? NextResponse.rewrite(new URL("/unauthorized", request.url))
+      : NextResponse.redirect(new URL("/", request.url));
+
   // Route Subset Restriction
   const ownerOnlyRoutes = [
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/configuration/danger$",
     "/teams/[a-zA-Z0-9_]+/danger$",
-    "/teams/[a-zA-Z0-9_]+/settings$",
   ];
+  const teamSettingsRoutes = ["/teams/[a-zA-Z0-9_]+/settings$"];
   const ownerAndAdminRoutes = [
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/actions/[a-zA-Z0-9_]+/danger$",
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/world-id-actions/[a-zA-Z0-9_]+/danger$",
@@ -123,7 +149,17 @@ const checkRouteRolesRestrictions = (
 
   if (ownerOnlyRoutes.some((route) => pathname.match(route))) {
     if (!checkUserPermissions(user, teamId, [Role_Enum.Owner])) {
-      return NextResponse.rewrite(new URL("/unauthorized", request.url));
+      return restrictedRouteResponse();
+    }
+  }
+
+  if (teamSettingsRoutes.some((route) => pathname.match(route))) {
+    // Team settings is member-accessible: the page itself scopes what each
+    // role can see/do.
+    const validRoles = [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member];
+
+    if (!checkUserPermissions(user, teamId, validRoles)) {
+      return restrictedRouteResponse();
     }
   }
 
@@ -131,13 +167,14 @@ const checkRouteRolesRestrictions = (
     if (
       !checkUserPermissions(user, teamId, [Role_Enum.Owner, Role_Enum.Admin])
     ) {
-      return NextResponse.rewrite(new URL("/unauthorized", request.url));
+      return restrictedRouteResponse();
     }
   }
   return false;
 };
 
 const protectedMatchers = [
+  /^\/dashboard$/,
   /^\/teams(\/|$)/,
   /^\/create-team$/,
   /^\/profile(\/|$)/,
@@ -146,8 +183,137 @@ const protectedMatchers = [
 const isProtectedPath = (pathname: string) =>
   protectedMatchers.some((matcher) => matcher.test(pathname));
 
+const isAdminPagePath = (pathname: string) =>
+  pathname === "/admin" || pathname.startsWith("/admin/");
+
+const isAdminApiPath = (pathname: string) =>
+  pathname === "/api/admin" || pathname.startsWith("/api/admin/");
+
+// Mirrors the auth0 host normalization below (first comma-separated
+// x-forwarded-host value, default port stripped) plus a lowercase pass,
+// since Host/X-Forwarded-Host comparisons must be case-insensitive.
+const normalizeHost = (host: string) =>
+  host
+    .trim()
+    .replace(/:(80|443)$/, "")
+    .toLowerCase();
+
+const getForwardedHost = (request: NextRequest): string | undefined => {
+  const raw =
+    request.headers.get("x-forwarded-host") ||
+    request.headers.get("host") ||
+    request.nextUrl.host;
+  const first = raw?.split(",")[0];
+
+  return first ? normalizeHost(first) : undefined;
+};
+
+// Cloudflare Access protects INTERNAL_DASHBOARD_HOST as a separate hostname
+// from the public portal. Unset (the default) means no host is treated as
+// the dashboard entry point, so "/" keeps serving the public portal.
+const isInternalDashboardHost = (request: NextRequest): boolean => {
+  const dashboardHost = process.env.INTERNAL_DASHBOARD_HOST;
+
+  if (!dashboardHost) {
+    return false;
+  }
+
+  return getForwardedHost(request) === normalizeHost(dashboardHost);
+};
+
+const withSecurityHeaders = (
+  response: NextResponse,
+  csp: string,
+  pathname: string,
+) => {
+  response.headers.set("content-security-policy", csp);
+  response.headers.set("Permissions-Policy", "clipboard-write=(self)");
+  response.headers.set("x-current-path", pathname);
+
+  return response;
+};
+
+const createSecurityHeadersResponse = (
+  request: NextRequest,
+  pathname: string,
+) => {
+  const { csp, nonce } = generateCsp();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("content-security-policy", csp);
+  requestHeaders.set("x-current-path", pathname);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+
+  return withSecurityHeaders(response, csp, pathname);
+};
+
+// The browser keeps seeing the protected dashboard hostname during
+// navigation (developer-dashboard.toolsforhumanity.com/admin, not a
+// redirect to the origin host), so this rewrites rather than redirects.
+const createDashboardRewriteResponse = (request: NextRequest) => {
+  const url = request.nextUrl.clone();
+  url.pathname = "/admin";
+
+  const { csp, nonce } = generateCsp();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("content-security-policy", csp);
+  requestHeaders.set("x-current-path", "/admin");
+
+  const response = NextResponse.rewrite(url, {
+    request: { headers: requestHeaders },
+  });
+
+  return withSecurityHeaders(response, csp, "/admin");
+};
+
+const createAdminUnauthorizedResponse = (request: NextRequest) => {
+  if (isAdminApiPath(request.nextUrl.pathname)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  return NextResponse.redirect(new URL("/unauthorized", request.url));
+};
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // "/" has no product meaning of its own on the dashboard hostname, so
+  // treat it as the dashboard entry point there. Every other host keeps
+  // today's behavior of not running middleware on "/" at all (it wasn't in
+  // `config.matcher` before this route was added).
+  const isDashboardRoot = pathname === "/" && isInternalDashboardHost(request);
+
+  const isAdminRequest =
+    isDashboardRoot || isAdminPagePath(pathname) || isAdminApiPath(pathname);
+
+  if (isAdminRequest) {
+    if (
+      process.env.INTERNAL_DASHBOARD_HOST &&
+      !isInternalDashboardHost(request)
+    ) {
+      return createAdminUnauthorizedResponse(request);
+    }
+
+    if (!(await hasAdminAuthenticationEvidence(request.headers))) {
+      return createAdminUnauthorizedResponse(request);
+    }
+
+    if (isDashboardRoot) {
+      return createDashboardRewriteResponse(request);
+    }
+
+    if (isAdminPagePath(pathname)) {
+      return createSecurityHeadersResponse(request, pathname);
+    }
+
+    return NextResponse.next();
+  }
+
+  if (pathname === "/") {
+    return NextResponse.next();
+  }
 
   // In allow-list mode the Auth0 SDK matches the request origin against the
   // `appBaseUrl` list with an exact, un-normalized compare. This deployment's proxy
@@ -217,6 +383,8 @@ export async function proxy(request: NextRequest) {
 
   // Auth SDK routes pass straight through: login/logout/callback/profile under
   // `/api/auth/*`, plus our custom login-callback / delete-account handlers.
+  // These carry their own request-origin checks — `delete-account` is POST-only
+  // and same-origin gated (`api/helpers/csrf.ts`) because nothing here does it.
   if (pathname.startsWith("/api/auth/")) {
     return authRes;
   }
@@ -251,17 +419,10 @@ export async function proxy(request: NextRequest) {
   }
 
   // 4. Attach the per-request CSP nonce. It is forwarded on the request headers
-  //    so the root layout (`web/scenes/Root/layout`) can read `x-nonce` during
-  //    SSR, and set on the response so the browser enforces the policy.
-  const { csp, nonce } = generateCsp();
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set("content-security-policy", csp);
-
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
-  response.headers.set("content-security-policy", csp);
-  response.headers.set("Permissions-Policy", "clipboard-write=(self)");
-  response.headers.set("x-current-path", pathname);
+  //    so the Apollo-scoped portal layout (`app/(portal)/layout.tsx`) can read
+  //    `x-nonce` during SSR, and set on the response so the browser enforces
+  //    the policy.
+  const response = createSecurityHeadersResponse(request, pathname);
 
   // Preserve any session-refresh cookies set by `auth0.middleware()`.
   for (const cookie of authRes.cookies.getAll()) {
@@ -273,10 +434,16 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/api/auth/:path*",
+    "/dashboard",
     "/teams/:path*",
     "/create-team",
     "/profile/:path*",
     "/join-callback",
+    "/admin",
+    "/admin/:path*",
+    "/api/admin",
+    "/api/admin/:path*",
   ],
 };

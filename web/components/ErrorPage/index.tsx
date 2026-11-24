@@ -15,11 +15,14 @@ export const ErrorPage = ({
     <div className="flex min-h-[50vh] w-full items-center justify-center">
       <div className="flex flex-col items-center gap-6">
         <div className="flex items-center gap-4">
-          <Typography variant={TYPOGRAPHY.H5} className="text-grey-900">
+          <Typography variant={TYPOGRAPHY.H5} className="text-content-primary">
             {statusCode}
           </Typography>
-          <div className="h-12 w-px bg-grey-200" />
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+          <div className="h-12 w-px bg-surface-disabled" />
+          <Typography
+            variant={TYPOGRAPHY.R3}
+            className="text-content-secondary"
+          >
             {title}
           </Typography>
         </div>

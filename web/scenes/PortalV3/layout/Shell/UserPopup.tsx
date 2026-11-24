@@ -1,170 +1,163 @@
 "use client";
 
-import { CaretIcon } from "@/components/Icons/CaretIcon";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ThemeMenu } from "@/components/ThemeMenu";
 import {
-  DISCORD_URL,
-  DOCS_URL,
-  FAQ_URL,
-  TELEGRAM_DEVELOPERS_GROUP_URL,
-  TELEGRAM_MATEO_URL,
-  WORLD_PRIVACY_URL,
-  WORLD_STATUS_URL,
-} from "@/lib/constants";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 import { urls } from "@/lib/urls";
 import { Color } from "@/scenes/common/Profile/types";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
+import {
+  Icon,
+  opticalIconClassName,
+  preloadIcons,
+} from "@/scenes/PortalV3/common/Icon";
+import { useAtomValue } from "jotai";
+import { ChevronsUpDownIcon } from "lucide-react";
 import Link from "next/link";
-import { CSSProperties, ReactNode } from "react";
+import { CSSProperties } from "react";
+import { HelpCenterMenu } from "./HelpCenterMenu";
+import { portalMenuItemClassName } from "@/lib/portal-menu-styles";
 
 export type PortalUser = { name: string; email?: string };
 
-const itemClass =
-  "flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-grey-100";
+const itemClass = portalMenuItemClassName;
 
-const LinkItem = (props: {
-  href: string;
-  children: ReactNode;
-  external?: boolean;
-}) => (
-  <DropdownMenu.Item asChild>
-    {props.external ? (
-      <a
-        href={props.href}
-        target="_blank"
-        rel="noreferrer"
-        className={itemClass}
-      >
-        {props.children}
-      </a>
-    ) : (
-      <Link href={props.href} className={itemClass}>
-        {props.children}
-      </Link>
-    )}
-  </DropdownMenu.Item>
-);
-
-const SectionHeader = (props: { children: ReactNode }) => (
-  <DropdownMenu.Label className="text-muted-foreground px-2.5 pb-1 pt-2 font-gta text-12">
-    {props.children}
-  </DropdownMenu.Label>
-);
-
-const Separator = () => (
-  <DropdownMenu.Separator className="bg-border my-1 h-px" />
-);
+const accountLinks = [
+  {
+    href: urls.profile(),
+    label: "Profile",
+    icon: "profile-menu-profile",
+  },
+];
 
 /**
- * Bottom-left user popup (presentational): Profile · My Teams · the help menu
- * (mirrored from the main repo's <Help />: support · community · references) ·
- * Docs · Log out.
+ * Static icons inside the lazily mounted account menu.
+ * Keep in sync with UserPopup rows + HelpCenterMenu link icons.
  */
+const userPopupPreloadIcons = [
+  // Account menu rows
+  "profile-menu-profile",
+  "nav-help",
+  "profile-menu-log-out",
+  // Help Center submenu
+  "profile-menu-docs",
+  "profile-menu-help",
+  "profile-menu-privacy",
+  "profile-menu-status",
+  "profile-menu-telegram",
+  "profile-menu-message",
+  "profile-menu-policy",
+  "profile-menu-terms",
+];
+
+const getInitials = (name: string) => {
+  const parts = name
+    .split(/[.\s@_-]+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return (parts[0]?.[0] ?? "A") + (parts[1]?.[0] ?? "");
+};
+
 const UserAvatar = (props: { name: string; color: Color | null }) => {
   const { color } = props;
+
   return (
-    <div
-      className="flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold uppercase"
-      style={
-        color
-          ? ({
-              backgroundColor: color[100],
-              color: color[500],
-            } as CSSProperties)
-          : { backgroundColor: "#e5e7eb", color: "#6b7280" }
-      }
-    >
-      {props.name[0]}
-    </div>
+    <Avatar className="size-6">
+      <AvatarFallback
+        className="font-world text-10 font-semibold uppercase dark:text-grey-900!"
+        style={
+          color
+            ? ({
+                backgroundColor: color[100],
+                color: color[500],
+              } as CSSProperties)
+            : { backgroundColor: "#e5e7eb", color: "#6b7280" }
+        }
+      >
+        {getInitials(props.name)}
+      </AvatarFallback>
+    </Avatar>
   );
 };
 
 export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
-  const { user, color } = props;
+  const { user } = props;
+  const selectedColor = useAtomValue(colorAtom);
+  const color = selectedColor ?? props.color;
+
+  // Menu icons live in Radix's lazily mounted portal — warm them while the
+  // always-visible trigger renders so the first open is instant.
+  preloadIcons(userPopupPreloadIcons);
 
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="focus-visible:ring-ring flex w-full items-center gap-2.5 rounded-8 p-2 text-left outline-none hover:bg-grey-100 focus-visible:ring-2">
-        <UserAvatar name={user.name} color={color} />
-        <span className="min-w-0 flex-1 truncate font-gta text-14 font-medium">
-          {user.name}
-        </span>
-        <CaretIcon className="text-muted-foreground size-3 shrink-0 rotate-180" />
-      </DropdownMenu.Trigger>
-
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          side="top"
-          align="start"
-          sideOffset={8}
-          className="border-border z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[var(--radix-dropdown-menu-trigger-width)] min-w-[224px] overflow-y-auto rounded-12 border bg-white p-1 shadow-lg"
-        >
-          {user.email ? (
-            <div className="text-muted-foreground truncate px-2.5 py-1.5 text-12">
-              {user.email}
-            </div>
-          ) : null}
-
-          <LinkItem href={urls.profile()}>Profile</LinkItem>
-          <LinkItem href={urls.profileTeams()}>My Teams</LinkItem>
-
-          <Separator />
-
-          <SectionHeader>Need help with your app?</SectionHeader>
-          <LinkItem href={WORLD_PRIVACY_URL} external>
-            Data Privacy & Security
-          </LinkItem>
-          <LinkItem href={WORLD_STATUS_URL} external>
-            World Status
-          </LinkItem>
-          <LinkItem href={FAQ_URL} external>
-            FAQ
-          </LinkItem>
-
-          <Separator />
-
-          <SectionHeader>Community support</SectionHeader>
-          <LinkItem href={TELEGRAM_DEVELOPERS_GROUP_URL} external>
-            Join our Telegram
-          </LinkItem>
-          <LinkItem href={TELEGRAM_MATEO_URL} external>
-            Text Mateo
-          </LinkItem>
-          <LinkItem href={DISCORD_URL} external>
-            Join our Discord
-          </LinkItem>
-
-          <Separator />
-
-          <SectionHeader>References</SectionHeader>
-          <LinkItem href={urls.privacyStatement()} external>
-            Privacy Policy
-          </LinkItem>
-          <LinkItem href={urls.tos()} external>
-            Terms of service
-          </LinkItem>
-
-          <Separator />
-
-          <LinkItem href={DOCS_URL} external>
-            Docs
-          </LinkItem>
-
-          <Separator />
-
-          <DropdownMenu.Item asChild>
-            <a
-              href={urls.logout()}
-              onClick={(e) => {
-                e.preventDefault();
-                window.location.assign(urls.logout(window.location.origin));
-              }}
-              className={itemClass}
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              aria-label="Account menu"
+              title={user.name}
+              className="cursor-pointer text-portal-text hover:bg-portal-border focus-visible:bg-portal-border focus-visible:ring-0 data-open:bg-portal-border"
             >
-              Log out
-            </a>
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+              <UserAvatar name={user.name} color={color} />
+              <span className="min-w-0 flex-1 truncate font-world text-13 leading-none font-medium group-data-[collapsible=icon]:hidden">
+                {user.name}
+              </span>
+              <ChevronsUpDownIcon className="ml-auto size-4 text-portal-muted group-data-[collapsible=icon]:hidden" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            side="top"
+            align="start"
+            sideOffset={8}
+            className="w-(--radix-dropdown-menu-trigger-width) border border-portal-border font-world"
+          >
+            {accountLinks.map((item) => (
+              <DropdownMenuItem key={item.href} asChild className={itemClass}>
+                <Link href={item.href}>
+                  <Icon
+                    name={item.icon}
+                    className={`${opticalIconClassName} size-4`}
+                  />
+                  <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                </Link>
+              </DropdownMenuItem>
+            ))}
+            <HelpCenterMenu />
+            <ThemeMenu />
+            <DropdownMenuSeparator className="my-2 bg-portal-border" />
+            <DropdownMenuItem asChild className={itemClass}>
+              <a
+                href={urls.logout()}
+                onClick={(event) => {
+                  event.preventDefault();
+                  window.location.assign(urls.logout(window.location.origin));
+                }}
+              >
+                <Icon
+                  name="profile-menu-log-out"
+                  className={`${opticalIconClassName} size-4`}
+                />
+                <span className="min-w-0 flex-1 truncate">Log out</span>
+              </a>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 };

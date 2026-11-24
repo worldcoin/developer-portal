@@ -10,17 +10,33 @@ jest.mock("@/lib/logger", () => ({
 
 // Avoid touching `server-only` and the JWT helpers that pull in KMS in tests.
 jest.mock("server-only", () => ({}));
+const mockGraphQLClient = jest.fn();
+jest.mock("graphql-request", () => ({
+  GraphQLClient: function GraphQLClient(...args: unknown[]) {
+    return mockGraphQLClient(...args);
+  },
+}));
+const mockRequireAdminUser = jest.fn();
+jest.mock("@/lib/admin-auth", () => ({
+  requireAdminUser: () => mockRequireAdminUser(),
+}));
 jest.mock("@/api/helpers/jwts", () => ({
   generateServiceJWT: jest.fn(),
   generateAPIKeyJWT: jest.fn(),
   generateReviewerJWT: jest.fn(),
+  generateInternalDashboardJWT: jest.fn(),
 }));
 // #endregion
 
 import {
+  getInternalDashboardGraphqlClient,
+  internalDashboardGraphqlFetchPolicy,
   isRetryableOperation,
   makeGraphqlFetchWithRetry,
 } from "@/api/helpers/graphql";
+import { generateInternalDashboardJWT } from "@/api/helpers/jwts";
+import { AdminHasuraRole } from "@/lib/admin-auth/types";
+import { logger } from "@/lib/logger";
 
 // #region Test data
 const QUERY_BODY = JSON.stringify({
@@ -145,15 +161,89 @@ describe("graphqlFetchWithRetry", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("does NOT retry on a 5xx HTTP response (fetch resolved, didn't throw)", async () => {
+  it("retries a query on a 502 gateway response and succeeds", async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response("bad gateway", { status: 502 }))
+      .mockResolvedValueOnce(okResponse());
+    const res = await graphqlFetchWithRetry("https://example.test/v1/graphql", {
+      method: "POST",
+      body: QUERY_BODY,
+    });
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns the last gateway 5xx after exhausting retries (query)", async () => {
+    fetchMock.mockResolvedValue(new Response("unavailable", { status: 503 }));
+    const res = await graphqlFetchWithRetry("https://example.test/v1/graphql", {
+      method: "POST",
+      body: QUERY_BODY,
+    });
+    // On the final attempt we hand the upstream error back to graphql-request
+    // rather than swallowing it — no hidden failure.
+    expect(res.status).toBe(503);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("does NOT retry an internal dashboard query on transport error", async () => {
+    fetchMock.mockRejectedValueOnce(transportError("ETIMEDOUT"));
+    const internalDashboardFetch = makeGraphqlFetchWithRetry(
+      fetchMock as unknown as typeof fetch,
+      internalDashboardGraphqlFetchPolicy,
+    );
+
+    await expect(
+      internalDashboardFetch("https://example.test/v1/graphql", {
+        method: "POST",
+        body: QUERY_BODY,
+      }),
+    ).rejects.toBeDefined();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(
+      "graphql transport request failed",
+      expect.objectContaining({
+        graphqlClient: "internal_dashboard",
+        operationName: "GetThing",
+      }),
+    );
+  });
+
+  it("does NOT retry a mutation on a 502 gateway response", async () => {
     fetchMock.mockResolvedValueOnce(
-      new Response("upstream blew up", { status: 502 }),
+      new Response("bad gateway", { status: 502 }),
+    );
+    const res = await graphqlFetchWithRetry("https://example.test/v1/graphql", {
+      method: "POST",
+      body: MUTATION_BODY,
+    });
+    expect(res.status).toBe(502);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT retry a non-gateway HTTP error (e.g. 500)", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response("server error", { status: 500 }),
     );
     const res = await graphqlFetchWithRetry("https://example.test/v1/graphql", {
       method: "POST",
       body: QUERY_BODY,
     });
-    expect(res.status).toBe(502);
+    expect(res.status).toBe(500);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT retry a 504 gateway timeout (query may already be running)", async () => {
+    // Unlike 502/503, a 504 means a backend received the request but ran too
+    // long — retrying would amplify the slowdown, so we return it as-is.
+    fetchMock.mockResolvedValueOnce(
+      new Response("gateway timeout", { status: 504 }),
+    );
+    const res = await graphqlFetchWithRetry("https://example.test/v1/graphql", {
+      method: "POST",
+      body: QUERY_BODY,
+    });
+    expect(res.status).toBe(504);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -182,5 +272,35 @@ describe("graphqlFetchWithRetry", () => {
       expect(init.signal).toBeDefined();
       expect(init.signal).toBeInstanceOf(AbortSignal);
     }
+  });
+});
+
+describe("getInternalDashboardGraphqlClient", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.NEXT_PUBLIC_GRAPHQL_API_URL =
+      "https://hasura.example/v1/graphql";
+  });
+
+  it("creates a GraphQL client using the current admin user's dashboard JWT", async () => {
+    const user = {
+      email: "reader@example.com",
+      subject: "reader-subject",
+      role: AdminHasuraRole.Readonly,
+    };
+    mockRequireAdminUser.mockResolvedValue(user);
+    (generateInternalDashboardJWT as jest.Mock).mockResolvedValue(
+      "dashboard-token",
+    );
+
+    await getInternalDashboardGraphqlClient();
+
+    expect(generateInternalDashboardJWT).toHaveBeenCalledWith(user);
+    expect(mockGraphQLClient).toHaveBeenCalledWith(
+      "https://hasura.example/v1/graphql",
+      expect.objectContaining({
+        headers: { authorization: "Bearer dashboard-token" },
+      }),
+    );
   });
 });

@@ -6,33 +6,35 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type UpdateProductionRetryMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
+  claimed_at: Types.Scalars["timestamptz"]["input"];
   operation_hash: Types.Scalars["String"]["input"];
   status: Types.Scalars["rp_registration_status"]["input"];
 }>;
 
 export type UpdateProductionRetryMutation = {
   __typename?: "mutation_root";
-  update_rp_registration_by_pk?: {
-    __typename?: "rp_registration";
-    rp_id: string;
-    status: unknown;
-    operation_hash?: string | null;
+  update_rp_registration?: {
+    __typename?: "rp_registration_mutation_response";
+    affected_rows: number;
   } | null;
 };
 
 export const UpdateProductionRetryDocument = gql`
   mutation UpdateProductionRetry(
     $rp_id: String!
+    $claimed_at: timestamptz!
     $operation_hash: String!
     $status: rp_registration_status!
   ) {
-    update_rp_registration_by_pk(
-      pk_columns: { rp_id: $rp_id }
+    update_rp_registration(
+      where: {
+        rp_id: { _eq: $rp_id }
+        updated_at: { _eq: $claimed_at }
+        status: { _eq: pending }
+      }
       _set: { operation_hash: $operation_hash, status: $status }
     ) {
-      rp_id
-      status
-      operation_hash
+      affected_rows
     }
   }
 `;

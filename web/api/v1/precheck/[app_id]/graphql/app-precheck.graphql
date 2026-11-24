@@ -8,11 +8,16 @@ query AppPrecheckQuery(
       id: { _eq: $app_id }
       status: { _eq: "active" }
       is_archived: { _eq: false }
+      deleted_at: { _is_null: true }
     }
   ) {
     id
     is_staging
     engine
+    rp_registration(where: { status: { _eq: "registered" } }) {
+      rp_id
+      status
+    }
     app_metadata(where: { verification_status: { _neq: "verified" } }) {
       name
       logo_img_url

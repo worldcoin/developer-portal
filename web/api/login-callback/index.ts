@@ -14,25 +14,36 @@ import {
   getSdk as FetchUserByAuth0IdSdk,
 } from "./graphql/fetch-email-user.generated";
 
-import {
-  getSdk as FetchInviteSdk,
-  InviteQuery,
-} from "./graphql/fetch-invite.generated";
-
-import {
-  InsertMembershipMutation,
-  getSdk as InsertMembershipSdk,
-} from "./graphql/insert-membership.generated";
-
-import { Role_Enum } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
 import { Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { isEmailUser } from "../helpers/is-email-user";
+import {
+  isEmailUser,
+  emailForInsensitiveLookup,
+} from "../helpers/is-email-user";
 import { isPasswordUser } from "../helpers/is-password-user";
 import { getAppUrlFromRequest } from "../helpers/utils";
-import { getSdk as DeleteInviteSdk } from "./graphql/delete-invite.generated";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
+
+const inviteIdFromJoinReturnTo = (
+  rawReturnTo: string | null,
+  appUrl: string,
+): string | null => {
+  if (!rawReturnTo) {
+    return null;
+  }
+
+  try {
+    const resolved = new URL(rawReturnTo, appUrl);
+    if (resolved.pathname === "/join") {
+      return resolved.searchParams.get("invite_id");
+    }
+  } catch {
+    // ignore invalid returnTo
+  }
+
+  return null;
+};
 
 export const loginCallback = async (req: NextRequest) => {
   const session = await auth0.getSession();
@@ -109,7 +120,9 @@ export const loginCallback = async (req: NextRequest) => {
     try {
       const userData = await FetchUserByAuth0IdSdk(client).FetchEmailUser({
         auth0Id: auth0User.sub,
-        email: auth0User.email,
+        email: auth0User.email
+          ? emailForInsensitiveLookup(auth0User.email)
+          : auth0User.email,
       });
 
       if (userData.userByAuth0Id.length > 0) {
@@ -135,12 +148,11 @@ export const loginCallback = async (req: NextRequest) => {
     }
   }
 
-  const invite_id = req.nextUrl.searchParams.get("invite_id") as string;
+  const invite_id =
+    req.nextUrl.searchParams.get("invite_id") ??
+    inviteIdFromJoinReturnTo(req.nextUrl.searchParams.get("returnTo"), appUrl);
 
   if (!user) {
-    // No matching Hasura user. The user is being routed to onboarding
-    // (create-team or join-callback). Log this so we can correlate when
-    // /api/create-team subsequently fails on a uniqueness violation.
     logger.warn("login-callback: no Hasura user found, routing to onboarding", {
       auth0Sub: auth0User.sub,
       hasInvite: Boolean(invite_id),
@@ -153,136 +165,11 @@ export const loginCallback = async (req: NextRequest) => {
 
     return NextResponse.redirect(
       new URL(
-        invite_id ? urls.joinCallback({ invite_id }) : urls.createTeam(),
+        invite_id ? urls.join({ invite_id }) : urls.createTeam(),
         appUrl,
       ).toString(),
       307,
     );
-  }
-
-  let invite: InviteQuery["invite"][number] | null = null;
-  // If the user claims
-  let team_id_from_invite: string | null = null;
-
-  if (invite_id) {
-    try {
-      const fetchInviteResult = await FetchInviteSdk(client).Invite({
-        id: invite_id,
-      });
-
-      if (!fetchInviteResult) {
-        throw new Error(`Error while fetching invite: ${invite_id}`);
-      }
-
-      if (fetchInviteResult.invite.length > 0) {
-        invite = fetchInviteResult.invite[0];
-      }
-    } catch (error) {
-      logger.error("Error while fetching invite for FetchInviteSdk.", {
-        error,
-      });
-
-      return NextResponse.redirect(
-        new URL(urls.logout(), appUrl).toString(),
-        307,
-      );
-    }
-
-    if (
-      !invite ||
-      !invite.team_id ||
-      new Date(invite.expires_at) <= new Date()
-    ) {
-      logger.error("Invite not found or team_id is missing.");
-      return NextResponse.redirect(
-        new URL(urls.logout(), appUrl).toString(),
-        307,
-      );
-    }
-
-    // Dont require email verification for World ID users, as they don't have an email address
-    // **for team invites**
-    if (
-      (isEmailUser(auth0User) || isPasswordUser(auth0User)) &&
-      auth0User.email_verified &&
-      auth0User.email &&
-      invite.email.toLowerCase().trim() !== auth0User.email.toLowerCase().trim()
-    ) {
-      logger.error("Invite email does not match logged in email", {
-        team_id: invite.team_id,
-      });
-      return NextResponse.redirect(
-        new URL(
-          urls.unauthorized({
-            message:
-              "Invite email does not match logged in email. Please log out and try again.",
-          }),
-          appUrl,
-        ).toString(),
-        307,
-      );
-    }
-
-    let membership: InsertMembershipMutation["insert_membership_one"] | null =
-      null;
-
-    try {
-      const insertMembershipResult = await InsertMembershipSdk(
-        client,
-      ).InsertMembership({
-        team_id: invite.team_id,
-        user_id: user.id,
-        role: Role_Enum.Member,
-      });
-
-      membership = insertMembershipResult.insert_membership_one;
-    } catch (error) {
-      logger.error(
-        "Error while inserting membership for InsertMembershipSdk.",
-        {
-          error,
-          team_id: invite.team_id,
-        },
-      );
-
-      return NextResponse.redirect(
-        new URL(urls.logout(), appUrl).toString(),
-        307,
-      );
-    }
-
-    if (!membership) {
-      logger.error("Membership not found after inserting.", {
-        team_id: invite.team_id,
-      });
-      return NextResponse.redirect(
-        new URL(urls.logout(), appUrl).toString(),
-        307,
-      );
-    }
-
-    team_id_from_invite = invite.team_id;
-    user = membership.user;
-
-    try {
-      const deleteInviteResult = await DeleteInviteSdk(client).DeleteInvite({
-        invite_id,
-      });
-
-      if (!deleteInviteResult.delete_invite_by_pk) {
-        logger.error(
-          `Error while deleting invite: ${invite_id}, invite not found.`,
-          {
-            team_id: invite.team_id,
-          },
-        );
-      }
-    } catch (error) {
-      logger.error("Error while deleting invite for DeleteInviteSdk.", {
-        error,
-        team_id: invite.team_id,
-      });
-    }
   }
 
   // ANCHOR: Sync relevant attributes from Auth0 (also sets the user's Auth0Id if not set before)
@@ -324,8 +211,7 @@ export const loginCallback = async (req: NextRequest) => {
     }
   }
 
-  // If a user just accepted an invite, redirect them to that teams page.
-  const teamId = team_id_from_invite ?? user?.memberships[0]?.team.id;
+  const teamId = user?.memberships[0]?.team.id;
   let url: string = urls.profile();
   const rawReturnTo = req.nextUrl.searchParams.get("returnTo");
   let returnTo: string | null = null;
@@ -342,15 +228,13 @@ export const loginCallback = async (req: NextRequest) => {
     }
   }
 
-  if (returnTo) {
+  if (invite_id) {
+    url = urls.join({ invite_id });
+  } else if (returnTo) {
     url = returnTo;
-  }
-
-  if (!returnTo && teamId) {
-    url = urls.apps({ team_id: teamId });
-  }
-
-  if (!returnTo && !teamId) {
+  } else if (teamId) {
+    url = urls.dashboard();
+  } else {
     url = urls.createTeam();
   }
 

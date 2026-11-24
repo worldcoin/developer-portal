@@ -1,4 +1,5 @@
 import { GET } from "@/api/v4/rp-status/[rp_id]";
+import { invalidateRpStatusCache } from "@/api/helpers/rp-status-cache";
 import { RpRegistrationStatus } from "@/api/helpers/rp-utils";
 import { NextRequest } from "next/server";
 
@@ -50,10 +51,19 @@ jest.mock("../../../api/helpers/graphql", () => ({
 jest.mock("../../../api/helpers/temporal-rpc", () => ({
   getRpFromContract: (...args: unknown[]) => getRpFromContractMock(...args),
 }));
+
+const resolveManagerAddressMock = jest.fn();
+jest.mock("../../../api/helpers/rp-manager", () => ({
+  resolveManagerAddress: (...args: unknown[]) =>
+    resolveManagerAddressMock(...args),
+}));
 // #endregion
 
 // #region Test Data
 const rpId = "rp_abc123def4560000";
+/** Address of the Portal's KMS manager key for the RP under test. */
+const portalManager = "0xPortalManager";
+const portalSigner = "0x1234";
 
 const createRequest = () =>
   new NextRequest(
@@ -71,20 +81,24 @@ const makeDbRecord = (
     operation_hash: string | null;
     mode: string;
     signer_address: string | null;
+    manager_kms_key_id: string | null;
     staging_status: string | null;
     staging_operation_hash: string | null;
+    app: { deleted_at: string | null };
   }> = {},
 ) => ({
   rp_id: rpId,
   app_id: "app_test123",
   status: "pending",
   mode: "managed",
-  signer_address: "0x1234",
+  signer_address: portalSigner,
+  manager_kms_key_id: "kms-key-123",
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   operation_hash: null,
   staging_status: null,
   staging_operation_hash: null,
+  app: { deleted_at: null },
   ...overrides,
 });
 
@@ -92,15 +106,82 @@ const productionContract = "0xProductionContract";
 const stagingContract = "0xStagingContract";
 // #endregion
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
   process.env.RP_REGISTRY_CONTRACT_ADDRESS = productionContract;
   process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS = stagingContract;
-  global.RedisClient?.flushall();
+  await global.RedisClient?.flushall();
+  resolveManagerAddressMock.mockResolvedValue(portalManager);
   UpdateStagingStatus.mockResolvedValue({
     update_rp_registration_by_pk: { rp_id: rpId },
   });
 });
+
+// #region Status cache
+describe("/api/v4/rp-status [cache]", () => {
+  it("does not cache a failed status read before a retry", async () => {
+    delete process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({ status: "failed" }),
+    });
+
+    let finishContractRead!: (value: { initialized: boolean }) => void;
+    const contractResult = new Promise<{ initialized: boolean }>((resolve) => {
+      finishContractRead = resolve;
+    });
+    let signalContractRead!: () => void;
+    const contractReadStarted = new Promise<void>((resolve) => {
+      signalContractRead = resolve;
+    });
+    getRpFromContractMock
+      .mockImplementationOnce(() => {
+        signalContractRead();
+        return contractResult;
+      })
+      .mockResolvedValue({ initialized: false });
+
+    const oldRequest = GET(createRequest(), ctx);
+    await contractReadStarted;
+
+    // A retry claims pending and clears the cache, then clears it again after submit.
+    await invalidateRpStatusCache(rpId);
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({ status: "pending" }),
+    });
+    await invalidateRpStatusCache(rpId);
+    finishContractRead({ initialized: false });
+
+    expect((await (await oldRequest).json()).production_status).toBe("failed");
+    expect(await global.RedisClient?.get(`rp_status:v2:${rpId}`)).toBeNull();
+
+    const freshResponse = await GET(createRequest(), ctx);
+    expect(await freshResponse.json()).toEqual({
+      production_status: "pending",
+      staging_status: null,
+    });
+    expect(GetRpRegistration).toHaveBeenCalledTimes(2);
+    expect(await global.RedisClient?.ttl(`rp_status:v2:${rpId}`)).toBe(1);
+  });
+
+  it("caches a terminal status for an hour and reuses it", async () => {
+    delete process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({ status: "failed" }),
+    });
+    getRpFromContractMock.mockResolvedValue({ initialized: false });
+
+    await GET(createRequest(), ctx);
+    const cachedResponse = await GET(createRequest(), ctx);
+
+    expect(await cachedResponse.json()).toEqual({
+      production_status: "failed",
+      staging_status: null,
+    });
+    expect(GetRpRegistration).toHaveBeenCalledTimes(1);
+    expect(await global.RedisClient?.ttl(`rp_status:v2:${rpId}`)).toBe(3600);
+  });
+});
+// #endregion
 
 // #region Pending timeout tests
 describe("/api/v4/rp-status [pending timeout]", () => {
@@ -142,6 +223,23 @@ describe("/api/v4/rp-status [pending timeout]", () => {
     });
   });
 
+  it("keeps a recent retry pending even when the RP was created long ago", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      }),
+    });
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+    });
+    const response = await GET(createRequest(), ctx);
+    expect((await response.json()).production_status).toBe("pending");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
   it("stays pending within the 5 minute grace period", async () => {
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
     GetRpRegistration.mockResolvedValue({
@@ -179,6 +277,7 @@ describe("/api/v4/rp-status [pending timeout]", () => {
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
+      manager: portalManager,
       signer: "0x1234",
     });
 
@@ -225,6 +324,418 @@ describe("/api/v4/rp-status [pending timeout]", () => {
 });
 // #endregion
 
+// #region Production ownership verification (rp_id takeover protection)
+describe("/api/v4/rp-status [production ownership verification]", () => {
+  it("does not promote a managed RP to registered when the on-chain signer is foreign", async () => {
+    // The security case: a managed registration failed, leaving the rp_id row
+    // in `failed` while the RP is unregistered on-chain. An attacker then wins
+    // the permissionless on-chain register() for the same rp_id with their OWN
+    // manager and signer. rp-status must NOT adopt that on-chain "registered"
+    // reading — that would flip the row to `registered` and let proof-context
+    // serve the app's verified branding bound to the attacker's OPRF signer.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "failed",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          // Attacker registered on-chain with their own manager and signer.
+          return {
+            initialized: true,
+            active: true,
+            manager: "0xAttackerManager",
+            signer: "0xAttackerSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    // Status stays `failed`; the untrusted on-chain reading is not adopted...
+    expect(body.production_status).toBe("failed");
+    // ...and never written back to the DB.
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
+  it("escalates to error when an already-registered RP is proven not Portal-owned", async () => {
+    // The severe case: proof-context and /api/v4/verify gate on the stored
+    // `registered` status, so this app's verified branding is being served over
+    // a signer we have just proven is not ours. Demoting from this
+    // unauthenticated polling path is too dangerous (stale manager_kms_key_id
+    // data would take working apps down), so the status is preserved and the
+    // condition has to be loud enough to alert on — not the same throttled warn
+    // an in-flight rotation produces.
+    const { logger } = jest.requireMock("../../../lib/logger");
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        manager_kms_key_id: "kms-key-123",
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: "0xAttackerManager",
+            signer: "0xAttackerSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining("not Portal-owned"),
+      expect.objectContaining({ dbStatus: "registered" }),
+    );
+    // Preserved, not demoted, and never written back.
+    expect((await res.json()).production_status).toBe("registered");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
+  it("promotes a self-managed RP to registered for any on-chain owner (no expected signer to check)", async () => {
+    // Self-managed RPs have no Portal-stored signer to compare against — the
+    // developer owns both on-chain roles — so the on-chain reading stays
+    // authoritative and a completed on-chain registration flips it to registered.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "self_managed",
+        signer_address: null,
+        manager_kms_key_id: null,
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0xDeveloperOwnedManager",
+      signer: "0xDeveloperOwnedSigner",
+    });
+
+    UpdateRpStatus.mockResolvedValue({
+      update_rp_registration_by_pk: { rp_id: rpId },
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("registered");
+    expect(UpdateRpStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      status: RpRegistrationStatus.Registered,
+    });
+  });
+
+  it("fails a managed RP that is initialized on-chain but has no manager key recorded", async () => {
+    // submitManagedRpRegistration keeps the claimed row when the DB write after
+    // a successful on-chain submission throws, leaving no manager_kms_key_id.
+    // That resolves to `unknown` forever, so without this the row polls
+    // `pending` indefinitely — before the trust gate it was promoted on
+    // initialized && active alone and healed itself.
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        manager_kms_key_id: null,
+        created_at: fortyMinutesAgo,
+        updated_at: fortyMinutesAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: "0xSomeManager",
+            signer: "0xExpectedSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    UpdateRpStatus.mockResolvedValue({
+      update_rp_registration_by_pk: { rp_id: rpId },
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+    expect((await res.json()).production_status).toBe("failed");
+    expect(UpdateRpStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      status: RpRegistrationStatus.Failed,
+    });
+  });
+
+  it("does not fail an unknown-trust RP that still has a manager key (KMS outage)", async () => {
+    // The same `unknown` verdict caused by KMS being unavailable must NOT fail a
+    // healthy registration, or a KMS blip becomes a self-inflicted incident.
+    resolveManagerAddressMock.mockResolvedValue(null);
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        manager_kms_key_id: "kms-key-123",
+        created_at: fortyMinutesAgo,
+        updated_at: fortyMinutesAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: "0xSomeManager",
+            signer: "0xExpectedSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+    expect((await res.json()).production_status).toBe("pending");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
+  it("promotes a self-managed RP whose row still carries a signer address", async () => {
+    // The self-managed case is keyed off `mode`, not off an absent
+    // signer_address. Those coincide today, but if a self-managed row ever
+    // records the developer's on-chain signer, inferring the mode from the
+    // missing signer would leave every such row polling `pending` forever
+    // because there is no Portal manager key to compare against.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "self_managed",
+        signer_address: "0xDeveloperOwnedSigner",
+        manager_kms_key_id: null,
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: "0xDeveloperOwnedManager",
+      signer: "0xDeveloperOwnedSigner",
+    });
+
+    UpdateRpStatus.mockResolvedValue({
+      update_rp_registration_by_pk: { rp_id: rpId },
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("registered");
+    expect(UpdateRpStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      status: RpRegistrationStatus.Registered,
+    });
+  });
+
+  it("times out a managed RP wedged pending by a foreign on-chain owner once the UserOp window elapses", async () => {
+    // Foreign takeover of the rp_id: the row is still `pending` (the Portal's
+    // registration never completed) but on-chain it's initialized+active under a
+    // manager/signer we don't own. It can never become a trusted `registered`,
+    // and enough time has passed since the last write (> UserOp validity +
+    // margin) that any in-flight op is provably dead, so it must flip to
+    // `failed` — otherwise the dashboard polls forever with no retry path.
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        created_at: fortyMinutesAgo,
+        updated_at: fortyMinutesAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: "0xAttackerManager",
+            signer: "0xAttackerSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    UpdateRpStatus.mockResolvedValue({
+      update_rp_registration_by_pk: { rp_id: rpId },
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("failed");
+    expect(UpdateRpStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      status: RpRegistrationStatus.Failed,
+    });
+  });
+
+  it("does not fail a signer rotation still within its UserOp validity window", async () => {
+    // Rotation submitted ~10 min ago: status=pending, DB signer already the NEW
+    // key, on-chain still the OLD key (op not yet mined) → signer mismatch. This
+    // is past the short 5-min grace but well within the 30-min UserOp validity
+    // window, so the op can still land — the row must stay `pending`, NOT be
+    // failed (which would then be cached for an hour over a trusted registered).
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "managed",
+        signer_address: "0xNewSigner",
+        created_at: fortyMinutesAgo,
+        updated_at: tenMinutesAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0xOldSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("pending");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
+  it("does not promote when the on-chain signer matches but the manager is foreign", async () => {
+    // A signer-only check is not enough. The Portal publishes its intended
+    // signer in the `register` calldata (readable on-chain even when the op
+    // failed), so an attacker can re-register the same rp_id with that SAME
+    // signer but their own manager. Promoting here would mark the row
+    // `registered`, after which the attacker's manager calls `updateRp` to swap
+    // the signer in — and the later mismatch only preserves the already
+    // `registered` status, leaving proof-context serving the app's verified
+    // branding over the attacker's OPRF signer.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "failed",
+        mode: "managed",
+        signer_address: portalSigner,
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: "0xAttackerManager",
+            signer: portalSigner,
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("failed");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
+  it("preserves status without failing the row when the manager address cannot be resolved", async () => {
+    // KMS is down, so we cannot prove ownership either way. That is `unknown`,
+    // not a takeover: preserve the status, but do NOT run the untrusted timeout
+    // and mark a healthy pending registration `failed` over our own dependency
+    // being unavailable.
+    resolveManagerAddressMock.mockResolvedValue(null);
+
+    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "managed",
+        signer_address: portalSigner,
+        created_at: fortyMinutesAgo,
+        updated_at: fortyMinutesAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: portalSigner,
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("pending");
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
 // #region Staging status is derived from on-chain, not DB
 describe("/api/v4/rp-status [staging timeout]", () => {
   it("reports staging as pending when production initialized first but within grace period", async () => {
@@ -239,7 +750,12 @@ describe("/api/v4/rp-status [staging timeout]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
         return { initialized: false, active: false };
       },
@@ -267,7 +783,12 @@ describe("/api/v4/rp-status [staging timeout]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
         return { initialized: false, active: false };
       },
@@ -303,9 +824,19 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
-        return { initialized: true, active: true, signer: "0x1234" };
+        return {
+          initialized: true,
+          active: true,
+          manager: portalManager,
+          signer: "0x1234",
+        };
       },
     );
 
@@ -338,6 +869,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
+      manager: portalManager,
       signer: "0x1234",
     });
 
@@ -364,9 +896,19 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
-        return { initialized: true, active: true, signer: "0xoldSigner" };
+        return {
+          initialized: true,
+          active: true,
+          manager: portalManager,
+          signer: "0xoldSigner",
+        };
       },
     );
 
@@ -396,6 +938,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
+      manager: portalManager,
       signer: "0xanySigner",
     });
 
@@ -408,6 +951,49 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
       rp_id: rpId,
       staging_status: RpRegistrationStatus.Registered,
     });
+  });
+
+  it("reports no staging status rather than a foreign staging registration", async () => {
+    // Nothing mirrored to staging yet (staging_status null) but someone else
+    // registered this rp_id on the staging contract. Falling back to the on-chain
+    // mapping would report their `registered` as this app's, and a client would
+    // stop polling on someone else's success. The production branch preserves the
+    // stored value for the same reason.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        staging_status: null,
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0xExpectedSigner",
+          };
+        }
+        return {
+          initialized: true,
+          active: true,
+          manager: "0xAttackerManager",
+          signer: "0xAttackerSigner",
+        };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.staging_status).toBeNull();
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
   });
 
   it("preserves DB staging_status=pending when on-chain signer mismatches (rotation in flight)", async () => {
@@ -423,9 +1009,19 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
-        return { initialized: true, active: true, signer: "0xoldSigner" };
+        return {
+          initialized: true,
+          active: true,
+          manager: portalManager,
+          signer: "0xoldSigner",
+        };
       },
     );
 
@@ -451,7 +1047,12 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
         return { initialized: false, active: false };
       },
@@ -467,7 +1068,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     expect(UpdateStagingStatus).not.toHaveBeenCalled();
   });
 
-  it("does not persist staging failed on transient RPC error", async () => {
+  it("preserves pending staging status on transient RPC error", async () => {
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     GetRpRegistration.mockResolvedValue({
       rp_registration_by_pk: makeDbRecord({
@@ -480,7 +1081,12 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
         // Staging RPC throws — transient error
         throw new Error("RPC timeout");
@@ -491,9 +1097,53 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     expect(res.status).toBe(200);
 
     const body = await res.json();
-    // Response reports failed (non-fatal), but DB should NOT be updated
-    expect(body.staging_status).toBe("failed");
+    expect(body.staging_status).toBe("pending");
     expect(UpdateStagingStatus).not.toHaveBeenCalled();
+    expect(await global.RedisClient?.ttl(`rp_status:v2:${rpId}`)).toBe(1);
+  });
+
+  it("briefly caches a stored staging failure and reconciles after RPC recovery", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        staging_status: "failed",
+      }),
+    });
+    const trustedRp = {
+      initialized: true,
+      active: true,
+      manager: portalManager,
+      signer: portalSigner,
+    };
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === stagingContract) throw new Error("RPC timeout");
+        return trustedRp;
+      },
+    );
+
+    const unavailableResponse = await GET(createRequest(), ctx);
+    expect(await unavailableResponse.json()).toEqual({
+      production_status: "registered",
+      staging_status: "failed",
+    });
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+    expect(await global.RedisClient?.ttl(`rp_status:v2:${rpId}`)).toBe(1);
+
+    // Simulate cache expiry without waiting in real time.
+    await global.RedisClient?.del(`rp_status:v2:${rpId}`);
+    getRpFromContractMock.mockResolvedValue(trustedRp);
+
+    const recoveredResponse = await GET(createRequest(), ctx);
+    expect(await recoveredResponse.json()).toEqual({
+      production_status: "registered",
+      staging_status: "registered",
+    });
+    expect(UpdateStagingStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      staging_status: "registered",
+    });
+    expect(await global.RedisClient?.ttl(`rp_status:v2:${rpId}`)).toBe(3600);
   });
 
   it("does not timeout staging after a fresh retry even if RP is old", async () => {
@@ -512,7 +1162,12 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return {
+            initialized: true,
+            active: true,
+            manager: portalManager,
+            signer: "0x1234",
+          };
         }
         // Staging not yet initialized (retry tx still in flight)
         return { initialized: false, active: false };
@@ -525,6 +1180,64 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     const body = await res.json();
     // Should stay pending, not timeout to failed
     expect(body.staging_status).toBe("pending");
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Deleted app — read-only, no writeback
+describe("/api/v4/rp-status [deleted app]", () => {
+  it("does not write a deleted app's status back to the DB", async () => {
+    // RP mid-deactivation: DB says `pending`, but on-chain still reads active
+    // because the toggle has not mined. A public poll must NOT clobber
+    // `pending` back to `registered` — the reconciliation cron relies on that
+    // marker to avoid firing a second toggle that would re-activate the RP.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        staging_status: "registered",
+        app: { deleted_at: new Date().toISOString() },
+      }),
+    });
+
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      manager: portalManager,
+      signer: "0x1234",
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    // The response still reflects live on-chain state...
+    const body = await res.json();
+    expect(body.production_status).toBe("registered");
+    // ...but the DB row is left untouched for the deactivation flow to own.
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+  });
+
+  it("does not time a deleted app's registration out to failed", async () => {
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        created_at: tenMinutesAgo,
+        updated_at: tenMinutesAgo,
+        app: { deleted_at: new Date().toISOString() },
+      }),
+    });
+
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
     expect(UpdateStagingStatus).not.toHaveBeenCalled();
   });
 });

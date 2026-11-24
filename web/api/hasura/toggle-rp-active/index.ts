@@ -2,12 +2,13 @@ import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.g
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient } from "@/api/helpers/kms";
+import { abortIfManagerKeyMigrationInFlight } from "@/api/helpers/rp-manager-key-migration";
+import { submitToggleRpActiveTransaction } from "@/api/helpers/rp-transactions";
 import {
   getRpRegistryConfig,
   getStagingRpRegistryConfig,
   parseRpId,
 } from "@/api/helpers/rp-utils";
-import { submitToggleRpActiveTransaction } from "@/api/helpers/rp-transactions";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -120,6 +121,35 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  // A deleted app's RP is torn down by the reconciliation cron; it must never be
+  // toggled from the dashboard (which could re-activate the signer).
+  const app = registration.app;
+  if (app.deleted_at) {
+    return errorHasuraQuery({
+      req,
+      detail: "App is deleted.",
+      code: "app_not_active",
+      app_id,
+      logLevel: "warn",
+    });
+  }
+
+  // Archived / inactive apps have no reconciliation cron, so their owners must
+  // still be able to *deactivate* a live RP — but never *re-activate* one. A
+  // `deactivated` current status means this toggle would activate.
+  if (
+    (app.status !== "active" || app.is_archived) &&
+    currentStatus === "deactivated"
+  ) {
+    return errorHasuraQuery({
+      req,
+      detail: "Cannot activate the RP of an archived or inactive app.",
+      code: "app_not_active",
+      app_id,
+      logLevel: "warn",
+    });
+  }
+
   // STEP 3: Verify mode is managed
   if (registration.mode !== "managed" || !registration.manager_kms_key_id) {
     return errorHasuraQuery({
@@ -177,6 +207,24 @@ export const POST = async (req: NextRequest) => {
       });
     }
   };
+
+  // TODO: remove after the RP manager key migration completes
+  const migrationConflict = await abortIfManagerKeyMigrationInFlight({
+    rpId: rpIdString,
+    revert: revertStatus,
+    onConflict: () =>
+      errorHasuraQuery({
+        req,
+        detail:
+          "Cannot toggle RP. Another operation may already be in progress.",
+        code: "operation_in_progress",
+        app_id,
+      }),
+  });
+
+  if (migrationConflict) {
+    return migrationConflict;
+  }
 
   try {
     // STEP 6: Determine target active state from DB status

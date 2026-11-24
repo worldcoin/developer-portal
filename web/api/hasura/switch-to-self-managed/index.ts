@@ -1,14 +1,16 @@
-import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.generated";
+import { getSdk as getCheckOwnerSdk } from "@/api/hasura/graphql/checkUserIsOwnerInApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
+import { abortIfManagerKeyMigrationInFlight } from "@/api/helpers/rp-manager-key-migration";
+import { submitTransferManagerTransaction } from "@/api/helpers/rp-transactions";
 import {
   getRpRegistryConfig,
   getStagingRpRegistryConfig,
+  isZeroAddress,
   normalizeAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
-import { submitTransferManagerTransaction } from "@/api/helpers/rp-transactions";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
@@ -19,8 +21,6 @@ import { getSdk as getClaimSlotSdk } from "./graphql/claim-mode-switch-slot.gene
 import { getSdk as getRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
 import { getSdk as getRevertStatusSdk } from "./graphql/revert-mode-switch-status.generated";
 import { getSdk as getUpdateResultSdk } from "./graphql/update-mode-switch-result.generated";
-
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const schema = yup
   .object({
@@ -38,7 +38,7 @@ const schema = yup
       .test(
         "not-zero",
         "Cannot use zero address",
-        (value) => value !== ZERO_ADDRESS,
+        (value) => !value || !isZeroAddress(value),
       ),
   })
   .noUnknown();
@@ -47,12 +47,12 @@ const schema = yup
  * POST handler for the switch_to_self_managed Hasura action.
  *
  * This endpoint:
- * 1. Validates the user owns the app (ADMIN/OWNER)
+ * 1. Validates the user is the team OWNER
  * 2. Verifies the RP is in managed mode and registered
  * 3. Claims the mode-switch slot (prevents concurrent operations)
  * 4. Submits an updateRp transaction to transfer the manager on-chain
  * 5. Updates the DB to self_managed mode, clears KMS key and signer address
- * 6. Schedules KMS key deletion
+ * 6. Schedules KMS key deletion when the key is dedicated to this RP
  */
 export const POST = async (req: NextRequest) => {
   const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);
@@ -122,8 +122,8 @@ export const POST = async (req: NextRequest) => {
   const rpIdString = registration.rp_id;
   const teamId = registration.app.team_id;
 
-  // STEP 2: Verify user has permission (ADMIN or OWNER) before revealing feature state
-  const { team } = await getCheckUserSdk(client).CheckUserInApp({
+  // STEP 2: Verify user is the team OWNER before revealing feature state
+  const { team } = await getCheckOwnerSdk(client).CheckUserIsOwnerInApp({
     team_id: teamId,
     app_id,
     user_id: userId,
@@ -132,9 +132,25 @@ export const POST = async (req: NextRequest) => {
   if (!team || team.length === 0) {
     return errorHasuraQuery({
       req,
-      detail: "User does not have permission to switch mode.",
+      detail: "Only the team owner can switch this RP to self-managed.",
       code: "unauthorized",
       app_id,
+    });
+  }
+
+  // A deleted / archived / inactive app must not switch its RP to self-managed:
+  // that transfers the manager off our KMS key and flips the row out of managed
+  // mode, so the deactivate-deleted-app-rps cron (managed-only) would never tear
+  // down the still-active on-chain RP. Deleting an app deactivates its RP on its
+  // own; mirrors the guard in toggle_rp_active / rotate_signer_key.
+  const app = registration.app;
+  if (app.deleted_at || app.status !== "active" || app.is_archived) {
+    return errorHasuraQuery({
+      req,
+      detail: "App is deleted, archived, or inactive.",
+      code: "app_not_active",
+      app_id,
+      logLevel: "warn",
     });
   }
 
@@ -181,6 +197,24 @@ export const POST = async (req: NextRequest) => {
       });
     }
   };
+
+  // TODO: remove after the RP manager key migration completes
+  const migrationConflict = await abortIfManagerKeyMigrationInFlight({
+    rpId: rpIdString,
+    revert: revertStatus,
+    onConflict: () =>
+      errorHasuraQuery({
+        req,
+        detail:
+          "Cannot switch mode. RP status is not 'registered' (another operation may be in progress).",
+        code: "operation_in_progress",
+        app_id,
+      }),
+  });
+
+  if (migrationConflict) {
+    return migrationConflict;
+  }
 
   try {
     // STEP 5a: Submit primary manager transfer (required)
@@ -277,8 +311,11 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
-    // STEP 8: Schedule KMS key deletion
-    await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    // STEP 8: Schedule KMS key deletion only for dedicated per-RP keys.
+    // The shared manager key must never be scheduled for deletion.
+    if (registration.is_unique_manager_key) {
+      await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    }
 
     logger.info("Mode switch to self-managed successful", {
       app_id,

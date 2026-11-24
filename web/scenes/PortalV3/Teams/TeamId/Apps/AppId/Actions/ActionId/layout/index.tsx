@@ -8,10 +8,12 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser, EngineType } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import { WORLD_ID_TABS } from "@/lib/world-id-tabs";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { useQuery } from "@apollo/client/react";
 import { ReactNode, use } from "react";
-import { useGetSingleActionAndNullifiersQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/page/graphql/client/get-single-action.generated";
+import { GetSingleActionAndNullifiersDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/page/graphql/client/get-single-action.generated";
 
 type Params = {
   teamId?: string;
@@ -29,7 +31,7 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
   const { user } = useUser() as Auth0SessionUser;
 
   // Fetch action data for header using user permissions
-  const { data, loading } = useGetSingleActionAndNullifiersQuery({
+  const { data, loading } = useQuery(GetSingleActionAndNullifiersDocument, {
     variables: {
       action_id: params.actionId ?? "",
     },
@@ -62,9 +64,10 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
         <ActionsHeader
           displayText={action?.name ?? ""}
           backText="Back to Legacy Actions"
-          backUrl={urls.actions({
+          backUrl={urls.worldIdTab({
             team_id: params.teamId ?? "",
             app_id: params.appId ?? "",
+            tab: WORLD_ID_TABS.LegacyActions,
           })}
           isLoading={loading}
           isDeprecated
@@ -79,7 +82,7 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
 
       {/* Tabs Section */}
       <SizingWrapper gridClassName="order-2 pt-2">
-        <Tabs className="border-b border-grey-100 pb-2 font-gta md:py-0 md:pb-0">
+        <Tabs className="border-b border-edge-subtle pb-2 font-gta md:py-0 md:pb-0">
           {!isOnChainApp && (
             <Tab
               className="md:py-4"

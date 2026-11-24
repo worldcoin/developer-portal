@@ -11,11 +11,12 @@ import utc from "dayjs/plugin/utc";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
+import { useQuery } from "@apollo/client/react";
 import { StatCard } from "./StatCard";
 import { Timespan, TimespanSelector } from "./TimespanSelector";
 import {
+  FetchActionStatsDocument,
   FetchActionStatsQuery,
-  useFetchActionStatsQuery,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/page/ActionStatsGraph/graphql/client/fetch-action-stats.generated";
 
 dayjs.extend(utc);
@@ -100,7 +101,7 @@ export const ActionStatsGraph = () => {
     }
   }, [timespan.value]);
 
-  const { data, loading } = useFetchActionStatsQuery({
+  const { data, loading } = useQuery(FetchActionStatsDocument, {
     variables: {
       actionId,
       startsAt,
@@ -195,13 +196,13 @@ export const ActionStatsGraph = () => {
       <div className="flex flex-col items-center justify-between gap-y-4 md:flex-row">
         <div className="flex w-full items-center gap-x-6">
           <StatCard
-            mainColorClassName="bg-blue-500"
+            mainColorClassName="bg-content-link-legacy"
             title="Verifications"
             value={totalVerifications}
             changePercentage={verificationPercentageChange}
           />
 
-          <div className="h-6 w-px bg-grey-200" />
+          <div className="h-6 w-px bg-surface-disabled" />
 
           <StatCard
             mainColorClassName="bg-[#00C3B6]"
@@ -219,18 +220,24 @@ export const ActionStatsGraph = () => {
       )}
 
       {loading && (
-        <div className="relative aspect-[1180/350] w-full rounded-2xl">
+        <div className="relative aspect-1180/350 w-full rounded-2xl">
           <Skeleton className="absolute inset-0 size-full rounded-2xl" />
         </div>
       )}
 
       {!loading && !formattedData && (
-        <div className="pointer-events-none grid aspect-[1180/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200">
-          <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
+        <div className="pointer-events-none grid aspect-1180/350 w-full content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-edge select-none">
+          <Typography
+            variant={TYPOGRAPHY.H7}
+            className="text-content-secondary"
+          >
             No data available yet
           </Typography>
 
-          <Typography variant={TYPOGRAPHY.R4} className="text-14 text-grey-400">
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            className="text-14 text-content-tertiary"
+          >
             Your verification numbers will show up here.
           </Typography>
         </div>

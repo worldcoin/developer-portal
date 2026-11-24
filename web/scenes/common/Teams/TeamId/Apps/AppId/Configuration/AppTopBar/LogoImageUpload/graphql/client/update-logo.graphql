@@ -4,5 +4,6 @@ mutation UpdateLogo($id: String!, $fileName: String!) {
     _set: { logo_img_url: $fileName }
   ) {
     id
+    logo_img_url
   }
 }

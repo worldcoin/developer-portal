@@ -9,6 +9,7 @@ import "server-only";
 import { retrieveJWK } from "@/api/helpers/jwks";
 import { getKMSClient, signJWTWithKMSKey } from "@/api/helpers/kms";
 import { OIDCScopes } from "@/api/helpers/oidc";
+import type { AdminUser } from "@/lib/admin-auth/types";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { randomUUID } from "crypto";
 import dayjs from "dayjs";
@@ -131,6 +132,21 @@ export const generateReviewerJWT = async (): Promise<string> => {
     "https://hasura.io/jwt/claims": {
       "x-hasura-allowed-roles": ["reviewer"],
       "x-hasura-default-role": "reviewer",
+    },
+  };
+
+  return await _generateJWT(payload, "1m");
+};
+
+export const generateInternalDashboardJWT = async (
+  user: AdminUser,
+): Promise<string> => {
+  const payload = {
+    sub: user.subject,
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": [user.role],
+      "x-hasura-default-role": user.role,
+      "x-hasura-admin-subject": user.subject,
     },
   };
 

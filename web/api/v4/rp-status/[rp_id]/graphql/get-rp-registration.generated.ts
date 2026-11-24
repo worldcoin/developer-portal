@@ -17,11 +17,13 @@ export type GetRpRegistrationQuery = {
     status: unknown;
     mode: unknown;
     signer_address?: string | null;
+    manager_kms_key_id?: string | null;
     created_at: string;
     updated_at: string;
     operation_hash?: string | null;
     staging_status?: unknown | null;
     staging_operation_hash?: string | null;
+    app: { __typename?: "app"; deleted_at?: string | null };
   } | null;
 };
 
@@ -33,11 +35,15 @@ export const GetRpRegistrationDocument = gql`
       status
       mode
       signer_address
+      manager_kms_key_id
       created_at
       updated_at
       operation_hash
       staging_status
       staging_operation_hash
+      app {
+        deleted_at
+      }
     }
   }
 `;

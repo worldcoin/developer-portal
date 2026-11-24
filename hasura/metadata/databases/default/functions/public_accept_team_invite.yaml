@@ -1,0 +1,8 @@
+function:
+  name: accept_team_invite
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: service

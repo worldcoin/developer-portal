@@ -4,5 +4,6 @@ mutation UpdateContentCardImage($id: String!, $fileName: String!) {
     _set: { content_card_image_url: $fileName }
   ) {
     id
+    content_card_image_url
   }
 }

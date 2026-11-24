@@ -5,10 +5,22 @@ import { NextRequest } from "next/server";
 import { getSdk as getAppsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-rankings.generated";
 import { getSdk as getWebHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-web-highlights.generated";
 import { getSdk as getHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-highlighted-apps.generated";
+import { fetchMetrics } from "@/api/helpers/fetch-metrics";
 
 // Mock the external dependencies
 jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(),
+}));
+
+// The handler fetches app metrics over HTTP from NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT,
+// which .env.test points at the real metrics service. Left unmocked, every test here
+// makes a live request that fetchWithRetry retries 3x with a 5s timeout each — so a
+// slow or blocked egress path blows Jest's 5s budget and the suite fails on the
+// network rather than on the behaviour under test. None of these tests are about
+// metrics: the fixtures use synthetic app_ids that never appear in the real response,
+// so an empty result is exactly what they already exercise.
+jest.mock("@/api/helpers/fetch-metrics", () => ({
+  fetchMetrics: jest.fn().mockResolvedValue([]),
 }));
 
 jest.mock(
@@ -46,6 +58,9 @@ jest.mock(
 
 beforeEach(() => {
   jest.resetAllMocks();
+  // resetAllMocks strips implementations, so restore this one here rather than
+  // only at declaration — otherwise fetchMetrics resolves undefined.
+  jest.mocked(fetchMetrics).mockResolvedValue([]);
 });
 
 describe("/api/v2/public/apps", () => {
@@ -121,6 +136,48 @@ describe("/api/v2/public/apps", () => {
           highlights: [],
         }),
       }));
+    });
+
+    test("should expose optional RP IDs in rankings and highlights", async () => {
+      const apps = mockAppsWithCountries.map((metadata, index) => ({
+        ...metadata,
+        app: {
+          ...metadata.app,
+          rp_registration:
+            index === 0 ? [{ rp_id: "rp_0123456789abcdef" }] : [],
+        },
+      }));
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({ top_apps: apps }),
+      }));
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({ highlights: apps }),
+      }));
+      jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          app_rankings: [{ rankings: ["1", "2"] }],
+        }),
+      }));
+
+      const response = await GET(
+        new NextRequest("https://cdn.test.com/api/v2/public/apps", {
+          headers: { host: "cdn.test.com", "CloudFront-Viewer-Country": "US" },
+        }),
+      );
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      for (const entries of [
+        data.app_rankings.top_apps,
+        data.app_rankings.highlights,
+      ]) {
+        expect(entries).toHaveLength(2);
+        expect(
+          entries.find((app: { app_id: string }) => app.app_id === "1"),
+        ).toHaveProperty("rp_id", "rp_0123456789abcdef");
+        expect(
+          entries.find((app: { app_id: string }) => app.app_id === "2"),
+        ).not.toHaveProperty("rp_id");
+      }
     });
 
     test("should prioritize country from query parameter over CloudFront header", async () => {
@@ -379,6 +436,48 @@ describe("/api/v2/public/apps", () => {
       expect(filteredAppIds).toContain("2");
       expect(filteredAppIds).toContain("3");
       expect(filteredAppIds).toContain("4");
+    });
+
+    test("should filter external apps out of highlights the same way as top apps", async () => {
+      // Put the mixed-mode apps in the highlights list instead of top_apps.
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: [],
+        }),
+      }));
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          highlights: mockAppsWithMixedModes,
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      const response = await GET(request);
+      expect(response.status).toBe(200);
+      const data = await response.json();
+
+      const highlightIds = data.app_rankings.highlights.map(
+        (app: any) => app.app_id,
+      );
+
+      // Only App 1 (category="Social", app_mode="mini-app") should remain.
+      expect(highlightIds).toContain("1");
+      // App 2 has app_mode="external" — must be dropped from highlights too.
+      expect(highlightIds).not.toContain("2");
+      // App 3 has category="External" (app_mode="mini-app"). Regression guard:
+      // the highlights filter previously used `||` and only dropped apps that
+      // were BOTH external category AND external mode, so App 3 leaked through.
+      expect(highlightIds).not.toContain("3");
+      // App 4 is external on both counts — dropped.
+      expect(highlightIds).not.toContain("4");
     });
   });
 

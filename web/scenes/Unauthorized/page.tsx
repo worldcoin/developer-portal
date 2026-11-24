@@ -6,5 +6,5 @@ export const UnauthorizedPage = (props: {
   const { searchParams } = props;
   const message = searchParams?.message;
 
-  return <Unauthorized className="min-h-[100dvh] w-full" message={message} />;
+  return <Unauthorized className="min-h-dvh w-full" message={message} />;
 };

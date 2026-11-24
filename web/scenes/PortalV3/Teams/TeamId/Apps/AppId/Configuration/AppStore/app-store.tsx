@@ -1,55 +1,99 @@
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import { WarningBadgeIcon } from "@/scenes/PortalV3/common/Icon";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { useAtomValue } from "jotai";
-import { useMemo } from "react";
+import {
+  createContext,
+  PropsWithChildren,
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useContext,
+  useMemo,
+} from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { useSaveStatus } from "../SaveStatus";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
-import { isMiniAppAtom } from "../layout/ImagesProvider";
 import { CategorySection } from "./components/FormSections/CategorySection";
 import { ComplianceSection } from "./components/FormSections/ComplianceSection";
 import { ContentCardImageSection } from "./components/FormSections/ContentCardImageSection";
 import { CountriesSection } from "./components/FormSections/CountriesSection";
 import { HumansOnlySection } from "./components/FormSections/HumansOnlySection";
 import { LanguagesSection } from "./components/FormSections/LanguagesSection";
-import { LocalisationsSection } from "./components/FormSections/LocalisationsSection";
+import { LocalizationsSection } from "./components/FormSections/LocalizationsSection";
 import { SupportSection } from "./components/FormSections/SupportSection";
-import { SaveStatusIndicator } from "../SaveStatus";
-import { SaveButton } from "./components/SaveButton";
 import { AppStoreFormValues } from "./FormSchema/types";
 import { useAppStoreForm } from "./hooks/useAppStoreForm";
 import { AppStoreFormProps } from "./types/AppStoreFormTypes";
 
-const SectionDivider = () => (
-  <div className="w-full border-t border-grey-100" aria-hidden />
+export const LawsAndRegulationsBanner = () => (
+  <div className="flex items-center gap-3 rounded-[10px] bg-surface-warning-100 p-5">
+    <WarningBadgeIcon />
+    <Typography
+      variant={TYPOGRAPHY.B3}
+      className="flex-1 text-content-warning-600"
+    >
+      Laws and regulations governing mini apps vary by country and region.
+      Before launching, ensure your app complies with all relevant local rules,
+      especially regarding chance-based or gambling-like features.
+    </Typography>
+  </div>
 );
+
+/**
+ * ShowcaseImagesField and MetaTagImageField upsert through their own mutation
+ * and write the URL back into the form only so the UI can render it. See
+ * `UseAutosaveOptions.isSelfPersisting`.
+ */
+const SELF_PERSISTING_FIELDS =
+  /^localisations\.\d+\.(showcase_img_urls|meta_tag_image_url)$/;
+
+const isSelfPersistingField = (name: string) =>
+  SELF_PERSISTING_FIELDS.test(name);
+
+type AppStoreFormContextValue = ReturnType<typeof useAppStoreForm> &
+  AppStoreFormProps & {
+    isEnoughPermissions: boolean;
+    supportedLanguages: string[];
+    updateFieldSnapshot: (
+      update: (values: AppStoreFormValues) => AppStoreFormValues,
+    ) => void;
+  };
+
+type AppStoreFormWithAutosaveProps = AppStoreFormProps & {
+  onSavedEdit?: Dispatch<SetStateAction<AppStoreFormValues>>;
+};
+
+const AppStoreFormContext = createContext<AppStoreFormContextValue | null>(
+  null,
+);
+
+export const useAppStoreFormContext = () => {
+  const value = useContext(AppStoreFormContext);
+
+  if (!value) {
+    throw new Error(
+      "App Store fields must be rendered inside the AppStoreForm component.",
+    );
+  }
+
+  return value;
+};
 
 export const AppStoreForm = ({
   appId,
   teamId,
   appMetadata,
-}: AppStoreFormProps) => {
+  onSavedEdit,
+  children,
+}: PropsWithChildren<AppStoreFormWithAutosaveProps>) => {
   const { user } = useUser() as Auth0SessionUser;
 
-  const {
-    control,
-    errors,
-    localisations,
-    supportType,
-    handleSupportTypeChange,
-    submitSilent,
-    isEditable,
-    refetchAppMetadata,
-    refetchLocalisations,
-  } = useAppStoreForm(appId, appMetadata);
+  const appStoreForm = useAppStoreForm(appId, appMetadata);
+  const { control, submitSilent, isEditable } = appStoreForm;
 
   const form = useFormContext<AppStoreFormValues>();
-  // Read displayStatus (debounced/held view of the save state) so the button
-  // tracks the indicator's visible "Saving…" pill — disabling and changing
-  // copy only while the blue pill is showing, not on every raw status flip.
-  const { flushAll, displayStatus } = useSaveStatus();
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -58,9 +102,17 @@ export const AppStoreForm = ({
     ]);
   }, [user, teamId]);
 
-  const isMiniApp = useAtomValue(isMiniAppAtom);
-
   const supportedLanguages = useWatch({ control, name: "supported_languages" });
+
+  const handleSavedEdit = useCallback(
+    (values: AppStoreFormValues) => onSavedEdit?.(values),
+    [onSavedEdit],
+  );
+  const updateFieldSnapshot = useCallback(
+    (update: (values: AppStoreFormValues) => AppStoreFormValues) =>
+      onSavedEdit?.(update),
+    [onSavedEdit],
+  );
 
   useAutosaveWithStatus<AppStoreFormValues>({
     id: "app-store",
@@ -69,112 +121,142 @@ export const AppStoreForm = ({
     save: async (data, signal) => {
       await submitSilent(data, signal);
     },
+    onSavedEdit: handleSavedEdit,
+    isSelfPersisting: isSelfPersistingField,
   });
 
   return (
-    <div className="grid max-w-[700px] grid-cols-1fr/auto">
+    <AppStoreFormContext.Provider
+      value={{
+        ...appStoreForm,
+        appId,
+        teamId,
+        appMetadata,
+        isEnoughPermissions,
+        supportedLanguages,
+        updateFieldSnapshot,
+      }}
+    >
       <form
-        className="grid gap-y-10"
+        className="grid min-w-0 grid-cols-1 gap-y-6"
         onSubmit={(event) => {
           event.preventDefault();
         }}
       >
-        {isMiniApp && (
-          <>
-            <ComplianceSection
-              control={control}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
-            />
-
-            <HumansOnlySection
-              control={control}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
-            />
-
-            <CategorySection
-              control={control}
-              errors={errors}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
-            />
-
-            <SectionDivider />
-
-            <SupportSection
-              control={control}
-              errors={errors}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
-              supportType={supportType}
-              onSupportTypeChange={handleSupportTypeChange}
-            />
-
-            <SectionDivider />
-
-            <ContentCardImageSection
-              appId={appId}
-              teamId={teamId}
-              appMetadata={appMetadata}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
-              errors={errors}
-            />
-
-            <SectionDivider />
-          </>
-        )}
-
-        <CountriesSection
-          control={control}
-          errors={errors}
-          isEditable={isEditable}
-          isEnoughPermissions={isEnoughPermissions}
-        />
-
-        <SectionDivider />
-
-        <LanguagesSection
-          control={control}
-          errors={errors}
-          isEditable={isEditable}
-          isEnoughPermissions={isEnoughPermissions}
-        />
-
-        <SectionDivider />
-
-        <LocalisationsSection
-          control={control}
-          errors={errors}
-          localisations={localisations}
-          isEditable={isEditable}
-          isEnoughPermissions={isEnoughPermissions}
-          appMetadata={appMetadata}
-          appId={appId}
-          teamId={teamId}
-          supportedLanguages={supportedLanguages}
-          onAutosaveSuccess={() => {
-            refetchAppMetadata();
-            refetchLocalisations();
-          }}
-        />
-
-        <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
-          <SaveStatusIndicator />
-          <SaveButton
-            isSubmitting={displayStatus.state === "saving"}
-            isDisabled={
-              !isEditable ||
-              !isEnoughPermissions ||
-              displayStatus.state === "saving"
-            }
-            onSubmit={() => {
-              void flushAll();
-            }}
-          />
-        </div>
+        {children}
       </form>
+    </AppStoreFormContext.Provider>
+  );
+};
+
+export const StoreListingFields = () => {
+  const {
+    appId,
+    teamId,
+    appMetadata,
+    control,
+    errors,
+    supportType,
+    handleSupportTypeChange,
+    isEditable,
+    isEnoughPermissions,
+  } = useAppStoreFormContext();
+
+  return (
+    <div className="grid gap-y-8">
+      <CategorySection
+        control={control}
+        errors={errors}
+        isEditable={isEditable}
+        isEnoughPermissions={isEnoughPermissions}
+      />
+
+      <SupportSection
+        control={control}
+        errors={errors}
+        isEditable={isEditable}
+        isEnoughPermissions={isEnoughPermissions}
+        supportType={supportType}
+        onSupportTypeChange={handleSupportTypeChange}
+      />
+
+      <ContentCardImageSection
+        appId={appId}
+        teamId={teamId}
+        appMetadata={appMetadata}
+        isEditable={isEditable}
+        isEnoughPermissions={isEnoughPermissions}
+        errors={errors}
+      />
+
+      <ComplianceSection
+        control={control}
+        isEditable={isEditable}
+        isEnoughPermissions={isEnoughPermissions}
+      />
+
+      <HumansOnlySection
+        control={control}
+        isEditable={isEditable}
+        isEnoughPermissions={isEnoughPermissions}
+      />
     </div>
+  );
+};
+
+export const AvailabilityFields = () => {
+  const { control, errors, isEditable, isEnoughPermissions } =
+    useAppStoreFormContext();
+
+  return (
+    <div className="grid gap-y-8">
+      <CountriesSection
+        control={control}
+        errors={errors}
+        isEditable={isEditable}
+        isEnoughPermissions={isEnoughPermissions}
+      />
+
+      <LanguagesSection
+        control={control}
+        errors={errors}
+        isEditable={isEditable}
+        isEnoughPermissions={isEnoughPermissions}
+      />
+    </div>
+  );
+};
+
+export const LocalizedContentFields = () => {
+  const {
+    control,
+    errors,
+    localisations,
+    isEditable,
+    isEnoughPermissions,
+    appMetadata,
+    appId,
+    teamId,
+    supportedLanguages,
+    refetchAppMetadata,
+    refetchLocalizations,
+  } = useAppStoreFormContext();
+
+  return (
+    <LocalizationsSection
+      control={control}
+      errors={errors}
+      localisations={localisations}
+      isEditable={isEditable}
+      isEnoughPermissions={isEnoughPermissions}
+      appMetadata={appMetadata}
+      appId={appId}
+      teamId={teamId}
+      supportedLanguages={supportedLanguages}
+      onAutosaveSuccess={() => {
+        refetchAppMetadata();
+        refetchLocalizations();
+      }}
+    />
   );
 };

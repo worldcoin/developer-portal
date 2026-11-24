@@ -1,0 +1,8 @@
+function:
+  name: merge_world_id_accounts
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: service

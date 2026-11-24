@@ -9,7 +9,7 @@ export const SubButton = (props: SubButtonProps) => {
   return (
     <DropdownPrimitive.SubTrigger
       className={twMerge(
-        "grid cursor-pointer grid-cols-auto/1fr items-center gap-x-4 px-2 py-2.5 hover:bg-grey-50 md:gap-x-2 md:px-4",
+        "grid cursor-pointer grid-cols-auto/1fr items-center gap-x-4 px-2 py-2.5 hover:bg-surface-soft md:gap-x-2 md:px-4",
         className,
       )}
       {...otherProps}

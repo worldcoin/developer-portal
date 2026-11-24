@@ -21,12 +21,12 @@ import {
 
 const PROOF_INTEGRITY_V3_DOMAIN = "worldcoin/proof-integrity/v3";
 const PROOF_INTEGRITY_V4_DOMAIN = "worldcoin/proof-integrity/v4";
-const INTEGRITY_BUNDLE_VERSION = 1;
+const INTEGRITY_BUNDLE_VERSIONS = [1, 2] as const;
 const JWKS_CACHE_TTL_SECONDS = 24 * 60 * 60;
 const SIGNATURE_TIMESTAMP_THRESHOLD_SECONDS = 5 * 60;
 const JWKS_FETCH_TIMEOUT_MS = 4_000;
 
-type IntegrityEnvironment = "production" | "staging";
+type IntegrityEnvironment = "production" | "staging" | "sandbox";
 
 const DEFAULT_INTEGRITY_ENVIRONMENT: IntegrityEnvironment = "production";
 const INTEGRITY_ATTESTATION_CONFIG_BY_ENVIRONMENT: Record<
@@ -41,6 +41,10 @@ const INTEGRITY_ATTESTATION_CONFIG_BY_ENVIRONMENT: Record<
     issuer: "attestation.worldcoin.dev",
     jwksUrl: "https://attestation.worldcoin.dev/.well-known/jwks.json",
   },
+  sandbox: {
+    issuer: "attestation.sandbox.worldcoin.org",
+    jwksUrl: "https://attestation.sandbox.worldcoin.org/.well-known/jwks.json",
+  },
 };
 
 export const INTEGRITY_VERIFICATION_ERROR_CODE =
@@ -50,7 +54,7 @@ type SignatureFormat = "apple_app_attest" | "android_keystore";
 type IntegrityPlatform = "ios" | "android";
 
 type ParsedIntegrityBundle = {
-  version: number;
+  version: (typeof INTEGRITY_BUNDLE_VERSIONS)[number];
   signatureFormat: SignatureFormat;
   timestamp: number;
   signatureHex: string;
@@ -73,6 +77,7 @@ type IntegrityVerificationParams = {
     | UniquenessProofResponseV4[]
     | SessionResponseItem[];
   rpId: string;
+  legacyRpId?: string;
 };
 
 export type IntegrityVerificationResult =
@@ -138,7 +143,7 @@ export function normalizeIntegrityBundle(
     throw new IntegrityBundleError("missing_bundle_field");
   }
 
-  if (version !== INTEGRITY_BUNDLE_VERSION) {
+  if (version !== 1 && version !== 2) {
     throw new IntegrityBundleError("unsupported_bundle_version");
   }
 
@@ -211,7 +216,36 @@ function addLengthPrefixedString(
   hasher.update(bytes);
 }
 
+function encodeClaim(value: number) {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new IntegrityBundleError("invalid_sybil_score");
+  }
+
+  return Buffer.from(value.toString(16).padStart(64, "0"), "hex");
+}
+
+function isSelfieCheckResponse(
+  response: UniquenessProofResponseV4 | SessionResponseItem,
+) {
+  return Number(response.issuer_schema_id) === 11;
+}
+
+function claimsForResponse(
+  response: UniquenessProofResponseV4 | SessionResponseItem,
+) {
+  if (!isSelfieCheckResponse(response)) {
+    return [];
+  }
+
+  if (response.sybil_score === undefined) {
+    throw new IntegrityBundleError("missing_sybil_score");
+  }
+
+  return [encodeClaim(response.sybil_score)];
+}
+
 export function computeProofIntegrityDigest(params: {
+  integrityBundleVersion?: 1 | 2;
   nonce: string;
   protocolVersion: "3.0" | "4.0";
   responses:
@@ -219,10 +253,51 @@ export function computeProofIntegrityDigest(params: {
     | UniquenessProofResponseV4[]
     | SessionResponseItem[];
 }) {
+  const integrityBundleVersion = params.integrityBundleVersion ?? 1;
+
+  if (integrityBundleVersion === 2 && params.protocolVersion !== "4.0") {
+    throw new IntegrityBundleError("integrity_v2_requires_protocol_v4");
+  }
+
   if (params.protocolVersion === "4.0") {
     const hasher = createHash("sha256");
     hasher.update(PROOF_INTEGRITY_V4_DOMAIN);
+    // Protocol 4.0 cryptographically binds the nonce to each proof. Replay
+    // prevention belongs to the authenticator SDK and proof consumer, not
+    // this integrity check.
     hasher.update(parseNonceToFieldBytes(params.nonce));
+
+    if (integrityBundleVersion === 2) {
+      hasher.update(u32be(params.responses.length));
+
+      for (const response of params.responses as (
+        | UniquenessProofResponseV4
+        | SessionResponseItem
+      )[]) {
+        // Match Oxide's ProofIntegrityStatement encoding for every item,
+        // including those without claims: tag || nullifier || [action].
+        // Tags: uniqueness = 0, session = 1 (both session fields are signed).
+        if ("nullifier" in response) {
+          hasher.update(Buffer.from([0]));
+          // Ordinary nullifiers were parsed as hex at the request boundary.
+          hasher.update(
+            Buffer.from(response.nullifier.toHex().slice(2), "hex"),
+          );
+        } else {
+          hasher.update(Buffer.from([1]));
+          for (const field of response.session_nullifier) {
+            hasher.update(parseNonceToFieldBytes(field));
+          }
+        }
+
+        const claims = claimsForResponse(response);
+        hasher.update(u32be(claims.length));
+        for (const claim of claims) {
+          hasher.update(claim);
+        }
+      }
+    }
+
     return hasher.digest();
   }
 
@@ -434,13 +509,13 @@ async function verifyJwtWithJwk(params: {
   expectedIssuer: string;
   integrityJwt: string;
   jwk: JWK;
-  rpId: string;
+  audiences: string | string[];
 }) {
   const publicKey = await importJWK(params.jwk, "ES256");
   const { payload } = await jwtVerify(params.integrityJwt, publicKey, {
     algorithms: ["ES256"],
     issuer: params.expectedIssuer,
-    audience: params.rpId,
+    audience: params.audiences,
     requiredClaims: ["cnf", "exp", "platform", "pass"],
   });
 
@@ -455,6 +530,7 @@ async function verifyIntegrityToken(params: {
   environment?: IntegrityEnvironment;
   integrityJwt: string;
   rpId: string;
+  legacyRpId?: string;
   signatureFormat: SignatureFormat;
 }) {
   let protectedHeader: ReturnType<typeof decodeProtectedHeader>;
@@ -487,7 +563,9 @@ async function verifyIntegrityToken(params: {
       expectedIssuer: attestationConfig.issuer,
       integrityJwt: params.integrityJwt,
       jwk: keyResult.jwk,
-      rpId: params.rpId,
+      audiences: params.legacyRpId
+        ? [params.rpId, params.legacyRpId]
+        : params.rpId,
     });
   } catch (error) {
     if (!keyResult.fromCache || !shouldRefreshJwksAfterJwtFailure(error)) {
@@ -508,7 +586,9 @@ async function verifyIntegrityToken(params: {
         expectedIssuer: attestationConfig.issuer,
         integrityJwt: params.integrityJwt,
         jwk: keyResult.jwk,
-        rpId: params.rpId,
+        audiences: params.legacyRpId
+          ? [params.rpId, params.legacyRpId]
+          : params.rpId,
       });
     } catch (retryError) {
       throw new IntegrityBundleError(
@@ -610,14 +690,26 @@ export async function verifyIntegrityBundle(
     const bundle = normalizeIntegrityBundle(params.integrityBundle);
     validateTimestamp(bundle.timestamp);
 
+    const isSelfieCheckV4 =
+      params.protocolVersion === "4.0" &&
+      (
+        params.responses as (UniquenessProofResponseV4 | SessionResponseItem)[]
+      ).some(isSelfieCheckResponse);
+    if (isSelfieCheckV4 && bundle.version !== 2) {
+      throw new IntegrityBundleError("selfie_check_requires_integrity_v2");
+    }
+
     const { devicePublicKey, platform } = await verifyIntegrityToken({
       environment: params.environment,
       integrityJwt: bundle.jwt,
       rpId: params.rpId,
+      legacyRpId:
+        params.protocolVersion === "3.0" ? params.legacyRpId : undefined,
       signatureFormat: bundle.signatureFormat,
     });
 
     const payloadDigest = computeProofIntegrityDigest({
+      integrityBundleVersion: bundle.version,
       nonce: params.nonce,
       protocolVersion: params.protocolVersion,
       responses: params.responses,

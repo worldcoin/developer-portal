@@ -1,0 +1,18 @@
+query GetWorldIdActionDetail($action_id: String!, $app_id: String!) {
+  action_v4(
+    limit: 1
+    where: {
+      id: { _eq: $action_id }
+      rp_registration: { app_id: { _eq: $app_id } }
+    }
+  ) {
+    id
+    action
+    description
+    rp_id
+    created_at
+    rp_registration {
+      app_id
+    }
+  }
+}

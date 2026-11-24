@@ -1,24 +1,14 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { WorldBlueprintIcon } from "@/components/Icons/WorldBlueprintIcon";
-import { LayersIconFrame } from "@/components/LayersIconFrame";
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
+import { auth0 } from "@/lib/auth0";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { auth0 } from "@/lib/auth0";
-
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Form } from "./Form";
-import {
-  FetchUserQuery,
-  getSdk as getFetchMembershipsSdk,
-} from "./graphql/server/fetch-user.generated";
+import { getSdk as getFetchUserSdk } from "./graphql/server/fetch-user.generated";
 
-type CreateTeamPage = {
-  params: Promise<Record<string, string>>;
-};
-
-export const CreateTeamPage = async (props: CreateTeamPage) => {
+export const CreateTeamPage = async () => {
   const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
 
@@ -26,33 +16,64 @@ export const CreateTeamPage = async (props: CreateTeamPage) => {
     return redirect(urls.logout());
   }
 
-  const client = await getAPIServiceGraphqlClient();
-
-  let data: FetchUserQuery | null = null;
-
+  // Existing portal users — including those who just deleted or left their
+  // last team — create additional teams from their profile instead. This page
+  // only onboards brand-new signups, whose terms acceptance is recorded when
+  // the form is submitted.
   if (user.hasura?.id) {
-    data = await getFetchMembershipsSdk(client).FetchUser({
+    const client = await getAPIServiceGraphqlClient();
+
+    const { user_by_pk } = await getFetchUserSdk(client).FetchUser({
       userId: user.hasura.id,
     });
+
+    if (user_by_pk?.id) {
+      return redirect(urls.profile());
+    }
   }
 
-  const hasUser = Boolean(data) && Boolean(data!.user_by_pk?.id);
+  const signedInAs = user.email || user.name;
 
   return (
-    <SizingWrapper fullHeight>
-      <div className="flex h-full items-center justify-center">
-        <div className="grid w-full max-w-[580px] gap-y-8">
-          <LayersIconFrame>
-            <WorldBlueprintIcon />
-          </LayersIconFrame>
+    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[#faf9f7] font-world text-portal-text">
+      <WorldIcon
+        variant="outline"
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 right-0 size-[120vmin] max-w-none translate-x-[40%] -translate-y-1/2 text-black/[0.05]"
+      />
 
-          <Typography as="h1" variant={TYPOGRAPHY.H6} className="text-center">
-            {hasUser ? "Create a new team" : "Create your first team"}
-          </Typography>
+      <header className="relative z-10 px-6 pt-8 md:px-12">
+        <Image
+          src="/icons/logo.svg"
+          width={132}
+          height={33}
+          alt="World"
+          priority
+        />
+      </header>
 
-          <Form hasUser={hasUser} />
+      <main className="relative z-10 flex flex-1 items-center px-6 md:px-12">
+        <div className="mx-auto w-full max-w-[640px] py-16">
+          <h1 className="text-12 leading-none font-medium tracking-[0.14em] text-portal-muted uppercase">
+            Create your first team
+          </h1>
+
+          <Form />
         </div>
-      </div>
-    </SizingWrapper>
+      </main>
+
+      <footer className="relative z-10 px-6 pb-8 md:px-12">
+        <p className="mx-auto w-full max-w-[640px] text-12 leading-none text-portal-subtle">
+          Signed in as <span className="text-portal-muted">{signedInAs}</span>
+          {" · "}
+          <a
+            href={urls.logout()}
+            className="underline underline-offset-2 transition-colors hover:text-portal-text"
+          >
+            Log out
+          </a>
+        </p>
+      </footer>
+    </div>
   );
 };

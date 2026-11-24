@@ -87,6 +87,16 @@ select_permissions:
           - app_metadata:
               verification_status:
                 _neq: unverified
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - created_at
+        - deleted_at
+        - id
+        - name
+        - team_id
+      filter: {}
+      allow_aggregations: true
   - role: service
     permission:
       columns:

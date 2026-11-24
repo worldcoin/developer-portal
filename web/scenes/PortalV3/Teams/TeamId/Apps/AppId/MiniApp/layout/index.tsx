@@ -3,10 +3,11 @@ import { ReactNode } from "react";
 
 export const MiniAppLayout = (props: { children: ReactNode }) => {
   return (
-    <div>
-      <SizingWrapper variant="nav" className="w-full">
-        {props.children}
-      </SizingWrapper>
-    </div>
+    <SizingWrapper
+      gridClassName="grow"
+      className="mx-auto w-full max-w-[1120px]"
+    >
+      {props.children}
+    </SizingWrapper>
   );
 };

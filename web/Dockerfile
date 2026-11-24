@@ -1,5 +1,5 @@
 # https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
-FROM --platform=linux/amd64 public.ecr.aws/docker/library/node:20.15.1-alpine AS base
+FROM --platform=linux/amd64 public.ecr.aws/docker/library/node:22.23.4-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -22,10 +22,7 @@ WORKDIR /app
 # Install working version of corepack
 RUN npm install -g corepack@0.31.0 && corepack --version
 
-# This stage has no project package.json, so corepack would otherwise fall back
-# to the latest pnpm (incompatible with the Node 20 base, fails with
-# ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING). Pin to the same version declared in
-# the project's packageManager field.
+# Pin pnpm to packageManager because this stage has no package.json.
 # TODO: Can be further optimized to remove next peer dependency
 # dd-trace must be >=5.27.0 so its Next.js instrumentation detects
 # middlewareInvoke via the request meta symbol introduced in Next.js 14.2.7
@@ -35,7 +32,7 @@ RUN npm install -g corepack@0.31.0 && corepack --version
 # error on every middleware-matched request, generating tens of thousands of
 # noisy "untyped Error" events in Datadog Error Tracking despite HTTP 200
 # responses. Keep this in sync with the `dd-trace` version in package.json.
-RUN corepack enable pnpm && corepack prepare pnpm@9.15.4 --activate && pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.84.0
+RUN corepack enable pnpm && corepack prepare pnpm@9.15.4 --activate && pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.115.0
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -57,11 +54,15 @@ ARG NEXT_PUBLIC_POSTHOG_API_KEY=""
 ARG NEXT_PUBLIC_PROFILE_ROUTE="/api/auth/profile"
 ARG CLOUDFRONT_DISTRIBUTION_ID=""
 ARG NEXT_PUBLIC_APP_ENV=""
+# The Android sandbox distribution link is read by a client component and must
+# be available while Next.js builds the browser bundle.
+ARG NEXT_PUBLIC_ANDROID_INTERNAL_TEST_URL=""
 # Feature flag for the World ID legacy account restoration flow. Read at
 # build time by the client bundle and at runtime by the API endpoint.
 ARG NEXT_PUBLIC_ENABLE_WORLD_ID_RESTORATION=""
 ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=""
 ENV NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
+ENV NEXT_PUBLIC_ANDROID_INTERNAL_TEST_URL=${NEXT_PUBLIC_ANDROID_INTERNAL_TEST_URL}
 ENV NEXT_PUBLIC_ENABLE_WORLD_ID_RESTORATION=${NEXT_PUBLIC_ENABLE_WORLD_ID_RESTORATION}
 ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
 ENV ASSETS_S3_BUCKET_NAME=${ASSETS_S3_BUCKET_NAME}

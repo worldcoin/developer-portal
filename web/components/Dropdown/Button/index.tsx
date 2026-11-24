@@ -7,10 +7,7 @@ export const Button = (props: ButtonProps) => {
   const { className, children, ...otherProps } = props;
   return (
     <DropdownPrimitive.Trigger
-      className={twMerge(
-        "grid cursor-pointer items-center md:gap-x-2",
-        className,
-      )}
+      className={twMerge("grid items-center md:gap-x-2", className)}
       {...otherProps}
     >
       {children}

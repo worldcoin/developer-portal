@@ -1,35 +1,34 @@
 "use client";
 
-import { Toggle } from "@/components/Toggle";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
+import { useApolloClient } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import {
-  FetchAppMetadataDocument,
-  FetchAppMetadataQueryVariables,
-} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
 import { useSaveStatusActions } from "../SaveStatus";
 import { updateAppMode } from "./server/submit";
 
 type MiniAppConfigurationProps = {
-  appId: string;
   teamId: string;
   appMetadata: AppMetadata;
 };
 
-export const MiniAppConfiguration = ({
-  appId,
+/**
+ * Owns the app-mode toggle: optimistic `isMiniAppAtom` flip, the
+ * `updateAppMode` server action with revert-on-failure, and save-status
+ * reporting under id "mini-app-toggle" for the configuration wizard's mode
+ * selector.
+ */
+export const useAppModeToggle = ({
   teamId,
   appMetadata,
 }: MiniAppConfigurationProps) => {
+  const apolloClient = useApolloClient();
   const { user } = useUser() as Auth0SessionUser;
   const [isUpdatingMode, setIsUpdatingMode] = useState(false);
   const modeUpdateInFlightRef = useRef(false);
@@ -51,12 +50,6 @@ export const MiniAppConfiguration = ({
   useEffect(() => {
     setIsMiniApp(appMetadata.app_mode === "mini-app");
   }, [appMetadata.app_mode, setIsMiniApp]);
-
-  const { refetch: refetchAppMetadata } =
-    useRefetchQueries<FetchAppMetadataQueryVariables>(
-      FetchAppMetadataDocument,
-      { id: appId },
-    );
 
   const handleAppModeToggle = useCallback(
     async (checked: boolean) => {
@@ -87,7 +80,28 @@ export const MiniAppConfiguration = ({
             },
           });
         } else {
-          await refetchAppMetadata();
+          // The server action has already persisted the row. Updating the
+          // normalized cache keeps every metadata consumer current without
+          // refetching the page query, which would replace the wizard with its
+          // loading skeleton and look like a full-page refresh.
+          const cacheId = apolloClient.cache.identify({
+            __typename: "app_metadata",
+            id: appMetadata.id,
+          });
+          if (cacheId) {
+            apolloClient.cache.modify({
+              id: cacheId,
+              fields: {
+                app_mode: () => newMode,
+                ...(newMode === "mini-app" && {
+                  category: (existingCategory: string) =>
+                    existingCategory === "External"
+                      ? "Other"
+                      : existingCategory,
+                }),
+              },
+            });
+          }
           saveStatus?.pushStatus("mini-app-toggle", {
             state: "saved",
             at: Date.now(),
@@ -114,7 +128,7 @@ export const MiniAppConfiguration = ({
         setIsUpdatingMode(false);
       }
     },
-    [appMetadata.id, refetchAppMetadata, setIsMiniApp, saveStatus],
+    [apolloClient.cache, appMetadata.id, setIsMiniApp, saveStatus],
   );
 
   const handleAppModeToggleRef = useRef<typeof handleAppModeToggle | null>(
@@ -122,34 +136,7 @@ export const MiniAppConfiguration = ({
   );
   handleAppModeToggleRef.current = handleAppModeToggle;
 
-  return (
-    <div className="flex max-w-[700px] flex-col gap-5">
-      <Typography variant={TYPOGRAPHY.H7} className="font-normal text-grey-900">
-        Mini App Configuration
-      </Typography>
+  const isDisabled = !isEditable || !isEnoughPermissions || isUpdatingMode;
 
-      <div className="grid grid-cols-1 gap-y-10">
-        {/* This is a Mini App toggle */}
-        <div className="rounded-[10px] border border-grey-100 px-6 py-4">
-          <div className="flex items-center gap-x-4">
-            <div className="grid flex-1 gap-y-1">
-              <Typography variant={TYPOGRAPHY.S2} className="text-grey-900">
-                This is a Mini App
-              </Typography>
-              <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
-                Check this if you have integrated mini-kit into your app and
-                want it to load as a mini-app. Your app will be rejected if this
-                is not true.
-              </Typography>
-            </div>
-            <Toggle
-              checked={isMiniApp}
-              onChange={handleAppModeToggle}
-              disabled={!isEditable || !isEnoughPermissions || isUpdatingMode}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return { isMiniApp, isDisabled, handleAppModeToggle };
 };
