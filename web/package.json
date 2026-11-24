@@ -16,7 +16,7 @@
     "@hookform/resolvers": "^3.3.4",
     "@next/env": "16.4.6",
     "@noble/curves": "1.9.1",
-    "@opensearch-project/opensearch": "^3.5.1",
+    "@opensearch-project/opensearch": "^3.10.0",
     "@parcel/watcher": "^2.4.1",
     "@radix-ui/react-avatar": "^1.2.2",
     "@radix-ui/react-dialog": "^1.1.19",

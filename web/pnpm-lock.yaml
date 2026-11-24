@@ -74,8 +74,8 @@ importers:
         specifier: 1.9.1
         version: 1.9.1
       '@opensearch-project/opensearch':
-        specifier: ^3.5.1
-        version: 3.5.1
+        specifier: ^3.10.0
+        version: 3.10.0
       '@parcel/watcher':
         specifier: ^2.4.1
         version: 2.4.1
@@ -1771,8 +1771,8 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@opensearch-project/opensearch@3.5.1':
-    resolution: {integrity: sha512-6bf+HcuERzAtHZxrm6phjref54ABse39BpkDie/YO3AUFMCBrb3SK5okKSdT5n3+nDRuEEQLhQCl0RQV3s1qpA==}
+  '@opensearch-project/opensearch@3.10.0':
+    resolution: {integrity: sha512-8Rpnm2Z1948fcYFJXFon/X+3QAvjacBak+SLOnZdMa5ogh3Pim+ee4ONvAqKy7ElIZNbyNsjx3sjYq0U91pq8g==}
     engines: {node: '>=14', yarn: ^1.22.10}
 
   '@opentelemetry/api-logs@0.223.0':
@@ -4543,10 +4543,6 @@ packages:
 
   highlightjs-vue@1.0.0:
     resolution: {integrity: sha512-PDEfEF102G23vHmPhLyPboFCD+BkMGu+GuJe2d9/eH4FsCwvgBpnc9n0pGE+ffKdph38s6foEZiEjdgHdzp+IA==}
-
-  hpagent@1.2.0:
-    resolution: {integrity: sha512-A91dYTeIB6NoXG+PxTQpCCDDnfHsW9kc06Lvpu1TEe9gnd6ZFeiBoRO9JvzEv6xK7EX97/dUE8g/vBMTqTS3CA==}
-    engines: {node: '>=14'}
 
   html-encoding-sniffer@3.0.0:
     resolution: {integrity: sha512-oWv4T4yJ52iKrufjnyZPkrN0CH3QnrUqdB6In1g5Fe1mia8GmF36gnfNySxoZtxD5+NmYw1EElVXiBk93UeskA==}
@@ -8716,11 +8712,10 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@opensearch-project/opensearch@3.5.1':
+  '@opensearch-project/opensearch@3.10.0':
     dependencies:
       aws4: 1.13.2
       debug: 4.4.3
-      hpagent: 1.2.0
       json11: 2.0.2
       ms: 2.1.3
       secure-json-parse: 2.7.0
@@ -11665,8 +11660,6 @@ snapshots:
   highlight.js@10.7.3: {}
 
   highlightjs-vue@1.0.0: {}
-
-  hpagent@1.2.0: {}
 
   html-encoding-sniffer@3.0.0:
     dependencies:
