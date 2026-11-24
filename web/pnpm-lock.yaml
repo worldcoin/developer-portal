@@ -134,8 +134,8 @@ importers:
         specifier: ^2.8.5
         version: 2.8.5
       countries-list:
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.4.1
+        version: 3.4.1
       csv-parse:
         specifier: ^7.0.2
         version: 7.0.2
@@ -3721,8 +3721,8 @@ packages:
       typescript:
         optional: true
 
-  countries-list@3.1.0:
-    resolution: {integrity: sha512-HpTBLZba1VPTZSjUnUwR7SykxV7Z/7/+ZM5x5wi5tO99Qvom6bE2SC+AQ18016ujg3jSlYBbMITrHNnPAHSM9Q==}
+  countries-list@3.4.1:
+    resolution: {integrity: sha512-sKLGAZD5EAdzQwQ19vOp/9u33MTjmZ0CkdXPYtp/An6cyIlJ/E8TwGf2FcPe1AnzHO+h7nbTfoHyXIi58Hpa+Q==}
 
   create-jest@29.7.0:
     resolution: {integrity: sha512-Adz2bdH0Vq3F53KEMJOoftQFutWCukm6J24wbPWRO4k1kMY7gS7ds/uoJkNuV8wDCtWWnuwGcJwpWcih+zEW1Q==}
@@ -10674,7 +10674,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  countries-list@3.1.0: {}
+  countries-list@3.4.1: {}
 
   create-jest@29.7.0(@types/node@20.17.2)(ts-node@10.9.2(@types/node@20.17.2)(typescript@5.9.3)):
     dependencies:
