@@ -134,8 +134,40 @@ describe("/api/public/app/[app_id]", () => {
         avg_notification_open_rate: null,
         deleted_at: null,
         can_use_implicit_credentials: false,
+        enable_face_check: false,
       },
     });
+  });
+
+  test("Includes the same Face Check allowlist decision as precheck", async () => {
+    const originalParameterStore = global.ParameterStore;
+    const getParameter = jest
+      .fn()
+      .mockImplementation(async (parameter) =>
+        parameter === "whitelisted-apps/face-check" ? ["2"] : [],
+      );
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+
+    try {
+      const request = new NextRequest("https://cdn.test.com/api/public/app/2", {
+        headers: { host: "cdn.test.com" },
+      });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "2" }),
+      });
+      expect(await response.json()).toMatchObject({
+        app_data: { enable_face_check: true },
+      });
+      expect(getParameter).toHaveBeenCalledWith(
+        "whitelisted-apps/face-check",
+        [],
+        { cacheNotFound: true, timeoutMs: 3000 },
+      );
+    } finally {
+      global.ParameterStore = originalParameterStore;
+    }
   });
 
   test("Returns correct value for valid verified app", async () => {
@@ -241,6 +273,7 @@ describe("/api/public/app/[app_id]", () => {
         avg_notification_open_rate: null,
         deleted_at: null,
         can_use_implicit_credentials: false,
+        enable_face_check: false,
       },
     });
   });
@@ -345,6 +378,7 @@ describe("/api/public/app/[app_id]", () => {
         avg_notification_open_rate: null,
         deleted_at: null,
         can_use_implicit_credentials: false,
+        enable_face_check: false,
       },
     });
   });

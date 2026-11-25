@@ -796,6 +796,7 @@ describe("/api/v2/public/apps", () => {
             category_ranking: 1,
             avg_notification_open_rate: null,
             can_use_implicit_credentials: false,
+            enable_face_check: false,
           },
           {
             app_id: "2",
@@ -834,6 +835,7 @@ describe("/api/v2/public/apps", () => {
             category_ranking: 2,
             avg_notification_open_rate: null,
             can_use_implicit_credentials: false,
+            enable_face_check: false,
           },
           {
             app_id: "3",
@@ -873,6 +875,7 @@ describe("/api/v2/public/apps", () => {
             category_ranking: 1,
             avg_notification_open_rate: null,
             can_use_implicit_credentials: false,
+            enable_face_check: false,
           },
         ],
       },
@@ -991,6 +994,7 @@ describe("/api/v2/public/apps", () => {
             category_ranking: 1,
             avg_notification_open_rate: null,
             can_use_implicit_credentials: false,
+            enable_face_check: false,
           },
         ],
         highlights: [],
