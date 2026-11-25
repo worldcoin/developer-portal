@@ -45,7 +45,7 @@ export const ReviewStep = (props: {
 
   const name = basicInfoDraft.name || appMetadata.name || "";
   const tagline =
-    en?.world_app_description || appMetadata.world_app_description || "";
+    en?.world_app_description ?? appMetadata.world_app_description ?? "";
   const description = en?.description_overview ?? "";
 
   const showcasePaths = (en?.showcase_img_urls ?? []).filter(
