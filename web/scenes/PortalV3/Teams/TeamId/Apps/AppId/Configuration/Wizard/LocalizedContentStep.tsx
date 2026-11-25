@@ -135,29 +135,31 @@ export const LocalizedContentStep = (props: { isMiniApp: boolean }) => {
           )}
         />
 
-        {props.isMiniApp && (
+        {props.isMiniApp || appMetadata.app_mode === "external" ? (
           <div className="flex w-full items-start gap-4">
-            <Controller
-              control={control}
-              name={`localisations.${selectedIndex}.short_name`}
-              render={({ field }) => (
-                <TextField
-                  label="Short name"
-                  maxLength={11}
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  disabled={disabled}
-                  error={fieldErrors?.short_name?.message}
-                />
-              )}
-            />
+            {props.isMiniApp ? (
+              <Controller
+                control={control}
+                name={`localisations.${selectedIndex}.short_name`}
+                render={({ field }) => (
+                  <TextField
+                    label="Short name"
+                    maxLength={11}
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={disabled}
+                    error={fieldErrors?.short_name?.message}
+                  />
+                )}
+              />
+            ) : null}
             <Controller
               control={control}
               name={`localisations.${selectedIndex}.world_app_description`}
               render={({ field }) => (
                 <TextField
-                  label="App tag line"
+                  label="App tagline"
                   maxLength={40}
                   value={field.value ?? ""}
                   onChange={field.onChange}
@@ -168,7 +170,7 @@ export const LocalizedContentStep = (props: { isMiniApp: boolean }) => {
               )}
             />
           </div>
-        )}
+        ) : null}
 
         <Controller
           control={control}
