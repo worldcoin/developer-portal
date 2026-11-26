@@ -372,9 +372,13 @@ const internalDashboardFetchConfig = {
  * Returns an GraphQLClient to interact with GraphQL's API with a service token
  * @returns
  */
-export const getAPIServiceGraphqlClient = async () => {
+export const getAPIServiceGraphqlClient = async (
+  fetchPolicy?: GraphqlFetchPolicy,
+) => {
   return new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
-    ...sharedFetchConfig,
+    ...(fetchPolicy
+      ? { fetch: makeGraphqlFetchWithRetry(baseFetch, fetchPolicy) }
+      : sharedFetchConfig),
     headers: {
       authorization: `Bearer ${await generateServiceJWT()}`,
     },
