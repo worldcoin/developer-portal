@@ -1,0 +1,76 @@
+diff --git a/index.esm.js b/index.esm.js
+index f84d4dbd888a7cbb77d61303c7940899cfa7edfe..0cd93aa7149712866acc35c7b85d8f9d9b25e4cb 100644
+--- a/index.esm.js
++++ b/index.esm.js
+@@ -1686,7 +1686,8 @@ class ObjectSchema extends Schema {
+     });
+     let isChanged = false;
+     for (const prop of props) {
+-      let field = fields[prop];
++      // Only schema-owned properties are validators (jquense/yup#2328).
++      let field = Object.prototype.hasOwnProperty.call(fields, prop) ? fields[prop] : undefined;
+       let exists = (prop in value);
+       if (field) {
+         let fieldValue;
+@@ -1709,10 +1710,21 @@ class ObjectSchema extends Schema {
+         // TODO: use _cast, this is double resolving
+         field.cast(value[prop], innerOptions) : value[prop];
+         if (fieldValue !== undefined) {
+-          intermediateValue[prop] = fieldValue;
++          Object.defineProperty(intermediateValue, prop, {
++            value: fieldValue,
++            enumerable: true,
++            configurable: true,
++            writable: true
++          });
+         }
+       } else if (exists && !strip) {
+-        intermediateValue[prop] = value[prop];
++        // Preserve __proto__ as data rather than invoking its inherited setter.
++        Object.defineProperty(intermediateValue, prop, {
++          value: value[prop],
++          enumerable: true,
++          configurable: true,
++          writable: true
++        });
+       }
+       if (exists !== prop in intermediateValue || intermediateValue[prop] !== value[prop]) {
+         isChanged = true;
+diff --git a/index.js b/index.js
+index 8a1b457ca4943f861c8e8208394c517b625bdfc7..ff4b31c597521b97d233c2d4dd55538cd0cc65d1 100644
+--- a/index.js
++++ b/index.js
+@@ -1694,7 +1694,8 @@ class ObjectSchema extends Schema {
+     });
+     let isChanged = false;
+     for (const prop of props) {
+-      let field = fields[prop];
++      // Only schema-owned properties are validators (jquense/yup#2328).
++      let field = Object.prototype.hasOwnProperty.call(fields, prop) ? fields[prop] : undefined;
+       let exists = (prop in value);
+       if (field) {
+         let fieldValue;
+@@ -1717,10 +1718,21 @@ class ObjectSchema extends Schema {
+         // TODO: use _cast, this is double resolving
+         field.cast(value[prop], innerOptions) : value[prop];
+         if (fieldValue !== undefined) {
+-          intermediateValue[prop] = fieldValue;
++          Object.defineProperty(intermediateValue, prop, {
++            value: fieldValue,
++            enumerable: true,
++            configurable: true,
++            writable: true
++          });
+         }
+       } else if (exists && !strip) {
+-        intermediateValue[prop] = value[prop];
++        // Preserve __proto__ as data rather than invoking its inherited setter.
++        Object.defineProperty(intermediateValue, prop, {
++          value: value[prop],
++          enumerable: true,
++          configurable: true,
++          writable: true
++        });
+       }
+       if (exists !== prop in intermediateValue || intermediateValue[prop] !== value[prop]) {
+         isChanged = true;
