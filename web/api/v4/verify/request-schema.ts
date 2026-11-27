@@ -259,6 +259,12 @@ export const schema = yup
     // verified before proof verification.
     integrity_bundle: integrityBundleSchema.optional(),
 
+    // Lets the relying party accept Self Check 4.0 responses that carry no
+    // integrity bundle, such as those from authenticators without device
+    // attestation. Nothing then attests the disclosed sybil_score. A bundle
+    // that is present is still verified.
+    allow_unattested_selfie_check: yup.boolean().strict().optional(),
+
     // Responses array - validated based on version and type of proof
     responses: yup
       .array()
@@ -411,6 +417,7 @@ export interface UniquenessProofRequestV4 {
   action_description?: string;
   environment?: "production" | "staging" | "sandbox";
   integrity_bundle?: IntegrityBundle;
+  allow_unattested_selfie_check?: boolean;
   responses: UniquenessProofResponseV4[];
 }
 
@@ -433,5 +440,6 @@ export interface SessionProofRequest {
   min_protocol_version?: "3.0" | "4.0";
   environment?: "production" | "staging" | "sandbox";
   integrity_bundle?: IntegrityBundle;
+  allow_unattested_selfie_check?: boolean;
   responses: SessionResponseItem[];
 }

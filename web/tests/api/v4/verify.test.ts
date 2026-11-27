@@ -508,6 +508,60 @@ describe("/api/v4/verify [integrity bundle]", () => {
         .nullifier,
     ).toBe(checkedNullifier);
   });
+
+  it("verifies Self Check 4.0 responses without an integrity bundle when the relying party allows it", async () => {
+    const req = createRequest({
+      protocol_version: "4.0",
+      nonce: "1",
+      action: "verify",
+      allow_unattested_selfie_check: true,
+      responses: [selfieCheckV4Response],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(200);
+    expect(mockVerifyIntegrityBundle).not.toHaveBeenCalled();
+    expect(mockHandleUniquenessProofVerification).toHaveBeenCalledTimes(1);
+  });
+
+  it("still rejects an integrity version 1 bundle on Self Check 4.0 responses when unattested ones are allowed", async () => {
+    const req = createRequest({
+      protocol_version: "4.0",
+      nonce: "1",
+      action: "verify",
+      allow_unattested_selfie_check: true,
+      integrity_bundle: integrityBundle,
+      responses: [selfieCheckV4Response],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(403);
+    expect(mockVerifyIntegrityBundle).not.toHaveBeenCalled();
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+  });
+
+  it("still verifies a present integrity bundle when unattested Self Check 4.0 responses are allowed", async () => {
+    mockVerifyIntegrityBundle.mockResolvedValueOnce({
+      success: false,
+      reason: "invalid_device_signature",
+    });
+    const req = createRequest({
+      protocol_version: "4.0",
+      nonce: "1",
+      action: "verify",
+      allow_unattested_selfie_check: true,
+      integrity_bundle: { ...integrityBundle, version: 2 },
+      responses: [selfieCheckV4Response],
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
+
+    expect(res.status).toBe(403);
+    expect(mockVerifyIntegrityBundle).toHaveBeenCalledTimes(1);
+    expect(mockHandleUniquenessProofVerification).not.toHaveBeenCalled();
+  });
 });
 // #endregion
 

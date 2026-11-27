@@ -245,6 +245,26 @@ describe("v4 verify request schema", () => {
       }),
     ).rejects.toThrow("sybil_score is required for Self Check 4.0 responses");
   });
+
+  it("rejects a non-boolean allow_unattested_selfie_check", async () => {
+    await expect(
+      schema.validate({
+        protocol_version: "4.0",
+        nonce: "0x01",
+        action: "test-action",
+        allow_unattested_selfie_check: "true",
+        responses: [
+          {
+            identifier: "proof_of_human",
+            issuer_schema_id: 1,
+            nullifier: "0x02",
+            expires_at_min: 1772584197,
+            proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+          },
+        ],
+      }),
+    ).rejects.toThrow();
+  });
 });
 
 // #region Supported v4 credential issuers

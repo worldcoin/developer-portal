@@ -204,11 +204,12 @@ async function verify(
         (response) => Number(response.issuer_schema_id) === 11,
       );
 
-    if (
-      requiresSelfieCheckIntegrity &&
-      (!parsedParams.integrity_bundle ||
-        parsedParams.integrity_bundle.version !== 2)
-    ) {
+    // A bundle must be version 2. Without one, the relying party decides.
+    const meetsSelfieCheckIntegrityPolicy = parsedParams.integrity_bundle
+      ? parsedParams.integrity_bundle.version === 2
+      : parsedParams.allow_unattested_selfie_check === true;
+
+    if (requiresSelfieCheckIntegrity && !meetsSelfieCheckIntegrityPolicy) {
       diagnostics.failGuard("selfie_integrity_requirement");
       return errorResponse({
         statusCode: 403,
